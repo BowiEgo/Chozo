@@ -1,0 +1,10 @@
+# Directories
+.idea/
+.vscode/
+build/
+ParallaxEngine/build
+Sandbox/build
+
+# Files
+.DS_Store
+imgui.ini
