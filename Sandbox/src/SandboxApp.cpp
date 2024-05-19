@@ -1,4 +1,5 @@
 #include "Parallax.h"
+
 #include <iostream>
 
 class Sandbox : public Parallax::Application
@@ -6,16 +7,15 @@ class Sandbox : public Parallax::Application
 public:
     Sandbox()
     {
-        std::cout << "Welcome to Parallax Sandbox!" << std::endl;
+        PX_INFO("Welcome to Parallax Sandbox!");
     }
 
     ~Sandbox()
     {
-
     }
 };
 
-Parallax::Application* Parallax::CreateApplication()
+Parallax::Application *Parallax::CreateApplication()
 {
     return new Sandbox();
 };

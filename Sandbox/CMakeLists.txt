@@ -4,7 +4,6 @@ project(Sandbox VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
 get_filename_component(PARENT_DIR ${CMAKE_SOURCE_DIR} DIRECTORY)
 
 find_library(PARALLAX_ENGINE_LIBRARY
@@ -25,3 +24,6 @@ add_executable(Sandbox src/SandboxApp.cpp)
 
 target_link_libraries(Sandbox PRIVATE ${PARALLAX_ENGINE_LIBRARY})
 target_include_directories(Sandbox PRIVATE ${PARALLAX_ENGINE_DIR}/src)
+
+find_package(spdlog CONFIG REQUIRED)
+target_link_libraries(Sandbox PUBLIC spdlog::spdlog)

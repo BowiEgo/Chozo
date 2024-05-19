@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
+
 project(Parallax VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -7,8 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-fdeclspec)
 endif()
-
-message( STATUS "Architecture: ${CMAKE_SYSTEM_NAME}" )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Parallax)
 
@@ -25,8 +24,6 @@ set_target_properties(Parallax PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/ DESTINATION include)
-
 install(TARGETS Parallax
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
@@ -41,3 +38,6 @@ endif()
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
     target_compile_definitions(${PROJECT_NAME} PUBLIC -D_PARALLAX_PLATFORMMAC)
 endif()
+
+find_package(spdlog CONFIG REQUIRED)
+target_link_libraries(Parallax PUBLIC spdlog::spdlog)
