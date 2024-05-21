@@ -7,7 +7,7 @@ class Sandbox : public Parallax::Application
 public:
     Sandbox()
     {
-        PX_INFO("Welcome to Parallax Sandbox!");
+        PRX_INFO("Welcome to Parallax Sandbox!");
     }
 
     ~Sandbox()

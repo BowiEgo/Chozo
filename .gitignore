@@ -4,6 +4,7 @@
 build/
 ParallaxEngine/build
 Sandbox/build
+vendor/
 
 # Files
 .DS_Store

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "prxpch.h"
 #include "Core.h"
+#include "Events/Event.h"
 
-namespace Parallax {
+namespace Parallax
+{
     class PARALLAX_API Application
     {
     public:
@@ -13,5 +16,5 @@ namespace Parallax {
     };
 
     // To be defined in CLIENT
-    Application* CreateApplication();
+    Application *CreateApplication();
 }

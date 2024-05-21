@@ -10,7 +10,4 @@
     #define PARALLAX_API
 #endif
 
-namespace Parallax
-{
-    PARALLAX_API void Print();
-}
+#define BIT(x) (1 << x)
