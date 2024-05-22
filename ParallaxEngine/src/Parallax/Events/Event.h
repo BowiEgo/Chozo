@@ -75,6 +75,4 @@ namespace Parallax {
     {
         return os << e.ToString(); 
     };
-
-    
 }

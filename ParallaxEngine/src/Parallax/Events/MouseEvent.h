@@ -28,23 +28,23 @@ namespace Parallax {
     class PARALLAX_API MouseScrolledEvent : public Event
     {
     public:
-        MouseScrolledEvent(float offsetX, float offsetY)
-            : m_OffsetX(offsetX), m_OffsetY(offsetY) {}
+        MouseScrolledEvent(float xOffset, float yOffset)
+            : m_XOffset(xOffset), m_YOffset(yOffset) {}
 
-        inline float GetOffsetX() const { return m_OffsetX; }
-        inline float GetOffsetY() const { return m_OffsetY; }
+        inline float GetXOffset() const { return m_XOffset; }
+        inline float GetYOffset() const { return m_YOffset; }
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "MouseScrolledEvent: " << m_OffsetX << ", " << m_OffsetY;
+            ss << "MouseScrolledEvent: " << m_XOffset << ", " << m_YOffset;
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(MouseScrolled)
         EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
     private:
-        float m_OffsetX, m_OffsetY;
+        float m_XOffset, m_YOffset;
     };
 
     class PARALLAX_API MouseButtonEvent : public Event

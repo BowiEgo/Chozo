@@ -1,5 +1,5 @@
 #if FMT_VERSION >= 90000
-    template <> struct fmt::formatter<Parallax::WindowResizeEvent> : ostream_formatter{};
+    template <> struct fmt::formatter<Parallax::Event> : ostream_formatter{};
     template <> struct fmt::formatter<Parallax::WindowCloseEvent> : ostream_formatter{};
     template <> struct fmt::formatter<Parallax::AppTickEvent> : ostream_formatter{};
     template <> struct fmt::formatter<Parallax::AppUpdateEvent> : ostream_formatter{};

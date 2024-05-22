@@ -5,6 +5,11 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
 
+#include "Parallax/Events/ApplicationEvent.h"
+#include "Parallax/Events/MouseEvent.h"
+#include "Parallax/Events/KeyEvent.h"
+#include "Parallax/FmtFormatter.h"
+
 namespace Parallax
 {
     class PARALLAX_API Log
