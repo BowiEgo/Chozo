@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/vendor/vcpkg/scripts/buildsystems/vcpkg.cmake")
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/tools/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
 project(Parallax VERSION 1.0.0)
 
@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #
 # ParallaxEngine static library
 #
+
 file(GLOB_RECURSE parallax_sources RELATIVE ${PROJECT_SOURCE_DIR} ParallaxEngine/src/*.cpp)
 add_library(${PROJECT_NAME} STATIC
   ${parallax_sources}
@@ -29,7 +30,6 @@ message(${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/sp
 # Include directories for parallax
 target_include_directories(${PROJECT_NAME} PUBLIC
   "${PROJECT_SOURCE_DIR}/ParallaxEngine/src"
-#   "${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/spdlog"
 )
 
 # spdlog

@@ -3,8 +3,8 @@
 git submodule update --init --recursive
 echo "Submodules have been initialized and updated."
 
-./vendor/vcpkg/bootstrap-vcpkg.sh
-./vendor/vcpkg/vcpkg install
+./tools/vcpkg/bootstrap-vcpkg.sh
+./tools/vcpkg/vcpkg install
 
 mkdir build
 cmake -S . -B build
