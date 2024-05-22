@@ -12,6 +12,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "Parallax/Log.h"
+
 #ifdef PARALLAX_PLATFORM_WIN
     #include <Windows.h>
 #endif

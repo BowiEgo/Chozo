@@ -2,9 +2,7 @@
 .idea/
 .vscode/
 build/
-ParallaxEngine/build
-Sandbox/build
-vendor/
+vcpkg_installed
 
 # Files
 .DS_Store

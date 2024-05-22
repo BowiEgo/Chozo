@@ -1,0 +1,3 @@
+{
+	"dependencies": ["spdlog", "glfw3"]
+}
