@@ -5,6 +5,8 @@
 #include "Parallax/Layer.h"
 #include "Parallax/Log.h"
 
+#include "Parallax/ImGui/ImGuiLayer.h"
+
 // ---Entry Point------------------
 #include "Parallax/EntryPoint.h"
 // --------------------------------

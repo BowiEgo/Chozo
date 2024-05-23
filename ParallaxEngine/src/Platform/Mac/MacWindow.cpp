@@ -30,6 +30,7 @@ namespace Parallax {
 
         PRX_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
 
+        // Initialize GLFW
         if (!s_GLFWInitialized)
         {
             int sucess = glfwInit();
@@ -38,8 +39,18 @@ namespace Parallax {
             s_GLFWInitialized = true;
         }
 
+        // Set GLFW window hints for OpenGL version and profile
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        #ifdef __APPLE__
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        #endif
+
+        // Create a GLFW window
         m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
         glfwMakeContextCurrent(m_Window);
+        // Initialize GLAD
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
         PRX_CORE_ASSERT(status, "Failed to initialize Glad!");
         glfwSetWindowUserPointer(m_Window, &m_Data);

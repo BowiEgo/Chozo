@@ -26,6 +26,7 @@ public:
     {
         PRX_INFO("Welcome to Parallax Sandbox!");
         PushLayer(new ExampleLayer());
+        PushOverlay(new Parallax::ImGuiLayer());
     }
 
     ~Sandbox()
