@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Parallax/Window.h"
+
+#include <Glad/glad.h>
 #include <GLFW/glfw3.h>
 
 namespace Parallax

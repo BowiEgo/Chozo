@@ -38,11 +38,15 @@ target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
 
 # OpenGL
 find_package(OpenGL REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC OpenGL::GL)
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL)
 
 # glfw
 find_package(glfw3 CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC glfw)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+
+# glad
+find_package(glad CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE glad::glad)
 
 # Precompiled header
 target_precompile_headers(${PROJECT_NAME} PRIVATE ParallaxEngine/src/prxpch.h ParallaxEngine/src/prxpch.cpp)
