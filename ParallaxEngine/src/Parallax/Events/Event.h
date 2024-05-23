@@ -38,10 +38,8 @@ namespace Parallax {
         virtual int GetCategoryFlags() const = 0;
         virtual std::string ToString() const { return GetName(); }
 
-        inline bool isInCategory(EventCategory category)
-        {
-            return GetCategoryFlags() & category;
-        }
+        inline bool isInCategory(EventCategory category) { return GetCategoryFlags() & category; }
+        inline bool isHandled() const { return m_Handled; }
     protected:
         bool m_Handled = false;
     };
