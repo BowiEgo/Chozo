@@ -63,7 +63,7 @@ namespace Parallax {
             data.Width = width;
             data.Height = height;
 
-            WindowResizeEvent event(width, height);
+            WindowResizedEvent event(width, height);
             data.EventCallback(event);
         });
 
@@ -100,6 +100,13 @@ namespace Parallax {
                     break;
                 }
             }
+        });
+
+        glfwSetCharCallback(m_Window, [](GLFWwindow* window, unsigned int character)
+        {
+            WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+            KeyTypedEvent event(character);
+            data.EventCallback(event);
         });
 
         glfwSetMouseButtonCallback(m_Window, [](GLFWwindow* window, int button, int action, int mods)

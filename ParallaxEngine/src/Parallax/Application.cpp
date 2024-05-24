@@ -1,4 +1,6 @@
 #include "Application.h"
+#include <OpenGL/gl.h>
+#include <GLFW/glfw3.h>
 
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
@@ -45,8 +47,12 @@ namespace Parallax {
 
     void Application::Run()
     {
+
         while (m_Running)
         {
+            glClearColor(0.5f, 0.4f, 0.9f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
             for (Layer* layer : m_LayerStack)
                 layer->OnUpdate();
 

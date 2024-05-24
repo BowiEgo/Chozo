@@ -9,6 +9,9 @@ message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Add macro GL_SILENCE_DEPRECATION to ignore warnings about deprecated OpenGL API on MacOS.
+add_definitions(-DGL_SILENCE_DEPRECATION)
+
 #
 # ParallaxEngine static library
 #
