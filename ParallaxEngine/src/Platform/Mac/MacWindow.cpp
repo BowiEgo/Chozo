@@ -1,6 +1,7 @@
 #include "MacWindow.h"
 
 namespace Parallax {
+    
     static bool s_GLFWInitialized = false;
 
     static void GLFWErrorCallback(int error, const char* description)

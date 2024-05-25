@@ -154,8 +154,7 @@ namespace Parallax {
         io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
         io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
 
-        auto& app = Application::Get();
-        auto* window = static_cast<GLFWwindow*>(app.GetWindow().NativeWindow());
+        auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 410");
     }
@@ -168,7 +167,8 @@ namespace Parallax {
     {
         ImGuiIO& io = ImGui::GetIO();
         auto& app = Application::Get();
-        auto* window = static_cast<GLFWwindow*>(app.GetWindow().NativeWindow());
+        auto* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
+        
         io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());
 
         float time = (float)glfwGetTime();
