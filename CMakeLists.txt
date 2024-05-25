@@ -37,7 +37,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 # spdlog
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
+target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog_header_only)
 
 # OpenGL
 find_package(OpenGL REQUIRED)
@@ -54,6 +54,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE glad::glad)
 # imgui
 find_package(imgui CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui::imgui)
+
+# glm
+find_package(glm CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE glm::glm-header-only)
 
 # Precompiled header
 target_precompile_headers(${PROJECT_NAME} PRIVATE ParallaxEngine/src/prxpch.h ParallaxEngine/src/prxpch.cpp)
