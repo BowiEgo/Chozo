@@ -6,7 +6,10 @@
 			"name": "glad",
 			"features": ["gl-api-46"]
 		},
-		"imgui",
+		{
+			"name": "imgui",
+			"features": ["docking-experimental"]
+		},
 		"glm"
 	]
 }

@@ -7,6 +7,8 @@
 #include "Parallax/Events/Event.h"
 #include "Parallax/Events/ApplicationEvent.h"
 
+#include "Parallax/ImGui/ImGuiLayer.h"
+
 namespace Parallax
 {
     class PARALLAX_API Application
@@ -28,6 +30,7 @@ namespace Parallax
         bool OnWindowClose(WindowCloseEvent& e);
 
         std::unique_ptr<Window> m_Window;
+        ImGuiLayer* m_ImGuiLayer;
         bool m_Running = true;
         LayerStack m_LayerStack;
     private:
