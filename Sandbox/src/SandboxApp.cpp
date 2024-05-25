@@ -10,12 +10,19 @@ public:
 
     void OnUpdate() override
     {
-        PRX_INFO("ExampleLayer::Update");
+        if (Parallax::Input::IsKeyPressed(PRX_KEY_TAB))
+            PRX_TRACE("Tab key is pressed (poll)!");
     }
 
     void OnEvent(Parallax::Event& event) override
     {
-        PRX_TRACE("{0}", event);
+        if (event.GetEventType() == Parallax::EventType::KeyPressed)
+        {
+            Parallax::KeyPressedEvent& e = (Parallax::KeyPressedEvent&)event;
+            if (e.GetKeyCode() == PRX_KEY_TAB)
+                PRX_TRACE("Tab key is pressed (event)!");
+            PRX_TRACE("{0}", (char)e.GetKeyCode());
+        }
     }
 };
 

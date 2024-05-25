@@ -1,7 +1,6 @@
 #include "Application.h"
 #include "Input.h"
 #include <OpenGL/gl.h>
-#include <GLFW/glfw3.h>
 
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
@@ -57,8 +56,8 @@ namespace Parallax {
             for (Layer* layer : m_LayerStack)
                 layer->OnUpdate();
 
-            auto[x, y] = Input::GetMousePosition();
-            PRX_CORE_WARN("{0}, {1}", x, y);
+            // auto[x, y] = Input::GetMousePosition();
+            // PRX_CORE_WARN("{0}, {1}", x, y);
 
             m_Window->OnUpdate();
         }

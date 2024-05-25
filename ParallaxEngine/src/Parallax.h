@@ -5,6 +5,10 @@
 #include "Parallax/Layer.h"
 #include "Parallax/Log.h"
 
+#include "Parallax/Input.h"
+#include "Parallax/KeyCodes.h"
+#include "Parallax/MouseButtonCodes.h"
+
 #include "Parallax/ImGui/ImGuiLayer.h"
 
 // ---Entry Point------------------
