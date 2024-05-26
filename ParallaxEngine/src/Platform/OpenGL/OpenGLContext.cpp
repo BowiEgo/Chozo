@@ -17,14 +17,15 @@ namespace Parallax {
         // Initialize GLAD
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
         PRX_CORE_ASSERT(status, "Failed to initialize Glad!");
+
+        PRX_CORE_INFO("OpenGL Info:");
+        PRX_CORE_INFO("  Vendor: {0}", (const char*)(glGetString(GL_VENDOR)));
+        PRX_CORE_INFO("  Renderer: {0}", (const char*)(glGetString(GL_RENDERER)));
+        PRX_CORE_INFO("  Version: {0}", (const char*)(glGetString(GL_VERSION)));
     }
 
     void OpenGLContext::SwapBuffers()
     {
-        glBegin(GL_TRIANGLES);
-
-        glEnd();
-        
         glfwSwapBuffers(m_WindowHandle);
     }
 }

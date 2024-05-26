@@ -54,7 +54,7 @@ namespace Parallax {
 
         m_Context = new OpenGLContext(m_Window);
         m_Context->Init();
-
+        
         glfwSetWindowUserPointer(m_Window, &m_Data);
         SetVSync(true);
 
@@ -157,8 +157,11 @@ namespace Parallax {
 
     void MacWindow::OnUpdate()
     {
-        glfwPollEvents();
+        /* Swap front and back buffers */
         m_Context->SwapBuffers();
+
+        /* Poll for and process events */
+        glfwPollEvents();
     }
 
     void MacWindow::SetVSync(bool enabled)
