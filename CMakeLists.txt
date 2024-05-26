@@ -15,7 +15,6 @@ add_definitions(-DGL_SILENCE_DEPRECATION)
 #
 # ParallaxEngine static library
 #
-
 file(GLOB_RECURSE parallax_sources RELATIVE ${PROJECT_SOURCE_DIR} ParallaxEngine/src/*.cpp)
 add_library(${PROJECT_NAME} STATIC
   ${parallax_sources}

@@ -2,13 +2,31 @@
 
 #include "Parallax/Window.h"
 
-#include <Glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include "Parallax/Renderer/GraphicsContext.h"
 
 namespace Parallax
 {
     class MacWindow : public Window
     {
+    private:
+        GLFWwindow* m_Window;
+        GraphicsContext* m_Context;
+
+        struct WindowData
+        {
+            std::string Title;
+            unsigned int Width, Height;
+            bool VSync;
+
+            EventCallbackFn EventCallback;
+        };
+
+        WindowData m_Data;
+    private:
+        virtual void Init(const WindowProps& props);
+        virtual void Shutdown();
     public:
         MacWindow(const WindowProps& props);
         virtual ~MacWindow();
@@ -23,21 +41,5 @@ namespace Parallax
         bool IsVSync() const override;
 
         inline virtual void* GetNativeWindow() const override { return m_Window; }
-    private:
-        virtual void Init(const WindowProps& props);
-        virtual void Shutdown();
-    private:
-        GLFWwindow* m_Window;
-
-        struct WindowData
-        {
-            std::string Title;
-            unsigned int Width, Height;
-            bool VSync;
-
-            EventCallbackFn EventCallback;
-        };
-
-        WindowData m_Data;
     };
 }

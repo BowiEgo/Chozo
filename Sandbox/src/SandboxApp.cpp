@@ -32,6 +32,14 @@ public:
             PRX_TRACE("Tab key is pressed (poll)!");
     }
 
+    virtual void OnImGuiRender() override
+    {
+        ImGui::Begin("Test");
+        ImGui::Text("Hello World!");
+        ImGui::ColorEdit4("ColorEditor", new float[4]);
+        ImGui::End();
+    }
+
     void OnEvent(Parallax::Event& event) override
     {
         if (event.GetEventType() == Parallax::EventType::KeyPressed)
