@@ -10,6 +10,7 @@
 #include "Parallax/ImGui/ImGuiLayer.h"
 
 #include "Parallax/Renderer/Buffer.h"
+#include "Parallax/Renderer/VertexArray.h"
 #include "Parallax/Renderer/Shader.h"
 
 namespace Parallax
@@ -24,9 +25,9 @@ namespace Parallax
         bool m_Running = true;
         LayerStack m_LayerStack;
 
-        unsigned int m_VertexArray;
         std::unique_ptr<VertexBuffer> m_VertexBuffer;
         std::unique_ptr<IndexBuffer> m_IndexBuffer;
+        std::unique_ptr<VertexArray> m_VertexArray;
         std::unique_ptr<Shader> m_Shader;
     private:
         static Application* s_Instance;
