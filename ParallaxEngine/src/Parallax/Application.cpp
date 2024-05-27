@@ -19,23 +19,24 @@ namespace Parallax {
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
 
+        // VAO
+        glGenVertexArrays(1, &m_VertexArray);
+        glBindVertexArray(m_VertexArray);
+
+        // VBO
         float vertices[3 * 3] = {
             -0.5f, -0.5f, 0.0f,
              0.5f, -0.5f, 0.0f,
              0.0f,  0.5f, 0.0f
         };
 
-        // VAO
-        glGenVertexArrays(1, &m_VertexArray);
-        glBindVertexArray(m_VertexArray);
+        m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
 
-        // VBO
-        glGenBuffers(1, &m_VertexBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+        unsigned int indices[3] = { 0, 1, 2 };
+        m_IndexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
 
         std::string vertexSrc = R"(
             #version 330 core
@@ -105,7 +106,8 @@ namespace Parallax {
             glClear(GL_COLOR_BUFFER_BIT);
 
             m_Shader->Bind();
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            glBindVertexArray(m_VertexArray);
+            glDrawElements(GL_TRIANGLES, m_IndexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
 
             for (Layer* layer : m_LayerStack)
                 layer->OnUpdate();

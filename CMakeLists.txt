@@ -34,29 +34,21 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "${PROJECT_SOURCE_DIR}/ParallaxEngine/src"
 )
 
-# spdlog
 find_package(spdlog CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog_header_only)
-
-# OpenGL
 find_package(OpenGL REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL)
-
-# glfw
 find_package(glfw3 CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
-
-# glad
 find_package(glad CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE glad::glad)
-
-# imgui
 find_package(imgui CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE imgui::imgui)
-
-# glm
 find_package(glm CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE glm::glm-header-only)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog_header_only)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+                                      OpenGL::GL
+                                      glfw
+                                      glad::glad
+                                      imgui::imgui
+                                      glm::glm-header-only
+)
 
 # Precompiled header
 target_precompile_headers(${PROJECT_NAME} PRIVATE ParallaxEngine/src/prxpch.h ParallaxEngine/src/prxpch.cpp)
