@@ -5,49 +5,6 @@
 
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
-static unsigned int CompileShader(unsigned int type, const std::string& source)
-{
-    unsigned int id = glCreateShader(type);
-    const char* src = source.c_str();
-    glShaderSource(id, 1, &src, nullptr);
-    glCompileShader(id);
-
-    // Error handling
-    int result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE)
-    {
-        int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length * sizeof(char));
-        glGetShaderInfoLog(id, length, &length, message);
-        std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" <<
-            std::endl;
-        std::cout << message << std::endl;
-        glDeleteShader(id);
-        return 0;
-    }
-
-    return id;
-}
-
-static unsigned int CreateShader(const std::string& vertextShader, const std::string& fragmentShader)
-{
-    unsigned int program = glCreateProgram();
-    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertextShader);
-    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glValidateProgram(program);
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    return program;
-}
-
 namespace Parallax {
     Application* Application::s_Instance = nullptr;
 
@@ -80,28 +37,34 @@ namespace Parallax {
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
         glEnableVertexAttribArray(0);
 
-        std::string vertexShader =
-            "#version 330 core\n"
-            "\n"
-            "layout(location = 0) in vec4 position;\n"
-            "\n"
-            "void main()\n"
-            "{\n"
-            "   gl_Position = position;\n"
-            "}\n";
+        std::string vertexSrc = R"(
+            #version 330 core
 
-        std::string fragmentShader =
-            "#version 330 core\n"
-            "\n"
-            "layout(location = 0) out vec4 color;\n"
-            "\n"
-            "void main()\n"
-            "{\n"
-            "   color = vec4(1.0, 0.5, 0.2, 1.0);\n"
-            "}\n";
+            layout(location = 0) in vec3 a_Position;
 
-        unsigned int shader = CreateShader(vertexShader, fragmentShader);
-        glUseProgram(shader);
+            out vec3 v_Position;
+
+            void main()
+            {
+                v_Position = a_Position;
+                gl_Position = vec4(a_Position, 1.0);
+            }
+        )";
+
+        std::string fragmentSrc = R"(
+            #version 330 core
+
+            layout(location = 0) out vec4 color;
+
+            in vec3 v_Position;
+
+            void main()
+            {
+                color = vec4(v_Position * 0.5 + 0.5, 1.0);
+            }
+        )";
+
+        m_Shader.reset(new Shader(vertexSrc, fragmentSrc));
     }
     
     Application::~Application()
@@ -141,6 +104,7 @@ namespace Parallax {
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
 
+            m_Shader->Bind();
             glDrawArrays(GL_TRIANGLES, 0, 3);
 
             for (Layer* layer : m_LayerStack)
