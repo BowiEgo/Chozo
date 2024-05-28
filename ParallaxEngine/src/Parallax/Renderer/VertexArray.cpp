@@ -4,7 +4,7 @@
 #include "Platform/OpenGL/OpenGLVertexArray.h"
 
 namespace Parallax {
-    VertexArray *VertexArray::Create()
+    VertexArray* VertexArray::Create()
     {
         switch (Renderer::GetAPI())
         {

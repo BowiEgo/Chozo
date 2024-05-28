@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add macro GL_SILENCE_DEPRECATION to ignore warnings about deprecated OpenGL API on MacOS.
 add_definitions(-DGL_SILENCE_DEPRECATION)
+add_definitions(-DPRX_ENABLE_ASSERTS)
 
 #
 # ParallaxEngine static library
