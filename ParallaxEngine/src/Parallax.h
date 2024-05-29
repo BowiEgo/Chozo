@@ -11,6 +11,17 @@
 
 #include "Parallax/ImGui/ImGuiLayer.h"
 
+// ---Renderer---------------------
+#include "Parallax/Renderer/Renderer.h"
+#include "Parallax/Renderer/RenderCommand.h"
+
+#include "Parallax/Renderer/Shader.h"
+#include "Parallax/Renderer/Buffer.h"
+#include "Parallax/Renderer/VertexArray.h"
+
+#include "Parallax/Renderer/OrthographicCamera.h"
+// --------------------------------
+
 // ---Entry Point------------------
 #include "Parallax/EntryPoint.h"
 // --------------------------------
