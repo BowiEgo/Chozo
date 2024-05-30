@@ -1,6 +1,9 @@
 #include "Parallax.h"
 
+#include "Platform/OpenGL/OpenGLShader.h"
+
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class ExampleLayer : public Parallax::Layer
 {
@@ -89,9 +92,9 @@ public:
             }
         )";
 
-        m_Shader.reset(new Parallax::Shader(vertexSrc, fragmentSrc));
+        m_Shader.reset(Parallax::Shader::Create(vertexSrc, fragmentSrc));
     
-        std::string blueShaderVertexSrc = R"(
+        std::string flatColorShaderVertexSrc = R"(
             #version 330 core
 
             layout(location = 0) in vec3 a_Position;
@@ -108,20 +111,22 @@ public:
             }
         )";
 
-        std::string blueShaderFragmentSrc = R"(
+        std::string flatColorShaderFragmentSrc = R"(
             #version 330 core
 
             layout(location = 0) out vec4 color;
 
             in vec3 v_Position;
 
+            uniform vec3 u_Color;
+
             void main()
             {
-                color = vec4(0.2, 0.3, 0.8, 1.0);
+                color = vec4(u_Color, 1.0);
             }
         )";
 
-        m_BlueShader.reset(new Parallax::Shader(blueShaderVertexSrc, blueShaderFragmentSrc));
+        m_flatColorShader.reset(Parallax::Shader::Create(flatColorShaderVertexSrc, flatColorShaderFragmentSrc));
     }
 
     void OnUpdate(Parallax::Timestep ts) override
@@ -163,13 +168,19 @@ public:
 
         static glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
+        glm::vec4 redColor(0.8f, 0.2f, 0.3f, 1.0f);
+        glm::vec4 blueColor(0.2f, 0.3f, 0.8f, 1.0f);
+
+         std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_flatColorShader)->Bind();
+         std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_flatColorShader)->UploadUniformFloat3("u_Color", m_SquareColor);
+        
         for (int y = -10; y < 10; y++)
         {
             for (int x = -10; x < 10; x++)
             {
                 glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
                 glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos + m_SquarePosition) * scale;
-                Parallax::Renderer::Submit(m_BlueShader, m_SquareVA, transform);
+                Parallax::Renderer::Submit(m_flatColorShader, m_SquareVA, transform);
             }
         }
 
@@ -180,6 +191,9 @@ public:
 
     virtual void OnImGuiRender() override
     {
+        ImGui::Begin("Settings");
+        ImGui::ColorEdit3("SquareColor", glm::value_ptr(m_SquareColor));
+        ImGui::End();
     }
 
     void OnEvent(Parallax::Event& event) override
@@ -190,7 +204,7 @@ private:
     std::shared_ptr<Parallax::Shader> m_Shader;
     std::shared_ptr<Parallax::VertexArray> m_TriangleVA;
 
-    std::shared_ptr<Parallax::Shader> m_BlueShader;
+    std::shared_ptr<Parallax::Shader> m_flatColorShader;
     std::shared_ptr<Parallax::VertexArray> m_SquareVA;
 
     Parallax::OrthographicCamera m_Camera;
@@ -201,6 +215,8 @@ private:
 
     glm::vec3 m_SquarePosition;
     float m_SquareMoveSpeed = 1.0f;
+
+    glm::vec3 m_SquareColor = { 0.2f, 0.3f, 0.8f };
 };
 
 class Sandbox : public Parallax::Application
