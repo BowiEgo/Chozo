@@ -7,13 +7,9 @@
 #include "Parallax/Events/Event.h"
 #include "Parallax/Events/ApplicationEvent.h"
 
+#include "Parallax/Core/Timestep.h"
+
 #include "Parallax/ImGui/ImGuiLayer.h"
-
-#include "Parallax/Renderer/Shader.h"
-#include "Parallax/Renderer/VertexArray.h"
-#include "Parallax/Renderer/Buffer.h"
-
-#include "Parallax/Renderer/OrthographicCamera.h"
 
 namespace Parallax
 {
@@ -34,11 +30,13 @@ namespace Parallax
         inline static Application& Get() { return *s_Instance; }
     private:
         bool OnWindowClose(WindowCloseEvent& e);
-
+    private:
         std::unique_ptr<Window> m_Window;
         ImGuiLayer* m_ImGuiLayer;
         bool m_Running = true;
         LayerStack m_LayerStack;
+        Timestep m_Timestep;
+        float m_LastFrameTime = 0.0f;
     private:
         static Application* s_Instance;
     };

@@ -2,6 +2,7 @@
 
 #include "Parallax/Core.h"
 #include "Parallax/Events/Event.h"
+#include "Parallax/Core/Timestep.h"
 
 namespace Parallax {
     class PARALLAX_API Layer
@@ -12,7 +13,7 @@ namespace Parallax {
 
         virtual void OnAttach() {}
         virtual void OnDetach() {}
-        virtual void OnUpdate() {}
+        virtual void OnUpdate(Timestep timestep) {}
         virtual void OnImGuiRender() {}
         virtual void OnEvent(Event& event) {}
 

@@ -5,6 +5,8 @@
 #include "Parallax/Layer.h"
 #include "Parallax/Log.h"
 
+#include "Parallax/Core/Timestep.h"
+
 #include "Parallax/Input.h"
 #include "Parallax/KeyCodes.h"
 #include "Parallax/MouseButtonCodes.h"
