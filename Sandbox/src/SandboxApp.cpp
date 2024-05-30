@@ -1,10 +1,15 @@
 #include "Parallax.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 class ExampleLayer : public Parallax::Layer
 {
 public:
     ExampleLayer()
-        : Layer("Example"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f), m_CameraPosition(0.0f)
+        : Layer("Example"),
+        m_Camera(-1.6f, 1.6f, -0.9f, 0.9f),
+        m_CameraPosition(0.0f),
+        m_SquarePosition(0.0f)
     {
         /////////////////// Triangle ////////////////////////////////////
         m_TriangleVA.reset(Parallax::VertexArray::Create());
@@ -32,10 +37,10 @@ public:
         /////////////////// Square ////////////////////////////////////
         m_SquareVA.reset(Parallax::VertexArray::Create());
         float squareVertices[3 * 4] = {
-            -0.75f, -0.75f, 0.0f,
-             0.75f, -0.75f, 0.0f,
-             0.75f,  0.75f, 0.0f,
-            -0.75f,  0.75f, 0.0f
+            -0.5f, -0.5f, 0.0f,
+             0.5f, -0.5f, 0.0f,
+             0.5f,  0.5f, 0.0f,
+            -0.5f,  0.5f, 0.0f
         };
         std::shared_ptr<Parallax::VertexBuffer> squareVB;
         squareVB.reset(Parallax::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
@@ -56,6 +61,7 @@ public:
             layout(location = 1) in vec4 a_Color;
 
             uniform mat4 u_ViewProjection;
+            uniform mat4 u_ModelMatrix;
 
             out vec3 v_Position;
             out vec4 v_Color;
@@ -64,7 +70,7 @@ public:
             {
                 v_Position = a_Position;
                 v_Color = a_Color;
-                gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+                gl_Position = u_ViewProjection * u_ModelMatrix * vec4(a_Position, 1.0);
             }
         )";
 
@@ -91,13 +97,14 @@ public:
             layout(location = 0) in vec3 a_Position;
 
             uniform mat4 u_ViewProjection;
+            uniform mat4 u_ModelMatrix;
 
             out vec3 v_Position;
 
             void main()
             {
                 v_Position = a_Position;
-                gl_Position = u_ViewProjection * vec4(a_Position, 1.0);
+                gl_Position = u_ViewProjection * u_ModelMatrix * vec4(a_Position, 1.0);
             }
         )";
 
@@ -119,6 +126,7 @@ public:
 
     void OnUpdate(Parallax::Timestep ts) override
     {
+        // Camera control
         if (Parallax::Input::IsKeyPressed(PRX_KEY_LEFT))
             m_CameraPosition.x -= m_CameraMoveSpeed * ts;
         else if (Parallax::Input::IsKeyPressed(PRX_KEY_RIGHT))
@@ -134,6 +142,17 @@ public:
         if (Parallax::Input::IsKeyPressed(PRX_KEY_D))
             m_CameraRotation -= m_CameraRotationSpeed * ts;
 
+        // Square control
+        if (Parallax::Input::IsKeyPressed(PRX_KEY_J))
+            m_SquarePosition.x -= m_SquareMoveSpeed * ts;
+        else if (Parallax::Input::IsKeyPressed(PRX_KEY_L))
+            m_SquarePosition.x += m_SquareMoveSpeed * ts;
+
+        if (Parallax::Input::IsKeyPressed(PRX_KEY_K))
+            m_SquarePosition.y -= m_SquareMoveSpeed * ts;
+        else if (Parallax::Input::IsKeyPressed(PRX_KEY_I))
+            m_SquarePosition.y += m_SquareMoveSpeed * ts;
+
         Parallax::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         Parallax::RenderCommand::Clear();
 
@@ -142,7 +161,18 @@ public:
 
         Parallax::Renderer::BeginScene(m_Camera);
 
-        Parallax::Renderer::Submit(m_BlueShader, m_SquareVA);
+        static glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+
+        for (int y = -10; y < 10; y++)
+        {
+            for (int x = -10; x < 10; x++)
+            {
+                glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
+                glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos + m_SquarePosition) * scale;
+                Parallax::Renderer::Submit(m_BlueShader, m_SquareVA, transform);
+            }
+        }
+
         Parallax::Renderer::Submit(m_Shader, m_TriangleVA);
 
         Parallax::Renderer::EndScene();
@@ -168,6 +198,9 @@ private:
     float m_CameraMoveSpeed = 2.0f;
     float m_CameraRotation = 0.0f;
     float m_CameraRotationSpeed = 180.0f;
+
+    glm::vec3 m_SquarePosition;
+    float m_SquareMoveSpeed = 1.0f;
 };
 
 class Sandbox : public Parallax::Application
