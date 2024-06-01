@@ -17,8 +17,10 @@ add_definitions(-DPRX_ENABLE_ASSERTS)
 # ParallaxEngine static library
 #
 file(GLOB_RECURSE parallax_sources RELATIVE ${PROJECT_SOURCE_DIR} ParallaxEngine/src/*.cpp)
+file(GLOB_RECURSE parallax_vendor RELATIVE ${PROJECT_SOURCE_DIR} ParallaxEngine/vendor/*.cpp)
 add_library(${PROJECT_NAME} STATIC
   ${parallax_sources}
+  ${parallax_vendor}
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE PRX_PLATFORM_MAC)
@@ -28,12 +30,13 @@ set(CMAKE_CXX_FLAGS_DEBUG -DPRX_DEBUG)
 set(CMAKE_CXX_FLAGS_RELEASE -DPRX_RELEASE)
 set(CMAKE_CXX_FLAGS_DIST -DPRX_DIST)
 
-message(${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/spdlog)
-
 # Include directories for parallax
 target_include_directories(${PROJECT_NAME} PUBLIC
   "${PROJECT_SOURCE_DIR}/ParallaxEngine/src"
+  "${PROJECT_SOURCE_DIR}/ParallaxEngine/vendor/stb_image"
 )
+
+message(${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/spdlog)
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)

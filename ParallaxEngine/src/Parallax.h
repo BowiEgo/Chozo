@@ -18,6 +18,7 @@
 #include "Parallax/Renderer/RenderCommand.h"
 
 #include "Parallax/Renderer/Shader.h"
+#include "Parallax/Renderer/Texture.h"
 #include "Parallax/Renderer/Buffer.h"
 #include "Parallax/Renderer/VertexArray.h"
 

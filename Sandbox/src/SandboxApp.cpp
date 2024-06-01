@@ -39,16 +39,17 @@ public:
 
         /////////////////// Square ////////////////////////////////////
         m_SquareVA.reset(Parallax::VertexArray::Create());
-        float squareVertices[3 * 4] = {
-            -0.5f, -0.5f, 0.0f,
-             0.5f, -0.5f, 0.0f,
-             0.5f,  0.5f, 0.0f,
-            -0.5f,  0.5f, 0.0f
+        float squareVertices[5 * 4] = {
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+             0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+            -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
         };
         Parallax::Ref<Parallax::VertexBuffer> squareVB;
         squareVB.reset(Parallax::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
         squareVB->SetLayout({
             { Parallax::ShaderDataType::Float3, "a_Position" },
+            { Parallax::ShaderDataType::Float2, "a_TexCoord" },
         });
         m_SquareVA->AddVertexBuffer(squareVB);
 
@@ -127,6 +128,46 @@ public:
         )";
 
         m_flatColorShader.reset(Parallax::Shader::Create(flatColorShaderVertexSrc, flatColorShaderFragmentSrc));
+
+        std::string textureShaderVertexSrc = R"(
+            #version 330 core
+
+            layout(location = 0) in vec3 a_Position;
+            layout(location = 1) in vec2 a_TexCoord;
+
+            uniform mat4 u_ViewProjection;
+            uniform mat4 u_ModelMatrix;
+
+            out vec2 v_TexCoord;
+
+            void main()
+            {
+                v_TexCoord = a_TexCoord;
+                gl_Position = u_ViewProjection * u_ModelMatrix * vec4(a_Position, 1.0);
+            }
+        )";
+
+        std::string textureShaderFragmentSrc = R"(
+            #version 330 core
+
+            layout(location = 0) out vec4 color;
+
+            in vec2 v_TexCoord;
+
+            uniform sampler2D u_Texture;
+
+            void main()
+            {
+                color = texture(u_Texture, v_TexCoord);
+            }
+        )";
+
+        m_TextureShader.reset(Parallax::Shader::Create(textureShaderVertexSrc, textureShaderFragmentSrc));
+
+        m_Texture = Parallax::Texture2D::Create("../assets/textures/checkerboard.png");
+
+        std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_TextureShader)->Bind();
+        std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
     }
 
     void OnUpdate(Parallax::Timestep ts) override
@@ -166,13 +207,14 @@ public:
 
         Parallax::Renderer::BeginScene(m_Camera);
 
+        // Square grid
         static glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
         glm::vec4 redColor(0.8f, 0.2f, 0.3f, 1.0f);
         glm::vec4 blueColor(0.2f, 0.3f, 0.8f, 1.0f);
 
-         std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_flatColorShader)->Bind();
-         std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_flatColorShader)->UploadUniformFloat3("u_Color", m_SquareColor);
+        std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_flatColorShader)->Bind();
+        std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_flatColorShader)->UploadUniformFloat3("u_Color", m_SquareColor);
         
         for (int y = -10; y < 10; y++)
         {
@@ -184,7 +226,11 @@ public:
             }
         }
 
-        Parallax::Renderer::Submit(m_Shader, m_TriangleVA);
+        m_Texture->Bind();
+        Parallax::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+
+        // Triangle
+        // Parallax::Renderer::Submit(m_Shader, m_TriangleVA);
 
         Parallax::Renderer::EndScene();
     }
@@ -204,8 +250,10 @@ private:
     Parallax::Ref<Parallax::Shader> m_Shader;
     Parallax::Ref<Parallax::VertexArray> m_TriangleVA;
 
-    Parallax::Ref<Parallax::Shader> m_flatColorShader;
+    Parallax::Ref<Parallax::Shader> m_flatColorShader, m_TextureShader;
     Parallax::Ref<Parallax::VertexArray> m_SquareVA;
+
+    Parallax::Ref<Parallax::Texture2D> m_Texture;
 
     Parallax::OrthographicCamera m_Camera;
     glm::vec3 m_CameraPosition;
