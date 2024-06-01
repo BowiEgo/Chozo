@@ -165,6 +165,7 @@ public:
         m_TextureShader.reset(Parallax::Shader::Create(textureShaderVertexSrc, textureShaderFragmentSrc));
 
         m_Texture = Parallax::Texture2D::Create("../assets/textures/checkerboard.png");
+        m_OpenGLLogoTexture = Parallax::Texture2D::Create("../assets/textures/OpenGL_Logo.png");
 
         std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_TextureShader)->Bind();
         std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_TextureShader)->UploadUniformInt("u_Texture", 0);
@@ -229,6 +230,9 @@ public:
         m_Texture->Bind();
         Parallax::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
 
+        m_OpenGLLogoTexture->Bind();
+        Parallax::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+
         // Triangle
         // Parallax::Renderer::Submit(m_Shader, m_TriangleVA);
 
@@ -253,7 +257,7 @@ private:
     Parallax::Ref<Parallax::Shader> m_flatColorShader, m_TextureShader;
     Parallax::Ref<Parallax::VertexArray> m_SquareVA;
 
-    Parallax::Ref<Parallax::Texture2D> m_Texture;
+    Parallax::Ref<Parallax::Texture2D> m_Texture, m_OpenGLLogoTexture;
 
     Parallax::OrthographicCamera m_Camera;
     glm::vec3 m_CameraPosition;
