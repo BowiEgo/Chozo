@@ -22,7 +22,7 @@ public:
              0.5f, -0.5f, 0.0f, 0.2f, 0.3f, 0.8f, 1.0f,
              0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
         };
-        std::shared_ptr<Parallax::VertexBuffer> triangleVB;
+        Parallax::Ref<Parallax::VertexBuffer> triangleVB;
         triangleVB.reset(Parallax::VertexBuffer::Create(vertices, sizeof(vertices)));
 
         Parallax::BufferLayout layout = {
@@ -33,7 +33,7 @@ public:
         m_TriangleVA->AddVertexBuffer(triangleVB);
         
         unsigned int indices[3] = { 0, 1, 2 };
-        std::shared_ptr<Parallax::IndexBuffer> triangleIB;
+        Parallax::Ref<Parallax::IndexBuffer> triangleIB;
         triangleIB.reset(Parallax::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
         m_TriangleVA->SetIndexBuffer(triangleIB);
 
@@ -45,7 +45,7 @@ public:
              0.5f,  0.5f, 0.0f,
             -0.5f,  0.5f, 0.0f
         };
-        std::shared_ptr<Parallax::VertexBuffer> squareVB;
+        Parallax::Ref<Parallax::VertexBuffer> squareVB;
         squareVB.reset(Parallax::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
         squareVB->SetLayout({
             { Parallax::ShaderDataType::Float3, "a_Position" },
@@ -53,7 +53,7 @@ public:
         m_SquareVA->AddVertexBuffer(squareVB);
 
         unsigned int squareIndices[6] = { 0, 1, 2, 2, 3, 0 };
-        std::shared_ptr<Parallax::IndexBuffer> squareIB;
+        Parallax::Ref<Parallax::IndexBuffer> squareIB;
         squareIB.reset(Parallax::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
         m_SquareVA->SetIndexBuffer(squareIB);
 
@@ -201,11 +201,11 @@ public:
     }
 
 private:
-    std::shared_ptr<Parallax::Shader> m_Shader;
-    std::shared_ptr<Parallax::VertexArray> m_TriangleVA;
+    Parallax::Ref<Parallax::Shader> m_Shader;
+    Parallax::Ref<Parallax::VertexArray> m_TriangleVA;
 
-    std::shared_ptr<Parallax::Shader> m_flatColorShader;
-    std::shared_ptr<Parallax::VertexArray> m_SquareVA;
+    Parallax::Ref<Parallax::Shader> m_flatColorShader;
+    Parallax::Ref<Parallax::VertexArray> m_SquareVA;
 
     Parallax::OrthographicCamera m_Camera;
     glm::vec3 m_CameraPosition;

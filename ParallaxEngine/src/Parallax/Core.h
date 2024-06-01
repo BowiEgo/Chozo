@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #ifdef _WIN64
     #ifdef PARALLAX_BUILD_DLL
         #define PARALLAX_API __declspec(dllexport)
@@ -36,3 +38,12 @@
 #define BIT(x) (1 << x)
 
 #define PRX_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+
+namespace Parallax {
+
+    template<typename T>
+    using Scope = std::unique_ptr<T>;
+
+    template<typename T>
+    using Ref = std::shared_ptr<T>;
+}
