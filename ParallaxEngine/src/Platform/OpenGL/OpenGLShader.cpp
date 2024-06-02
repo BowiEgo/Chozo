@@ -175,43 +175,49 @@ namespace Parallax {
 
     void OpenGLShader::UploadUniformInt(const std::string &name, int value)
     {
-        GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-        glUniform1i(location, value);
+        glUniform1i(GetUniformLoaction(name), value);
     }
 
     void OpenGLShader::UploadUniformFloat(const std::string &name, float value)
     {
-        GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-        glUniform1f(location, value);
+        glUniform1f(GetUniformLoaction(name), value);
     }
 
     void OpenGLShader::UploadUniformFloat2(const std::string &name, const glm::vec2 &value)
     {
-        GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-        glUniform2f(location, value.x, value.y);
+        glUniform2f(GetUniformLoaction(name), value.x, value.y);
     }
 
     void OpenGLShader::UploadUniformFloat3(const std::string &name, const glm::vec3 &value)
     {
-        GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-        glUniform3f(location, value.x, value.y, value.z);
+        glUniform3f(GetUniformLoaction(name), value.x, value.y, value.z);
     }
 
     void OpenGLShader::UploadUniformFloat4(const std::string &name, const glm::vec4 &value)
     {
-        GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-        glUniform4f(location, value.x, value.y, value.z, value.w);
+        glUniform4f(GetUniformLoaction(name), value.x, value.y, value.z, value.w);
     }
 
     void OpenGLShader::UploadUniformMat3(const std::string &name, const glm::mat3 &matrix)
     {
-        GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-        glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+        glUniformMatrix3fv(GetUniformLoaction(name), 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
     void OpenGLShader::UploadUniformMat4(const std::string &name, const glm::mat4 &matrix)
     {
-        GLint location = glGetUniformLocation(m_RendererID, name.c_str());
-        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+        glUniformMatrix4fv(GetUniformLoaction(name), 1, GL_FALSE, glm::value_ptr(matrix));
+    }
+
+    int OpenGLShader::GetUniformLoaction(const std::string& name) const
+    {
+        if (m_UniformLocationCache.find(name) != m_UniformLocationCache.end())
+            return m_UniformLocationCache[name];
+
+        int location = glGetUniformLocation(m_RendererID, name.c_str());
+        if (location == -1)
+            std::cout << "Warning: uniform '" << name << "' doesn't exist!" << std::endl;
+
+        m_UniformLocationCache[name] = location;
+        return location;
     }
 }
