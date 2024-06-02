@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#ifdef _WIN64
+#ifdef ENGINE_PLATFORM_WIN32
     #ifdef PARALLAX_BUILD_DLL
         #define PARALLAX_API __declspec(dllexport)
     #else
@@ -13,7 +13,7 @@
 #endif
 
 ////////////////////////////////////////////////////////////////////////////
-/////////////////////////// Debug //////////////////////////////////////////
+//============================ Debug =====================================//
 ////////////////////////////////////////////////////////////////////////////
 #if defined(_MSC_VER)
     #define DEBUG_BREAK __debugbreak()

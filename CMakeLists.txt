@@ -13,6 +13,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DGL_SILENCE_DEPRECATION)
 add_definitions(-DPRX_ENABLE_ASSERTS)
 
+if(WIN32)
+    message("Platform: Windows")
+    add_definitions(-DENGINE_PLATFORM_WIN32)
+elseif(UNIX)
+    if(APPLE)
+        message("Platform: Macos")
+        add_definitions(-DENGINE_PLATFORM_MACOS)
+    else()
+        message("Platform: Linux")
+        add_definitions(-DENGINE_PLATFORM_LINUX)
+    endif()
+else()
+    message("Platform: Unsupported")
+endif()
+
 #
 # ParallaxEngine static library
 #
