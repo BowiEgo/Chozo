@@ -7,47 +7,47 @@ ExampleLayer::ExampleLayer()
         m_SquarePosition(0.0f)
 {
     /////////////////// Triangle ////////////////////////////////////
-    m_TriangleVA.reset(Parallax::VertexArray::Create());
+    m_TriangleVA.reset(Chozo::VertexArray::Create());
 
     float vertices[3 * 7] = {
         -0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f,
             0.5f, -0.5f, 0.0f, 0.2f, 0.3f, 0.8f, 1.0f,
             0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
     };
-    Parallax::Ref<Parallax::VertexBuffer> triangleVB;
-    triangleVB.reset(Parallax::VertexBuffer::Create(vertices, sizeof(vertices)));
+    Chozo::Ref<Chozo::VertexBuffer> triangleVB;
+    triangleVB.reset(Chozo::VertexBuffer::Create(vertices, sizeof(vertices)));
 
-    Parallax::BufferLayout layout = {
-        { Parallax::ShaderDataType::Float3, "a_Position" },
-        { Parallax::ShaderDataType::Float4, "a_Color" },
+    Chozo::BufferLayout layout = {
+        { Chozo::ShaderDataType::Float3, "a_Position" },
+        { Chozo::ShaderDataType::Float4, "a_Color" },
     };
     triangleVB->SetLayout(layout);
     m_TriangleVA->AddVertexBuffer(triangleVB);
     
     unsigned int indices[3] = { 0, 1, 2 };
-    Parallax::Ref<Parallax::IndexBuffer> triangleIB;
-    triangleIB.reset(Parallax::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+    Chozo::Ref<Chozo::IndexBuffer> triangleIB;
+    triangleIB.reset(Chozo::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
     m_TriangleVA->SetIndexBuffer(triangleIB);
 
     /////////////////// Square ////////////////////////////////////
-    m_SquareVA.reset(Parallax::VertexArray::Create());
+    m_SquareVA.reset(Chozo::VertexArray::Create());
     float squareVertices[5 * 4] = {
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
             0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
         -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
     };
-    Parallax::Ref<Parallax::VertexBuffer> squareVB;
-    squareVB.reset(Parallax::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
+    Chozo::Ref<Chozo::VertexBuffer> squareVB;
+    squareVB.reset(Chozo::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
     squareVB->SetLayout({
-        { Parallax::ShaderDataType::Float3, "a_Position" },
-        { Parallax::ShaderDataType::Float2, "a_TexCoord" },
+        { Chozo::ShaderDataType::Float3, "a_Position" },
+        { Chozo::ShaderDataType::Float2, "a_TexCoord" },
     });
     m_SquareVA->AddVertexBuffer(squareVB);
 
     unsigned int squareIndices[6] = { 0, 1, 2, 2, 3, 0 };
-    Parallax::Ref<Parallax::IndexBuffer> squareIB;
-    squareIB.reset(Parallax::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
+    Chozo::Ref<Chozo::IndexBuffer> squareIB;
+    squareIB.reset(Chozo::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
     m_SquareVA->SetIndexBuffer(squareIB);
 
     std::string vertexSrc = R"(
@@ -85,7 +85,7 @@ ExampleLayer::ExampleLayer()
         }
     )";
 
-    m_Shader = Parallax::Shader::Create("VertexPosColor", vertexSrc, fragmentSrc);
+    m_Shader = Chozo::Shader::Create("VertexPosColor", vertexSrc, fragmentSrc);
 
     std::string flatColorShaderVertexSrc = R"(
         #version 330 core
@@ -119,68 +119,68 @@ ExampleLayer::ExampleLayer()
         }
     )";
 
-    m_flatColorShader = Parallax::Shader::Create("FlatColor", flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
+    m_flatColorShader = Chozo::Shader::Create("FlatColor", flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
 
     auto textureShader = m_ShaderLibrary.Load("../assets/shaders/Texture.glsl");
 
-    std::dynamic_pointer_cast<Parallax::OpenGLShader>(textureShader)->Bind();
-    std::dynamic_pointer_cast<Parallax::OpenGLShader>(textureShader)->UploadUniformInt("u_Texture", 0);
+    std::dynamic_pointer_cast<Chozo::OpenGLShader>(textureShader)->Bind();
+    std::dynamic_pointer_cast<Chozo::OpenGLShader>(textureShader)->UploadUniformInt("u_Texture", 0);
 }
 
 void ExampleLayer::OnAttach()
 {
-    m_CheckerboardTexture = Parallax::Texture2D::Create("../assets/textures/checkerboard.png");
-    m_OpenGLLogoTexture = Parallax::Texture2D::Create("../assets/textures/OpenGL_Logo.png");
+    m_CheckerboardTexture = Chozo::Texture2D::Create("../assets/textures/checkerboard.png");
+    m_OpenGLLogoTexture = Chozo::Texture2D::Create("../assets/textures/OpenGL_Logo.png");
     // --------------------
     // Viewport
     // --------------------
-    Parallax::FramebufferSpecification fbSpec;
+    Chozo::FramebufferSpecification fbSpec;
     fbSpec.Width = 1280;
     fbSpec.Height = 720;
-    m_Viewport_FBO = Parallax::Framebuffer::Create(fbSpec);
+    m_Viewport_FBO = Chozo::Framebuffer::Create(fbSpec);
 }
 
 void ExampleLayer::OnDetach()
 {
 }
 
-void ExampleLayer::OnUpdate(Parallax::Timestep ts)
+void ExampleLayer::OnUpdate(Chozo::Timestep ts)
 {
     m_Viewport_FBO->Bind();
     // Camera control
-    if (Parallax::Input::IsKeyPressed(PRX_KEY_LEFT))
+    if (Chozo::Input::IsKeyPressed(CZ_KEY_LEFT))
         m_CameraPosition.x -= m_CameraMoveSpeed * ts;
-    else if (Parallax::Input::IsKeyPressed(PRX_KEY_RIGHT))
+    else if (Chozo::Input::IsKeyPressed(CZ_KEY_RIGHT))
         m_CameraPosition.x += m_CameraMoveSpeed * ts;
 
-    if (Parallax::Input::IsKeyPressed(PRX_KEY_DOWN))
+    if (Chozo::Input::IsKeyPressed(CZ_KEY_DOWN))
         m_CameraPosition.y -= m_CameraMoveSpeed * ts;
-    else if (Parallax::Input::IsKeyPressed(PRX_KEY_UP))
+    else if (Chozo::Input::IsKeyPressed(CZ_KEY_UP))
         m_CameraPosition.y += m_CameraMoveSpeed * ts;
 
-    if (Parallax::Input::IsKeyPressed(PRX_KEY_A))
+    if (Chozo::Input::IsKeyPressed(CZ_KEY_A))
         m_CameraRotation += m_CameraRotationSpeed * ts;
-    if (Parallax::Input::IsKeyPressed(PRX_KEY_D))
+    if (Chozo::Input::IsKeyPressed(CZ_KEY_D))
         m_CameraRotation -= m_CameraRotationSpeed * ts;
 
     // Square control
-    if (Parallax::Input::IsKeyPressed(PRX_KEY_J))
+    if (Chozo::Input::IsKeyPressed(CZ_KEY_J))
         m_SquarePosition.x -= m_SquareMoveSpeed * ts;
-    else if (Parallax::Input::IsKeyPressed(PRX_KEY_L))
+    else if (Chozo::Input::IsKeyPressed(CZ_KEY_L))
         m_SquarePosition.x += m_SquareMoveSpeed * ts;
 
-    if (Parallax::Input::IsKeyPressed(PRX_KEY_K))
+    if (Chozo::Input::IsKeyPressed(CZ_KEY_K))
         m_SquarePosition.y -= m_SquareMoveSpeed * ts;
-    else if (Parallax::Input::IsKeyPressed(PRX_KEY_I))
+    else if (Chozo::Input::IsKeyPressed(CZ_KEY_I))
         m_SquarePosition.y += m_SquareMoveSpeed * ts;
 
-    Parallax::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-    Parallax::RenderCommand::Clear();
+    Chozo::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+    Chozo::RenderCommand::Clear();
 
     m_Camera.SetPosition(m_CameraPosition);
     m_Camera.SetRotation(m_CameraRotation);
 
-    Parallax::Renderer::BeginScene(m_Camera);
+    Chozo::Renderer::BeginScene(m_Camera);
 
     // Square grid
     static glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
@@ -188,8 +188,8 @@ void ExampleLayer::OnUpdate(Parallax::Timestep ts)
     glm::vec4 redColor(0.8f, 0.2f, 0.3f, 1.0f);
     glm::vec4 blueColor(0.2f, 0.3f, 0.8f, 1.0f);
 
-    std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_flatColorShader)->Bind();
-    std::dynamic_pointer_cast<Parallax::OpenGLShader>(m_flatColorShader)->UploadUniformFloat3("u_Color", m_SquareColor);
+    std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_flatColorShader)->Bind();
+    std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_flatColorShader)->UploadUniformFloat3("u_Color", m_SquareColor);
     
     for (int y = -10; y < 10; y++)
     {
@@ -197,22 +197,22 @@ void ExampleLayer::OnUpdate(Parallax::Timestep ts)
         {
             glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
             glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos + m_SquarePosition) * scale;
-            Parallax::Renderer::Submit(m_flatColorShader, m_SquareVA, transform);
+            Chozo::Renderer::Submit(m_flatColorShader, m_SquareVA, transform);
         }
     }
 
     auto textureShader = m_ShaderLibrary.Get("Texture");
 
     m_CheckerboardTexture->Bind();
-    Parallax::Renderer::Submit(textureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+    Chozo::Renderer::Submit(textureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
 
     m_OpenGLLogoTexture->Bind();
-    Parallax::Renderer::Submit(textureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+    Chozo::Renderer::Submit(textureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
 
     // Triangle
-    Parallax::Renderer::Submit(m_Shader, m_TriangleVA);
+    Chozo::Renderer::Submit(m_Shader, m_TriangleVA);
 
-    Parallax::Renderer::EndScene();
+    Chozo::Renderer::EndScene();
 
     m_Viewport_FBO->Unbind();
 }
@@ -243,7 +243,7 @@ void ExampleLayer::OnImGuiRender()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Exit")) Parallax::Application::Get().Close();
+            if (ImGui::MenuItem("Exit")) Chozo::Application::Get().Close();
             ImGui::EndMenu();
         }
 
@@ -270,6 +270,6 @@ void ExampleLayer::OnImGuiRender()
     ImGui::End();
 }
 
-void ExampleLayer::OnEvent(Parallax::Event &event)
+void ExampleLayer::OnEvent(Chozo::Event &event)
 {
 }

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/tools/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
-project(Parallax VERSION 1.0.0)
+project(Chozo VERSION 1.0.0)
 
 message(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 
@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add macro GL_SILENCE_DEPRECATION to ignore warnings about deprecated OpenGL API on MacOS.
 add_definitions(-DGL_SILENCE_DEPRECATION)
-add_definitions(-DPRX_ENABLE_ASSERTS)
+add_definitions(-DCZ_ENABLE_ASSERTS)
 
 if(WIN32)
     message("Platform: Windows")
@@ -29,26 +29,26 @@ else()
 endif()
 
 #
-# ParallaxEngine static library
+# ChozoEngine static library
 #
-file(GLOB_RECURSE parallax_sources RELATIVE ${PROJECT_SOURCE_DIR} ParallaxEngine/src/*.cpp)
-file(GLOB_RECURSE parallax_vendor RELATIVE ${PROJECT_SOURCE_DIR} ParallaxEngine/vendor/*.cpp)
+file(GLOB_RECURSE chozo_sources RELATIVE ${PROJECT_SOURCE_DIR} ChozoEngine/src/*.cpp)
+file(GLOB_RECURSE chozo_vendor RELATIVE ${PROJECT_SOURCE_DIR} ChozoEngine/vendor/*.cpp)
 add_library(${PROJECT_NAME} STATIC
-  ${parallax_sources}
-  ${parallax_vendor}
+  ${chozo_sources}
+  ${chozo_vendor}
 )
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE PRX_PLATFORM_MAC)
+target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_PLATFORM_MAC)
 
 # Set defines for build type
-set(CMAKE_CXX_FLAGS_DEBUG -DPRX_DEBUG)
-set(CMAKE_CXX_FLAGS_RELEASE -DPRX_RELEASE)
-set(CMAKE_CXX_FLAGS_DIST -DPRX_DIST)
+set(CMAKE_CXX_FLAGS_DEBUG -DCZ_DEBUG)
+set(CMAKE_CXX_FLAGS_RELEASE -DCZ_RELEASE)
+set(CMAKE_CXX_FLAGS_DIST -DCZ_DIST)
 
-# Include directories for parallax
+# Include directories for chozo
 target_include_directories(${PROJECT_NAME} PUBLIC
-  "${PROJECT_SOURCE_DIR}/ParallaxEngine/src"
-  "${PROJECT_SOURCE_DIR}/ParallaxEngine/vendor/stb_image"
+  "${PROJECT_SOURCE_DIR}/ChozoEngine/src"
+  "${PROJECT_SOURCE_DIR}/ChozoEngine/vendor/stb_image"
 )
 
 message(${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/spdlog)
@@ -70,7 +70,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 # Precompiled header
-target_precompile_headers(${PROJECT_NAME} PRIVATE ParallaxEngine/src/prxpch.h ParallaxEngine/src/prxpch.cpp)
+target_precompile_headers(${PROJECT_NAME} PRIVATE ChozoEngine/src/prxpch.h ChozoEngine/src/prxpch.cpp)
 
 #
 # Sandbox
@@ -81,7 +81,7 @@ file(GLOB sandbox_sources sandbox/src/*.cpp)
 add_executable(Sandbox ${sandbox_sources})
 
 # Include directories for the sandbox application
-target_include_directories(Sandbox PUBLIC "${PROJECT_SOURCE_DIR}/ParallaxEngine/src")
+target_include_directories(Sandbox PUBLIC "${PROJECT_SOURCE_DIR}/ChozoEngine/src")
 
-# Link sandbox with the parallax library
+# Link sandbox with the chozo library
 target_link_libraries(Sandbox PUBLIC ${PROJECT_NAME})
