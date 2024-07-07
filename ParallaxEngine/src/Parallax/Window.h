@@ -1,7 +1,7 @@
 #pragma once
 
 #include "prxpch.h"
-#include "Parallax/Core.h"
+#include "Parallax/Core/Base.h"
 #include "Parallax/Events/Event.h"
 
 namespace Parallax {

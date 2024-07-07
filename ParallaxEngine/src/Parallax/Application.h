@@ -1,12 +1,11 @@
 #pragma once
 
-#include "Core.h"
-
 #include "Window.h"
 #include "Parallax/LayerStack.h"
 #include "Parallax/Events/Event.h"
 #include "Parallax/Events/ApplicationEvent.h"
 
+#include "Parallax/Core/Base.h"
 #include "Parallax/Core/Timestep.h"
 
 #include "Parallax/ImGui/ImGuiLayer.h"
@@ -20,6 +19,7 @@ namespace Parallax
         virtual ~Application();
 
         void Run();
+        void Close();
 
         void OnEvent(Event& e);
 

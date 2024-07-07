@@ -6,6 +6,7 @@
 #include "Parallax/Log.h"
 
 #include "Parallax/Core/Timestep.h"
+#include "Parallax/Core/Ref.h"
 
 #include "Parallax/Input.h"
 #include "Parallax/KeyCodes.h"
@@ -21,6 +22,7 @@
 #include "Parallax/Renderer/Texture.h"
 #include "Parallax/Renderer/Buffer.h"
 #include "Parallax/Renderer/VertexArray.h"
+#include "Parallax/Renderer/Framebuffer.h"
 
 #include "Parallax/Renderer/OrthographicCamera.h"
 // --------------------------------

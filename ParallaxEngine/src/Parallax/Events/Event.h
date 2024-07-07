@@ -1,7 +1,7 @@
 #pragma once
 
 #include "prxpch.h"
-#include "Parallax/Core.h"
+#include "Parallax/Core/Base.h"
 
 namespace Parallax {
     enum class EventType

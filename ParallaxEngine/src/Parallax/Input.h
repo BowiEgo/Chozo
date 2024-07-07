@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Parallax/Core.h"
+#include "Parallax/Core/Base.h"
 
 namespace Parallax {
 
