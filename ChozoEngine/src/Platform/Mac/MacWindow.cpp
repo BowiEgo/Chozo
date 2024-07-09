@@ -10,11 +10,6 @@ namespace Chozo {
         CZ_CORE_ERROR("GLFW Error ({0}):", error, description);
     }
 
-    Window* Window::Create(const WindowProps& props)
-    {
-        return new MacWindow(props);
-    }
-
     MacWindow::MacWindow(const WindowProps& props)
     {
         Init(props);

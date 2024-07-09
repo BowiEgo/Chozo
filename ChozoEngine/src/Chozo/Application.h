@@ -1,12 +1,13 @@
 #pragma once
 
-#include "Window.h"
-#include "Chozo/LayerStack.h"
-#include "Chozo/Events/Event.h"
-#include "Chozo/Events/ApplicationEvent.h"
 
 #include "Chozo/Core/Base.h"
 #include "Chozo/Core/Timestep.h"
+#include "Chozo/Core/Window.h"
+
+#include "Chozo/LayerStack.h"
+#include "Chozo/Events/Event.h"
+#include "Chozo/Events/ApplicationEvent.h"
 
 #include "Chozo/ImGui/ImGuiLayer.h"
 
@@ -15,7 +16,7 @@ namespace Chozo
     class CHOZO_API Application
     {
     public:
-        Application();
+        Application(const std::string& name);
         virtual ~Application();
 
         void Run();

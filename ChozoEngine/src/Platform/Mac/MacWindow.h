@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Chozo/Window.h"
-
 #include <GLFW/glfw3.h>
 
+#include "Chozo/Core/Window.h"
 #include "Chozo/Renderer/GraphicsContext.h"
 
 namespace Chozo
