@@ -25,6 +25,7 @@ namespace Chozo {
         Chozo::ShaderLibrary m_ShaderLibrary;
         Ref<Chozo::Shader> m_Shader;
         Ref<Chozo::VertexArray> m_TriangleVA;
+        Ref<Chozo::VertexBuffer> m_TriangleVB;
 
         Ref<Chozo::Shader> m_flatColorShader;
         Ref<Chozo::VertexArray> m_SquareVA;

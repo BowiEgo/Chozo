@@ -21,6 +21,7 @@ namespace Chozo {
         virtual void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) override;
     	virtual void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer) override;
         
+        virtual const RendererID GetRendererID() const override { return m_RendererID; }
         virtual const std::vector<Ref<VertexBuffer>>& GetVertexBuffers() const override { return m_VertexBuffers; }
         virtual const Ref<IndexBuffer>& GetIndexBuffer() const override { return m_IndexBuffer; }
     };

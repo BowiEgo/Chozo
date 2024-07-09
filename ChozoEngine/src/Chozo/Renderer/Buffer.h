@@ -2,6 +2,8 @@
 
 #include "prxpch.h"
 
+#include "RendererTypes.h"
+
 namespace Chozo {
 
     enum class ShaderDataType
@@ -112,9 +114,13 @@ namespace Chozo {
         virtual void Bind() const = 0;
         virtual void Unbind() const = 0;
 
+        virtual void SetData(float* vertices, uint32_t size) = 0;
+
+        virtual const RendererID GetRendererID() const = 0;
         virtual const BufferLayout& GetLayout() const = 0;
         virtual void SetLayout(const BufferLayout& layout) = 0;
 
+        static Ref<VertexBuffer> Create();
         static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
     };
 

@@ -5,5 +5,4 @@
 namespace Chozo {
 
     using RendererID = uint32_t;
-    
 }

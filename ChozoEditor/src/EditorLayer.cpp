@@ -10,22 +10,16 @@ namespace Chozo {
     {
         /////////////////// Triangle ////////////////////////////////////
         m_TriangleVA = Chozo::VertexArray::Create();
-
-        float vertices[3 * 7] = {
-            -0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f,
-            0.5f, -0.5f, 0.0f, 0.2f, 0.3f, 0.8f, 1.0f,
-            0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
-        };
-        Chozo::Ref<Chozo::VertexBuffer> triangleVB;
-        triangleVB = Chozo::VertexBuffer::Create(vertices, sizeof(vertices));
+        m_TriangleVB = Chozo::VertexBuffer::Create();
 
         Chozo::BufferLayout layout = {
             { Chozo::ShaderDataType::Float3, "a_Position" },
             { Chozo::ShaderDataType::Float4, "a_Color" },
         };
-        triangleVB->SetLayout(layout);
-        m_TriangleVA->AddVertexBuffer(triangleVB);
-        
+
+        m_TriangleVB->SetLayout(layout);
+        m_TriangleVA->AddVertexBuffer(m_TriangleVB);
+
         unsigned int indices[3] = { 0, 1, 2 };
         Chozo::Ref<Chozo::IndexBuffer> triangleIB;
         triangleIB = Chozo::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
@@ -35,8 +29,8 @@ namespace Chozo {
         m_SquareVA = Chozo::VertexArray::Create();
         float squareVertices[5 * 4] = {
             -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-                0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-                0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+             0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
             -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
         };
         Chozo::Ref<Chozo::VertexBuffer> squareVB;
@@ -149,6 +143,16 @@ namespace Chozo {
     void EditorLayer::OnUpdate(Chozo::Timestep ts)
     {
         m_Viewport_FBO->Bind();
+
+        float vertices[3 * 7] = {
+            -0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f,
+             0.5f, -0.5f, 0.0f, 0.2f, 0.3f, 0.8f, 1.0f,
+             0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
+        };
+
+        m_TriangleVB->SetData(vertices, sizeof(vertices));
+
+
         // Camera control
         if (Chozo::Input::IsKeyPressed(CZ_KEY_LEFT))
             m_CameraPosition.x -= m_CameraMoveSpeed * ts;
