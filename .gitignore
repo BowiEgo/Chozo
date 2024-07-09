@@ -1,7 +1,9 @@
 # Directories
 .idea/
 .vscode/
+bin/
 build/
+lib/
 vcpkg_installed
 
 # Files

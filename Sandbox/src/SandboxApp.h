@@ -1,3 +1,4 @@
+#define CHZO_ENTRY_POINT
 #include "Chozo.h"
 
 #include "Platform/OpenGL/OpenGLShader.h"
@@ -43,6 +44,7 @@ class Sandbox : public Chozo::Application
 {
 public:
     Sandbox()
+        : Application("Sandbox")
     {
         CZ_INFO("Welcome to Chozo Sandbox!");
         PushLayer(new ExampleLayer());
