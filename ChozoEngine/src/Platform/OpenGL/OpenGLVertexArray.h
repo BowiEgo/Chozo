@@ -8,7 +8,7 @@ namespace Chozo {
     class OpenGLVertexArray : public VertexArray
     {
     private:
-        u_int32_t m_RendererID;
+        uint32_t m_RendererID;
         std::vector<Ref<VertexBuffer>> m_VertexBuffers;
         Ref<IndexBuffer> m_IndexBuffer;
     public:

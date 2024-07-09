@@ -7,7 +7,7 @@ namespace Chozo {
     class OpenGLVertexBuffer : public VertexBuffer
     {
     private:
-        u_int32_t m_RendererID;
+        uint32_t m_RendererID;
         BufferLayout m_Layout;
     public:
         OpenGLVertexBuffer(float* vertices, uint32_t size);
@@ -23,8 +23,8 @@ namespace Chozo {
     class OpenGLIndexBuffer : public IndexBuffer
     {
     private:
-        u_int32_t m_RendererID;
-        u_int32_t m_Count;;
+        uint32_t m_RendererID;
+        uint32_t m_Count;;
     public:
         OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
         virtual ~OpenGLIndexBuffer();
