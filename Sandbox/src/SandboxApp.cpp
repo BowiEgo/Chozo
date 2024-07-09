@@ -253,18 +253,9 @@ void ExampleLayer::OnImGuiRender()
     ImGui::Begin("Settings");
     ImGui::Text("Renderer stats:");
     ImGui::ColorEdit3("SquareColor", glm::value_ptr(m_SquareColor));
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-    ImGui::Begin("Viewport");
-    ImVec2 viewportPanelSize =  ImGui::GetContentRegionAvail();
-    if (m_Viewport_FBO->GetWidth() != viewportPanelSize.x || m_Viewport_FBO->GetHeight() != viewportPanelSize.y)
-    {
-        m_Viewport_FBO->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
-    }
-    uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID();
-    ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_Viewport_FBO->GetWidth(), m_Viewport_FBO->GetHeight()));
-    ImGui::End();
-    ImGui::PopStyleVar();
+  
+    uint32_t textureID = m_CheckerboardTexture->GetRendererID();
+    ImGui::Image((void*)(uintptr_t)textureID, ImVec2(64.0f, 64.0f));
     ImGui::End();
 
     ImGui::End();
