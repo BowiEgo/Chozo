@@ -73,15 +73,21 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 target_precompile_headers(${PROJECT_NAME} PRIVATE ChozoEngine/src/prxpch.h ChozoEngine/src/prxpch.cpp)
 
 #
+# ChozoEditor
+#
+file(GLOB chozo_editor_sources ChozoEditor/src/*.cpp)
+add_executable(ChozoEditor ${chozo_editor_sources})
+
+target_include_directories(ChozoEditor PUBLIC "${PROJECT_SOURCE_DIR}/ChozoEngine/src")
+
+target_link_libraries(ChozoEditor PUBLIC ${PROJECT_NAME})
+
+#
 # Sandbox
 #
+# file(GLOB sandbox_sources sandbox/src/*.cpp)
+# add_executable(Sandbox ${sandbox_sources})
 
-# Define sandbox application
-file(GLOB sandbox_sources sandbox/src/*.cpp)
-add_executable(Sandbox ${sandbox_sources})
+# target_include_directories(Sandbox PUBLIC "${PROJECT_SOURCE_DIR}/ChozoEngine/src")
 
-# Include directories for the sandbox application
-target_include_directories(Sandbox PUBLIC "${PROJECT_SOURCE_DIR}/ChozoEngine/src")
-
-# Link sandbox with the chozo library
-target_link_libraries(Sandbox PUBLIC ${PROJECT_NAME})
+# target_link_libraries(Sandbox PUBLIC ${PROJECT_NAME})
