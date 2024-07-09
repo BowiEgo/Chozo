@@ -20,16 +20,16 @@ namespace Chozo {
         virtual void OnImGuiRender() override;
         virtual void OnEvent(Chozo::Event& event) override;
     private:
-        Chozo::Ref<Chozo::Framebuffer> m_Viewport_FBO;
+        Ref<Chozo::Framebuffer> m_Viewport_FBO;
 
         Chozo::ShaderLibrary m_ShaderLibrary;
-        Chozo::Ref<Chozo::Shader> m_Shader;
-        Chozo::Ref<Chozo::VertexArray> m_TriangleVA;
+        Ref<Chozo::Shader> m_Shader;
+        Ref<Chozo::VertexArray> m_TriangleVA;
 
-        Chozo::Ref<Chozo::Shader> m_flatColorShader;
-        Chozo::Ref<Chozo::VertexArray> m_SquareVA;
+        Ref<Chozo::Shader> m_flatColorShader;
+        Ref<Chozo::VertexArray> m_SquareVA;
 
-        Chozo::Ref<Chozo::Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
+        Ref<Chozo::Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
 
         Chozo::OrthographicCamera m_Camera;
         glm::vec3 m_CameraPosition;

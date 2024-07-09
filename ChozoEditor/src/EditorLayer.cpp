@@ -13,8 +13,8 @@ namespace Chozo {
 
         float vertices[3 * 7] = {
             -0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f,
-                0.5f, -0.5f, 0.0f, 0.2f, 0.3f, 0.8f, 1.0f,
-                0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
+            0.5f, -0.5f, 0.0f, 0.2f, 0.3f, 0.8f, 1.0f,
+            0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
         };
         Chozo::Ref<Chozo::VertexBuffer> triangleVB;
         triangleVB.reset(Chozo::VertexBuffer::Create(vertices, sizeof(vertices)));
@@ -182,7 +182,7 @@ namespace Chozo {
         m_Camera.SetPosition(m_CameraPosition);
         m_Camera.SetRotation(m_CameraRotation);
 
-        Chozo::Renderer::BeginScene(m_Camera);
+        Chozo::Renderer2D::BeginScene(m_Camera);
 
         // Square grid
         static glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
@@ -199,22 +199,22 @@ namespace Chozo {
             {
                 glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
                 glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos + m_SquarePosition) * scale;
-                Chozo::Renderer::Submit(m_flatColorShader, m_SquareVA, transform);
+                Chozo::Renderer2D::Submit(m_flatColorShader, m_SquareVA, transform);
             }
         }
 
         auto textureShader = m_ShaderLibrary.Get("Texture");
 
         m_CheckerboardTexture->Bind();
-        Chozo::Renderer::Submit(textureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+        Chozo::Renderer2D::Submit(textureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
 
         m_OpenGLLogoTexture->Bind();
-        Chozo::Renderer::Submit(textureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+        Chozo::Renderer2D::Submit(textureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
 
         // Triangle
-        Chozo::Renderer::Submit(m_Shader, m_TriangleVA);
+        Chozo::Renderer2D::Submit(m_Shader, m_TriangleVA);
 
-        Chozo::Renderer::EndScene();
+        Chozo::Renderer2D::EndScene();
 
         m_Viewport_FBO->Unbind();
     }
