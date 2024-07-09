@@ -7,7 +7,7 @@ ExampleLayer::ExampleLayer()
         m_SquarePosition(0.0f)
 {
     /////////////////// Triangle ////////////////////////////////////
-    m_TriangleVA.reset(Chozo::VertexArray::Create());
+    m_TriangleVA = Chozo::VertexArray::Create();
 
     float vertices[3 * 7] = {
         -0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f,
@@ -15,7 +15,7 @@ ExampleLayer::ExampleLayer()
             0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
     };
     Chozo::Ref<Chozo::VertexBuffer> triangleVB;
-    triangleVB.reset(Chozo::VertexBuffer::Create(vertices, sizeof(vertices)));
+    triangleVB = Chozo::VertexBuffer::Create(vertices, sizeof(vertices));
 
     Chozo::BufferLayout layout = {
         { Chozo::ShaderDataType::Float3, "a_Position" },
@@ -26,11 +26,11 @@ ExampleLayer::ExampleLayer()
     
     unsigned int indices[3] = { 0, 1, 2 };
     Chozo::Ref<Chozo::IndexBuffer> triangleIB;
-    triangleIB.reset(Chozo::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+    triangleIB = Chozo::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
     m_TriangleVA->SetIndexBuffer(triangleIB);
 
     /////////////////// Square ////////////////////////////////////
-    m_SquareVA.reset(Chozo::VertexArray::Create());
+    m_SquareVA = Chozo::VertexArray::Create();
     float squareVertices[5 * 4] = {
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
@@ -38,7 +38,7 @@ ExampleLayer::ExampleLayer()
         -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
     };
     Chozo::Ref<Chozo::VertexBuffer> squareVB;
-    squareVB.reset(Chozo::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
+    squareVB = Chozo::VertexBuffer::Create(squareVertices, sizeof(squareVertices));
     squareVB->SetLayout({
         { Chozo::ShaderDataType::Float3, "a_Position" },
         { Chozo::ShaderDataType::Float2, "a_TexCoord" },
@@ -47,7 +47,7 @@ ExampleLayer::ExampleLayer()
 
     unsigned int squareIndices[6] = { 0, 1, 2, 2, 3, 0 };
     Chozo::Ref<Chozo::IndexBuffer> squareIB;
-    squareIB.reset(Chozo::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
+    squareIB = Chozo::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t));
     m_SquareVA->SetIndexBuffer(squareIB);
 
     std::string vertexSrc = R"(
