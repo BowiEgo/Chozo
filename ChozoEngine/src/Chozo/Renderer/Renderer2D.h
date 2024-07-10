@@ -17,13 +17,15 @@ namespace Chozo {
         
         static void BeginScene(OrthographicCamera& camera);
         static void EndScene();
-        static void Flush();
 
+        static void BeginBatch();
+        static void EndBatch();
+        static void Flush();
         // Primitives
         static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color);
-        static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
+        // static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
 
-
+        static void Submit(const Ref<Shader>& shader);
         static void Submit(const Ref<Shader>& shader,
             const Ref<VertexArray>& vertexArray,
             const glm::mat4& transform = glm::mat4(1.0f));
@@ -40,14 +42,15 @@ namespace Chozo {
             uint32_t GetTotalIndexCount() { return QuadCount * 6; }
         };
 
-        static void RestStats();
         static Statistics GetStats();
+        static void ResetStats();
     private:
         static void FlushAndReset();
     private:
         struct SceneData
         {
             glm::mat4 ViewProjectionMatrix;
+            Ref<Shader> Shader;
         };
 
         static SceneData* m_SceneData;

@@ -1,126 +1,38 @@
 #include "EditorLayer.h"
 
+#include <glad/glad.h>
+
 namespace Chozo {
+
+    std::string ReadFile(const std::string &filepath)
+    {
+        std::string result;
+        std::ifstream in(filepath, std::ios::in | std::ios::binary);
+        if (in)
+        {
+            in.seekg(0, std::ios::end);
+            result.resize(in.tellg());
+            in.seekg(0, std::ios::beg);
+            in.read(&result[0], result.size());
+            in.close();
+        }
+        else
+        {
+            CZ_CORE_ASSERT("Could not open file '{0}'", filepath);
+        }
+
+        return result;
+    }
 
     EditorLayer::EditorLayer()
         : Layer("Example"),
             m_Camera(-1.6f, 1.6f, -0.9f, 0.9f),
-            m_CameraPosition(0.0f),
-            m_SquarePosition(0.0f)
+            m_CameraPosition(0.0f)
     {
-        /////////////////// Triangle ////////////////////////////////////
-        m_TriangleVA = Chozo::VertexArray::Create();
-        m_TriangleVB = Chozo::VertexBuffer::Create();
-
-        Chozo::BufferLayout layout = {
-            { Chozo::ShaderDataType::Float3, "a_Position" },
-            { Chozo::ShaderDataType::Float4, "a_Color" },
-        };
-
-        m_TriangleVB->SetLayout(layout);
-        m_TriangleVA->AddVertexBuffer(m_TriangleVB);
-
-        unsigned int indices[3] = { 0, 1, 2 };
-        Chozo::Ref<Chozo::IndexBuffer> triangleIB;
-        triangleIB = Chozo::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
-        m_TriangleVA->SetIndexBuffer(triangleIB);
-
-        /////////////////// Square ////////////////////////////////////
-        m_SquareVA = Chozo::VertexArray::Create();
-        float squareVertices[5 * 4] = {
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-             0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-            -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
-        };
-        Chozo::Ref<Chozo::VertexBuffer> squareVB;
-        squareVB = Chozo::VertexBuffer::Create(squareVertices, sizeof(squareVertices));
-        squareVB->SetLayout({
-            { Chozo::ShaderDataType::Float3, "a_Position" },
-            { Chozo::ShaderDataType::Float2, "a_TexCoord" },
-        });
-        m_SquareVA->AddVertexBuffer(squareVB);
-
-        unsigned int squareIndices[6] = { 0, 1, 2, 2, 3, 0 };
-        Chozo::Ref<Chozo::IndexBuffer> squareIB;
-        squareIB = Chozo::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t));
-        m_SquareVA->SetIndexBuffer(squareIB);
-
-        std::string vertexSrc = R"(
-            #version 330 core
-
-            layout(location = 0) in vec3 a_Position;
-            layout(location = 1) in vec4 a_Color;
-
-            uniform mat4 u_ViewProjection;
-            uniform mat4 u_ModelMatrix;
-
-            out vec3 v_Position;
-            out vec4 v_Color;
-
-            void main()
-            {
-                v_Position = a_Position;
-                v_Color = a_Color;
-                gl_Position = u_ViewProjection * u_ModelMatrix * vec4(a_Position, 1.0);
-            }
-        )";
-
-        std::string fragmentSrc = R"(
-            #version 330 core
-
-            layout(location = 0) out vec4 color;
-
-            in vec3 v_Position;
-            in vec4 v_Color;
-
-            void main()
-            {
-                color = vec4(v_Position * 0.5 + 0.5, 1.0);
-                color = v_Color;
-            }
-        )";
+        std::string vertexSrc = ReadFile("../assets/shaders/Shader.glsl.vert");
+        std::string fragmentSrc = ReadFile("../assets/shaders/Shader.glsl.frag");
 
         m_Shader = Chozo::Shader::Create("VertexPosColor", vertexSrc, fragmentSrc);
-
-        std::string flatColorShaderVertexSrc = R"(
-            #version 330 core
-
-            layout(location = 0) in vec3 a_Position;
-
-            uniform mat4 u_ViewProjection;
-            uniform mat4 u_ModelMatrix;
-
-            out vec3 v_Position;
-
-            void main()
-            {
-                v_Position = a_Position;
-                gl_Position = u_ViewProjection * u_ModelMatrix * vec4(a_Position, 1.0);
-            }
-        )";
-
-        std::string flatColorShaderFragmentSrc = R"(
-            #version 330 core
-
-            layout(location = 0) out vec4 color;
-
-            in vec3 v_Position;
-
-            uniform vec3 u_Color;
-
-            void main()
-            {
-                color = vec4(u_Color, 1.0);
-            }
-        )";
-
-        m_flatColorShader = Chozo::Shader::Create("FlatColor", flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
-
-        auto textureShader = m_ShaderLibrary.Load("../assets/shaders/Texture.glsl");
-
-        std::dynamic_pointer_cast<Chozo::OpenGLShader>(textureShader)->Bind();
-        std::dynamic_pointer_cast<Chozo::OpenGLShader>(textureShader)->UploadUniformInt("u_Texture", 0);
     }
 
     void EditorLayer::OnAttach()
@@ -144,15 +56,6 @@ namespace Chozo {
     {
         m_Viewport_FBO->Bind();
 
-        float vertices[3 * 7] = {
-            -0.5f, -0.5f, 0.0f, 0.8f, 0.2f, 0.8f, 1.0f,
-             0.5f, -0.5f, 0.0f, 0.2f, 0.3f, 0.8f, 1.0f,
-             0.0f,  0.5f, 0.0f, 0.8f, 0.8f, 0.2f, 1.0f
-        };
-
-        m_TriangleVB->SetData(vertices, sizeof(vertices));
-
-
         // Camera control
         if (Chozo::Input::IsKeyPressed(CZ_KEY_LEFT))
             m_CameraPosition.x -= m_CameraMoveSpeed * ts;
@@ -169,17 +72,6 @@ namespace Chozo {
         if (Chozo::Input::IsKeyPressed(CZ_KEY_D))
             m_CameraRotation -= m_CameraRotationSpeed * ts;
 
-        // Square control
-        if (Chozo::Input::IsKeyPressed(CZ_KEY_J))
-            m_SquarePosition.x -= m_SquareMoveSpeed * ts;
-        else if (Chozo::Input::IsKeyPressed(CZ_KEY_L))
-            m_SquarePosition.x += m_SquareMoveSpeed * ts;
-
-        if (Chozo::Input::IsKeyPressed(CZ_KEY_K))
-            m_SquarePosition.y -= m_SquareMoveSpeed * ts;
-        else if (Chozo::Input::IsKeyPressed(CZ_KEY_I))
-            m_SquarePosition.y += m_SquareMoveSpeed * ts;
-
         Chozo::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         Chozo::RenderCommand::Clear();
 
@@ -189,36 +81,23 @@ namespace Chozo {
         Chozo::Renderer2D::BeginScene(m_Camera);
 
         // Square grid
-        static glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+        std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_Shader)->Bind();
+        std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_Shader)->UploadUniformFloat3("u_Color", m_SquareColor);
+        Renderer2D::Submit(m_Shader);
 
-        glm::vec4 redColor(0.8f, 0.2f, 0.3f, 1.0f);
-        glm::vec4 blueColor(0.2f, 0.3f, 0.8f, 1.0f);
-
-        std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_flatColorShader)->Bind();
-        std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_flatColorShader)->UploadUniformFloat3("u_Color", m_SquareColor);
-        
-        for (int y = -10; y < 10; y++)
+        Renderer2D::ResetStats();
+        Renderer2D::BeginBatch();
+        for (float y = -1.0f; y < 1.0f; y += 0.025f)
         {
-            for (int x = -10; x < 10; x++)
+            for (float x = -1.0f; x < 1.0f; x += 0.025f)
             {
-                glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
-                glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos + m_SquarePosition) * scale;
-                Chozo::Renderer2D::Submit(m_flatColorShader, m_SquareVA, transform);
+                glm::vec4 color = { (x + 10) / 200.0f, 0.2f, (y + 10) / 200.0f, 1.0f };
+                Renderer2D::DrawQuad({ x, y }, { 0.02f, 0.02f }, color);
             }
         }
 
-        auto textureShader = m_ShaderLibrary.Get("Texture");
-
-        m_CheckerboardTexture->Bind();
-        Chozo::Renderer2D::Submit(textureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
-
-        m_OpenGLLogoTexture->Bind();
-        Chozo::Renderer2D::Submit(textureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
-
-        // Triangle
-        Chozo::Renderer2D::Submit(m_Shader, m_TriangleVA);
-
-        Chozo::Renderer2D::EndScene();
+        Renderer2D::DrawQuad({-1.3f, 0.8f}, { 0.025f, 0.025f }, glm::vec4(m_SquareColor, 1.0));
+        Renderer2D::EndBatch();
 
         m_Viewport_FBO->Unbind();
     }
@@ -258,6 +137,8 @@ namespace Chozo {
 
         ImGui::Begin("Settings");
         ImGui::Text("Renderer stats:");
+        ImGui::Text("DrawCalls: %d", Renderer2D::GetStats().DrawCalls);
+        ImGui::Text("QuadCount: %d", Renderer2D::GetStats().QuadCount);
         ImGui::ColorEdit3("SquareColor", glm::value_ptr(m_SquareColor));
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });

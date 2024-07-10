@@ -24,12 +24,6 @@ namespace Chozo {
 
         Chozo::ShaderLibrary m_ShaderLibrary;
         Ref<Chozo::Shader> m_Shader;
-        Ref<Chozo::VertexArray> m_TriangleVA;
-        Ref<Chozo::VertexBuffer> m_TriangleVB;
-
-        Ref<Chozo::Shader> m_flatColorShader;
-        Ref<Chozo::VertexArray> m_SquareVA;
-
         Ref<Chozo::Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
 
         Chozo::OrthographicCamera m_Camera;
@@ -37,9 +31,6 @@ namespace Chozo {
         float m_CameraMoveSpeed = 2.0f;
         float m_CameraRotation = 0.0f;
         float m_CameraRotationSpeed = 180.0f;
-
-        glm::vec3 m_SquarePosition;
-        float m_SquareMoveSpeed = 1.0f;
 
         glm::vec3 m_SquareColor = { 0.2f, 0.3f, 0.8f };
     };

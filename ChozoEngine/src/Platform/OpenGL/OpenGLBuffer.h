@@ -12,6 +12,7 @@ namespace Chozo {
         BufferLayout m_Layout;
     public:
         OpenGLVertexBuffer();
+        OpenGLVertexBuffer(uint32_t size);
         OpenGLVertexBuffer(float* vertices, uint32_t size);
         virtual ~OpenGLVertexBuffer();
 
