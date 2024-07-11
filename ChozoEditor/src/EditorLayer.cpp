@@ -26,7 +26,7 @@ namespace Chozo {
 
     EditorLayer::EditorLayer()
         : Layer("Example"),
-            m_Camera(-1.6f, 1.6f, -0.9f, 0.9f),
+            m_Camera(1280.0f, 720.0f),
             m_CameraPosition(0.0f)
     {
         std::string vertexSrc = ReadFile("../assets/shaders/Shader.glsl.vert");
@@ -72,6 +72,20 @@ namespace Chozo {
         if (Chozo::Input::IsKeyPressed(CZ_KEY_D))
             m_CameraRotation -= m_CameraRotationSpeed * ts;
 
+        if (Chozo::Input::IsKeyPressed(CZ_KEY_Q))
+        {
+            if (m_ZoomLevel > 0.0f)
+                m_ZoomLevel -= 0.01f;
+            
+            m_Camera.Zoom(m_ZoomLevel);
+        }
+        if (Chozo::Input::IsKeyPressed(CZ_KEY_E))
+        {
+            m_ZoomLevel += 0.01f;
+            m_Camera.Zoom(m_ZoomLevel);
+        }
+        
+
         Chozo::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         Chozo::RenderCommand::Clear();
 
@@ -82,21 +96,21 @@ namespace Chozo {
 
         // Square grid
         std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_Shader)->Bind();
-        std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_Shader)->UploadUniformFloat3("u_Color", m_SquareColor);
+        // std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_Shader)->UploadUniformFloat3("u_Color", m_SquareColor);
         Renderer2D::Submit(m_Shader);
 
         Renderer2D::ResetStats();
         Renderer2D::BeginBatch();
-        for (float y = -1.0f; y < 1.0f; y += 0.025f)
+        for (float y = -500.0f; y < 500.0f; y += 25.0f)
         {
-            for (float x = -1.0f; x < 1.0f; x += 0.025f)
+            for (float x = -500.0f; x < 500.0f; x += 25.0f)
             {
-                glm::vec4 color = { (x + 10) / 200.0f, 0.2f, (y + 10) / 200.0f, 1.0f };
-                Renderer2D::DrawQuad({ x, y }, { 0.02f, 0.02f }, color);
+                glm::vec4 color = { (x + 500.0f) / 1000.0f, 0.2f, (y + 500.0f) / 1000.0f, 1.0f };
+                Renderer2D::DrawQuad({ x, y }, { 22.0f, 22.0f }, color);
             }
         }
 
-        Renderer2D::DrawQuad({-1.3f, 0.8f}, { 0.025f, 0.025f }, glm::vec4(m_SquareColor, 1.0));
+        // Renderer2D::DrawQuad({0.0f, 0.0f}, { 100.0f, 100.0f }, glm::vec4(m_SquareColor, 1.0));
         Renderer2D::EndBatch();
 
         m_Viewport_FBO->Unbind();
@@ -147,6 +161,7 @@ namespace Chozo {
         if (m_Viewport_FBO->GetWidth() != viewportPanelSize.x || m_Viewport_FBO->GetHeight() != viewportPanelSize.y)
         {
             m_Viewport_FBO->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
+            m_Camera.Resize(viewportPanelSize.x, viewportPanelSize.y);
         }
         uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID();
         ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_Viewport_FBO->GetWidth(), m_Viewport_FBO->GetHeight()), ImVec2(0, 1), ImVec2(1, 0));

@@ -2,7 +2,7 @@
 
 ExampleLayer::ExampleLayer()
     : Layer("Example"),
-        m_Camera(-1.6f, 1.6f, -0.9f, 0.9f),
+        m_Camera(1.0f, 1.0f),
         m_CameraPosition(0.0f),
         m_SquarePosition(0.0f)
 {

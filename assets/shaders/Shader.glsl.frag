@@ -15,6 +15,6 @@ void main()
     // o_Color = texture(u_Textures[index], v_TexCoord) * v_Color;
     o_Color = v_Color;
     // o_Color = vec4(v_TexCoord.xy, 1.0, 1.0);
-    o_Color = vec4(u_Color, 1.0);
+    // o_Color = vec4(u_Color, 1.0);
     // o_Color = vec4(vec3(1.0), 1.0);
 }

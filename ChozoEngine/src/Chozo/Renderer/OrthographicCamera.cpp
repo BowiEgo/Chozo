@@ -3,9 +3,24 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace Chozo {
-    OrthographicCamera::OrthographicCamera(float left, float right, float bottom, float top)
-        : m_ProjectionMatrix(glm::ortho(left, right, bottom, top, -1.0f, 1.0f)), m_ViewMatrix(1.0f)
+
+    OrthographicCamera::OrthographicCamera(const float width, const float height)
+        : m_Width(width), m_Height(height), m_ViewMatrix(1.0f)
     {
+        Resize(m_Width, m_Height);
+    }
+
+    void OrthographicCamera::Zoom(const float zoomLevel)
+    {
+         m_ZoomLevel = zoomLevel;
+         Resize(m_Width, m_Height);
+    }
+
+    void OrthographicCamera::Resize(const float width, const float height)
+    {
+        m_Width = width;
+        m_Height = height;
+        m_ProjectionMatrix = glm::ortho(-0.5f * width * m_ZoomLevel, 0.5f * width * m_ZoomLevel, -0.5f * height * m_ZoomLevel, 0.5f * height * m_ZoomLevel, -1.0f, 1.0f);
         m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 
