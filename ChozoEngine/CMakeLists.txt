@@ -30,11 +30,6 @@ set(LIBRARY_OUTPUT_PATH ${LIB_PATH})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_PLATFORM_MAC)
 
-# Set defines for build type
-set(CMAKE_CXX_FLAGS_DEBUG -DCZ_DEBUG)
-set(CMAKE_CXX_FLAGS_RELEASE -DCZ_RELEASE)
-set(CMAKE_CXX_FLAGS_DIST -DCZ_DIST)
-
 # Include directories for chozo
 target_include_directories(${PROJECT_NAME} PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}/src"
