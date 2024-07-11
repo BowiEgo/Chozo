@@ -155,19 +155,6 @@ namespace Chozo {
         m_SceneData->Shader = shader;
     }
 
-    void Renderer2D::Submit(const Ref<Shader> &shader,
-                            const Ref<VertexArray> &vertexArray,
-                            const glm::mat4 &transform)
-    {
-        shader->Bind();
-        std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_ViewProjection", m_SceneData->ViewProjectionMatrix);
-        std::dynamic_pointer_cast<OpenGLShader>(shader)->UploadUniformMat4("u_ModelMatrix", transform);
-
-        vertexArray->Bind();
-        RenderCommand::DrawIndexed(vertexArray);
-    }
-
-
     Renderer2D::Statistics Renderer2D::GetStats()
     {
         return s_Data.Stats;

@@ -96,7 +96,7 @@ namespace Chozo {
 
         // Square grid
         std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_Shader)->Bind();
-        // std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_Shader)->UploadUniformFloat3("u_Color", m_SquareColor);
+        std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_Shader)->UploadUniformFloat3("u_Color", m_SquareColor);
         Renderer2D::Submit(m_Shader);
 
         Renderer2D::ResetStats();
@@ -110,7 +110,7 @@ namespace Chozo {
             }
         }
 
-        // Renderer2D::DrawQuad({0.0f, 0.0f}, { 100.0f, 100.0f }, glm::vec4(m_SquareColor, 1.0));
+        Renderer2D::DrawQuad({0.0f, 0.0f}, { 100.0f, 100.0f }, glm::vec4(m_SquareColor, 1.0));
         Renderer2D::EndBatch();
 
         m_Viewport_FBO->Unbind();
@@ -153,6 +153,8 @@ namespace Chozo {
         ImGui::Text("Renderer stats:");
         ImGui::Text("DrawCalls: %d", Renderer2D::GetStats().DrawCalls);
         ImGui::Text("QuadCount: %d", Renderer2D::GetStats().QuadCount);
+        ImGui::Text("Vertices: %d", Renderer2D::GetStats().GetTotalVertexCount());
+        ImGui::Text("Indices: %d", Renderer2D::GetStats().GetTotalIndexCount());
         ImGui::ColorEdit3("SquareColor", glm::value_ptr(m_SquareColor));
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
