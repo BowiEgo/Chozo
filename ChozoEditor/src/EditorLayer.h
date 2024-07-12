@@ -7,6 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "CameraController.h"
+
 namespace Chozo {
 
     class EditorLayer : public Chozo::Layer
@@ -18,22 +20,19 @@ namespace Chozo {
         virtual void OnDetach() override;
         virtual void OnUpdate(Chozo::Timestep ts) override;
         virtual void OnImGuiRender() override;
-        virtual void OnEvent(Chozo::Event& event) override;
+        virtual void OnEvent(Chozo::Event& e) override;
     private:
         Ref<Chozo::Framebuffer> m_Viewport_FBO;
+        bool m_Viewport_Focused, m_Viewport_Hovered;
 
         Chozo::ShaderLibrary m_ShaderLibrary;
         Ref<Chozo::Shader> m_Shader;
         Ref<Chozo::Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
 
         Chozo::OrthographicCamera m_Camera;
-        glm::vec3 m_CameraPosition;
-        float m_CameraMoveSpeed = 500.0f;
-        float m_CameraRotation = 0.0f;
-        float m_CameraRotationSpeed = 180.0f;
-        float m_ZoomLevel = 1.0f;
+        Scope<CameraController> m_CameraController;
 
-        glm::vec3 m_SquareColor = { 0.2f, 0.3f, 0.8f };
+        glm::vec3 m_SquareColor = { 1.0f, 1.0f, 1.0f };
     };
 }
 

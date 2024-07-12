@@ -26,13 +26,14 @@ namespace Chozo {
 
     EditorLayer::EditorLayer()
         : Layer("Example"),
-            m_Camera(1280.0f, 720.0f),
-            m_CameraPosition(0.0f)
+            m_Camera(1280.0f, 720.0f)
     {
         std::string vertexSrc = ReadFile("../assets/shaders/Shader.glsl.vert");
         std::string fragmentSrc = ReadFile("../assets/shaders/Shader.glsl.frag");
 
         m_Shader = Chozo::Shader::Create("VertexPosColor", vertexSrc, fragmentSrc);
+
+        m_CameraController = std::make_unique<CameraController>(&m_Camera);
     }
 
     void EditorLayer::OnAttach()
@@ -57,40 +58,11 @@ namespace Chozo {
         m_Viewport_FBO->Bind();
 
         // Camera control
-        if (Chozo::Input::IsKeyPressed(CZ_KEY_LEFT))
-            m_CameraPosition.x -= m_CameraMoveSpeed * ts;
-        else if (Chozo::Input::IsKeyPressed(CZ_KEY_RIGHT))
-            m_CameraPosition.x += m_CameraMoveSpeed * ts;
-
-        if (Chozo::Input::IsKeyPressed(CZ_KEY_DOWN))
-            m_CameraPosition.y -= m_CameraMoveSpeed * ts;
-        else if (Chozo::Input::IsKeyPressed(CZ_KEY_UP))
-            m_CameraPosition.y += m_CameraMoveSpeed * ts;
-
-        if (Chozo::Input::IsKeyPressed(CZ_KEY_A))
-            m_CameraRotation += m_CameraRotationSpeed * ts;
-        if (Chozo::Input::IsKeyPressed(CZ_KEY_D))
-            m_CameraRotation -= m_CameraRotationSpeed * ts;
-
-        if (Chozo::Input::IsKeyPressed(CZ_KEY_Q))
-        {
-            if (m_ZoomLevel > 0.0f)
-                m_ZoomLevel -= 0.01f;
-            
-            m_Camera.Zoom(m_ZoomLevel);
-        }
-        if (Chozo::Input::IsKeyPressed(CZ_KEY_E))
-        {
-            m_ZoomLevel += 0.01f;
-            m_Camera.Zoom(m_ZoomLevel);
-        }
-        
+        m_CameraController->Enable(m_Viewport_Focused && m_Viewport_Hovered);
+        m_CameraController->Update(ts);
 
         Chozo::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         Chozo::RenderCommand::Clear();
-
-        m_Camera.SetPosition(m_CameraPosition);
-        m_Camera.SetRotation(m_CameraRotation);
 
         Chozo::Renderer2D::BeginScene(m_Camera);
 
@@ -159,6 +131,9 @@ namespace Chozo {
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
+        m_Viewport_Focused = ImGui::IsWindowFocused();
+        m_Viewport_Hovered = ImGui::IsWindowHovered();
+
         ImVec2 viewportPanelSize =  ImGui::GetContentRegionAvail();
         if (m_Viewport_FBO->GetWidth() != viewportPanelSize.x || m_Viewport_FBO->GetHeight() != viewportPanelSize.y)
         {
@@ -174,7 +149,8 @@ namespace Chozo {
         ImGui::End();
     }
 
-    void EditorLayer::OnEvent(Chozo::Event &event)
+    void EditorLayer::OnEvent(Chozo::Event &e)
     {
+        m_CameraController->OnEvent(e);
     }
 }
