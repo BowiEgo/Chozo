@@ -58,7 +58,7 @@ namespace Chozo {
         m_Viewport_FBO->Bind();
 
         // Camera control
-        m_CameraController->Enable(m_Viewport_Focused && m_Viewport_Hovered);
+        m_CameraController->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
         m_CameraController->Update(ts);
 
         Chozo::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
@@ -131,8 +131,10 @@ namespace Chozo {
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
+
         m_Viewport_Focused = ImGui::IsWindowFocused();
         m_Viewport_Hovered = ImGui::IsWindowHovered();
+        Application::Get().GetImGuiLayer().BlockEvents(!m_Viewport_Focused || !m_Viewport_Hovered);
 
         ImVec2 viewportPanelSize =  ImGui::GetContentRegionAvail();
         if (m_Viewport_FBO->GetWidth() != viewportPanelSize.x || m_Viewport_FBO->GetHeight() != viewportPanelSize.y)

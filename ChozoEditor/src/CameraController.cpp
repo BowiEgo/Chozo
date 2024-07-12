@@ -4,7 +4,7 @@ namespace Chozo {
 
     void CameraController::Update(Timestep ts)
     {
-        if (!m_Enabled) return;
+        if (!m_IsActive) return;
 
         if (Input::IsKeyPressed(CZ_KEY_LEFT))
             m_CameraPosition.x -= m_CameraMoveSpeed * ts;
@@ -35,8 +35,6 @@ namespace Chozo {
 
     bool CameraController::OnMouseScroll(MouseScrolledEvent &e)
     {
-        if (!m_Enabled) return false;
-
         float yScrollOffset = e.GetYOffset();
 
         if (yScrollOffset != m_LastScroll)

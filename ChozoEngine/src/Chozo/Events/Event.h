@@ -40,7 +40,8 @@ namespace Chozo {
 
         inline bool isInCategory(EventCategory category) { return GetCategoryFlags() & category; }
         inline bool isHandled() const { return m_Handled; }
-    protected:
+        inline void SetHandled(bool handled) { m_Handled = handled; }
+    public:
         bool m_Handled = false;
     };
 

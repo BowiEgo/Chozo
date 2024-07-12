@@ -58,6 +58,18 @@ namespace Chozo {
     {
     }
 
+    void ImGuiLayer::OnEvent(Event &e)
+    {
+        if (m_BlockEvents)
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            bool handled = false;
+            handled |= e.isInCategory(EventCategoryMouse) & io.WantCaptureMouse;
+            handled |= e.isInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
+            e.SetHandled(handled);
+        }
+    }
+
     void ImGuiLayer::Begin()
     {
         ImGui_ImplOpenGL3_NewFrame();

@@ -9,7 +9,7 @@ namespace Chozo {
             : m_Camera(camera), m_CameraPosition(0.0f), m_CameraRotation(0.0f) {};
         ~CameraController() {};
 
-        void Enable(bool enabled) { m_Enabled = enabled; }
+        void SetActive(bool active) { m_IsActive = active; }
 
         void Update(Timestep ts);
 
@@ -18,7 +18,7 @@ namespace Chozo {
     private:
         bool OnMouseScroll(MouseScrolledEvent& e);
     private:
-        bool m_Enabled = true;
+        bool m_IsActive = true;
 
         OrthographicCamera* m_Camera;
         glm::vec3 m_CameraPosition;
