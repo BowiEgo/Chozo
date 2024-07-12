@@ -6,7 +6,7 @@
 #include "Chozo/Events/ApplicationEvent.h"
 #include "Chozo/Events/MouseEvent.h"
 #include "Chozo/Events/KeyEvent.h"
-#include "Chozo/FmtFormatter.h"
+#include "FmtFormatter.h"
 
 namespace Chozo
 {

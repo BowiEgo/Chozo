@@ -1,7 +1,7 @@
 #pragma once
 
 #include "prxpch.h"
-#include "Chozo/Layer.h"
+#include "Chozo/Core/Layer.h"
 #include "imgui.h"
 #include "ImGuiKeyCodes.h"
 

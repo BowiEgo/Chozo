@@ -1,16 +1,15 @@
 #pragma once
 
 // For use by Chozo applications, which means they can be accessed by client.
-#include "Chozo/Application.h"
-#include "Chozo/Layer.h"
-#include "Chozo/Log.h"
-
+#include "Chozo/Core/Application.h"
+#include "Chozo/Core/Layer.h"
 #include "Chozo/Core/Timestep.h"
 #include "Chozo/Core/Ref.h"
+#include "Chozo/Core/Input.h"
+#include "Chozo/Core/KeyCodes.h"
+#include "Chozo/Core/MouseButtonCodes.h"
 
-#include "Chozo/Input.h"
-#include "Chozo/KeyCodes.h"
-#include "Chozo/MouseButtonCodes.h"
+#include "Chozo/Debug/Log.h"
 
 #include "Chozo/ImGui/ImGuiLayer.h"
 

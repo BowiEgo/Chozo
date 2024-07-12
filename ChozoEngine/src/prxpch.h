@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "Chozo/Log.h"
+#include "Chozo/Debug/Log.h"
 
 #ifdef CHOZO_PLATFORM_WIN
     #include <Windows.h>

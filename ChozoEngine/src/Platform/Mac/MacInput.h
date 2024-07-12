@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Chozo/Input.h"
+#include "Chozo/Core/Input.h"
 
 namespace Chozo {
     class MacInput : public Input

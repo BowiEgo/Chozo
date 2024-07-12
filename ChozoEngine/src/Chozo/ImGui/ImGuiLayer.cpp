@@ -3,7 +3,7 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_impl_glfw.h"
 
-#include "Chozo/Application.h"
+#include "Chozo/Core/Application.h"
 
 #include <GLFW/glfw3.h>
 

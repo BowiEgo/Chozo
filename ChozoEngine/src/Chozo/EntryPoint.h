@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Application.h"
+#include "Chozo/Core/Application.h"
 
 int main(int argc, char **argv)
 {

@@ -4,8 +4,8 @@
 #include "Chozo/Core/Base.h"
 #include "Chozo/Core/Timestep.h"
 #include "Chozo/Core/Window.h"
+#include "Chozo/Core/LayerStack.h"
 
-#include "Chozo/LayerStack.h"
 #include "Chozo/Events/Event.h"
 #include "Chozo/Events/ApplicationEvent.h"
 

@@ -1,4 +1,4 @@
-#include "Chozo/KeyCodes.h"
+#include "Chozo/Core/KeyCodes.h"
 
 static ImGuiKey ImGui_ImplCZ_KeyToImGuiKey(int key)
 {
