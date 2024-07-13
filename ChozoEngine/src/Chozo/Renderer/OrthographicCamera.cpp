@@ -5,23 +5,27 @@
 namespace Chozo {
 
     OrthographicCamera::OrthographicCamera(const float width, const float height)
-        : m_Width(width), m_Height(height), m_ViewMatrix(1.0f)
+        : m_ViewMatrix(1.0f)
     {
-        Resize(m_Width, m_Height);
+        Resize(width, height);
     }
 
     void OrthographicCamera::Zoom(const float zoomLevel)
     {
          m_ZoomLevel = zoomLevel;
-         Resize(m_Width, m_Height);
+         Resize();
+    }
+
+    void OrthographicCamera::Resize()
+    {
+        m_ProjectionMatrix = glm::ortho(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel, -1.0f, 1.0f);
+        m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 
     void OrthographicCamera::Resize(const float width, const float height)
     {
-        m_Width = width;
-        m_Height = height;
-        m_ProjectionMatrix = glm::ortho(-0.5f * width * m_ZoomLevel * 0.01f, 0.5f * width * m_ZoomLevel * 0.01f, -0.5f * height * m_ZoomLevel * 0.01f, 0.5f * height * m_ZoomLevel * 0.01f, -1.0f, 1.0f);
-        m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+        m_AspectRatio = width / height;
+        Resize();
     }
 
     void OrthographicCamera::RecalculateViewMatrix()

@@ -36,6 +36,9 @@ namespace Chozo {
 
         Entity m_Square_Entity;
         glm::vec3 m_SquareColor = { 1.0f, 1.0f, 1.0f };
+
+        Entity m_Camera_A, m_Camera_B;
+        bool m_Camera_A_Is_Primary = true;
     };
 }
 

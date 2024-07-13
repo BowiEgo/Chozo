@@ -50,9 +50,33 @@ namespace Chozo {
         // Scene
         // --------------------
         m_ActiveScene = std::make_shared<Scene>();
-        Entity square = m_ActiveScene->CreateEntity("Orange Square");
-        square.AddCompoent<SpriteRendererComponent>(glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
-        m_Square_Entity = square;
+        // --------------------
+        // Camera entity
+        // --------------------
+        m_Camera_A = m_ActiveScene->CreateEntity("Camera A");
+        m_Camera_A.AddCompoent<CameraComponent>(glm::ortho(-12.8f, 7.2f, -12.8f, 7.2f));
+        m_Camera_B = m_ActiveScene->CreateEntity("Camera B");
+        m_Camera_B.AddCompoent<CameraComponent>(glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f));
+        // --------------------
+        // Square entity
+        // --------------------
+        m_Square_Entity = m_ActiveScene->CreateEntity("Orange Square");
+        m_Square_Entity.AddCompoent<SpriteRendererComponent>(glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
+        // --------------------
+        // Square grid entities
+        // --------------------
+        for (float y = -10.0f; y < 10.0f; y += 0.25f)
+        {
+            for (float x = -10.0f; x < 10.0f; x += 0.25f)
+            {
+                glm::vec4 color = { (x + 10.0f) / 20.0f, 0.2f, (y + 10.0f) / 20.0f, 1.0f };
+
+                Entity entity = m_ActiveScene->CreateEntity("Grid Square");
+                glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.22f, 0.22f, 0.0f });
+                entity.GetCompoent<TransformComponent>().Transform = transform;
+                entity.AddCompoent<SpriteRendererComponent>(color);
+            }
+        }
     }
 
     void EditorLayer::OnDetach()
@@ -74,29 +98,15 @@ namespace Chozo {
         m_CameraController->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
         m_CameraController->Update(ts);
 
-        // Render
-        Renderer2D::ResetStats();
         m_Viewport_FBO->Bind();
+        Renderer2D::ResetStats();
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         RenderCommand::Clear();
 
-        Renderer2D::BeginScene(m_CameraController->GetCamera());
         Renderer2D::Submit(m_Shader);
-        Renderer2D::BeginBatch();
-
-        // Square grid
-        for (float y = -10.0f; y < 10.0f; y += 0.25f)
-        {
-            for (float x = -10.0f; x < 10.0f; x += 0.25f)
-            {
-                glm::vec4 color = { (x + 10.0f) / 20.0f, 0.2f, (y + 10.0f) / 20.0f, 1.0f };
-                Renderer2D::DrawQuad({ x, y }, { 0.22f, 0.22f }, color);
-            }
-        }
         // Update scene
         m_ActiveScene->OnUpdate(ts);
 
-        Renderer2D::EndBatch();
         m_Viewport_FBO->Unbind();
     }
 
@@ -149,6 +159,11 @@ namespace Chozo {
             ImGui::ColorEdit3("##OrangeSquare", glm::value_ptr(squareColor));
             ImGui::Separator();
         }
+
+        ImGui::DragFloat3("Camera A Transform", glm::value_ptr(m_Camera_A.GetCompoent<TransformComponent>().Transform[3]));
+        ImGui::Checkbox("Camera A", &m_Camera_A_Is_Primary);
+        m_Camera_A.GetCompoent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
+        m_Camera_B.GetCompoent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");

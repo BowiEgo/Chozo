@@ -39,20 +39,10 @@ namespace Chozo {
 
     bool CameraController::OnMouseScroll(MouseScrolledEvent &e)
     {
-        float yScrollOffset = e.GetYOffset();
+        m_ZoomLevel -= e.GetYOffset() * 0.25f;
+        m_ZoomLevel = std::max(m_ZoomLevel, 0.25f);
 
-        if (yScrollOffset != m_LastScroll)
-        {
-            if(m_ZoomLevel >= 0.1f && m_ZoomLevel <= 3.14f)
-                m_ZoomLevel -= yScrollOffset * 0.05;
-            if(m_ZoomLevel <= 0.1f)
-                m_ZoomLevel = 0.1f;
-            if(m_ZoomLevel >= 3.14f)
-                m_ZoomLevel = 3.14f;
-            m_LastScroll = yScrollOffset;
-            m_Camera.Zoom(m_ZoomLevel);
-        }
-
+        m_Camera.Zoom(m_ZoomLevel);
         return true;
     }
 }

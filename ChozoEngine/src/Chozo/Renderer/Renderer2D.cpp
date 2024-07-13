@@ -93,6 +93,11 @@ namespace Chozo {
         s_Data.QuadVAO->SetIndexBuffer(squareIB);
     }
 
+    void Renderer2D::BeginScene(const glm::mat4& projection, const glm::mat4 &transform)
+    {
+        m_SceneData->ViewProjectionMatrix = projection * glm::inverse(transform);
+    }
+
     void Renderer2D::BeginScene(OrthographicCamera &camera)
     {
         m_SceneData->ViewProjectionMatrix = camera.GetViewProjectionMatrix();
