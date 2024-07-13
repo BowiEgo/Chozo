@@ -28,5 +28,5 @@ $ ./install.sh
 ## Run
 
 ```console
-$ ./build/Sandbox
+$ ./bin/ChozoEditor
 ```
