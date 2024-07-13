@@ -34,6 +34,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_PLATFORM_MAC)
 target_include_directories(${PROJECT_NAME} PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}/src"
   "${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image"
+  "${CMAKE_CURRENT_SOURCE_DIR}/vendor/entt/include"
 )
 
 # message(${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/spdlog)
@@ -56,6 +57,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
 # Precompiled header
 target_precompile_headers(${PROJECT_NAME} PRIVATE
-    src/prxpch.h
-    src/prxpch.cpp
+    src/czpch.h
+    src/czpch.cpp
 )

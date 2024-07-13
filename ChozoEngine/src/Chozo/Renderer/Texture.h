@@ -1,6 +1,6 @@
 #pragma once
 
-#include "prxpch.h"
+#include "czpch.h"
 #include "Chozo/Renderer/RendererTypes.h"
 
 namespace Chozo {
