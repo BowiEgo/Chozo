@@ -46,12 +46,13 @@ namespace Chozo {
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
         m_Viewport_FBO = Chozo::Framebuffer::Create(fbSpec);
-
+        // --------------------
+        // Scene
+        // --------------------
         m_ActiveScene = std::make_shared<Scene>();
-        auto square = m_ActiveScene->CreateEntity();
-        m_ActiveScene->Reg().emplace<TransformComponent>(square);
-        m_ActiveScene->Reg().emplace<SpriteRendererComponent>(square, glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
-        m_Squqre_Entity = square;
+        Entity square = m_ActiveScene->CreateEntity("Orange Square");
+        square.AddCompoent<SpriteRendererComponent>(glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
+        m_Square_Entity = square;
     }
 
     void EditorLayer::OnDetach()
@@ -73,7 +74,7 @@ namespace Chozo {
         Chozo::Renderer2D::BeginScene(m_CameraController->GetCamera());
         Renderer2D::Submit(m_Shader);
         Renderer2D::BeginBatch();
-        
+
         // Square grid
         for (float y = -10.0f; y < 10.0f; y += 0.25f)
         {
@@ -130,8 +131,15 @@ namespace Chozo {
         ImGui::Text("Vertices: %d", Renderer2D::GetStats().GetTotalVertexCount());
         ImGui::Text("Indices: %d", Renderer2D::GetStats().GetTotalIndexCount());
 
-        auto& squareColor = m_ActiveScene->Reg().get<SpriteRendererComponent>(m_Squqre_Entity).Color;
-        ImGui::ColorEdit3("SquareColor", glm::value_ptr(squareColor));
+        if (m_Square_Entity)
+        {
+            ImGui::Separator();
+            auto& tag = m_Square_Entity.GetCompoent<TagComponent>().Tag;
+            ImGui::Text("%s", tag.c_str());
+            auto& squareColor = m_Square_Entity.GetCompoent<SpriteRendererComponent>().Color;
+            ImGui::ColorEdit3("##OrangeSquare", glm::value_ptr(squareColor));
+            ImGui::Separator();
+        }
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");

@@ -33,8 +33,8 @@ namespace Chozo {
 
         Ref<Scene> m_ActiveScene;
 
+        Entity m_Square_Entity;
         glm::vec3 m_SquareColor = { 1.0f, 1.0f, 1.0f };
-        entt::entity m_Squqre_Entity;
     };
 }
 
