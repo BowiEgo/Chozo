@@ -23,6 +23,7 @@ namespace Chozo {
         virtual void OnEvent(Event& e) override;
     private:
         Ref<Framebuffer> m_Viewport_FBO;
+        ImVec2 m_Viewport_Size;
         bool m_Viewport_Focused, m_Viewport_Hovered;
 
         ShaderLibrary m_ShaderLibrary;

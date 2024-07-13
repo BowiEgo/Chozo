@@ -30,22 +30,22 @@ namespace Chozo {
         std::string vertexSrc = ReadFile("../assets/shaders/Shader.glsl.vert");
         std::string fragmentSrc = ReadFile("../assets/shaders/Shader.glsl.frag");
 
-        m_Shader = Chozo::Shader::Create("VertexPosColor", vertexSrc, fragmentSrc);
+        m_Shader = Shader::Create("VertexPosColor", vertexSrc, fragmentSrc);
 
         m_CameraController = std::make_unique<CameraController>();
     }
 
     void EditorLayer::OnAttach()
     {
-        m_CheckerboardTexture = Chozo::Texture2D::Create("../assets/textures/checkerboard.png");
-        m_OpenGLLogoTexture = Chozo::Texture2D::Create("../assets/textures/OpenGL_Logo.png");
+        m_CheckerboardTexture = Texture2D::Create("../assets/textures/checkerboard.png");
+        m_OpenGLLogoTexture = Texture2D::Create("../assets/textures/OpenGL_Logo.png");
         // --------------------
         // Viewport
         // --------------------
-        Chozo::FramebufferSpecification fbSpec;
+        FramebufferSpecification fbSpec;
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
-        m_Viewport_FBO = Chozo::Framebuffer::Create(fbSpec);
+        m_Viewport_FBO = Framebuffer::Create(fbSpec);
         // --------------------
         // Scene
         // --------------------
@@ -59,8 +59,17 @@ namespace Chozo {
     {
     }
 
-    void EditorLayer::OnUpdate(Chozo::Timestep ts)
+    void EditorLayer::OnUpdate(Timestep ts)
     {
+        // Resize
+        if (FramebufferSpecification spec = m_Viewport_FBO->GetSpecification();
+            m_Viewport_Size.x > 0.0f && m_Viewport_Size.y > 0.0f && // zero size framebuffer is invalid
+            (spec.Width != m_Viewport_Size.x || spec.Height != m_Viewport_Size.y))
+        {
+            m_Viewport_FBO->Resize(m_Viewport_Size.x, m_Viewport_Size.y);
+            m_CameraController->Resize(m_Viewport_Size.x, m_Viewport_Size.y);
+        }
+
         // Camera control
         m_CameraController->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
         m_CameraController->Update(ts);
@@ -68,10 +77,10 @@ namespace Chozo {
         // Render
         Renderer2D::ResetStats();
         m_Viewport_FBO->Bind();
-        Chozo::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-        Chozo::RenderCommand::Clear();
+        RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+        RenderCommand::Clear();
 
-        Chozo::Renderer2D::BeginScene(m_CameraController->GetCamera());
+        Renderer2D::BeginScene(m_CameraController->GetCamera());
         Renderer2D::Submit(m_Shader);
         Renderer2D::BeginBatch();
 
@@ -117,7 +126,7 @@ namespace Chozo {
         {
             if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("Quit")) Chozo::Application::Get().Close();
+                if (ImGui::MenuItem("Quit")) Application::Get().Close();
                 ImGui::EndMenu();
             }
 
@@ -148,14 +157,10 @@ namespace Chozo {
         m_Viewport_Hovered = ImGui::IsWindowHovered();
         Application::Get().GetImGuiLayer().BlockEvents(!m_Viewport_Focused || !m_Viewport_Hovered);
 
-        ImVec2 viewportPanelSize =  ImGui::GetContentRegionAvail();
-        if (m_Viewport_FBO->GetWidth() != viewportPanelSize.x || m_Viewport_FBO->GetHeight() != viewportPanelSize.y)
-        {
-            m_Viewport_FBO->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
-            m_CameraController->GetCamera().Resize(viewportPanelSize.x, viewportPanelSize.y);
-        }
+        m_Viewport_Size = ImGui::GetContentRegionAvail();
+    
         uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID();
-        ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_Viewport_FBO->GetWidth(), m_Viewport_FBO->GetHeight()), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_Viewport_Size.x, m_Viewport_Size.y), ImVec2(0, 1), ImVec2(1, 0));
         ImGui::End();
         ImGui::PopStyleVar();
         ImGui::End();
@@ -163,7 +168,7 @@ namespace Chozo {
         ImGui::End();
     }
 
-    void EditorLayer::OnEvent(Chozo::Event &e)
+    void EditorLayer::OnEvent(Event &e)
     {
         m_CameraController->OnEvent(e);
     }

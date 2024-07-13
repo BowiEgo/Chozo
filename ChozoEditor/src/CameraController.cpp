@@ -1,6 +1,10 @@
 #include "CameraController.h"
 
 namespace Chozo {
+    void CameraController::Resize(float &width, float &height)
+    {
+        m_Camera.Resize(width, height);
+    }
 
     void CameraController::Update(Timestep ts)
     {

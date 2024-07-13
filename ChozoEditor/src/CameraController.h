@@ -13,6 +13,7 @@ namespace Chozo {
 
         void SetActive(bool active) { m_IsActive = active; }
 
+        void Resize(float& width, float& height);
         void Update(Timestep ts);
 
         bool OnEvent(Event& e);

@@ -13,10 +13,8 @@ namespace Chozo {
         virtual void Bind() const override;
         virtual void Unbind() const override;
 
-        virtual void Resize(uint32_t width, uint32_t height) override;
+        virtual void Resize(float& width, float& height) override;
 
-        virtual uint32_t GetWidth() const override { return m_Width; };
-		virtual uint32_t GetHeight() const override { return m_Height; };
 		virtual RendererID GetRendererID() const override { return m_RendererID; };
         virtual RendererID GetColorAttachmentRendererID() const override { return m_ColorAttachment; };
 		virtual const FramebufferSpecification& GetSpecification() const override { return m_Specification; };
@@ -27,7 +25,5 @@ namespace Chozo {
         FramebufferSpecification m_Specification;
         RendererID m_RendererID = 0;
         RendererID m_ColorAttachment = 0, m_DepthAttachment = 0;
-		uint32_t m_Width = 0, m_Height = 0;
-
     };
 }
