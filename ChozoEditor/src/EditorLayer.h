@@ -11,28 +11,30 @@
 
 namespace Chozo {
 
-    class EditorLayer : public Chozo::Layer
+    class EditorLayer : public Layer
     {
     public:
         EditorLayer();
 
         virtual void OnAttach() override;
         virtual void OnDetach() override;
-        virtual void OnUpdate(Chozo::Timestep ts) override;
+        virtual void OnUpdate(Timestep ts) override;
         virtual void OnImGuiRender() override;
-        virtual void OnEvent(Chozo::Event& e) override;
+        virtual void OnEvent(Event& e) override;
     private:
-        Ref<Chozo::Framebuffer> m_Viewport_FBO;
+        Ref<Framebuffer> m_Viewport_FBO;
         bool m_Viewport_Focused, m_Viewport_Hovered;
 
-        Chozo::ShaderLibrary m_ShaderLibrary;
-        Ref<Chozo::Shader> m_Shader;
-        Ref<Chozo::Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
+        ShaderLibrary m_ShaderLibrary;
+        Ref<Shader> m_Shader;
+        Ref<Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
 
-        Chozo::OrthographicCamera m_Camera;
         Scope<CameraController> m_CameraController;
 
+        Ref<Scene> m_ActiveScene;
+
         glm::vec3 m_SquareColor = { 1.0f, 1.0f, 1.0f };
+        entt::entity m_Squqre_Entity;
     };
 }
 

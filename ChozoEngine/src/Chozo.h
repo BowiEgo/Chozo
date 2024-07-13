@@ -13,6 +13,9 @@
 
 #include "Chozo/ImGui/ImGuiLayer.h"
 
+#include "Chozo/Scene/Scene.h"
+#include "Chozo/Scene/Components.h"
+
 // ---Renderer---------------------
 #include "Chozo/Renderer/Renderer2D.h"
 #include "Chozo/Renderer/RenderCommand.h"

@@ -25,15 +25,14 @@ namespace Chozo {
     }
 
     EditorLayer::EditorLayer()
-        : Layer("Example"),
-            m_Camera(1280.0f, 720.0f)
+        : Layer("Example")
     {
         std::string vertexSrc = ReadFile("../assets/shaders/Shader.glsl.vert");
         std::string fragmentSrc = ReadFile("../assets/shaders/Shader.glsl.frag");
 
         m_Shader = Chozo::Shader::Create("VertexPosColor", vertexSrc, fragmentSrc);
 
-        m_CameraController = std::make_unique<CameraController>(&m_Camera);
+        m_CameraController = std::make_unique<CameraController>();
     }
 
     void EditorLayer::OnAttach()
@@ -47,6 +46,12 @@ namespace Chozo {
         fbSpec.Width = 1280;
         fbSpec.Height = 720;
         m_Viewport_FBO = Chozo::Framebuffer::Create(fbSpec);
+
+        m_ActiveScene = std::make_shared<Scene>();
+        auto square = m_ActiveScene->CreateEntity();
+        m_ActiveScene->Reg().emplace<TransformComponent>(square);
+        m_ActiveScene->Reg().emplace<SpriteRendererComponent>(square, glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
+        m_Squqre_Entity = square;
     }
 
     void EditorLayer::OnDetach()
@@ -55,36 +60,33 @@ namespace Chozo {
 
     void EditorLayer::OnUpdate(Chozo::Timestep ts)
     {
-        m_Viewport_FBO->Bind();
-
         // Camera control
         m_CameraController->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
         m_CameraController->Update(ts);
 
+        // Render
+        Renderer2D::ResetStats();
+        m_Viewport_FBO->Bind();
         Chozo::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         Chozo::RenderCommand::Clear();
 
-        Chozo::Renderer2D::BeginScene(m_Camera);
-
-        // Square grid
-        std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_Shader)->Bind();
-        std::dynamic_pointer_cast<Chozo::OpenGLShader>(m_Shader)->UploadUniformFloat3("u_Color", m_SquareColor);
+        Chozo::Renderer2D::BeginScene(m_CameraController->GetCamera());
         Renderer2D::Submit(m_Shader);
-
-        Renderer2D::ResetStats();
         Renderer2D::BeginBatch();
-        for (float y = -500.0f; y < 500.0f; y += 25.0f)
+        
+        // Square grid
+        for (float y = -10.0f; y < 10.0f; y += 0.25f)
         {
-            for (float x = -500.0f; x < 500.0f; x += 25.0f)
+            for (float x = -10.0f; x < 10.0f; x += 0.25f)
             {
-                glm::vec4 color = { (x + 500.0f) / 1000.0f, 0.2f, (y + 500.0f) / 1000.0f, 1.0f };
-                Renderer2D::DrawQuad({ x, y }, { 22.0f, 22.0f }, color);
+                glm::vec4 color = { (x + 10.0f) / 20.0f, 0.2f, (y + 10.0f) / 20.0f, 1.0f };
+                Renderer2D::DrawQuad({ x, y }, { 0.22f, 0.22f }, color);
             }
         }
+        // Update scene
+        m_ActiveScene->OnUpdate(ts);
 
-        Renderer2D::DrawQuad({0.0f, 0.0f}, { 100.0f, 100.0f }, glm::vec4(m_SquareColor, 1.0));
         Renderer2D::EndBatch();
-
         m_Viewport_FBO->Unbind();
     }
 
@@ -127,7 +129,9 @@ namespace Chozo {
         ImGui::Text("QuadCount: %d", Renderer2D::GetStats().QuadCount);
         ImGui::Text("Vertices: %d", Renderer2D::GetStats().GetTotalVertexCount());
         ImGui::Text("Indices: %d", Renderer2D::GetStats().GetTotalIndexCount());
-        ImGui::ColorEdit3("SquareColor", glm::value_ptr(m_SquareColor));
+
+        auto& squareColor = m_ActiveScene->Reg().get<SpriteRendererComponent>(m_Squqre_Entity).Color;
+        ImGui::ColorEdit3("SquareColor", glm::value_ptr(squareColor));
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
@@ -140,7 +144,7 @@ namespace Chozo {
         if (m_Viewport_FBO->GetWidth() != viewportPanelSize.x || m_Viewport_FBO->GetHeight() != viewportPanelSize.y)
         {
             m_Viewport_FBO->Resize((uint32_t)viewportPanelSize.x, (uint32_t)viewportPanelSize.y);
-            m_Camera.Resize(viewportPanelSize.x, viewportPanelSize.y);
+            m_CameraController->GetCamera().Resize(viewportPanelSize.x, viewportPanelSize.y);
         }
         uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID();
         ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_Viewport_FBO->GetWidth(), m_Viewport_FBO->GetHeight()), ImVec2(0, 1), ImVec2(1, 0));

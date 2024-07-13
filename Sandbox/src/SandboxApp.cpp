@@ -10,6 +10,8 @@ ExampleLayer::ExampleLayer()
 
 void ExampleLayer::OnAttach()
 {
+    m_CheckerboardTexture = Chozo::Texture2D::Create("../assets/textures/checkerboard.png");
+    m_OpenGLLogoTexture = Chozo::Texture2D::Create("../assets/textures/OpenGL_Logo.png");
 }
 
 void ExampleLayer::OnDetach()

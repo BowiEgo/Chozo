@@ -21,8 +21,8 @@ namespace Chozo {
         if (Input::IsKeyPressed(CZ_KEY_D))
             m_CameraRotation -= m_CameraRotationSpeed * ts;
 
-        m_Camera->SetPosition(m_CameraPosition);
-        m_Camera->SetRotation(m_CameraRotation);
+        m_Camera.SetPosition(m_CameraPosition);
+        m_Camera.SetRotation(m_CameraRotation);
     }
 
     bool CameraController::OnEvent(Event &e)
@@ -46,7 +46,7 @@ namespace Chozo {
             if(m_ZoomLevel >= 3.14f)
                 m_ZoomLevel = 3.14f;
             m_LastScroll = yScrollOffset;
-            m_Camera->Zoom(m_ZoomLevel);
+            m_Camera.Zoom(m_ZoomLevel);
         }
 
         return true;

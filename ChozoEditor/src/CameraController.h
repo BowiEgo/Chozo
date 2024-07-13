@@ -5,9 +5,11 @@ namespace Chozo {
     class CameraController
     {
     public:
-        CameraController(OrthographicCamera* camera)
-            : m_Camera(camera), m_CameraPosition(0.0f), m_CameraRotation(0.0f) {};
+        CameraController()
+            : m_Camera(1280.0f, 720.0f), m_CameraPosition(0.0f), m_CameraRotation(0.0f) {};
         ~CameraController() {};
+
+        inline OrthographicCamera& GetCamera() { return m_Camera; }
 
         void SetActive(bool active) { m_IsActive = active; }
 
@@ -20,7 +22,7 @@ namespace Chozo {
     private:
         bool m_IsActive = true;
 
-        OrthographicCamera* m_Camera;
+        OrthographicCamera m_Camera;
         glm::vec3 m_CameraPosition;
         float m_CameraRotation;
 

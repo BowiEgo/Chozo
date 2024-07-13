@@ -20,7 +20,7 @@ namespace Chozo {
     {
         m_Width = width;
         m_Height = height;
-        m_ProjectionMatrix = glm::ortho(-0.5f * width * m_ZoomLevel, 0.5f * width * m_ZoomLevel, -0.5f * height * m_ZoomLevel, 0.5f * height * m_ZoomLevel, -1.0f, 1.0f);
+        m_ProjectionMatrix = glm::ortho(-0.5f * width * m_ZoomLevel * 0.01f, 0.5f * width * m_ZoomLevel * 0.01f, -0.5f * height * m_ZoomLevel * 0.01f, 0.5f * height * m_ZoomLevel * 0.01f, -1.0f, 1.0f);
         m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
     }
 
