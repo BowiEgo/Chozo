@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include "CameraController.h"
+
 namespace Chozo {
 
     std::string ReadFile(const std::string &filepath)
@@ -31,8 +33,6 @@ namespace Chozo {
         std::string fragmentSrc = ReadFile("../assets/shaders/Shader.glsl.frag");
 
         m_Shader = Shader::Create("VertexPosColor", vertexSrc, fragmentSrc);
-
-        m_CameraController = std::make_unique<CameraController>();
     }
 
     void EditorLayer::OnAttach()
@@ -79,6 +79,11 @@ namespace Chozo {
                 entity.AddCompoent<SpriteRendererComponent>(color);
             }
         }
+        // --------------------
+        // Camera controller
+        // --------------------
+        m_Camera_A.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
+        m_Camera_B.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
     }
 
     void EditorLayer::OnDetach()
@@ -97,8 +102,13 @@ namespace Chozo {
         }
 
         // Camera control
-        // m_CameraController->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
-        // m_CameraController->Update(ts);
+        auto nsc_A = m_Camera_A.GetCompoent<NativeScriptComponent>();
+        if (nsc_A.Instance)
+            static_cast<CameraController*>(nsc_A.Instance)->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
+
+        auto nsc_B = m_Camera_B.GetCompoent<NativeScriptComponent>();
+        if (nsc_B.Instance)
+            static_cast<CameraController*>(nsc_B.Instance)->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
 
         m_Viewport_FBO->Bind();
         Renderer2D::ResetStats();
@@ -151,10 +161,10 @@ namespace Chozo {
         ImGui::Text("QuadCount: %d", Renderer2D::GetStats().QuadCount);
         ImGui::Text("Vertices: %d", Renderer2D::GetStats().GetTotalVertexCount());
         ImGui::Text("Indices: %d", Renderer2D::GetStats().GetTotalIndexCount());
+        ImGui::Separator();
 
         if (m_Square_Entity)
         {
-            ImGui::Separator();
             auto& tag = m_Square_Entity.GetCompoent<TagComponent>().Tag;
             ImGui::Text("%s", tag.c_str());
             auto& squareColor = m_Square_Entity.GetCompoent<SpriteRendererComponent>().Color;
@@ -162,19 +172,24 @@ namespace Chozo {
             ImGui::Separator();
         }
 
-        ImGui::DragFloat3("Camera A Transform", glm::value_ptr(m_Camera_A.GetCompoent<TransformComponent>().Transform[3]));
-
-        if (ImGui::Checkbox("Camera A", &m_Camera_A_Is_Primary))
         {
-            m_Camera_A.GetCompoent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
-            m_Camera_B.GetCompoent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
-        }
+            ImGui::Text("Cameras");
+            ImGui::DragFloat2("Camera A Transform", glm::value_ptr(m_Camera_A.GetCompoent<TransformComponent>().Transform[3]));
+            ImGui::DragFloat2("Camera B Transform", glm::value_ptr(m_Camera_B.GetCompoent<TransformComponent>().Transform[3]));
 
-        {
-            auto& camera = m_Camera_B.GetCompoent<CameraComponent>().Camera;
-            float orthoSize = camera.GetOrthographicSize();
-            if (ImGui::DragFloat("Camera B OrthoSize", &orthoSize, 0.1f, 0.0f, 100.0f))
-                camera.SetOrthographicSize(orthoSize);
+            if (ImGui::Checkbox("Camera A", &m_Camera_A_Is_Primary))
+            {
+                m_Camera_A.GetCompoent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
+                m_Camera_B.GetCompoent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
+            }
+
+            {
+                auto& camera = m_Camera_B.GetCompoent<CameraComponent>().Camera;
+                float orthoSize = camera.GetOrthographicSize();
+                if (ImGui::DragFloat("Camera B OrthoSize", &orthoSize, 0.1f, 0.0f, 100.0f))
+                    camera.SetOrthographicSize(orthoSize);
+            }
+            ImGui::Separator();
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
@@ -197,6 +212,6 @@ namespace Chozo {
 
     void EditorLayer::OnEvent(Event &e)
     {
-        m_CameraController->OnEvent(e);
+        // m_CameraController->OnEvent(e);
     }
 }

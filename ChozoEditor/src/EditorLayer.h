@@ -7,8 +7,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "CameraController.h"
-
 namespace Chozo {
 
     class EditorLayer : public Layer
@@ -29,8 +27,6 @@ namespace Chozo {
         ShaderLibrary m_ShaderLibrary;
         Ref<Shader> m_Shader;
         Ref<Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
-
-        Scope<CameraController> m_CameraController;
 
         Ref<Scene> m_ActiveScene;
 
