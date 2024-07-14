@@ -54,9 +54,11 @@ namespace Chozo {
         // Camera entity
         // --------------------
         m_Camera_A = m_ActiveScene->CreateEntity("Camera A");
-        m_Camera_A.AddCompoent<CameraComponent>(glm::ortho(-12.8f, 7.2f, -12.8f, 7.2f));
+        m_Camera_A.AddCompoent<CameraComponent>();
+        m_Camera_A.GetCompoent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
         m_Camera_B = m_ActiveScene->CreateEntity("Camera B");
-        m_Camera_B.AddCompoent<CameraComponent>(glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f));
+        m_Camera_B.AddCompoent<CameraComponent>();
+        m_Camera_B.GetCompoent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
         // --------------------
         // Square entity
         // --------------------
@@ -91,12 +93,12 @@ namespace Chozo {
             (spec.Width != m_Viewport_Size.x || spec.Height != m_Viewport_Size.y))
         {
             m_Viewport_FBO->Resize(m_Viewport_Size.x, m_Viewport_Size.y);
-            m_CameraController->Resize(m_Viewport_Size.x, m_Viewport_Size.y);
+            m_ActiveScene->OnViewportResize(m_Viewport_Size.x, m_Viewport_Size.y);
         }
 
         // Camera control
-        m_CameraController->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
-        m_CameraController->Update(ts);
+        // m_CameraController->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
+        // m_CameraController->Update(ts);
 
         m_Viewport_FBO->Bind();
         Renderer2D::ResetStats();
@@ -161,9 +163,19 @@ namespace Chozo {
         }
 
         ImGui::DragFloat3("Camera A Transform", glm::value_ptr(m_Camera_A.GetCompoent<TransformComponent>().Transform[3]));
-        ImGui::Checkbox("Camera A", &m_Camera_A_Is_Primary);
-        m_Camera_A.GetCompoent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
-        m_Camera_B.GetCompoent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
+
+        if (ImGui::Checkbox("Camera A", &m_Camera_A_Is_Primary))
+        {
+            m_Camera_A.GetCompoent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
+            m_Camera_B.GetCompoent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
+        }
+
+        {
+            auto& camera = m_Camera_B.GetCompoent<CameraComponent>().Camera;
+            float orthoSize = camera.GetOrthographicSize();
+            if (ImGui::DragFloat("Camera B OrthoSize", &orthoSize, 0.1f, 0.0f, 100.0f))
+                camera.SetOrthographicSize(orthoSize);
+        }
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");

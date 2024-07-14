@@ -22,10 +22,13 @@ namespace Chozo {
         entt::registry& Reg() { return m_Registry; }
 
         void OnUpdate(Timestep ts);
+        void OnViewportResize(uint32_t width, uint32_t height);
     public:
         entt::registry m_Registry;
 
         friend class Entity;
+    private:
+        uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
     };
 }
 

@@ -4,7 +4,7 @@
 
 namespace Chozo {
 
-    class OrthographicCamera
+    class OrthographicCamera // TODO: Remove
     {
     public:
         OrthographicCamera(const float width, const float height);
