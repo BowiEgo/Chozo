@@ -27,6 +27,7 @@ namespace Chozo {
         entt::registry m_Registry;
 
         friend class Entity;
+        friend class SceneHierarchy;
     private:
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
     };

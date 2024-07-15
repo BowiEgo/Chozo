@@ -67,23 +67,25 @@ namespace Chozo {
         // --------------------
         // Square grid entities
         // --------------------
-        for (float y = -10.0f; y < 10.0f; y += 0.25f)
-        {
-            for (float x = -10.0f; x < 10.0f; x += 0.25f)
-            {
-                glm::vec4 color = { (x + 10.0f) / 20.0f, 0.2f, (y + 10.0f) / 20.0f, 1.0f };
+        // for (float y = -10.0f; y < 10.0f; y += 0.25f)
+        // {
+        //     for (float x = -10.0f; x < 10.0f; x += 0.25f)
+        //     {
+        //         glm::vec4 color = { (x + 10.0f) / 20.0f, 0.2f, (y + 10.0f) / 20.0f, 1.0f };
 
-                Entity entity = m_ActiveScene->CreateEntity("Grid Square");
-                glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.22f, 0.22f, 0.0f });
-                entity.GetCompoent<TransformComponent>().Transform = transform;
-                entity.AddCompoent<SpriteRendererComponent>(color);
-            }
-        }
+        //         Entity entity = m_ActiveScene->CreateEntity("Grid Square");
+        //         glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.22f, 0.22f, 0.0f });
+        //         entity.GetCompoent<TransformComponent>().Transform = transform;
+        //         entity.AddCompoent<SpriteRendererComponent>(color);
+        //     }
+        // }
         // --------------------
         // Camera controller
         // --------------------
         m_Camera_A.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
         m_Camera_B.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
+
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
     void EditorLayer::OnDetach()
@@ -154,6 +156,8 @@ namespace Chozo {
 
             ImGui::EndMenuBar();
         }
+
+        m_SceneHierarchyPanel.OnImGuiRender();
 
         ImGui::Begin("Settings");
         ImGui::Text("Renderer stats:");

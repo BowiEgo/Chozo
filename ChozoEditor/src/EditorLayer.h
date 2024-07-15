@@ -7,6 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Panels/SceneHierarchyPanel.h"
+
 namespace Chozo {
 
     class EditorLayer : public Layer
@@ -35,6 +37,9 @@ namespace Chozo {
 
         Entity m_Camera_A, m_Camera_B;
         bool m_Camera_A_Is_Primary = true;
+
+        // Panels
+        SceneHierarchyPanel m_SceneHierarchyPanel;
     };
 }
 
