@@ -75,7 +75,6 @@ namespace Chozo {
             {
                 auto& transform = entity.GetCompoent<TransformComponent>().Transform;
                 ImGui::DragFloat3("Position", glm::value_ptr(transform[3]), 0.1f);
-
                 ImGui::TreePop();
             }
         }
@@ -140,6 +139,16 @@ namespace Chozo {
                         camera.SetOrthographicFarClip(far);
                 }
 
+                ImGui::TreePop();
+            }
+        }
+
+        if (entity.HasComponent<SpriteRendererComponent>())
+        {
+            if (ImGui::TreeNodeEx((void*)typeid(SpriteRendererComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Sprite Renderer"))
+            {
+                auto& src = entity.GetCompoent<SpriteRendererComponent>();
+                ImGui::ColorEdit4("Color", glm::value_ptr(src.Color));
                 ImGui::TreePop();
             }
         }

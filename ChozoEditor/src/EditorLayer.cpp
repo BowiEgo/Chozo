@@ -175,35 +175,6 @@ namespace Chozo {
         ImGui::Text("Indices: %d", Renderer2D::GetStats().GetTotalIndexCount());
         ImGui::Separator();
 
-        if (m_Square_Entity)
-        {
-            auto& tag = m_Square_Entity.GetCompoent<TagComponent>().Tag;
-            ImGui::Text("%s", tag.c_str());
-            auto& squareColor = m_Square_Entity.GetCompoent<SpriteRendererComponent>().Color;
-            ImGui::ColorEdit3("##OrangeSquare", glm::value_ptr(squareColor));
-            ImGui::Separator();
-        }
-
-        {
-            ImGui::Text("Cameras");
-            ImGui::DragFloat2("Camera A Transform", glm::value_ptr(m_Camera_A.GetCompoent<TransformComponent>().Transform[3]));
-            ImGui::DragFloat2("Camera B Transform", glm::value_ptr(m_Camera_B.GetCompoent<TransformComponent>().Transform[3]));
-
-            if (ImGui::Checkbox("Camera A", &m_Camera_A_Is_Primary))
-            {
-                m_Camera_A.GetCompoent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
-                m_Camera_B.GetCompoent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
-            }
-
-            {
-                auto& camera = m_Camera_B.GetCompoent<CameraComponent>().Camera;
-                float orthoSize = camera.GetOrthographicSize();
-                if (ImGui::DragFloat("Camera B OrthoSize", &orthoSize, 0.1f, 0.0f, 100.0f))
-                    camera.SetOrthographicSize(orthoSize);
-            }
-            ImGui::Separator();
-        }
-
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
 
