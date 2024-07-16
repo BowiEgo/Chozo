@@ -7,8 +7,8 @@ namespace Chozo {
     public:
         void OnCreate()
         {
-            // auto& transform = GetCompoent<TransformComponent>().Transform;
-            // transform[3][0] = rand() % 10 - 5.0f;
+            // auto& translation = GetCompoent<TransformComponent>().Translation;
+            // translation.x = rand() % 10 - 5.0f;
         }
 
         void OnDestroy()
@@ -21,16 +21,16 @@ namespace Chozo {
             auto& camera = GetCompoent<CameraComponent>();
             if (!camera.Primary || !m_IsActive) return;
 
-            auto& transform = GetCompoent<TransformComponent>().Transform;
+            auto& translation = GetCompoent<TransformComponent>().Translation;
 
             if (Input::IsKeyPressed(CZ_KEY_A))
-                transform[3][0] -= m_CameraMoveSpeed * ts;
+                translation.x -= m_CameraMoveSpeed * ts;
             if (Input::IsKeyPressed(CZ_KEY_D))
-                transform[3][0] += m_CameraMoveSpeed * ts;
+                translation.x += m_CameraMoveSpeed * ts;
             if (Input::IsKeyPressed(CZ_KEY_W))
-                transform[3][1] += m_CameraMoveSpeed * ts;
+                translation.y += m_CameraMoveSpeed * ts;
             if (Input::IsKeyPressed(CZ_KEY_S))
-                transform[3][1] -= m_CameraMoveSpeed * ts;
+                translation.y -= m_CameraMoveSpeed * ts;
         }
 
         void SetActive(bool active) { m_IsActive = active; }

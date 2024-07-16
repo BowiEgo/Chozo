@@ -56,7 +56,7 @@ namespace Chozo {
         m_Camera_A = m_ActiveScene->CreateEntity("Camera A");
         m_Camera_A.AddCompoent<CameraComponent>();
         m_Camera_A.GetCompoent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
-        m_Camera_A.GetCompoent<TransformComponent>().Transform[3][2] = 6.0f;
+        m_Camera_A.GetCompoent<TransformComponent>().Translation.z = 6.0f;
         m_Camera_B = m_ActiveScene->CreateEntity("Camera B");
         m_Camera_B.AddCompoent<CameraComponent>();
         m_Camera_B.GetCompoent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
@@ -70,8 +70,8 @@ namespace Chozo {
 
         auto greenSquare = m_ActiveScene->CreateEntity("Green Square");
         greenSquare.AddCompoent<SpriteRendererComponent>(glm::vec4(0.5f, 1.0f, 0.0f, 1.0f));
-        greenSquare.GetCompoent<TransformComponent>().Transform[3][0] = 3.0f;
-        greenSquare.GetCompoent<TransformComponent>().Transform[3][2] = -6.0f;
+        greenSquare.GetCompoent<TransformComponent>().Translation.x = 3.0f;
+        greenSquare.GetCompoent<TransformComponent>().Translation.z = -6.0f;
         // --------------------
         // Square grid entities
         // --------------------
