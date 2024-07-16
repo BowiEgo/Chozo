@@ -89,9 +89,9 @@ namespace Chozo {
         auto view = m_Registry.view<CameraComponent>();
         for (auto entity : view)
         {
-            auto& cameraComp = view.get<CameraComponent>(entity);
-            if (!cameraComp.FixedAspectRatio)
-                cameraComp.Camera.SetViewportSize(width, height);
+            auto& cameraComponent = view.get<CameraComponent>(entity);
+            if (!cameraComponent.FixedAspectRatio)
+                cameraComponent.Camera.SetViewportSize(width, height);
         }
     }
 }
