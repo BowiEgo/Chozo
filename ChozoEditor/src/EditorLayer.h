@@ -7,7 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "CameraController.h"
+#include "Panels/SceneHierarchyPanel.h"
 
 namespace Chozo {
 
@@ -30,12 +30,16 @@ namespace Chozo {
         Ref<Shader> m_Shader;
         Ref<Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
 
-        Scope<CameraController> m_CameraController;
-
         Ref<Scene> m_ActiveScene;
 
         Entity m_Square_Entity;
         glm::vec3 m_SquareColor = { 1.0f, 1.0f, 1.0f };
+
+        Entity m_Camera_A, m_Camera_B;
+        bool m_Camera_A_Is_Primary = true;
+
+        // Panels
+        SceneHierarchyPanel m_SceneHierarchyPanel;
     };
 }
 

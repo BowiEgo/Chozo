@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include "CameraController.h"
+
 namespace Chozo {
 
     std::string ReadFile(const std::string &filepath)
@@ -31,8 +33,6 @@ namespace Chozo {
         std::string fragmentSrc = ReadFile("../assets/shaders/Shader.glsl.frag");
 
         m_Shader = Shader::Create("VertexPosColor", vertexSrc, fragmentSrc);
-
-        m_CameraController = std::make_unique<CameraController>();
     }
 
     void EditorLayer::OnAttach()
@@ -43,16 +43,57 @@ namespace Chozo {
         // Viewport
         // --------------------
         FramebufferSpecification fbSpec;
-        fbSpec.Width = 1280;
-        fbSpec.Height = 720;
+        fbSpec.Width = 1;
+        fbSpec.Height = 1;
         m_Viewport_FBO = Framebuffer::Create(fbSpec);
         // --------------------
         // Scene
         // --------------------
         m_ActiveScene = std::make_shared<Scene>();
-        Entity square = m_ActiveScene->CreateEntity("Orange Square");
-        square.AddCompoent<SpriteRendererComponent>(glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
-        m_Square_Entity = square;
+        // --------------------
+        // Camera entity
+        // --------------------
+        m_Camera_A = m_ActiveScene->CreateEntity("Camera A");
+        m_Camera_A.AddCompoent<CameraComponent>();
+        m_Camera_A.GetCompoent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
+        m_Camera_A.GetCompoent<TransformComponent>().Translation.z = 6.0f;
+        m_Camera_B = m_ActiveScene->CreateEntity("Camera B");
+        m_Camera_B.AddCompoent<CameraComponent>();
+        m_Camera_B.GetCompoent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
+        m_Camera_B.GetCompoent<CameraComponent>().Camera.SetProjectionType(SceneCamera::ProjectionType::Orthographic);
+        m_Camera_B.GetCompoent<CameraComponent>().Camera.SetOrthographicFarClip(100.0f);
+        // --------------------
+        // Square entity
+        // --------------------
+        m_Square_Entity = m_ActiveScene->CreateEntity("Orange Square");
+        m_Square_Entity.AddCompoent<SpriteRendererComponent>(glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
+
+        auto greenSquare = m_ActiveScene->CreateEntity("Green Square");
+        greenSquare.AddCompoent<SpriteRendererComponent>(glm::vec4(0.5f, 1.0f, 0.0f, 1.0f));
+        greenSquare.GetCompoent<TransformComponent>().Translation.x = 3.0f;
+        greenSquare.GetCompoent<TransformComponent>().Translation.z = -6.0f;
+        // --------------------
+        // Square grid entities
+        // --------------------
+        // for (float y = -10.0f; y < 10.0f; y += 0.25f)
+        // {
+        //     for (float x = -10.0f; x < 10.0f; x += 0.25f)
+        //     {
+        //         glm::vec4 color = { (x + 10.0f) / 20.0f, 0.2f, (y + 10.0f) / 20.0f, 1.0f };
+
+        //         Entity entity = m_ActiveScene->CreateEntity("Grid Square");
+        //         glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.22f, 0.22f, 0.0f });
+        //         entity.GetCompoent<TransformComponent>().Transform = transform;
+        //         entity.AddCompoent<SpriteRendererComponent>(color);
+        //     }
+        // }
+        // --------------------
+        // Camera controller
+        // --------------------
+        m_Camera_A.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
+        m_Camera_B.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
+
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
     void EditorLayer::OnDetach()
@@ -67,36 +108,33 @@ namespace Chozo {
             (spec.Width != m_Viewport_Size.x || spec.Height != m_Viewport_Size.y))
         {
             m_Viewport_FBO->Resize(m_Viewport_Size.x, m_Viewport_Size.y);
-            m_CameraController->Resize(m_Viewport_Size.x, m_Viewport_Size.y);
+            m_ActiveScene->OnViewportResize(m_Viewport_Size.x, m_Viewport_Size.y);
         }
 
         // Camera control
-        m_CameraController->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
-        m_CameraController->Update(ts);
+        if (m_Camera_A.HasComponent<NativeScriptComponent>())
+        {
+            auto nsc_A = m_Camera_A.GetCompoent<NativeScriptComponent>();
+            if (nsc_A.Instance)
+                static_cast<CameraController*>(nsc_A.Instance)->SetActive(m_Viewport_Focused);
+        }
 
-        // Render
-        Renderer2D::ResetStats();
+        if (m_Camera_B.HasComponent<NativeScriptComponent>())
+        {
+            auto nsc_B = m_Camera_B.GetCompoent<NativeScriptComponent>();
+            if (nsc_B.Instance)
+                static_cast<CameraController*>(nsc_B.Instance)->SetActive(m_Viewport_Focused);
+        }
+
         m_Viewport_FBO->Bind();
+        Renderer2D::ResetStats();
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         RenderCommand::Clear();
 
-        Renderer2D::BeginScene(m_CameraController->GetCamera());
         Renderer2D::Submit(m_Shader);
-        Renderer2D::BeginBatch();
-
-        // Square grid
-        for (float y = -10.0f; y < 10.0f; y += 0.25f)
-        {
-            for (float x = -10.0f; x < 10.0f; x += 0.25f)
-            {
-                glm::vec4 color = { (x + 10.0f) / 20.0f, 0.2f, (y + 10.0f) / 20.0f, 1.0f };
-                Renderer2D::DrawQuad({ x, y }, { 0.22f, 0.22f }, color);
-            }
-        }
         // Update scene
         m_ActiveScene->OnUpdate(ts);
 
-        Renderer2D::EndBatch();
         m_Viewport_FBO->Unbind();
     }
 
@@ -116,11 +154,15 @@ namespace Chozo {
         ImGui::PopStyleVar();
 
         ImGuiIO& io = ImGui::GetIO();
+        ImGuiStyle& style = ImGui::GetStyle();
+        float minWinSizeX = style.WindowMinSize.x;
+        style.WindowMinSize.x = 350.0f;
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
             ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
         }
+        style.WindowMinSize.x = minWinSizeX;
         
         if (ImGui::BeginMenuBar())
         {
@@ -133,22 +175,15 @@ namespace Chozo {
             ImGui::EndMenuBar();
         }
 
+        m_SceneHierarchyPanel.OnImGuiRender();
+
         ImGui::Begin("Settings");
         ImGui::Text("Renderer stats:");
         ImGui::Text("DrawCalls: %d", Renderer2D::GetStats().DrawCalls);
         ImGui::Text("QuadCount: %d", Renderer2D::GetStats().QuadCount);
         ImGui::Text("Vertices: %d", Renderer2D::GetStats().GetTotalVertexCount());
         ImGui::Text("Indices: %d", Renderer2D::GetStats().GetTotalIndexCount());
-
-        if (m_Square_Entity)
-        {
-            ImGui::Separator();
-            auto& tag = m_Square_Entity.GetCompoent<TagComponent>().Tag;
-            ImGui::Text("%s", tag.c_str());
-            auto& squareColor = m_Square_Entity.GetCompoent<SpriteRendererComponent>().Color;
-            ImGui::ColorEdit3("##OrangeSquare", glm::value_ptr(squareColor));
-            ImGui::Separator();
-        }
+        ImGui::Separator();
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
@@ -170,6 +205,6 @@ namespace Chozo {
 
     void EditorLayer::OnEvent(Event &e)
     {
-        m_CameraController->OnEvent(e);
+        // m_CameraController->OnEvent(e);
     }
 }

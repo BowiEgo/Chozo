@@ -4,7 +4,7 @@
 
 namespace Chozo {
 
-    class OrthographicCamera
+    class OrthographicCamera // TODO: Remove
     {
     public:
         OrthographicCamera(const float width, const float height);
@@ -15,6 +15,7 @@ namespace Chozo {
 
         float GetRotation() const { return m_Rotation; }
         void SetRotation(const float rotation) { m_Rotation = rotation; RecalculateViewMatrix(); }
+        void Resize();
         void Resize(const float width, const float height);
 
         const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
@@ -27,8 +28,7 @@ namespace Chozo {
         glm::mat4 m_ViewMatrix;
         glm::mat4 m_ViewProjectionMatrix;
 
-        float m_Width, m_Height;
-        float m_AspectRatio = 1.0f;
+        float m_AspectRatio;
         float m_ZoomLevel = 1.0f;
         glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
         float m_Rotation = 0.0f;

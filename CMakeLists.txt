@@ -14,6 +14,10 @@ set(LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(EXEC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(HEAD_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_subdirectory(ChozoEngine)
-add_subdirectory(ChozoEditor)
-add_subdirectory(Sandbox)
+set(ENGINE_PROJECT_NAME ChozoEngine)
+set(EDITOR_PROJECT_NAME ChozoEditor)
+set(SANDBOX_PROJECT_NAME Sandbox)
+
+add_subdirectory(${ENGINE_PROJECT_NAME})
+add_subdirectory(${EDITOR_PROJECT_NAME})
+add_subdirectory(${SANDBOX_PROJECT_NAME})

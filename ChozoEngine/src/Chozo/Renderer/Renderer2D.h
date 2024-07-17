@@ -12,10 +12,17 @@ namespace Chozo {
     class Renderer2D
     {
     public:
+        struct RenderCamera
+        {
+            glm::mat4 PrjectionMatrix;
+            glm::mat4 ViewMatrix;
+        };
+
         static void Init();
         static void Shutdown();
         
-        static void BeginScene(OrthographicCamera& camera);
+        static void BeginScene(const glm::mat4& projection, const glm::mat4& transform);
+        static void BeginScene(OrthographicCamera& camera); // TODO: Remove
         static void EndScene();
 
         static void BeginBatch();

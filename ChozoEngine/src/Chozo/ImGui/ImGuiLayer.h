@@ -20,6 +20,8 @@ namespace Chozo {
 
         void Begin();
         void End();
+        
+        void SetDarkThemeColors();
     private:
         bool m_BlockEvents = false;
     };

@@ -115,6 +115,7 @@ namespace Chozo {
         virtual void Unbind() const = 0;
 
         virtual void SetData(float* vertices, uint32_t size) = 0;
+        virtual void ClearData() = 0;
 
         virtual const RendererID GetRendererID() const = 0;
         virtual const BufferLayout& GetLayout() const = 0;

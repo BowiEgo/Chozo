@@ -12,3 +12,5 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ChozoEngine)
+
+# target_compile_definitions(${PROJECT_NAME} PRIVATE $<TARGET_PROPERTY:${ENGINE_PROJECT_NAME},COMPILE_DEFINITIONS>)

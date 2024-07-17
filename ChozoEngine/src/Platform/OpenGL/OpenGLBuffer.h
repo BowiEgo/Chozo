@@ -7,9 +7,6 @@ namespace Chozo {
 
     class OpenGLVertexBuffer : public VertexBuffer
     {
-    private:
-        uint32_t m_RendererID;
-        BufferLayout m_Layout;
     public:
         OpenGLVertexBuffer();
         OpenGLVertexBuffer(uint32_t size);
@@ -17,6 +14,7 @@ namespace Chozo {
         virtual ~OpenGLVertexBuffer();
 
         virtual void SetData(float* vertices, uint32_t size) override;
+        virtual void ClearData() override;
 
         virtual void Bind() const override;
         virtual void Unbind() const override;
@@ -24,6 +22,10 @@ namespace Chozo {
         virtual const RendererID GetRendererID() const override { return m_RendererID; }
         virtual const BufferLayout& GetLayout() const override { return m_Layout; }
         virtual void SetLayout(const BufferLayout& layout) override { m_Layout = layout; }
+    private:
+        uint32_t m_RendererID;
+        BufferLayout m_Layout;
+        uint32_t m_Offset;
     };
 
     class OpenGLIndexBuffer : public IndexBuffer
