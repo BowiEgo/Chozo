@@ -7,7 +7,7 @@ namespace Chozo {
     {
     public:
         ChozoEditor()
-            : Application("Chozo Editor")
+            : Application("Chozo Engine")
         {
             CZ_INFO("Welcome to Chozo Editor!");
             PushLayer(new EditorLayer());

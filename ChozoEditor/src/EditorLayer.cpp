@@ -43,8 +43,8 @@ namespace Chozo {
         // Viewport
         // --------------------
         FramebufferSpecification fbSpec;
-        fbSpec.Width = 1280;
-        fbSpec.Height = 720;
+        fbSpec.Width = 1;
+        fbSpec.Height = 1;
         m_Viewport_FBO = Framebuffer::Create(fbSpec);
         // --------------------
         // Scene
@@ -154,11 +154,15 @@ namespace Chozo {
         ImGui::PopStyleVar();
 
         ImGuiIO& io = ImGui::GetIO();
+        ImGuiStyle& style = ImGui::GetStyle();
+        float minWinSizeX = style.WindowMinSize.x;
+        style.WindowMinSize.x = 370.0f;
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
             ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
         }
+        style.WindowMinSize.x = minWinSizeX;
         
         if (ImGui::BeginMenuBar())
         {

@@ -5,6 +5,7 @@
 #include "Chozo/Events/Event.h"
 
 namespace Chozo {
+
     struct WindowProps
     {
         std::string Title;
@@ -12,8 +13,8 @@ namespace Chozo {
         unsigned int Height;
 
         WindowProps(const std::string& title = "Chozo Engine",
-                    unsigned int width = 1280,
-                    unsigned int height = 720)
+                    unsigned int width = WINDOW_WIDTH,
+                    unsigned int height = WINDOW_HEIGHT)
             : Title(title), Width(width), Height(height)
         {
         }

@@ -29,6 +29,7 @@ add_library(${PROJECT_NAME} STATIC ${chozo_engine_sources} ${chozo_engine_vendor
 set(LIBRARY_OUTPUT_PATH ${LIB_PATH})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_PLATFORM_MAC)
+target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOW_WIDTH=1600 WINDOW_HEIGHT=900)
 
 # Include directories for chozo
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -60,3 +61,4 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
     src/czpch.h
     src/czpch.cpp
 )
+

@@ -15,6 +15,14 @@
 
 #include "Chozo/Debug/Log.h"
 
+#ifndef WINDOW_WIDTH
+#define WINDOW_WIDTH 1600
+#endif
+
+#ifndef WINDOW_HEIGHT
+#define WINDOW_HEIGHT 900
+#endif
+
 #ifdef CHOZO_PLATFORM_WIN
     #include <Windows.h>
 #endif

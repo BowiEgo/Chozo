@@ -29,6 +29,16 @@ namespace Chozo {
         //io.ConfigViewportsNoAutoMerge = true;
         //io.ConfigViewportsNoTaskBarIcon = true;
 
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Open_Sans/static/OpenSans-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Nunito/static/Nunito-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Nunito_Sans/static/NunitoSans_10pt-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Raleway/static/Raleway-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Roboto/Roboto-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Abel/Abel-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Nanum_Gothic/NanumGothic-Regular.ttf", 16.0f);
+        io.Fonts->AddFontFromFileTTF("../assets/fonts/Titillium_Web/TitilliumWeb-Bold.ttf", 18.0f);
+        io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Titillium_Web/TitilliumWeb-Regular.ttf", 18.0f);
+
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
@@ -40,6 +50,8 @@ namespace Chozo {
             style.WindowRounding = 0.0f;
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
+
+        SetDarkThemeColors();
 
         // Setup Platform/Renderer backends
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
@@ -94,5 +106,38 @@ namespace Chozo {
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
         }
+    }
+
+    void ImGuiLayer::SetDarkThemeColors()
+    {
+        auto& colors = ImGui::GetStyle().Colors;
+        colors[ImGuiCol_WindowBg] = ImVec4{ 0.15f, 0.155f, 0.16f, 1.0f };
+
+        // Headers
+        colors[ImGuiCol_Header] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
+        colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
+        colors[ImGuiCol_HeaderActive] = ImVec4{ 0.35f, 0.35f, 0.35f, 1.0f };
+
+        // Buttons
+        colors[ImGuiCol_Button] = ImVec4{ 0.28f, 0.285f, 0.29f, 1.0f };
+        colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
+        colors[ImGuiCol_ButtonActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+
+        // Frame BG
+        colors[ImGuiCol_FrameBg] = ImVec4{ 0.28f, 0.285f, 0.29f, 1.0f };
+        colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
+        colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.10f, 0.105f, 0.11f, 1.0f };
+
+        // Tabs
+        colors[ImGuiCol_Tab] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+        colors[ImGuiCol_TabHovered] = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
+        colors[ImGuiCol_TabActive] = ImVec4{ 0.28f, 0.285f, 0.29f, 1.0f };
+        colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
+
+        // Titles
+        colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.155f, 0.16f, 1.0f };
+        colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.95f, 0.155f, 0.91f, 1.0f };
     }
 }
