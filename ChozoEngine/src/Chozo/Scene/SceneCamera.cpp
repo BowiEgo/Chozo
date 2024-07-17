@@ -29,7 +29,10 @@ namespace Chozo
 
     void SceneCamera::SetViewportSize(uint32_t width, uint32_t height)
     {
-        m_AspectRatio = (float)width / (float)height;
+        if (height == 0) {
+            return;
+        }
+        m_AspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
         RecaculateProjection();
     }

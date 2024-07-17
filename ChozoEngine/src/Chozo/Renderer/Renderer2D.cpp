@@ -105,6 +105,8 @@ namespace Chozo {
 
     void Renderer2D::EndScene()
     {
+        Flush();
+        s_Data.QuadVBO->ClearData();
     }
 
     void Renderer2D::BeginBatch()
@@ -114,14 +116,15 @@ namespace Chozo {
 
     void Renderer2D::EndBatch()
     {
-
         GLsizeiptr size = (uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase;
         s_Data.QuadVBO->SetData((float*)s_Data.QuadVertexBufferBase, size);
-        Flush();
     }
 
     void Renderer2D::Flush()
     {
+        if (s_Data.QuadIndexCount == 0)
+            return;
+
         glm::mat4 transform = glm::mat4(1.0f);
         m_SceneData->Shader->Bind();
         std::dynamic_pointer_cast<OpenGLShader>(m_SceneData->Shader)->UploadUniformMat4("u_ViewProjection", m_SceneData->ViewProjectionMatrix);
@@ -148,6 +151,7 @@ namespace Chozo {
         if (s_Data.QuadIndexCount >= s_Data.MaxIndices)
         {
             EndBatch();
+            Flush();
             BeginBatch();
         }
 

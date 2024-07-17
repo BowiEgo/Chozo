@@ -17,12 +17,16 @@ namespace Chozo {
         ~Scene();
 
         Entity CreateEntity(const std::string& name = std::string());
+        void DestroyEntity(Entity entity);
 
         // TEMP
         entt::registry& Reg() { return m_Registry; }
 
         void OnUpdate(Timestep ts);
         void OnViewportResize(uint32_t width, uint32_t height);
+    private:
+        template<typename T>
+        void OnComponentAdded(Entity entity, T& component);
     public:
         entt::registry m_Registry;
 
@@ -32,4 +36,3 @@ namespace Chozo {
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
     };
 }
-

@@ -26,19 +26,53 @@ namespace Chozo {
         {
             m_SelectionContext = {};
         }
+
+        // Right-click on blank space
+        if (ImGui::BeginPopupContextWindow(0, 1 | ImGuiPopupFlags_NoOpenOverItems))
+        {
+            if (ImGui::MenuItem("Create Empty Entity"))
+                m_Context->CreateEntity("Empty Entity");
+
+            ImGui::EndPopup();
+        }
         ImGui::End();
 
         ImGui::Begin("Properties");
         if (m_SelectionContext)
+        {
             DrawComponents(m_SelectionContext);
+
+            if (ImGui::Button("Add Component"))
+                ImGui::OpenPopup("AddComponent");
+
+            if (ImGui::BeginPopup("AddComponent"))
+            {
+                if (ImGui::MenuItem("Camera"))
+                {
+                    m_SelectionContext.AddCompoent<CameraComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+
+                if (ImGui::MenuItem("Sprite Renderer"))
+                {
+                    m_SelectionContext.AddCompoent<SpriteRendererComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndPopup();
+            }
+        }
         ImGui::End();
     }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
+        bool entityDeleted = false;
+
         auto& tag = entity.GetCompoent<TagComponent>().Tag;
 
-        ImGuiTreeNodeFlags flags = (m_SelectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+        ImGuiTreeNodeFlags flags = (m_SelectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0)
+            | ImGuiTreeNodeFlags_OpenOnArrow;
         bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, "%s", tag.c_str());
 
         if (ImGui::IsItemClicked())
@@ -46,11 +80,25 @@ namespace Chozo {
             m_SelectionContext = entity;
         }
 
+        if (ImGui::BeginPopupContextItem())
+        {
+            if (ImGui::MenuItem("Delete Entity"))
+                entityDeleted = true;
+            ImGui::EndPopup();
+        }
+
         if (opened)
         {
             ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
             bool opened = ImGui::TreeNodeEx((void*)1909374, flags, "%s", tag.c_str());
             ImGui::TreePop();
+        }
+
+        if (entityDeleted)
+        {
+            m_Context->DestroyEntity(entity);
+            if (m_SelectionContext == entity)
+                m_SelectionContext = {};
         }
     }
 
@@ -114,6 +162,8 @@ namespace Chozo {
 
     void SceneHierarchyPanel::DrawComponents(Entity entity)
     {
+        bool removeComponent = false;
+
         if (entity.HasComponent<TagComponent>())
         {
             auto& tag = entity.GetCompoent<TagComponent>().Tag;
@@ -130,7 +180,23 @@ namespace Chozo {
 
         if (entity.HasComponent<TransformComponent>())
         {
-            if (ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Transform"))
+            bool open = ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Transform");
+
+            ImGui::SameLine(ImGui::GetWindowWidth() - 25.0f);
+            if (ImGui::Button("+", ImVec2{ 20.0f, 20.0f }))
+            {
+                ImGui::OpenPopup("ComponentSetting");
+            }
+
+            if (ImGui::BeginPopup("ComponentSetting"))
+            {
+                if (ImGui::MenuItem("Remove component"))
+                    removeComponent = true;
+                
+                ImGui::EndPopup();
+            }
+
+            if (open)
             {
                 auto& tc = entity.GetCompoent<TransformComponent>();
                 DrawVec3Control("Translation", tc.Translation);
@@ -140,6 +206,9 @@ namespace Chozo {
                 DrawVec3Control("Scale", tc.Scale, 1.0f);
                 ImGui::TreePop();
             }
+
+            if (removeComponent)
+                entity.RemoveCompoent<TransformComponent>();
         }
 
         if (entity.HasComponent<CameraComponent>())
@@ -208,12 +277,32 @@ namespace Chozo {
 
         if (entity.HasComponent<SpriteRendererComponent>())
         {
-            if (ImGui::TreeNodeEx((void*)typeid(SpriteRendererComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Sprite Renderer"))
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 2, 2 });
+            bool open = ImGui::TreeNodeEx((void*)typeid(SpriteRendererComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Sprite Renderer");
+            ImGui::SameLine(ImGui::GetWindowWidth() - 25.0f);
+            if (ImGui::Button("+", ImVec2{ 20, 20 }))
+            {
+                ImGui::OpenPopup("ComponentSetting");
+            }
+            ImGui::PopStyleVar();
+
+            if (ImGui::BeginPopup("ComponentSetting"))
+            {
+                if (ImGui::MenuItem("Remove component"))
+                    removeComponent = true;
+                
+                ImGui::EndPopup();
+            }
+
+            if (open)
             {
                 auto& src = entity.GetCompoent<SpriteRendererComponent>();
                 ImGui::ColorEdit4("Color", glm::value_ptr(src.Color));
                 ImGui::TreePop();
             }
+
+            if (removeComponent)
+                entity.RemoveCompoent<SpriteRendererComponent>();
         }
     }
 }

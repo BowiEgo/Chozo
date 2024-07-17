@@ -112,13 +112,19 @@ namespace Chozo {
         }
 
         // Camera control
-        auto nsc_A = m_Camera_A.GetCompoent<NativeScriptComponent>();
-        if (nsc_A.Instance)
-            static_cast<CameraController*>(nsc_A.Instance)->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
+        // if (m_Camera_A)
+        // {
+        //     auto nsc_A = m_Camera_A.GetCompoent<NativeScriptComponent>();
+        //     if (nsc_A.Instance)
+        //         static_cast<CameraController*>(nsc_A.Instance)->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
+        // }
 
-        auto nsc_B = m_Camera_B.GetCompoent<NativeScriptComponent>();
-        if (nsc_B.Instance)
-            static_cast<CameraController*>(nsc_B.Instance)->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
+        // if (m_Camera_B)
+        // {
+        //     auto nsc_B = m_Camera_B.GetCompoent<NativeScriptComponent>();
+        //     if (nsc_B.Instance)
+        //         static_cast<CameraController*>(nsc_B.Instance)->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
+        // }
 
         m_Viewport_FBO->Bind();
         Renderer2D::ResetStats();
