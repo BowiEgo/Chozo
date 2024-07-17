@@ -115,11 +115,11 @@ namespace Chozo {
 
         // Headers
         colors[ImGuiCol_Header] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-        colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
+        colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.4f, 0.405f, 0.41f, 1.0f };
         colors[ImGuiCol_HeaderActive] = ImVec4{ 0.35f, 0.35f, 0.35f, 1.0f };
 
         // Buttons
-        colors[ImGuiCol_Button] = ImVec4{ 0.28f, 0.285f, 0.29f, 1.0f };
+        colors[ImGuiCol_Button] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
         colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
         colors[ImGuiCol_ButtonActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
 

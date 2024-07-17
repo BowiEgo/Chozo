@@ -1,23 +1,7 @@
 project(ChozoEngine VERSION 1.0.0)
 
 # Add macro GL_SILENCE_DEPRECATION to ignore warnings about deprecated OpenGL API on MacOS.
-add_definitions(-DGL_SILENCE_DEPRECATION)
-add_definitions(-DCZ_ENABLE_ASSERTS)
-
-if(WIN32)
-    message("//----------------- Platform: Windows -----------------//")
-    add_definitions(-DENGINE_PLATFORM_WIN32)
-elseif(UNIX)
-    if(APPLE)
-        message("//----------------- Platform: MacOS -----------------//")
-        add_definitions(-DENGINE_PLATFORM_MACOS)
-    else()
-        message("//----------------- Platform: Linux -----------------//")
-        add_definitions(-DENGINE_PLATFORM_LINUX)
-    endif()
-else()
-    message("//----------------- Platform: Unsupported -----------------//")
-endif()
+# add_definitions(-DGL_SILENCE_DEPRECATION)
 
 #
 # ChozoEngine static library
@@ -28,8 +12,23 @@ file(GLOB_RECURSE chozo_engine_vendor RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} vendo
 add_library(${PROJECT_NAME} STATIC ${chozo_engine_sources} ${chozo_engine_vendor})
 set(LIBRARY_OUTPUT_PATH ${LIB_PATH})
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_PLATFORM_MAC)
+target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_ENABLE_ASSERTS)
 target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOW_WIDTH=1600 WINDOW_HEIGHT=900)
+
+if(WIN32)
+    message("//----------------- Platform: Windows -----------------//")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE ENGINE_PLATFORM_WIN32)
+elseif(UNIX)
+    if(APPLE)
+        message("//----------------- Platform: MacOS -----------------//")
+        target_compile_definitions(${PROJECT_NAME} PRIVATE ENGINE_PLATFORM_MACOS)
+    else()
+        message("//----------------- Platform: Linux -----------------//")
+        target_compile_definitions(${PROJECT_NAME} PRIVATE ENGINE_PLATFORM_LINUX)
+    endif()
+else()
+    message("//----------------- Platform: Unsupported -----------------//")
+endif()
 
 # Include directories for chozo
 target_include_directories(${PROJECT_NAME} PUBLIC

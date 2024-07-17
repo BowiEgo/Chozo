@@ -28,13 +28,13 @@
     #error "Platform not supported"
 #endif
 
-#ifdef CZ_ENABLE_ASSERTS
+// #ifdef CZ_ENABLE_ASSERTS
     #define CZ_ASSERT(x, ...) { if(!(x)) { CZ_ERROR("Assertion Failed: {0}", __VA_ARGS__); DEBUG_BREAK; } }
     #define CZ_CORE_ASSERT(x, ...) { if(!(x)) { CZ_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); DEBUG_BREAK; } }
-#else
-    #define CZ_ASSERT(x, ...)
-    #define CZ_CORE_ASSERT(x, ...)
-#endif
+// #else
+//     #define CZ_ASSERT(x, ...)
+//     #define CZ_CORE_ASSERT(x, ...)
+// #endif
 
 #define BIT(x) (1 << x)
 

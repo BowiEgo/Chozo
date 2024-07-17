@@ -112,19 +112,19 @@ namespace Chozo {
         }
 
         // Camera control
-        // if (m_Camera_A)
-        // {
-        //     auto nsc_A = m_Camera_A.GetCompoent<NativeScriptComponent>();
-        //     if (nsc_A.Instance)
-        //         static_cast<CameraController*>(nsc_A.Instance)->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
-        // }
+        if (m_Camera_A.HasComponent<NativeScriptComponent>())
+        {
+            auto nsc_A = m_Camera_A.GetCompoent<NativeScriptComponent>();
+            if (nsc_A.Instance)
+                static_cast<CameraController*>(nsc_A.Instance)->SetActive(m_Viewport_Focused);
+        }
 
-        // if (m_Camera_B)
-        // {
-        //     auto nsc_B = m_Camera_B.GetCompoent<NativeScriptComponent>();
-        //     if (nsc_B.Instance)
-        //         static_cast<CameraController*>(nsc_B.Instance)->SetActive(m_Viewport_Focused && m_Viewport_Hovered);
-        // }
+        if (m_Camera_B.HasComponent<NativeScriptComponent>())
+        {
+            auto nsc_B = m_Camera_B.GetCompoent<NativeScriptComponent>();
+            if (nsc_B.Instance)
+                static_cast<CameraController*>(nsc_B.Instance)->SetActive(m_Viewport_Focused);
+        }
 
         m_Viewport_FBO->Bind();
         Renderer2D::ResetStats();
@@ -156,7 +156,7 @@ namespace Chozo {
         ImGuiIO& io = ImGui::GetIO();
         ImGuiStyle& style = ImGui::GetStyle();
         float minWinSizeX = style.WindowMinSize.x;
-        style.WindowMinSize.x = 370.0f;
+        style.WindowMinSize.x = 350.0f;
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
             ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
