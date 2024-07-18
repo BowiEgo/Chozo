@@ -31,6 +31,7 @@ namespace Chozo {
         entt::registry m_Registry;
 
         friend class Entity;
+        friend class SceneSerializer;
         friend class SceneHierarchyPanel;
     private:
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;

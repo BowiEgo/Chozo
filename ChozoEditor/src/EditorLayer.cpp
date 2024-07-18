@@ -1,8 +1,9 @@
 #include "EditorLayer.h"
+#include "CameraController.h"
 
 #include <glad/glad.h>
 
-#include "CameraController.h"
+#include "Chozo/Scene/SceneSerializer.h"
 
 namespace Chozo {
 
@@ -50,6 +51,7 @@ namespace Chozo {
         // Scene
         // --------------------
         m_ActiveScene = std::make_shared<Scene>();
+#if 0
         // --------------------
         // Camera entity
         // --------------------
@@ -92,7 +94,7 @@ namespace Chozo {
         // --------------------
         m_Camera_A.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
         m_Camera_B.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
-
+#endif
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
@@ -112,14 +114,14 @@ namespace Chozo {
         }
 
         // Camera control
-        if (m_Camera_A.HasComponent<NativeScriptComponent>())
+        if (m_Camera_A && m_Camera_A.HasComponent<NativeScriptComponent>())
         {
             auto nsc_A = m_Camera_A.GetCompoent<NativeScriptComponent>();
             if (nsc_A.Instance)
                 static_cast<CameraController*>(nsc_A.Instance)->SetActive(m_Viewport_Focused);
         }
 
-        if (m_Camera_B.HasComponent<NativeScriptComponent>())
+        if (m_Camera_B && m_Camera_B.HasComponent<NativeScriptComponent>())
         {
             auto nsc_B = m_Camera_B.GetCompoent<NativeScriptComponent>();
             if (nsc_B.Instance)
@@ -168,6 +170,17 @@ namespace Chozo {
         {
             if (ImGui::BeginMenu("File"))
             {
+                if (ImGui::MenuItem("Open Scene"))
+                {
+                    SceneSerializer serializer(m_ActiveScene);
+                    serializer.Deserialize("profiles/scenes/Example.chozo");
+                }
+                if (ImGui::MenuItem("Save Scene"))
+                {
+                    SceneSerializer serializer(m_ActiveScene);
+                    serializer.Serialize("profiles/scenes/Example.chozo");
+                }
+
                 if (ImGui::MenuItem("Quit")) Application::Get().Close();
                 ImGui::EndMenu();
             }
