@@ -22,6 +22,12 @@ namespace Chozo {
         virtual void OnImGuiRender() override;
         virtual void OnEvent(Event& e) override;
     private:
+        bool OnKeyPressed(KeyPressedEvent& e);
+        
+        void NewScene();
+        void OpenScene();
+        void SaveSceneAs();
+    private:
         Ref<Framebuffer> m_Viewport_FBO;
         ImVec2 m_Viewport_Size;
         bool m_Viewport_Focused, m_Viewport_Hovered;

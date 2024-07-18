@@ -18,6 +18,8 @@ set(ENGINE_PROJECT_NAME ChozoEngine)
 set(EDITOR_PROJECT_NAME ChozoEditor)
 set(SANDBOX_PROJECT_NAME Sandbox)
 
+set(MAC_PLATFORM_UTILS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/${ENGINE_PROJECT_NAME}/src/Platform/Mac)
+
 add_subdirectory(${ENGINE_PROJECT_NAME})
 add_subdirectory(${EDITOR_PROJECT_NAME})
 add_subdirectory(${SANDBOX_PROJECT_NAME})

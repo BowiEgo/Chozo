@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 
 #include "Chozo/Scene/SceneSerializer.h"
+#include "Chozo/Utils/PlatformUtils.h"
 
 namespace Chozo {
 
@@ -170,16 +171,12 @@ namespace Chozo {
         {
             if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("Open Scene"))
-                {
-                    SceneSerializer serializer(m_ActiveScene);
-                    serializer.Deserialize("profiles/scenes/Example.chozo");
-                }
-                if (ImGui::MenuItem("Save Scene"))
-                {
-                    SceneSerializer serializer(m_ActiveScene);
-                    serializer.Serialize("profiles/scenes/Example.chozo");
-                }
+                if (ImGui::MenuItem("New", "Ctrl+N"))
+                    NewScene();
+                if (ImGui::MenuItem("Open...", "Ctrl+O"))
+                    OpenScene();
+                if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
+                    SaveSceneAs();                    
 
                 if (ImGui::MenuItem("Quit")) Application::Get().Close();
                 ImGui::EndMenu();
@@ -219,5 +216,73 @@ namespace Chozo {
     void EditorLayer::OnEvent(Event &e)
     {
         // m_CameraController->OnEvent(e);
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<KeyPressedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
+    }
+
+    bool EditorLayer::OnKeyPressed(KeyPressedEvent &e)
+    {
+        // Shortcuts
+        if (e.GetRepeatCount() > 0)
+            return false;
+
+        bool control = Input::IsKeyPressed(CZ_KEY_LEFT_CONTROL) || Input::IsKeyPressed(CZ_KEY_RIGHT_CONTROL);
+        bool shift = Input::IsKeyPressed(CZ_KEY_LEFT_SHIFT) || Input::IsKeyPressed(CZ_KEY_LEFT_SHIFT);
+        switch (e.GetKeyCode())
+        {
+            case CZ_KEY_N:
+            {
+                if (control)
+                    NewScene();
+
+                break;
+            }
+            case CZ_KEY_O:
+            {
+                if (control)
+                    OpenScene();
+
+                break;
+            }
+            case CZ_KEY_S:
+            {
+                if (control && shift)
+                    SaveSceneAs();
+
+                break;
+            }
+        }
+        return true;
+    }
+
+    void EditorLayer::NewScene()
+    {
+        m_ActiveScene = std::make_shared<Scene>();
+        m_ActiveScene->OnViewportResize(m_Viewport_Size.x, m_Viewport_Size.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+    }
+
+    void EditorLayer::OpenScene()
+    {
+        std::string filepath = FileDialogs::OpenFile("Chozo Scene (*.chozo)\0*.chozo\0");
+        if (!filepath.empty())
+        {
+            m_ActiveScene = std::make_shared<Scene>();
+            m_ActiveScene->OnViewportResize(m_Viewport_Size.x, m_Viewport_Size.y);
+            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Deserialize(filepath);
+        }
+    }
+
+    void EditorLayer::SaveSceneAs()
+    {
+        std::string filepath = FileDialogs::SaveFile("Chozo Scene (*.chozo)\0*.chozo\0");
+        if (!filepath.empty())
+        {
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Serialize(filepath);
+        }
     }
 }

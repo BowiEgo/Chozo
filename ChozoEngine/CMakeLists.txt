@@ -47,6 +47,11 @@ find_package(imgui CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 
+find_library(COCOA_LIBRARY Cocoa)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    ${COCOA_LIBRARY}
+)
 target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog_header_only)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     OpenGL::GL
