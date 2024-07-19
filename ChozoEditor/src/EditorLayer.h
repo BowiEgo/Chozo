@@ -46,6 +46,10 @@ namespace Chozo {
 
         // Panels
         SceneHierarchyPanel m_SceneHierarchyPanel;
+
+        // Gizmo
+        int m_GizmoType = -1; // -1 = no gizmo
+		int m_GizmoMode = 0; // 0 = local
     };
 }
 

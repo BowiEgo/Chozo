@@ -46,6 +46,7 @@ find_package(glad CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
+find_package(imguizmo CONFIG REQUIRED)
 
 find_library(COCOA_LIBRARY Cocoa)
 
@@ -60,6 +61,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     imgui::imgui
     glm::glm-header-only
     yaml-cpp::yaml-cpp
+    imguizmo::imguizmo
 )
 
 # Precompiled header

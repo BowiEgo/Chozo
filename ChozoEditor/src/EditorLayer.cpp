@@ -2,9 +2,11 @@
 #include "CameraController.h"
 
 #include <glad/glad.h>
+#include <ImGuizmo.h>
 
 #include "Chozo/Scene/SceneSerializer.h"
 #include "Chozo/Utils/PlatformUtils.h"
+#include "Chozo/Math/Math.h"
 
 namespace Chozo {
 
@@ -200,12 +202,58 @@ namespace Chozo {
 
         m_Viewport_Focused = ImGui::IsWindowFocused();
         m_Viewport_Hovered = ImGui::IsWindowHovered();
-        Application::Get().GetImGuiLayer().BlockEvents(!m_Viewport_Focused || !m_Viewport_Hovered);
+        Application::Get().GetImGuiLayer().BlockEvents(!m_Viewport_Focused && !m_Viewport_Hovered);
 
         m_Viewport_Size = ImGui::GetContentRegionAvail();
     
         uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID();
         ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_Viewport_Size.x, m_Viewport_Size.y), ImVec2(0, 1), ImVec2(1, 0));
+
+        // Gizmos
+        Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+        if (selectedEntity)
+        {
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetDrawlist();
+
+            float windowWidth = ImGui::GetWindowWidth();
+            float windowHeight = ImGui::GetWindowHeight();
+            ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
+
+            // Camera;
+            auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+            const auto& camera = cameraEntity.GetCompoent<CameraComponent>().Camera;
+            const glm::mat4 cameraProjection = camera.GetProjection();
+            const glm::mat4 cameraView = glm::inverse(cameraEntity.GetCompoent<TransformComponent>().GetTransform());
+            // Entity transform
+            auto& tc = selectedEntity.GetCompoent<TransformComponent>();
+            glm::mat4 transform = tc.GetTransform();
+
+            // Snapping
+            bool snap = Input::IsKeyPressed(CZ_KEY_LEFT_CONTROL);
+            float snapValue = 0.5f; // Snap to 0.5m for translation/scale
+            // Snap to 45 degrees for rotation
+            if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
+                snapValue = 45.0f;
+            
+            float snapValues[3] = { snapValue, snapValue, snapValue };
+
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                ImGuizmo::OPERATION(m_GizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform),
+                nullptr, snap ? snapValues : nullptr);
+
+            if (ImGuizmo::IsUsing())
+            {
+                glm::vec3 translation, rotation, scale;
+                Math::DecomposeTransform(transform, translation, rotation, scale);
+                
+                glm::vec3 deltaRotation = rotation - tc.Rotation;
+                tc.Translation = translation;
+                tc.Rotation += deltaRotation;
+                tc.Scale = scale;
+            }
+        }
+
         ImGui::End();
         ImGui::PopStyleVar();
         ImGui::End();
@@ -251,6 +299,20 @@ namespace Chozo {
 
                 break;
             }
+
+            // Gizmos
+            case CZ_KEY_Q:
+                m_GizmoType = -1;
+                break;
+            case CZ_KEY_W:
+                m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+                break;
+            case CZ_KEY_E:
+                m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+                break;
+            case CZ_KEY_R:
+                m_GizmoType = ImGuizmo::OPERATION::SCALE;
+                break;
         }
         return true;
     }
