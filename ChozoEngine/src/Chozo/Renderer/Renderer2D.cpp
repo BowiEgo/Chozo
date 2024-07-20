@@ -98,7 +98,7 @@ namespace Chozo {
         m_SceneData->ViewProjectionMatrix = projection * glm::inverse(transform);
     }
 
-    void Renderer2D::BeginScene(OrthographicCamera &camera)
+    void Renderer2D::BeginScene(EditorCamera& camera)
     {
         m_SceneData->ViewProjectionMatrix = camera.GetViewProjectionMatrix();
     }

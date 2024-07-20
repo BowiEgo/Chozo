@@ -29,8 +29,8 @@ namespace Chozo {
         void SaveSceneAs();
     private:
         Ref<Framebuffer> m_Viewport_FBO;
-        ImVec2 m_Viewport_Size;
-        bool m_Viewport_Focused, m_Viewport_Hovered;
+        ImVec2 m_ViewportSize;
+        bool m_ViewportFocused, m_ViewportHovered;
 
         ShaderLibrary m_ShaderLibrary;
         Ref<Shader> m_Shader;
@@ -40,6 +40,8 @@ namespace Chozo {
 
         Entity m_Square_Entity;
         glm::vec3 m_SquareColor = { 1.0f, 1.0f, 1.0f };
+
+        EditorCamera m_EditorCamera;
 
         Entity m_Camera_A, m_Camera_B;
         bool m_Camera_A_Is_Primary = true;

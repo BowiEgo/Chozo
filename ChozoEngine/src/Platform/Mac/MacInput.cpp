@@ -7,18 +7,34 @@ namespace Chozo {
 
     Input* Input::s_Instance = new MacInput();
 
-    bool Chozo::MacInput::IsKeyPressedImpl(int keycode)
+    // bool Chozo::MacInput::IsKeyPressedImpl(int keycode)
+    // {
+    //     auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+    //     auto state = glfwGetKey(window, keycode);
+
+    //     return state == GLFW_PRESS || state == GLFW_REPEAT;
+    // }
+
+    bool Chozo::MacInput::IsKeyPressedImpl(KeyCode keycode)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        auto state = glfwGetKey(window, keycode);
+        auto state = glfwGetKey(window, static_cast<int32_t>(keycode));
 
         return state == GLFW_PRESS || state == GLFW_REPEAT;
     }
 
-    bool Chozo::MacInput::IsMouseButtonPressedImpl(int button)
+    // bool Chozo::MacInput::IsMouseButtonPressedImpl(int button)
+    // {
+    //     auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+    //     auto state = glfwGetKey(window, button);
+
+    //     return state == GLFW_PRESS;
+    // }
+
+    bool Chozo::MacInput::IsMouseButtonPressedImpl(MouseButton button)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        auto state = glfwGetKey(window, button);
+        auto state = glfwGetMouseButton(window, static_cast<int32_t>(button));
 
         return state == GLFW_PRESS;
     }
@@ -32,14 +48,14 @@ namespace Chozo {
         return { (float)xpos, (float)ypos };
     }
 
-    bool Chozo::MacInput::GetMouseXImpl()
+    float Chozo::MacInput::GetMouseXImpl()
     {
         auto [x, y] = GetMousePositionImpl();
 
         return x;
     }
 
-    bool Chozo::MacInput::GetMouseYImpl()
+    float Chozo::MacInput::GetMouseYImpl()
     {
         auto [x, y] = GetMousePositionImpl();
 

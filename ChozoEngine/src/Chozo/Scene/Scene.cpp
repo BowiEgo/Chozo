@@ -30,7 +30,26 @@ namespace Chozo {
         m_Registry.destroy(entity);
     }
 
-    void Scene::OnUpdate(Timestep ts)
+    void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
+    {
+        Renderer2D::BeginScene(camera);
+        Renderer2D::BeginBatch();
+
+        auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+        for (auto entity : group)
+        {
+            if (!m_Registry.valid(entity))
+                continue;
+        
+            const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+            Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+        }
+
+        Renderer2D::EndBatch();
+        Renderer2D::EndScene();
+    }
+
+    void Scene::OnUpdateRuntime(Timestep ts)
     {
         // Update scripts
         {

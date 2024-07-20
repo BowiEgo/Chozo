@@ -2,6 +2,7 @@
 
 #include "czpch.h"
 
+#include "EditorCamera.h"
 #include "RenderCommand.h"
 #include "OrthographicCamera.h"
 #include "Shader.h"
@@ -22,7 +23,7 @@ namespace Chozo {
         static void Shutdown();
         
         static void BeginScene(const glm::mat4& projection, const glm::mat4& transform);
-        static void BeginScene(OrthographicCamera& camera); // TODO: Remove
+        static void BeginScene(EditorCamera& camera); // TODO: Remove
         static void EndScene();
 
         static void BeginBatch();

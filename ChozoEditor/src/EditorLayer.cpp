@@ -54,6 +54,10 @@ namespace Chozo {
         // Scene
         // --------------------
         m_ActiveScene = std::make_shared<Scene>();
+        // --------------------
+        // Editor Camera
+        // --------------------
+        m_EditorCamera = EditorCamera(30.0f, 16.0f / 9.0f, 0.1f, 1000.0f);
 #if 0
         // --------------------
         // Camera entity
@@ -109,11 +113,12 @@ namespace Chozo {
     {
         // Resize
         if (FramebufferSpecification spec = m_Viewport_FBO->GetSpecification();
-            m_Viewport_Size.x > 0.0f && m_Viewport_Size.y > 0.0f && // zero size framebuffer is invalid
-            (spec.Width != m_Viewport_Size.x || spec.Height != m_Viewport_Size.y))
+            m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && // zero size framebuffer is invalid
+            (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
         {
-            m_Viewport_FBO->Resize(m_Viewport_Size.x, m_Viewport_Size.y);
-            m_ActiveScene->OnViewportResize(m_Viewport_Size.x, m_Viewport_Size.y);
+            m_Viewport_FBO->Resize(m_ViewportSize.x, m_ViewportSize.y);
+            m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+            m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
         }
 
         // Camera control
@@ -121,15 +126,17 @@ namespace Chozo {
         {
             auto nsc_A = m_Camera_A.GetCompoent<NativeScriptComponent>();
             if (nsc_A.Instance)
-                static_cast<CameraController*>(nsc_A.Instance)->SetActive(m_Viewport_Focused);
+                static_cast<CameraController*>(nsc_A.Instance)->SetActive(m_ViewportFocused);
         }
 
         if (m_Camera_B && m_Camera_B.HasComponent<NativeScriptComponent>())
         {
             auto nsc_B = m_Camera_B.GetCompoent<NativeScriptComponent>();
             if (nsc_B.Instance)
-                static_cast<CameraController*>(nsc_B.Instance)->SetActive(m_Viewport_Focused);
+                static_cast<CameraController*>(nsc_B.Instance)->SetActive(m_ViewportFocused);
         }
+
+        m_EditorCamera.OnUpdate(ts);
 
         m_Viewport_FBO->Bind();
         Renderer2D::ResetStats();
@@ -138,7 +145,7 @@ namespace Chozo {
 
         Renderer2D::Submit(m_Shader);
         // Update scene
-        m_ActiveScene->OnUpdate(ts);
+        m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
 
         m_Viewport_FBO->Unbind();
     }
@@ -200,14 +207,14 @@ namespace Chozo {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
 
-        m_Viewport_Focused = ImGui::IsWindowFocused();
-        m_Viewport_Hovered = ImGui::IsWindowHovered();
-        Application::Get().GetImGuiLayer().BlockEvents(!m_Viewport_Focused && !m_Viewport_Hovered);
+        m_ViewportFocused = ImGui::IsWindowFocused();
+        m_ViewportHovered = ImGui::IsWindowHovered();
+        Application::Get().GetImGuiLayer().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
-        m_Viewport_Size = ImGui::GetContentRegionAvail();
+        m_ViewportSize = ImGui::GetContentRegionAvail();
     
         uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID();
-        ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_Viewport_Size.x, m_Viewport_Size.y), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_ViewportSize.x, m_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0));
 
         // Gizmos
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
@@ -221,10 +228,17 @@ namespace Chozo {
             ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 
             // Camera;
-            auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
-            const auto& camera = cameraEntity.GetCompoent<CameraComponent>().Camera;
-            const glm::mat4 cameraProjection = camera.GetProjection();
-            const glm::mat4 cameraView = glm::inverse(cameraEntity.GetCompoent<TransformComponent>().GetTransform());
+
+            // Runtime camera from entity
+            // auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+            // const auto& camera = cameraEntity.GetCompoent<CameraComponent>().Camera;
+            // const glm::mat4 cameraProjection = camera.GetProjection();
+            // const glm::mat4 cameraView = glm::inverse(cameraEntity.GetCompoent<TransformComponent>().GetTransform());
+
+            // Editor camera
+            const glm::mat4 cameraProjection = m_EditorCamera.GetProjection();
+            const glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
+
             // Entity transform
             auto& tc = selectedEntity.GetCompoent<TransformComponent>();
             glm::mat4 transform = tc.GetTransform();
@@ -264,6 +278,7 @@ namespace Chozo {
     void EditorLayer::OnEvent(Event &e)
     {
         // m_CameraController->OnEvent(e);
+        m_EditorCamera.OnEvent(e);
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<KeyPressedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
     }
@@ -278,40 +293,39 @@ namespace Chozo {
         bool shift = Input::IsKeyPressed(CZ_KEY_LEFT_SHIFT) || Input::IsKeyPressed(CZ_KEY_LEFT_SHIFT);
         switch (e.GetKeyCode())
         {
-            case CZ_KEY_N:
+            case Key::N:
             {
                 if (control)
                     NewScene();
-
                 break;
             }
-            case CZ_KEY_O:
+            case Key::O:
             {
                 if (control)
                     OpenScene();
-
                 break;
             }
-            case CZ_KEY_S:
+            case Key::S:
             {
                 if (control && shift)
                     SaveSceneAs();
-
                 break;
             }
 
             // Gizmos
-            case CZ_KEY_Q:
+            case Key::Q:
                 m_GizmoType = -1;
                 break;
-            case CZ_KEY_W:
+            case Key::W:
                 m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
                 break;
-            case CZ_KEY_E:
+            case Key::E:
                 m_GizmoType = ImGuizmo::OPERATION::ROTATE;
                 break;
-            case CZ_KEY_R:
+            case Key::R:
                 m_GizmoType = ImGuizmo::OPERATION::SCALE;
+                break;
+            default:
                 break;
         }
         return true;
@@ -320,7 +334,7 @@ namespace Chozo {
     void EditorLayer::NewScene()
     {
         m_ActiveScene = std::make_shared<Scene>();
-        m_ActiveScene->OnViewportResize(m_Viewport_Size.x, m_Viewport_Size.y);
+        m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
@@ -330,7 +344,7 @@ namespace Chozo {
         if (!filepath.empty())
         {
             m_ActiveScene = std::make_shared<Scene>();
-            m_ActiveScene->OnViewportResize(m_Viewport_Size.x, m_Viewport_Size.y);
+            m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
             m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
             SceneSerializer serializer(m_ActiveScene);

@@ -5,6 +5,7 @@
 #include "entt.hpp"
 
 #include "Chozo/Core/Timestep.h"
+#include "Chozo/Renderer/EditorCamera.h"
 
 namespace Chozo {
 
@@ -22,7 +23,8 @@ namespace Chozo {
         // TEMP
         entt::registry& Reg() { return m_Registry; }
 
-        void OnUpdate(Timestep ts);
+        void OnUpdateEditor(Timestep ts, EditorCamera& camera);
+        void OnUpdateRuntime(Timestep ts);
         void OnViewportResize(uint32_t width, uint32_t height);
 
         Entity GetPrimaryCameraEntity();
