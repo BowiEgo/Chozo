@@ -4,6 +4,8 @@
 #include "Components.h"
 #include "Chozo/Renderer/Renderer2D.h"
 
+#include <glad/glad.h>
+
 namespace Chozo {
 
     Scene::Scene()
@@ -42,7 +44,7 @@ namespace Chozo {
                 continue;
         
             const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-            Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+            Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color, (uint32_t)entity);
         }
 
         Renderer2D::EndBatch();
@@ -98,7 +100,7 @@ namespace Chozo {
                         continue;
                 
                     const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                    Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+                    Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color, (uint32_t)entity);
                 }
 
                 Renderer2D::EndBatch();
@@ -119,6 +121,38 @@ namespace Chozo {
             if (!cameraComponent.FixedAspectRatio)
                 cameraComponent.Camera.SetViewportSize(width, height);
         }
+    }
+
+    // void Scene::DrawIDBuffer(Ref<Framebuffer> target, EditorCamera& camera)
+    // {
+    //     target->Bind();
+    //     {
+    //         // Render to ID buffer
+    //         Renderer2D::BeginScene(camera);
+    //         Renderer2D::BeginBatch();
+
+    //         auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+    //         for (auto entity : group)
+    //         {
+    //             if (!m_Registry.valid(entity))
+    //                 continue;
+            
+    //             const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+    //             Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color, (uint32_t)entity);
+    //         }
+
+    //         Renderer2D::EndBatch();
+    //         Renderer2D::EndScene();
+    //     }
+    //     target->Unbind();
+    // }
+
+    int Scene::GetPixelID(int x, int y)
+    {
+        glReadBuffer(GL_COLOR_ATTACHMENT1);
+        int pixelData;
+        glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
+        return pixelData;
     }
 
     Entity Scene::GetPrimaryCameraEntity()

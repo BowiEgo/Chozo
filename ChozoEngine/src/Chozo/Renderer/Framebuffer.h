@@ -8,8 +8,8 @@
 namespace Chozo {
     struct FramebufferSpecification
     {
-        uint32_t Width = 0;
-        uint32_t Height = 0;
+        uint32_t Width = 1;
+        uint32_t Height = 1;
 		glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		uint32_t Samples = 1; // multisampling
@@ -29,6 +29,8 @@ namespace Chozo {
         virtual void Unbind() const = 0;
 
         virtual void Resize(float& width, float& height) = 0;
+
+        virtual void ClearIDBuffer() = 0;
 
 		virtual RendererID GetRendererID() const = 0;
         virtual RendererID GetColorAttachmentRendererID() const = 0;

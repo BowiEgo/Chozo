@@ -19,11 +19,12 @@ namespace Chozo {
         virtual RendererID GetColorAttachmentRendererID() const override { return m_ColorAttachment; };
 		virtual const FramebufferSpecification& GetSpecification() const override { return m_Specification; };
 
+        virtual void ClearIDBuffer() override;
 		void Invalidate();
 		void Release();
     private:
         FramebufferSpecification m_Specification;
         RendererID m_RendererID = 0;
-        RendererID m_ColorAttachment = 0, m_DepthAttachment = 0;
+        RendererID m_ColorAttachment = 0, m_IDAttachment = 0, m_DepthAttachment = 0;
     };
 }

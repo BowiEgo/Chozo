@@ -13,6 +13,7 @@ namespace Chozo {
         glm::vec2 TexCoord;
         // float TexIndex;
         // float TilingFactor;
+        int ObjectID;
     };
 
     struct Renderer2DData
@@ -74,6 +75,9 @@ namespace Chozo {
 
         glEnableVertexAttribArray(2);
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (const void*)offsetof(QuadVertex, TexCoord));
+
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 1, GL_INT, GL_FALSE, sizeof(QuadVertex), (const void*)offsetof(QuadVertex, ObjectID));
 
         uint32_t indices[s_Data.MaxIndices];
         uint32_t offset = 0;
@@ -138,15 +142,7 @@ namespace Chozo {
         s_Data.TextureSlotIndex = 1;
     }
 
-    void Renderer2D::DrawQuad(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color)
-    {
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
-            * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
-
-        DrawQuad(transform, color);
-    }
-
-    void Renderer2D::DrawQuad(const glm::mat4 &transform, const glm::vec4 &color)
+    void Renderer2D::DrawQuad(const glm::mat4 &transform, const glm::vec4 &color, uint32_t entityID)
     {
         if (s_Data.QuadIndexCount >= s_Data.MaxIndices)
         {
@@ -161,6 +157,7 @@ namespace Chozo {
             s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
             s_Data.QuadVertexBufferPtr->Color = color;
             s_Data.QuadVertexBufferPtr->TexCoord = s_Data.QuadTexCoords[i];
+            s_Data.QuadVertexBufferPtr->ObjectID = entityID;
             s_Data.QuadVertexBufferPtr++;
         }
 

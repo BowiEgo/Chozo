@@ -27,6 +27,8 @@ namespace Chozo {
         void OnUpdateRuntime(Timestep ts);
         void OnViewportResize(uint32_t width, uint32_t height);
 
+        int GetPixelID(int x, int y);
+
         Entity GetPrimaryCameraEntity();
     private:
         template<typename T>

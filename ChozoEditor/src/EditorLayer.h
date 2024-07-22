@@ -23,13 +23,18 @@ namespace Chozo {
         virtual void OnEvent(Event& e) override;
     private:
         bool OnKeyPressed(KeyPressedEvent& e);
+        bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+
+        std::pair<float, float> GetMouseViewportSpace();
         
         void NewScene();
         void OpenScene();
         void SaveSceneAs();
     private:
-        Ref<Framebuffer> m_Viewport_FBO;
+        Ref<Framebuffer> m_Viewport_FBO, m_ID_FBO;
         ImVec2 m_ViewportSize;
+		glm::vec2 m_ViewportBounds[2];
+        
         bool m_ViewportFocused, m_ViewportHovered;
 
         ShaderLibrary m_ShaderLibrary;
@@ -45,6 +50,7 @@ namespace Chozo {
 
         Entity m_Camera_A, m_Camera_B;
         bool m_Camera_A_Is_Primary = true;
+        bool m_AllowViewportCameraEvents;
 
         // Panels
         SceneHierarchyPanel m_SceneHierarchyPanel;
@@ -52,6 +58,8 @@ namespace Chozo {
         // Gizmo
         int m_GizmoType = -1; // -1 = no gizmo
 		int m_GizmoMode = 0; // 0 = local
+
+        Entity m_Entity_Hovered;
     };
 }
 

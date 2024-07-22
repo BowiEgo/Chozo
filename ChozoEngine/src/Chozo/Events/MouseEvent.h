@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Event.h"
+#include "Chozo/Core/KeyCodes.h"
 
 namespace Chozo {
     class CHOZO_API MouseMovedEvent : public Event
@@ -50,20 +51,20 @@ namespace Chozo {
     class CHOZO_API MouseButtonEvent : public Event
     {
     public:
-        inline int GetMouseButton() const { return m_Button; }
+        inline MouseButton GetMouseButton() const { return m_Button; }
 
         EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
     protected:
-        MouseButtonEvent(int button)
+        MouseButtonEvent(MouseButton button)
             : m_Button(button) {}
         
-        int m_Button;
+        MouseButton m_Button;
     };
 
     class CHOZO_API MouseButtonPressedEvent : public MouseButtonEvent
     {
     public:
-        MouseButtonPressedEvent(int button)
+        MouseButtonPressedEvent(MouseButton button)
             : MouseButtonEvent(button) {}
         
         std::string ToString() const override
@@ -79,7 +80,7 @@ namespace Chozo {
     class CHOZO_API MouseButtonReleasedEvent : public MouseButtonEvent
     {
     public:
-        MouseButtonReleasedEvent(int button)
+        MouseButtonReleasedEvent(MouseButton button)
             : MouseButtonEvent(button) {}
         
         std::string ToString() const override

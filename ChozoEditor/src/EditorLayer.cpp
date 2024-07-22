@@ -47,9 +47,8 @@ namespace Chozo {
         // Viewport
         // --------------------
         FramebufferSpecification fbSpec;
-        fbSpec.Width = 1;
-        fbSpec.Height = 1;
         m_Viewport_FBO = Framebuffer::Create(fbSpec);
+        m_ID_FBO = Framebuffer::Create(fbSpec);
         // --------------------
         // Scene
         // --------------------
@@ -117,6 +116,7 @@ namespace Chozo {
             (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
         {
             m_Viewport_FBO->Resize(m_ViewportSize.x, m_ViewportSize.y);
+            // m_ID_FBO->Resize(m_ViewportSize.x, m_ViewportSize.y);
             m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
         }
@@ -142,10 +142,25 @@ namespace Chozo {
         Renderer2D::ResetStats();
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         RenderCommand::Clear();
+        m_Viewport_FBO->ClearIDBuffer();
 
         Renderer2D::Submit(m_Shader);
         // Update scene
         m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+        // m_ActiveScene->DrawIDBuffer(m_ID_FBO, m_EditorCamera);
+
+        auto [mx, my] = ImGui::GetMousePos();
+        mx -= m_ViewportBounds[0].x;
+        my -= m_ViewportBounds[0].y;
+        auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
+        auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
+        my = viewportHeight - my;
+
+        if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
+        {
+            int pixelID = m_ActiveScene->GetPixelID(mx, my);
+            m_Entity_Hovered = pixelID == -1 ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
+        }
 
         m_Viewport_FBO->Unbind();
     }
@@ -202,6 +217,11 @@ namespace Chozo {
         ImGui::Text("QuadCount: %d", Renderer2D::GetStats().QuadCount);
         ImGui::Text("Vertices: %d", Renderer2D::GetStats().GetTotalVertexCount());
         ImGui::Text("Indices: %d", Renderer2D::GetStats().GetTotalIndexCount());
+
+        std::string entityName = "Null";
+        if ((entt::entity)m_Entity_Hovered != entt::null)
+            entityName = m_Entity_Hovered.GetCompoent<TagComponent>().Tag;
+        ImGui::Text("EntityHoverd: %s", entityName.c_str());
         ImGui::Separator();
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
@@ -211,10 +231,22 @@ namespace Chozo {
         m_ViewportHovered = ImGui::IsWindowHovered();
         Application::Get().GetImGuiLayer().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
+        auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
         m_ViewportSize = ImGui::GetContentRegionAvail();
     
         uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID();
         ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_ViewportSize.x, m_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0));
+
+        // Viewport bounds
+        auto windowSize = ImGui::GetWindowSize();
+        ImVec2 minBound = ImGui::GetWindowPos();
+        minBound.x += viewportOffset.x;
+        minBound.y += viewportOffset.y;
+
+        ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+        m_ViewportBounds[0] = { minBound.x, minBound.y };
+        m_ViewportBounds[1] = { maxBound.x, maxBound.y };
+        m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
 
         // Gizmos
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
@@ -281,6 +313,7 @@ namespace Chozo {
         m_EditorCamera.OnEvent(e);
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<KeyPressedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
+        dispatcher.Dispatch<MouseButtonPressedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
     }
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent &e)
@@ -329,6 +362,29 @@ namespace Chozo {
                 break;
         }
         return true;
+    }
+
+    bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent &e)
+    {
+        if (e.GetMouseButton() == MouseButton::Left && !Input::IsKeyPressed(Key::LeftAlt) && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver())
+        {
+            m_SceneHierarchyPanel.SetSelectedEntity(m_Entity_Hovered);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    std::pair<float, float> EditorLayer::GetMouseViewportSpace()
+    {
+        auto [mx, my] = ImGui::GetMousePos();
+        mx -= m_ViewportBounds[0].x;
+        my -= m_ViewportBounds[0].y;
+        auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
+		auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
+
+		return { (mx / viewportWidth) * 2.0f - 1.0f, ((my / viewportHeight) * 2.0f - 1.0f) * -1.0f };
     }
 
     void EditorLayer::NewScene()
