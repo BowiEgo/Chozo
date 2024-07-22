@@ -16,15 +16,23 @@ namespace Chozo {
         virtual void Resize(float& width, float& height) override;
 
 		virtual RendererID GetRendererID() const override { return m_RendererID; };
-        virtual RendererID GetColorAttachmentRendererID() const override { return m_ColorAttachment; };
+        virtual RendererID GetColorAttachmentRendererID(uint32_t index = 0) const override {
+            CZ_CORE_ASSERT(index < m_ColorAttachments.size(), "");
+            return m_ColorAttachments[index];
+        };
 		virtual const FramebufferSpecification& GetSpecification() const override { return m_Specification; };
 
-        virtual void ClearIDBuffer() override;
+        virtual void ClearColorBuffer(int index, int value) override;
 		void Invalidate();
 		void Release();
     private:
         FramebufferSpecification m_Specification;
         RendererID m_RendererID = 0;
-        RendererID m_ColorAttachment = 0, m_IDAttachment = 0, m_DepthAttachment = 0;
+
+        std::vector<FramebufferTextureSpecification> m_ColorAttachmentSpecs;
+        FramebufferTextureSpecification m_DepthAttachmentSpec = FramebufferTextureFormat::None;
+
+        std::vector<RendererID> m_ColorAttachments;
+        RendererID m_DepthAttachment;
     };
 }

@@ -47,6 +47,7 @@ namespace Chozo {
         // Viewport
         // --------------------
         FramebufferSpecification fbSpec;
+        fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::R32I, FramebufferTextureFormat::Depth };
         m_Viewport_FBO = Framebuffer::Create(fbSpec);
         m_ID_FBO = Framebuffer::Create(fbSpec);
         // --------------------
@@ -142,12 +143,11 @@ namespace Chozo {
         Renderer2D::ResetStats();
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         RenderCommand::Clear();
-        m_Viewport_FBO->ClearIDBuffer();
+        m_Viewport_FBO->ClearColorBuffer(1, -1);
 
         Renderer2D::Submit(m_Shader);
         // Update scene
         m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
-        // m_ActiveScene->DrawIDBuffer(m_ID_FBO, m_EditorCamera);
 
         auto [mx, my] = ImGui::GetMousePos();
         mx -= m_ViewportBounds[0].x;
@@ -160,6 +160,7 @@ namespace Chozo {
         {
             int pixelID = m_ActiveScene->GetPixelID(mx, my);
             m_Entity_Hovered = pixelID == -1 ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
+            // CZ_INFO("{0}-{1}, {2}", mx, my, pixelID);
         }
 
         m_Viewport_FBO->Unbind();
@@ -234,7 +235,7 @@ namespace Chozo {
         auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
         m_ViewportSize = ImGui::GetContentRegionAvail();
     
-        uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID();
+        uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID(0);
         ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_ViewportSize.x, m_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0));
 
         // Viewport bounds
