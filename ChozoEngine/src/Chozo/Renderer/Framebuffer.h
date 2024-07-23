@@ -14,7 +14,7 @@ namespace Chozo {
         // Color
         RGBA8,
         // ID
-        R32I,
+        RED_INTEGER,
 
         // Depth/Stencil
         DEPTH24STENCIL8,
@@ -66,11 +66,12 @@ namespace Chozo {
         virtual void Unbind() const = 0;
 
         virtual void Resize(float& width, float& height) = 0;
+        virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) = 0;
 
-        virtual void ClearColorBuffer(int index, int value) = 0;
+        virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex, const void* value) = 0;
 
 		virtual RendererID GetRendererID() const = 0;
-        virtual RendererID GetColorAttachmentRendererID(uint32_t index = 0) const = 0;
+        virtual RendererID GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const = 0;
 		virtual const FramebufferSpecification& GetSpecification() const = 0;
 
         static Ref<Framebuffer> Create(const FramebufferSpecification& spec);

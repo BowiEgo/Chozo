@@ -14,15 +14,16 @@ namespace Chozo {
         virtual void Unbind() const override;
 
         virtual void Resize(float& width, float& height) override;
+        virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) override;
 
 		virtual RendererID GetRendererID() const override { return m_RendererID; };
-        virtual RendererID GetColorAttachmentRendererID(uint32_t index = 0) const override {
-            CZ_CORE_ASSERT(index < m_ColorAttachments.size(), "");
-            return m_ColorAttachments[index];
+        virtual RendererID GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const override {
+            CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is smaller than colorAttachments size");
+            return m_ColorAttachments[attachmentIndex];
         };
 		virtual const FramebufferSpecification& GetSpecification() const override { return m_Specification; };
 
-        virtual void ClearColorBuffer(int index, int value) override;
+        virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex, const void* value) override;
 		void Invalidate();
 		void Release();
     private:
@@ -32,7 +33,7 @@ namespace Chozo {
         std::vector<FramebufferTextureSpecification> m_ColorAttachmentSpecs;
         FramebufferTextureSpecification m_DepthAttachmentSpec = FramebufferTextureFormat::None;
 
-        std::vector<RendererID> m_ColorAttachments;
-        RendererID m_DepthAttachment;
+        std::vector<uint32_t> m_ColorAttachments;
+        uint32_t m_DepthAttachment;
     };
 }

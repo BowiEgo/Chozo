@@ -128,20 +128,30 @@ namespace Chozo {
         Invalidate();
     }
 
-    void OpenGLFramebuffer::ClearColorBuffer(int index, int value)
+    int OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
-        glBindTexture(GL_TEXTURE_2D, m_ColorAttachments[index]);
+        CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is smaller than colorAttachments size");
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
+        int pixelData;
+        glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
+        return pixelData;
+    }
+
+    void OpenGLFramebuffer::ClearColorAttachmentBuffer(uint32_t attachmentIndex, const void* value)
+    {
+        CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is smaller than colorAttachments size");
+        Bind();
+        glBindTexture(GL_TEXTURE_2D, m_ColorAttachments[attachmentIndex]);
         std::vector<int> clearValues(m_Specification.Width * m_Specification.Height, -1);
         // // #ifdef GL_VERSION_4_4
         // // glClearTexImage(m_IDAttachment, 0, GL_RED_INTEGER, GL_INT, &clearValues);
         // // #else
-        switch (m_ColorAttachmentSpecs[index].TextureFormat)
+        switch (m_ColorAttachmentSpecs[attachmentIndex].TextureFormat)
         {
             case FramebufferTextureFormat::RGBA8:
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RGB, GL_UNSIGNED_BYTE, clearValues.data());
                 break;
-            case FramebufferTextureFormat::R32I:
+            case FramebufferTextureFormat::RED_INTEGER:
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RED_INTEGER, GL_INT, clearValues.data());
                 break;
             default:
@@ -176,7 +186,7 @@ namespace Chozo {
                     case FramebufferTextureFormat::RGBA8:
                         Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, m_Specification.Width, m_Specification.Height, i);
                         break;
-                    case FramebufferTextureFormat::R32I:
+                    case FramebufferTextureFormat::RED_INTEGER:
                         Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_R32I, GL_RED_INTEGER, GL_INT, m_Specification.Width, m_Specification.Height, i);
                         break;
                     default:

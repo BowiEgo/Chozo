@@ -6,6 +6,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <ImGuizmo.h>
 
 #include "Panels/SceneHierarchyPanel.h"
 
@@ -56,7 +57,7 @@ namespace Chozo {
         SceneHierarchyPanel m_SceneHierarchyPanel;
 
         // Gizmo
-        int m_GizmoType = -1; // -1 = no gizmo
+        int m_GizmoType = ImGuizmo::OPERATION::TRANSLATE; // -1 = no gizmo
 		int m_GizmoMode = 0; // 0 = local
 
         Entity m_Entity_Hovered;

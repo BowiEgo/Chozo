@@ -2,7 +2,6 @@
 #include "CameraController.h"
 
 #include <glad/glad.h>
-#include <ImGuizmo.h>
 
 #include "Chozo/Scene/SceneSerializer.h"
 #include "Chozo/Utils/PlatformUtils.h"
@@ -47,7 +46,7 @@ namespace Chozo {
         // Viewport
         // --------------------
         FramebufferSpecification fbSpec;
-        fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::R32I, FramebufferTextureFormat::Depth };
+        fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
         m_Viewport_FBO = Framebuffer::Create(fbSpec);
         m_ID_FBO = Framebuffer::Create(fbSpec);
         // --------------------
@@ -143,7 +142,7 @@ namespace Chozo {
         Renderer2D::ResetStats();
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         RenderCommand::Clear();
-        m_Viewport_FBO->ClearColorBuffer(1, -1);
+        m_Viewport_FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
 
         Renderer2D::Submit(m_Shader);
         // Update scene
@@ -158,7 +157,7 @@ namespace Chozo {
 
         if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
         {
-            int pixelID = m_ActiveScene->GetPixelID(mx, my);
+            int pixelID = m_Viewport_FBO->ReadPixel(1, mx, my);
             m_Entity_Hovered = pixelID == -1 ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
             // CZ_INFO("{0}-{1}, {2}", mx, my, pixelID);
         }
@@ -192,6 +191,9 @@ namespace Chozo {
         }
         style.WindowMinSize.x = minWinSizeX;
         
+        // --------------------
+        // Menu
+        // --------------------
         if (ImGui::BeginMenuBar())
         {
             if (ImGui::BeginMenu("File"))
@@ -210,8 +212,14 @@ namespace Chozo {
             ImGui::EndMenuBar();
         }
 
+        // --------------------
+        // SceneHierarchy panel
+        // --------------------
         m_SceneHierarchyPanel.OnImGuiRender();
 
+        // --------------------
+        // Settings panel
+        // --------------------
         ImGui::Begin("Settings");
         ImGui::Text("Renderer stats:");
         ImGui::Text("DrawCalls: %d", Renderer2D::GetStats().DrawCalls);
@@ -220,11 +228,14 @@ namespace Chozo {
         ImGui::Text("Indices: %d", Renderer2D::GetStats().GetTotalIndexCount());
 
         std::string entityName = "Null";
-        if ((entt::entity)m_Entity_Hovered != entt::null)
+        if (m_Entity_Hovered)
             entityName = m_Entity_Hovered.GetCompoent<TagComponent>().Tag;
         ImGui::Text("EntityHoverd: %s", entityName.c_str());
         ImGui::Separator();
 
+        // --------------------
+        // Viewport
+        // --------------------
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
 
@@ -236,7 +247,7 @@ namespace Chozo {
         m_ViewportSize = ImGui::GetContentRegionAvail();
     
         uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID(0);
-        ImGui::Image((void*)(uintptr_t)textureID, ImVec2(m_ViewportSize.x, m_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image((void*)(uintptr_t)textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
         // Viewport bounds
         auto windowSize = ImGui::GetWindowSize();
@@ -367,7 +378,7 @@ namespace Chozo {
 
     bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent &e)
     {
-        if (e.GetMouseButton() == MouseButton::Left && !Input::IsKeyPressed(Key::LeftAlt) && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver())
+        if (e.GetMouseButton() == MouseButton::Left && !Input::IsKeyPressed(Key::LeftAlt) && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && m_ViewportHovered)
         {
             m_SceneHierarchyPanel.SetSelectedEntity(m_Entity_Hovered);
 

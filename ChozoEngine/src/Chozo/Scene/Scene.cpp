@@ -147,14 +147,6 @@ namespace Chozo {
     //     target->Unbind();
     // }
 
-    int Scene::GetPixelID(int x, int y)
-    {
-        glReadBuffer(GL_COLOR_ATTACHMENT1);
-        int pixelData;
-        glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
-        return pixelData;
-    }
-
     Entity Scene::GetPrimaryCameraEntity()
     {
         auto view = m_Registry.view<CameraComponent>();
