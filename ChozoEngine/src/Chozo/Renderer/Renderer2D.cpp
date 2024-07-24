@@ -1,6 +1,7 @@
 #include "Renderer2D.h"
 
 #include "Platform/OpenGL/OpenGLShader.h"
+#include "UniformBuffer.h"
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -13,7 +14,7 @@ namespace Chozo {
         glm::vec2 TexCoord;
         // float TexIndex;
         // float TilingFactor;
-        int ObjectID;
+        int EntityID;
     };
 
     struct Renderer2DData
@@ -49,6 +50,14 @@ namespace Chozo {
             { 0.0f, 1.0f },
         };
 
+        struct CameraData
+        {
+            glm::mat4 ProjectionMatrix;
+            glm::mat4 ViewMatrix;
+        };
+        CameraData CameraBuffer;
+        Ref<UniformBuffer> CameraUniformBuffer;
+
         Renderer2D::Statistics Stats;
     };
 
@@ -77,7 +86,7 @@ namespace Chozo {
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (const void*)offsetof(QuadVertex, TexCoord));
 
         glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 1, GL_INT, GL_FALSE, sizeof(QuadVertex), (const void*)offsetof(QuadVertex, ObjectID));
+        glVertexAttribPointer(3, 1, GL_INT, GL_FALSE, sizeof(QuadVertex), (const void*)offsetof(QuadVertex, EntityID));
 
         uint32_t indices[s_Data.MaxIndices];
         uint32_t offset = 0;
@@ -95,16 +104,22 @@ namespace Chozo {
         Ref<IndexBuffer> squareIB;
         squareIB = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
         s_Data.QuadVAO->SetIndexBuffer(squareIB);
+
+        s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData));
     }
 
     void Renderer2D::BeginScene(const glm::mat4& projection, const glm::mat4 &transform)
     {
-        m_SceneData->ViewProjectionMatrix = projection * glm::inverse(transform);
+        s_Data.CameraBuffer.ProjectionMatrix = projection;
+        s_Data.CameraBuffer.ViewMatrix = glm::inverse(transform);
+        s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
     }
 
     void Renderer2D::BeginScene(EditorCamera& camera)
     {
-        m_SceneData->ViewProjectionMatrix = camera.GetViewProjectionMatrix();
+        s_Data.CameraBuffer.ProjectionMatrix = camera.GetProjection();
+        s_Data.CameraBuffer.ViewMatrix = camera.GetViewMatrix();
+        s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
     }
 
     void Renderer2D::EndScene()
@@ -129,10 +144,9 @@ namespace Chozo {
         if (s_Data.QuadIndexCount == 0)
             return;
 
-        glm::mat4 transform = glm::mat4(1.0f);
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
         m_SceneData->Shader->Bind();
-        std::dynamic_pointer_cast<OpenGLShader>(m_SceneData->Shader)->UploadUniformMat4("u_ViewProjection", m_SceneData->ViewProjectionMatrix);
-        std::dynamic_pointer_cast<OpenGLShader>(m_SceneData->Shader)->UploadUniformMat4("u_ModelMatrix", transform);
+        std::dynamic_pointer_cast<OpenGLShader>(m_SceneData->Shader)->UploadUniformMat4("u_ModelMatrix", modelMatrix);
 
         s_Data.QuadVAO->Bind();
         RenderCommand::DrawIndexed(s_Data.QuadVAO);
@@ -157,7 +171,7 @@ namespace Chozo {
             s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
             s_Data.QuadVertexBufferPtr->Color = color;
             s_Data.QuadVertexBufferPtr->TexCoord = s_Data.QuadTexCoords[i];
-            s_Data.QuadVertexBufferPtr->ObjectID = entityID;
+            s_Data.QuadVertexBufferPtr->EntityID = entityID;
             s_Data.QuadVertexBufferPtr++;
         }
 
