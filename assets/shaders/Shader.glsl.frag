@@ -1,21 +1,19 @@
-#version 410 core
+#version 450
 
-layout(location = 0) out vec4 o_Color;
-layout(location = 1) out int o_IDBuffer;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out int EntityID;
 
-in vec4 v_Color;
-in vec2 v_TexCoord;
-// in float v_TexIndex;
-flat in int v_EntityID;
+struct VertexOutput
+{
+    vec4 Color;
+    vec2 TexCoord;
+};
 
-// uniform sampler2D u_Textures[16];
+layout(location = 0) in VertexOutput Output;
+layout(location = 3) in flat int v_EntityID;
 
 void main()
 {
-    // int index = int(v_TexIndex);
-    // o_Color = texture(u_Textures[index], v_TexCoord) * v_Color;
-    o_Color = v_Color;
-    // o_Color = vec4(v_TexCoord.xy, 1.0, 1.0);
-    // o_Color = vec4(vec3(1.0), 1.0);
-    o_IDBuffer = v_EntityID;
+    EntityID = v_EntityID;
+    FragColor = Output.Color;
 }

@@ -4,6 +4,7 @@
 bin/
 build/
 lib/
+assets/cache
 vcpkg_installed
 
 # Files

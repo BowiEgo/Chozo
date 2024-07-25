@@ -12,7 +12,7 @@ file(GLOB_RECURSE chozo_engine_vendor RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} vendo
 add_library(${PROJECT_NAME} STATIC ${chozo_engine_sources} ${chozo_engine_vendor})
 set(LIBRARY_OUTPUT_PATH ${LIB_PATH})
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_ENABLE_ASSERTS)
+target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_DEBUG)
 target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOW_WIDTH=1600 WINDOW_HEIGHT=900)
 
 if(WIN32)
@@ -47,6 +47,9 @@ find_package(imgui CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(imguizmo CONFIG REQUIRED)
+find_package(unofficial-shaderc CONFIG REQUIRED)
+find_package(spirv_cross_core CONFIG REQUIRED)
+find_package(spirv_cross_glsl CONFIG REQUIRED)
 
 find_library(COCOA_LIBRARY Cocoa)
 
@@ -62,6 +65,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     glm::glm-header-only
     yaml-cpp::yaml-cpp
     imguizmo::imguizmo
+    unofficial::shaderc::shaderc
+    spirv-cross-core
+    spirv-cross-glsl
 )
 
 # Precompiled header

@@ -32,10 +32,6 @@ namespace Chozo {
     EditorLayer::EditorLayer()
         : Layer("Example")
     {
-        std::string vertexSrc = ReadFile("../assets/shaders/Shader.glsl.vert");
-        std::string fragmentSrc = ReadFile("../assets/shaders/Shader.glsl.frag");
-
-        m_Shader = Shader::Create("VertexPosColor", vertexSrc, fragmentSrc);
     }
 
     void EditorLayer::OnAttach()
@@ -144,7 +140,6 @@ namespace Chozo {
         RenderCommand::Clear();
         m_Viewport_FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
 
-        Renderer2D::Submit(m_Shader);
         // Update scene
         m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
 

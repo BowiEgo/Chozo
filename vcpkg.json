@@ -12,6 +12,8 @@
 		},
 		"glm",
 		"yaml-cpp",
-		"imguizmo"
+		"imguizmo",
+		"shaderc",
+		"spirv-cross"
 	]
 }

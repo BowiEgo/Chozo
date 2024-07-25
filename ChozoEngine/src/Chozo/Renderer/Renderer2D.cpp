@@ -7,6 +7,30 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace Chozo {
+    
+    namespace FileSystem {
+
+        static std::string ReadFile(const std::string &filepath)
+        {
+            std::string result;
+            std::ifstream in(filepath, std::ios::in | std::ios::binary);
+            if (in)
+            {
+                in.seekg(0, std::ios::end);
+                result.resize(in.tellg());
+                in.seekg(0, std::ios::beg);
+                in.read(&result[0], result.size());
+                in.close();
+            }
+            else
+            {
+                CZ_CORE_ASSERT("Could not open file '{0}'", filepath);
+            }
+
+            return result;
+        }
+    }
+
     struct QuadVertex
     {
         glm::vec3 Position;
@@ -105,6 +129,11 @@ namespace Chozo {
         squareIB = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
         s_Data.QuadVAO->SetIndexBuffer(squareIB);
 
+        ShaderSpecification shaderSpec;
+        shaderSpec.VertexFilepath = "../assets/shaders/Shader.glsl.vert";
+        shaderSpec.FragmentFilepath = "../assets/shaders/Shader.glsl.frag";
+        s_Data.TextureShader = Shader::Create(shaderSpec);
+
         s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData));
     }
 
@@ -145,8 +174,7 @@ namespace Chozo {
             return;
 
         glm::mat4 modelMatrix = glm::mat4(1.0f);
-        m_SceneData->Shader->Bind();
-        std::dynamic_pointer_cast<OpenGLShader>(m_SceneData->Shader)->UploadUniformMat4("u_ModelMatrix", modelMatrix);
+        s_Data.TextureShader->Bind();
 
         s_Data.QuadVAO->Bind();
         RenderCommand::DrawIndexed(s_Data.QuadVAO);
