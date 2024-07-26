@@ -208,9 +208,10 @@ namespace Chozo {
         }
 
         // --------------------
-        // SceneHierarchy panel
+        // Panels
         // --------------------
         m_SceneHierarchyPanel.OnImGuiRender();
+        m_ContentBrowserPanel.OnImGuiRender();
 
         // --------------------
         // Settings panel
