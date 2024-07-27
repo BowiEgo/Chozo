@@ -3,11 +3,12 @@
 
 namespace Chozo {
 
-    static const std::filesystem::path s_AssetsPath = "../assets";
+    extern const std::filesystem::path g_AssetsPath = "../assets";
 
     std::regex imagePattern(R"(\.(png|jpg|jpeg)$)", std::regex::icase);
 
-    static void DisplayThumbnail(const Ref<Texture2D>& icon, float thumbnailSize) {
+    static void DisplayThumbnail(const Ref<Texture2D>& icon, float thumbnailSize)
+    {
         float imageAspectRatio = static_cast<float>(icon->GetHeight()) / static_cast<float>(icon->GetWidth());
         ImVec2 uv0(0.0f, 1.0f);
         ImVec2 uv1(1.0f, 0.0f);
@@ -23,11 +24,24 @@ namespace Chozo {
             uv1.x = 1.0f - offsetX;
         }
 
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
         ImGui::ImageButton((void*)(uintptr_t)icon->GetRendererID(), size, uv0, uv1);
+
+        ImGui::PopStyleColor();
+    }
+
+    void DisplayDragDrop(const std::string& relativePath)
+    {
+        if (ImGui::BeginDragDropSource())
+        {
+            const wchar_t* itemPath = (const wchar_t*)relativePath.c_str();
+            ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
+            ImGui::EndDragDropSource();
+        }    
     }
 
     ContentBrowserPanel::ContentBrowserPanel()
-        : m_CurrentDirectory(s_AssetsPath)
+        : m_CurrentDirectory(g_AssetsPath)
     {
         m_DirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder.png");
         m_EmptyDirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder-empty.png");
@@ -38,7 +52,7 @@ namespace Chozo {
     {
         ImGui::Begin("Content Browser");
 
-        if (m_CurrentDirectory != s_AssetsPath)
+        if (m_CurrentDirectory != g_AssetsPath)
         {
             if (ImGui::Button("<-"))
             {
@@ -55,11 +69,14 @@ namespace Chozo {
         columnCount = columnCount < 1 ? 1 : columnCount;
 
         ImGui::Columns(columnCount, 0, false);
+
         for (auto& p : std::filesystem::directory_iterator(m_CurrentDirectory))
         {
             const auto& path = p.path();
-            auto relativePath = std::filesystem::relative(path, s_AssetsPath);
+            auto relativePath = std::filesystem::relative(path, g_AssetsPath);
             std::string filenameString = path.filename().string();
+            
+            ImGui::PushID(filenameString.c_str());
 
             Ref<Texture2D> icon;
             Texture2DSpecification spec;
@@ -94,6 +111,8 @@ namespace Chozo {
             }
 
             DisplayThumbnail(icon, thumbnailSize);
+            DisplayDragDrop(relativePath);
+            
             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
             {
                 if (p.is_directory())
@@ -104,6 +123,7 @@ namespace Chozo {
             ImGui::TextWrapped("%s", filenameString.c_str());
             
             ImGui::NextColumn();
+            ImGui::PopID();
         }
 
         ImGui::Columns(1);

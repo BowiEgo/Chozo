@@ -31,6 +31,7 @@ namespace Chozo {
         
         void NewScene();
         void OpenScene();
+        void OpenScene(const std::filesystem::path& path);
         void SaveSceneAs();
     private:
         Ref<Framebuffer> m_Viewport_FBO, m_ID_FBO;

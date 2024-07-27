@@ -9,6 +9,8 @@
 
 namespace Chozo {
 
+    extern const std::filesystem::path g_AssetsPath;
+
     std::string ReadFile(const std::string &filepath)
     {
         std::string result;
@@ -256,6 +258,18 @@ namespace Chozo {
         m_ViewportBounds[1] = { maxBound.x, maxBound.y };
         m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
 
+        // Drag and drop
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+            {
+                const wchar_t* path = (const wchar_t*)payload->Data;
+                OpenScene(g_AssetsPath / std::filesystem::path((char*)path));
+            }
+
+            ImGui::EndDragDropTarget();
+        }
+
         // Gizmos
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity)
@@ -405,14 +419,19 @@ namespace Chozo {
     void EditorLayer::OpenScene()
     {
         std::string filepath = FileDialogs::OpenFile("Chozo Scene (*.chozo)\0*.chozo\0");
-        if (!filepath.empty())
+        OpenScene(filepath);
+    }
+
+    void EditorLayer::OpenScene(const std::filesystem::path &path)
+    {
+        if (!path.empty())
         {
             m_ActiveScene = std::make_shared<Scene>();
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
             m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
             SceneSerializer serializer(m_ActiveScene);
-            serializer.Deserialize(filepath);
+            serializer.Deserialize(path.string());
         }
     }
 

@@ -184,12 +184,37 @@ namespace Chozo {
     bool SceneSerializer::Deserialize(const std::string& filepath)
     {
         std::ifstream stream(filepath);
+        if (!stream.is_open()) {
+            CZ_CORE_ERROR("Failed to open file: %s", filepath.c_str());
+            return false;
+        }
         std::stringstream strStream;
         strStream << stream.rdbuf();
 
-        YAML::Node data = YAML::Load(strStream.str());
-        if (!data["Scene"])
+        YAML::Node data;
+        try {
+            data = YAML::Load(strStream.str());
+        } catch (const YAML::ParserException& e) {
+            CZ_CORE_ERROR("Failed to parse YAML file: %s", e.what());
             return false;
+        } catch (const YAML::BadFile& e) {
+            CZ_CORE_ERROR("Failed to load YAML file: %s", e.what());
+            return false;
+        } catch (const std::exception& e) {
+            CZ_CORE_ERROR("An error occurred while loading the YAML file: %s", e.what());
+            return false;
+        }
+
+        try {
+            if (!data["Scene"])
+            {
+                CZ_CORE_ERROR("YAML file does not contain a 'Scene' node");
+                return false;
+            }
+        } catch (const YAML::BadSubscript& e) {
+            CZ_CORE_ERROR("Failed to load YAML file: %s", e.what());
+            return false;
+        }
         
         std::string sceneName = data["Scene"].as<std::string>();
         CZ_CORE_TRACE("Deserializing scene {0}", sceneName);
