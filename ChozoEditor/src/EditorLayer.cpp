@@ -199,8 +199,8 @@ namespace Chozo {
                     NewScene();
                 if (ImGui::MenuItem("Open...", "Ctrl+O"))
                     OpenScene();
-                if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
-                    SaveSceneAs();                    
+                if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S", nullptr, m_SceneFileName != ""))
+                    SaveSceneAs();
 
                 if (ImGui::MenuItem("Quit")) Application::Get().Close();
                 ImGui::EndMenu();
@@ -414,6 +414,7 @@ namespace Chozo {
         m_ActiveScene = std::make_shared<Scene>();
         m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        m_SceneFileName = "";
     }
 
     void EditorLayer::OpenScene()
@@ -433,11 +434,13 @@ namespace Chozo {
             SceneSerializer serializer(m_ActiveScene);
             serializer.Deserialize(path.string());
         }
+
+        m_SceneFileName = path.filename();
     }
 
     void EditorLayer::SaveSceneAs()
     {
-        std::string filepath = FileDialogs::SaveFile("Chozo Scene (*.chozo)\0*.chozo\0");
+        std::string filepath = FileDialogs::SaveFile("Chozo Scene (*.chozo)\0*.chozo\0", m_SceneFileName);
         if (!filepath.empty())
         {
             SceneSerializer serializer(m_ActiveScene);

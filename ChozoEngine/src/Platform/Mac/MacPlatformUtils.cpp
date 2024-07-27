@@ -1,7 +1,7 @@
 #include "Chozo/Utils/PlatformUtils.h"
 
 std::string OpenFileDialog();
-std::string SaveFileDialog();
+std::string SaveFileDialog(const std::string& defaultFileName);
 
 namespace Chozo {
 
@@ -10,8 +10,8 @@ namespace Chozo {
         return OpenFileDialog();
     }
 
-    std::string FileDialogs::SaveFile(const char* filter)
+    std::string FileDialogs::SaveFile(const char* filter, const std::string& defaultFileName)
     {
-        return SaveFileDialog();
+        return SaveFileDialog(defaultFileName);
     }
 }

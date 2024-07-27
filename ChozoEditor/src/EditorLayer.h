@@ -45,6 +45,7 @@ namespace Chozo {
         Ref<Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
 
         Ref<Scene> m_ActiveScene;
+        std::string m_SceneFileName;
 
         Entity m_Square_Entity;
         glm::vec3 m_SquareColor = { 1.0f, 1.0f, 1.0f };

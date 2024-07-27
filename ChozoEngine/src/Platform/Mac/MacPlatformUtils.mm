@@ -16,7 +16,7 @@ std::string OpenFileDialog() {
     return std::string();
 }
 
-std::string SaveFileDialog() {
+std::string SaveFileDialog(const std::string& defaultFileName) {
     @autoreleasepool {
         NSSavePanel* savePanel = [NSSavePanel savePanel];
         savePanel.title = @"Save your file";
@@ -25,6 +25,10 @@ std::string SaveFileDialog() {
 
         NSArray<UTType*>* contentTypes = @[];
         savePanel.allowedContentTypes = contentTypes; // Specify allowed file types
+
+        if (!defaultFileName.empty()) {
+            savePanel.nameFieldStringValue = [NSString stringWithUTF8String:defaultFileName.c_str()];
+        }
 
         if ([savePanel runModal] == NSModalResponseOK) {
             NSURL* result = [savePanel URL];
