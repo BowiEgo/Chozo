@@ -30,7 +30,21 @@ namespace Chozo {
         ImGui::PopStyleColor();
     }
 
-    void DisplayDragDrop(const std::string& relativePath)
+    static void DisplayCenteredText(const std::string& text)
+    {
+        float columnWidth = ImGui::GetContentRegionAvail().x;
+        ImVec2 textSize = ImGui::CalcTextSize(text.c_str(), nullptr, false, columnWidth);
+        float textX = (columnWidth - textSize.x) / 2.0f;
+
+        if (textSize.x > columnWidth) {
+            textX = 0;
+        }
+
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textX);
+        ImGui::TextWrapped("%s", text.c_str());
+    }
+
+    static void DisplayDragDrop(const std::string& relativePath)
     {
         if (ImGui::BeginDragDropSource())
         {
@@ -112,7 +126,6 @@ namespace Chozo {
 
             DisplayThumbnail(icon, thumbnailSize);
             DisplayDragDrop(relativePath);
-            
             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
             {
                 if (p.is_directory())
@@ -120,7 +133,7 @@ namespace Chozo {
                     m_CurrentDirectory /= path.filename();
                 }
             }
-            ImGui::TextWrapped("%s", filenameString.c_str());
+            DisplayCenteredText(filenameString);
             
             ImGui::NextColumn();
             ImGui::PopID();
