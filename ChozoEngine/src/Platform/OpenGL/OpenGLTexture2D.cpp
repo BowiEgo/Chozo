@@ -5,8 +5,22 @@
 
 namespace Chozo
 {
+
+    static GLenum GetGLParameter(const Texture2DParameter& param)
+    {
+        switch (param)
+        {
+            case Texture2DParameter::LINEAR: return GL_LINEAR;
+            case Texture2DParameter::NEAREST: return GL_NEAREST;
+            case Texture2DParameter::REPEAT: return GL_REPEAT;
+            case Texture2DParameter::MIRRORED_REPEAT: return GL_MIRRORED_REPEAT;
+            case Texture2DParameter::CLAMP_TO_EDGE: return GL_CLAMP_TO_EDGE;
+            case Texture2DParameter::CLAMP_TO_BORDER: return GL_CLAMP_TO_BORDER;
+            default: return GL_NONE;
+        }
+    }
     
-    Chozo::OpenGLTexture2D::OpenGLTexture2D(const std::string &path)
+    Chozo::OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const Texture2DSpecification& spec)
         : m_Path(path)
     {
         int width, height, channels;
@@ -33,10 +47,10 @@ namespace Chozo
         glGenTextures(1, &m_RendererID);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetGLParameter(spec.minFilter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetGLParameter(spec.magFilter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetGLParameter(spec.wrapS));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetGLParameter(spec.wrapT));
 
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
         glBindTexture(GL_TEXTURE_2D, 0);

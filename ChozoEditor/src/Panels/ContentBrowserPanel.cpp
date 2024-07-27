@@ -1,12 +1,37 @@
 #include "ContentBrowserPanel.h"
+#include <regex>
 
 namespace Chozo {
 
     static const std::filesystem::path s_AssetsPath = "../assets";
 
+    std::regex imagePattern(R"(\.(png|jpg|jpeg)$)", std::regex::icase);
+
+    static void DisplayThumbnail(const Ref<Texture2D>& icon, float thumbnailSize) {
+        float imageAspectRatio = static_cast<float>(icon->GetHeight()) / static_cast<float>(icon->GetWidth());
+        ImVec2 uv0(0.0f, 1.0f);
+        ImVec2 uv1(1.0f, 0.0f);
+        ImVec2 size(thumbnailSize, thumbnailSize);
+
+        if (imageAspectRatio <= 1.0f) {
+            float offsetY = (1.0f - 1.0f / imageAspectRatio) / 2.0f;
+            uv0.y = 1.0f - offsetY;
+            uv1.y = offsetY;
+        } else {
+            float offsetX = (1.0f - imageAspectRatio) / 2.0f;
+            uv0.x = offsetX;
+            uv1.x = 1.0f - offsetX;
+        }
+
+        ImGui::ImageButton((void*)(uintptr_t)icon->GetRendererID(), size, uv0, uv1);
+    }
+
     ContentBrowserPanel::ContentBrowserPanel()
         : m_CurrentDirectory(s_AssetsPath)
     {
+        m_DirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder.png");
+        m_EmptyDirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder-empty.png");
+        m_TextFileIcon = Texture2D::Create("../resources/icons/ContentBrowser/file.png");
     }
 
     void ContentBrowserPanel::OnImGuiRender()
@@ -21,25 +46,71 @@ namespace Chozo {
             }
         }
 
+        static float padding = 16.0f;
+        static float thumbnailSize = 100;
+        float cellSize = thumbnailSize + padding;
+
+        float panelWidth = ImGui::GetContentRegionAvail().x;
+        int columnCount = (int)(panelWidth / cellSize);
+        columnCount = columnCount < 1 ? 1 : columnCount;
+
+        ImGui::Columns(columnCount, 0, false);
         for (auto& p : std::filesystem::directory_iterator(m_CurrentDirectory))
         {
             const auto& path = p.path();
             auto relativePath = std::filesystem::relative(path, s_AssetsPath);
             std::string filenameString = path.filename().string();
+
+            Ref<Texture2D> icon;
+            Texture2DSpecification spec;
+            spec.wrapS = Texture2DParameter::CLAMP_TO_BORDER;
+            spec.wrapT = Texture2DParameter::CLAMP_TO_BORDER;
+
             if (p.is_directory())
             {
-                if (ImGui::Button(filenameString.c_str()))
+                icon = std::filesystem::is_empty(path) ? m_EmptyDirectoryIcon : m_DirectoryIcon;
+            }
+            else
+            {
+                std::string fileExtension = path.extension().string();
+                if (std::regex_match(fileExtension, imagePattern))
+                {
+                    auto it = m_TextureCaches.find(path.string());
+                    if (it != m_TextureCaches.end())
+                    {
+                        icon = it->second;
+                    }
+                    else
+                    {
+                        Ref<Texture2D> texture = Texture2D::Create(path.string(), spec);
+                        m_TextureCaches[filenameString] = texture;
+                        icon = texture;
+                    }
+                }
+                else
+                {
+                    icon = m_TextFileIcon;
+                }
+            }
+
+            DisplayThumbnail(icon, thumbnailSize);
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+            {
+                if (p.is_directory())
                 {
                     m_CurrentDirectory /= path.filename();
                 }
             }
-            else
-            {
-                if (ImGui::Button(filenameString.c_str()))
-                {
-                }
-            }
+            ImGui::TextWrapped("%s", filenameString.c_str());
+            
+            ImGui::NextColumn();
         }
+
+        ImGui::Columns(1);
+
+        // Status bar
+        ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 64.0f, 256.0f);
+        ImGui::SliderFloat("Padding", &padding, 0.0f, 32.0f);
 
         ImGui::End();
     }

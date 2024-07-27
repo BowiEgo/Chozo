@@ -8,7 +8,7 @@ namespace Chozo {
     class OpenGLTexture2D : public Texture2D
     {
     public:
-        OpenGLTexture2D(const std::string& path);
+        OpenGLTexture2D(const std::string& path, const Texture2DSpecification& spec);
         virtual ~OpenGLTexture2D();
 
         virtual uint32_t GetWidth() const override { return m_Width; };

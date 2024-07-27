@@ -12,5 +12,7 @@ namespace Chozo {
         void OnImGuiRender();
     private:
         std::filesystem::path m_CurrentDirectory;
+        Ref<Texture2D> m_DirectoryIcon, m_EmptyDirectoryIcon, m_TextFileIcon;
+        std::unordered_map<std::string, Ref<Texture2D>> m_TextureCaches;
     };
 }
