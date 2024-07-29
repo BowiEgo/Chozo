@@ -19,7 +19,6 @@ public:
 private:
     Chozo::Ref<Chozo::Framebuffer> m_Viewport_FBO;
 
-    Chozo::ShaderLibrary m_ShaderLibrary;
     Chozo::Ref<Chozo::Shader> m_Shader;
     Chozo::Ref<Chozo::VertexArray> m_TriangleVA;
 

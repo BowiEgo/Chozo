@@ -12,6 +12,11 @@ namespace Chozo {
             s_RendererAPI->Init();
         }
 
+        inline static int GetMaxTextureSlots()
+        {
+            return s_RendererAPI->GetMaxTextureSlots();
+        }
+
         inline static void SetClearColor(const glm::vec4& color)
         {
             s_RendererAPI->SetClearColor(color);

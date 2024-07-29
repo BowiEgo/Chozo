@@ -9,6 +9,13 @@ namespace Chozo {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
+    int OpenGLRendererAPI::GetMaxTextureSlots()
+    {
+        int maxTextureImageUnits;
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
+        return maxTextureImageUnits;
+    }
+
     void Chozo::OpenGLRendererAPI::SetClearColor(const glm::vec4& color)
     {
         glClearColor(color.r, color.g, color.b, color.b);

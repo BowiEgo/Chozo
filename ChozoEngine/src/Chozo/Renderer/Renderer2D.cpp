@@ -46,7 +46,7 @@ namespace Chozo {
         static const uint32_t MaxQuads = 20000;
         static const uint32_t MaxVertexs = MaxQuads * 4;
         static const uint32_t MaxIndices = MaxQuads * 6;
-        static const uint32_t MaxTextureSlots = 32;
+        int MaxTextureSlots = 0;
 
         Ref<VertexArray> QuadVAO;
         Ref<VertexBuffer> QuadVBO;
@@ -57,7 +57,7 @@ namespace Chozo {
         QuadVertex* QuadVertexBufferBase = nullptr;
         QuadVertex* QuadVertexBufferPtr = nullptr;
 
-        std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
+        std::vector<Ref<Texture2D>> TextureSlots;
         uint32_t TextureSlotIndex = 1; // 0 = white texture
 
         glm::vec4 QuadVertexPositions[4] = {
@@ -135,6 +135,9 @@ namespace Chozo {
         squareIB = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
         s_Data.QuadVAO->SetIndexBuffer(squareIB);
 
+        // Textures
+        s_Data.MaxTextureSlots = RenderCommand::GetMaxTextureSlots();
+        s_Data.TextureSlots.resize(s_Data.MaxTextureSlots);
         s_Data.WhiteTexture = Texture2D::Create();
         uint32_t whiteTextureData = 0xffffffff;
         s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));

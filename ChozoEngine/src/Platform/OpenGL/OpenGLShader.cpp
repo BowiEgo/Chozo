@@ -10,6 +10,7 @@
 #include <spirv_cross/spirv_glsl.hpp>
 
 #include "Chozo/Core/Timer.h"
+#include "Chozo/Renderer/RenderCommand.h"
 
 namespace Chozo {
 
@@ -86,22 +87,6 @@ namespace Chozo {
         }
     }
 
-    OpenGLShader::OpenGLShader(const std::string& filepath)
-    {
-        Utils::CreateCacheDirectoryIfNeeded();
-
-        std::string source = ReadFile(filepath);
-        auto shaderSources = PreProcess(source);
-        Compile(shaderSources);
-
-        // Extract name from filepath
-        auto lastSlash = filepath.find_last_of("/\\");
-        lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
-        auto lastDot = filepath.rfind('.');
-        auto count = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
-        m_Name = filepath.substr(lastSlash, count);
-    }
-
     OpenGLShader::OpenGLShader(const ShaderSpecification &spec)
     {
         Utils::CreateCacheDirectoryIfNeeded();
@@ -109,6 +94,7 @@ namespace Chozo {
         std::unordered_map<GLenum, std::string> shaderSources;
         std::string vertexSrc = ReadFile(spec.VertexFilepath);
         std::string fragmentSrc = ReadFile(spec.FragmentFilepath);
+        fragmentSrc = PreProcess(fragmentSrc);
         shaderSources[GL_VERTEX_SHADER] = vertexSrc;
         shaderSources[GL_FRAGMENT_SHADER] = fragmentSrc;
         // Compile(shaderSources);
@@ -167,27 +153,41 @@ namespace Chozo {
         return result;
     }
 
-    std::unordered_map<GLenum, std::string> OpenGLShader::PreProcess(const std::string &source)
+    std::string OpenGLShader::PreProcess(const std::string &source)
     {
-        std::unordered_map<GLenum, std::string> shaderSources;
-        
-        const char* typeToken = "#type";
-        size_t typeTokenLength = strlen(typeToken);
-        size_t pos = source.find(typeToken, 0);
+        std::string modifiedSource = source;
+        const std::string defineToken = "#define";
+        const std::string typeToken = "MAX_TEXTURE_SLOTS";
+        const std::string caseToken = "// case";
+        const int maxTextureSlots = RenderCommand::GetMaxTextureSlots();
+
+        size_t pos = modifiedSource.find(defineToken, 0);
         while (pos != std::string::npos)
         {
-            size_t eol = source.find_first_of("\r\n", pos);
-            CZ_CORE_ASSERT(eol != std::string::npos, "Syntax error");
-            size_t begin = pos + typeTokenLength + 1;
-            std::string type = source.substr(begin, eol - begin);
-            CZ_CORE_ASSERT(type == "vertex" || type == "fragment" || type == "pixel", "Invalid shader type specified");
-
-            size_t nextLinePos = source.find_first_not_of("\r\n", eol);
-            pos = source.find(typeToken, nextLinePos);
-            shaderSources[Utils::ShaderTypeFromString(type)] = source.substr(nextLinePos,pos - (nextLinePos == std::string::npos ? source.size() - 1 : nextLinePos));
+            size_t eol = modifiedSource.find_first_of("\r\n", pos);
+            modifiedSource.replace(pos, eol - pos, "");
+            pos = modifiedSource.find(defineToken, 0);
+        }
+        
+        pos = modifiedSource.find(typeToken, 0);
+        while (pos != std::string::npos)
+        {
+            modifiedSource.replace(pos, typeToken.length(), std::to_string(maxTextureSlots));
+            CZ_CORE_WARN("{0}", modifiedSource);
+            pos = modifiedSource.find(typeToken, pos + std::to_string(maxTextureSlots).length());
         }
 
-        return shaderSources;
+        pos = modifiedSource.find(caseToken, 0);
+        int index = 0;
+        while (pos != std::string::npos && index < maxTextureSlots)
+        {
+            modifiedSource.replace(pos, caseToken.length(), "case");
+            pos = modifiedSource.find(caseToken, pos);
+            index++;
+        }
+        CZ_CORE_WARN("{0}", modifiedSource);
+
+        return modifiedSource;
     }
 
     void OpenGLShader::Compile(const std::unordered_map<GLenum, std::string> &shaderSources)

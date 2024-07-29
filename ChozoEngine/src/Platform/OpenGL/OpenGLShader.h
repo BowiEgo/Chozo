@@ -9,7 +9,6 @@ namespace Chozo {
     class OpenGLShader : public Shader
     {
     public:
-        OpenGLShader(const std::string& filepath);
         OpenGLShader(const ShaderSpecification& spec);
         OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
         virtual ~OpenGLShader();
@@ -32,7 +31,7 @@ namespace Chozo {
     private:
         int GetUniformLoaction(const std::string& name) const;
         std::string ReadFile(const std::string& filepath);
-        std::unordered_map<GLenum, std::string> PreProcess(const std::string& source);
+        std::string PreProcess(const std::string& source);
         void Compile(const std::unordered_map<GLenum, std::string>& shaderSources);
         void CompileOrGetVulkanBinaries(const std::unordered_map<GLenum, std::string>& shaderSources);
         void ConvertVulkanBinariesToOpenGL();

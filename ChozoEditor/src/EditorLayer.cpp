@@ -268,7 +268,7 @@ namespace Chozo {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
             {
                 const wchar_t* path = (const wchar_t*)payload->Data;
-                CZ_INFO("{0}", (char*)path);
+                CZ_INFO("Drop target: {0}", (char*)path);
                 std::filesystem::path filePath = std::filesystem::path((char*)path);
                 std::string fileExtension = filePath.extension().string();
                 if (std::regex_match(fileExtension, imagePattern))

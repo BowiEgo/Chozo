@@ -40,7 +40,6 @@ namespace Chozo {
         
         bool m_ViewportFocused, m_ViewportHovered;
 
-        ShaderLibrary m_ShaderLibrary;
         Ref<Shader> m_Shader;
         Ref<Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
 
