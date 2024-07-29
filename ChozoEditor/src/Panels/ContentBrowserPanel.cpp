@@ -1,11 +1,39 @@
 #include "ContentBrowserPanel.h"
 #include <regex>
+#include <imgui_internal.h>
 
 namespace Chozo {
 
     extern const std::filesystem::path g_AssetsPath = "../assets";
 
-    std::regex imagePattern(R"(\.(png|jpg|jpeg)$)", std::regex::icase);
+    extern const std::regex imagePattern(R"(\.(png|jpg|jpeg)$)", std::regex::icase);
+    extern const std::regex scenePattern(R"(\.(chozo)$)", std::regex::icase);
+
+    static ImRect GetItemRect()
+	{
+		return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+	}
+
+	static ImRect RectExpanded(const ImRect& rect, float x, float y)
+	{
+		ImRect result = rect;
+		result.Min.x -= x;
+		result.Min.y -= y;
+		result.Max.x += x;
+		result.Max.y += y;
+		return result;
+	}
+
+    static void DrawButtonImage(const Ref<Texture2D>& image, ImU32 tint, ImVec2 rectMin, ImVec2 rectMax, ImVec2 uv0, ImVec2 uv1)
+	{
+		auto* drawList = ImGui::GetWindowDrawList();
+        drawList->AddImage((void*)(uintptr_t)image->GetRendererID(), rectMin, rectMax, uv0, uv1, tint);
+	};
+
+    static void DrawButtonImage(const Ref<Texture2D>& image, ImU32 tint, ImRect rectangle, ImVec2 uv0, ImVec2 uv1)
+	{
+		DrawButtonImage(image, tint, rectangle.Min, rectangle.Max, uv0, uv1);
+	};
 
     static void DisplayThumbnail(const Ref<Texture2D>& icon, float thumbnailSize)
     {
@@ -25,7 +53,8 @@ namespace Chozo {
         }
 
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::ImageButton((void*)(uintptr_t)icon->GetRendererID(), size, uv0, uv1);
+        ImGui::InvisibleButton("##thumbnailButton", size);
+        DrawButtonImage(icon, IM_COL32(255, 255, 255, 225), RectExpanded(GetItemRect(), -6.0f, -6.0f), uv0, uv1);
 
         ImGui::PopStyleColor();
     }
@@ -60,6 +89,7 @@ namespace Chozo {
         m_DirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder.png");
         m_EmptyDirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder-empty.png");
         m_TextFileIcon = Texture2D::Create("../resources/icons/ContentBrowser/file.png");
+        m_ImgFileIcon = Texture2D::Create("../assets/test/WechatIMG791.jpeg");
     }
 
     void ContentBrowserPanel::OnImGuiRender()
@@ -106,11 +136,10 @@ namespace Chozo {
                 std::string fileExtension = path.extension().string();
                 if (std::regex_match(fileExtension, imagePattern))
                 {
-                    auto it = m_TextureCaches.find(path.string());
+
+                    auto it = m_TextureCaches.find(filenameString);
                     if (it != m_TextureCaches.end())
-                    {
                         icon = it->second;
-                    }
                     else
                     {
                         Ref<Texture2D> texture = Texture2D::Create(path.string(), spec);
@@ -119,9 +148,7 @@ namespace Chozo {
                     }
                 }
                 else
-                {
                     icon = m_TextFileIcon;
-                }
             }
 
             DisplayThumbnail(icon, thumbnailSize);

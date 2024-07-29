@@ -8,6 +8,8 @@
 #include "Shader.h"
 #include "Texture.h"
 
+#include "Chozo/Scene/Components.h"
+
 namespace Chozo {
 
     class Renderer2D
@@ -31,6 +33,8 @@ namespace Chozo {
         static void Flush();
         // Primitives
         static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, uint32_t entityID);
+        static void DrawQuad(const glm::mat4& transform, Ref<Texture2D> texture, float tilingFactor, const glm::vec4& color, uint32_t entityID);
+        static void DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, uint32_t entityID);
 
         static void Submit(const Ref<Shader>& shader);
     

@@ -4,6 +4,9 @@
 #include <imgui_internal.h>
 
 namespace Chozo {
+
+    extern const std::filesystem::path g_AssetsPath;
+
     SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene> context)
     {
         SetContext(context);
@@ -336,6 +339,22 @@ namespace Chozo {
         {
             DrawColumnValue<glm::vec4>("Color", component.Color, [&](auto& target) {
                 ImGui::ColorEdit4("##Color", glm::value_ptr(target));
+            });
+            // Texture
+            ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                {
+                    const wchar_t* path = (const wchar_t*)payload->Data;
+                    std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
+                    component.Texture = Texture2D::Create(texturePath.string());
+                }
+
+                ImGui::EndDragDropTarget();
+            }
+            DrawColumnValue<float>("Tiling Factor", component.TilingFactor, [&](auto& target) {
+                ImGui::DragFloat("##Tiling Factor", &target, 0.1f, 0.0f, 100.0f);
             });
         });
     }

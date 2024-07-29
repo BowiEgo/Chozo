@@ -437,6 +437,11 @@ namespace Chozo {
         glUniform1i(GetUniformLoaction(name), value);
     }
 
+    void OpenGLShader::UploadUniformIntArray(const std::string &name, int *values, uint32_t count)
+    {
+        glUniform1iv(GetUniformLoaction(name), count, values);
+    }
+
     void OpenGLShader::UploadUniformFloat(const std::string &name, float value)
     {
         glUniform1f(GetUniformLoaction(name), value);

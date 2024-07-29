@@ -44,7 +44,7 @@ namespace Chozo {
                 continue;
         
             const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-            Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color, (uint32_t)entity);
+            Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
         }
 
         Renderer2D::EndBatch();

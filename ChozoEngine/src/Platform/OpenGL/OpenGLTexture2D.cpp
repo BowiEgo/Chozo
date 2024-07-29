@@ -6,6 +6,26 @@
 namespace Chozo
 {
 
+    static GLenum GetGLFormat(const Texture2DFormat& format)
+    {
+        switch (format)
+        {
+            case Texture2DFormat::RED8UI: return GL_RED_INTEGER;
+            case Texture2DFormat::RG8: return GL_RG8;
+            case Texture2DFormat::RG16F: return GL_RG16F;
+            case Texture2DFormat::RG32F: return GL_RG32F;
+            case Texture2DFormat::RGB: return GL_RGB;
+            case Texture2DFormat::RGBA: return GL_RGBA;
+            case Texture2DFormat::RGBA16F: return GL_RGBA16F;
+            case Texture2DFormat::RGBA32F: return GL_RGBA32F;
+            case Texture2DFormat::B10R11G11UF: return GL_R11F_G11F_B10F;
+            case Texture2DFormat::SRGB: return GL_SRGB;
+            case Texture2DFormat::DEPTH32FSTENCIL8UINT: return GL_DEPTH32F_STENCIL8;
+            case Texture2DFormat::DEPTH24STENCIL8: return GL_DEPTH24_STENCIL8;
+            default: return GL_NONE;
+        }
+    }
+
     static GLenum GetGLParameter(const Texture2DParameter& param)
     {
         switch (param)
@@ -19,9 +39,24 @@ namespace Chozo
             default: return GL_NONE;
         }
     }
-    
-    Chozo::OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const Texture2DSpecification& spec)
-        : m_Path(path)
+
+    OpenGLTexture2D::OpenGLTexture2D(const Texture2DSpecification &spec)
+        : m_Spec(spec), m_Width(spec.width), m_Height(spec.height)
+    {
+        glGenTextures(1, &m_RendererID);
+        glBindTexture(GL_TEXTURE_2D, m_RendererID);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetGLParameter(spec.minFilter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetGLParameter(spec.magFilter));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetGLParameter(spec.wrapS));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetGLParameter(spec.wrapT));
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(spec.Format), m_Width, m_Height, 0, GetGLFormat(spec.Format), GL_UNSIGNED_BYTE, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const Texture2DSpecification &spec)
+        : m_Spec(spec), m_Path(path)
     {
         int width, height, channels;
         stbi_set_flip_vertically_on_load(1);
@@ -67,5 +102,11 @@ namespace Chozo
     {
         glActiveTexture(GL_TEXTURE0 + slot);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
+    }
+
+    void OpenGLTexture2D::SetData(const void *data, const uint32_t size)
+    {
+        Bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(m_Spec.Format), m_Width, m_Height, 0, GetGLFormat(m_Spec.Format), GL_UNSIGNED_BYTE, data);
     }
 }

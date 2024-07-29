@@ -1,6 +1,8 @@
 #include "EditorLayer.h"
 #include "CameraController.h"
 
+#include <regex>
+
 #include <glad/glad.h>
 
 #include "Chozo/Scene/SceneSerializer.h"
@@ -10,6 +12,8 @@
 namespace Chozo {
 
     extern const std::filesystem::path g_AssetsPath;
+    extern const std::regex imagePattern;
+    extern const std::regex scenePattern;
 
     std::string ReadFile(const std::string &filepath)
     {
@@ -264,7 +268,16 @@ namespace Chozo {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
             {
                 const wchar_t* path = (const wchar_t*)payload->Data;
-                OpenScene(g_AssetsPath / std::filesystem::path((char*)path));
+                CZ_INFO("{0}", (char*)path);
+                std::filesystem::path filePath = std::filesystem::path((char*)path);
+                std::string fileExtension = filePath.extension().string();
+                if (std::regex_match(fileExtension, imagePattern))
+                {
+                    std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
+                    m_Entity_Hovered.GetCompoent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
+                }
+                else
+                    OpenScene(g_AssetsPath / std::filesystem::path((char*)path));
             }
 
             ImGui::EndDragDropTarget();

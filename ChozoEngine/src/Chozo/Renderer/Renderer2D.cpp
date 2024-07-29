@@ -36,8 +36,8 @@ namespace Chozo {
         glm::vec3 Position;
         glm::vec4 Color;
         glm::vec2 TexCoord;
-        // float TexIndex;
-        // float TilingFactor;
+        float TexIndex;
+        float TilingFactor;
         int EntityID;
     };
 
@@ -58,7 +58,7 @@ namespace Chozo {
         QuadVertex* QuadVertexBufferPtr = nullptr;
 
         std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
-        uint32_t TextureSlotIndex = 1;
+        uint32_t TextureSlotIndex = 1; // 0 = white texture
 
         glm::vec4 QuadVertexPositions[4] = {
             { -0.5f, -0.5f, 0.0f, 1.0f },
@@ -110,7 +110,13 @@ namespace Chozo {
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (const void*)offsetof(QuadVertex, TexCoord));
 
         glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 1, GL_INT, GL_FALSE, sizeof(QuadVertex), (const void*)offsetof(QuadVertex, EntityID));
+        glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (const void*)offsetof(QuadVertex, TexIndex));
+
+        glEnableVertexAttribArray(4);
+        glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (const void*)offsetof(QuadVertex, TilingFactor));
+
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 1, GL_INT, GL_FALSE, sizeof(QuadVertex), (const void*)offsetof(QuadVertex, EntityID));
 
         uint32_t indices[s_Data.MaxIndices];
         uint32_t offset = 0;
@@ -129,11 +135,26 @@ namespace Chozo {
         squareIB = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
         s_Data.QuadVAO->SetIndexBuffer(squareIB);
 
+        s_Data.WhiteTexture = Texture2D::Create();
+        uint32_t whiteTextureData = 0xffffffff;
+        s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
+
+        int32_t samplers[s_Data.MaxTextureSlots];
+        for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
+        {
+            samplers[i] = i;
+            s_Data.TextureSlots[i] = s_Data.WhiteTexture;
+        }
+
+        // Shader
         ShaderSpecification shaderSpec;
         shaderSpec.VertexFilepath = "../assets/shaders/Shader.glsl.vert";
         shaderSpec.FragmentFilepath = "../assets/shaders/Shader.glsl.frag";
         s_Data.TextureShader = Shader::Create(shaderSpec);
+        s_Data.TextureShader->Bind();
+        s_Data.TextureShader->UploadUniformIntArray("u_Textures", samplers, s_Data.MaxTextureSlots);
 
+        // Uniform buffer
         s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData));
     }
 
@@ -173,6 +194,9 @@ namespace Chozo {
         if (s_Data.QuadIndexCount == 0)
             return;
 
+        for (uint32_t i = 0; i < s_Data.TextureSlots.size(); i++)
+            s_Data.TextureSlots[i]->Bind(i);
+
         glm::mat4 modelMatrix = glm::mat4(1.0f);
         s_Data.TextureShader->Bind();
 
@@ -199,12 +223,65 @@ namespace Chozo {
             s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
             s_Data.QuadVertexBufferPtr->Color = color;
             s_Data.QuadVertexBufferPtr->TexCoord = s_Data.QuadTexCoords[i];
+            s_Data.QuadVertexBufferPtr->TexIndex = 0;
+            s_Data.QuadVertexBufferPtr->TilingFactor = 0;
             s_Data.QuadVertexBufferPtr->EntityID = entityID;
             s_Data.QuadVertexBufferPtr++;
         }
 
         s_Data.QuadIndexCount += 6;
         s_Data.Stats.QuadCount++;
+    }
+
+    void Renderer2D::DrawQuad(const glm::mat4 &transform, Ref<Texture2D> texture, float tilingFactor, const glm::vec4 &color, uint32_t entityID)
+    {
+        uint32_t textureIndex = 0;
+
+        for (uint32_t i = 0; i < s_Data.TextureSlots.size(); i++)
+        {
+            if (s_Data.TextureSlots[i] == texture)
+            {
+                textureIndex = i;
+                break;
+            }
+        }
+
+        if (textureIndex == 0)
+        {
+            textureIndex = s_Data.TextureSlotIndex;
+            s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+            s_Data.TextureSlotIndex++;
+        }
+
+        if (s_Data.QuadIndexCount >= s_Data.MaxIndices)
+        {
+            EndBatch();
+            Flush();
+            BeginBatch();
+        }
+
+        constexpr size_t quadVertexCount = 4;
+        for (size_t i = 0; i < quadVertexCount; i++)
+        {
+            s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
+            s_Data.QuadVertexBufferPtr->Color = color;
+            s_Data.QuadVertexBufferPtr->TexCoord = s_Data.QuadTexCoords[i];
+            s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
+            s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+            s_Data.QuadVertexBufferPtr->EntityID = entityID;
+            s_Data.QuadVertexBufferPtr++;
+        }
+
+        s_Data.QuadIndexCount += 6;
+        s_Data.Stats.QuadCount++;
+    }
+
+    void Renderer2D::DrawSprite(const glm::mat4 &transform, SpriteRendererComponent &src, uint32_t entityID)
+    {
+        if (src.Texture)
+            DrawQuad(transform, src.Texture, src.TilingFactor, src.Color, entityID);
+        else
+            DrawQuad(transform, src.Color, entityID);
     }
 
     void Renderer2D::Submit(const Ref<Shader> &shader)
