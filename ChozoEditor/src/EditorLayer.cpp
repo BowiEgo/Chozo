@@ -273,8 +273,11 @@ namespace Chozo {
                 std::string fileExtension = filePath.extension().string();
                 if (std::regex_match(fileExtension, imagePattern))
                 {
-                    std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
-                    m_Entity_Hovered.GetCompoent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
+                    if (m_Entity_Hovered)
+                    {
+                        std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
+                        m_Entity_Hovered.GetCompoent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
+                    }
                 }
                 else
                     OpenScene(g_AssetsPath / std::filesystem::path((char*)path));
