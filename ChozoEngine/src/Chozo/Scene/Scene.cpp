@@ -2,6 +2,7 @@
 
 #include "Entity.h"
 #include "Components.h"
+#include "ScriptableEntity.h"
 #include "Chozo/Renderer/Renderer2D.h"
 
 #include <glad/glad.h>
@@ -16,11 +17,17 @@ namespace Chozo {
     {
     }
 
-    Entity Scene::CreateEntity(const std::string &name)
+    Entity Scene::CreateEntity(const std::string& name)
+    {
+        return CreateEntityWithUUID(UUID(), name);
+    }
+
+    Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
     {
         Entity entity = { m_Registry.create(), this };
-        entity.AddCompoent<TransformComponent>();
-        auto& tag  = entity.AddCompoent<TagComponent>();
+        entity.AddComponent<IDComponent>(uuid);
+        entity.AddComponent<TransformComponent>();
+        auto& tag  = entity.AddComponent<TagComponent>();
 
         tag.Tag = name.empty() ? "Entity" : name;
 
@@ -166,6 +173,11 @@ namespace Chozo {
     void Scene::OnComponentAdded(Entity entity, T& component)
     {
         static_assert(always_false<T>::value, "Component type not supported");
+    }
+
+    template<>
+    void Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
+    {
     }
 
     template<>

@@ -53,7 +53,7 @@ namespace Chozo {
     {
         bool entityDeleted = false;
 
-        auto& tag = entity.GetCompoent<TagComponent>().Tag;
+        auto& tag = entity.GetComponent<TagComponent>().Tag;
 
         ImGuiTreeNodeFlags flags = (m_SelectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0)
             | ImGuiTreeNodeFlags_OpenOnArrow;
@@ -174,7 +174,7 @@ namespace Chozo {
             | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_FramePadding;
         if (entity.HasComponent<T>())
         {
-            auto& component = entity.GetCompoent<T>();
+            auto& component = entity.GetComponent<T>();
             ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
             float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
@@ -203,7 +203,7 @@ namespace Chozo {
             }
 
             if (removeComponent)
-                entity.RemoveCompoent<T>();
+                entity.RemoveComponent<T>();
         }
     }
 
@@ -211,7 +211,7 @@ namespace Chozo {
     {
         if (entity.HasComponent<TagComponent>())
         {
-            auto& tag = entity.GetCompoent<TagComponent>().Tag;
+            auto& tag = entity.GetComponent<TagComponent>().Tag;
 
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
@@ -233,14 +233,14 @@ namespace Chozo {
             if (ImGui::MenuItem("Camera"))
             {
                 if (!m_SelectionContext.HasComponent<CameraComponent>())
-                    m_SelectionContext.AddCompoent<CameraComponent>();
+                    m_SelectionContext.AddComponent<CameraComponent>();
                 ImGui::CloseCurrentPopup();
             }
 
             if (ImGui::MenuItem("Sprite Renderer"))
             {
                 if (!m_SelectionContext.HasComponent<SpriteRendererComponent>())
-                    m_SelectionContext.AddCompoent<SpriteRendererComponent>(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                    m_SelectionContext.AddComponent<SpriteRendererComponent>(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
                 ImGui::CloseCurrentPopup();
             }
 

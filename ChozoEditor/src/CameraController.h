@@ -1,5 +1,7 @@
 #include "Chozo.h"
 
+#include "Chozo/Scene/ScriptableEntity.h"
+
 namespace Chozo {
 
     class CameraController : public ScriptableEntity
@@ -7,7 +9,7 @@ namespace Chozo {
     public:
         void OnCreate()
         {
-            // auto& translation = GetCompoent<TransformComponent>().Translation;
+            // auto& translation = GetComponent<TransformComponent>().Translation;
             // translation.x = rand() % 10 - 5.0f;
         }
 
@@ -18,10 +20,10 @@ namespace Chozo {
 
         void OnUpdate(Timestep ts)
         {
-            auto& camera = GetCompoent<CameraComponent>();
+            auto& camera = GetComponent<CameraComponent>();
             if (!camera.Primary || !m_IsActive) return;
 
-            auto& translation = GetCompoent<TransformComponent>().Translation;
+            auto& translation = GetComponent<TransformComponent>().Translation;
 
             if (Input::IsKeyPressed(CZ_KEY_A))
                 translation.x -= m_CameraMoveSpeed * ts;

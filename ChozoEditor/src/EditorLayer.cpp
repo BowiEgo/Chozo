@@ -67,13 +67,13 @@ namespace Chozo {
         // --------------------
         m_Camera_A = m_ActiveScene->CreateEntity("Camera A");
         m_Camera_A.AddCompoent<CameraComponent>();
-        m_Camera_A.GetCompoent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
-        m_Camera_A.GetCompoent<TransformComponent>().Translation.z = 6.0f;
+        m_Camera_A.GetComponent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
+        m_Camera_A.GetComponent<TransformComponent>().Translation.z = 6.0f;
         m_Camera_B = m_ActiveScene->CreateEntity("Camera B");
         m_Camera_B.AddCompoent<CameraComponent>();
-        m_Camera_B.GetCompoent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
-        m_Camera_B.GetCompoent<CameraComponent>().Camera.SetProjectionType(SceneCamera::ProjectionType::Orthographic);
-        m_Camera_B.GetCompoent<CameraComponent>().Camera.SetOrthographicFarClip(100.0f);
+        m_Camera_B.GetComponent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
+        m_Camera_B.GetComponent<CameraComponent>().Camera.SetProjectionType(SceneCamera::ProjectionType::Orthographic);
+        m_Camera_B.GetComponent<CameraComponent>().Camera.SetOrthographicFarClip(100.0f);
         // --------------------
         // Square entity
         // --------------------
@@ -82,8 +82,8 @@ namespace Chozo {
 
         auto greenSquare = m_ActiveScene->CreateEntity("Green Square");
         greenSquare.AddCompoent<SpriteRendererComponent>(glm::vec4(0.5f, 1.0f, 0.0f, 1.0f));
-        greenSquare.GetCompoent<TransformComponent>().Translation.x = 3.0f;
-        greenSquare.GetCompoent<TransformComponent>().Translation.z = -6.0f;
+        greenSquare.GetComponent<TransformComponent>().Translation.x = 3.0f;
+        greenSquare.GetComponent<TransformComponent>().Translation.z = -6.0f;
         // --------------------
         // Square grid entities
         // --------------------
@@ -95,7 +95,7 @@ namespace Chozo {
 
         //         Entity entity = m_ActiveScene->CreateEntity("Grid Square");
         //         glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.22f, 0.22f, 0.0f });
-        //         entity.GetCompoent<TransformComponent>().Transform = transform;
+        //         entity.GetComponent<TransformComponent>().Transform = transform;
         //         entity.AddCompoent<SpriteRendererComponent>(color);
         //     }
         // }
@@ -128,16 +128,16 @@ namespace Chozo {
         // Camera control
         if (m_Camera_A && m_Camera_A.HasComponent<NativeScriptComponent>())
         {
-            auto nsc_A = m_Camera_A.GetCompoent<NativeScriptComponent>();
+            auto nsc_A = m_Camera_A.GetComponent<NativeScriptComponent>();
             if (nsc_A.Instance)
-                static_cast<CameraController*>(nsc_A.Instance)->SetActive(m_ViewportFocused);
+                static_cast<CameraController*>(nsc_A.Instance.get())->SetActive(m_ViewportFocused);
         }
 
         if (m_Camera_B && m_Camera_B.HasComponent<NativeScriptComponent>())
         {
-            auto nsc_B = m_Camera_B.GetCompoent<NativeScriptComponent>();
+            auto nsc_B = m_Camera_B.GetComponent<NativeScriptComponent>();
             if (nsc_B.Instance)
-                static_cast<CameraController*>(nsc_B.Instance)->SetActive(m_ViewportFocused);
+                static_cast<CameraController*>(nsc_B.Instance.get())->SetActive(m_ViewportFocused);
         }
 
 
@@ -245,7 +245,7 @@ namespace Chozo {
 
         std::string entityName = "Null";
         if (m_Entity_Hovered)
-            entityName = m_Entity_Hovered.GetCompoent<TagComponent>().Tag;
+            entityName = m_Entity_Hovered.GetComponent<TagComponent>().Tag;
         ImGui::Text("EntityHoverd: %s", entityName.c_str());
         ImGui::Separator();
 
@@ -290,7 +290,7 @@ namespace Chozo {
                     if (m_Entity_Hovered)
                     {
                         std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
-                        m_Entity_Hovered.GetCompoent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
+                        m_Entity_Hovered.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
                     }
                 }
                 else
@@ -304,7 +304,7 @@ namespace Chozo {
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity)
         {
-            bool isExcluded = selectedEntity.HasComponent<CameraComponent>() && selectedEntity.GetCompoent<CameraComponent>().Primary;
+            bool isExcluded = selectedEntity.HasComponent<CameraComponent>() && selectedEntity.GetComponent<CameraComponent>().Primary;
             isExcluded = isExcluded && m_SceneState != SceneState::Edit;
 
             if (!isExcluded)
@@ -330,15 +330,15 @@ namespace Chozo {
                     case SceneState::Play:
                     {
                         auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
-                        const auto& camera = cameraEntity.GetCompoent<CameraComponent>().Camera;
+                        const auto& camera = cameraEntity.GetComponent<CameraComponent>().Camera;
                         cameraProjection = camera.GetProjection();
-                        cameraView = glm::inverse(cameraEntity.GetCompoent<TransformComponent>().GetTransform());
+                        cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
                         break;
                     }
                 }
 
                 // Entity transform
-                auto& tc = selectedEntity.GetCompoent<TransformComponent>();
+                auto& tc = selectedEntity.GetComponent<TransformComponent>();
                 glm::mat4 transform = tc.GetTransform();
 
                 // Snapping

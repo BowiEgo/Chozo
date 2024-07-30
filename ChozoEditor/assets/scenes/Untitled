@@ -1,6 +1,6 @@
 Scene: Untitled
 Entities:
-  - Entity: 12837192831270
+  - Entity: 13309589900214202171
     TagComponent:
       Tag: White Square
     TransformComponent:
@@ -9,7 +9,7 @@ Entities:
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
-  - Entity: 12837192831270
+  - Entity: 8062893707315469514
     TagComponent:
       Tag: Orange Square
     TransformComponent:
@@ -18,7 +18,7 @@ Entities:
       Scale: [1.52867782, 1.63082814, 11.378828]
     SpriteRendererComponent:
       Color: [1, 0, 0.347490311, 1]
-  - Entity: 12837192831270
+  - Entity: 644346355854464146
     TagComponent:
       Tag: Green Square
     TransformComponent:

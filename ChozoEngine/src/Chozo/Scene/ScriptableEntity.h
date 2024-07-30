@@ -4,15 +4,17 @@
 
 namespace Chozo {
 
+    class Entity;
+
     class ScriptableEntity
     {
     public:
         virtual ~ScriptableEntity() = default;
 
         template<typename T>
-        T& GetCompoent()
+        T& GetComponent()
         {
-            return m_Entity.GetCompoent<T>();
+            return m_Entity.GetComponent<T>();
         }
     protected:
         virtual void OnCreate() {}

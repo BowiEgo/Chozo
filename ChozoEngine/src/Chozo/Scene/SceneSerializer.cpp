@@ -84,14 +84,16 @@ namespace Chozo {
 
     static void SerializeEntity(YAML::Emitter& out, Entity entity)
     {
+        CZ_CORE_ASSERT(entity.HasComponent<IDComponent>(), "");
+
         out << YAML::BeginMap;
-        out << YAML::Key << "Entity" << YAML::Value << "12837192831270"; // TODO: Entity ID goes here
+        out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID();
 
         {
             out << YAML::Key << "TagComponent";
             out << YAML::BeginMap;
 
-            auto& tag = entity.GetCompoent<TagComponent>().Tag;
+            auto& tag = entity.GetComponent<TagComponent>().Tag;
             out << YAML::Key << "Tag" << YAML::Value << tag;
 
             out << YAML::EndMap;
@@ -102,7 +104,7 @@ namespace Chozo {
             out << YAML::Key << "TransformComponent";
             out << YAML::BeginMap;
 
-            auto& tc = entity.GetCompoent<TransformComponent>();
+            auto& tc = entity.GetComponent<TransformComponent>();
             out << YAML::Key << "Translation" << YAML::Value << tc.Translation;
             out << YAML::Key << "Rotation" << YAML::Value << tc.Rotation;
             out << YAML::Key << "Scale" << YAML::Value << tc.Scale;
@@ -115,7 +117,7 @@ namespace Chozo {
             out << YAML::Key << "CameraComponent";
             out << YAML::BeginMap;
 
-            auto& cc = entity.GetCompoent<CameraComponent>();
+            auto& cc = entity.GetComponent<CameraComponent>();
             auto& camera = cc.Camera;
 
             out << YAML::Key << "Camera" << YAML::Value;
@@ -140,7 +142,7 @@ namespace Chozo {
             out << YAML::Key << "SpriteRendererComponent";
             out << YAML::BeginMap;
 
-            auto& sp = entity.GetCompoent<SpriteRendererComponent>();
+            auto& sp = entity.GetComponent<SpriteRendererComponent>();
             out << YAML::Key << "Color" << YAML::Value << sp.Color;
 
             out << YAML::EndMap;
@@ -224,7 +226,7 @@ namespace Chozo {
         {
             for (auto entity : entities)
             {
-                uint64_t uuid = entity["Entity"].as<uint64_t>(); // TODO
+                uint64_t uuid = entity["Entity"].as<uint64_t>();
 
                 std::string name;
                 auto tagComponent = entity["TagComponent"];
@@ -233,12 +235,12 @@ namespace Chozo {
 
                 CZ_CORE_TRACE("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
-                Entity deserializedEntity = m_Scene->CreateEntity(name);
+                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid, name);
 
                 auto transformComponent = entity["TransformComponent"];
                 if (transformComponent)
                 {
-                    auto& tc = deserializedEntity.GetCompoent<TransformComponent>();
+                    auto& tc = deserializedEntity.GetComponent<TransformComponent>();
                     tc.Translation = transformComponent["Translation"].as<glm::vec3>();
                     tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
                     tc.Scale = transformComponent["Scale"].as<glm::vec3>();
@@ -247,7 +249,7 @@ namespace Chozo {
                 auto cameraComponent = entity["CameraComponent"];
                 if (cameraComponent)
                 {
-                    auto& cc = deserializedEntity.AddCompoent<CameraComponent>();
+                    auto& cc = deserializedEntity.AddComponent<CameraComponent>();
 
                     const auto& cameraProps = cameraComponent["Camera"];
                     cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
@@ -267,7 +269,7 @@ namespace Chozo {
                 auto spriteRendererComponent = entity["SpriteRendererComponent"];
                 if (spriteRendererComponent)
                 {
-                    auto& sc = deserializedEntity.AddCompoent<SpriteRendererComponent>();
+                    auto& sc = deserializedEntity.AddComponent<SpriteRendererComponent>();
                     sc.Color = spriteRendererComponent["Color"].as<glm::vec4>();
                 }
             }

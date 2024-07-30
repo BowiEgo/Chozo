@@ -1,15 +1,23 @@
 #pragma once
 
+#include "Chozo/Renderer/Texture.h"
+#include "Chozo/Core/UUID.h"
+#include "SceneCamera.h"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "Chozo/Renderer/Texture.h"
-#include "SceneCamera.h"
-#include "ScriptableEntity.h"
-
 namespace Chozo {
+
+    struct IDComponent
+    {
+        UUID ID;
+
+        IDComponent() = default;
+        IDComponent(const IDComponent&) = default;
+    };
 
     struct TagComponent
     {
@@ -64,19 +72,19 @@ namespace Chozo {
         CameraComponent(const CameraComponent&) = default;
     };
 
+    class ScriptableEntity;
     struct NativeScriptComponent
     {
-        ScriptableEntity* Instance = nullptr;
+        Ref<ScriptableEntity> Instance;
 
-        ScriptableEntity*(*InstantiateScript)();
+        Ref<ScriptableEntity>(*InstantiateScript)();
         void (*DestroyScript)(NativeScriptComponent*);
 
         template<typename T>
-        ScriptableEntity* Bind()
+        void Bind()
         {
             InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
-            DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
-            return Instance;
+            DestroyScript = [](NativeScriptComponent* nsc) { nsc->Instance.reset(); };
         }
     };
 }
