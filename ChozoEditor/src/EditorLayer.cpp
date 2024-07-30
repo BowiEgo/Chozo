@@ -44,6 +44,8 @@ namespace Chozo {
     {
         m_CheckerboardTexture = Texture2D::Create("../assets/textures/checkerboard.png");
         m_OpenGLLogoTexture = Texture2D::Create("../assets/textures/OpenGL_Logo.png");
+        m_IconPlay = Texture2D::Create("../resources/icons/Toolbar/play.png");
+        m_IconStop = Texture2D::Create("../resources/icons/Toolbar/stop.png");
         // --------------------
         // Viewport
         // --------------------
@@ -138,7 +140,6 @@ namespace Chozo {
                 static_cast<CameraController*>(nsc_B.Instance)->SetActive(m_ViewportFocused);
         }
 
-        m_EditorCamera.OnUpdate(ts);
 
         m_Viewport_FBO->Bind();
         Renderer2D::ResetStats();
@@ -147,7 +148,20 @@ namespace Chozo {
         m_Viewport_FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
 
         // Update scene
-        m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+        switch (m_SceneState)
+        {
+            case SceneState::Edit:
+            {
+                m_EditorCamera.OnUpdate(ts);
+                m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+                break;
+            }
+            case SceneState::Play:
+            {
+                m_ActiveScene->OnUpdateRuntime(ts);
+                break;
+            }
+        }
 
         auto [mx, my] = ImGui::GetMousePos();
         mx -= m_ViewportBounds[0].x;
@@ -249,7 +263,7 @@ namespace Chozo {
         m_ViewportSize = ImGui::GetContentRegionAvail();
     
         uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID(0);
-        ImGui::Image((void*)(uintptr_t)textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Image((ImTextureID)(uintptr_t)textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
         // Viewport bounds
         auto windowSize = ImGui::GetWindowSize();
@@ -290,51 +304,66 @@ namespace Chozo {
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity)
         {
-            ImGuizmo::SetOrthographic(false);
-            ImGuizmo::SetDrawlist();
+            bool isExcluded = selectedEntity.HasComponent<CameraComponent>() && selectedEntity.GetCompoent<CameraComponent>().Primary;
+            isExcluded = isExcluded && m_SceneState != SceneState::Edit;
 
-            float windowWidth = ImGui::GetWindowWidth();
-            float windowHeight = ImGui::GetWindowHeight();
-            ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
-
-            // Camera;
-
-            // Runtime camera from entity
-            // auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
-            // const auto& camera = cameraEntity.GetCompoent<CameraComponent>().Camera;
-            // const glm::mat4 cameraProjection = camera.GetProjection();
-            // const glm::mat4 cameraView = glm::inverse(cameraEntity.GetCompoent<TransformComponent>().GetTransform());
-
-            // Editor camera
-            const glm::mat4 cameraProjection = m_EditorCamera.GetProjection();
-            const glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
-
-            // Entity transform
-            auto& tc = selectedEntity.GetCompoent<TransformComponent>();
-            glm::mat4 transform = tc.GetTransform();
-
-            // Snapping
-            bool snap = Input::IsKeyPressed(CZ_KEY_LEFT_CONTROL);
-            float snapValue = 0.5f; // Snap to 0.5m for translation/scale
-            // Snap to 45 degrees for rotation
-            if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
-                snapValue = 45.0f;
-            
-            float snapValues[3] = { snapValue, snapValue, snapValue };
-
-            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                ImGuizmo::OPERATION(m_GizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform),
-                nullptr, snap ? snapValues : nullptr);
-
-            if (ImGuizmo::IsUsing())
+            if (!isExcluded)
             {
-                glm::vec3 translation, rotation, scale;
-                Math::DecomposeTransform(transform, translation, rotation, scale);
+                ImGuizmo::SetOrthographic(false);
+                ImGuizmo::SetDrawlist();
+
+                float windowWidth = ImGui::GetWindowWidth();
+                float windowHeight = ImGui::GetWindowHeight();
+                ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
+
+                // Camera;
+                glm::mat4 cameraProjection, cameraView;
+                switch (m_SceneState)
+                {
+                    case SceneState::Edit:
+                    {
+                        const auto& camera = m_EditorCamera;
+                        cameraProjection = camera.GetProjection();
+                        cameraView = camera.GetViewMatrix();
+                        break;
+                    }
+                    case SceneState::Play:
+                    {
+                        auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+                        const auto& camera = cameraEntity.GetCompoent<CameraComponent>().Camera;
+                        cameraProjection = camera.GetProjection();
+                        cameraView = glm::inverse(cameraEntity.GetCompoent<TransformComponent>().GetTransform());
+                        break;
+                    }
+                }
+
+                // Entity transform
+                auto& tc = selectedEntity.GetCompoent<TransformComponent>();
+                glm::mat4 transform = tc.GetTransform();
+
+                // Snapping
+                bool snap = Input::IsKeyPressed(CZ_KEY_LEFT_CONTROL);
+                float snapValue = 0.5f; // Snap to 0.5m for translation/scale
+                // Snap to 45 degrees for rotation
+                if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
+                    snapValue = 45.0f;
                 
-                glm::vec3 deltaRotation = rotation - tc.Rotation;
-                tc.Translation = translation;
-                tc.Rotation += deltaRotation;
-                tc.Scale = scale;
+                float snapValues[3] = { snapValue, snapValue, snapValue };
+
+                ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                    ImGuizmo::OPERATION(m_GizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform),
+                    nullptr, snap ? snapValues : nullptr);
+
+                if (ImGuizmo::IsUsing())
+                {
+                    glm::vec3 translation, rotation, scale;
+                    Math::DecomposeTransform(transform, translation, rotation, scale);
+                    
+                    glm::vec3 deltaRotation = rotation - tc.Rotation;
+                    tc.Translation = translation;
+                    tc.Rotation += deltaRotation;
+                    tc.Scale = scale;
+                }
             }
         }
 
@@ -342,13 +371,45 @@ namespace Chozo {
         ImGui::PopStyleVar();
         ImGui::End();
 
+        RenderUI_Toolbar();
+
         ImGui::End();
+    }
+
+    void EditorLayer::RenderUI_Toolbar()
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 5));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        auto& colors = ImGui::GetStyle().Colors;
+        auto& buttonHoveredColor = colors[ImGuiCol_ButtonHovered];
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHoveredColor.x, buttonHoveredColor.y, buttonHoveredColor.z, 0.5f));
+        auto& buttonActivedColor = colors[ImGuiCol_ButtonActive];
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActivedColor.x, buttonActivedColor.y, buttonActivedColor.z, 0.5f));
+
+        ImGui::Begin("Toolbar##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconPlay : m_IconStop;
+        float size = ImGui::GetWindowHeight() - 10.0f;
+        ImGui::SameLine(ImGui::GetWindowContentRegionMax().x * 0.5f - size * 0.5f);
+        if (ImGui::ImageButton((ImTextureID)(uintptr_t)icon->GetRendererID(), {size, size}, {0, 0}, {1, 1}, 0))
+        {
+            if (m_SceneState == SceneState::Edit)
+                OnScenePlay();
+            else if (m_SceneState == SceneState::Play)
+                OnSceneStop();
+        }
+        ImGui::End();
+
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(3);
     }
 
     void EditorLayer::OnEvent(Event &e)
     {
         // m_CameraController->OnEvent(e);
-        m_EditorCamera.OnEvent(e);
+        if (m_SceneState == SceneState::Edit)
+            m_EditorCamera.OnEvent(e);
+
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<KeyPressedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
         dispatcher.Dispatch<MouseButtonPressedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
@@ -462,5 +523,15 @@ namespace Chozo {
             SceneSerializer serializer(m_ActiveScene);
             serializer.Serialize(filepath);
         }
+    }
+
+    void EditorLayer::OnScenePlay()
+    {
+        m_SceneState = SceneState::Play;
+    }
+
+    void EditorLayer::OnSceneStop()
+    {
+        m_SceneState = SceneState::Edit;
     }
 }

@@ -27,7 +27,7 @@ namespace Chozo {
     static void DrawButtonImage(const Ref<Texture2D>& image, ImU32 tint, ImVec2 rectMin, ImVec2 rectMax, ImVec2 uv0, ImVec2 uv1)
 	{
 		auto* drawList = ImGui::GetWindowDrawList();
-        drawList->AddImage((void*)(uintptr_t)image->GetRendererID(), rectMin, rectMax, uv0, uv1, tint);
+        drawList->AddImage((ImTextureID)(uintptr_t)image->GetRendererID(), rectMin, rectMax, uv0, uv1, tint);
 	};
 
     static void DrawButtonImage(const Ref<Texture2D>& image, ImU32 tint, ImRect rectangle, ImVec2 uv0, ImVec2 uv1)

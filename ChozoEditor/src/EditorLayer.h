@@ -33,6 +33,11 @@ namespace Chozo {
         void OpenScene();
         void OpenScene(const std::filesystem::path& path);
         void SaveSceneAs();
+
+        void OnScenePlay();
+        void OnSceneStop();
+        // UI panels
+        void RenderUI_Toolbar();
     private:
         Ref<Framebuffer> m_Viewport_FBO, m_ID_FBO;
         ImVec2 m_ViewportSize;
@@ -64,6 +69,15 @@ namespace Chozo {
 		int m_GizmoMode = 0; // 0 = local
 
         Entity m_Entity_Hovered;
+
+        enum class SceneState
+        {
+            Edit = 0, Play
+        };
+
+        SceneState m_SceneState = SceneState::Edit;
+
+        Ref<Texture2D> m_IconPlay, m_IconStop;
     };
 }
 
