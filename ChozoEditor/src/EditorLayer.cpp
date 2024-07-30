@@ -527,7 +527,10 @@ namespace Chozo {
 
     void EditorLayer::OnScenePlay()
     {
-        m_SceneState = SceneState::Play;
+        if (m_ActiveScene->GetPrimaryCameraEntity())
+            m_SceneState = SceneState::Play;
+        else
+            CZ_WARN("No camera actived!");
     }
 
     void EditorLayer::OnSceneStop()
