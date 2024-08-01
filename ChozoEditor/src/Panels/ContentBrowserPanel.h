@@ -10,9 +10,16 @@ namespace Chozo {
         ContentBrowserPanel();
 
         void OnImGuiRender();
+		void RenderDirectoryHierarchy(std::filesystem::path directory);
+		void RenderTopBar(float height);
     private:
-        std::filesystem::path m_CurrentDirectory;
-        Ref<Texture2D> m_DirectoryIcon, m_EmptyDirectoryIcon, m_TextFileIcon, m_ImgFileIcon;
+        void OnBrowserBack();
+        void OnBrowserForward();
+        void OnBrowserRefresh();
+    private:
+        std::filesystem::path m_PreviousDirectory, m_CurrentDirectory, m_NextDirectory;
+        Ref<Texture2D> m_DirectoryIcon, m_EmptyDirectoryIcon, m_TextFileIcon, m_BackIcon, m_RefreshIcon;
+        bool m_BackIcon_Disabled, m_ForwardIcon_Disabled, m_RefreshIcon_Disabled;
         std::unordered_map<std::string, Ref<Texture2D>> m_TextureCaches;
     };
 }
