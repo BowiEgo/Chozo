@@ -91,6 +91,7 @@ namespace Chozo {
     ContentBrowserPanel::ContentBrowserPanel()
         : m_CurrentDirectory(g_AssetsPath)
     {
+        m_HierachyDirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder-open-1.png");
         m_DirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder.png");
         m_EmptyDirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder-empty.png");
         m_TextFileIcon = Texture2D::Create("../resources/icons/ContentBrowser/file.png");
@@ -98,6 +99,8 @@ namespace Chozo {
         // Toolbar
         m_BackIcon = Texture2D::Create("../resources/icons/ContentBrowser/left-arrow.png");
         m_RefreshIcon = Texture2D::Create("../resources/icons/ContentBrowser/refresh.png");
+        m_SearchIcon = Texture2D::Create("../resources/icons/ContentBrowser/search.png");
+        m_ClearIcon = Texture2D::Create("../resources/icons/ContentBrowser/clear.png");
     }
 
     void ContentBrowserPanel::OnImGuiRender()
@@ -152,6 +155,9 @@ namespace Chozo {
                     const auto& path = p.path();
                     auto relativePath = std::filesystem::relative(path, g_AssetsPath);
                     std::string filenameString = path.filename().string();
+                    // Exclude files
+                    if (filenameString == ".DS_Store")
+                        continue;
                     
                     ImGui::PushID(filenameString.c_str());
 
@@ -202,8 +208,8 @@ namespace Chozo {
                 ImGui::Columns(1);
 
                 // Status bar
-                ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 64.0f, 256.0f);
-                ImGui::SliderFloat("Padding", &padding, 0.0f, 32.0f);
+                // ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 64.0f, 256.0f);
+                // ImGui::SliderFloat("Padding", &padding, 0.0f, 32.0f);
             };
             ImGui::EndChild();
 
@@ -246,7 +252,7 @@ namespace Chozo {
 		// Tree Node
         ImGuiTreeNodeFlags flags = (directory == m_CurrentDirectory ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-        bool opened = ImGui::TreeNodeWithIcon(m_DirectoryIcon, window->GetID(id.c_str()), flags, name.c_str(), NULL);
+        bool opened = ImGui::TreeNodeWithIcon(m_HierachyDirectoryIcon, window->GetID(id.c_str()), flags, name.c_str(), NULL);
 
         if (ImGui::IsItemClicked())
         {
@@ -314,9 +320,82 @@ namespace Chozo {
 				}
             }
         }
+
+        // Search
+        {
+            UI::ShiftCursorX(10.0f);
+            // UI::ShiftCursorY(2.0f);
+
+			const float areaPosX = ImGui::GetCursorPosX();
+			const float framePaddingY = ImGui::GetStyle().FramePadding.y;
+
+			UI::ScopedStyle rounding(ImGuiStyleVar_FrameRounding, 3.0f);
+			UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(28.0f, framePaddingY));
+
+            ImGui::SetNextItemWidth(200);
+
+            ImGui::InputText("##Search", m_SearchBuffer, MAX_SEARCH_BUFFER_LENGTH);
+            bool focused = ImGui::IsItemFocused();
+			ImGui::SameLine(areaPosX + 3.0f);
+            ImGui::BeginGroup();
+            
+            // Search icon
+			const ImVec2 iconSize(ImGui::GetTextLineHeight() - 2.0f, ImGui::GetTextLineHeight() - 2.0f);
+            {
+                const float iconYOffset = framePaddingY;
+				UI::ShiftCursorY(iconYOffset);
+                ImGui::Image((ImTextureID)(uintptr_t)m_SearchIcon->GetRendererID(), iconSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
+				UI::ShiftCursorY(-iconYOffset);
+                ImGui::SameLine();
+
+                // Hint
+                if (!focused)
+                {
+                    UI::ShiftCursorY(-framePaddingY + 1.0f);
+                    UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, framePaddingY));
+                    ImGui::TextUnformatted("Search...");
+                    UI::ShiftCursorY(-1.0f);
+                    ImGui::SameLine();
+                }
+
+                // Clear icon
+                if (focused) {
+    				const float lineHeight = ImGui::GetItemRectSize().y - framePaddingY / 2.0f;
+
+                    UI::ShiftCursorX(150.0f);
+                    UI::ShiftCursorY(framePaddingY + 1.0f);
+                    if (ImGui::InvisibleButton("##ClearIcon", ImVec2{ lineHeight, lineHeight }))
+                    {
+                    }
+
+                    UI::DrawButtonImage(m_ClearIcon, IM_COL32(160, 160, 160, 200),
+                        IM_COL32(170, 170, 170, 255),
+                        IM_COL32(160, 160, 160, 150),
+                        UI::RectExpanded(UI::GetItemRect(), -2.0f, -2.0f));
+                }
+            }
+			
+            // UI::ShiftCursorY(-2.0f);
+
+            ImGui::EndGroup();
+        }
+
+        // Breadcrumbs
+        {
+            UI::ShiftCursorY(-(ImGui::GetItemRectSize().y + 6.0f));
+            UI::ShiftCursorX(300.0f);
+            ImGui::Text("%s", m_CurrentDirectory.string().c_str());
+        }
         ImGui::EndGroup();
         ImGui::SameLine();
         ImGui::EndChild();
+    }
+
+    void ContentBrowserPanel::RenderBottomBar(float height)
+    {
+		ImGui::BeginChild("##bottom_bar", ImVec2(0, height));
+        // TODO:
+		ImGui::EndChild();
     }
 
     void ContentBrowserPanel::OnBrowserBack()

@@ -115,6 +115,25 @@ namespace Chozo::UI {
 		return colRaw;
 	}
 
+	//=========================================================================================
+	/// Cursor
+
+	static void ShiftCursorX(float distance)
+	{
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + distance);
+	}
+
+	static void ShiftCursorY(float distance)
+	{
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + distance);
+	}
+
+	static void ShiftCursor(float x, float y)
+	{
+		const ImVec2 cursor = ImGui::GetCursorPos();
+		ImGui::SetCursorPos(ImVec2(cursor.x + x, cursor.y + y));
+	}
+
     //=========================================================================================
 	/// Rectangle
 
