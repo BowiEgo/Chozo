@@ -148,6 +148,19 @@ namespace Chozo {
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<CircleRendererComponent>())
+        {
+            out << YAML::Key << "CircleRendererComponent";
+            out << YAML::BeginMap;
+
+            auto& sp = entity.GetComponent<CircleRendererComponent>();
+            out << YAML::Key << "Color" << YAML::Value << sp.Color;
+            out << YAML::Key << "Thickness" << YAML::Value << sp.Thickness;
+            out << YAML::Key << "Fade" << YAML::Value << sp.Fade;
+
+            out << YAML::EndMap;
+        }
+
         out << YAML::EndMap;
     }
 
@@ -271,6 +284,15 @@ namespace Chozo {
                 {
                     auto& sc = deserializedEntity.AddComponent<SpriteRendererComponent>();
                     sc.Color = spriteRendererComponent["Color"].as<glm::vec4>();
+                }
+
+                auto circleRendererComponent = entity["CircleRendererComponent"];
+                if (circleRendererComponent)
+                {
+                    auto& sc = deserializedEntity.AddComponent<CircleRendererComponent>();
+                    sc.Color = circleRendererComponent["Color"].as<glm::vec4>();
+                    sc.Thickness = circleRendererComponent["Thickness"].as<float>();
+                    sc.Fade = circleRendererComponent["Fade"].as<float>();
                 }
             }
         }

@@ -2,8 +2,8 @@
 
 #define MAX_TEXTURE_SLOTS 32
 
-layout(location = 0) out vec4 FragColor;
-layout(location = 1) out int EntityID;
+layout(location = 0) out vec4 o_Color;
+layout(location = 1) out int o_EntityID;
 
 struct VertexOutput
 {
@@ -58,6 +58,6 @@ void main()
         // case 31: texColor *= texture(u_Textures[31], Output.TexCoord * Output.TilingFactor); break;
     }
 
-    FragColor = texColor;
-    EntityID = v_EntityID;
+    o_Color = texColor;
+    o_EntityID = v_EntityID;
 }

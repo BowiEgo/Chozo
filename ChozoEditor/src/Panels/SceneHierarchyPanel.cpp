@@ -240,7 +240,14 @@ namespace Chozo {
             if (ImGui::MenuItem("Sprite Renderer"))
             {
                 if (!m_SelectionContext.HasComponent<SpriteRendererComponent>())
-                    m_SelectionContext.AddComponent<SpriteRendererComponent>(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                    m_SelectionContext.AddComponent<SpriteRendererComponent>();
+                ImGui::CloseCurrentPopup();
+            }
+
+            if (ImGui::MenuItem("Circle Renderer"))
+            {
+                if (!m_SelectionContext.HasComponent<CircleRendererComponent>())
+                    m_SelectionContext.AddComponent<CircleRendererComponent>();
                 ImGui::CloseCurrentPopup();
             }
 
@@ -355,6 +362,19 @@ namespace Chozo {
             }
             DrawColumnValue<float>("Tiling Factor", component.TilingFactor, [&](auto& target) {
                 ImGui::DragFloat("##Tiling Factor", &target, 0.1f, 0.0f, 100.0f);
+            });
+        });
+
+        DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
+        {
+            DrawColumnValue<glm::vec4>("Color", component.Color, [&](auto& target) {
+                ImGui::ColorEdit4("##Color", glm::value_ptr(target));
+            });
+            DrawColumnValue<float>("Thickness", component.Thickness, [&](auto& target) {
+                ImGui::DragFloat("##Thickness", &target, 0.025f, 0.0f, 1.0f);
+            });
+            DrawColumnValue<float>("Fade", component.Fade, [&](auto& target) {
+                ImGui::DragFloat("##Fade", &target, 0.00025f, 0.0f, 1.0f);
             });
         });
     }

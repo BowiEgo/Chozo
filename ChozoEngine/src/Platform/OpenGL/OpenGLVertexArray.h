@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Chozo/Renderer/Buffer.h"
+#include "Chozo/Renderer/VertexBuffer.h"
+#include "Chozo/Renderer/IndexBuffer.h"
 #include "Chozo/Renderer/VertexArray.h"
 
 namespace Chozo {

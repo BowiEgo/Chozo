@@ -2,7 +2,8 @@
 
 #include "czpch.h"
 
-#include "Chozo/Renderer/Buffer.h"
+#include "Chozo/Renderer/VertexBuffer.h"
+#include "Chozo/Renderer/IndexBuffer.h"
 
 namespace Chozo {
 

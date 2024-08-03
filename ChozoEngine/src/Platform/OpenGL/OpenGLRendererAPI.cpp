@@ -28,6 +28,8 @@ namespace Chozo {
 
     void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray)
     {
-        glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+        uint32_t count = vertexArray->GetIndexBuffer()->GetCount();
+        glBindVertexArray(vertexArray->GetRendererID());
+        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
     }
 }

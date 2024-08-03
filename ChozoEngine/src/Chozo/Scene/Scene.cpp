@@ -44,17 +44,30 @@ namespace Chozo {
         Renderer2D::BeginScene(camera);
         Renderer2D::BeginBatch();
 
-        auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-        for (auto entity : group)
         {
-            if (!m_Registry.valid(entity))
-                continue;
-        
-            const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-            Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
+            auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+            for (auto entity : group)
+            {
+                if (!m_Registry.valid(entity))
+                    continue;
+            
+                const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+                Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
+            }
         }
 
-        Renderer2D::EndBatch();
+        {
+            auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
+            for (auto entity : view)
+            {
+                if (!m_Registry.valid(entity))
+                    continue;
+            
+                const auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
+                Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (uint32_t)entity);
+            }
+        }
+
         Renderer2D::EndScene();
     }
 
@@ -100,17 +113,30 @@ namespace Chozo {
                 Renderer2D::BeginScene(mainCamera->GetProjection(), cameraTransform);
                 Renderer2D::BeginBatch();
 
-                auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-                for (auto entity : group)
                 {
-                    if (!m_Registry.valid(entity))
-                        continue;
-                
-                    const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                    Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
+                    auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+                    for (auto entity : group)
+                    {
+                        if (!m_Registry.valid(entity))
+                            continue;
+                    
+                        const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+                        Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
+                    }
                 }
 
-                Renderer2D::EndBatch();
+                {
+                    auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
+                    for (auto entity : view)
+                    {
+                        if (!m_Registry.valid(entity))
+                            continue;
+                    
+                        const auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
+                        Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (uint32_t)entity);
+                    }
+                }
+
                 Renderer2D::EndScene();
             }
         }
@@ -148,7 +174,6 @@ namespace Chozo {
     //             Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color, (uint32_t)entity);
     //         }
 
-    //         Renderer2D::EndBatch();
     //         Renderer2D::EndScene();
     //     }
     //     target->Unbind();
@@ -192,6 +217,11 @@ namespace Chozo {
 
     template<>
     void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent& component)
     {
     }
 

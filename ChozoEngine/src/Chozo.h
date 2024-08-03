@@ -23,7 +23,8 @@
 
 #include "Chozo/Renderer/Shader.h"
 #include "Chozo/Renderer/Texture.h"
-#include "Chozo/Renderer/Buffer.h"
+#include "Chozo/Renderer/VertexBuffer.h"
+#include "Chozo/Renderer/IndexBuffer.h"
 #include "Chozo/Renderer/VertexArray.h"
 #include "Chozo/Renderer/Framebuffer.h"
 

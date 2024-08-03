@@ -240,6 +240,7 @@ namespace Chozo {
         ImGui::Text("Renderer stats:");
         ImGui::Text("DrawCalls: %d", Renderer2D::GetStats().DrawCalls);
         ImGui::Text("QuadCount: %d", Renderer2D::GetStats().QuadCount);
+        ImGui::Text("CircleCount: %d", Renderer2D::GetStats().CircleCount);
         ImGui::Text("Vertices: %d", Renderer2D::GetStats().GetTotalVertexCount());
         ImGui::Text("Indices: %d", Renderer2D::GetStats().GetTotalIndexCount());
 

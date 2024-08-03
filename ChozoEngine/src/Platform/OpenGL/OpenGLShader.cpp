@@ -100,7 +100,7 @@ namespace Chozo {
         // Compile(shaderSources);
 
         std::filesystem::path path(spec.VertexFilepath);
-        m_Filepath = path.parent_path();
+        m_Filepath = path;
 
         {
             Timer timer;

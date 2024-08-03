@@ -13,7 +13,7 @@ Entities:
     TagComponent:
       Tag: Left Square
     TransformComponent:
-      Translation: [-0.349999994, -2.23517418e-08, 0.349999994]
+      Translation: [-0.349999994, -1.49011612e-08, 0.349999994]
       Rotation: [0, -0.785398245, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -45,3 +45,14 @@ Entities:
       Scale: [0.999999881, 0.999999285, 0.999794364]
     SpriteRendererComponent:
       Color: [1, 0.576810122, 0.274131298, 1]
+  - Entity: 11246960968432356417
+    TagComponent:
+      Tag: Circle
+    TransformComponent:
+      Translation: [0.0114440396, -0.0519004762, 1.30993319]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CircleRendererComponent:
+      Color: [0.112401418, 0.501930475, 0.407180071, 1]
+      Thickness: 0.100000001
+      Fade: 0.00100000005
