@@ -35,8 +35,13 @@ namespace Chozo {
         static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, uint32_t entityID = -1);
         static void DrawQuad(const glm::mat4& transform, Ref<Texture2D> texture, float tilingFactor, const glm::vec4& color, uint32_t entityID = -1);
         static void DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, uint32_t entityID = -1);
-
         static void DrawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness = 1.0f, float fade = 0.001f, uint32_t entityID = -1);
+        static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color, uint32_t entityID = -1);
+        static void DrawRect(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color, uint32_t entityID = -1);
+        static void DrawRect(const glm::mat4& transform, const glm::vec4& color, uint32_t entityID = -1);
+
+        static float GetLineWidth();
+        static void SetLineWidth(float width);
 
         static void Submit(const Ref<Shader>& shader);
     
@@ -46,7 +51,7 @@ namespace Chozo {
         struct Statistics
         {
             uint32_t DrawCalls = 0;
-            uint32_t QuadCount = 0, CircleCount = 0;
+            uint32_t QuadCount = 0, CircleCount = 0, LineCount;
 
             uint32_t GetTotalVertexCount() { return QuadCount * 4; }
             uint32_t GetTotalIndexCount() { return QuadCount * 6; }

@@ -44,6 +44,7 @@ namespace Chozo {
         Renderer2D::BeginScene(camera);
         Renderer2D::BeginBatch();
 
+        // Draw sprites
         {
             auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
             for (auto entity : group)
@@ -52,10 +53,12 @@ namespace Chozo {
                     continue;
             
                 const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
+                // Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
+                Renderer2D::DrawRect(transform.GetTransform(), sprite.Color, (uint32_t)entity);
             }
         }
 
+        // Draw circles
         {
             auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
             for (auto entity : view)
@@ -113,6 +116,7 @@ namespace Chozo {
                 Renderer2D::BeginScene(mainCamera->GetProjection(), cameraTransform);
                 Renderer2D::BeginBatch();
 
+                // Draw sprites
                 {
                     auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
                     for (auto entity : group)
@@ -125,6 +129,7 @@ namespace Chozo {
                     }
                 }
 
+                // Draw circles
                 {
                     auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
                     for (auto entity : view)
