@@ -114,7 +114,7 @@ namespace Chozo {
         virtual void Bind() const = 0;
         virtual void Unbind() const = 0;
 
-        virtual void SetData(float* vertices, uint32_t size) = 0;
+        virtual void SetData(void* vertices, uint32_t size) = 0;
         virtual void ClearData() = 0;
 
         virtual const RendererID GetRendererID() const = 0;
@@ -122,6 +122,6 @@ namespace Chozo {
         virtual void SetLayout(const VertexBufferLayout& layout) = 0;
 
         static Ref<VertexBuffer> Create(uint32_t size);
-        static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
+        static Ref<VertexBuffer> Create(void* vertices, uint32_t size);
     };
 }

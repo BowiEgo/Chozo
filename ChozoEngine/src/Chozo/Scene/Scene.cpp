@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "Components.h"
 #include "ScriptableEntity.h"
+#include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
 
 #include <glad/glad.h>
@@ -41,6 +42,26 @@ namespace Chozo {
 
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
     {
+        // 3D Renderer
+        Renderer::BeginScene(camera);
+        Renderer::BeginBatch();
+
+        // Draw meshes
+        {
+            auto view = m_Registry.view<TransformComponent, MeshComponent>();
+            for (auto entity : view)
+            {
+                if (!m_Registry.valid(entity))
+                    continue;
+            
+                const auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
+                Renderer::DrawMesh(transform.GetTransform(), mesh.Mesh, (uint32_t)entity);
+            }
+        }
+
+        Renderer::EndScene();
+
+        // 2D Renderer
         Renderer2D::BeginScene(camera);
         Renderer2D::BeginBatch();
 
@@ -227,6 +248,11 @@ namespace Chozo {
 
     template<>
     void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<MeshComponent>(Entity entity, MeshComponent& component)
     {
     }
 

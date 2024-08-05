@@ -5,7 +5,7 @@
 
 namespace Chozo {
 
-    Ref<IndexBuffer> IndexBuffer::Create(uint32_t *indices, uint32_t size)
+    Ref<IndexBuffer> IndexBuffer::Create(void *indices, uint32_t size)
     {
         switch (Renderer2D::GetAPI())
         {

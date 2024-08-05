@@ -11,7 +11,7 @@ namespace Chozo {
         glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
     }
 
-    OpenGLVertexBuffer::OpenGLVertexBuffer(float* vertices, uint32_t size)
+    OpenGLVertexBuffer::OpenGLVertexBuffer(void* vertices, uint32_t size)
     {
         glGenBuffers(1, &m_RendererID);
         glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
@@ -23,7 +23,7 @@ namespace Chozo {
         glDeleteBuffers(1, &m_RendererID);
     }
 
-    void OpenGLVertexBuffer::SetData(float* vertices, uint32_t size)
+    void OpenGLVertexBuffer::SetData(void* vertices, uint32_t size)
     {
         Bind();
         glBufferSubData(GL_ARRAY_BUFFER, 0, size, vertices);

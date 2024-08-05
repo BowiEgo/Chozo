@@ -1,5 +1,7 @@
 #include "SceneHierarchyPanel.h"
 
+#include  "Chozo/Renderer/Geometry/Geometry.h"
+
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
 
@@ -251,6 +253,53 @@ namespace Chozo {
                 ImGui::CloseCurrentPopup();
             }
 
+            if (ImGui::BeginMenu("Mesh"))
+            {
+                if (ImGui::MenuItem("Assets"))
+                {
+                    if (!m_SelectionContext.HasComponent<MeshComponent>())
+                            m_SelectionContext.AddComponent<MeshComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::BeginMenu("Geometry"))
+                {
+                    if (ImGui::MenuItem("Plane"))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::MenuItem("Box"))
+                    {
+                        if (!m_SelectionContext.HasComponent<MeshComponent>())
+                        {
+                            m_SelectionContext.AddComponent<MeshComponent>();
+                            auto& mc = m_SelectionContext.GetComponent<MeshComponent>();
+                            Geometry geom = Geometry::Create(GeometryType::Box);
+                            mc.Mesh = Mesh(geom.GetVertices(), geom.GetIndices(), geom.GetIndexCount(), geom.GetTriangleCount());
+                        }
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::MenuItem("Sphere"))
+                    {
+                        m_SelectionContext.AddComponent<MeshComponent>();
+                        auto& mc = m_SelectionContext.GetComponent<MeshComponent>();
+                        Geometry geom = Geometry::Create(GeometryType::Sphere);
+                        mc.Mesh = Mesh(geom.GetVertices(), geom.GetIndices(), geom.GetIndexCount(), geom.GetTriangleCount());
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::MenuItem("Cone"))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::MenuItem("Cylinder"))
+                    {
+                        ImGui::CloseCurrentPopup();
+                    }
+
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMenu();
+            }
+
             ImGui::EndPopup();
         }
 
@@ -376,6 +425,11 @@ namespace Chozo {
             DrawColumnValue<float>("Fade", component.Fade, [&](auto& target) {
                 ImGui::DragFloat("##Fade", &target, 0.00025f, 0.0f, 1.0f);
             });
+        });
+
+        DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
+        {
+            
         });
     }
 }

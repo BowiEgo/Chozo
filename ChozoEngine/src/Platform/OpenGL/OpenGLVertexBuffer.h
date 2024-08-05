@@ -9,10 +9,10 @@ namespace Chozo {
     {
     public:
         OpenGLVertexBuffer(uint32_t size);
-        OpenGLVertexBuffer(float* vertices, uint32_t size);
+        OpenGLVertexBuffer(void* vertices, uint32_t size);
         virtual ~OpenGLVertexBuffer();
 
-        virtual void SetData(float* vertices, uint32_t size) override;
+        virtual void SetData(void* vertices, uint32_t size) override;
         virtual void ClearData() override;
 
         virtual void Bind() const override;

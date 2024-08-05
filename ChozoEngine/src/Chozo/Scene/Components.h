@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chozo/Renderer/Texture.h"
+#include "Chozo/Renderer/Mesh.h"
 #include "Chozo/Core/UUID.h"
 #include "SceneCamera.h"
 
@@ -69,6 +70,14 @@ namespace Chozo {
 
         CircleRendererComponent() = default;
         CircleRendererComponent(const CircleRendererComponent&) = default;
+    };
+
+    struct MeshComponent
+    {
+        Mesh Mesh;
+
+        MeshComponent() = default;
+        MeshComponent(const MeshComponent&) = default;
     };
 
     struct CameraComponent
