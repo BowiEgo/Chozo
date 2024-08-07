@@ -79,6 +79,7 @@ namespace Chozo {
     void Application::Close()
     {
         m_Running = false;
+        Renderer::Shutdown();
     }
 
     bool Application::OnWindowClose(WindowCloseEvent &e)

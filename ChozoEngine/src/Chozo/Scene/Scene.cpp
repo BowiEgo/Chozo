@@ -44,7 +44,7 @@ namespace Chozo {
     {
         // 3D Renderer
         Renderer::BeginScene(camera);
-        Renderer::BeginBatch();
+        // Renderer::BeginBatch();
 
         // Draw meshes
         {
@@ -55,7 +55,13 @@ namespace Chozo {
                     continue;
             
                 const auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
-                Renderer::DrawMesh(transform.GetTransform(), mesh.Mesh, (uint32_t)entity);
+                mesh.Source->SetLocalTransform(transform.GetTransform());
+                if (dynamic_cast<StaticMesh*>(&mesh.MeshInstance))
+                {
+                    if (mesh.MeshInstance.GetMeshSource()->IsBufferChanged())
+                        mesh.MeshInstance.CallSubmit();
+                }
+                // Renderer::DrawMesh(transform.GetTransform(), mesh.MeshInstance.GetMeshSource(), (uint32_t)entity);
             }
         }
 

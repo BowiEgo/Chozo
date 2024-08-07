@@ -1,5 +1,7 @@
 #include "OpenGLIndexBuffer.h"
 
+#include "OpenGLUtils.h"
+
 #include <glad/glad.h>
 
 namespace Chozo {
@@ -7,37 +9,45 @@ namespace Chozo {
     OpenGLIndexBuffer::OpenGLIndexBuffer(void* indices, uint32_t count)
         : m_Count(count)
     {
-        glGenBuffers(1, &m_RendererID);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
+        glGenBuffers(1, &m_RendererID); GCE;
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID); GCE;
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW); GCE;
     }
 
     OpenGLIndexBuffer::~OpenGLIndexBuffer()
     {
-        glDeleteBuffers(1, &m_RendererID);
+        glDeleteBuffers(1, &m_RendererID); GCE;
     }
 
-    void OpenGLIndexBuffer::SetData(void* indices, uint32_t size)
+    void OpenGLIndexBuffer::SetData(uint32_t offset, uint32_t count, void* indices)
     {
         Bind();
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size, indices);
-        m_Offset = std::max(size, m_Offset);
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, count * sizeof(uint32_t), indices); GCE;
+        m_Count = count;
+        m_Offset = std::max((uint32_t)(count * sizeof(uint32_t)), m_Offset);
     }
 
     void OpenGLIndexBuffer::ClearData()
     {
         Bind();
-        std::vector<unsigned int> zeroData(m_Offset / sizeof(unsigned int), 0.0f);
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_Offset, zeroData.data());
+        uint32_t indices[m_Offset / sizeof(uint32_t)];
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_Offset, indices); GCE;
+    }
+
+    void OpenGLIndexBuffer::Resize(uint32_t count)
+    {
+        Bind();
+        uint32_t indices[count];
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW); GCE;
     }
 
     void OpenGLIndexBuffer::Bind() const
     {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID); GCE;
     }
 
     void OpenGLIndexBuffer::Unbind() const
     {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); GCE;
     }
 }

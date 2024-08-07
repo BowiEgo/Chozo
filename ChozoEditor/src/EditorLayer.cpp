@@ -143,6 +143,7 @@ namespace Chozo {
 
         m_Viewport_FBO->Bind();
         Renderer2D::ResetStats();
+        Renderer::ResetStats();
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         RenderCommand::Clear();
         m_Viewport_FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
@@ -238,12 +239,14 @@ namespace Chozo {
         // --------------------
         ImGui::Begin("Settings");
         ImGui::Text("Renderer stats:");
-        ImGui::Text("DrawCalls: %d", Renderer2D::GetStats().DrawCalls);
-        ImGui::Text("QuadCount: %d", Renderer2D::GetStats().QuadCount);
-        ImGui::Text("CircleCount: %d", Renderer2D::GetStats().CircleCount);
-        ImGui::Text("LineCount: %d", Renderer2D::GetStats().LineCount);
-        ImGui::Text("Vertices: %d", Renderer2D::GetStats().GetTotalVertexCount());
-        ImGui::Text("Indices: %d", Renderer2D::GetStats().GetTotalIndexCount());
+        ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        ImGui::Text("MaxTriangles: %d", Renderer::GetRendererData().GetMaxTriangles());
+        ImGui::Text("DrawCalls: %d", Renderer::GetStats().DrawCalls);
+        // ImGui::Text("Quads: %d", Renderer2D::GetStats().QuadCount);
+        // ImGui::Text("Circles: %d", Renderer2D::GetStats().CircleCount);
+        // ImGui::Text("Lines: %d", Renderer2D::GetStats().LineCount);
+        ImGui::Text("Triangles: %d", Renderer::GetStats().GetTotalTrianglesCount());
+        ImGui::Text("Vertices: %d", Renderer::GetStats().GetTotalVerticesCount());
 
         std::string entityName = "Null";
         if (m_Entity_Hovered)

@@ -1,6 +1,8 @@
 #include "SceneHierarchyPanel.h"
 
 #include  "Chozo/Renderer/Geometry/Geometry.h"
+#include  "Chozo/Renderer/Geometry/BoxGeometry.h"
+#include  "Chozo/Renderer/Geometry/SphereGeometry.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui_internal.h>
@@ -271,19 +273,18 @@ namespace Chozo {
                     {
                         if (!m_SelectionContext.HasComponent<MeshComponent>())
                         {
-                            m_SelectionContext.AddComponent<MeshComponent>();
-                            auto& mc = m_SelectionContext.GetComponent<MeshComponent>();
-                            Geometry geom = Geometry::Create(GeometryType::Box);
-                            mc.Mesh = Mesh(geom.GetVertices(), geom.GetIndices(), geom.GetIndexCount(), geom.GetTriangleCount());
+                            Ref<Geometry> geom = Geometry::Create(GeometryType::Box);
+                            m_SelectionContext.AddComponent<MeshComponent>(geom);
                         }
                         ImGui::CloseCurrentPopup();
                     }
                     if (ImGui::MenuItem("Sphere"))
                     {
-                        m_SelectionContext.AddComponent<MeshComponent>();
-                        auto& mc = m_SelectionContext.GetComponent<MeshComponent>();
-                        Geometry geom = Geometry::Create(GeometryType::Sphere);
-                        mc.Mesh = Mesh(geom.GetVertices(), geom.GetIndices(), geom.GetIndexCount(), geom.GetTriangleCount());
+                        if (!m_SelectionContext.HasComponent<MeshComponent>())
+                        {
+                            Ref<Geometry> geom = Geometry::Create(GeometryType::Sphere);
+                            m_SelectionContext.AddComponent<MeshComponent>(geom);
+                        }
                         ImGui::CloseCurrentPopup();
                     }
                     if (ImGui::MenuItem("Cone"))
@@ -429,7 +430,83 @@ namespace Chozo {
 
         DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
         {
-            
+            if (Geometry* geom = dynamic_cast<Geometry*>(component.Source.get()))
+            {
+                if (BoxGeometry* box = dynamic_cast<BoxGeometry*>(geom))
+                {
+                    float width = box->GetWidth();
+                    DrawColumnValue<float>("Width", width, [&](auto& target) {
+                        if (ImGui::DragFloat("##Width", &target, 0.1f, 0.0f, 10.0f))
+                            box->SetWidth(target);
+                    });
+                    float height = box->GetHeight();
+                    DrawColumnValue<float>("Height", height, [&](auto& target) {
+                        if (ImGui::DragFloat("##Height", &target, 0.1f, 0.0f, 10.0f))
+                            box->SetHeight(target);
+                    });
+                    float depth = box->GetDepth();
+                    DrawColumnValue<float>("Depth", depth, [&](auto& target) {
+                        if (ImGui::DragFloat("##Depth", &target, 0.1f, 0.0f, 10.0f))
+                            box->SetDepth(target);
+                    });
+                    int widthSegments = box->GetWidthSegments();
+                    DrawColumnValue<int>("WidthSegments", widthSegments, [&](auto& target) {
+                        if (ImGui::DragInt("##WidthSegments", &target, 1, 1, 10))
+                            box->SetWidthSegments((uint32_t&)target);
+                    });
+                    int heightSegments = box->GetHeightSegments();
+                    DrawColumnValue<int>("HeightSegments", heightSegments, [&](auto& target) {
+                        if (ImGui::DragInt("##HeightSegments", &target, 1, 1, 10))
+                            box->SetHeightSegments((uint32_t&)target);
+                    });
+                    int depthSegments = box->GetDepthSegments();
+                    DrawColumnValue<int>("DepthSegments", depthSegments, [&](auto& target) {
+                        if (ImGui::DragInt("##DepthSegments", &target, 1, 1, 10))
+                            box->SetDepthSegments((uint32_t&)target);
+                    });
+                }
+                if (SphereGeometry* sphere = dynamic_cast<SphereGeometry*>(geom))
+                {
+                    float m_Radius, m_PhiStart, m_PhiLength, m_ThetaStart, m_ThetaLength;
+                    uint32_t m_WidthSegments, m_HeightSegments;
+
+                    float radius = sphere->GetRadius();
+                    DrawColumnValue<float>("Radius", radius, [&](auto& target) {
+                        if (ImGui::DragFloat("##Radius", &target, 0.1f, 0.0f, 10.0f))
+                            sphere->SetRadius(target);
+                    });
+                    int widthSegments = sphere->GetWidthSegments();
+                    DrawColumnValue<int>("WidthSegments", widthSegments, [&](auto& target) {
+                        if (ImGui::DragInt("##WidthSegments", &target, 1, 1, 64))
+                            sphere->SetWidthSegments((uint32_t&)target);
+                    });
+                    int heightSegments = sphere->GetHeightSegments();
+                    DrawColumnValue<int>("HeightSegments", heightSegments, [&](auto& target) {
+                        if (ImGui::DragInt("##HeightSegments", &target, 1, 1, 32))
+                            sphere->SetHeightSegments((uint32_t&)target);
+                    });
+                    float phiStart = sphere->GetPhiStart();
+                    DrawColumnValue<float>("PhiStart", phiStart, [&](auto& target) {
+                        if (ImGui::DragFloat("##PhiStart", &target, 0.1f, 0.0f, 10.0f))
+                            sphere->SetPhiStart(target);
+                    });
+                    float phiLength = sphere->GetPhiLength();
+                    DrawColumnValue<float>("PhiLength", phiLength, [&](auto& target) {
+                        if (ImGui::DragFloat("##PhiLength", &target, 0.1f, 0.0f, Math::PI * 2))
+                            sphere->SetPhiLength(target);
+                    });
+                    float thetaStart = sphere->GetThetaStart();
+                    DrawColumnValue<float>("ThetaStart", thetaStart, [&](auto& target) {
+                        if (ImGui::DragFloat("##ThetaStart", &target, 0.1f, 0.0f, 10.0f))
+                            sphere->SetThetaStart(target);
+                    });
+                    float thetaLength = sphere->GetThetaLength();
+                    DrawColumnValue<float>("ThetaLength", thetaLength, [&](auto& target) {
+                        if (ImGui::DragFloat("##ThetaLength", &target, 0.1f, 0.0f, Math::PI))
+                            sphere->SetThetaLength(target);
+                    });
+                }
+            }
         });
     }
 }

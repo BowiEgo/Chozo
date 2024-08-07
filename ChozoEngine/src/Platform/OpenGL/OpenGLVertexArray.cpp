@@ -1,5 +1,6 @@
 #include "OpenGLVertexArray.h"
 
+#include "OpenGLUtils.h"
 #include <glad/glad.h>
 
 namespace Chozo {
@@ -28,42 +29,42 @@ namespace Chozo {
 
     OpenGLVertexArray::OpenGLVertexArray()
     {
-        glGenVertexArrays(1, &m_RendererID);
+        glGenVertexArrays(1, &m_RendererID); GCE;
     }
 
     OpenGLVertexArray::~OpenGLVertexArray()
     {
-        glDeleteVertexArrays(1, &m_RendererID);
+        glDeleteVertexArrays(1, &m_RendererID); GCE;
     }
 
     void OpenGLVertexArray::Bind() const
     {
-        glBindVertexArray(m_RendererID);
+        glBindVertexArray(m_RendererID); GCE;
     }
 
     void OpenGLVertexArray::Unbind() const
     {
-        glBindVertexArray(0);
+        glBindVertexArray(0); GCE;
     }
 
     void OpenGLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
     {
         CZ_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
 
-        glBindVertexArray(m_RendererID);
+        glBindVertexArray(m_RendererID); GCE;
         vertexBuffer->Bind();
 
         uint32_t index = 0;
         for (const auto& element : vertexBuffer->GetLayout())
         {
-            glEnableVertexAttribArray(index);
+            glEnableVertexAttribArray(index); GCE;
             glVertexAttribPointer(index,
                 element.GetComponentCount(),
                 ShaderDataTypeToOpenGLBaseType(element.Type),
                 element.Normalized ? GL_TRUE : GL_FALSE,
                 vertexBuffer->GetLayout().GetStride(),
                 reinterpret_cast<const void*>(static_cast<uintptr_t>(element.Offset))
-            );
+            ); GCE;
             index++;
         }
 
@@ -72,7 +73,7 @@ namespace Chozo {
 
     void OpenGLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
     {
-        glBindVertexArray(m_RendererID);
+        glBindVertexArray(m_RendererID); GCE;
         indexBuffer->Bind();
 
         m_IndexBuffer = indexBuffer;

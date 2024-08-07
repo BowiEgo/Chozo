@@ -12,22 +12,18 @@ namespace Chozo
         Plane = 0, Box, Sphere, Cone, Cylinder
     };
 
-    class Geometry
+    class Geometry : public MeshSource
     {
     public:
-        Geometry() {};
+        Geometry() = default;
         ~Geometry() = default;
 
-        std::vector<Vertex> const GetVertices() { return m_Vertices; }
-        std::vector<Index> const GetIndices() { return m_Indices; }
-        uint32_t const GetIndexCount() { return m_IndexCount; }
-        uint32_t const GetTriangleCount() { return m_TriangleCount; }
+        static Ref<Geometry> Create(const GeometryType type);
 
-        static Geometry Create(const GeometryType type);
+        operator bool() const { return m_Buffer.IndexCount != 0; }
     protected:
-		std::vector<Vertex> m_Vertices;
-		std::vector<Index> m_Indices;
-
-        uint32_t m_IndexCount = 0, m_TriangleCount = 0;
+        virtual void Backup() {};
+        virtual void Backtrace() {};
+        virtual MeshBuffer* Generate() { return nullptr; };
     };
 }

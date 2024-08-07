@@ -6,29 +6,29 @@
 namespace Chozo
 {
 
-    Geometry Geometry::Create(const GeometryType type)
+    Ref<Geometry> Geometry::Create(const GeometryType type)
     {
         switch (type)
         {
             case GeometryType::Plane:
             {
-                return Geometry();
+                return std::make_shared<Geometry>();
             }
             case GeometryType::Box:
             {
-                return BoxGeometry();
+                return std::make_shared<BoxGeometry>();
             }
             case GeometryType::Sphere:
             {
-                return SphereGeometry();
+                return std::make_shared<SphereGeometry>();
             }
             case GeometryType::Cone:
             {
-                return Geometry();
+                return std::make_shared<Geometry>();
             }
             case GeometryType::Cylinder:
             {
-                return Geometry();
+                return std::make_shared<Geometry>();
             }
         }
     }

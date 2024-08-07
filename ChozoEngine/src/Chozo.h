@@ -18,6 +18,7 @@
 #include "Chozo/Scene/Components.h"
 
 // ---Renderer---------------------
+#include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
 #include "Chozo/Renderer/RenderCommand.h"
 

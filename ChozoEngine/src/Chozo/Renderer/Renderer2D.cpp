@@ -7,29 +7,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace Chozo {
-    
-    namespace FileSystem {
-
-        static std::string ReadFile(const std::string &filepath)
-        {
-            std::string result;
-            std::ifstream in(filepath, std::ios::in | std::ios::binary);
-            if (in)
-            {
-                in.seekg(0, std::ios::end);
-                result.resize(in.tellg());
-                in.seekg(0, std::ios::beg);
-                in.read(&result[0], result.size());
-                in.close();
-            }
-            else
-            {
-                CZ_CORE_ASSERT("Could not open file '{0}'", filepath);
-            }
-
-            return result;
-        }
-    }
 
     struct QuadVertex
     {
@@ -276,7 +253,7 @@ namespace Chozo {
         if (s_Data.QuadIndexCount)
         {
             GLsizeiptr size = (uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase;
-            s_Data.QuadVertexBuffer->SetData((float*)s_Data.QuadVertexBufferBase, size);
+            s_Data.QuadVertexBuffer->SetData(0, size, (float*)s_Data.QuadVertexBufferBase);
 
             for (uint32_t i = 0; i < s_Data.TextureSlots.size(); i++)
                 s_Data.TextureSlots[i]->Bind(i);
@@ -289,7 +266,7 @@ namespace Chozo {
         if (s_Data.CircleIndexCount)
         {
             GLsizeiptr size = (uint8_t*)s_Data.CircleVertexBufferPtr - (uint8_t*)s_Data.CircleVertexBufferBase;
-            s_Data.CircleVertexBuffer->SetData((float*)s_Data.CircleVertexBufferBase, size);
+            s_Data.CircleVertexBuffer->SetData(0, size, (float*)s_Data.CircleVertexBufferBase);
 
             s_Data.CircleShader->Bind();
             RenderCommand::DrawIndexed(s_Data.CircleVertexArray, s_Data.QuadIndexCount);
@@ -299,7 +276,7 @@ namespace Chozo {
         if (s_Data.LineVertexCount)
         {
             GLsizeiptr size = (uint8_t*)s_Data.LineVertexBufferPtr - (uint8_t*)s_Data.LineVertexBufferBase;
-            s_Data.LineVertexBuffer->SetData((float*)s_Data.LineVertexBufferBase, size);
+            s_Data.LineVertexBuffer->SetData(0, size, (float*)s_Data.LineVertexBufferBase);
 
             s_Data.LineShader->Bind();
             RenderCommand::DrawLines(s_Data.LineVertexArray, s_Data.LineVertexCount);

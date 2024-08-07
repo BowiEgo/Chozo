@@ -18,16 +18,46 @@ namespace Chozo
         : m_Width(width), m_Height(height), m_Depth(depth),
           m_WidthSegments(widthSegments), m_HeightSegments(heightSegments), m_DepthSegments(depthSegments)
     {
-        // build each side of the box geometry
-        BuildPlane("z", "y", "x", -1, -1, depth, height,  width,  depthSegments, heightSegments); // px
-		BuildPlane("z", "y", "x",  1, -1, depth, height, -width,  depthSegments, heightSegments); // nx
-		BuildPlane("x", "z", "y",  1,  1, width, depth,   height, widthSegments, depthSegments); // py
-		BuildPlane("x", "z", "y",  1, -1, width, depth,  -height, widthSegments, depthSegments); // ny
-		BuildPlane("x", "y", "z",  1, -1, width, height,  depth,  widthSegments, heightSegments); // pz
-		BuildPlane("x", "y", "z", -1, -1, width, height, -depth,  widthSegments, heightSegments); // nz
+        CallGenerate();
     }
 
-    void BoxGeometry::BuildPlane(std::string u, std::string v, std::string w, int uDir, int vDir, float width, float height, float depth, uint32_t gridX, uint32_t gridY)
+    MeshBuffer* BoxGeometry::Generate()
+    {
+        m_NumberOfVertices = 0;
+
+        MeshBuffer* buffer = new MeshBuffer();
+        // build each side of the box geometry
+        BuildPlane("z", "y", "x", -1, -1, m_Depth, m_Height,  m_Width,  m_DepthSegments, m_HeightSegments, buffer); // px
+		BuildPlane("z", "y", "x",  1, -1, m_Depth, m_Height, -m_Width,  m_DepthSegments, m_HeightSegments, buffer); // nx
+		BuildPlane("x", "z", "y",  1,  1, m_Width, m_Depth,   m_Height, m_WidthSegments, m_DepthSegments, buffer); // py
+		BuildPlane("x", "z", "y",  1, -1, m_Width, m_Depth,  -m_Height, m_WidthSegments, m_DepthSegments, buffer); // ny
+		BuildPlane("x", "y", "z",  1, -1, m_Width, m_Height,  m_Depth,  m_WidthSegments, m_HeightSegments, buffer); // pz
+		BuildPlane("x", "y", "z", -1, -1, m_Width, m_Height, -m_Depth,  m_WidthSegments, m_HeightSegments, buffer); // nz
+
+        return buffer;
+    }
+
+    void BoxGeometry::Backup()
+    {
+        m_OldWidth = m_Width;
+        m_OldHeight = m_Height;
+        m_OldDepth = m_Depth;
+        m_OldWidthSegments = m_WidthSegments;
+        m_OldHeightSegments = m_HeightSegments;
+        m_OldDepthSegments = m_DepthSegments;
+    }
+
+    void BoxGeometry::Backtrace()
+    {
+        m_Width = m_OldWidth;
+        m_Height = m_OldHeight;
+        m_Depth = m_OldDepth;
+        m_WidthSegments = m_OldWidthSegments;
+        m_HeightSegments = m_OldHeightSegments;
+        m_DepthSegments = m_OldDepthSegments;
+    }
+
+    void BoxGeometry::BuildPlane(std::string u, std::string v, std::string w, int uDir, int vDir, float width, float height, float depth, uint32_t gridX, uint32_t gridY, MeshBuffer* buffer)
     {
         const float segmentWidth = width / gridX;
         const float segmentHeight = height / gridY;
@@ -57,6 +87,7 @@ namespace Chozo
                 SetAxisValue(vertice.Position, u, x * uDir);
                 SetAxisValue(vertice.Position, v, y * vDir);
                 SetAxisValue(vertice.Position, w, depthHalf);
+                vertice.Position = m_LocalTransform * glm::vec4(vertice.Position, 1.0f);
 
                 SetAxisValue(vertice.Normal, u, 0);
                 SetAxisValue(vertice.Normal, v, 0);
@@ -65,7 +96,9 @@ namespace Chozo
                 vertice.TexCoord.x = ix / gridX;
                 vertice.TexCoord.y = 1 - ( iy / gridY );
 
-                m_Vertices.push_back(vertice);
+                vertice.EntityID = -1;
+
+                buffer->Vertexs.push_back(vertice);
                 vertexCounter += 1;
             }
         }
@@ -83,11 +116,11 @@ namespace Chozo
                 const uint32_t c = m_NumberOfVertices + ( ix + 1 ) + gridX1 * ( iy + 1 );
                 const uint32_t d = m_NumberOfVertices + ( ix + 1 ) + gridX1 * iy;
 
-                m_Indices.insert(m_Indices.end(), {a, b, d});
-                m_Indices.insert(m_Indices.end(), {b, c, d});
+                buffer->Indexs.insert(buffer->Indexs.end(), {a, b, d});
+                buffer->Indexs.insert(buffer->Indexs.end(), {b, c, d});
 
-                m_IndexCount += 6;
-                m_TriangleCount += 2;
+                buffer->IndicesCount += 6;
+                buffer->IndexCount += 2;
             }
         }
 

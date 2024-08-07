@@ -12,6 +12,9 @@ namespace Chozo {
         UUID(const UUID&) = default;
 
         operator uint64_t() const { return m_UUID; }
+        bool isValid() const { return m_UUID != std::numeric_limits<uint64_t>::max(); }
+
+        static UUID Invalid() { return UUID(std::numeric_limits<uint64_t>::max()); }
     private:
         uint64_t m_UUID;
     };

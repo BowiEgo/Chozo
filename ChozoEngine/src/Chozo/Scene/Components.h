@@ -2,6 +2,7 @@
 
 #include "Chozo/Renderer/Texture.h"
 #include "Chozo/Renderer/Mesh.h"
+#include "Chozo/Renderer/Geometry/Geometry.h"
 #include "Chozo/Core/UUID.h"
 #include "SceneCamera.h"
 
@@ -74,10 +75,16 @@ namespace Chozo {
 
     struct MeshComponent
     {
-        Mesh Mesh;
+        StaticMesh MeshInstance;
+        Ref<MeshSource> Source;
 
         MeshComponent() = default;
         MeshComponent(const MeshComponent&) = default;
+        MeshComponent(Ref<MeshSource> meshSource)
+            : Source(meshSource)
+        {
+            MeshInstance = StaticMesh(meshSource);
+        }
     };
 
     struct CameraComponent
