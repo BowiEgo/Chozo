@@ -58,7 +58,7 @@ namespace Chozo
                 vertice.TexCoord.x = u + uOffset;
                 vertice.TexCoord.x = 1 - v;
 
-                vertice.EntityID = -1;
+                vertice.EntityID = m_EntityID;
 
                 verticesRow.push_back(index++);
                 buffer->Vertexs.push_back(vertice);

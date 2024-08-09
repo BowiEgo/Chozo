@@ -99,6 +99,7 @@ namespace Chozo {
                 continue;
           
             s_Data.Shader->Bind();
+            s_Data.Shader->UploadUniformFloat4("pushConstants.u_Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
             RenderCommand::DrawIndexed(pair.second->VAO, indexCount * 3);
             s_Data.Stats.DrawCalls++;
 

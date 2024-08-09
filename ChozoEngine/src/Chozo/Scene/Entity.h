@@ -57,6 +57,8 @@ namespace Chozo
         bool operator!=(const Entity& other) const {
             return !(*this == other);
         }
+    public:
+        friend class MeshComponent;
     private:
         entt::entity m_EntityHandle{ entt::null };
         Scene* m_Scene = nullptr;

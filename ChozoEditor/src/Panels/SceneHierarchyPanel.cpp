@@ -261,8 +261,8 @@ namespace Chozo {
             {
                 if (ImGui::MenuItem("Assets"))
                 {
-                    if (!m_SelectionContext.HasComponent<MeshComponent>())
-                            m_SelectionContext.AddComponent<MeshComponent>();
+                    // if (!m_SelectionContext.HasComponent<MeshComponent>())
+                    //         m_SelectionContext.AddComponent<MeshComponent>();
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::BeginMenu("Geometry"))
@@ -276,6 +276,7 @@ namespace Chozo {
                         if (!m_SelectionContext.HasComponent<MeshComponent>())
                         {
                             Ref<Geometry> geom = Geometry::Create(GeometryType::Box);
+                            geom->SetEntityID((uint32_t)m_SelectionContext);
                             m_SelectionContext.AddComponent<MeshComponent>(geom);
                         }
                         ImGui::CloseCurrentPopup();
@@ -285,6 +286,7 @@ namespace Chozo {
                         if (!m_SelectionContext.HasComponent<MeshComponent>())
                         {
                             Ref<Geometry> geom = Geometry::Create(GeometryType::Sphere);
+                            geom->SetEntityID((uint32_t)m_SelectionContext);
                             m_SelectionContext.AddComponent<MeshComponent>(geom);
                         }
                         ImGui::CloseCurrentPopup();

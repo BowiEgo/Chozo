@@ -173,7 +173,7 @@ namespace Chozo {
         while (pos != std::string::npos)
         {
             modifiedSource.replace(pos, typeToken.length(), std::to_string(maxTextureSlots));
-            CZ_CORE_WARN("{0}", modifiedSource);
+            // CZ_CORE_WARN("{0}", modifiedSource);
             pos = modifiedSource.find(typeToken, pos + std::to_string(maxTextureSlots).length());
         }
 
@@ -185,7 +185,7 @@ namespace Chozo {
             pos = modifiedSource.find(caseToken, pos);
             index++;
         }
-        CZ_CORE_WARN("{0}", modifiedSource);
+        // CZ_CORE_WARN("{0}", modifiedSource);
 
         return modifiedSource;
     }
@@ -199,6 +199,7 @@ namespace Chozo {
 
         for (auto& kv : shaderSources)
         {
+            // CZ_CORE_WARN("Compile Source: {0}", kv.second);
             GLenum type = kv.first;
             const std::string& source = kv.second;
 

@@ -96,7 +96,7 @@ namespace Chozo
                 vertice.TexCoord.x = ix / gridX;
                 vertice.TexCoord.y = 1 - ( iy / gridY );
 
-                vertice.EntityID = -1;
+                vertice.EntityID = m_EntityID;
 
                 buffer->Vertexs.push_back(vertice);
                 vertexCounter += 1;
