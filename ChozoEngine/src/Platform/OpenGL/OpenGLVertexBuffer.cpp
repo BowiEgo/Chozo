@@ -36,14 +36,14 @@ namespace Chozo {
     {
         Bind();
         glBufferSubData(GL_ARRAY_BUFFER, offset, size, vertices); GCE;
-        m_Offset = std::max(size, m_Offset);
+        m_End = std::max(size, m_End);
     }
 
     void OpenGLVertexBuffer::ClearData()
     {
         Bind();
-        std::vector<float> zeroData(m_Offset / sizeof(float), 0.0f);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, m_Offset, zeroData.data()); GCE;
+        std::vector<float> zeroData(m_End / sizeof(float), 0.0f);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, m_End, zeroData.data()); GCE;
     }
 
     void OpenGLVertexBuffer::Resize(uint32_t size)

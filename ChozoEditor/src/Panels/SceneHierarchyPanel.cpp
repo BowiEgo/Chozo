@@ -207,7 +207,9 @@ namespace Chozo {
             }
 
             if (removeComponent)
+            {
                 entity.RemoveComponent<T>();
+            }
         }
     }
 

@@ -79,11 +79,20 @@ namespace Chozo {
         Ref<MeshSource> Source;
 
         MeshComponent() = default;
-        MeshComponent(const MeshComponent&) = default;
+        MeshComponent(const MeshComponent&) { CZ_CORE_WARN("Copy constructor called!"); };
+        MeshComponent(MeshComponent&& other) noexcept
+            : MeshInstance(std::move(other.MeshInstance)),
+            Source(std::move(other.Source)) {
+            other.Source = nullptr;  // Prevent copying or using original object.
+        }
         MeshComponent(Ref<MeshSource> meshSource)
             : Source(meshSource)
         {
             MeshInstance = StaticMesh(meshSource);
+        }
+        ~MeshComponent()
+        {
+            MeshInstance.CallRemove();
         }
     };
 

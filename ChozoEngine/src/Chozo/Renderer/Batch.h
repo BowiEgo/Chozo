@@ -95,7 +95,7 @@ namespace Chozo
         inline std::map<uint32_t, Ref<RenderSource>> GetRenderSources() const { return m_RenderSources; }
 
         UUID SubmitBuffers(const Vertex* vertexBuffer, uint32_t vertexCount, const Index* indexBuffer, uint32_t indexCount, const UUID& segmentID = UUID::Invalid());
-        bool RemoveSegment(UUID& segmentID);
+        bool RemoveSegment(UUID segmentID);
     private:
         BufferSegment* RemoveBuffers(BufferSegment& segment);
         BufferSegment* AddBuffers(const Vertex* vertexBuffer, const uint32_t vertexCount, const Index* indexBuffer, uint32_t indexCount, BufferSegment& segment);

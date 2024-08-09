@@ -26,7 +26,7 @@ namespace Chozo {
     private:
         uint32_t m_RendererID;
         VertexBufferLayout m_Layout;
-        uint32_t m_Offset;
+        uint32_t m_End;
     };
 
 }

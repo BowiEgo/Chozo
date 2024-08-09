@@ -74,6 +74,7 @@ namespace Chozo {
 
         // Primitives
         static bool SubmitMesh(StaticMesh* mesh);
+        static bool RemoveMesh(StaticMesh* mesh);
         static void DrawMesh(const glm::mat4 transform, Ref<MeshSource> meshSource, uint32_t entityID = -1);
 
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }

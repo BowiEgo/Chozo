@@ -52,6 +52,10 @@ namespace Chozo
         SetBufferChanged(false);
     }
 
+    StaticMesh::~StaticMesh()
+    {
+    }
+
     //////////////////////////////////////////////////////////
     //---------------------Static Mesh----------------------//
     //////////////////////////////////////////////////////////
@@ -59,6 +63,11 @@ namespace Chozo
     {
         bool successed = Renderer::SubmitMesh(this);
         m_MeshSource->AfterGenerate(successed);
+    }
+
+    void StaticMesh::CallRemove()
+    {
+        bool successed = Renderer::RemoveMesh(this);
     }
 
     //////////////////////////////////////////////////////////

@@ -74,12 +74,13 @@ namespace Chozo
         StaticMesh() = default;
         StaticMesh(Ref<MeshSource>& meshSource)
             : Mesh(meshSource) {}
-        ~StaticMesh() = default;
+        ~StaticMesh();
 
-        UUID GetBufferSegmentID() { return m_BufferSegmentID; }
+        UUID GetBufferSegmentID() const { return m_BufferSegmentID; }
         void SetBufferSegmentID(UUID& id) { m_BufferSegmentID = id; }
 
         void CallSubmit();
+        void CallRemove();
     private:
         UUID m_BufferSegmentID;
     };

@@ -91,14 +91,20 @@ namespace Chozo {
         {
             Ref<Batch<Vertex>> vertexBatch = s_Data.BatchManager.GetBatches<Vertex>()[pair.first];
             Ref<Batch<Index>> indexBatch = s_Data.BatchManager.GetBatches<Index>()[pair.first];
+
+            uint32_t vertexCount = vertexBatch->GetCount();
+            uint32_t indexCount = indexBatch->GetCount();
+
+            if (vertexCount == 0 || indexCount == 0)
+                continue;
           
             s_Data.Shader->Bind();
-            RenderCommand::DrawIndexed(pair.second->VAO, indexBatch->GetCount() * 3);
+            RenderCommand::DrawIndexed(pair.second->VAO, indexCount * 3);
             s_Data.Stats.DrawCalls++;
 
-            s_Data.IndexCount += indexBatch->GetCount();
-            s_Data.Stats.VerticesCount += vertexBatch->GetCount();
-            s_Data.Stats.TriangleCount += indexBatch->GetCount();
+            s_Data.IndexCount += indexCount;
+            s_Data.Stats.VerticesCount += vertexCount;
+            s_Data.Stats.TriangleCount += indexCount;
         }
     }
 
@@ -117,6 +123,11 @@ namespace Chozo {
         }
         mesh->SetBufferSegmentID(segmentID);
         return true;
+    }
+
+    bool Renderer::RemoveMesh(StaticMesh* mesh)
+    {
+        return s_Data.BatchManager.RemoveSegment(mesh->GetBufferSegmentID());
     }
 
     void Renderer::DrawMesh(const glm::mat4 transform, Ref<MeshSource> meshSource, uint32_t entityID)

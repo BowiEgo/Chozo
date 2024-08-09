@@ -22,16 +22,16 @@ namespace Chozo {
     void OpenGLIndexBuffer::SetData(uint32_t offset, uint32_t count, void* indices)
     {
         Bind();
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, count * sizeof(uint32_t), indices); GCE;
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset * sizeof(uint32_t), count * sizeof(uint32_t), indices); GCE;
         m_Count = count;
-        m_Offset = std::max((uint32_t)(count * sizeof(uint32_t)), m_Offset);
+        m_End = std::max((uint32_t)(count * sizeof(uint32_t)), m_End);
     }
 
     void OpenGLIndexBuffer::ClearData()
     {
         Bind();
-        uint32_t indices[m_Offset / sizeof(uint32_t)];
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_Offset, indices); GCE;
+        uint32_t indices[m_End / sizeof(uint32_t)];
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_End, indices); GCE;
     }
 
     void OpenGLIndexBuffer::Resize(uint32_t count)

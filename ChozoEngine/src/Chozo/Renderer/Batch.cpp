@@ -54,16 +54,16 @@ namespace Chozo
     {
         if (start + count > m_Count)
             return false;
+
+        for (uint32_t i = start; i < start + count; ++i)
+        {
+            m_BufferBase[i] = T();
+        }
         
-        if (start + count == m_Count)
-        {
-            m_BufferPtr -= count;
-        }
-        else
-        {
+        if (start + count != m_Count)
             std::copy(m_BufferBase + start + count, m_BufferPtr, m_BufferBase + start);
-            m_BufferPtr -= count;
-        }
+        
+        m_BufferPtr -= count;
         m_Count -= count;
         return true;
     }
@@ -74,18 +74,19 @@ namespace Chozo
         if (start + count > m_Count)
             return false;
 
-        if (start + count == m_Count)
+        for (uint32_t i = start; i < start + count; ++i)
         {
-            m_BufferPtr -= count;
+            m_BufferBase[i] = T();
         }
-        else
+
+        if (start + count != m_Count)
         {
             std::transform(m_BufferBase + start + count, m_BufferPtr, m_BufferBase + start, [transformOffset](const T& v) {
                 return T{ v.V1 - transformOffset, v.V2 - transformOffset, v.V3 - transformOffset };
             });
-            m_BufferPtr -= count;
         }
         
+        m_BufferPtr -= count;
         m_Count -= count;
         return true;
     }
@@ -120,7 +121,6 @@ namespace Chozo
 
     BufferSegment *BatchManager::RemoveBuffers(BufferSegment& segment)
     {
-
         Ref<Batch<Vertex>> vertexBatch = m_VertexBatches[segment.VertexBatchIndex];
         uint32_t oldVertexCount = vertexBatch->GetCount();
         vertexBatch->RemoveBuffers(segment.VertexStart, segment.VertexCount);
@@ -128,7 +128,7 @@ namespace Chozo
         Ref<Batch<Index>> indexBatch = m_IndexBatches[segment.IndexBatchIndex];
         uint32_t oldIndexCount = indexBatch->GetCount();
         indexBatch->RemoveBuffers(segment.IndexStart, segment.IndexCount, segment.VertexCount);
-        
+
         uint32_t idx = GetBatchIndex(indexBatch);
         // CZ_CORE_INFO("RemoveBuffers: idx: {0}, vertexCount: {1}, indexCount: {2}", idx, oldVertexCount, oldIndexCount);
         UpdateRenderSource(idx, oldVertexCount, oldIndexCount);
@@ -206,7 +206,7 @@ namespace Chozo
         // Crate RenderSource for GPU
         Ref<RenderSource> renderSource = std::make_shared<RenderSource>(GetMaxCount<Vertex>(), GetMaxCount<Index>());
         m_RenderSources[m_VertexBatches.size() - 1] = renderSource;
-        CZ_CORE_INFO("CreateRenderSource: VAO, {0}", renderSource->VAO->GetRendererID());
+        // CZ_CORE_INFO("CreateRenderSource: VAO, {0}", renderSource->VAO->GetRendererID());
 
         return { vertexBatch, indexBatch };
     }
@@ -232,17 +232,13 @@ namespace Chozo
         return BufferSegment(); // Return an invalid segment if not found
     }
 
-    bool BatchManager::RemoveSegment(UUID &segmentID)
+    bool BatchManager::RemoveSegment(UUID segmentID)
     {
         BufferSegment segment = GetSegment(segmentID);
         if (!segment.isValid())
             return false;
 
-        Ref<Batch<Vertex>> vertexBatch = m_VertexBatches[segment.VertexBatchIndex];
-        vertexBatch->RemoveBuffers(segment.VertexStart, segment.VertexCount);
-
-        Ref<Batch<Index>> indexBatch = m_IndexBatches[segment.IndexBatchIndex];
-        indexBatch->RemoveBuffers(segment.IndexStart, segment.IndexCount, segment.VertexCount);
+        RemoveBuffers(segment);
 
         size_t erasedCount = m_BufferSegments.erase(segmentID);
         return erasedCount > 0;
