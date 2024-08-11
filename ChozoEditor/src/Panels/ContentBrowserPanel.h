@@ -2,7 +2,6 @@
 
 #include "Chozo.h"
 
-
 namespace Chozo {
 
     #define MAX_SEARCH_BUFFER_LENGTH 24

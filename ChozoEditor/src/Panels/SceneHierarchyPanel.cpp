@@ -4,8 +4,9 @@
 #include  "Chozo/Renderer/Geometry/BoxGeometry.h"
 #include  "Chozo/Renderer/Geometry/SphereGeometry.h"
 
+#include "PropertyUI.h"
+
 #include <glm/gtc/type_ptr.hpp>
-#include <imgui_internal.h>
 
 namespace Chozo {
 
@@ -90,84 +91,6 @@ namespace Chozo {
             if (m_SelectionContext == entity)
                 m_SelectionContext = {};
         }
-    }
-
-    static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float valueSpeed = 0.1f, float columnWidth = 100.0f)
-    {
-        ImGuiIO& io = ImGui::GetIO();
-        auto boldFont = io.Fonts->Fonts[0];
-
-        ImGui::PushID(label.c_str());
-
-        ImGui::Columns(2, 0, false);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text("%s", label.c_str());
-        ImGui::NextColumn();
-
-        ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-
-        float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-        ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.1f, 0.15f, 1.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.5f, 0.1f, 0.15f, 1.0f });
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("X", buttonSize))
-            values.x = resetValue;
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
-
-        ImGui::SameLine();
-        ImGui::DragFloat("##X", &values.x, valueSpeed, 0.0f, 0.0f, "%.2f");
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.5f, 0.2f, 1.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.5f, 0.2f, 1.0f });
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("Y", buttonSize))
-            values.y = resetValue;
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
-
-        ImGui::SameLine();
-        ImGui::DragFloat("##Y", &values.y, valueSpeed, 0.0f, 0.0f, "%.2f");
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.5f, 1.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.5f, 1.0f });
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("Z", buttonSize))
-            values.z = resetValue;
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
-
-        ImGui::SameLine();
-        ImGui::DragFloat("##Z", &values.z, valueSpeed, 0.0f, 0.0f, "%.2f");
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-
-        ImGui::PopStyleVar();
-
-        ImGui::Columns(1);
-
-        ImGui::PopID();
-    }
-
-    template<typename targetValueType, typename UIFunction>
-    static void DrawColumnValue(const std::string& name, targetValueType& target, UIFunction uiFunction)
-    {
-        ImGui::Columns(2, 0, false);
-        ImGui::SetColumnWidth(0, 100.0f);
-        ImGui::Text("%s", name.c_str());
-        ImGui::NextColumn();
-        uiFunction(target);
-        ImGui::Columns(1);
     }
 
     template<typename T, typename UIFunction>
@@ -310,11 +233,19 @@ namespace Chozo {
 
         DrawComponent<TransformComponent>("Transform", entity, [](auto& compoent)
         {
-            DrawVec3Control("Translation", compoent.Translation);
+            DrawColumnValue<glm::vec3>("Translation", compoent.Translation, [&](auto& target) {
+                DrawVec3Control("Translation", compoent.Translation);
+            });
+
             glm::vec3 rotation = glm::degrees(compoent.Rotation);
-            DrawVec3Control("Rotation", rotation, 0.0f, 1.0f);
+            DrawColumnValue<glm::vec3>("Rotation", rotation, [&](auto& target) {
+                DrawVec3Control("Rotation", rotation, 0.0f, 1.0f);
+            });
             compoent.Rotation = glm::radians(rotation);
-            DrawVec3Control("Scale", compoent.Scale, 1.0f);
+
+            DrawColumnValue<glm::vec3>("Scale", compoent.Scale, [&](auto& target) {
+                DrawVec3Control("Scale", compoent.Scale, 1.0f);
+            });
         });
 
         DrawComponent<CameraComponent>("Camera", entity, [&](auto& compoent)

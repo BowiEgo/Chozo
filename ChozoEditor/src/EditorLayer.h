@@ -10,6 +10,7 @@
 
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/ContentBrowserPanel.h"
+#include "Panels/EnvironmentPanel.h"
 
 namespace Chozo {
 
@@ -63,6 +64,7 @@ namespace Chozo {
         // Panels
         SceneHierarchyPanel m_SceneHierarchyPanel;
         ContentBrowserPanel m_ContentBrowserPanel;
+        EnvironmentPanel m_EnvironmentPanel;
 
         // Gizmo
         int m_GizmoType = ImGuizmo::OPERATION::TRANSLATE; // -1 = no gizmo
