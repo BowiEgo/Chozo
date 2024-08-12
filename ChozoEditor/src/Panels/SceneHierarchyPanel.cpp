@@ -228,6 +228,13 @@ namespace Chozo {
                 ImGui::EndMenu();
             }
 
+            if (ImGui::MenuItem("SkyLight"))
+            {
+                if (!m_SelectionContext.HasComponent<SkyLightComponent>())
+                    m_SelectionContext.AddComponent<SkyLightComponent>();
+                ImGui::CloseCurrentPopup();
+            }
+
             ImGui::EndPopup();
         }
 

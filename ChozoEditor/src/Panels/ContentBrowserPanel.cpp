@@ -162,9 +162,9 @@ namespace Chozo {
                     ImGui::PushID(filenameString.c_str());
 
                     Ref<Texture2D> icon;
-                    Texture2DSpecification spec;
-                    spec.wrapS = Texture2DParameter::CLAMP_TO_BORDER;
-                    spec.wrapT = Texture2DParameter::CLAMP_TO_BORDER;
+                    TextureSpecification spec;
+                    spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
+                    spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
 
                     if (p.is_directory())
                     {

@@ -2,6 +2,8 @@
 
 #include "OpenGLUtils.h"
 
+#include "Chozo/Renderer/Renderer.h"
+
 #include <glad/glad.h>
 
 namespace Chozo {
@@ -46,5 +48,27 @@ namespace Chozo {
         vertexArray->Bind();
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, vertexCount); GCE;
+    }
+
+    Ref<TextureCube> OpenGLRendererAPI::CreatePreethamSky(float turbidity, float azimuth, float inclination)
+    {
+		const uint32_t cubemapSize = Renderer::GetConfig().EnvironmentMapResolution;
+		const uint32_t irradianceMapSize = 32;
+
+		TextureSpecification cubemapSpec;
+		cubemapSpec.Format = ImageFormat::RGBA32F;
+		cubemapSpec.Width = cubemapSize;
+		cubemapSpec.Height = cubemapSize;
+
+		Ref<TextureCube> environmentMap = TextureCube::Create(cubemapSpec);
+
+        ShaderSpecification shaderSpec;
+        shaderSpec.VertexFilepath = "../assets/shaders/PreethamSky.glsl.vert";
+        shaderSpec.FragmentFilepath = "../assets/shaders/PreethamSky.glsl.frag";
+        Ref<Shader> preethamSkyShader = Shader::Create(shaderSpec);
+
+        // Create and sumbit to a new pipeline to bake environmentMap.
+
+        return environmentMap;
     }
 }

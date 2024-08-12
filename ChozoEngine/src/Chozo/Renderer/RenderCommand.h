@@ -36,6 +36,11 @@ namespace Chozo {
         {
             s_RendererAPI->DrawLines(vertexArray, vertexCount);
         }
+
+        inline static Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination)
+        {
+            return s_RendererAPI->CreatePreethamSky(turbidity, azimuth, inclination);
+        }
     private:
         static RendererAPI* s_RendererAPI;
     };

@@ -10,7 +10,7 @@
 
 namespace Chozo
 {
-    static const uint32_t s_MaxIndexCount = 2000;
+    static const uint32_t s_MaxIndexCount = 200000;
 
     template <typename T>
     struct MaxCount {

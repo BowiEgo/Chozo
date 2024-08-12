@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chozo/Renderer/RendererAPI.h"
+#include "Chozo/Renderer/Texture.h"
 
 namespace Chozo {
     
@@ -16,5 +17,7 @@ namespace Chozo {
 
         virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount) override;
         virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) override;
+
+        virtual Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination) override;
     };
 }

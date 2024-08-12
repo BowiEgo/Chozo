@@ -42,6 +42,25 @@ namespace Chozo {
 
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
     {
+        // Skylight
+        {
+            auto group = m_Registry.group<SkyLightComponent>(entt::get<TransformComponent>);
+
+            for (auto entity : group)
+            {
+                auto [transform, skyLight] = group.get<TransformComponent, SkyLightComponent>(entity);
+
+                if (!skyLight.SceneEnvironment && skyLight.DynamicSky)
+                {
+                    Ref<TextureCube> preethamEnv = Renderer::CreatePreethamSky(skyLight.TurbidityAzimuthInclination.x, skyLight.TurbidityAzimuthInclination.y, skyLight.TurbidityAzimuthInclination.z);
+                    skyLight.SceneEnvironment = std::make_shared<Environment>(preethamEnv, preethamEnv);
+                    m_Environment = skyLight.SceneEnvironment;
+                    m_EnvironmentIntensity = skyLight.Intensity;
+                    m_SkyboxLod = skyLight.Lod;
+                }
+            }
+        }
+
         // 3D Renderer
         Renderer::BeginScene(camera);
         // Renderer::BeginBatch();
@@ -270,6 +289,11 @@ namespace Chozo {
 
     template<>
     void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component)
     {
     }
 }

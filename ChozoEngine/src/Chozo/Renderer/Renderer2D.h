@@ -45,8 +45,6 @@ namespace Chozo {
 
         static void Submit(const Ref<Shader>& shader);
     
-        inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
-
         // Stats
         struct Statistics
         {

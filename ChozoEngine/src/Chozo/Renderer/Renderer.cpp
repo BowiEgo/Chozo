@@ -7,6 +7,7 @@
 
 namespace Chozo {
 
+    static Renderer::RendererConfig s_Config;
     static Renderer::RendererData s_Data;
 
     Renderer::SceneData* Renderer::m_SceneData = new Renderer::SceneData;
@@ -158,5 +159,20 @@ namespace Chozo {
 
     void Renderer::UpdateMaxTriagles(uint32_t count)
     {
+    }
+
+    Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
+    {
+		return RenderCommand::CreatePreethamSky(turbidity, azimuth, inclination);
+    }
+
+    Renderer::RendererConfig& Renderer::GetConfig()
+    {
+        return s_Config;
+    }
+
+    void Renderer::SetConfig(const Renderer::RendererConfig& config)
+    {
+        s_Config = config;
     }
 }

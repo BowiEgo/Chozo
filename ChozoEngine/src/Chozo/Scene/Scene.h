@@ -7,6 +7,7 @@
 #include "Chozo/Core/UUID.h"
 #include "Chozo/Core/Timestep.h"
 #include "Chozo/Renderer/EditorCamera.h"
+#include "Chozo/Renderer/Environment.h"
 
 namespace Chozo {
 
@@ -41,5 +42,9 @@ namespace Chozo {
         friend class SceneHierarchyPanel;
     private:
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+
+		Ref<Environment> m_Environment;
+		float m_EnvironmentIntensity = 0.0f;
+		float m_SkyboxLod = 1.0f;
     };
 }

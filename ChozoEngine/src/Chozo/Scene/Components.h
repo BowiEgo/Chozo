@@ -3,6 +3,7 @@
 #include "Chozo/Renderer/Texture.h"
 #include "Chozo/Renderer/Mesh.h"
 #include "Chozo/Renderer/Geometry/Geometry.h"
+#include "Chozo/Renderer/Environment.h"
 #include "Chozo/Core/UUID.h"
 #include "SceneCamera.h"
 
@@ -120,5 +121,16 @@ namespace Chozo {
             InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
             DestroyScript = [](NativeScriptComponent* nsc) { nsc->Instance.reset(); };
         }
+    };
+
+    struct SkyLightComponent
+    {
+        Ref<Environment> SceneEnvironment;
+
+        float Intensity = 1.0f;
+        float Lod = 0.0f;
+
+        bool DynamicSky = true;
+        glm::vec3 TurbidityAzimuthInclination = { 2.0f, 0.0f, 0.0f };
     };
 }

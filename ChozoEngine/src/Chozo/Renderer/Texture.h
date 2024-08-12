@@ -17,7 +17,7 @@ namespace Chozo {
         virtual void Bind(uint32_t slot = 0) const = 0;
     };
 
-    enum class Texture2DFormat
+    enum class ImageFormat
 	{
 		None = 0,
 		RED8UN,
@@ -45,7 +45,7 @@ namespace Chozo {
 		Depth = DEPTH24STENCIL8,
 	};
 
-    enum class Texture2DParameter
+    enum class ImageParameter
     {
         None = 0,
         LINEAR,
@@ -56,24 +56,30 @@ namespace Chozo {
         CLAMP_TO_BORDER
     };
 
-    struct Texture2DSpecification
+    struct TextureSpecification
     {
-		Texture2DFormat Format = Texture2DFormat::RGBA;
+		ImageFormat Format = ImageFormat::RGBA;
 
-        uint32_t width = 1, height = 1;
-        Texture2DParameter minFilter = Texture2DParameter::LINEAR;
-        Texture2DParameter magFilter = Texture2DParameter::NEAREST;
-        Texture2DParameter wrapS = Texture2DParameter::REPEAT;
-        Texture2DParameter wrapT = Texture2DParameter::REPEAT;
+        uint32_t Width = 1, Height = 1;
+        ImageParameter MinFilter = ImageParameter::LINEAR;
+        ImageParameter MagFilter = ImageParameter::NEAREST;
+        ImageParameter WrapS = ImageParameter::REPEAT;
+        ImageParameter WrapT = ImageParameter::REPEAT;
     };
 
     class Texture2D : public Texture
     {
     public:
-        static Ref<Texture2D> Create(const Texture2DSpecification& spec = Texture2DSpecification());
-        static Ref<Texture2D> Create(const std::string& path, const Texture2DSpecification& spec = Texture2DSpecification());
-		// static Ref<Texture2D> Create(const Texture2DSpecification& spec, Buffer imageData);
+        static Ref<Texture2D> Create(const TextureSpecification& spec = TextureSpecification());
+        static Ref<Texture2D> Create(const std::string& path, const TextureSpecification& spec = TextureSpecification());
+		// static Ref<Texture2D> Create(const TextureSpecification& spec, Buffer imageData);
 
 		virtual void SetData(const void* data, const uint32_t size) = 0;
+    };
+
+    class TextureCube : public Texture
+    {
+    public:
+        static Ref<TextureCube> Create(const TextureSpecification& spec = TextureSpecification());
     };
 }

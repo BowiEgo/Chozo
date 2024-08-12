@@ -156,6 +156,8 @@ namespace Chozo {
     std::string OpenGLShader::PreProcess(const std::string &source)
     {
         std::string modifiedSource = source;
+
+         // Max texture slots count is different by platforms, so we need to preprocess the fragment source.
         const std::string defineToken = "#define";
         const std::string typeToken = "MAX_TEXTURE_SLOTS";
         const std::string caseToken = "// case";

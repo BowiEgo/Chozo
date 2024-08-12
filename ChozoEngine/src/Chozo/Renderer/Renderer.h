@@ -20,6 +20,13 @@ namespace Chozo {
     {
     public:
 
+        struct RendererConfig
+        {
+            // Tiering settings
+            uint32_t EnvironmentMapResolution = 1024;
+            uint32_t IrradianceMapComputeSamples = 512;
+        };
+
         struct Statistics
         {
             uint32_t DrawCalls = 0;
@@ -72,7 +79,6 @@ namespace Chozo {
 
         static void RenderBatches();
 
-        // Primitives
         static bool SubmitMesh(StaticMesh* mesh);
         static bool RemoveMesh(StaticMesh* mesh);
         static void DrawMesh(const glm::mat4 transform, Ref<MeshSource> meshSource, uint32_t entityID = -1);
@@ -81,6 +87,11 @@ namespace Chozo {
 
         static RendererData GetRendererData();
         static void UpdateMaxTriagles(uint32_t count);
+
+		static Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination);
+
+        static RendererConfig& GetConfig();
+		static void SetConfig(const RendererConfig& config);
     private:
         struct SceneData
         {
