@@ -28,4 +28,21 @@ namespace Chozo {
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
         return nullptr;
     }
+
+    void ShaderLibrary::Load(std::string_view name, const std::string& vertexSrc, const std::string& fragmentSrc)
+    {
+        Ref<Shader> shader = Shader::Create(std::string(name), vertexSrc, fragmentSrc);
+        m_Shaders.emplace(name, shader);
+    }
+
+    const Ref<Shader>& ShaderLibrary::Get(const std::string &name) const
+    {
+		CZ_CORE_ASSERT(m_Shaders.find(name) != m_Shaders.end(), "");
+        return m_Shaders.at(name);
+    }
+
+    Ref<ShaderLibrary> ShaderLibrary::Create()
+    {
+        return std::make_shared<ShaderLibrary>();
+    }
 }

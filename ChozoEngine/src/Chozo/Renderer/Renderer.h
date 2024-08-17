@@ -52,7 +52,7 @@ namespace Chozo {
             uint32_t IndexCount = 0;
             BatchManager BatchManager;
 
-            Ref<Shader> Shader, SkyboxShader;
+    		Ref<ShaderLibrary> m_ShaderLibrary;
             int MaxTextureSlots = 0;
             uint32_t TextureSlotIndex = 1; // 0 = white texture
             std::vector<Ref<Texture2D>> TextureSlots;

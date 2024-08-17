@@ -65,11 +65,7 @@ namespace Chozo {
 
 		Ref<TextureCube> environmentMap = TextureCube::Create(cubemapSpec);
 
-        ShaderSpecification shaderSpec;
-        shaderSpec.VertexFilepath = "../assets/shaders/PreethamSky.glsl.vert";
-        shaderSpec.FragmentFilepath = "../assets/shaders/PreethamSky.glsl.frag";
-        Ref<Shader> preethamSkyShader = Shader::Create(shaderSpec);
-
+        Ref<Shader> preethamSkyShader = Renderer::GetRendererData().m_ShaderLibrary->Get("PreethamSky");
         preethamSkyShader->Bind();
         preethamSkyShader->UploadUniformFloat("uniforms.Turbidity", turbidity);
         preethamSkyShader->UploadUniformFloat("uniforms.Azimuth", azimuth);

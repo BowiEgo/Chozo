@@ -51,23 +51,19 @@ namespace Chozo {
         }
 
         // Shader
-        ShaderSpecification shaderSpec;
-        shaderSpec.VertexFilepath = "../assets/shaders/Shader.glsl.vert";
-        shaderSpec.FragmentFilepath = "../assets/shaders/Shader.glsl.frag";
-        s_Data.Shader = Shader::Create(shaderSpec);
-        s_Data.Shader->Bind();
-        s_Data.Shader->UploadUniformIntArray("u_Textures", samplers, s_Data.MaxTextureSlots);
+        s_Data.m_ShaderLibrary = ShaderLibrary::Create();
+        s_Data.m_ShaderLibrary->Load("Shader", "../assets/shaders/Shader.glsl.vert", "../assets/shaders/Shader.glsl.frag");
+        s_Data.m_ShaderLibrary->Get("Shader")->Bind();
+        s_Data.m_ShaderLibrary->Get("Shader")->UploadUniformIntArray("u_Textures", samplers, s_Data.MaxTextureSlots);
+        
+        s_Data.m_ShaderLibrary->Load("Skybox", "../assets/shaders/Skybox.glsl.vert", "../assets/shaders/Skybox.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("PreethamSky", "../assets/shaders/PreethamSky.glsl.vert", "../assets/shaders/PreethamSky.glsl.frag");
 
         // Uniform buffer
         s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData));
 
         // Skybox
         s_Data.SkyBoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(Geometry::Create(GeometryType::Box)));
-
-        ShaderSpecification skyboxShaderSpec;
-        skyboxShaderSpec.VertexFilepath = "../assets/shaders/Skybox.glsl.vert";
-        skyboxShaderSpec.FragmentFilepath = "../assets/shaders/Skybox.glsl.frag";
-        s_Data.SkyboxShader = Shader::Create(skyboxShaderSpec);
     }
 
     void Renderer::Shutdown()
@@ -108,8 +104,8 @@ namespace Chozo {
             if (vertexCount == 0 || indexCount == 0)
                 continue;
           
-            s_Data.Shader->Bind();
-            s_Data.Shader->UploadUniformFloat4("uniforms.Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
+            s_Data.m_ShaderLibrary->Get("Shader")->Bind();
+            s_Data.m_ShaderLibrary->Get("Shader")->UploadUniformFloat4("uniforms.Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
             RenderCommand::DrawIndexed(pair.second->VAO, indexCount * 3);
             s_Data.Stats.DrawCalls++;
 
@@ -191,15 +187,16 @@ namespace Chozo {
         glm::mat4 view = glm::mat3(camera.GetViewMatrix());
 
         environment->IrradianceMap->Bind();
-        s_Data.SkyboxShader->Bind();
+        s_Data.m_ShaderLibrary->Get("Skybox")->Bind();
 
-        s_Data.SkyboxShader->UploadUniformMat4("camera.ProjectionMatrix", proj);
-        s_Data.SkyboxShader->UploadUniformMat4("camera.ViewMatrix", view);
+        s_Data.m_ShaderLibrary->Get("Skybox")->UploadUniformMat4("camera.ProjectionMatrix", proj);
+        s_Data.m_ShaderLibrary->Get("Skybox")->UploadUniformMat4("camera.ViewMatrix", view);
 
-        s_Data.SkyboxShader->UploadUniformInt("u_Texture", 0);
-        s_Data.SkyboxShader->UploadUniformFloat("u_Uniforms.Intensity", environmentIntensity);
-        s_Data.SkyboxShader->UploadUniformFloat("u_Uniforms.TextureLod", skyboxLod);
+        s_Data.m_ShaderLibrary->Get("Skybox")->UploadUniformInt("u_Texture", 0);
+        s_Data.m_ShaderLibrary->Get("Skybox")->UploadUniformFloat("u_Uniforms.Intensity", environmentIntensity);
+        s_Data.m_ShaderLibrary->Get("Skybox")->UploadUniformFloat("u_Uniforms.TextureLod", skyboxLod);
 
+        // TODO: Remove OpenGL platform codes.
         glDepthFunc(GL_LEQUAL);
         RenderCommand::DrawIndexed(s_Data.SkyBoxMesh->GetVertexArray(), 0);
         glDepthFunc(GL_LESS);

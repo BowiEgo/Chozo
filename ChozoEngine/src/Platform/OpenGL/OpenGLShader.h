@@ -10,7 +10,7 @@ namespace Chozo {
     {
     public:
         OpenGLShader(const ShaderSpecification& spec);
-        OpenGLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
+        OpenGLShader(const std::string& name, const std::string& vertexFilePath, const std::string& fragmentFilePath);
         virtual ~OpenGLShader();
 
         virtual void Bind() const override;

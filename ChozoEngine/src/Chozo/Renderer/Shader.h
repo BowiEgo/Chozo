@@ -34,4 +34,19 @@ namespace Chozo {
         static Ref<Shader> Create(const ShaderSpecification& spec = ShaderSpecification());
         static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
     };
+
+    class ShaderLibrary
+    {
+    public:
+        ShaderLibrary() = default;
+        ~ShaderLibrary() {};
+
+		void Load(std::string_view name, const std::string& vertexSrc, const std::string& fragmentSrc);
+
+		const Ref<Shader>& Get(const std::string& name) const;
+
+        static Ref<ShaderLibrary> Create();
+    private:
+		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
+    };
 }

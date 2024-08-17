@@ -121,13 +121,39 @@ namespace Chozo {
         m_Name = spec.VertexFilepath.substr(lastSlash, count);
     }
 
-    OpenGLShader::OpenGLShader(const std::string& name, const std::string &vertexSrc, const std::string &fragmentSrc)
+    OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexFilePath, const std::string& fragmentFilePath)
         : m_Name(name)
     {
+        Utils::CreateCacheDirectoryIfNeeded();
+
         std::unordered_map<GLenum, std::string> shaderSources;
+        std::string vertexSrc = ReadFile(vertexFilePath);
+        std::string fragmentSrc = ReadFile(fragmentFilePath);
+        fragmentSrc = PreProcess(fragmentSrc);
         shaderSources[GL_VERTEX_SHADER] = vertexSrc;
         shaderSources[GL_FRAGMENT_SHADER] = fragmentSrc;
-        Compile(shaderSources);
+        // Compile(shaderSources);
+
+        std::filesystem::path vertexPath(vertexFilePath);
+        m_Filepaths[GL_VERTEX_SHADER] = vertexPath;
+        std::filesystem::path fragmentPath(fragmentFilePath);
+        m_Filepaths[GL_FRAGMENT_SHADER] = fragmentPath;
+
+        {
+            Timer timer;
+            CompileOrGetVulkanBinaries(shaderSources);
+            ConvertVulkanBinariesToOpenGL();
+            // CreateProgram();
+            Compile(m_OpenGLSourceCode);
+            CZ_CORE_WARN("Shader creation took {0} ms", timer.ElapsedMillis());
+        }
+
+        // Extract name from filepath
+        auto lastSlash = vertexFilePath.find_last_of("/\\");
+        lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
+        auto lastDot = vertexFilePath.rfind('.');
+        auto count = lastDot == std::string::npos ? vertexFilePath.size() - lastSlash : lastDot - lastSlash;
+        m_Name = vertexFilePath.substr(lastSlash, count);
     }
 
     OpenGLShader::~OpenGLShader()
