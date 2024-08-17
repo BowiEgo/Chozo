@@ -314,8 +314,8 @@ namespace Chozo {
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity)
         {
-            bool isExcluded = selectedEntity.HasComponent<CameraComponent>() && selectedEntity.GetComponent<CameraComponent>().Primary;
-            isExcluded = isExcluded && m_SceneState != SceneState::Edit;
+            bool isExcluded = (selectedEntity.HasComponent<CameraComponent>() && selectedEntity.GetComponent<CameraComponent>().Primary);
+            isExcluded = (isExcluded && m_SceneState != SceneState::Edit) || selectedEntity.HasComponent<SkyLightComponent>();
 
             if (!isExcluded)
             {
