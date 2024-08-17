@@ -11,6 +11,7 @@ layout(std140, binding = 0) uniform Camera
 {
     mat4 u_ProjectionMatrix;
     mat4 u_ViewMatrix;
+    mat4 u_InverseViewProjectionMatrix;
 };
 
 struct VertexOutput

@@ -8,6 +8,7 @@
 #include "Chozo/Core/Timestep.h"
 #include "Chozo/Renderer/EditorCamera.h"
 #include "Chozo/Renderer/Environment.h"
+#include "Chozo/Renderer/Pipeline.h"
 
 namespace Chozo {
 
@@ -31,6 +32,8 @@ namespace Chozo {
         void OnViewportResize(uint32_t width, uint32_t height);
 
         Entity GetPrimaryCameraEntity();
+
+        inline void SetFinalPipeline(Ref<Pipeline>& pipeline) { m_FinalPipeline = pipeline; };
     private:
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
@@ -46,5 +49,7 @@ namespace Chozo {
 		Ref<Environment> m_Environment;
 		float m_EnvironmentIntensity = 0.0f;
 		float m_SkyboxLod = 1.0f;
+
+        Ref<Pipeline> m_FinalPipeline;
     };
 }

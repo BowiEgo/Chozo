@@ -3,6 +3,9 @@
 #include "OpenGLUtils.h"
 
 #include "Chozo/Renderer/Renderer.h"
+#include "Chozo/Renderer/Mesh.h"
+// #include "OpenGLFrameBuffer.h"
+#include "OpenGLPipeline.h"
 
 #include <glad/glad.h>
 
@@ -67,6 +70,53 @@ namespace Chozo {
         shaderSpec.FragmentFilepath = "../assets/shaders/PreethamSky.glsl.frag";
         Ref<Shader> preethamSkyShader = Shader::Create(shaderSpec);
 
+        preethamSkyShader->Bind();
+        preethamSkyShader->UploadUniformFloat("uniforms.Turbidity", turbidity);
+        preethamSkyShader->UploadUniformFloat("uniforms.Azimuth", azimuth);
+        preethamSkyShader->UploadUniformFloat("uniforms.Inclination", inclination);
+
+        Ref<DynamicMesh> Box = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(Geometry::Create(GeometryType::Box)));
+
+        static const glm::mat4 captureViews[] = 
+        {
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+        };
+        static const glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+
+        FramebufferSpecification fbSpec;
+        fbSpec.Width = cubemapSize;
+        fbSpec.Height = cubemapSize;
+        fbSpec.Attachments = { ImageFormat::RGBA8 };
+        Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+
+        PipelineSpecification pipelineSpec;
+        pipelineSpec.Shader = preethamSkyShader;
+        pipelineSpec.TargetFramebuffer = framebuffer;
+        Ref<OpenGLPipeline> pipeline = std::make_shared<OpenGLPipeline>(pipelineSpec);
+
+        environmentMap->Bind();
+        pipeline->Submit([preethamSkyShader, environmentMap, Box]()
+        {
+            for (uint32_t i = 0; i < 6; ++i)
+            {
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, environmentMap->GetRendererID(), 0); GCE;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
+
+                preethamSkyShader->Bind();
+                preethamSkyShader->UploadUniformMat4("camera.ViewMatrix", captureViews[i]);
+                preethamSkyShader->UploadUniformMat4("camera.ProjectionMatrix", captureProjection);
+
+                // Box->GetVertexArray()->Bind();
+                RenderCommand::DrawIndexed(Box->GetVertexArray(), 0);
+                // glDrawArrays(GL_TRIANGLES, 0, 36); GCE;
+            }
+        });
         // Create and sumbit to a new pipeline to bake environmentMap.
 
         return environmentMap;

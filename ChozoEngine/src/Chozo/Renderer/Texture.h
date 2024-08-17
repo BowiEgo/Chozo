@@ -1,7 +1,9 @@
 #pragma once
 
 #include "czpch.h"
-#include "Chozo/Renderer/RendererTypes.h"
+
+#include "RendererTypes.h"
+#include "Image.h"
 
 namespace Chozo {
 
@@ -15,45 +17,7 @@ namespace Chozo {
 		virtual RendererID GetRendererID() const = 0;
 
         virtual void Bind(uint32_t slot = 0) const = 0;
-    };
-
-    enum class ImageFormat
-	{
-		None = 0,
-		RED8UN,
-		RED8UI,
-		RED16UI,
-		RED32UI,
-		RED32F,
-		RG8,
-		RG16F,
-		RG32F,
-		RGB,
-		RGBA,
-		RGBA16F,
-		RGBA32F,
-
-		B10R11G11UF,
-
-		SRGB,
-
-		DEPTH32FSTENCIL8UINT,
-		DEPTH32F,
-		DEPTH24STENCIL8,
-
-		// Defaults
-		Depth = DEPTH24STENCIL8,
-	};
-
-    enum class ImageParameter
-    {
-        None = 0,
-        LINEAR,
-        NEAREST,
-        REPEAT,
-        MIRRORED_REPEAT,
-        CLAMP_TO_EDGE,
-        CLAMP_TO_BORDER
+        virtual void Unbind() const = 0;
     };
 
     struct TextureSpecification

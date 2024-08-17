@@ -94,28 +94,28 @@ namespace Chozo
     {
     public:
         InstanceMesh() = default;
-        InstanceMesh(Ref<MeshSource>& meshSource);
+        InstanceMesh(Ref<MeshSource> meshSource);
         ~InstanceMesh() = default;
 
-        inline Ref<VertexArray> GetVertexArray() { return m_VertexArray; }
+        inline Ref<VertexArray> GetVertexArray() { return m_RenderSource->VAO; }
+        inline Ref<VertexBuffer> GetVertexBuffer() { return m_RenderSource->VBO; }
+        inline Ref<IndexBuffer> GetIndexBuffer() { return m_RenderSource->IBO; }
     private:
-        Ref<VertexArray> m_VertexArray;
-		Ref<VertexBuffer> m_VertexBuffer;
-        Ref<IndexBuffer> m_IndexBuffer;
+        Ref<RenderSource> m_RenderSource;
     };
 
     class DynamicMesh : public Mesh
     {
     public:
         DynamicMesh() = default;
-        DynamicMesh(Ref<MeshSource>& meshSource);
+        DynamicMesh(Ref<MeshSource> meshSource);
         ~DynamicMesh() = default;
 
-        inline Ref<VertexArray> GetVertexArray() { return m_VertexArray; }
+        inline Ref<VertexArray> GetVertexArray() { return m_RenderSource->VAO; }
+        inline Ref<VertexBuffer> GetVertexBuffer() { return m_RenderSource->VBO; }
+        inline Ref<IndexBuffer> GetIndexBuffer() { return m_RenderSource->IBO; }
     private:
-        Ref<VertexArray> m_VertexArray;
-		Ref<VertexBuffer> m_VertexBuffer;
-        Ref<IndexBuffer> m_IndexBuffer;
+        Ref<RenderSource> m_RenderSource;
     };
 
 }

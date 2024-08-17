@@ -73,28 +73,19 @@ namespace Chozo
     //////////////////////////////////////////////////////////
     //--------------------Dynamic Mesh----------------------//
     //////////////////////////////////////////////////////////
-    DynamicMesh::DynamicMesh(Ref<MeshSource> &meshSource)
+    DynamicMesh::DynamicMesh(Ref<MeshSource> meshSource)
         : Mesh(meshSource)
     {
-        // m_VertexArray = VertexArray::Create();
-        // m_VertexBuffer = VertexBuffer::Create(m_Vertexs.data(), (uint32_t)(m_Vertexs.size() * sizeof(Vertex)));
-        // m_VertexBuffer->SetLayout({
-        //     { ShaderDataType::Float3, "a_Position" },
-        //     { ShaderDataType::Float3, "a_Normal"   },
-        //     { ShaderDataType::Float2, "a_TexCoord" },
-        //     { ShaderDataType::Float3, "a_Tangent"  },
-        //     { ShaderDataType::Float3, "a_Binormal" },
-        //     { ShaderDataType::Int,    "a_EntityID" }
-        // });
-        // m_IndexBuffer = IndexBuffer::Create(m_Indices.data(), (uint32_t)(m_Indices.size() * sizeof(Index)));
-        // m_VertexArray->AddVertexBuffer(m_VertexBuffer);
-        // m_VertexArray->SetIndexBuffer(m_IndexBuffer);
+        m_MeshSource->AfterGenerate(true);
+        m_RenderSource = std::make_shared<RenderSource>(GetMaxCount<Vertex>(), GetMaxCount<Index>());
+        m_RenderSource->VBO->SetData(0, m_MeshSource->GetVertexs().size() * sizeof(Vertex), m_MeshSource->GetVertexs().data());
+        m_RenderSource->IBO->SetData(0, m_MeshSource->GetIndexs().size() * 3, m_MeshSource->GetIndexs().data());
     }
 
     //////////////////////////////////////////////////////////
     //--------------------Instance Mesh---------------------//
     //////////////////////////////////////////////////////////
-    InstanceMesh::InstanceMesh(Ref<MeshSource> &meshSource)
+    InstanceMesh::InstanceMesh(Ref<MeshSource> meshSource)
     {
     }
 }

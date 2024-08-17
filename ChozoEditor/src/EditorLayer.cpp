@@ -50,13 +50,18 @@ namespace Chozo {
         // Viewport
         // --------------------
         FramebufferSpecification fbSpec;
-        fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
+        fbSpec.Attachments = { ImageFormat::RGBA8, ImageFormat::RED_INTEGER, ImageFormat::Depth };
         m_Viewport_FBO = Framebuffer::Create(fbSpec);
         m_ID_FBO = Framebuffer::Create(fbSpec);
+
+        PipelineSpecification pipelineSpec;
+        pipelineSpec.TargetFramebuffer = m_Viewport_FBO;
+        m_Pipeline = Pipeline::Create(pipelineSpec);
         // --------------------
         // Scene
         // --------------------
         m_ActiveScene = std::make_shared<Scene>();
+        m_ActiveScene->SetFinalPipeline(m_Pipeline);
         // --------------------
         // Editor Camera
         // --------------------
@@ -140,13 +145,12 @@ namespace Chozo {
                 static_cast<CameraController*>(nsc_B.Instance.get())->SetActive(m_ViewportFocused);
         }
 
-
-        m_Viewport_FBO->Bind();
-        Renderer2D::ResetStats();
-        Renderer::ResetStats();
-        RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-        RenderCommand::Clear();
-        m_Viewport_FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
+        // m_Viewport_FBO->Bind();
+        // Renderer2D::ResetStats();
+        // Renderer::ResetStats();
+        // RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+        // RenderCommand::Clear();
+        // m_Viewport_FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
 
         // Update scene
         switch (m_SceneState)

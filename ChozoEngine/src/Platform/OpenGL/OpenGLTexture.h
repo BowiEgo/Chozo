@@ -17,6 +17,7 @@ namespace Chozo {
 		virtual RendererID GetRendererID() const override { return m_RendererID; };
 
         virtual void Bind(uint32_t slot = 0) const override;
+        virtual void Unbind() const override;
 
         virtual void SetData(const void* data, const uint32_t size) override;
     private:
@@ -32,11 +33,14 @@ namespace Chozo {
         OpenGLTextureCube(const TextureSpecification& spec);
         virtual ~OpenGLTextureCube();
 
+        void Invalidate();
+
         virtual uint32_t GetWidth() const override { return m_Width; };
         virtual uint32_t GetHeight() const override { return m_Height; };
 		virtual RendererID GetRendererID() const override { return m_RendererID; };
 
         virtual void Bind(uint32_t slot = 0) const override;
+        virtual void Unbind() const override;
     private:
         TextureSpecification m_Spec;
         uint32_t m_Width, m_Height;

@@ -43,8 +43,9 @@ namespace Chozo {
         Ref<Framebuffer> m_Viewport_FBO, m_ID_FBO;
         ImVec2 m_ViewportSize;
 		glm::vec2 m_ViewportBounds[2];
-        
         bool m_ViewportFocused, m_ViewportHovered;
+
+        Ref<Pipeline> m_Pipeline;
 
         Ref<Shader> m_Shader;
         Ref<Texture2D> m_CheckerboardTexture, m_OpenGLLogoTexture;
@@ -80,6 +81,7 @@ namespace Chozo {
         SceneState m_SceneState = SceneState::Edit;
 
         Ref<Texture2D> m_IconPlay, m_IconStop;
+
     };
 }
 

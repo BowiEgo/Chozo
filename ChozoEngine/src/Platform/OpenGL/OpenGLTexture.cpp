@@ -104,6 +104,11 @@ namespace Chozo
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
     }
 
+    void OpenGLTexture2D::Unbind() const
+    {
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
     void OpenGLTexture2D::SetData(const void *data, const uint32_t size)
     {
         Bind();
@@ -114,15 +119,43 @@ namespace Chozo
     //---------------------Texture Cube---------------------//
     //////////////////////////////////////////////////////////
     OpenGLTextureCube::OpenGLTextureCube(const TextureSpecification& spec)
-        : m_Spec(spec)
+        : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
+        Invalidate();
     }
 
     OpenGLTextureCube::~OpenGLTextureCube()
     {
     }
 
+    void OpenGLTextureCube::Invalidate()
+    {
+        if (m_RendererID)
+        {
+            glDeleteTextures(1, &m_RendererID);
+        }
+
+        glGenTextures(1, &m_RendererID);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
+        for (unsigned int i = 0; i < 6; ++i)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, m_Spec.Width, m_Spec.Height, 0, GL_RGB, GL_FLOAT, nullptr);
+        }
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+
     void OpenGLTextureCube::Bind(uint32_t slot) const
     {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
+    }
+
+    void OpenGLTextureCube::Unbind() const
+    {
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     }
 }

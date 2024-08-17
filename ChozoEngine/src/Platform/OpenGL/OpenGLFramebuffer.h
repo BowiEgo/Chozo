@@ -31,7 +31,7 @@ namespace Chozo {
         RendererID m_RendererID = 0;
 
         std::vector<FramebufferTextureSpecification> m_ColorAttachmentSpecs;
-        FramebufferTextureSpecification m_DepthAttachmentSpec = FramebufferTextureFormat::None;
+        FramebufferTextureSpecification m_DepthAttachmentSpec = ImageFormat::None;
 
         std::vector<uint32_t> m_ColorAttachments;
         uint32_t m_DepthAttachment;

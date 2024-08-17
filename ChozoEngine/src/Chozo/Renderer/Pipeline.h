@@ -18,6 +18,8 @@ namespace Chozo {
     public:
         ~Pipeline() = default;
 
-        static Ref<Pipeline> Create();
+        virtual Ref<Framebuffer> GetTargetFramebuffer() const = 0;
+
+        static Ref<Pipeline> Create(PipelineSpecification& spec);
     };
 }

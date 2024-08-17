@@ -3,33 +3,18 @@
 #include "czpch.h"
 #include <glm/glm.hpp>
 
-#include "Chozo/Renderer/RendererTypes.h"
+#include "RendererTypes.h"
+#include "Image.h"
 
 namespace Chozo {
-
-    enum class FramebufferTextureFormat
-    {
-        None = 0,
-
-        // Color
-        RGBA8,
-        // ID
-        RED_INTEGER,
-
-        // Depth/Stencil
-        DEPTH24STENCIL8,
-        
-        // Defaults
-        Depth = DEPTH24STENCIL8
-    };
 
     struct FramebufferTextureSpecification
     {
         FramebufferTextureSpecification() = default;
-        FramebufferTextureSpecification(FramebufferTextureFormat format)
+        FramebufferTextureSpecification(ImageFormat format)
             : TextureFormat(format) {};
 
-        FramebufferTextureFormat TextureFormat = FramebufferTextureFormat::None;
+        ImageFormat TextureFormat = ImageFormat::None;
         // TODO: filtering/wrap
     };
 

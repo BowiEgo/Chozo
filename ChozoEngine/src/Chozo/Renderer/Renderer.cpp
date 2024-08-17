@@ -60,6 +60,14 @@ namespace Chozo {
 
         // Uniform buffer
         s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData));
+
+        // Skybox
+        s_Data.SkyBoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(Geometry::Create(GeometryType::Box)));
+
+        ShaderSpecification skyboxShaderSpec;
+        skyboxShaderSpec.VertexFilepath = "../assets/shaders/Skybox.glsl.vert";
+        skyboxShaderSpec.FragmentFilepath = "../assets/shaders/Skybox.glsl.frag";
+        s_Data.SkyboxShader = Shader::Create(skyboxShaderSpec);
     }
 
     void Renderer::Shutdown()
@@ -70,6 +78,7 @@ namespace Chozo {
     {
         s_Data.CameraBuffer.ProjectionMatrix = projection;
         s_Data.CameraBuffer.ViewMatrix = glm::inverse(transform);
+        s_Data.CameraBuffer.InverseViewProjectionMatrix = glm::inverse(s_Data.CameraBuffer.ProjectionMatrix * s_Data.CameraBuffer.ViewMatrix);
         s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(RendererData::CameraData));
     }
 
@@ -100,7 +109,7 @@ namespace Chozo {
                 continue;
           
             s_Data.Shader->Bind();
-            s_Data.Shader->UploadUniformFloat4("pushConstants.u_Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
+            s_Data.Shader->UploadUniformFloat4("uniforms.Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
             RenderCommand::DrawIndexed(pair.second->VAO, indexCount * 3);
             s_Data.Stats.DrawCalls++;
 
@@ -174,5 +183,21 @@ namespace Chozo {
     void Renderer::SetConfig(const Renderer::RendererConfig& config)
     {
         s_Config = config;
+    }
+
+    void Renderer::DrawSkyLight(Ref<Environment>& environment, float& environmentIntensity, float& skyboxLod)
+    {
+        environment->IrradianceMap->Bind();
+        s_Data.SkyboxShader->Bind();
+        s_Data.SkyboxShader->UploadUniformInt("u_Texture", 0);
+        s_Data.SkyboxShader->UploadUniformFloat("u_Uniforms.Intensity", environmentIntensity);
+        s_Data.SkyboxShader->UploadUniformFloat("u_Uniforms.TextureLod", skyboxLod);
+
+        // s_Data.Shader->Bind();
+        // s_Data.SkyBoxMesh->GetVertexArray()->Bind();
+        // glDrawArrays(GL_TRIANGLES, 0, 36);
+        // glDepthFunc(GL_LEQUAL);
+        RenderCommand::DrawIndexed(s_Data.SkyBoxMesh->GetVertexArray(), 0);
+        // glDepthFunc(GL_LESS);
     }
 }

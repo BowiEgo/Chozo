@@ -39,7 +39,7 @@ namespace Chozo {
         void Reflect(GLenum stage, const std::vector<uint32_t>& shaderData);
     private:
         uint32_t m_RendererID;
-        std::string m_Filepath;
+        std::unordered_map<GLenum, std::string> m_Filepaths;
         std::string m_Name;
         mutable std::unordered_map<std::string, int> m_UniformLocationCache;
 

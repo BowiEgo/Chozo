@@ -7,14 +7,14 @@ layout(location = 0) in vec3 v_Normal;
 layout(location = 1) in vec2 v_TexCoord;
 layout(location = 2) in flat int v_EntityID;
 
-layout(push_constant) uniform PushConstants
+layout(push_constant) uniform Uniforms
 {
-    vec4 u_Color;
-} pushConstants;
+    vec4 Color;
+} uniforms;
 
 void main()
 {
-    vec4 texColor = pushConstants.u_Color;
+    vec4 texColor = uniforms.Color;
 
     o_Color = texColor;
     o_EntityID = v_EntityID;

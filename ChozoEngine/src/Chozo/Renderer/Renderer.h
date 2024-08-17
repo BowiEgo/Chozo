@@ -44,6 +44,7 @@ namespace Chozo {
         {
             glm::mat4 PrjectionMatrix;
             glm::mat4 ViewMatrix;
+
         };
 
         struct RendererData
@@ -51,7 +52,7 @@ namespace Chozo {
             uint32_t IndexCount = 0;
             BatchManager BatchManager;
 
-            Ref<Shader> Shader;
+            Ref<Shader> Shader, SkyboxShader;
             int MaxTextureSlots = 0;
             uint32_t TextureSlotIndex = 1; // 0 = white texture
             std::vector<Ref<Texture2D>> TextureSlots;
@@ -61,6 +62,7 @@ namespace Chozo {
             {
                 glm::mat4 ProjectionMatrix;
                 glm::mat4 ViewMatrix;
+                glm::mat4 InverseViewProjectionMatrix;
             };
             CameraData CameraBuffer;
             Ref<UniformBuffer> CameraUniformBuffer;
@@ -68,6 +70,8 @@ namespace Chozo {
             Renderer::Statistics Stats;
 
             uint32_t GetMaxTriangles() { return GetMaxCount<Index>(); }
+
+            Ref<DynamicMesh> SkyBoxMesh;
         };
 
         static void Init();
@@ -92,6 +96,8 @@ namespace Chozo {
 
         static RendererConfig& GetConfig();
 		static void SetConfig(const RendererConfig& config);
+
+        static void DrawSkyLight(Ref<Environment>& environment, float& environmentIntensity, float& skyboxLod);
     private:
         struct SceneData
         {

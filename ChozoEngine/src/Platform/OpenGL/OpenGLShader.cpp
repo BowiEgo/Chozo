@@ -99,8 +99,10 @@ namespace Chozo {
         shaderSources[GL_FRAGMENT_SHADER] = fragmentSrc;
         // Compile(shaderSources);
 
-        std::filesystem::path path(spec.VertexFilepath);
-        m_Filepath = path;
+        std::filesystem::path vertexPath(spec.VertexFilepath);
+        m_Filepaths[GL_VERTEX_SHADER] = vertexPath;
+        std::filesystem::path fragmentPath(spec.FragmentFilepath);
+        m_Filepaths[GL_FRAGMENT_SHADER] = fragmentPath;
 
         {
             Timer timer;
@@ -201,7 +203,7 @@ namespace Chozo {
 
         for (auto& kv : shaderSources)
         {
-            // CZ_CORE_WARN("Compile Source: {0}", kv.second);
+            CZ_CORE_WARN("Compile Source: {0}", kv.second);
             GLenum type = kv.first;
             const std::string& source = kv.second;
 
@@ -268,8 +270,6 @@ namespace Chozo {
 
     void OpenGLShader::CompileOrGetVulkanBinaries(const std::unordered_map<GLenum, std::string> &shaderSources)
     {
-        GLuint program = glCreateProgram();
-
         shaderc::Compiler compiler;
         shaderc::CompileOptions options;
         options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
@@ -283,7 +283,7 @@ namespace Chozo {
         shaderData.clear();
         for (auto&& [stage, source] : shaderSources)
         {
-            std::filesystem::path shaderFilepath = m_Filepath;
+            std::filesystem::path shaderFilepath = m_Filepaths[stage];
             std::filesystem::path cachePath = cacheDirectory / (shaderFilepath.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
 
             std::ifstream in(cachePath, std::ios::in | std::ios::binary);
@@ -299,7 +299,7 @@ namespace Chozo {
             }
             else
             {
-                shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_Filepath.c_str(), options);
+                shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_Filepaths[stage].c_str(), options);
                 if (module.GetCompilationStatus() != shaderc_compilation_status_success)
                 {
                     CZ_CORE_ERROR(module.GetErrorMessage());
@@ -340,7 +340,7 @@ namespace Chozo {
         m_OpenGLSourceCode.clear();
         for (auto&& [stage, spirv] : m_VulkanSPIRV)
         {
-            std::filesystem::path shaderFilepath = m_Filepath;
+            std::filesystem::path shaderFilepath = m_Filepaths[stage];
             std::filesystem::path cachePath = cacheDirectory / (shaderFilepath.filename().string() + Utils::GLShaderStageCachedOpenGLFileExtension(stage));
 
             std::ifstream in(cachePath, std::ios::in | std::ios::binary);
@@ -382,7 +382,7 @@ namespace Chozo {
 
             std::vector<GLchar> infoLog(maxLength);
             glGetProgramInfoLog(program, maxLength, &maxLength, infoLog.data());
-            CZ_CORE_ERROR("Shader linking failed ({0}):\n{1}", m_Filepath, infoLog.data());
+            CZ_CORE_ERROR("Shader linking failed ({0}):\n{1}", m_Filepaths[GL_VERTEX_SHADER], infoLog.data());
 
             glDeleteProgram(program);
 
@@ -404,7 +404,7 @@ namespace Chozo {
         spirv_cross::Compiler compiler(shaderData);
         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
-        CZ_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_Filepath);
+        CZ_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_Filepaths[stage]);
         CZ_CORE_TRACE("   {0} uinform buffers", resources.uniform_buffers.size());
         CZ_CORE_TRACE("   {0} resources", resources.sampled_images.size());
 

@@ -42,6 +42,14 @@ namespace Chozo {
 
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
     {
+        Ref<Framebuffer> FBO = m_FinalPipeline->GetTargetFramebuffer();
+        FBO->Bind();
+        Renderer2D::ResetStats();
+        Renderer::ResetStats();
+        RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+        RenderCommand::Clear();
+        FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
+
         // Skylight
         {
             auto group = m_Registry.group<SkyLightComponent>(entt::get<TransformComponent>);
@@ -58,10 +66,13 @@ namespace Chozo {
                     m_EnvironmentIntensity = skyLight.Intensity;
                     m_SkyboxLod = skyLight.Lod;
                 }
+
+                Renderer::DrawSkyLight(m_Environment, m_EnvironmentIntensity, m_SkyboxLod);
             }
         }
 
         // 3D Renderer
+        FBO->Bind();
         Renderer::BeginScene(camera);
         // Renderer::BeginBatch();
 
@@ -122,6 +133,14 @@ namespace Chozo {
 
     void Scene::OnUpdateRuntime(Timestep ts)
     {
+        Ref<Framebuffer> FBO = m_FinalPipeline->GetTargetFramebuffer();
+        FBO->Bind();
+        Renderer2D::ResetStats();
+        Renderer::ResetStats();
+        RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+        RenderCommand::Clear();
+        FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
+        
         // Update scripts
         {
             m_Registry.view<NativeScriptComponent>().each([=](auto entity, NativeScriptComponent& nsc)
@@ -138,6 +157,27 @@ namespace Chozo {
                 nsc.Instance->OnUpdate(ts);
             });
         }
+
+        // // Skylight
+        // {
+        //     auto group = m_Registry.group<SkyLightComponent>(entt::get<TransformComponent>);
+
+        //     for (auto entity : group)
+        //     {
+        //         auto [transform, skyLight] = group.get<TransformComponent, SkyLightComponent>(entity);
+
+        //         if (!skyLight.SceneEnvironment && skyLight.DynamicSky)
+        //         {
+        //             Ref<TextureCube> preethamEnv = Renderer::CreatePreethamSky(skyLight.TurbidityAzimuthInclination.x, skyLight.TurbidityAzimuthInclination.y, skyLight.TurbidityAzimuthInclination.z);
+        //             skyLight.SceneEnvironment = std::make_shared<Environment>(preethamEnv, preethamEnv);
+        //             m_Environment = skyLight.SceneEnvironment;
+        //             m_EnvironmentIntensity = skyLight.Intensity;
+        //             m_SkyboxLod = skyLight.Lod;
+        //         }
+
+        //         Renderer::DrawSkyLight(m_Environment, m_EnvironmentIntensity, m_SkyboxLod);
+        //     }
+        // }
 
         // Render 2D scene
         {
