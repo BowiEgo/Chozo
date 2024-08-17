@@ -450,5 +450,43 @@ namespace Chozo {
                 }
             }
         });
+
+        DrawComponent<SkyLightComponent>("SkyLight", entity, [](auto& component)
+        {
+            DrawColumnValue<float>("Skybox LOD", component.Lod, [&](auto& target) {
+                ImGui::DragFloat("##Skybox LOD", &target, 0.1f, 0.0f, 10.0f);
+            });
+
+            DrawColumnValue<float>("Intensity", component.Intensity, [&](auto& target) {
+                ImGui::DragFloat("##Intensity", &target, 0.1f, 0.0f, 10.0f);
+            });
+
+            // DrawColumnValue<glm::vec3>("Light Direction", s_LightDirection, [&](auto& target) {
+            //     DrawVec3Control("Light Direction", s_LightDirection, 0.0f, 1.0f);
+            // });
+
+            // DrawColumnValue<float>("Light Multiplier", s_LightMultiplier, [&](auto& target) {
+            //     if (ImGui::SliderFloat("##Light Multiplier", &target, 0.0f, 10.0f))
+            //         s_LightMultiplier = target;
+            // });
+
+            // DrawColumnValue<float>("Exposure", s_Exposure, [&](auto& target) {
+            //     if (ImGui::SliderFloat("##Exposure", &target, 0.0f, 10.0f))
+            //         s_Exposure = target;
+            // });
+
+            // DrawColumnValue<bool>("Radiance Prefiltering", s_RadiancePrefiltering, [&](auto& target) {
+            //     ImGui::Checkbox("##Radiance Prefiltering", &target);
+            // });
+
+            // DrawColumnValue<float>("EnvMapRotation", s_EnvMapRotation, [&](auto& target) {
+            //     if (ImGui::DragFloat("##EnvMapRotation", &target, 0.1f, 0.0f, 10.0f))
+            //         s_EnvMapRotation = target;
+            // });
+
+            // DrawColumnValue<bool>("Show Bounding Boxes", s_ShowBoundingBoxes, [&](auto& target) {
+            //     ImGui::Checkbox("##Show Bounding Boxes", &target);
+            // });
+        });
     }
 }

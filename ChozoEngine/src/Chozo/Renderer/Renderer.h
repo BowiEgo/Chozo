@@ -97,7 +97,7 @@ namespace Chozo {
         static RendererConfig& GetConfig();
 		static void SetConfig(const RendererConfig& config);
 
-        static void DrawSkyLight(Ref<Environment>& environment, float& environmentIntensity, float& skyboxLod);
+        static void DrawSkyLight(Ref<Environment>& environment, float& environmentIntensity, float& skyboxLod, EditorCamera& camera);
     private:
         struct SceneData
         {

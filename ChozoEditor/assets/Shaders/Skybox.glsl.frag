@@ -14,7 +14,5 @@ layout (push_constant) uniform Uniforms
 void main()
 {
 	o_Color = textureLod(u_Texture, v_TexCoords, u_Uniforms.TextureLod) * u_Uniforms.Intensity;
-	// o_Color = textureLod(u_Texture, v_TexCoords, 0.0);
-	// o_Color = vec4(1.0, 0.5, 0.3, 1.0);
 	o_Color.a = 1.0;
 }

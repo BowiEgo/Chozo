@@ -12,7 +12,6 @@ layout(location = 0) out vec3 v_WorldPosition;
 
 void main()
 {
-    vec4 modelPosition = mat4(1.0) * vec4(a_Position, 1.0);
-    gl_Position = camera.ProjectionMatrix * camera.ViewMatrix * modelPosition;
     v_WorldPosition = a_Position;
+    gl_Position = camera.ProjectionMatrix * camera.ViewMatrix * vec4(a_Position, 1.0);
 }

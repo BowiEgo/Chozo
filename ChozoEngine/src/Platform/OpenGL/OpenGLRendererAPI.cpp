@@ -94,6 +94,7 @@ namespace Chozo {
         fbSpec.Attachments = { ImageFormat::RGBA8 };
         Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
+        // Create and sumbit to a new pipeline to bake environmentMap.
         PipelineSpecification pipelineSpec;
         pipelineSpec.Shader = preethamSkyShader;
         pipelineSpec.TargetFramebuffer = framebuffer;
@@ -112,12 +113,9 @@ namespace Chozo {
                 preethamSkyShader->UploadUniformMat4("camera.ViewMatrix", captureViews[i]);
                 preethamSkyShader->UploadUniformMat4("camera.ProjectionMatrix", captureProjection);
 
-                // Box->GetVertexArray()->Bind();
                 RenderCommand::DrawIndexed(Box->GetVertexArray(), 0);
-                // glDrawArrays(GL_TRIANGLES, 0, 36); GCE;
             }
         });
-        // Create and sumbit to a new pipeline to bake environmentMap.
 
         return environmentMap;
     }

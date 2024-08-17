@@ -132,11 +132,12 @@ void main()
 {
     vec2 uv = SampleSphericalMap(normalize(v_WorldPosition)); // make sure to normalize v_WorldPosition
 
-	float turbidity     =  uniforms.Turbidity;
+	float turbidity     = uniforms.Turbidity;
     float azimuth       = uniforms.Azimuth;
     float inclination   = uniforms.Inclination;
     vec3 sunDir     	= normalize( vec3( sin(inclination) * cos(azimuth), cos(inclination), sin(inclination) * sin(azimuth) ) );
-    vec3 viewDir  		= -computeSphericalCoordinates( uv ).xzy;
+    // vec3 viewDir  		= -computeSphericalCoordinates( uv ).xzy;
+    vec3 viewDir  		= normalize(v_WorldPosition);
     vec3 skyLuminance 	= calculateSkyLuminanceRGB( sunDir, viewDir, turbidity );
 
     o_Color = vec4(skyLuminance * 0.05, 1.0);

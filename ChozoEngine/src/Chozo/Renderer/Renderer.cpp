@@ -185,19 +185,23 @@ namespace Chozo {
         s_Config = config;
     }
 
-    void Renderer::DrawSkyLight(Ref<Environment>& environment, float& environmentIntensity, float& skyboxLod)
+    void Renderer::DrawSkyLight(Ref<Environment>& environment, float& environmentIntensity, float& skyboxLod, EditorCamera& camera)
     {
+        glm::mat4 proj = camera.GetProjection();
+        glm::mat4 view = glm::mat3(camera.GetViewMatrix());
+
         environment->IrradianceMap->Bind();
         s_Data.SkyboxShader->Bind();
+
+        s_Data.SkyboxShader->UploadUniformMat4("camera.ProjectionMatrix", proj);
+        s_Data.SkyboxShader->UploadUniformMat4("camera.ViewMatrix", view);
+
         s_Data.SkyboxShader->UploadUniformInt("u_Texture", 0);
         s_Data.SkyboxShader->UploadUniformFloat("u_Uniforms.Intensity", environmentIntensity);
         s_Data.SkyboxShader->UploadUniformFloat("u_Uniforms.TextureLod", skyboxLod);
 
-        // s_Data.Shader->Bind();
-        // s_Data.SkyBoxMesh->GetVertexArray()->Bind();
-        // glDrawArrays(GL_TRIANGLES, 0, 36);
-        // glDepthFunc(GL_LEQUAL);
+        glDepthFunc(GL_LEQUAL);
         RenderCommand::DrawIndexed(s_Data.SkyBoxMesh->GetVertexArray(), 0);
-        // glDepthFunc(GL_LESS);
+        glDepthFunc(GL_LESS);
     }
 }
