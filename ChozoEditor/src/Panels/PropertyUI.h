@@ -19,14 +19,17 @@ namespace Chozo {
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
         float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-        ImVec2 buttonSize = { 4.0f, lineHeight };
+        ImVec2 buttonSize = { 8.0f, lineHeight };
 
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.5f, 0.1f, 0.15f, 1.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.5f, 0.1f, 0.15f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("", buttonSize))
+        {
             values.x = resetValue;
+            valueChanged = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
@@ -40,7 +43,10 @@ namespace Chozo {
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.5f, 0.2f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("", buttonSize))
+        {
             values.y = resetValue;
+            valueChanged = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
@@ -54,7 +60,10 @@ namespace Chozo {
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.5f, 1.0f });
         ImGui::PushFont(boldFont);
         if (ImGui::Button("", buttonSize))
+        {
             values.z = resetValue;
+            valueChanged = true;
+        }
         ImGui::PopFont();
         ImGui::PopStyleColor(3);
 
