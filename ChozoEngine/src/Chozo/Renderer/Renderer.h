@@ -9,6 +9,7 @@
 #include "Texture.h"
 #include "Mesh.h"
 #include "UniformBuffer.h"
+#include "RenderPass.h"
 
 #include "Batch.h"
 
@@ -72,6 +73,8 @@ namespace Chozo {
             uint32_t GetMaxTriangles() { return GetMaxCount<Index>(); }
 
             Ref<DynamicMesh> SkyBoxMesh;
+
+		    Ref<RenderPass> m_PreethamSkyRenderPass;
         };
 
         static void Init();
@@ -92,7 +95,8 @@ namespace Chozo {
         static RendererData GetRendererData();
         static void UpdateMaxTriagles(uint32_t count);
 
-		static Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination);
+		static void RenderPreethamSky(float turbidity, float azimuth, float inclination);
+		static void CreatePreethamSky(float turbidity, float azimuth, float inclination);
 
         static RendererConfig& GetConfig();
 		static void SetConfig(const RendererConfig& config);

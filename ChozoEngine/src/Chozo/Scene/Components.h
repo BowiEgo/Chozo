@@ -131,6 +131,6 @@ namespace Chozo {
         float Lod = 0.0f;
 
         bool DynamicSky = true;
-        glm::vec3 TurbidityAzimuthInclination = { 2.0f, 0.0f, 0.0f };
+        glm::vec3 TurbidityAzimuthInclination = { 3.0f, 0.0f, 0.0f };
     };
 }

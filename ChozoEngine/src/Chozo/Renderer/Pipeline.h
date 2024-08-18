@@ -4,6 +4,7 @@
 
 #include "Shader.h"
 #include "Framebuffer.h"
+#include "Mesh.h"
 
 namespace Chozo {
 
@@ -11,6 +12,7 @@ namespace Chozo {
     {
         Ref<Shader> Shader;
         Ref<Framebuffer> TargetFramebuffer;
+        Ref<DynamicMesh> DynamicMesh;
     };
 
     class Pipeline
@@ -18,7 +20,11 @@ namespace Chozo {
     public:
         ~Pipeline() = default;
 
+        virtual Ref<Shader> GetShader() const = 0;
         virtual Ref<Framebuffer> GetTargetFramebuffer() const = 0;
+        virtual Ref<DynamicMesh> GetDynamicMesh() const = 0;
+
+        virtual void Submit() = 0;
 
         static Ref<Pipeline> Create(PipelineSpecification& spec);
     };

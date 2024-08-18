@@ -64,6 +64,36 @@ namespace Chozo {
 
         // Skybox
         s_Data.SkyBoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(Geometry::Create(GeometryType::Box)));
+        // PreethamSky
+        {
+            Ref<Shader> preethamSkyShader = Renderer::GetRendererData().m_ShaderLibrary->Get("PreethamSky");
+
+            const uint32_t cubemapSize = Renderer::GetConfig().EnvironmentMapResolution;
+            // const uint32_t irradianceMapSize = 32;
+
+            TextureSpecification cubemapSpec;
+            cubemapSpec.Format = ImageFormat::RGBA32F;
+            cubemapSpec.Width = cubemapSize;
+            cubemapSpec.Height = cubemapSize;
+    		Ref<TextureCube> environmentMap = TextureCube::Create(cubemapSpec);
+
+            FramebufferSpecification fbSpec;
+            fbSpec.Width = cubemapSize;
+            fbSpec.Height = cubemapSize;
+            fbSpec.Attachments = { ImageFormat::RGBA8 };
+            Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+
+            PipelineSpecification pipelineSpec;
+            pipelineSpec.Shader = preethamSkyShader;
+            pipelineSpec.TargetFramebuffer = framebuffer;
+            pipelineSpec.DynamicMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(Geometry::Create(GeometryType::Box)));
+            Ref<Pipeline> preethamSkyPipeline = Pipeline::Create(pipelineSpec);
+
+            RenderPassSpecification renderPassSpec;
+            renderPassSpec.Pipeline = preethamSkyPipeline;
+            s_Data.m_PreethamSkyRenderPass = RenderPass::Create(renderPassSpec);
+            s_Data.m_PreethamSkyRenderPass->SetOutput("EnvMap", environmentMap);
+        }
     }
 
     void Renderer::Shutdown()
@@ -104,8 +134,9 @@ namespace Chozo {
             if (vertexCount == 0 || indexCount == 0)
                 continue;
           
-            s_Data.m_ShaderLibrary->Get("Shader")->Bind();
-            s_Data.m_ShaderLibrary->Get("Shader")->UploadUniformFloat4("uniforms.Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
+            Ref<Shader> shader = s_Data.m_ShaderLibrary->Get("Shader");
+            shader->Bind();
+            shader->UploadUniformFloat4("uniforms.Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
             RenderCommand::DrawIndexed(pair.second->VAO, indexCount * 3);
             s_Data.Stats.DrawCalls++;
 
@@ -166,9 +197,9 @@ namespace Chozo {
     {
     }
 
-    Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
+    void Renderer::RenderPreethamSky(float turbidity, float azimuth, float inclination)
     {
-		return RenderCommand::CreatePreethamSky(turbidity, azimuth, inclination);
+		RenderCommand::RenderPreethamSky(turbidity, azimuth, inclination);
     }
 
     Renderer::RendererConfig& Renderer::GetConfig()
@@ -187,14 +218,15 @@ namespace Chozo {
         glm::mat4 view = glm::mat3(camera.GetViewMatrix());
 
         environment->IrradianceMap->Bind();
-        s_Data.m_ShaderLibrary->Get("Skybox")->Bind();
+        Ref<Shader> shader = s_Data.m_ShaderLibrary->Get("Skybox");
+        shader->Bind();
 
-        s_Data.m_ShaderLibrary->Get("Skybox")->UploadUniformMat4("camera.ProjectionMatrix", proj);
-        s_Data.m_ShaderLibrary->Get("Skybox")->UploadUniformMat4("camera.ViewMatrix", view);
+        shader->UploadUniformMat4("camera.ProjectionMatrix", proj);
+        shader->UploadUniformMat4("camera.ViewMatrix", view);
 
-        s_Data.m_ShaderLibrary->Get("Skybox")->UploadUniformInt("u_Texture", 0);
-        s_Data.m_ShaderLibrary->Get("Skybox")->UploadUniformFloat("u_Uniforms.Intensity", environmentIntensity);
-        s_Data.m_ShaderLibrary->Get("Skybox")->UploadUniformFloat("u_Uniforms.TextureLod", skyboxLod);
+        shader->UploadUniformInt("u_Texture", 0);
+        shader->UploadUniformFloat("u_Uniforms.Intensity", environmentIntensity);
+        shader->UploadUniformFloat("u_Uniforms.TextureLod", skyboxLod);
 
         // TODO: Remove OpenGL platform codes.
         glDepthFunc(GL_LEQUAL);

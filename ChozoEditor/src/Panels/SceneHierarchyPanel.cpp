@@ -461,6 +461,11 @@ namespace Chozo {
                 ImGui::DragFloat("##Intensity", &target, 0.1f, 0.0f, 10.0f);
             });
 
+            DrawColumnValue<glm::vec3>("TurbidityAzimuthInclination", component.TurbidityAzimuthInclination, [&](auto& target) {
+                if (DrawVec3Control("TurbidityAzimuthInclination", component.TurbidityAzimuthInclination, 0.0f, 0.01f))
+                    RenderCommand::RenderPreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
+            });
+
             // DrawColumnValue<glm::vec3>("Light Direction", s_LightDirection, [&](auto& target) {
             //     DrawVec3Control("Light Direction", s_LightDirection, 0.0f, 1.0f);
             // });

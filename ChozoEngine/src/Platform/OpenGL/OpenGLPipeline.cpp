@@ -4,7 +4,7 @@ namespace Chozo
 {
 
     OpenGLPipeline::OpenGLPipeline(PipelineSpecification &spec)
-        : m_Shader(spec.Shader), m_TargetFramebuffer(spec.TargetFramebuffer)
+        : m_Shader(spec.Shader), m_TargetFramebuffer(spec.TargetFramebuffer), m_DynamicMesh(spec.DynamicMesh)
     {
     }
 
@@ -16,5 +16,12 @@ namespace Chozo
     void OpenGLPipeline::End()
     {
         m_TargetFramebuffer->Unbind();
+    }
+
+    void OpenGLPipeline::Render()
+    {
+        Begin();
+        m_RenderFunction();
+        End();
     }
 }

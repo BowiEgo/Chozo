@@ -26,7 +26,7 @@ namespace Chozo {
         virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount) = 0;
         virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) = 0;
 
-        virtual Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination) = 0;
+        virtual void RenderPreethamSky(float turbidity, float azimuth, float inclination) = 0;
     
         inline static API GetAPI() { return s_API; }
     private:
