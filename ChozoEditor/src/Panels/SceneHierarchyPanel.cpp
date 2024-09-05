@@ -370,8 +370,32 @@ namespace Chozo {
             });
         });
 
-        DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
+        DrawComponent<MeshComponent>("Mesh", entity, [entity](auto& component)
         {
+            // Mesh types
+            const char* meshTypeStrings[] = { "Dynamic", "Instanced", "Static" };
+            const char* currentMeshType = meshTypeStrings[(int)component.Type];
+            DrawColumnValue<const char*>("Type", currentMeshType, [&](auto& target) {
+                if (ImGui::BeginCombo("##Type", target))
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        bool isSelected = target == meshTypeStrings[i];
+                        if (ImGui::Selectable(meshTypeStrings[i], isSelected))
+                        {
+                            target = meshTypeStrings[i];
+                            component.Type = MeshType(i);
+                            component.GenerateMeshInstance();
+                        }
+                        
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+
+                    ImGui::EndCombo();
+                }
+            });
+
             if (Geometry* geom = dynamic_cast<Geometry*>(component.MeshInstance->GetMeshSource().get()))
             {
                 if (BoxGeometry* box = dynamic_cast<BoxGeometry*>(geom))

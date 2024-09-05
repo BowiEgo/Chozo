@@ -136,7 +136,7 @@ namespace Chozo {
           
             Ref<Shader> shader = s_Data.m_ShaderLibrary->Get("Shader");
             shader->Bind();
-            shader->UploadUniformMat4("u_VertexUniform.ModelMatrix", glm::mat4(1.0));
+            shader->UploadUniformMat4("u_VertexUniforms.ModelMatrix", glm::mat4(1.0));
             shader->UploadUniformFloat4("uniforms.Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
             RenderCommand::DrawIndexed(pair.second->VAO, indexCount * 3);
             s_Data.Stats.DrawCalls++;
@@ -158,9 +158,11 @@ namespace Chozo {
         );
         if (!segmentID.isValid())
         {
+            mesh->OnSubmit(false);
             return false;
         }
         mesh->SetBufferSegmentID(segmentID);
+        mesh->OnSubmit(true);
         return true;
     }
 

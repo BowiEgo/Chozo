@@ -48,12 +48,12 @@ namespace Chozo
         inline uint32_t GetEntityID() const { return m_EntityID; }
         inline void SetEntityID(uint32_t id) { m_EntityID = id; }
 
+        void CallGenerate();
         void AfterGenerate(bool successed);
     protected:
         virtual void Backup() = 0;
         virtual void Backtrace() = 0;
         virtual MeshBuffer* Generate() = 0;
-        void CallGenerate();
     protected:
         MeshBuffer m_Buffer;
         glm::mat4 m_LocalTransform{1.0f};

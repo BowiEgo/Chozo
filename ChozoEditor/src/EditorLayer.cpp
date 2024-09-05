@@ -179,7 +179,6 @@ namespace Chozo {
         {
             int pixelID = m_Viewport_FBO->ReadPixel(1, mx, my);
             m_Entity_Hovered = pixelID == -1 ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
-            // CZ_INFO("{0}-{1}, {2}", mx, my, pixelID);
         }
 
         m_Viewport_FBO->Unbind();

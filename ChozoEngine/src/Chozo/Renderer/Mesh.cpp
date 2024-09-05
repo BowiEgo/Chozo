@@ -82,6 +82,7 @@ namespace Chozo
     void StaticMesh::CallRemove()
     {
         CZ_CORE_INFO("CallRemove");
+        m_MeshSource->SetLocalTransform(glm::mat4(1.0f));
         Renderer::RemoveStaticMesh(this);
     }
 }

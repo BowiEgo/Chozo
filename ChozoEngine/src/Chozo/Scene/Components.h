@@ -77,6 +77,7 @@ namespace Chozo {
     struct MeshComponent
     {
         Ref<Mesh> MeshInstance;
+        Ref<MeshSource> MeshSrc;
 
         MeshType Type = MeshType::Dynamic;
 
@@ -86,29 +87,36 @@ namespace Chozo {
             : MeshInstance(std::move(other.MeshInstance)),
               Type(other.Type)
         {
-            // other.MeshSrc = nullptr;  // Prevent copying or using original object.
+            other.MeshSrc.reset();  // Prevent copying or using original object.
         }
         MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic)
-            : Type(meshType)
+            : MeshSrc(meshSrc), Type(meshType)
         {
-            switch (Type)
-            {
-            case MeshType::Dynamic:
-                MeshInstance = std::make_shared<DynamicMesh>(meshSrc);
-                break;
-            case MeshType::Instanced:
-                MeshInstance = std::make_shared<InstancedMesh>(meshSrc);
-                break;
-            case MeshType::Static:
-                MeshInstance = std::make_shared<StaticMesh>(meshSrc);
-                break;
-            default:
-                CZ_CORE_ERROR("Unknown mesh type!");
-                break;
-            }
+            GenerateMeshInstance();
         }
-        ~MeshComponent()
+        ~MeshComponent() {}
+
+        void GenerateMeshInstance()
         {
+            MeshSrc->CallGenerate();
+            MeshInstance.reset();
+
+            switch (Type) {
+                case MeshType::Dynamic:
+                    MeshInstance = std::make_shared<DynamicMesh>(MeshSrc);
+                    break;
+                case MeshType::Instanced:
+                    MeshInstance = std::make_shared<InstancedMesh>(MeshSrc);
+                    break;
+                case MeshType::Static:
+                    MeshInstance = std::make_shared<StaticMesh>(MeshSrc);
+                    break;
+                default:
+                    CZ_CORE_ERROR("Unknown mesh type!");
+                    break;
+            }
+
+            MeshSrc->SetBufferChanged(true);
         }
     };
 
