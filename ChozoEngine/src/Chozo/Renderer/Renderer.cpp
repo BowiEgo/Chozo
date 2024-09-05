@@ -138,9 +138,9 @@ namespace Chozo {
             shader->Bind();
             shader->UploadUniformMat4("u_VertexUniforms.ModelMatrix", glm::mat4(1.0));
             shader->UploadUniformFloat4("uniforms.Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
+
             RenderCommand::DrawIndexed(pair.second->VAO, indexCount * 3);
             s_Data.Stats.DrawCalls++;
-
             s_Data.IndexCount += indexCount;
             s_Data.Stats.VerticesCount += vertexCount;
             s_Data.Stats.TriangleCount += indexCount;
@@ -177,8 +177,15 @@ namespace Chozo {
         shader->Bind();
         shader->UploadUniformMat4("u_VertexUniforms.ModelMatrix", transform);
         shader->UploadUniformFloat4("uniforms.Color", glm::vec4(0.5f, 0.1f, 1.0f, 1.0f));
-        RenderCommand::DrawIndexed(mesh->GetVertexArray(), mesh->GetMeshSource()->GetIndexs().size() * 3);
+
+        uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
+        uint32_t vertexCount = mesh->GetMeshSource()->GetVertexs().size();
+
+        RenderCommand::DrawIndexed(mesh->GetVertexArray(), indexCount * 3);
         s_Data.Stats.DrawCalls++;
+        s_Data.IndexCount += indexCount;
+        s_Data.Stats.VerticesCount += vertexCount;
+        s_Data.Stats.TriangleCount += indexCount;
     }
 
     Renderer::RendererData Renderer::GetRendererData()
