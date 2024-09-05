@@ -85,6 +85,88 @@ namespace Chozo {
             CZ_CORE_ASSERT(false, "");
             return "";
         }
+
+        static const std::string GetSPIRType(const spirv_cross::SPIRType& type)
+        {
+            std::string result;
+
+            switch (type.basetype) {
+                case spirv_cross::SPIRType::BaseType::Boolean:
+                    result = "bool";
+                    break;
+                case spirv_cross::SPIRType::BaseType::Int:
+                    result = "int";
+                    break;
+                case spirv_cross::SPIRType::BaseType::UInt:
+                    result = "uint";
+                    break;
+                case spirv_cross::SPIRType::BaseType::Float:
+                    result = "float";
+                    break;
+                case spirv_cross::SPIRType::BaseType::Double:
+                    result = "double";
+                    break;
+                default:
+                    result = "unknown";
+                    break;
+            }
+
+            // If it's a vector or matrix, print the dimensions
+            if (type.vecsize > 1 && type.columns == 1)
+            {
+                result = "Vec" + std::to_string(type.vecsize);
+            }
+            else if (type.columns > 1)
+            {
+                result = "Mat" + std::to_string(type.columns);
+            }
+
+            // Handle arrays
+            if (!type.array.empty())
+            {
+                result = "Array" + std::to_string(type.array[0]);  // Print the size of the first dimension
+                // If there are multiple dimensions, you can iterate through them
+                for (size_t i = 1; i < type.array.size(); ++i)
+                {
+                    CZ_CORE_TRACE("Array dimension {0} size: {1}", i, type.array[i]);
+                }
+            }
+
+            return result;
+        }
+
+        static void PrintSPIRReSource(const spirv_cross::Compiler& compiler, const spirv_cross::Resource& resource, std::unordered_map<std::string, std::string>& uniformTable)
+        {
+            const auto& bufferType = compiler.get_type(resource.base_type_id);
+            std::string bufferName = compiler.get_name(resource.id);
+            uint32_t bufferSize = compiler.get_declared_struct_size(bufferType);
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            int memberCount = bufferType.member_types.size();
+
+            CZ_CORE_TRACE("  Name = {0}", resource.name);
+            CZ_CORE_TRACE("  Size = {0}", bufferSize);
+            CZ_CORE_TRACE("  Binding = {0}", binding);
+            CZ_CORE_TRACE("  Members = {0}", memberCount);
+
+            // Iterate over each member of the struct
+            for (uint32_t i = 0; i < memberCount; i++)
+            {
+                std::string memberName = compiler.get_member_name(resource.base_type_id, i);  // Get the name of the member (e.g., "ModelMatrix")
+                const auto& memberType = compiler.get_type(bufferType.member_types[i]);  // Get the type of the member
+
+                // Size and offset of the member
+                size_t memberSize = compiler.get_declared_struct_member_size(bufferType, i);
+                size_t memberOffset = compiler.type_struct_member_offset(bufferType, i);
+                std::string SPIRType = Utils::GetSPIRType(memberType);
+
+                CZ_CORE_TRACE("    Member: {0}", memberName);
+                CZ_CORE_TRACE("    Size: {0}", memberSize);
+                CZ_CORE_TRACE("    Offset: {0}", memberOffset);
+                CZ_CORE_TRACE("    Type: {0}", SPIRType);
+
+                uniformTable[resource.name + "." + memberName] = SPIRType;
+            }
+        }
     }
 
     OpenGLShader::OpenGLShader(const ShaderSpecification &spec)
@@ -229,7 +311,7 @@ namespace Chozo {
 
         for (auto& kv : shaderSources)
         {
-            CZ_CORE_WARN("Compile Source: {0}", kv.second);
+            // CZ_CORE_WARN("Compile Source: {0}", kv.second);
             GLenum type = kv.first;
             const std::string& source = kv.second;
 
@@ -431,23 +513,58 @@ namespace Chozo {
         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
         CZ_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_Filepaths[stage]);
-        CZ_CORE_TRACE("   {0} uinform buffers", resources.uniform_buffers.size());
-        CZ_CORE_TRACE("   {0} resources", resources.sampled_images.size());
+        CZ_CORE_TRACE("   {0} plain uniforms", resources.gl_plain_uniforms.size());
+        CZ_CORE_TRACE("   {0} push constant", resources.push_constant_buffers.size());
+        CZ_CORE_TRACE("   {0} uniform buffers", resources.uniform_buffers.size());
+        CZ_CORE_TRACE("   {0} sampled images", resources.sampled_images.size());
+        CZ_CORE_TRACE("   {0} storage buffers", resources.storage_buffers.size());
+        CZ_CORE_TRACE("   {0} separate samplers", resources.separate_samplers.size());
+        CZ_CORE_TRACE("   {0} separate images", resources.separate_images.size());
 
+        // Push Constants
+        CZ_CORE_TRACE("Push contants:");
+        for (const auto resource : resources.push_constant_buffers)
+            Utils::PrintSPIRReSource(compiler, resource, m_UniformTable);
+
+        // Uniform Buffers
         CZ_CORE_TRACE("Uniform buffers:");
-        for (const auto& resources : resources.uniform_buffers)
-        {
-            const auto& bufferType = compiler.get_type(resources.base_type_id);
-            std::string bufferName = compiler.get_member_name(resources.base_type_id, 0);
-            uint32_t bufferSize = compiler.get_declared_struct_size(bufferType);
-            uint32_t binding = compiler.get_decoration(resources.id, spv::DecorationBinding);
-            int memberCount = bufferType.member_types.size();
+        for (const auto resource : resources.uniform_buffers)
+            // Utils::PrintSPIRReSource(compiler, resource, m_UniformTable);
 
-            CZ_CORE_TRACE("  {0}", resources.name);
-            CZ_CORE_TRACE("  Name = {0}", bufferName);
-            CZ_CORE_TRACE("  Size = {0}", bufferSize);
+        // Sampled Images (used for textures and samplers)
+        CZ_CORE_TRACE("Sampled images:");
+        for (const auto resource : resources.sampled_images)
+        {
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            CZ_CORE_TRACE("  {0}", resource.name);
             CZ_CORE_TRACE("  Binding = {0}", binding);
-            CZ_CORE_TRACE("  Members = {0}", memberCount);
+        }
+
+        // Storage Buffers
+        CZ_CORE_TRACE("Storage buffers:");
+        for (const auto resource : resources.storage_buffers)
+        {
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            CZ_CORE_TRACE("  {0}", resource.name);
+            CZ_CORE_TRACE("  Binding = {0}", binding);
+        }
+
+        // Separate Samplers
+        CZ_CORE_TRACE("Separate samplers:");
+        for (const auto resource : resources.separate_samplers)
+        {
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            CZ_CORE_TRACE("  {0}", resource.name);
+            CZ_CORE_TRACE("  Binding = {0}", binding);
+        }
+
+        // Separate Images
+        CZ_CORE_TRACE("Separate images:");
+        for (const auto resource : resources.separate_images)
+        {
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            CZ_CORE_TRACE("  {0}", resource.name);
+            CZ_CORE_TRACE("  Binding = {0}", binding);
         }
     }
 
@@ -461,44 +578,112 @@ namespace Chozo {
         glUseProgram(0);
     }
 
-    void OpenGLShader::UploadUniformInt(const std::string &name, int value)
+    void OpenGLShader::SetUniform(const std::string &name, const UniformValue &value, const uint32_t count)
+    {
+        std::visit([&](auto&& val) {
+            using T = std::decay_t<decltype(val)>;
+            if constexpr (std::is_same_v<T, bool>) {
+                SetUniformBool(name, val);
+            } else if constexpr (std::is_same_v<T, int>) {
+                SetUniform1i(name, val);
+            } else if constexpr (std::is_same_v<T, unsigned int>) {
+                SetUniform1i(name, val);
+            } else if constexpr (std::is_same_v<T, float>) {
+                SetUniform1f(name, val);
+            } else if constexpr (std::is_same_v<T, std::pair<float, float>>) {
+                SetUniform2f(name, val.first, val.second);
+            } else if constexpr (std::is_same_v<T, std::tuple<float, float, float>>) {
+                SetUniform3f(name, std::get<0>(val), std::get<1>(val), std::get<2>(val));
+            } else if constexpr (std::is_same_v<T, std::tuple<float, float, float, float>>) {
+                SetUniform4f(name, std::get<0>(val), std::get<1>(val), std::get<2>(val), std::get<3>(val));
+            } else if constexpr (std::is_same_v<T, glm::vec2>) {
+                SetUniformVec2(name, val);
+            } else if constexpr (std::is_same_v<T, glm::vec3>) {
+                SetUniformVec3(name, val);
+            } else if constexpr (std::is_same_v<T, float[3]>) {
+                SetUniformVec3(name, val);
+            } else if constexpr (std::is_same_v<T, glm::vec4>) {
+                SetUniformVec4(name, val);
+            } else if constexpr (std::is_same_v<T, glm::mat3>) {
+                SetUniformMat3(name, val);
+            } else if constexpr (std::is_same_v<T, glm::mat4>) {
+                SetUniformMat4(name, val);
+            } else if constexpr (std::is_same_v<T, std::vector<int>>) {
+                SetUniform1iV(name, val.data(), count);
+            } else if constexpr (std::is_same_v<T, std::vector<glm::mat4>>) {
+                SetUniformMat4V(name, val, count);
+            }
+        }, value);
+    }
+
+    void OpenGLShader::SetUniformBool(const std::string &name, const bool value)
+    {
+        glUniform1i(GetUniformLoaction(name), value ? 1 : 0);
+    }
+
+    void OpenGLShader::SetUniform1i(const std::string &name, const int value)
     {
         glUniform1i(GetUniformLoaction(name), value);
     }
 
-    void OpenGLShader::UploadUniformIntArray(const std::string &name, int *values, uint32_t count)
+    void OpenGLShader::SetUniform1iV(const std::string &name, const int *values, const uint32_t count)
     {
         glUniform1iv(GetUniformLoaction(name), count, values);
     }
 
-    void OpenGLShader::UploadUniformFloat(const std::string &name, float value)
+    void OpenGLShader::SetUniform1f(const std::string& name, const float value)
     {
         glUniform1f(GetUniformLoaction(name), value);
     }
 
-    void OpenGLShader::UploadUniformFloat2(const std::string &name, const glm::vec2 &value)
+    void OpenGLShader::SetUniform2f(const std::string& name, const float v0, const float v1)
     {
-        glUniform2f(GetUniformLoaction(name), value.x, value.y);
+        glUniform2f(GetUniformLoaction(name), v0, v1);
     }
 
-    void OpenGLShader::UploadUniformFloat3(const std::string &name, const glm::vec3 &value)
+    void OpenGLShader::SetUniform3f(const std::string& name, const float v0, const float v1, const float v2)
     {
-        glUniform3f(GetUniformLoaction(name), value.x, value.y, value.z);
+        glUniform3f(GetUniformLoaction(name), v0, v1, v2);
     }
 
-    void OpenGLShader::UploadUniformFloat4(const std::string &name, const glm::vec4 &value)
+    void OpenGLShader::SetUniform4f(const std::string& name, const float v0, const float v1, const float v2, const float v3)
     {
-        glUniform4f(GetUniformLoaction(name), value.x, value.y, value.z, value.w);
+        glUniform4f(GetUniformLoaction(name), v0, v1, v2, v3);
     }
 
-    void OpenGLShader::UploadUniformMat3(const std::string &name, const glm::mat3 &matrix)
+    void OpenGLShader::SetUniformVec2(const std::string &name, const glm::vec2 &vector)
     {
-        glUniformMatrix3fv(GetUniformLoaction(name), 1, GL_FALSE, glm::value_ptr(matrix));
+        glUniform2f(GetUniformLoaction(name), vector.x, vector.y);
     }
 
-    void OpenGLShader::UploadUniformMat4(const std::string &name, const glm::mat4 &matrix)
+    void OpenGLShader::SetUniformVec3(const std::string &name, const glm::vec3 &vector)
     {
-        glUniformMatrix4fv(GetUniformLoaction(name), 1, GL_FALSE, glm::value_ptr(matrix));
+        glUniform3f(GetUniformLoaction(name), vector.x, vector.y, vector.z);
+    }
+
+    void OpenGLShader::SetUniformVec3(const std::string &name, const float vector[3])
+    {
+        glUniform3f(GetUniformLoaction(name), vector[0], vector[1], vector[2]);
+    }
+
+    void OpenGLShader::SetUniformVec4(const std::string &name, const glm::vec4 &vector)
+    {
+        glUniform4f(GetUniformLoaction(name), vector.x, vector.y, vector.z, vector.w);
+    }
+
+    void OpenGLShader::SetUniformMat3(const std::string& name, const glm::mat3& matrix)
+    {
+        glUniformMatrix3fv(GetUniformLoaction(name), 1, GL_FALSE, &matrix[0][0]);
+    }
+
+    void OpenGLShader::SetUniformMat4(const std::string& name, const glm::mat4& matrix)
+    {
+        glUniformMatrix4fv(GetUniformLoaction(name), 1, GL_FALSE, &matrix[0][0]);
+    }
+
+    void OpenGLShader::SetUniformMat4V(const std::string& name, const std::vector<glm::mat4>& value, const uint32_t count)
+    {
+        glUniformMatrix4fv(GetUniformLoaction(name), count, GL_FALSE, &value[0][0][0]);
     }
 
     int OpenGLShader::GetUniformLoaction(const std::string& name) const

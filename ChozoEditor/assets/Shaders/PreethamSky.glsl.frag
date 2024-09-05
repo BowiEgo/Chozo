@@ -14,7 +14,7 @@ layout(push_constant) uniform Uniforms
     float Turbidity;
     float Azimuth;
     float Inclination;
-} uniforms;
+} u_FragUniforms;
 
 const vec2 invAtan = vec2(0.1591, 0.3183);
 vec2 SampleSphericalMap(vec3 v)
@@ -132,9 +132,9 @@ void main()
 {
     vec2 uv = SampleSphericalMap(normalize(v_WorldPosition)); // make sure to normalize v_WorldPosition
 
-	float turbidity     = uniforms.Turbidity;
-    float azimuth       = uniforms.Azimuth;
-    float inclination   = uniforms.Inclination;
+	float turbidity     = u_FragUniforms.Turbidity;
+    float azimuth       = u_FragUniforms.Azimuth;
+    float inclination   = u_FragUniforms.Inclination;
     vec3 sunDir     	= normalize( vec3( sin(inclination) * cos(azimuth), cos(inclination), sin(inclination) * sin(azimuth) ) );
     // vec3 viewDir  		= -computeSphericalCoordinates( uv ).xzy;
     vec3 viewDir  		= normalize(v_WorldPosition);

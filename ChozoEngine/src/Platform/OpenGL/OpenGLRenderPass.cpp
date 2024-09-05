@@ -59,8 +59,8 @@ namespace Chozo {
                     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
                     m_Specification.Pipeline->GetShader()->Bind();
-                    m_Specification.Pipeline->GetShader()->UploadUniformMat4("camera.ViewMatrix", captureViews[i]);
-                    m_Specification.Pipeline->GetShader()->UploadUniformMat4("camera.ProjectionMatrix", captureProjection);
+                    m_Specification.Pipeline->GetShader()->SetUniform("u_Camera.ViewMatrix", captureViews[i]);
+                    m_Specification.Pipeline->GetShader()->SetUniform("u_Camera.ProjectionMatrix", captureProjection);
 
                     RenderCommand::DrawIndexed(m_Specification.Pipeline->GetDynamicMesh()->GetVertexArray(), 0);
                 }

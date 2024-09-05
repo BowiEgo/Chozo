@@ -58,6 +58,11 @@ namespace Chozo
     DynamicMesh::DynamicMesh(Ref<MeshSource> meshSource)
         : Mesh(meshSource)
     {
+        Init();
+    }
+
+    void DynamicMesh::Init()
+    {
         m_MeshSource->AfterGenerate(true);
         m_RenderSource = std::make_shared<RenderSource>(GetMaxCount<Vertex>(), GetMaxCount<Index>());
         m_RenderSource->VBO->SetData(0, m_MeshSource->GetVertexs().size() * sizeof(Vertex), m_MeshSource->GetVertexs().data());

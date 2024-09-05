@@ -185,12 +185,13 @@ namespace Chozo {
         }
 
         // Shader
+        std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
         ShaderSpecification textureShaderSpec;
         textureShaderSpec.VertexFilepath = "../assets/shaders/Texture.glsl.vert";
         textureShaderSpec.FragmentFilepath = "../assets/shaders/Texture.glsl.frag";
         s_Data.TextureShader = Shader::Create(textureShaderSpec);
         s_Data.TextureShader->Bind();
-        s_Data.TextureShader->UploadUniformIntArray("u_Textures", samplers, s_Data.MaxTextureSlots);
+        s_Data.TextureShader->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
 
         ShaderSpecification circleShaderSpec;
         circleShaderSpec.VertexFilepath = "../assets/shaders/Circle.glsl.vert";

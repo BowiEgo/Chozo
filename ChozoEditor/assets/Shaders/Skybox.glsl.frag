@@ -9,10 +9,10 @@ layout (push_constant) uniform Uniforms
 {
 	float TextureLod;
 	float Intensity;
-} u_Uniforms;
+} u_FragUniforms;
 
 void main()
 {
-	o_Color = textureLod(u_Texture, v_TexCoords, u_Uniforms.TextureLod) * u_Uniforms.Intensity;
+	o_Color = textureLod(u_Texture, v_TexCoords, u_FragUniforms.TextureLod) * u_FragUniforms.Intensity;
 	o_Color.a = 1.0;
 }

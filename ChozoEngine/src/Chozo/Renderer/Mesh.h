@@ -84,6 +84,8 @@ namespace Chozo
         DynamicMesh(Ref<MeshSource> meshSource);
         ~DynamicMesh() {};
 
+        void Init();
+
         inline Ref<VertexArray> GetVertexArray() { return m_RenderSource->VAO; }
         inline Ref<VertexBuffer> GetVertexBuffer() { return m_RenderSource->VBO; }
         inline Ref<IndexBuffer> GetIndexBuffer() { return m_RenderSource->IBO; }

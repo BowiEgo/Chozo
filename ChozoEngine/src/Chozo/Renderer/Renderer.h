@@ -7,6 +7,7 @@
 #include "OrthographicCamera.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "Material.h"
 #include "Mesh.h"
 #include "UniformBuffer.h"
 #include "RenderPass.h"
@@ -54,6 +55,7 @@ namespace Chozo {
             BatchManager BatchManager;
 
     		Ref<ShaderLibrary> m_ShaderLibrary;
+    		// Ref<MaterialLibrary> m_MaterialLibrary;
             int MaxTextureSlots = 0;
             uint32_t TextureSlotIndex = 1; // 0 = white texture
             std::vector<Ref<Texture2D>> TextureSlots;
@@ -87,7 +89,7 @@ namespace Chozo {
         static void RenderStaticBatches();
         static bool SubmitStaticMesh(StaticMesh* mesh);
         static bool RemoveStaticMesh(StaticMesh* mesh);
-        static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, uint32_t entityID = -1);
+        static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, Material* material, uint32_t entityID = -1);
 
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 

@@ -10,11 +10,11 @@ layout(location = 2) in flat int v_EntityID;
 layout(push_constant) uniform Uniforms
 {
     vec4 Color;
-} uniforms;
+} u_FragUniforms;
 
 void main()
 {
-    vec4 texColor = uniforms.Color;
+    vec4 texColor = u_FragUniforms.Color;
 
     o_Color = texColor;
     o_EntityID = v_EntityID;

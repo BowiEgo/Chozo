@@ -20,7 +20,7 @@ namespace Chozo {
     void SceneHierarchyPanel::SetContext(const Ref<Scene> context)
     {
         m_Context = context;
-        m_SelectionContext = {};
+        SetSelectedEntity({});
     }
 
     void SceneHierarchyPanel::OnImGuiRender()
@@ -32,9 +32,7 @@ namespace Chozo {
         });
 
         if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-        {
-            m_SelectionContext = {};
-        }
+            SetSelectedEntity({});
 
         // Right-click on blank space
         if (ImGui::BeginPopupContextWindow(0, 1 | ImGuiPopupFlags_NoOpenOverItems))
@@ -49,7 +47,12 @@ namespace Chozo {
         ImGui::Begin("Properties");
         if (m_SelectionContext)
         {
-            DrawComponents(m_SelectionContext);
+            if (m_SelectionMeshLeaf == 0)
+                DrawGeometryProperties(m_SelectionContext);
+            else if (m_SelectionMeshLeaf == 1)
+                DrawMaterialProperties(m_SelectionContext);
+            else
+                DrawComponents(m_SelectionContext);
         }
         ImGui::End();
     }
@@ -63,25 +66,35 @@ namespace Chozo {
         ImGuiTreeNodeFlags flags = (m_SelectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0)
             | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-        
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 2.0f, 0.0f });
         bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, "%s", tag.c_str());
+        ImGui::PopStyleVar();
 
         if (ImGui::IsItemClicked())
-        {
-            m_SelectionContext = entity;
-        }
+            SetSelectedEntity(entity);
 
         if (ImGui::BeginPopupContextItem())
         {
             if (ImGui::MenuItem("Delete Entity"))
                 entityDeleted = true;
+
             ImGui::EndPopup();
         }
 
         if (opened)
         {
-            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-            bool opened = ImGui::TreeNodeEx((void*)1909374, flags, "%s", tag.c_str());
+            if (entity.HasComponent<MeshComponent>())
+            {
+                for (int i = 0; i < std::size(s_MeshLeafs); i++)
+                {
+                    if (ImGui::Selectable(s_MeshLeafs[i].c_str(), m_SelectionMeshLeaf == i && m_SelectionContext == entity))
+                    {
+                        m_SelectionContext = entity;
+                        m_SelectionMeshLeaf = m_SelectionMeshLeaf == i && m_SelectionContext == entity ? -1 : i;
+                    }
+                }
+            }
             ImGui::TreePop();
         }
 
@@ -89,7 +102,7 @@ namespace Chozo {
         {
             m_Context->DestroyEntity(entity);
             if (m_SelectionContext == entity)
-                m_SelectionContext = {};
+                SetSelectedEntity({});
         }
     }
 
@@ -395,7 +408,66 @@ namespace Chozo {
                     ImGui::EndCombo();
                 }
             });
+        });
 
+        DrawComponent<SkyLightComponent>("SkyLight", entity, [](auto& component)
+        {
+            DrawColumnValue<float>("Skybox LOD", component.Lod, [&](auto& target) {
+                ImGui::DragFloat("##Skybox LOD", &target, 0.1f, 0.0f, 10.0f);
+            });
+
+            DrawColumnValue<float>("Intensity", component.Intensity, [&](auto& target) {
+                ImGui::DragFloat("##Intensity", &target, 0.01f, 0.0f, 10.0f);
+            });
+
+            DrawColumnValue<float>("Turbidity", component.TurbidityAzimuthInclination.x, [&](auto& target) {
+                if (ImGui::DragFloat("##Turbidity", &target, 0.01f, 0.0f, 10.0f))
+                    RenderCommand::RenderPreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
+            });
+
+            DrawColumnValue<float>("Azimuth", component.TurbidityAzimuthInclination.y, [&](auto& target) {
+                if (ImGui::DragFloat("##Azimuth", &target, 0.01f, 0.0f, 10.0f))
+                    RenderCommand::RenderPreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
+            });
+
+            DrawColumnValue<float>("Inclination", component.TurbidityAzimuthInclination.z, [&](auto& target) {
+                if (ImGui::DragFloat("##Inclination", &target, 0.01f, 0.0f, 10.0f))
+                    RenderCommand::RenderPreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
+            });
+
+            // DrawColumnValue<glm::vec3>("Light Direction", s_LightDirection, [&](auto& target) {
+            //     DrawVec3Control("Light Direction", s_LightDirection, 0.0f, 1.0f);
+            // });
+
+            // DrawColumnValue<float>("Light Multiplier", s_LightMultiplier, [&](auto& target) {
+            //     if (ImGui::SliderFloat("##Light Multiplier", &target, 0.0f, 10.0f))
+            //         s_LightMultiplier = target;
+            // });
+
+            // DrawColumnValue<float>("Exposure", s_Exposure, [&](auto& target) {
+            //     if (ImGui::SliderFloat("##Exposure", &target, 0.0f, 10.0f))
+            //         s_Exposure = target;
+            // });
+
+            // DrawColumnValue<bool>("Radiance Prefiltering", s_RadiancePrefiltering, [&](auto& target) {
+            //     ImGui::Checkbox("##Radiance Prefiltering", &target);
+            // });
+
+            // DrawColumnValue<float>("EnvMapRotation", s_EnvMapRotation, [&](auto& target) {
+            //     if (ImGui::DragFloat("##EnvMapRotation", &target, 0.1f, 0.0f, 10.0f))
+            //         s_EnvMapRotation = target;
+            // });
+
+            // DrawColumnValue<bool>("Show Bounding Boxes", s_ShowBoundingBoxes, [&](auto& target) {
+            //     ImGui::Checkbox("##Show Bounding Boxes", &target);
+            // });
+        });
+    }
+
+    void SceneHierarchyPanel::DrawGeometryProperties(Entity entity)
+    {
+        DrawComponent<MeshComponent>("Geometry", entity, [entity](auto& component)
+        {
             if (Geometry* geom = dynamic_cast<Geometry*>(component.MeshInstance->GetMeshSource().get()))
             {
                 if (BoxGeometry* box = dynamic_cast<BoxGeometry*>(geom))
@@ -474,58 +546,37 @@ namespace Chozo {
                 }
             }
         });
+    }
 
-        DrawComponent<SkyLightComponent>("SkyLight", entity, [](auto& component)
+    void SceneHierarchyPanel::DrawMaterialProperties(Entity entity)
+    {
+        DrawComponent<MeshComponent>("Material", entity, [entity](auto& component)
         {
-            DrawColumnValue<float>("Skybox LOD", component.Lod, [&](auto& target) {
-                ImGui::DragFloat("##Skybox LOD", &target, 0.1f, 0.0f, 10.0f);
-            });
+            Ref<Material> material = component.MaterialInstance;
 
-            DrawColumnValue<float>("Intensity", component.Intensity, [&](auto& target) {
-                ImGui::DragFloat("##Intensity", &target, 0.01f, 0.0f, 10.0f);
-            });
-
-            DrawColumnValue<float>("Turbidity", component.TurbidityAzimuthInclination.x, [&](auto& target) {
-                if (ImGui::DragFloat("##Turbidity", &target, 0.01f, 0.0f, 10.0f))
-                    RenderCommand::RenderPreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
-            });
-
-            DrawColumnValue<float>("Azimuth", component.TurbidityAzimuthInclination.y, [&](auto& target) {
-                if (ImGui::DragFloat("##Azimuth", &target, 0.01f, 0.0f, 10.0f))
-                    RenderCommand::RenderPreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
-            });
-
-            DrawColumnValue<float>("Inclination", component.TurbidityAzimuthInclination.z, [&](auto& target) {
-                if (ImGui::DragFloat("##Inclination", &target, 0.01f, 0.0f, 10.0f))
-                    RenderCommand::RenderPreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
-            });
-
-            // DrawColumnValue<glm::vec3>("Light Direction", s_LightDirection, [&](auto& target) {
-            //     DrawVec3Control("Light Direction", s_LightDirection, 0.0f, 1.0f);
-            // });
-
-            // DrawColumnValue<float>("Light Multiplier", s_LightMultiplier, [&](auto& target) {
-            //     if (ImGui::SliderFloat("##Light Multiplier", &target, 0.0f, 10.0f))
-            //         s_LightMultiplier = target;
-            // });
-
-            // DrawColumnValue<float>("Exposure", s_Exposure, [&](auto& target) {
-            //     if (ImGui::SliderFloat("##Exposure", &target, 0.0f, 10.0f))
-            //         s_Exposure = target;
-            // });
-
-            // DrawColumnValue<bool>("Radiance Prefiltering", s_RadiancePrefiltering, [&](auto& target) {
-            //     ImGui::Checkbox("##Radiance Prefiltering", &target);
-            // });
-
-            // DrawColumnValue<float>("EnvMapRotation", s_EnvMapRotation, [&](auto& target) {
-            //     if (ImGui::DragFloat("##EnvMapRotation", &target, 0.1f, 0.0f, 10.0f))
-            //         s_EnvMapRotation = target;
-            // });
-
-            // DrawColumnValue<bool>("Show Bounding Boxes", s_ShowBoundingBoxes, [&](auto& target) {
-            //     ImGui::Checkbox("##Show Bounding Boxes", &target);
-            // });
+            for (auto& pair : material->GetUniforms())
+            {
+                std::string name = pair.first.substr(pair.first.find('.') + 1);
+                if (std::holds_alternative<glm::vec4>(pair.second))
+                {
+                    glm::vec4& value = std::get<glm::vec4>(pair.second);
+                    DrawColumnValue<glm::vec4>(name, value, [&](auto& target) {
+                        if (pair.first.find("Color") > 0 || pair.first.find("Albedo"))
+                        {
+                            if (ImGui::ColorEdit4(("##" + name).c_str(), glm::value_ptr(target)))
+                                material->Set(pair.first, value);
+                        }
+                    });
+                }
+                else if (std::holds_alternative<glm::vec3>(pair.second))
+                {
+                    glm::vec3& value = std::get<glm::vec3>(pair.second);
+                    DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
+                        if (DrawVec3Control("##" + name, target))
+                            material->Set(pair.first, value);
+                    });
+                }
+            }
         });
     }
 }

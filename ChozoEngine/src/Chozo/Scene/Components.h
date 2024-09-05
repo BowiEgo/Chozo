@@ -2,6 +2,7 @@
 
 #include "Chozo/Renderer/Texture.h"
 #include "Chozo/Renderer/Mesh.h"
+#include "Chozo/Renderer/Material.h"
 #include "Chozo/Renderer/Geometry/Geometry.h"
 #include "Chozo/Renderer/Environment.h"
 #include "Chozo/Core/UUID.h"
@@ -78,6 +79,7 @@ namespace Chozo {
     {
         Ref<Mesh> MeshInstance;
         Ref<MeshSource> MeshSrc;
+        Ref<Material> MaterialInstance;
 
         MeshType Type = MeshType::Dynamic;
 
@@ -89,9 +91,12 @@ namespace Chozo {
         {
             other.MeshSrc.reset();  // Prevent copying or using original object.
         }
-        MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic)
-            : MeshSrc(meshSrc), Type(meshType)
+        MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic, Ref<Material> material = nullptr)
+            : MeshSrc(meshSrc), Type(meshType), MaterialInstance(material)
         {
+            if (!MaterialInstance)
+                MaterialInstance = Material::Create("Basic");
+
             GenerateMeshInstance();
         }
         ~MeshComponent() {}

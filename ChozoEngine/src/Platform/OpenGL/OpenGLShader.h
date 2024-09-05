@@ -5,6 +5,8 @@
 typedef unsigned int GLenum; // TODO: remove!
 
 namespace Chozo {
+
+    typedef std::unordered_map<std::string, std::string> UniformTable;
     
     class OpenGLShader : public Shader
     {
@@ -16,19 +18,25 @@ namespace Chozo {
         virtual void Bind() const override;
         virtual void Unbind() const override;
 
-        virtual const std::string& GetName() const override { return m_Name; };
+        virtual const std::string& GetName() const override { return m_Name; }
 
-        virtual void UploadUniformInt(const std::string& name, int value) override;
-        virtual void UploadUniformIntArray(const std::string& name, int* values, uint32_t count) override;
-
-        virtual void UploadUniformFloat(const std::string& name, float value) override;
-        virtual void UploadUniformFloat2(const std::string& name, const glm::vec2& value) override;
-        virtual void UploadUniformFloat3(const std::string& name, const glm::vec3& value) override;
-        virtual void UploadUniformFloat4(const std::string& name, const glm::vec4& value) override;
-
-        virtual void UploadUniformMat3(const std::string& name, const glm::mat3& matrix) override;
-        virtual void UploadUniformMat4(const std::string& name, const glm::mat4& matrix) override;
+        virtual const std::unordered_map<std::string, std::string> GetUniformTable() { return m_UniformTable; }
+        virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) override;
     private:
+        void SetUniformBool(const std::string& name, const bool value);
+        void SetUniform1i(const std::string& name, const int value);
+        void SetUniform1iV(const std::string &name, const int *values, const uint32_t count);
+        void SetUniform1f(const std::string& name, const float value);
+        void SetUniform2f(const std::string& name, const float v0, const float v1);
+        void SetUniform3f(const std::string& name, const float v0, const float v1, const float v2);
+        void SetUniform4f(const std::string& name, const float v0, const float v1, const float v2, const float v3);
+        void SetUniformVec2(const std::string& name, const glm::vec2& vector);
+        void SetUniformVec3(const std::string& name, const glm::vec3& vector);
+        void SetUniformVec3(const std::string& name, const float vector[3]);
+        void SetUniformVec4(const std::string& name, const glm::vec4& vector);
+        void SetUniformMat3(const std::string& name, const glm::mat3& matrix);
+        void SetUniformMat4(const std::string& name, const glm::mat4& matrix);
+        void SetUniformMat4V(const std::string& name, const std::vector<glm::mat4>& array, const uint32_t count);
         int GetUniformLoaction(const std::string& name) const;
         std::string ReadFile(const std::string& filepath);
         std::string PreProcess(const std::string& source);
@@ -46,5 +54,7 @@ namespace Chozo {
         std::unordered_map<GLenum, std::vector<u_int32_t>> m_VulkanSPIRV;
         std::unordered_map<GLenum, std::vector<u_int32_t>> m_OpenGLSPIRV;
         std::unordered_map<GLenum, std::string> m_OpenGLSourceCode;
+
+        UniformTable m_UniformTable;
     };
 }

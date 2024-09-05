@@ -57,9 +57,9 @@ namespace Chozo {
     {
         Ref<Shader> preethamSkyShader = Renderer::GetRendererData().m_PreethamSkyRenderPass->GetSpecification().Pipeline->GetShader();
         preethamSkyShader->Bind();
-        preethamSkyShader->UploadUniformFloat("uniforms.Turbidity", turbidity);
-        preethamSkyShader->UploadUniformFloat("uniforms.Azimuth", azimuth);
-        preethamSkyShader->UploadUniformFloat("uniforms.Inclination", inclination);
+        preethamSkyShader->SetUniform("u_FragUniforms.Turbidity", turbidity);
+        preethamSkyShader->SetUniform("u_FragUniforms.Azimuth", azimuth);
+        preethamSkyShader->SetUniform("u_FragUniforms.Inclination", inclination);
 
         Ref<RenderPass> renderPass = Renderer::GetRendererData().m_PreethamSkyRenderPass;
         renderPass->Bake();

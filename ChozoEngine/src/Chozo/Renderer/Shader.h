@@ -5,6 +5,23 @@
 
 namespace Chozo {
 
+    using UniformValue = std::variant<
+        bool,
+        int,
+        unsigned int,
+        float,
+        std::pair<float, float>,
+        std::tuple<float, float, float>,
+        std::tuple<float, float, float, float>,
+        glm::vec2,
+        glm::vec3,
+        glm::vec4,
+        glm::mat3,
+        glm::mat4,
+        std::vector<glm::mat4>,
+        std::vector<int>
+    >;
+
     struct ShaderSpecification
     {
         std::string VertexFilepath, FragmentFilepath;
@@ -20,16 +37,7 @@ namespace Chozo {
 
         virtual const std::string& GetName() const = 0;
 
-        virtual void UploadUniformInt(const std::string& name, int value) = 0;
-        virtual void UploadUniformIntArray(const std::string& name, int* values, uint32_t count) = 0;
-
-        virtual void UploadUniformFloat(const std::string& name, float value) = 0;
-        virtual void UploadUniformFloat2(const std::string& name, const glm::vec2& value) = 0;
-        virtual void UploadUniformFloat3(const std::string& name, const glm::vec3& value) = 0;
-        virtual void UploadUniformFloat4(const std::string& name, const glm::vec4& value) = 0;
-
-        virtual void UploadUniformMat3(const std::string& name, const glm::mat3& matrix) = 0;
-        virtual void UploadUniformMat4(const std::string& name, const glm::mat4& matrix) = 0;
+        virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) = 0;
 
         static Ref<Shader> Create(const ShaderSpecification& spec = ShaderSpecification());
         static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);

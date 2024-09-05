@@ -17,7 +17,7 @@ layout(std140, binding = 0) uniform Camera
 layout(push_constant) uniform VertexUniforms
 {
     mat4 ModelMatrix;
-} u_VertexUniforms;
+} u_VertUniforms;
 
 layout(location = 0) out vec3 v_Normal;
 layout(location = 1) out vec2 v_TexCoord;
@@ -29,7 +29,7 @@ void main()
     v_TexCoord = a_TexCoord;
     v_EntityID = a_EntityID;
 
-    vec4 modelPosition = u_VertexUniforms.ModelMatrix * vec4(a_Position, 1.0);
+    vec4 modelPosition = u_VertUniforms.ModelMatrix * vec4(a_Position, 1.0);
     vec4 viewPosition = u_ViewMatrix * modelPosition;
     vec4 projectionPosition = u_ProjectionMatrix * viewPosition;
 

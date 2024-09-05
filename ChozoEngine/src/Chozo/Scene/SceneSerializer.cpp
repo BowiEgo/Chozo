@@ -61,9 +61,104 @@ namespace YAML {
             return true;
         }
     };
+        
+    template <>
+    struct convert<glm::mat3>
+    {
+        static Node encode(const glm::mat3& rhs)
+        {
+            Node node;
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    node.push_back(rhs[i][j]);
+                }
+            }
+            return node;
+        }
+
+        static bool decode(const Node& node, glm::mat3& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 9)
+                return false;
+
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    rhs[i][j] = node[i * 3 + j].as<float>();
+                }
+            }
+
+            return true;
+        }
+    };
+
+    template <>
+    struct convert<glm::mat4>
+    {
+        static Node encode(const glm::mat4& rhs)
+        {
+            Node node;
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    node.push_back(rhs[i][j]);
+                }
+            }
+            return node;
+        }
+
+        static bool decode(const Node& node, glm::mat4& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 16)
+                return false;
+
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    rhs[i][j] = node[i * 4 + j].as<float>();
+                }
+            }
+
+            return true;
+        }
+    };
 }
 
 namespace Chozo {
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const std::pair<float, float>& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << v.first << v.second << YAML::EndSeq;
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const std::tuple<float, float, float>& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << std::get<0>(v) << std::get<1>(v) << std::get<2>(v) << YAML::EndSeq;
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const std::tuple<float, float, float, float>& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << std::get<0>(v) << std::get<1>(v) << std::get<2>(v) << std::get<3>(v) << YAML::EndSeq;
+        return out;
+    }
+
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
+        return out;
+    }
 
     YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
     {
@@ -76,6 +171,52 @@ namespace Chozo {
     {
         out << YAML::Flow;
         out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat3& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq;
+        for (int i = 0; i < 3; ++i)
+            for (int j = 0; j < 3; ++j)
+                out << v[i][j];
+        out << YAML::EndSeq;
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat4& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq;
+        for (int i = 0; i < 4; ++i)
+            for (int j = 0; j < 4; ++j)
+                out << v[i][j];
+        out << YAML::EndSeq;
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const std::vector<glm::mat4>& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq;
+        for (const auto& mat : v) {
+            for (int i = 0; i < 4; ++i)
+                for (int j = 0; j < 4; ++j)
+                    out << mat[i][j];
+        }
+        out << YAML::EndSeq;
+        return out;
+    }
+
+    YAML::Emitter& operator<<(YAML::Emitter& out, const std::vector<int>& v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq;
+        for (const auto& val : v) {
+            out << val;
+        }
+        out << YAML::EndSeq;
         return out;
     }
 
@@ -198,6 +339,25 @@ namespace Chozo {
                 out << YAML::Key << "HeightSegments" << YAML::Value << sphere->GetHeightSegments();
                 out << YAML::EndMap;
             }
+
+            out << YAML::Key << "Material" << YAML::Value;
+            out << YAML::BeginMap;
+            out << YAML::Key << "Name" << YAML::Value << mc.MaterialInstance->GetName();
+            for (auto& pair : mc.MaterialInstance->GetUniforms())
+            {
+                std::visit([&](auto&& arg) {
+                    using T = std::decay_t<decltype(arg)>;
+                    if constexpr (std::is_same_v<T, glm::mat3>)
+                    {}
+                    if constexpr (std::is_same_v<T, glm::mat4>)
+                    {}
+                    else
+                    {
+                        out << YAML::Key << pair.first << YAML::Value << arg;
+                    }
+                }, pair.second);
+            }
+            out << YAML::EndMap;
 
             out << YAML::EndMap;
         }
@@ -372,7 +532,40 @@ namespace Chozo {
 
                     geom->SetEntityID(deserializedEntity);
                     auto meshType = MeshType(meshComponent["Type"].as<int>());
-                    auto& mc = deserializedEntity.AddComponent<MeshComponent>(geom, meshType);
+
+                    auto material = meshComponent["Material"];
+                    Ref<Material> mate = Material::Create(material["Name"].as<std::string>());
+                    for (const auto& pair : material)
+                    {
+                        std::string key = pair.first.as<std::string>();
+                        if (key == "Name")
+                            continue;
+
+                        const YAML::Node& valueNode = pair.second;
+                        UniformValue value;
+
+                        if (valueNode.IsScalar()) {
+                            if (valueNode.Tag() == "tag:yaml.org,2002:bool") {
+                                value = valueNode.as<bool>();
+                            } else if (valueNode.Tag() == "tag:yaml.org,2002:int") {
+                                value = valueNode.as<int>();
+                            } else if (valueNode.Tag() == "tag:yaml.org,2002:float") {
+                                value = valueNode.as<float>();
+                            }
+                        } else if (valueNode.IsSequence()) {
+                            if (valueNode.size() == 2) {
+                                value = glm::vec2(valueNode[0].as<float>(), valueNode[1].as<float>());
+                            } else if (valueNode.size() == 3) {
+                                value = glm::vec3(valueNode[0].as<float>(), valueNode[1].as<float>(), valueNode[2].as<float>());
+                            } else if (valueNode.size() == 4) {
+                                value = glm::vec4(valueNode[0].as<float>(), valueNode[1].as<float>(), valueNode[2].as<float>(), valueNode[3].as<float>());
+                            }
+                        }
+
+                        mate->Set(key, value);
+                    }
+
+                    auto& mc = deserializedEntity.AddComponent<MeshComponent>(geom, meshType, mate);
                 }
             }
         }
