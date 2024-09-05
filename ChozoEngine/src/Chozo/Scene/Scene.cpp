@@ -86,13 +86,22 @@ namespace Chozo {
                     continue;
             
                 const auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
-                mesh.Source->SetLocalTransform(transform.GetTransform());
-                if (dynamic_cast<StaticMesh*>(&mesh.MeshInstance))
+
+                if (mesh.Type == MeshType::Dynamic)
                 {
-                    if (mesh.MeshInstance.GetMeshSource()->IsBufferChanged())
-                        mesh.MeshInstance.CallSubmit();
+                    DynamicMesh* dynamicMesh = dynamic_cast<DynamicMesh*>(mesh.MeshInstance.get());
+                    Renderer::DrawMesh(transform.GetTransform(), dynamicMesh, (uint32_t)entity);
                 }
-                // Renderer::DrawMesh(transform.GetTransform(), mesh.MeshInstance.GetMeshSource(), (uint32_t)entity);
+                else if (mesh.Type == MeshType::Static)
+                {
+                    StaticMesh* staticMesh = dynamic_cast<StaticMesh*>(mesh.MeshInstance.get());
+                    staticMesh->GetMeshSource()->SetLocalTransform(transform.GetTransform());
+                    if (staticMesh->GetMeshSource()->IsBufferChanged())
+                    {
+                        bool successed = Renderer::SubmitStaticMesh(staticMesh);
+                        staticMesh->OnSubmit(successed);
+                    }
+                }
             }
         }
 

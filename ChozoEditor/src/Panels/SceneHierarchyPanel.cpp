@@ -372,7 +372,7 @@ namespace Chozo {
 
         DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
         {
-            if (Geometry* geom = dynamic_cast<Geometry*>(component.Source.get()))
+            if (Geometry* geom = dynamic_cast<Geometry*>(component.MeshInstance->GetMeshSource().get()))
             {
                 if (BoxGeometry* box = dynamic_cast<BoxGeometry*>(geom))
                 {

@@ -19,6 +19,11 @@ namespace Chozo
         uint32_t IndexCount = 0, IndicesCount = 0;
     };
 
+    enum class MeshType
+    {
+        Dynamic, Instanced, Static
+    };
+
     class Mesh;
 
     class MeshSource
@@ -58,49 +63,17 @@ namespace Chozo
         bool m_Is_Buffer_Changed = false;
     };
 
-    //TODO: Instanced Mesh, Dynamic Mesh
     class Mesh
     {
     public:
         Mesh() = default;
         Mesh(Ref<MeshSource>& meshSource)
             : m_MeshSource(meshSource) {}
-        ~Mesh() = default;
+        virtual ~Mesh() = default;
 
         Ref<MeshSource> GetMeshSource() { return m_MeshSource; }
     protected:
         Ref<MeshSource> m_MeshSource;
-    };
-
-    class StaticMesh : public Mesh
-    {
-    public:
-        StaticMesh() = default;
-        StaticMesh(Ref<MeshSource>& meshSource)
-            : Mesh(meshSource) {}
-        ~StaticMesh();
-
-        UUID GetBufferSegmentID() const { return m_BufferSegmentID; }
-        void SetBufferSegmentID(UUID& id) { m_BufferSegmentID = id; }
-
-        void CallSubmit();
-        void CallRemove();
-    private:
-        UUID m_BufferSegmentID;
-    };
-
-    //TODO: Instanced Mesh, Dynamic Mesh
-    class InstanceMesh : public Mesh
-    {
-    public:
-        InstanceMesh() = default;
-        InstanceMesh(Ref<MeshSource> meshSource);
-        ~InstanceMesh() = default;
-
-        inline Ref<VertexArray> GetVertexArray() { return m_RenderSource->VAO; }
-        inline Ref<VertexBuffer> GetVertexBuffer() { return m_RenderSource->VBO; }
-        inline Ref<IndexBuffer> GetIndexBuffer() { return m_RenderSource->IBO; }
-    private:
         Ref<RenderSource> m_RenderSource;
     };
 
@@ -109,13 +82,39 @@ namespace Chozo
     public:
         DynamicMesh() = default;
         DynamicMesh(Ref<MeshSource> meshSource);
-        ~DynamicMesh() = default;
+        ~DynamicMesh() {};
 
         inline Ref<VertexArray> GetVertexArray() { return m_RenderSource->VAO; }
         inline Ref<VertexBuffer> GetVertexBuffer() { return m_RenderSource->VBO; }
         inline Ref<IndexBuffer> GetIndexBuffer() { return m_RenderSource->IBO; }
-    private:
-        Ref<RenderSource> m_RenderSource;
     };
 
+    class InstancedMesh : public Mesh
+    {
+    public:
+        InstancedMesh() = default;
+        InstancedMesh(Ref<MeshSource> meshSource);
+        ~InstancedMesh() = default;
+
+        inline Ref<VertexArray> GetVertexArray() { return m_RenderSource->VAO; }
+        inline Ref<VertexBuffer> GetVertexBuffer() { return m_RenderSource->VBO; }
+        inline Ref<IndexBuffer> GetIndexBuffer() { return m_RenderSource->IBO; }
+    };
+
+    class StaticMesh : public Mesh
+    {
+    public:
+        StaticMesh() = default;
+        StaticMesh(Ref<MeshSource>& meshSource)
+            : Mesh(meshSource) {}
+        ~StaticMesh() { CallRemove(); };
+
+        UUID GetBufferSegmentID() const { return m_BufferSegmentID; }
+        void SetBufferSegmentID(UUID& id) { m_BufferSegmentID = id; }
+
+        void OnSubmit(bool successed);
+        void CallRemove();
+    private:
+        UUID m_BufferSegmentID;
+    };
 }

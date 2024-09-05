@@ -117,10 +117,10 @@ namespace Chozo {
 
     void Renderer::EndScene()
     {
-        RenderBatches();
+        RenderStaticBatches();
     }
 
-    void Renderer::RenderBatches()
+    void Renderer::RenderStaticBatches()
     {
         s_Data.IndexCount = 0;
         for (const auto& pair : s_Data.BatchManager.GetRenderSources())
@@ -136,6 +136,7 @@ namespace Chozo {
           
             Ref<Shader> shader = s_Data.m_ShaderLibrary->Get("Shader");
             shader->Bind();
+            shader->UploadUniformMat4("u_VertexUniform.ModelMatrix", glm::mat4(1.0));
             shader->UploadUniformFloat4("uniforms.Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
             RenderCommand::DrawIndexed(pair.second->VAO, indexCount * 3);
             s_Data.Stats.DrawCalls++;
@@ -146,7 +147,7 @@ namespace Chozo {
         }
     }
 
-    bool Renderer::SubmitMesh(StaticMesh* mesh)
+    bool Renderer::SubmitStaticMesh(StaticMesh* mesh)
     {
         UUID segmentID = s_Data.BatchManager.SubmitBuffers(
             mesh->GetMeshSource()->GetTempBuffer()->Vertexs.data(),
@@ -163,17 +164,19 @@ namespace Chozo {
         return true;
     }
 
-    bool Renderer::RemoveMesh(StaticMesh* mesh)
+    bool Renderer::RemoveStaticMesh(StaticMesh* mesh)
     {
         return s_Data.BatchManager.RemoveSegment(mesh->GetBufferSegmentID());
     }
 
-    void Renderer::DrawMesh(const glm::mat4 transform, Ref<MeshSource> meshSource, uint32_t entityID)
+    void Renderer::DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, uint32_t entityID)
     {
-        // s_Data.Shader->Bind();
-        // s_Data.Shader->UploadUniformMat4("u_ModelMatrix", transform);
-        // RenderCommand::DrawIndexed(meshSource->GetVertexArray(), meshSource->GetIndexs().size() * 3);
-        // s_Data.Stats.DrawCalls++;
+        Ref<Shader> shader = s_Data.m_ShaderLibrary->Get("Shader");
+        shader->Bind();
+        shader->UploadUniformMat4("u_VertexUniforms.ModelMatrix", transform);
+        shader->UploadUniformFloat4("uniforms.Color", glm::vec4(0.5f, 0.1f, 1.0f, 1.0f));
+        RenderCommand::DrawIndexed(mesh->GetVertexArray(), mesh->GetMeshSource()->GetIndexs().size() * 3);
+        s_Data.Stats.DrawCalls++;
     }
 
     Renderer::RendererData Renderer::GetRendererData()

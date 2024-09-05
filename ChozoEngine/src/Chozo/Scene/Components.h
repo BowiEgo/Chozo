@@ -76,24 +76,39 @@ namespace Chozo {
 
     struct MeshComponent
     {
-        StaticMesh MeshInstance;
-        Ref<MeshSource> Source;
+        Ref<Mesh> MeshInstance;
+
+        MeshType Type = MeshType::Dynamic;
 
         MeshComponent() = default;
         MeshComponent(const MeshComponent&) { CZ_CORE_WARN("Copy constructor called!"); };
         MeshComponent(MeshComponent&& other) noexcept
             : MeshInstance(std::move(other.MeshInstance)),
-            Source(std::move(other.Source)) {
-            other.Source = nullptr;  // Prevent copying or using original object.
-        }
-        MeshComponent(Ref<MeshSource> meshSource)
-            : Source(meshSource)
+              Type(other.Type)
         {
-            MeshInstance = StaticMesh(meshSource);
+            // other.MeshSrc = nullptr;  // Prevent copying or using original object.
+        }
+        MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic)
+            : Type(meshType)
+        {
+            switch (Type)
+            {
+            case MeshType::Dynamic:
+                MeshInstance = std::make_shared<DynamicMesh>(meshSrc);
+                break;
+            case MeshType::Instanced:
+                MeshInstance = std::make_shared<InstancedMesh>(meshSrc);
+                break;
+            case MeshType::Static:
+                MeshInstance = std::make_shared<StaticMesh>(meshSrc);
+                break;
+            default:
+                CZ_CORE_ERROR("Unknown mesh type!");
+                break;
+            }
         }
         ~MeshComponent()
         {
-            MeshInstance.CallRemove();
         }
     };
 

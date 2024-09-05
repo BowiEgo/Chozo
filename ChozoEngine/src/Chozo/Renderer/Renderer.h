@@ -84,11 +84,10 @@ namespace Chozo {
         static void BeginScene(EditorCamera& camera); // TODO: Remove
         static void EndScene();
 
-        static void RenderBatches();
-
-        static bool SubmitMesh(StaticMesh* mesh);
-        static bool RemoveMesh(StaticMesh* mesh);
-        static void DrawMesh(const glm::mat4 transform, Ref<MeshSource> meshSource, uint32_t entityID = -1);
+        static void RenderStaticBatches();
+        static bool SubmitStaticMesh(StaticMesh* mesh);
+        static bool RemoveStaticMesh(StaticMesh* mesh);
+        static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, uint32_t entityID = -1);
 
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 

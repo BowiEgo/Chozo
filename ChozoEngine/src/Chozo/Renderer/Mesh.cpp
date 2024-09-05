@@ -52,24 +52,6 @@ namespace Chozo
         SetBufferChanged(false);
     }
 
-    StaticMesh::~StaticMesh()
-    {
-    }
-
-    //////////////////////////////////////////////////////////
-    //---------------------Static Mesh----------------------//
-    //////////////////////////////////////////////////////////
-    void StaticMesh::CallSubmit()
-    {
-        bool successed = Renderer::SubmitMesh(this);
-        m_MeshSource->AfterGenerate(successed);
-    }
-
-    void StaticMesh::CallRemove()
-    {
-        bool successed = Renderer::RemoveMesh(this);
-    }
-
     //////////////////////////////////////////////////////////
     //--------------------Dynamic Mesh----------------------//
     //////////////////////////////////////////////////////////
@@ -83,9 +65,23 @@ namespace Chozo
     }
 
     //////////////////////////////////////////////////////////
-    //--------------------Instance Mesh---------------------//
+    //--------------------Instanced Mesh---------------------//
     //////////////////////////////////////////////////////////
-    InstanceMesh::InstanceMesh(Ref<MeshSource> meshSource)
+    InstancedMesh::InstancedMesh(Ref<MeshSource> meshSource)
     {
+    }
+
+    //////////////////////////////////////////////////////////
+    //---------------------Static Mesh----------------------//
+    //////////////////////////////////////////////////////////
+    void StaticMesh::OnSubmit(bool successed)
+    {
+        m_MeshSource->AfterGenerate(successed);
+    }
+
+    void StaticMesh::CallRemove()
+    {
+        CZ_CORE_INFO("CallRemove");
+        Renderer::RemoveStaticMesh(this);
     }
 }

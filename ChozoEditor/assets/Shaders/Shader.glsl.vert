@@ -14,6 +14,11 @@ layout(std140, binding = 0) uniform Camera
     mat4 u_InverseViewProjectionMatrix;
 };
 
+layout(push_constant) uniform VertexUniforms
+{
+    mat4 ModelMatrix;
+} u_VertexUniforms;
+
 layout(location = 0) out vec3 v_Normal;
 layout(location = 1) out vec2 v_TexCoord;
 layout(location = 2) out flat int v_EntityID;
@@ -23,5 +28,10 @@ void main()
     v_Normal = a_Normal;
     v_TexCoord = a_TexCoord;
     v_EntityID = a_EntityID;
-    gl_Position = u_ProjectionMatrix * u_ViewMatrix * vec4(a_Position, 1.0);
+
+    vec4 modelPosition = u_VertexUniforms.ModelMatrix * vec4(a_Position, 1.0);
+    vec4 viewPosition = u_ViewMatrix * modelPosition;
+    vec4 projectionPosition = u_ProjectionMatrix * viewPosition;
+
+    gl_Position = projectionPosition;
 }
