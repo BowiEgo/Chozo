@@ -18,7 +18,7 @@ namespace Chozo
         Geometry() = default;
         ~Geometry() = default;
 
-        static Ref<Geometry> Create(const GeometryType type);
+        // static Ref<Geometry> Create(const GeometryType type, GeometryProps props);
 
         operator bool() const { return m_Buffer.IndexCount != 0; }
     protected:

@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 #include "Platform/OpenGL/OpenGLShader.h"
+#include "Geometry/BoxGeometry.h"
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -63,7 +64,7 @@ namespace Chozo {
         s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData));
 
         // Skybox
-        s_Data.SkyBoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(Geometry::Create(GeometryType::Box)));
+        s_Data.SkyBoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
         // PreethamSky
         {
             Ref<Shader> preethamSkyShader = Renderer::GetRendererData().m_ShaderLibrary->Get("PreethamSky");
@@ -86,7 +87,7 @@ namespace Chozo {
             PipelineSpecification pipelineSpec;
             pipelineSpec.Shader = preethamSkyShader;
             pipelineSpec.TargetFramebuffer = framebuffer;
-            pipelineSpec.DynamicMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(Geometry::Create(GeometryType::Box)));
+            pipelineSpec.DynamicMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
             Ref<Pipeline> preethamSkyPipeline = Pipeline::Create(pipelineSpec);
 
             RenderPassSpecification renderPassSpec;

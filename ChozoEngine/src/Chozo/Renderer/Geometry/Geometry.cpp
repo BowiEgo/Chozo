@@ -6,30 +6,38 @@
 namespace Chozo
 {
 
-    Ref<Geometry> Geometry::Create(const GeometryType type)
-    {
-        switch (type)
-        {
-            case GeometryType::Plane:
-            {
-                return std::make_shared<Geometry>();
-            }
-            case GeometryType::Box:
-            {
-                return std::make_shared<BoxGeometry>();
-            }
-            case GeometryType::Sphere:
-            {
-                return std::make_shared<SphereGeometry>();
-            }
-            case GeometryType::Cone:
-            {
-                return std::make_shared<Geometry>();
-            }
-            case GeometryType::Cylinder:
-            {
-                return std::make_shared<Geometry>();
-            }
-        }
-    }
+    // Ref<Geometry> Geometry::Create(const GeometryType type, GeometryProps props)
+    // {
+    //     switch (type)
+    //     {
+    //         case GeometryType::Plane:
+    //         {
+    //             return std::make_shared<Geometry>();
+    //         }
+    //         case GeometryType::Box:
+    //         {
+    //             BoxGeometryProps* boxProps = dynamic_cast<BoxGeometryProps*>(&props);
+    //             return std::make_shared<BoxGeometry>(
+    //                 boxProps->Width,
+    //                 boxProps->Height,
+    //                 boxProps->Depth,
+    //                 boxProps->WidthSegments,
+    //                 boxProps->HeightSegments,
+    //                 boxProps->DepthSegments
+    //             );
+    //         }
+    //         case GeometryType::Sphere:
+    //         {
+    //             return std::make_shared<SphereGeometry>(props);
+    //         }
+    //         case GeometryType::Cone:
+    //         {
+    //             return std::make_shared<Geometry>();
+    //         }
+    //         case GeometryType::Cylinder:
+    //         {
+    //             return std::make_shared<Geometry>();
+    //         }
+    //     }
+    // }
 }

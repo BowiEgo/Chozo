@@ -1,0 +1,54 @@
+Scene: Untitled
+Entities:
+  - Entity: 3319362805525512012
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [1.90937006, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Type: 0
+      Geometry:
+        Type: 1
+        Width: 1
+        Height: 1
+        Depth: 1
+        WidthSegments: 1
+        HeightSegments: 1
+        DepthSegments: 1
+  - Entity: 13513922529206111893
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-2.9246242, 0, -0.00159832835]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Type: 0
+      Geometry:
+        Type: 1
+        Width: 1
+        Height: 1
+        Depth: 1
+        WidthSegments: 1
+        HeightSegments: 1
+        DepthSegments: 1
+  - Entity: 1895306797578255284
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-0.518831909, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Type: 2
+      Geometry:
+        Type: 2
+        Radius: 1
+        PhiLength: 1.78299999
+        PhiStart: 0
+        ThetaStart: 0
+        ThetaLength: 3.14159274
+        WidthSegments: 64
+        HeightSegments: 32

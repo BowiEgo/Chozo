@@ -5,6 +5,8 @@
 #include <yaml-cpp/yaml.h>
 
 #include "Chozo/Core/Base.h"
+#include "Chozo/Renderer/Geometry/BoxGeometry.h"
+#include "Chozo/Renderer/Geometry/SphereGeometry.h"
 #include "Entity.h"
 #include "Components.h"
 
@@ -153,10 +155,49 @@ namespace Chozo {
             out << YAML::Key << "CircleRendererComponent";
             out << YAML::BeginMap;
 
-            auto& sp = entity.GetComponent<CircleRendererComponent>();
-            out << YAML::Key << "Color" << YAML::Value << sp.Color;
-            out << YAML::Key << "Thickness" << YAML::Value << sp.Thickness;
-            out << YAML::Key << "Fade" << YAML::Value << sp.Fade;
+            auto& cp = entity.GetComponent<CircleRendererComponent>();
+            out << YAML::Key << "Color" << YAML::Value << cp.Color;
+            out << YAML::Key << "Thickness" << YAML::Value << cp.Thickness;
+            out << YAML::Key << "Fade" << YAML::Value << cp.Fade;
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<MeshComponent>())
+        {
+            out << YAML::Key << "MeshComponent";
+            out << YAML::BeginMap;
+
+            auto& mc = entity.GetComponent<MeshComponent>();
+            out << YAML::Key << "Type" << YAML::Value << (int)mc.Type;
+
+            auto& meshSrc = mc.MeshSrc;
+            out << YAML::Key << "Geometry" << YAML::Value;
+            if (BoxGeometry* box = dynamic_cast<BoxGeometry*>(meshSrc.get()))
+            {
+                out << YAML::BeginMap;
+                out << YAML::Key << "Type" << YAML::Value << int(GeometryType::Box);
+                out << YAML::Key << "Width" << YAML::Value << box->GetWidth();
+                out << YAML::Key << "Height" << YAML::Value << box->GetHeight();
+                out << YAML::Key << "Depth" << YAML::Value << box->GetDepth();
+                out << YAML::Key << "WidthSegments" << YAML::Value << box->GetWidthSegments();
+                out << YAML::Key << "HeightSegments" << YAML::Value << box->GetHeightSegments();
+                out << YAML::Key << "DepthSegments" << YAML::Value << box->GetDepthSegments();
+                out << YAML::EndMap;
+            }
+            if (SphereGeometry* sphere = dynamic_cast<SphereGeometry*>(meshSrc.get()))
+            {
+                out << YAML::BeginMap;
+                out << YAML::Key << "Type" << YAML::Value << int(GeometryType::Sphere);
+                out << YAML::Key << "Radius" << YAML::Value << sphere->GetRadius();
+                out << YAML::Key << "PhiLength" << YAML::Value << sphere->GetPhiLength();
+                out << YAML::Key << "PhiStart" << YAML::Value << sphere->GetPhiStart();
+                out << YAML::Key << "ThetaStart" << YAML::Value << sphere->GetThetaStart();
+                out << YAML::Key << "ThetaLength" << YAML::Value << sphere->GetThetaLength();
+                out << YAML::Key << "WidthSegments" << YAML::Value << sphere->GetWidthSegments();
+                out << YAML::Key << "HeightSegments" << YAML::Value << sphere->GetHeightSegments();
+                out << YAML::EndMap;
+            }
 
             out << YAML::EndMap;
         }
@@ -293,6 +334,45 @@ namespace Chozo {
                     sc.Color = circleRendererComponent["Color"].as<glm::vec4>();
                     sc.Thickness = circleRendererComponent["Thickness"].as<float>();
                     sc.Fade = circleRendererComponent["Fade"].as<float>();
+                }
+
+                auto meshComponent = entity["MeshComponent"];
+                Ref<Geometry> geom;
+                if (meshComponent)
+                {
+                    auto geometry = meshComponent["Geometry"];
+                    auto type = geometry["Type"].as<int>();
+                    auto geomType = GeometryType(geometry["Type"].as<int>());
+
+                    switch (geomType) {
+                        case GeometryType::Box:
+                            geom = std::make_shared<BoxGeometry>(
+                                geometry["Width"].as<float>(),
+                                geometry["Height"].as<float>(),
+                                geometry["Depth"].as<float>(),
+                                geometry["WidthSegments"].as<uint32_t>(),
+                                geometry["HeightSegments"].as<uint32_t>(),
+                                geometry["DepthSegments"].as<uint32_t>()
+                            );
+                            break;
+                        case GeometryType::Sphere:
+                            geom = std::make_shared<SphereGeometry>(
+                                geometry["Radius"].as<float>(),
+                                geometry["WidthSegments"].as<uint32_t>(),
+                                geometry["HeightSegments"].as<uint32_t>(),
+                                geometry["PhiStart"].as<float>(),
+                                geometry["PhiLength"].as<float>(),
+                                geometry["ThetaStart"].as<float>(),
+                                geometry["ThetaLength"].as<float>()
+                            );
+                            break;
+                        default:
+                            break;
+                    }
+
+                    geom->SetEntityID(deserializedEntity);
+                    auto meshType = MeshType(meshComponent["Type"].as<int>());
+                    auto& mc = deserializedEntity.AddComponent<MeshComponent>(geom, meshType);
                 }
             }
         }

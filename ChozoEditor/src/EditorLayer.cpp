@@ -221,7 +221,7 @@ namespace Chozo {
                     NewScene();
                 if (ImGui::MenuItem("Open...", "Ctrl+O"))
                     OpenScene();
-                if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S", nullptr, m_SceneFileName != ""))
+                if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S", nullptr))
                     SaveSceneAs();
 
                 if (ImGui::MenuItem("Quit")) Application::Get().Close();
@@ -498,6 +498,7 @@ namespace Chozo {
     void EditorLayer::NewScene()
     {
         m_ActiveScene = std::make_shared<Scene>();
+        m_ActiveScene->SetFinalPipeline(m_Pipeline);
         m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
         m_SceneFileName = "";
@@ -514,6 +515,7 @@ namespace Chozo {
         if (!path.empty())
         {
             m_ActiveScene = std::make_shared<Scene>();
+            m_ActiveScene->SetFinalPipeline(m_Pipeline);
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
             m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
