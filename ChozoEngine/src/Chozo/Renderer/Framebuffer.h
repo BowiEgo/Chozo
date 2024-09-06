@@ -8,12 +8,18 @@
 
 namespace Chozo {
 
+    enum class FBObjectFormat
+    {
+        Texture, RenderBuffer
+    };
+
     struct FramebufferTextureSpecification
     {
         FramebufferTextureSpecification() = default;
         FramebufferTextureSpecification(ImageFormat format)
             : TextureFormat(format) {};
 
+        // FBObjectFormat ObjectFormat = FBObjectFormat::Texture;
         ImageFormat TextureFormat = ImageFormat::None;
         // TODO: filtering/wrap
     };
@@ -53,7 +59,7 @@ namespace Chozo {
         virtual void Resize(float& width, float& height) = 0;
         virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) = 0;
 
-        virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex, const void* value) = 0;
+        virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) = 0;
 
 		virtual RendererID GetRendererID() const = 0;
         virtual RendererID GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const = 0;

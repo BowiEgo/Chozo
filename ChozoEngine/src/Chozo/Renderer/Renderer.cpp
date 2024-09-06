@@ -246,8 +246,8 @@ namespace Chozo {
         shader->SetUniform("u_Camera.ViewMatrix", view);
 
         shader->SetUniform("u_Texture", 0);
-        shader->SetUniform("u_Uniforms.Intensity", environmentIntensity);
-        shader->SetUniform("u_Uniforms.TextureLod", skyboxLod);
+        shader->SetUniform("u_FragUniforms.Intensity", environmentIntensity);
+        shader->SetUniform("u_FragUniforms.TextureLod", skyboxLod);
 
         // TODO: Remove OpenGL platform codes.
         glDepthFunc(GL_LEQUAL);

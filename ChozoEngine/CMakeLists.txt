@@ -13,7 +13,7 @@ add_library(${PROJECT_NAME} STATIC ${chozo_engine_sources} ${chozo_engine_vendor
 set(LIBRARY_OUTPUT_PATH ${LIB_PATH})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_DEBUG)
-target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOW_WIDTH=1600 WINDOW_HEIGHT=900)
+target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOW_WIDTH=1920 WINDOW_HEIGHT=1080)
 
 if(WIN32)
     message("//----------------- Platform: Windows -----------------//")

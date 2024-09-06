@@ -23,7 +23,7 @@ namespace Chozo {
         };
 		virtual const FramebufferSpecification& GetSpecification() const override { return m_Specification; };
 
-        virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex, const void* value) override;
+        virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) override;
 		void Invalidate();
 		void Release();
     private:

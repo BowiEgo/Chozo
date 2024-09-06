@@ -8,6 +8,7 @@
 namespace Chozo {
 
     static const uint32_t s_MaxFramebufferSize = 8192;
+    static std::vector<int> s_IntClearValues(1, -1);
 
     namespace Utils {
 
@@ -124,10 +125,14 @@ namespace Chozo {
             CZ_CORE_WARN("Attempted to resize framebuffer to {0}, {1}", width, height);
             return;
         }
-        m_Specification.Width = width;
-        m_Specification.Height = height;
 
-        Invalidate();
+        if (m_Specification.Width != width || m_Specification.Height != height)
+        {
+            m_Specification.Width = width;
+            m_Specification.Height = height;
+            s_IntClearValues = std::vector(width * height, -1);
+            Invalidate();
+        }
     }
 
     int OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
@@ -139,22 +144,22 @@ namespace Chozo {
         return pixelData;
     }
 
-    void OpenGLFramebuffer::ClearColorAttachmentBuffer(uint32_t attachmentIndex, const void* value)
+    void OpenGLFramebuffer::ClearColorAttachmentBuffer(uint32_t attachmentIndex)
     {
         CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is smaller than colorAttachments size");
         Bind();
         glBindTexture(GL_TEXTURE_2D, m_ColorAttachments[attachmentIndex]); GCE;
-        std::vector<int> clearValues(m_Specification.Width * m_Specification.Height, -1);
+        // std::vector<int> clearValues(m_Specification.Width * m_Specification.Height, -1);
         // // #ifdef GL_VERSION_4_4
         // // glClearTexImage(m_IDAttachment, 0, GL_RED_INTEGER, GL_INT, &clearValues);
         // // #else
         switch (m_ColorAttachmentSpecs[attachmentIndex].TextureFormat)
         {
             case ImageFormat::RGBA8:
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RGB, GL_UNSIGNED_BYTE, clearValues.data()); GCE;
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RGB, GL_UNSIGNED_BYTE, s_IntClearValues.data()); GCE;
                 break;
             case ImageFormat::RED_INTEGER:
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RED_INTEGER, GL_INT, clearValues.data()); GCE;
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RED_INTEGER, GL_INT, s_IntClearValues.data()); GCE;
                 break;
             default:
                 break;
@@ -164,10 +169,7 @@ namespace Chozo {
 
     void OpenGLFramebuffer::Invalidate()
     {
-        if (m_RendererID)
-        {
-            Release();
-        }
+        Release();
 
         glGenFramebuffers(1, &m_RendererID); GCE;
         glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID); GCE;
@@ -223,16 +225,32 @@ namespace Chozo {
             glDrawBuffer(GL_NONE); GCE;
         }
 
-        CZ_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
+        GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        if (status != GL_FRAMEBUFFER_COMPLETE)
+        {
+            CZ_CORE_ERROR("Framebuffer is incomplete! Status: {0}", status);
+            CZ_CORE_ASSERT(false, "");
+        }
     }
 
     void OpenGLFramebuffer::Release()
     {
-        glDeleteFramebuffers(1, &m_RendererID); GCE;
-        glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data()); GCE;
-        glDeleteRenderbuffers(1, &m_DepthAttachment); GCE;
-
-        m_ColorAttachments.clear();
-        m_DepthAttachment = 0;
+        if (m_RendererID)
+        {
+            glDeleteFramebuffers(1, &m_RendererID); GCE;
+            m_RendererID = 0;
+        }
+        
+        if (!m_ColorAttachments.empty())
+        {
+            glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data()); GCE;
+            m_ColorAttachments.clear();
+        }
+        
+        if (m_DepthAttachment)
+        {
+            glDeleteTextures(1, &m_DepthAttachment); GCE;
+            m_DepthAttachment = 0;
+        }
     }
 }

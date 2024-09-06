@@ -48,7 +48,8 @@ namespace Chozo {
         Renderer::ResetStats();
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         RenderCommand::Clear();
-        FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
+        // std::vector<int> clearValues(FBO->GetSpecification().Width * FBO->GetSpecification().Height, -1);
+        FBO->ClearColorAttachmentBuffer(1); // clear entity ID attachment to -1
 
         // Skylight
         {
@@ -148,7 +149,8 @@ namespace Chozo {
         Renderer::ResetStats();
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         RenderCommand::Clear();
-        FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
+        int clearValue = -1;
+        FBO->ClearColorAttachmentBuffer(1); // clear entity ID attachment to -1
         
         // Update scripts
         {

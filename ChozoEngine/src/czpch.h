@@ -17,11 +17,11 @@
 #include "Chozo/Debug/Log.h"
 
 #ifndef WINDOW_WIDTH
-#define WINDOW_WIDTH 1600
+#define WINDOW_WIDTH 1920
 #endif
 
 #ifndef WINDOW_HEIGHT
-#define WINDOW_HEIGHT 900
+#define WINDOW_HEIGHT 1080
 #endif
 
 #ifdef CHOZO_PLATFORM_WIN
