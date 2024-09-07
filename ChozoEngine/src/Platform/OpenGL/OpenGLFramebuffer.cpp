@@ -149,7 +149,6 @@ namespace Chozo {
         CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is smaller than colorAttachments size");
         Bind();
         glBindTexture(GL_TEXTURE_2D, m_ColorAttachments[attachmentIndex]); GCE;
-        // std::vector<int> clearValues(m_Specification.Width * m_Specification.Height, -1);
         // // #ifdef GL_VERSION_4_4
         // // glClearTexImage(m_IDAttachment, 0, GL_RED_INTEGER, GL_INT, &clearValues);
         // // #else

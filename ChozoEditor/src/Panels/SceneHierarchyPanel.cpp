@@ -241,6 +241,27 @@ namespace Chozo {
                 ImGui::EndMenu();
             }
 
+            if (ImGui::BeginMenu("Light"))
+            {
+                if (ImGui::MenuItem("Directional"))
+                {
+                    if (!m_SelectionContext.HasComponent<DirectionalLightComponent>())
+                    {
+                        m_SelectionContext.AddComponent<DirectionalLightComponent>();
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("Point"))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("Spot"))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndMenu();
+            }
+
             if (ImGui::MenuItem("SkyLight"))
             {
                 if (!m_SelectionContext.HasComponent<SkyLightComponent>())
@@ -462,6 +483,21 @@ namespace Chozo {
             //     ImGui::Checkbox("##Show Bounding Boxes", &target);
             // });
         });
+
+        DrawComponent<DirectionalLightComponent>("Light", entity, [](auto& component)
+        {
+            DrawColumnValue<glm::vec3>("Direction", component.Direction, [&](auto& target) {
+                if (DrawVec3Control("Direction", target, 0.0f, 1.0f))
+                    component.Direction = target;
+            });
+            DrawColumnValue<glm::vec3>("Color", component.Color, [&](auto& target) {
+                ImGui::ColorEdit3("##Color", glm::value_ptr(target));
+            });
+            DrawColumnValue<float>("Multiplier", component.Multiplier, [&](auto& target) {
+                if (ImGui::SliderFloat("##Multiplier", &target, 0.0f, 10.0f))
+                    component.Multiplier = target;
+            });
+        });
     }
 
     void SceneHierarchyPanel::DrawGeometryProperties(Entity entity)
@@ -573,6 +609,14 @@ namespace Chozo {
                     glm::vec3& value = std::get<glm::vec3>(pair.second);
                     DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
                         if (DrawVec3Control("##" + name, target))
+                            material->Set(pair.first, value);
+                    });
+                }
+                else if (std::holds_alternative<float>(pair.second))
+                {
+                    float& value = std::get<float>(pair.second);
+                    DrawColumnValue<float>(name, value, [&](auto& target) {
+                        if (ImGui::DragFloat(("##" + name).c_str(), &target, 0.1f, 0.0f, 1.0f))
                             material->Set(pair.first, value);
                     });
                 }

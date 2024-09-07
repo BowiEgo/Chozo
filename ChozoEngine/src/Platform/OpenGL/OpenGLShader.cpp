@@ -143,10 +143,10 @@ namespace Chozo {
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             int memberCount = bufferType.member_types.size();
 
-            CZ_CORE_TRACE("  Name = {0}", resource.name);
-            CZ_CORE_TRACE("  Size = {0}", bufferSize);
-            CZ_CORE_TRACE("  Binding = {0}", binding);
-            CZ_CORE_TRACE("  Members = {0}", memberCount);
+            // CZ_CORE_TRACE("  Name = {0}", resource.name);
+            // CZ_CORE_TRACE("  Size = {0}", bufferSize);
+            // CZ_CORE_TRACE("  Binding = {0}", binding);
+            // CZ_CORE_TRACE("  Members = {0}", memberCount);
 
             // Iterate over each member of the struct
             for (uint32_t i = 0; i < memberCount; i++)
@@ -159,10 +159,10 @@ namespace Chozo {
                 size_t memberOffset = compiler.type_struct_member_offset(bufferType, i);
                 std::string SPIRType = Utils::GetSPIRType(memberType);
 
-                CZ_CORE_TRACE("    Member: {0}", memberName);
-                CZ_CORE_TRACE("    Size: {0}", memberSize);
-                CZ_CORE_TRACE("    Offset: {0}", memberOffset);
-                CZ_CORE_TRACE("    Type: {0}", SPIRType);
+                // CZ_CORE_TRACE("    Member: {0}", memberName);
+                // CZ_CORE_TRACE("    Size: {0}", memberSize);
+                // CZ_CORE_TRACE("    Offset: {0}", memberOffset);
+                // CZ_CORE_TRACE("    Type: {0}", SPIRType);
 
                 uniformTable[resource.name + "." + memberName] = SPIRType;
             }
@@ -230,12 +230,10 @@ namespace Chozo {
             CZ_CORE_WARN("Shader creation took {0} ms", timer.ElapsedMillis());
         }
 
-        // Extract name from filepath
-        auto lastSlash = vertexFilePath.find_last_of("/\\");
-        lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
-        auto lastDot = vertexFilePath.rfind('.');
-        auto count = lastDot == std::string::npos ? vertexFilePath.size() - lastSlash : lastDot - lastSlash;
-        m_Name = vertexFilePath.substr(lastSlash, count);
+        // GLuint uniformBlockIndex0 = glGetUniformBlockIndex(m_RendererID, "Camera");
+        // GLuint uniformBlockIndex1 = glGetUniformBlockIndex(m_RendererID, "SceneData");
+        // glUniformBlockBinding(m_RendererID, uniformBlockIndex0, 0);
+        // glUniformBlockBinding(m_RendererID, uniformBlockIndex1, 1);
     }
 
     OpenGLShader::~OpenGLShader()
@@ -311,7 +309,7 @@ namespace Chozo {
 
         for (auto& kv : shaderSources)
         {
-            // CZ_CORE_WARN("Compile Source: {0}", kv.second);
+            CZ_CORE_WARN("Compile Source: {0}", kv.second);
             GLenum type = kv.first;
             const std::string& source = kv.second;
 
@@ -512,59 +510,59 @@ namespace Chozo {
         spirv_cross::Compiler compiler(shaderData);
         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
-        CZ_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_Filepaths[stage]);
-        CZ_CORE_TRACE("   {0} plain uniforms", resources.gl_plain_uniforms.size());
-        CZ_CORE_TRACE("   {0} push constant", resources.push_constant_buffers.size());
-        CZ_CORE_TRACE("   {0} uniform buffers", resources.uniform_buffers.size());
-        CZ_CORE_TRACE("   {0} sampled images", resources.sampled_images.size());
-        CZ_CORE_TRACE("   {0} storage buffers", resources.storage_buffers.size());
-        CZ_CORE_TRACE("   {0} separate samplers", resources.separate_samplers.size());
-        CZ_CORE_TRACE("   {0} separate images", resources.separate_images.size());
+        // CZ_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_Filepaths[stage]);
+        // CZ_CORE_TRACE("   {0} plain uniforms", resources.gl_plain_uniforms.size());
+        // CZ_CORE_TRACE("   {0} push constant", resources.push_constant_buffers.size());
+        // CZ_CORE_TRACE("   {0} uniform buffers", resources.uniform_buffers.size());
+        // CZ_CORE_TRACE("   {0} sampled images", resources.sampled_images.size());
+        // CZ_CORE_TRACE("   {0} storage buffers", resources.storage_buffers.size());
+        // CZ_CORE_TRACE("   {0} separate samplers", resources.separate_samplers.size());
+        // CZ_CORE_TRACE("   {0} separate images", resources.separate_images.size());
 
         // Push Constants
-        CZ_CORE_TRACE("Push contants:");
+        // CZ_CORE_TRACE("Push contants:");
         for (const auto resource : resources.push_constant_buffers)
             Utils::PrintSPIRReSource(compiler, resource, m_UniformTable);
 
         // Uniform Buffers
-        CZ_CORE_TRACE("Uniform buffers:");
+        // CZ_CORE_TRACE("Uniform buffers:");
         for (const auto resource : resources.uniform_buffers)
             // Utils::PrintSPIRReSource(compiler, resource, m_UniformTable);
 
         // Sampled Images (used for textures and samplers)
-        CZ_CORE_TRACE("Sampled images:");
+        // CZ_CORE_TRACE("Sampled images:");
         for (const auto resource : resources.sampled_images)
         {
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            CZ_CORE_TRACE("  {0}", resource.name);
-            CZ_CORE_TRACE("  Binding = {0}", binding);
+            // CZ_CORE_TRACE("  {0}", resource.name);
+            // CZ_CORE_TRACE("  Binding = {0}", binding);
         }
 
         // Storage Buffers
-        CZ_CORE_TRACE("Storage buffers:");
+        // CZ_CORE_TRACE("Storage buffers:");
         for (const auto resource : resources.storage_buffers)
         {
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            CZ_CORE_TRACE("  {0}", resource.name);
-            CZ_CORE_TRACE("  Binding = {0}", binding);
+            // CZ_CORE_TRACE("  {0}", resource.name);
+            // CZ_CORE_TRACE("  Binding = {0}", binding);
         }
 
         // Separate Samplers
-        CZ_CORE_TRACE("Separate samplers:");
+        // CZ_CORE_TRACE("Separate samplers:");
         for (const auto resource : resources.separate_samplers)
         {
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            CZ_CORE_TRACE("  {0}", resource.name);
-            CZ_CORE_TRACE("  Binding = {0}", binding);
+            // CZ_CORE_TRACE("  {0}", resource.name);
+            // CZ_CORE_TRACE("  Binding = {0}", binding);
         }
 
         // Separate Images
-        CZ_CORE_TRACE("Separate images:");
+        // CZ_CORE_TRACE("Separate images:");
         for (const auto resource : resources.separate_images)
         {
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            CZ_CORE_TRACE("  {0}", resource.name);
-            CZ_CORE_TRACE("  Binding = {0}", binding);
+            // CZ_CORE_TRACE("  {0}", resource.name);
+            // CZ_CORE_TRACE("  Binding = {0}", binding);
         }
     }
 
@@ -614,6 +612,14 @@ namespace Chozo {
                 SetUniformMat4V(name, val, count);
             }
         }, value);
+    }
+
+    void OpenGLShader::SetUniformBlockBinding() const
+    {
+        GLuint uniformBlockIndex0 = glGetUniformBlockIndex(m_RendererID, "Camera");
+        GLuint uniformBlockIndex1 = glGetUniformBlockIndex(m_RendererID, "SceneData");
+        glUniformBlockBinding(m_RendererID, uniformBlockIndex0, 0);
+        glUniformBlockBinding(m_RendererID, uniformBlockIndex1, 1);
     }
 
     void OpenGLShader::SetUniformBool(const std::string &name, const bool value)

@@ -10,7 +10,9 @@ namespace Chozo {
     {
         Ref<Shader> shader;
         if (name == "Basic")
-            shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Shader");
+            shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Basic");
+        else if (name == "Phong")
+            shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Phong");
         else
             CZ_CORE_ASSERT(false, "Unknown Material!");
 

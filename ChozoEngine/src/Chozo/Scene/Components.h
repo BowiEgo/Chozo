@@ -95,7 +95,7 @@ namespace Chozo {
             : MeshSrc(meshSrc), Type(meshType), MaterialInstance(material)
         {
             if (!MaterialInstance)
-                MaterialInstance = Material::Create("Basic");
+                MaterialInstance = Material::Create("Phong");
 
             GenerateMeshInstance();
         }
@@ -161,4 +161,16 @@ namespace Chozo {
         bool DynamicSky = true;
         glm::vec3 TurbidityAzimuthInclination = { 2.74f, 0.0f, 0.0f };
     };
+
+    enum class LightType
+	{
+		None = 0, Directional = 1, Point = 2, Spot = 3
+	};
+
+    struct DirectionalLightComponent
+	{
+		glm::vec3 Direction = { 1.0f, 1.0f, 1.0f };
+		glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
+		float Multiplier = 1.0f;
+	};
 }

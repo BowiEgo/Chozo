@@ -10,6 +10,8 @@ namespace Chozo {
             return 0;
         else if (uniformType == "float" || uniformType == "double")
             return 0.0f;
+        else if (uniformType == "Vec3")
+            return glm::vec3(1.0f);
         else if (uniformType == "Vec4")
             return glm::vec4(1.0f);
         else if (uniformType == "Mat4")

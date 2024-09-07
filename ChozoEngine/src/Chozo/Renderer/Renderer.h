@@ -70,6 +70,23 @@ namespace Chozo {
             CameraData CameraBuffer;
             Ref<UniformBuffer> CameraUniformBuffer;
 
+            struct DirectionalLight
+            {
+                glm::vec3 Direction;
+                float Padding;
+                glm::vec3 Color;
+                float Multiplier;
+            };
+            struct SceneData
+            {
+                DirectionalLight DirectionalLights;
+                glm::vec3 CameraPosition;
+                float EnvironmentMapIntensity;
+                float padding2[3];
+            };
+            SceneData SceneBuffer;
+            Ref<UniformBuffer> SceneUniformBuffer;
+
             Renderer::Statistics Stats;
 
             uint32_t GetMaxTriangles() { return GetMaxCount<Index>(); }
@@ -91,6 +108,8 @@ namespace Chozo {
         static bool RemoveStaticMesh(StaticMesh* mesh);
         static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, Material* material, uint32_t entityID = -1);
 
+        static bool SubmitDirectionalLight(DirectionalLightComponent* light);
+
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
         static RendererData GetRendererData();
@@ -103,13 +122,5 @@ namespace Chozo {
 		static void SetConfig(const RendererConfig& config);
 
         static void DrawSkyLight(Ref<Environment>& environment, float& environmentIntensity, float& skyboxLod, EditorCamera& camera);
-    private:
-        struct SceneData
-        {
-            glm::mat4 ViewProjectionMatrix;
-            Ref<Shader> Shader;
-        };
-
-        static SceneData* m_SceneData;
     };
 }

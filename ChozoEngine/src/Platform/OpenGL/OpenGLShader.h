@@ -19,9 +19,12 @@ namespace Chozo {
         virtual void Unbind() const override;
 
         virtual const std::string& GetName() const override { return m_Name; }
+        virtual const RendererID& GetRendererID() const override { return m_RendererID; }
 
         virtual const std::unordered_map<std::string, std::string> GetUniformTable() { return m_UniformTable; }
         virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) override;
+
+        virtual void SetUniformBlockBinding() const override;
     private:
         void SetUniformBool(const std::string& name, const bool value);
         void SetUniform1i(const std::string& name, const int value);

@@ -1,6 +1,5 @@
 #include "Renderer.h"
 
-#include "Platform/OpenGL/OpenGLShader.h"
 #include "Geometry/BoxGeometry.h"
 
 #include <glad/glad.h>
@@ -10,8 +9,6 @@ namespace Chozo {
 
     static Renderer::RendererConfig s_Config;
     static Renderer::RendererData s_Data;
-
-    Renderer::SceneData* Renderer::m_SceneData = new Renderer::SceneData;
 
     template<typename T>
     static void SetMaxSize(T*& target, T*& ptr, uint32_t newSize)
@@ -51,22 +48,24 @@ namespace Chozo {
             s_Data.TextureSlots[i] = s_Data.WhiteTexture;
         }
 
+        // Uniform buffers
+        CZ_CORE_INFO("CameraUniformBuffer");
+        s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData));
+        CZ_CORE_INFO("SceneUniformBuffer");
+        s_Data.SceneUniformBuffer = UniformBuffer::Create(sizeof(RendererData::SceneData));
+
         // Shaders
         std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
         s_Data.m_ShaderLibrary = ShaderLibrary::Create();
-        s_Data.m_ShaderLibrary->Load("Shader", "../assets/shaders/Shader.glsl.vert", "../assets/shaders/Shader.glsl.frag");
-        s_Data.m_ShaderLibrary->Get("Shader")->Bind();
-        s_Data.m_ShaderLibrary->Get("Shader")->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
+        s_Data.m_ShaderLibrary->Load("Basic", "../assets/shaders/Basic.glsl.vert", "../assets/shaders/Basic.glsl.frag");
+        s_Data.m_ShaderLibrary->Get("Basic")->Bind();
+        s_Data.m_ShaderLibrary->Get("Basic")->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
         
+        s_Data.m_ShaderLibrary->Load("Phong", "../assets/shaders/Phong.glsl.vert", "../assets/shaders/Phong.glsl.frag");
+        s_Data.m_ShaderLibrary->Get("Phong")->SetUniformBlockBinding();
+
         s_Data.m_ShaderLibrary->Load("Skybox", "../assets/shaders/Skybox.glsl.vert", "../assets/shaders/Skybox.glsl.frag");
         s_Data.m_ShaderLibrary->Load("PreethamSky", "../assets/shaders/PreethamSky.glsl.vert", "../assets/shaders/PreethamSky.glsl.frag");
-
-        // // Materials
-        // s_Data.m_MaterialLibrary = MaterialLibrary::Create();
-        // s_Data.m_MaterialLibrary->Load("Basic", s_Data.m_ShaderLibrary->Get("Shader"));
-
-        // Uniform buffers
-        s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData));
 
         // Skybox
         s_Data.SkyBoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
@@ -119,6 +118,10 @@ namespace Chozo {
         s_Data.CameraBuffer.ProjectionMatrix = camera.GetProjection();
         s_Data.CameraBuffer.ViewMatrix = camera.GetViewMatrix();
         s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(RendererData::CameraData));
+
+        s_Data.SceneBuffer.CameraPosition = camera.GetPosition();
+        s_Data.SceneBuffer.EnvironmentMapIntensity = 1.0f;
+        s_Data.SceneUniformBuffer->SetData(&s_Data.SceneBuffer, sizeof(RendererData::SceneData));
     }
 
     void Renderer::EndScene()
@@ -140,7 +143,7 @@ namespace Chozo {
             if (vertexCount == 0 || indexCount == 0)
                 continue;
           
-            Ref<Shader> shader = s_Data.m_ShaderLibrary->Get("Shader");
+            Ref<Shader> shader = s_Data.m_ShaderLibrary->Get("Basic");
             shader->Bind();
             shader->SetUniform("u_VertUniforms.ModelMatrix", glm::mat4(1.0));
             shader->SetUniform("u_FragUniforms.Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
@@ -182,9 +185,7 @@ namespace Chozo {
         Ref<Shader> shader = material->GetShader();
         shader->Bind();
         for (auto& pair : material->GetUniforms())
-        {
             shader->SetUniform(pair.first, pair.second);
-        }
         shader->SetUniform("u_VertUniforms.ModelMatrix", transform);
 
         uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
@@ -195,6 +196,15 @@ namespace Chozo {
         s_Data.IndexCount += indexCount;
         s_Data.Stats.VerticesCount += vertexCount;
         s_Data.Stats.TriangleCount += indexCount;
+    }
+
+    bool Renderer::SubmitDirectionalLight(DirectionalLightComponent *light)
+    {
+        s_Data.SceneBuffer.DirectionalLights.Direction = light->Direction;
+        s_Data.SceneBuffer.DirectionalLights.Color = light->Color;
+        s_Data.SceneBuffer.DirectionalLights.Multiplier = light->Multiplier;
+
+        return true;
     }
 
     Renderer::RendererData Renderer::GetRendererData()

@@ -5,7 +5,8 @@ layout(location = 1) out int o_EntityID;
 
 layout(location = 0) in vec3 v_Normal;
 layout(location = 1) in vec2 v_TexCoord;
-layout(location = 2) in flat int v_EntityID;
+layout(location = 2) in vec3 v_FragPosition;
+layout(location = 3) in flat int v_EntityID;
 
 layout(push_constant) uniform Uniforms
 {

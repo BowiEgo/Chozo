@@ -21,17 +21,19 @@ layout(push_constant) uniform VertexUniforms
 
 layout(location = 0) out vec3 v_Normal;
 layout(location = 1) out vec2 v_TexCoord;
-layout(location = 2) out flat int v_EntityID;
+layout(location = 2) out vec3 v_FragPosition;
+layout(location = 3) out flat int v_EntityID;
 
 void main()
 {
-    v_Normal = a_Normal;
-    v_TexCoord = a_TexCoord;
-    v_EntityID = a_EntityID;
-
     vec4 modelPosition = u_VertUniforms.ModelMatrix * vec4(a_Position, 1.0);
     vec4 viewPosition = u_ViewMatrix * modelPosition;
     vec4 projectionPosition = u_ProjectionMatrix * viewPosition;
 
     gl_Position = projectionPosition;
+
+    v_Normal = a_Normal;
+    v_TexCoord = a_TexCoord;
+    v_FragPosition = vec3(modelPosition);
+    v_EntityID = a_EntityID;
 }

@@ -73,6 +73,19 @@ namespace Chozo {
             }
         }
 
+        // Directional light
+        {
+            auto view = m_Registry.view<TransformComponent, DirectionalLightComponent>();
+            for (auto entity : view)
+            {
+                if (!m_Registry.valid(entity))
+                    continue;
+
+                const auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
+                Renderer::SubmitDirectionalLight(&light);
+            }
+        }
+
         // 3D Renderer
         FBO->Bind();
         Renderer::BeginScene(camera);
@@ -345,6 +358,11 @@ namespace Chozo {
 
     template<>
     void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<DirectionalLightComponent>(Entity entity, DirectionalLightComponent& component)
     {
     }
 }
