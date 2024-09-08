@@ -95,7 +95,15 @@ namespace Chozo {
             : MeshSrc(meshSrc), Type(meshType), MaterialInstance(material)
         {
             if (!MaterialInstance)
+            {
                 MaterialInstance = Material::Create("Phong");
+                MaterialInstance->Set("u_Material.AmbientColor", glm::vec3(0.5f, 0.0f, 0.0f));
+                MaterialInstance->Set("u_Material.DiffuseColor", glm::vec3(0.5f, 0.5f, 0.5f));
+                MaterialInstance->Set("u_Material.SpecularColor", glm::vec3(0.5f, 0.5f, 0.5f));
+                MaterialInstance->Set("u_Material.AmbientStrength", 0.1f);
+                MaterialInstance->Set("u_Material.Metalness", 0.5f);
+                MaterialInstance->Set("u_Material.Roughness", 0.5f);
+            }
 
             GenerateMeshInstance();
         }
@@ -169,8 +177,8 @@ namespace Chozo {
 
     struct DirectionalLightComponent
 	{
-		glm::vec3 Direction = { 1.0f, 1.0f, 1.0f };
+		glm::vec3 Direction = { 1.0f, -1.0f, 1.0f };
 		glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
-		float Multiplier = 1.0f;
+		float Intensity = 1.0f;
 	};
 }

@@ -75,7 +75,7 @@ namespace Chozo {
                 glm::vec3 Direction;
                 float Padding;
                 glm::vec3 Color;
-                float Multiplier;
+                float Intensity;
             };
             struct SceneData
             {

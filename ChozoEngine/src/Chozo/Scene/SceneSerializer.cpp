@@ -362,6 +362,19 @@ namespace Chozo {
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<DirectionalLightComponent>())
+        {
+            out << YAML::Key << "DirectionalLightComponent";
+            out << YAML::BeginMap;
+
+            auto& lc = entity.GetComponent<DirectionalLightComponent>();
+            out << YAML::Key << "Direction" << YAML::Value << lc.Direction;
+            out << YAML::Key << "Color" << YAML::Value << lc.Color;
+            out << YAML::Key << "Intensity" << YAML::Value << lc.Intensity;
+
+            out << YAML::EndMap;
+        }
+
         out << YAML::EndMap;
     }
 
@@ -454,46 +467,46 @@ namespace Chozo {
                 auto transformComponent = entity["TransformComponent"];
                 if (transformComponent)
                 {
-                    auto& tc = deserializedEntity.GetComponent<TransformComponent>();
-                    tc.Translation = transformComponent["Translation"].as<glm::vec3>();
-                    tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
-                    tc.Scale = transformComponent["Scale"].as<glm::vec3>();
+                    auto& comp = deserializedEntity.GetComponent<TransformComponent>();
+                    comp.Translation = transformComponent["Translation"].as<glm::vec3>();
+                    comp.Rotation = transformComponent["Rotation"].as<glm::vec3>();
+                    comp.Scale = transformComponent["Scale"].as<glm::vec3>();
                 }
 
                 auto cameraComponent = entity["CameraComponent"];
                 if (cameraComponent)
                 {
-                    auto& cc = deserializedEntity.AddComponent<CameraComponent>();
+                    auto& comp = deserializedEntity.AddComponent<CameraComponent>();
 
                     const auto& cameraProps = cameraComponent["Camera"];
-                    cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
+                    comp.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
 
-                    cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveVerticalFOV"].as<float>());
-                    cc.Camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
-                    cc.Camera.SetOrthographicFarClip(cameraProps["PerspectiveFar"].as<float>());
+                    comp.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveVerticalFOV"].as<float>());
+                    comp.Camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
+                    comp.Camera.SetOrthographicFarClip(cameraProps["PerspectiveFar"].as<float>());
 
-                    cc.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
-                    cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
-                    cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
+                    comp.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
+                    comp.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
+                    comp.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
 
-                    cc.Primary = cameraComponent["Primary"].as<bool>();
-                    cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+                    comp.Primary = cameraComponent["Primary"].as<bool>();
+                    comp.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
                 }
 
                 auto spriteRendererComponent = entity["SpriteRendererComponent"];
                 if (spriteRendererComponent)
                 {
-                    auto& sc = deserializedEntity.AddComponent<SpriteRendererComponent>();
-                    sc.Color = spriteRendererComponent["Color"].as<glm::vec4>();
+                    auto& comp = deserializedEntity.AddComponent<SpriteRendererComponent>();
+                    comp.Color = spriteRendererComponent["Color"].as<glm::vec4>();
                 }
 
                 auto circleRendererComponent = entity["CircleRendererComponent"];
                 if (circleRendererComponent)
                 {
-                    auto& sc = deserializedEntity.AddComponent<CircleRendererComponent>();
-                    sc.Color = circleRendererComponent["Color"].as<glm::vec4>();
-                    sc.Thickness = circleRendererComponent["Thickness"].as<float>();
-                    sc.Fade = circleRendererComponent["Fade"].as<float>();
+                    auto& comp = deserializedEntity.AddComponent<CircleRendererComponent>();
+                    comp.Color = circleRendererComponent["Color"].as<glm::vec4>();
+                    comp.Thickness = circleRendererComponent["Thickness"].as<float>();
+                    comp.Fade = circleRendererComponent["Fade"].as<float>();
                 }
 
                 auto meshComponent = entity["MeshComponent"];
@@ -545,12 +558,22 @@ namespace Chozo {
                         UniformValue value;
 
                         if (valueNode.IsScalar()) {
-                            if (valueNode.Tag() == "tag:yaml.org,2002:bool") {
-                                value = valueNode.as<bool>();
-                            } else if (valueNode.Tag() == "tag:yaml.org,2002:int") {
-                                value = valueNode.as<int>();
-                            } else if (valueNode.Tag() == "tag:yaml.org,2002:float") {
-                                value = valueNode.as<float>();
+                            try {
+                                if (valueNode.Tag() == "tag:yaml.org,2002:bool") {
+                                    value = valueNode.as<bool>();
+                                } else if (valueNode.Tag() == "tag:yaml.org,2002:int") {
+                                    value = valueNode.as<int>();
+                                } else if (valueNode.Tag() == "tag:yaml.org,2002:float" || valueNode.Tag() == "tag:yaml.org,2002:float") {
+                                    value = valueNode.as<float>();
+                                } else {
+                                    try {
+                                        value = valueNode.as<float>();
+                                    } catch (const YAML::TypedBadConversion<float>&) {
+                                        // value = valueNode.as<std::string>();
+                                    }
+                                }
+                            } catch (const YAML::Exception& e) {
+                                CZ_CORE_ERROR("YAML parsing error: {0}", e.what());
                             }
                         } else if (valueNode.IsSequence()) {
                             if (valueNode.size() == 2) {
@@ -566,6 +589,15 @@ namespace Chozo {
                     }
 
                     auto& mc = deserializedEntity.AddComponent<MeshComponent>(geom, meshType, mate);
+                }
+            
+                auto dirLightComponent = entity["DirectionalLightComponent"];
+                if (dirLightComponent)
+                {
+                    auto& comp = deserializedEntity.AddComponent<DirectionalLightComponent>();
+                    comp.Direction = dirLightComponent["Direction"].as<glm::vec3>();
+                    comp.Color = dirLightComponent["Color"].as<glm::vec3>();
+                    comp.Intensity = dirLightComponent["Intensity"].as<float>();
                 }
             }
         }

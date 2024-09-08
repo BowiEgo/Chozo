@@ -493,9 +493,9 @@ namespace Chozo {
             DrawColumnValue<glm::vec3>("Color", component.Color, [&](auto& target) {
                 ImGui::ColorEdit3("##Color", glm::value_ptr(target));
             });
-            DrawColumnValue<float>("Multiplier", component.Multiplier, [&](auto& target) {
-                if (ImGui::SliderFloat("##Multiplier", &target, 0.0f, 10.0f))
-                    component.Multiplier = target;
+            DrawColumnValue<float>("Intensity", component.Intensity, [&](auto& target) {
+                if (ImGui::SliderFloat("##Intensity", &target, 0.0f, 10.0f))
+                    component.Intensity = target;
             });
         });
     }
@@ -608,15 +608,23 @@ namespace Chozo {
                 {
                     glm::vec3& value = std::get<glm::vec3>(pair.second);
                     DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
-                        if (DrawVec3Control("##" + name, target))
-                            material->Set(pair.first, value);
+                        if (pair.first.find("Color") > 0 || pair.first.find("Albedo"))
+                        {
+                            if (ImGui::ColorEdit3(("##" + name).c_str(), glm::value_ptr(target)))
+                                material->Set(pair.first, value);
+                        }
+                        else
+                        {
+                            if (DrawVec3Control("##" + name, target))
+                                material->Set(pair.first, value);
+                        }
                     });
                 }
                 else if (std::holds_alternative<float>(pair.second))
                 {
                     float& value = std::get<float>(pair.second);
                     DrawColumnValue<float>(name, value, [&](auto& target) {
-                        if (ImGui::DragFloat(("##" + name).c_str(), &target, 0.1f, 0.0f, 1.0f))
+                        if (ImGui::DragFloat(("##" + name).c_str(), &target, 0.00025f, 0.0f, 1.0f))
                             material->Set(pair.first, value);
                     });
                 }

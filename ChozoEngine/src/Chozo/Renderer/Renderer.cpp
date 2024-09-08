@@ -198,11 +198,11 @@ namespace Chozo {
         s_Data.Stats.TriangleCount += indexCount;
     }
 
-    bool Renderer::SubmitDirectionalLight(DirectionalLightComponent *light)
+    bool Renderer::SubmitDirectionalLight(DirectionalLightComponent* light)
     {
         s_Data.SceneBuffer.DirectionalLights.Direction = light->Direction;
         s_Data.SceneBuffer.DirectionalLights.Color = light->Color;
-        s_Data.SceneBuffer.DirectionalLights.Multiplier = light->Multiplier;
+        s_Data.SceneBuffer.DirectionalLights.Intensity = light->Intensity;
 
         return true;
     }
