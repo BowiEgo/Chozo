@@ -45,8 +45,8 @@ namespace Chozo
         inline bool IsBufferChanged() { return m_Is_Buffer_Changed; }
         inline void SetBufferChanged(bool changed) { m_Is_Buffer_Changed = changed; }
 
-        inline uint32_t GetEntityID() const { return m_EntityID; }
-        inline void SetEntityID(uint32_t id) { m_EntityID = id; }
+        inline uint64_t GetEntityID() const { return m_EntityID; }
+        inline void SetEntityID(uint64_t id) { m_EntityID = id; }
 
         void CallGenerate();
         void AfterGenerate(bool successed);
@@ -57,7 +57,7 @@ namespace Chozo
     protected:
         MeshBuffer m_Buffer;
         glm::mat4 m_LocalTransform{1.0f};
-        uint32_t m_EntityID;
+        uint64_t m_EntityID;
     private:
         MeshBuffer m_TempBuffer;
         bool m_Is_Buffer_Changed = false;

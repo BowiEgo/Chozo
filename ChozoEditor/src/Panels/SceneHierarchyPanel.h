@@ -17,17 +17,17 @@ namespace Chozo {
 
         inline void SetSelectedEntity(Entity entity) {
             m_SelectionContext = entity;
-            m_SelectionMeshLeaf = -1;
         }
         inline Entity GetSelectedEntity() const { return m_SelectionContext; }
     private:
         void DrawEntityNode(Entity entity);
+        Entity DrawAddComponent(Entity entity = Entity(entt::null, nullptr));
         void DrawComponents(Entity entity);
         void DrawGeometryProperties(Entity entity);
         void DrawMaterialProperties(Entity entity);
     private:
         Ref<Scene> m_Context;
         Entity m_SelectionContext;
-        uint8_t m_SelectionMeshLeaf;
+        bool m_CreatingEntity;
     };
 }

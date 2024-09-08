@@ -37,23 +37,15 @@ namespace Chozo {
         // Right-click on blank space
         if (ImGui::BeginPopupContextWindow(0, 1 | ImGuiPopupFlags_NoOpenOverItems))
         {
-            if (ImGui::MenuItem("Create Empty Entity"))
-                m_Context->CreateEntity("Empty Entity");
-
+            // ImGui::OpenPopup("AddComponent");
+            m_SelectionContext = DrawAddComponent();
             ImGui::EndPopup();
         }
         ImGui::End();
 
         ImGui::Begin("Properties");
         if (m_SelectionContext)
-        {
-            if (m_SelectionMeshLeaf == 0)
-                DrawGeometryProperties(m_SelectionContext);
-            else if (m_SelectionMeshLeaf == 1)
-                DrawMaterialProperties(m_SelectionContext);
-            else
-                DrawComponents(m_SelectionContext);
-        }
+            DrawComponents(m_SelectionContext);
         ImGui::End();
     }
 
@@ -68,7 +60,7 @@ namespace Chozo {
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 2.0f, 0.0f });
-        bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, "%s", tag.c_str());
+        bool opened = ImGui::TreeNodeEx((void*)(uint64_t)entity, flags, "%s", tag.c_str());
         ImGui::PopStyleVar();
 
         if (ImGui::IsItemClicked())
@@ -84,17 +76,16 @@ namespace Chozo {
 
         if (opened)
         {
-            if (entity.HasComponent<MeshComponent>())
-            {
-                for (int i = 0; i < std::size(s_MeshLeafs); i++)
-                {
-                    if (ImGui::Selectable(s_MeshLeafs[i].c_str(), m_SelectionMeshLeaf == i && m_SelectionContext == entity))
-                    {
-                        m_SelectionContext = entity;
-                        m_SelectionMeshLeaf = m_SelectionMeshLeaf == i && m_SelectionContext == entity ? -1 : i;
-                    }
-                }
-            }
+            // if (entity.HasComponent<MeshComponent>())
+            // {
+            //     for (int i = 0; i < std::size(s_MeshLeafs); i++)
+            //     {
+            //         if (ImGui::Selectable(s_MeshLeafs[i].c_str(), m_SelectionContext == entity))
+            //         {
+            //             m_SelectionContext = entity;
+            //         }
+            //     }
+            // }
             ImGui::TreePop();
         }
 
@@ -172,103 +163,7 @@ namespace Chozo {
 
         if (ImGui::BeginPopup("AddComponent"))
         {
-            if (ImGui::MenuItem("Camera"))
-            {
-                if (!m_SelectionContext.HasComponent<CameraComponent>())
-                    m_SelectionContext.AddComponent<CameraComponent>();
-                ImGui::CloseCurrentPopup();
-            }
-
-            if (ImGui::MenuItem("Sprite Renderer"))
-            {
-                if (!m_SelectionContext.HasComponent<SpriteRendererComponent>())
-                    m_SelectionContext.AddComponent<SpriteRendererComponent>();
-                ImGui::CloseCurrentPopup();
-            }
-
-            if (ImGui::MenuItem("Circle Renderer"))
-            {
-                if (!m_SelectionContext.HasComponent<CircleRendererComponent>())
-                    m_SelectionContext.AddComponent<CircleRendererComponent>();
-                ImGui::CloseCurrentPopup();
-            }
-
-            if (ImGui::BeginMenu("Mesh"))
-            {
-                if (ImGui::MenuItem("Assets"))
-                {
-                    // if (!m_SelectionContext.HasComponent<MeshComponent>())
-                    //         m_SelectionContext.AddComponent<MeshComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::BeginMenu("Geometry"))
-                {
-                    if (ImGui::MenuItem("Plane"))
-                    {
-                        ImGui::CloseCurrentPopup();
-                    }
-                    if (ImGui::MenuItem("Box"))
-                    {
-                        if (!m_SelectionContext.HasComponent<MeshComponent>())
-                        {
-                            Ref<Geometry> geom = std::make_shared<BoxGeometry>();
-                            geom->SetEntityID((uint32_t)m_SelectionContext);
-                            m_SelectionContext.AddComponent<MeshComponent>(geom);
-                        }
-                        ImGui::CloseCurrentPopup();
-                    }
-                    if (ImGui::MenuItem("Sphere"))
-                    {
-                        if (!m_SelectionContext.HasComponent<MeshComponent>())
-                        {
-                            Ref<Geometry> geom = std::make_shared<SphereGeometry>();
-                            geom->SetEntityID((uint32_t)m_SelectionContext);
-                            m_SelectionContext.AddComponent<MeshComponent>(geom);
-                        }
-                        ImGui::CloseCurrentPopup();
-                    }
-                    if (ImGui::MenuItem("Cone"))
-                    {
-                        ImGui::CloseCurrentPopup();
-                    }
-                    if (ImGui::MenuItem("Cylinder"))
-                    {
-                        ImGui::CloseCurrentPopup();
-                    }
-
-                    ImGui::EndMenu();
-                }
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Light"))
-            {
-                if (ImGui::MenuItem("Directional"))
-                {
-                    if (!m_SelectionContext.HasComponent<DirectionalLightComponent>())
-                        m_SelectionContext.AddComponent<DirectionalLightComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::MenuItem("Point"))
-                {
-                    if (!m_SelectionContext.HasComponent<PointLightComponent>())
-                        m_SelectionContext.AddComponent<PointLightComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::MenuItem("Spot"))
-                {
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::MenuItem("SkyLight"))
-            {
-                if (!m_SelectionContext.HasComponent<SkyLightComponent>())
-                    m_SelectionContext.AddComponent<SkyLightComponent>();
-                ImGui::CloseCurrentPopup();
-            }
-
+            DrawAddComponent(m_SelectionContext);
             ImGui::EndPopup();
         }
 
@@ -517,6 +412,9 @@ namespace Chozo {
                     component.Falloff = target;
             });
         });
+
+        DrawGeometryProperties(m_SelectionContext);
+        DrawMaterialProperties(m_SelectionContext);
     }
 
     void SceneHierarchyPanel::DrawGeometryProperties(Entity entity)
@@ -649,5 +547,123 @@ namespace Chozo {
                 }
             }
         });
+    }
+
+    Entity SceneHierarchyPanel::DrawAddComponent(Entity entity)
+    {
+        if (ImGui::MenuItem("Camera"))
+        {
+            if (!entity)
+                entity = m_Context->CreateEntity("Camera");
+            if (!entity.HasComponent<CameraComponent>())
+                entity.AddComponent<CameraComponent>();
+            ImGui::CloseCurrentPopup();
+        }
+
+        if (ImGui::MenuItem("Sprite Renderer"))
+        {
+            if (!entity)
+                entity = m_Context->CreateEntity("Sprite Renderer");
+            if (!entity.HasComponent<SpriteRendererComponent>())
+                entity.AddComponent<SpriteRendererComponent>();
+            ImGui::CloseCurrentPopup();
+        }
+
+        if (ImGui::MenuItem("Circle Renderer"))
+        {
+            if (!entity)
+                entity = m_Context->CreateEntity("Circle Renderer");
+            if (!entity.HasComponent<CircleRendererComponent>())
+                entity.AddComponent<CircleRendererComponent>();
+            ImGui::CloseCurrentPopup();
+        }
+
+        if (ImGui::BeginMenu("Mesh"))
+        {
+            if (ImGui::MenuItem("Assets"))
+            {
+                // if (!entity.HasComponent<MeshComponent>())
+                //         entity.AddComponent<MeshComponent>();
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::BeginMenu("Geometry"))
+            {
+                if (ImGui::MenuItem("Plane"))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("Box"))
+                {
+                    if (!entity)
+                        entity = m_Context->CreateEntity("Box");
+                    if (!entity.HasComponent<MeshComponent>())
+                    {
+                        Ref<Geometry> geom = std::make_shared<BoxGeometry>();
+                        geom->SetEntityID((uint64_t)entity);
+                        entity.AddComponent<MeshComponent>(geom);
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("Sphere"))
+                {
+                    if (!entity)
+                        entity = m_Context->CreateEntity("Sphere");
+                    if (!entity.HasComponent<MeshComponent>())
+                    {
+                        Ref<Geometry> geom = std::make_shared<SphereGeometry>();
+                        geom->SetEntityID((uint64_t)entity);
+                        entity.AddComponent<MeshComponent>(geom);
+                    }
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("Cone"))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("Cylinder"))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Light"))
+        {
+            if (ImGui::MenuItem("Directional"))
+            {
+                if (!entity)
+                    entity = m_Context->CreateEntity("Directional Light");
+                if (!entity.HasComponent<DirectionalLightComponent>())
+                    entity.AddComponent<DirectionalLightComponent>();
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::MenuItem("Point"))
+            {
+                if (!entity)
+                    entity = m_Context->CreateEntity("Point Light");
+                if (!entity.HasComponent<PointLightComponent>())
+                    entity.AddComponent<PointLightComponent>();
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::MenuItem("Spot"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::MenuItem("SkyLight"))
+        {
+            if (!entity)
+                entity = m_Context->CreateEntity("SkyLight");
+            if (!entity.HasComponent<SkyLightComponent>())
+                entity.AddComponent<SkyLightComponent>();
+            ImGui::CloseCurrentPopup();
+        }
+
+        return entity;
     }
 }

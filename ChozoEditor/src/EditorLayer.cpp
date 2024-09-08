@@ -157,7 +157,8 @@ namespace Chozo {
         {
             case SceneState::Edit:
             {
-                m_EditorCamera.OnUpdate(ts);
+                if (m_AllowViewportCameraEvents)
+                    m_EditorCamera.OnUpdate(ts);
                 m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
                 break;
             }
@@ -416,7 +417,7 @@ namespace Chozo {
     void EditorLayer::OnEvent(Event &e)
     {
         // m_CameraController->OnEvent(e);
-        if (m_SceneState == SceneState::Edit)
+        if (m_SceneState == SceneState::Edit && m_AllowViewportCameraEvents)
             m_EditorCamera.OnEvent(e);
 
         EventDispatcher dispatcher(e);
@@ -474,7 +475,7 @@ namespace Chozo {
 
     bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent &e)
     {
-        if (e.GetMouseButton() == MouseButton::Left && !Input::IsKeyPressed(Key::LeftAlt) && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && m_ViewportHovered)
+        if (e.GetMouseButton() == MouseButton::Left && !Input::IsKeyPressed(Key::LeftAlt) && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && m_ViewportHovered && m_AllowViewportCameraEvents)
         {
             m_SceneHierarchyPanel.SetSelectedEntity(m_Entity_Hovered);
 
