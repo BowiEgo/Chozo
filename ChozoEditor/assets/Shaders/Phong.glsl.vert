@@ -7,7 +7,7 @@ layout(location = 3) in vec3 a_Bitangent;
 layout(location = 4) in vec3 a_Tangent;
 layout(location = 5) in int a_EntityID;
 
-layout(std140, binding = 0) uniform Camera
+layout(std140, binding = 0) uniform CameraData
 {
     mat4 u_ProjectionMatrix;
     mat4 u_ViewMatrix;

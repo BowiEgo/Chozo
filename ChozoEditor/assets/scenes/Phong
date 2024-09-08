@@ -1,71 +1,107 @@
 Scene: Untitled
 Entities:
-    - Entity: 325427967888756542
-      TagComponent:
-          Tag: Empty Entity
-      TransformComponent:
-          Translation: [0, 0, 0]
-          Rotation: [0, 0, 0]
-          Scale: [1, 1, 1]
-    - Entity: 6273086195722063365
-      TagComponent:
-          Tag: DirLight
-      TransformComponent:
-          Translation: [0, 0, 0]
-          Rotation: [0, 0, 0]
-          Scale: [1, 1, 1]
-      DirectionalLightComponent:
-          Direction: [2, -1, -2]
-          Color: [1, 1, 1]
-          Intensity: 1
-    - Entity: 10870368272353595086
-      TagComponent:
-          Tag: Cube
-      TransformComponent:
-          Translation: [0.152200043, 0, -2.78403163]
-          Rotation: [0, 0, 0]
-          Scale: [6.5, 2.29999995, 0.200000003]
-      MeshComponent:
-          Type: 0
-          Geometry:
-              Type: 1
-              Width: 1
-              Height: 2.29999995
-              Depth: 3
-              WidthSegments: 1
-              HeightSegments: 1
-              DepthSegments: 1
-          Material:
-              Name: Phong
-              u_Material.AmbientColor: [0.5, 0.463320434, 0]
-              u_Material.SpecularColor: [0.814671814, 0.603926539, 0]
-              u_Material.DiffuseColor: [0.590733588, 0.497255027, 0.150534421]
-              u_Material.AmbientStrength: 0.100000001
-              u_Material.Metalness: 0.5
-              u_Material.Roughness: 0.5
-    - Entity: 6282163605936880614
-      TagComponent:
-          Tag: Red Ball
-      TransformComponent:
-          Translation: [0, 0, -0.39902097]
-          Rotation: [0, 0, 0]
-          Scale: [1, 1, 1]
-      MeshComponent:
-          Type: 0
-          Geometry:
-              Type: 2
-              Radius: 1
-              PhiLength: 6.28318548
-              PhiStart: 0
-              ThetaStart: 0
-              ThetaLength: 3.14159274
-              WidthSegments: 32
-              HeightSegments: 16
-          Material:
-              Name: Phong
-              u_Material.AmbientColor: [0.5, 0, 0]
-              u_Material.SpecularColor: [0.66409266, 0, 0]
-              u_Material.DiffuseColor: [0.31660229, 0, 0]
-              u_Material.AmbientStrength: 0.100000001
-              u_Material.Metalness: 0.354999989
-              u_Material.Roughness: 0.98299998
+  - Entity: 15523543194891287388
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 14286552634676448382
+    TagComponent:
+      Tag: Point Light 2
+    TransformComponent:
+      Translation: [-0.0921990871, 5.70424557, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [0.33590734, 0.57692939, 1]
+      Intensity: 1
+      Radius: 10
+      Falloff: 1
+  - Entity: 6282163605936880614
+    TagComponent:
+      Tag: Red Ball
+    TransformComponent:
+      Translation: [0, 0, -0.39902097]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Type: 0
+      Geometry:
+        Type: 2
+        Radius: 1
+        PhiLength: 6.28318548
+        PhiStart: 0
+        ThetaStart: 0
+        ThetaLength: 3.14159274
+        WidthSegments: 64
+        HeightSegments: 32
+      Material:
+        Name: Phong
+        u_Material.AmbientColor: [0.710424721, 0.57053411, 0.57053411]
+        u_Material.SpecularColor: [0.772200763, 0.55455339, 0.55455339]
+        u_Material.DiffuseColor: [1, 0, 0]
+        u_Material.AmbientStrength: 0.100000001
+        u_Material.Metalness: 0.469999999
+        u_Material.Roughness: 0.875999987
+  - Entity: 10870368272353595086
+    TagComponent:
+      Tag: Cube
+    TransformComponent:
+      Translation: [0.152200043, 0, -2.78403163]
+      Rotation: [0, 0, 0]
+      Scale: [6.5, 2.29999995, 0.200000003]
+    MeshComponent:
+      Type: 0
+      Geometry:
+        Type: 1
+        Width: 1
+        Height: 2.29999995
+        Depth: 3
+        WidthSegments: 1
+        HeightSegments: 1
+        DepthSegments: 1
+      Material:
+        Name: Phong
+        u_Material.AmbientColor: [0.822393835, 0.822393835, 0.822393835]
+        u_Material.SpecularColor: [0.621621609, 0.621621609, 0.621621609]
+        u_Material.DiffuseColor: [0.814671814, 0.814671814, 0.814671814]
+        u_Material.AmbientStrength: 0.100000001
+        u_Material.Metalness: 0.5
+        u_Material.Roughness: 0.5
+  - Entity: 6273086195722063365
+    TagComponent:
+      Tag: DirLight
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Direction: [2, -1, -2]
+      Color: [1, 1, 1]
+      Intensity: 1
+  - Entity: 325427967888756542
+    TagComponent:
+      Tag: Point Light 1
+    TransformComponent:
+      Translation: [2.25546074, 0, -0.334841937]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [0, 1, 0.108108044]
+      Intensity: 0.458999991
+      Radius: 7.74800014
+      Falloff: 1.17999995
+  - Entity: 16619928800525008541
+    TagComponent:
+      Tag: Point Light 3
+    TransformComponent:
+      Translation: [-1.96427298, 0, -0.703296185]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [1, 0, 0]
+      Intensity: 0.910000026
+      Radius: 2.79299998
+      Falloff: 0.990999997

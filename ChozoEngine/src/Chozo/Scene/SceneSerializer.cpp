@@ -375,6 +375,20 @@ namespace Chozo {
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<PointLightComponent>())
+        {
+            out << YAML::Key << "PointLightComponent";
+            out << YAML::BeginMap;
+
+            auto& pc = entity.GetComponent<PointLightComponent>();
+            out << YAML::Key << "Color" << YAML::Value << pc.Color;
+            out << YAML::Key << "Intensity" << YAML::Value << pc.Intensity;
+            out << YAML::Key << "Radius" << YAML::Value << pc.Radius;
+            out << YAML::Key << "Falloff" << YAML::Value << pc.Falloff;
+
+            out << YAML::EndMap;
+        }
+
         out << YAML::EndMap;
     }
 
@@ -598,6 +612,16 @@ namespace Chozo {
                     comp.Direction = dirLightComponent["Direction"].as<glm::vec3>();
                     comp.Color = dirLightComponent["Color"].as<glm::vec3>();
                     comp.Intensity = dirLightComponent["Intensity"].as<float>();
+                }
+
+                auto pointLightComponent = entity["PointLightComponent"];
+                if (pointLightComponent)
+                {
+                    auto& comp = deserializedEntity.AddComponent<PointLightComponent>();
+                    comp.Color = pointLightComponent["Color"].as<glm::vec3>();
+                    comp.Intensity = pointLightComponent["Intensity"].as<float>();
+                    comp.Radius = pointLightComponent["Radius"].as<float>();
+                    comp.Falloff = pointLightComponent["Falloff"].as<float>();
                 }
             }
         }

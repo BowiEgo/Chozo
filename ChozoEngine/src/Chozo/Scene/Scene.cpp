@@ -86,6 +86,19 @@ namespace Chozo {
             }
         }
 
+        // Point lights
+        {
+            auto view = m_Registry.view<TransformComponent, PointLightComponent>();
+            for (auto entity : view)
+            {
+                if (!m_Registry.valid(entity))
+                    continue;
+
+                const auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
+                Renderer::SubmitPointLight(&light, transform.Translation);
+            }
+        }
+
         // 3D Renderer
         FBO->Bind();
         Renderer::BeginScene(camera);
@@ -363,6 +376,11 @@ namespace Chozo {
 
     template<>
     void Scene::OnComponentAdded<DirectionalLightComponent>(Entity entity, DirectionalLightComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<PointLightComponent>(Entity entity, PointLightComponent& component)
     {
     }
 }

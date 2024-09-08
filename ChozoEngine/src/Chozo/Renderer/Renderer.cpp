@@ -49,10 +49,9 @@ namespace Chozo {
         }
 
         // Uniform buffers
-        CZ_CORE_INFO("CameraUniformBuffer");
         s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData));
-        CZ_CORE_INFO("SceneUniformBuffer");
         s_Data.SceneUniformBuffer = UniformBuffer::Create(sizeof(RendererData::SceneData));
+        s_Data.PointLightUniformBuffer = UniformBuffer::Create(sizeof(RendererData::PointLightData));
 
         // Shaders
         std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
@@ -122,6 +121,9 @@ namespace Chozo {
         s_Data.SceneBuffer.CameraPosition = camera.GetPosition();
         s_Data.SceneBuffer.EnvironmentMapIntensity = 1.0f;
         s_Data.SceneUniformBuffer->SetData(&s_Data.SceneBuffer, sizeof(RendererData::SceneData));
+
+        s_Data.PointLightUniformBuffer->SetData(&s_Data.PointLightBuffer, sizeof(RendererData::PointLightData));
+        s_Data.PointLightBuffer.LightCount = 0;
     }
 
     void Renderer::EndScene()
@@ -200,9 +202,29 @@ namespace Chozo {
 
     bool Renderer::SubmitDirectionalLight(DirectionalLightComponent* light)
     {
-        s_Data.SceneBuffer.DirectionalLights.Direction = light->Direction;
-        s_Data.SceneBuffer.DirectionalLights.Color = light->Color;
-        s_Data.SceneBuffer.DirectionalLights.Intensity = light->Intensity;
+        s_Data.SceneBuffer.Lights.Direction = light->Direction;
+        s_Data.SceneBuffer.Lights.Color = light->Color;
+        s_Data.SceneBuffer.Lights.Intensity = light->Intensity;
+
+        return true;
+    }
+
+    bool Renderer::SubmitPointLight(PointLightComponent* light, glm::vec3& position)
+    {
+        uint index = s_Data.PointLightBuffer.LightCount;
+        if (index >= 1000)
+        {
+            CZ_CORE_WARN("PointLightBuffer is full, cannot submit more point lights.");
+            return false;
+        }
+
+        s_Data.PointLightBuffer.Lights[index].Position = position;
+        s_Data.PointLightBuffer.Lights[index].Intensity = light->Intensity;
+        s_Data.PointLightBuffer.Lights[index].Color = light->Color;
+        s_Data.PointLightBuffer.Lights[index].Radius = light->Radius;
+        s_Data.PointLightBuffer.Lights[index].Falloff = light->Falloff;
+
+        s_Data.PointLightBuffer.LightCount++;
 
         return true;
     }

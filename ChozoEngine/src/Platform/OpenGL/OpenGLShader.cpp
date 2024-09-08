@@ -616,10 +616,15 @@ namespace Chozo {
 
     void OpenGLShader::SetUniformBlockBinding() const
     {
-        GLuint uniformBlockIndex0 = glGetUniformBlockIndex(m_RendererID, "Camera");
+        GLuint uniformBlockIndex0 = glGetUniformBlockIndex(m_RendererID, "CameraData");
         GLuint uniformBlockIndex1 = glGetUniformBlockIndex(m_RendererID, "SceneData");
-        glUniformBlockBinding(m_RendererID, uniformBlockIndex0, 0);
-        glUniformBlockBinding(m_RendererID, uniformBlockIndex1, 1);
+        GLuint uniformBlockIndex2 = glGetUniformBlockIndex(m_RendererID, "PointLightData");
+        if (uniformBlockIndex0 != GL_INVALID_INDEX)
+            glUniformBlockBinding(m_RendererID, uniformBlockIndex0, 0);
+        if (uniformBlockIndex1 != GL_INVALID_INDEX)
+            glUniformBlockBinding(m_RendererID, uniformBlockIndex1, 1);
+        if (uniformBlockIndex2 != GL_INVALID_INDEX)
+            glUniformBlockBinding(m_RendererID, uniformBlockIndex2, 2);
     }
 
     void OpenGLShader::SetUniformBool(const std::string &name, const bool value)

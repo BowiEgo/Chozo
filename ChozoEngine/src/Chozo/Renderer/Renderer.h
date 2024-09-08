@@ -73,19 +73,37 @@ namespace Chozo {
             struct DirectionalLight
             {
                 glm::vec3 Direction;
-                float Padding;
-                glm::vec3 Color;
                 float Intensity;
+                glm::vec3 Color;
+                float Padding;
             };
             struct SceneData
             {
-                DirectionalLight DirectionalLights;
+                DirectionalLight Lights;
                 glm::vec3 CameraPosition;
                 float EnvironmentMapIntensity;
-                float padding2[3];
+                float Padding[3];
             };
             SceneData SceneBuffer;
             Ref<UniformBuffer> SceneUniformBuffer;
+
+            struct PointLight
+            {
+                glm::vec3 Position;
+                float Intensity;
+                glm::vec3 Color;
+                float Radius;
+                float Falloff;
+                float Padding[3];
+            };
+            struct PointLightData
+            {
+                uint LightCount;
+                float Padding[3];
+	            PointLight Lights[1000];
+            };
+            PointLightData PointLightBuffer;
+            Ref<UniformBuffer> PointLightUniformBuffer;
 
             Renderer::Statistics Stats;
 
@@ -109,6 +127,7 @@ namespace Chozo {
         static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, Material* material, uint32_t entityID = -1);
 
         static bool SubmitDirectionalLight(DirectionalLightComponent* light);
+        static bool SubmitPointLight(PointLightComponent* light, glm::vec3& position);
 
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 

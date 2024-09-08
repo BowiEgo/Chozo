@@ -246,13 +246,13 @@ namespace Chozo {
                 if (ImGui::MenuItem("Directional"))
                 {
                     if (!m_SelectionContext.HasComponent<DirectionalLightComponent>())
-                    {
                         m_SelectionContext.AddComponent<DirectionalLightComponent>();
-                    }
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("Point"))
                 {
+                    if (!m_SelectionContext.HasComponent<PointLightComponent>())
+                        m_SelectionContext.AddComponent<PointLightComponent>();
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("Spot"))
@@ -496,6 +496,25 @@ namespace Chozo {
             DrawColumnValue<float>("Intensity", component.Intensity, [&](auto& target) {
                 if (ImGui::SliderFloat("##Intensity", &target, 0.0f, 10.0f))
                     component.Intensity = target;
+            });
+        });
+
+        DrawComponent<PointLightComponent>("Light", entity, [](auto& component)
+        {
+            DrawColumnValue<glm::vec3>("Color", component.Color, [&](auto& target) {
+                ImGui::ColorEdit3("##Color", glm::value_ptr(target));
+            });
+            DrawColumnValue<float>("Intensity", component.Intensity, [&](auto& target) {
+                if (ImGui::SliderFloat("##Intensity", &target, 0.0f, 10.0f))
+                    component.Intensity = target;
+            });
+            DrawColumnValue<float>("Radius", component.Radius, [&](auto& target) {
+                if (ImGui::SliderFloat("##Radius", &target, 0.0f, 50.0f))
+                    component.Radius = target;
+            });
+            DrawColumnValue<float>("Falloff", component.Falloff, [&](auto& target) {
+                if (ImGui::SliderFloat("##Falloff", &target, 0.0f, 10.0f))
+                    component.Falloff = target;
             });
         });
     }

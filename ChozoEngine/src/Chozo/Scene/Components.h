@@ -181,4 +181,12 @@ namespace Chozo {
 		glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
 		float Intensity = 1.0f;
 	};
+
+    struct PointLightComponent
+	{
+        glm::vec3 Color = { 1.0f, 1.0f, 1.0f };;
+        float Intensity = 1.0f;
+        float Radius = 10.0f;
+        float Falloff = 1.0f;
+	};
 }
