@@ -33,6 +33,8 @@ namespace Chozo {
 
         Entity GetPrimaryCameraEntity();
 
+        Ref<Environment> GetEnvironment() { return m_Environment; }
+
         inline void SetFinalPipeline(Ref<Pipeline>& pipeline) { m_FinalPipeline = pipeline; };
     private:
         template<typename T>

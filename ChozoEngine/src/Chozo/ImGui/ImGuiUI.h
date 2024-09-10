@@ -170,6 +170,17 @@ namespace Chozo::UI {
     //=========================================================================================
 	/// Button Image
 
+	inline void DrawButtonImage(const Ref<Texture2D>& image, ImU32 tint, ImVec2 rectMin, ImVec2 rectMax, ImVec2 uv0, ImVec2 uv1)
+	{
+		auto* drawList = ImGui::GetWindowDrawList();
+        drawList->AddImage((ImTextureID)(uintptr_t)image->GetRendererID(), rectMin, rectMax, uv0, uv1, tint);
+	};
+
+    inline void DrawButtonImage(const Ref<Texture2D>& image, ImU32 tint, ImRect rectangle, ImVec2 uv0, ImVec2 uv1)
+	{
+		DrawButtonImage(image, tint, rectangle.Min, rectangle.Max, uv0, uv1);
+	};
+
 	inline void DrawButtonImage(const Ref<Texture2D>& imageNormal, const Ref<Texture2D>& imageHovered, const Ref<Texture2D>& imagePressed,
 		 ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
 		 ImVec2 rectMin, ImVec2 rectMax, ImVec2 uv0, ImVec2 uv1)

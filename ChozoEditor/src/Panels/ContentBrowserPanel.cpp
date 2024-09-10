@@ -14,32 +14,6 @@ namespace Chozo {
     extern const std::regex imagePattern(R"(\.(png|jpg|jpeg)$)", std::regex::icase);
     extern const std::regex scenePattern(R"(\.(chozo)$)", std::regex::icase);
 
-    static ImRect GetItemRect()
-	{
-		return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-	}
-
-	static ImRect RectExpanded(const ImRect& rect, float x, float y)
-	{
-		ImRect result = rect;
-		result.Min.x -= x;
-		result.Min.y -= y;
-		result.Max.x += x;
-		result.Max.y += y;
-		return result;
-	}
-
-    static void DrawButtonImage(const Ref<Texture2D>& image, ImU32 tint, ImVec2 rectMin, ImVec2 rectMax, ImVec2 uv0, ImVec2 uv1)
-	{
-		auto* drawList = ImGui::GetWindowDrawList();
-        drawList->AddImage((ImTextureID)(uintptr_t)image->GetRendererID(), rectMin, rectMax, uv0, uv1, tint);
-	};
-
-    static void DrawButtonImage(const Ref<Texture2D>& image, ImU32 tint, ImRect rectangle, ImVec2 uv0, ImVec2 uv1)
-	{
-		DrawButtonImage(image, tint, rectangle.Min, rectangle.Max, uv0, uv1);
-	};
-
     static void DisplayThumbnail(const Ref<Texture2D>& icon, float thumbnailSize)
     {
         float imageAspectRatio = static_cast<float>(icon->GetHeight()) / static_cast<float>(icon->GetWidth());
@@ -59,7 +33,7 @@ namespace Chozo {
 
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
         ImGui::InvisibleButton("##thumbnailButton", size);
-        DrawButtonImage(icon, IM_COL32(255, 255, 255, 225), RectExpanded(GetItemRect(), -6.0f, -6.0f), uv0, uv1);
+        UI::DrawButtonImage(icon, IM_COL32(255, 255, 255, 225), UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f), uv0, uv1);
 
         ImGui::PopStyleColor();
     }
@@ -85,7 +59,7 @@ namespace Chozo {
             const wchar_t* itemPath = (const wchar_t*)relativePath.c_str();
             ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
             ImGui::EndDragDropSource();
-        }    
+        }
     }
 
     ContentBrowserPanel::ContentBrowserPanel()

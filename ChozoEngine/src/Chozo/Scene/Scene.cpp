@@ -149,7 +149,6 @@ namespace Chozo {
         // 2D Renderer
         Renderer2D::BeginScene(camera);
         Renderer2D::BeginBatch();
-
         // Draw sprites
         {
             auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
@@ -159,8 +158,8 @@ namespace Chozo {
                     continue;
             
                 const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                // Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
-                Renderer2D::DrawRect(transform.GetTransform(), sprite.Color, (uint32_t)entity);
+                Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
+                // Renderer2D::DrawRect(transform.GetTransform(), sprite.Color, (uint32_t)entity);
             }
         }
 

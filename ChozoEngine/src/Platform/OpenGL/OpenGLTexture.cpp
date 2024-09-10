@@ -93,6 +93,11 @@ namespace Chozo
         stbi_image_free(data);
     }
 
+    OpenGLTexture2D::OpenGLTexture2D(const RendererID &id, const TextureSpecification &spec)
+        : m_RendererID(id), m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
+    {
+    }
+
     OpenGLTexture2D::~OpenGLTexture2D()
     {
         glDeleteTextures(1, &m_RendererID);

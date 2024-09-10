@@ -135,7 +135,7 @@ void main()
 	float turbidity     = u_FragUniforms.Turbidity;
     float azimuth       = u_FragUniforms.Azimuth;
     float inclination   = u_FragUniforms.Inclination;
-    vec3 sunDir     	= normalize( vec3( sin(inclination) * cos(azimuth), cos(inclination), sin(inclination) * sin(azimuth) ) );
+    vec3 sunDir     	= normalize(vec3( sin(inclination) * cos(azimuth), cos(inclination), sin(inclination) * sin(azimuth)));
     // vec3 viewDir  		= -computeSphericalCoordinates( uv ).xzy;
     vec3 viewDir  		= normalize(v_WorldPosition);
     vec3 skyLuminance 	= calculateSkyLuminanceRGB( sunDir, viewDir, turbidity );

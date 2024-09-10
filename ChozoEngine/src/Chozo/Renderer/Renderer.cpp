@@ -67,6 +67,8 @@ namespace Chozo {
         s_Data.m_ShaderLibrary->Load("Skybox", "../assets/shaders/Skybox.glsl.vert", "../assets/shaders/Skybox.glsl.frag");
         s_Data.m_ShaderLibrary->Load("PreethamSky", "../assets/shaders/PreethamSky.glsl.vert", "../assets/shaders/PreethamSky.glsl.frag");
 
+        s_Data.m_ShaderLibrary->Load("CubemapPreview", "../assets/shaders/CubemapPreview.glsl.vert", "../assets/shaders/CubemapPreview.glsl.frag");
+
         // Skybox
         s_Data.SkyBoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
         // PreethamSky

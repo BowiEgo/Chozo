@@ -111,6 +111,7 @@ namespace Chozo {
         m_Camera_B.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
 #endif
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        m_EnvironmentPanel.SetContext(m_ActiveScene);
     }
 
     void EditorLayer::OnDetach()
@@ -179,7 +180,7 @@ namespace Chozo {
         if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
         {
             int pixelID = m_Viewport_FBO->ReadPixel(1, mx, my);
-            m_Entity_Hovered = pixelID == -1 ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
+            // m_Entity_Hovered = pixelID == -1 ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
         }
 
         m_Viewport_FBO->Unbind();
@@ -238,6 +239,7 @@ namespace Chozo {
         m_SceneHierarchyPanel.OnImGuiRender();
         m_ContentBrowserPanel.OnImGuiRender();
         m_EnvironmentPanel.OnImGuiRender();
+        m_TexturePreviewPanel.OnImGuiRender();
 
         // --------------------
         // Settings panel
@@ -502,6 +504,7 @@ namespace Chozo {
         m_ActiveScene->SetFinalPipeline(m_Pipeline);
         m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        m_EnvironmentPanel.SetContext(m_ActiveScene);
         m_SceneFileName = "";
     }
 
@@ -519,6 +522,7 @@ namespace Chozo {
             m_ActiveScene->SetFinalPipeline(m_Pipeline);
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
             m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+            m_EnvironmentPanel.SetContext(m_ActiveScene);
 
             SceneSerializer serializer(m_ActiveScene);
             serializer.Deserialize(path.string());

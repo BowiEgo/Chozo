@@ -1,6 +1,7 @@
 #include "EnvironmentPanel.h"
 
 #include "PropertyUI.h"
+#include "TexturePreviewPanel.h"
 
 namespace Chozo {
 
@@ -13,13 +14,27 @@ namespace Chozo {
     float s_EnvMapRotation;
     bool s_ShowBoundingBoxes;
     
-    EnvironmentPanel::EnvironmentPanel()
+    EnvironmentPanel::EnvironmentPanel(const Ref<Scene> context)
     {
+        SetContext(context);
+    }
+
+    void EnvironmentPanel::SetContext(const Ref<Scene> context)
+    {
+        m_Context = context;
     }
 
     void EnvironmentPanel::OnImGuiRender()
     {
         ImGui::Begin("Environment");
+
+        if (!m_Context)
+        {
+            ImGui::End();
+            return;
+        }
+
+        Ref<Environment> env = m_Context->GetEnvironment();
 
         DrawColumnValue<float>("Skybox LOD", s_LOD, [&](auto& target) {
             if (ImGui::DragFloat("##Skybox LOD", &target, 0.1f, 0.0f, 10.0f))
@@ -52,6 +67,12 @@ namespace Chozo {
         DrawColumnValue<bool>("Show Bounding Boxes", s_ShowBoundingBoxes, [&](auto& target) {
             ImGui::Checkbox("##Show Bounding Boxes", &target);
         });
+
+        if(ImGui::Button("ShowRadianceMap") && env)
+        {
+            TexturePreviewPanel::Open();
+            TexturePreviewPanel::SetTexture(env->RadianceMap);
+        }
 
         ImGui::End();
     }
