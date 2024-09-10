@@ -383,8 +383,21 @@ namespace Chozo {
             auto& pc = entity.GetComponent<PointLightComponent>();
             out << YAML::Key << "Color" << YAML::Value << pc.Color;
             out << YAML::Key << "Intensity" << YAML::Value << pc.Intensity;
-            out << YAML::Key << "Radius" << YAML::Value << pc.Radius;
-            out << YAML::Key << "Falloff" << YAML::Value << pc.Falloff;
+
+            out << YAML::EndMap;
+        }
+
+        if (entity.HasComponent<SpotLightComponent>())
+        {
+            out << YAML::Key << "SpotLightComponent";
+            out << YAML::BeginMap;
+
+            auto& sc = entity.GetComponent<SpotLightComponent>();
+            out << YAML::Key << "Intensity" << YAML::Value << sc.Intensity;
+            out << YAML::Key << "Direction" << YAML::Value << sc.Direction;
+            out << YAML::Key << "AngleAttenuation" << YAML::Value << sc.AngleAttenuation;
+            out << YAML::Key << "Color" << YAML::Value << sc.Color;
+            out << YAML::Key << "Angle" << YAML::Value << sc.Angle;
 
             out << YAML::EndMap;
         }
@@ -620,8 +633,17 @@ namespace Chozo {
                     auto& comp = deserializedEntity.AddComponent<PointLightComponent>();
                     comp.Color = pointLightComponent["Color"].as<glm::vec3>();
                     comp.Intensity = pointLightComponent["Intensity"].as<float>();
-                    comp.Radius = pointLightComponent["Radius"].as<float>();
-                    comp.Falloff = pointLightComponent["Falloff"].as<float>();
+                }
+
+                auto spotLightComponent = entity["SpotLightComponent"];
+                if (spotLightComponent)
+                {
+                    auto& comp = deserializedEntity.AddComponent<SpotLightComponent>();
+                    comp.Intensity = spotLightComponent["Intensity"].as<float>();
+                    comp.Direction = spotLightComponent["Direction"].as<glm::vec3>();
+                    comp.AngleAttenuation = spotLightComponent["AngleAttenuation"].as<float>();
+                    comp.Color = spotLightComponent["Color"].as<glm::vec3>();
+                    comp.Angle = spotLightComponent["Angle"].as<float>();
                 }
             }
         }

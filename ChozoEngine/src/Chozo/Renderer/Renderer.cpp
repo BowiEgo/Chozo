@@ -52,6 +52,7 @@ namespace Chozo {
         s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData));
         s_Data.SceneUniformBuffer = UniformBuffer::Create(sizeof(RendererData::SceneData));
         s_Data.PointLightUniformBuffer = UniformBuffer::Create(sizeof(RendererData::PointLightData));
+        s_Data.SpotLightUniformBuffer = UniformBuffer::Create(sizeof(RendererData::SpotLightData));
 
         // Shaders
         std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
@@ -124,6 +125,9 @@ namespace Chozo {
 
         s_Data.PointLightUniformBuffer->SetData(&s_Data.PointLightBuffer, sizeof(RendererData::PointLightData));
         s_Data.PointLightBuffer.LightCount = 0;
+
+        s_Data.SpotLightUniformBuffer->SetData(&s_Data.SpotLightBuffer, sizeof(RendererData::SpotLightData));
+        s_Data.SpotLightBuffer.LightCount = 0;
     }
 
     void Renderer::EndScene()
@@ -221,10 +225,29 @@ namespace Chozo {
         s_Data.PointLightBuffer.Lights[index].Position = position;
         s_Data.PointLightBuffer.Lights[index].Intensity = light->Intensity;
         s_Data.PointLightBuffer.Lights[index].Color = light->Color;
-        s_Data.PointLightBuffer.Lights[index].Radius = light->Radius;
-        s_Data.PointLightBuffer.Lights[index].Falloff = light->Falloff;
 
         s_Data.PointLightBuffer.LightCount++;
+
+        return true;
+    }
+
+    bool Renderer::SubmitSpotLight(SpotLightComponent* light, glm::vec3& position)
+    {
+        uint index = s_Data.SpotLightBuffer.LightCount;
+        if (index >= 1000)
+        {
+            CZ_CORE_WARN("SpotLightBuffer is full, cannot submit more point lights.");
+            return false;
+        }
+
+        s_Data.SpotLightBuffer.Lights[index].Position = position;
+        s_Data.SpotLightBuffer.Lights[index].Intensity = light->Intensity;
+        s_Data.SpotLightBuffer.Lights[index].Direction = light->Direction;
+        s_Data.SpotLightBuffer.Lights[index].AngleAttenuation = light->AngleAttenuation;
+        s_Data.SpotLightBuffer.Lights[index].Color = light->Color;
+        s_Data.SpotLightBuffer.Lights[index].Angle = light->Angle;
+
+        s_Data.SpotLightBuffer.LightCount++;
 
         return true;
     }

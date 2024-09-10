@@ -1,12 +1,31 @@
 Scene: Untitled
 Entities:
-  - Entity: 15523543194891287388
+  - Entity: 11734064750955055822
     TagComponent:
-      Tag: Empty Entity
+      Tag: Spot Light 2
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [-0.253336608, -0.621094942, 2.73758817]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    SpotLightComponent:
+      Intensity: 1
+      Direction: [0, 0, -1]
+      AngleAttenuation: 0.442000002
+      Color: [0, 0.362934351, 1]
+      Angle: 16.1219997
+  - Entity: 15523543194891287388
+    TagComponent:
+      Tag: Spot Light 1
+    TransformComponent:
+      Translation: [2.07695484, 1.88760519, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpotLightComponent:
+      Intensity: 1
+      Direction: [0, 0, -1]
+      AngleAttenuation: 5
+      Color: [1, 1, 1]
+      Angle: 10
   - Entity: 14286552634676448382
     TagComponent:
       Tag: Point Light 2
@@ -17,8 +36,6 @@ Entities:
     PointLightComponent:
       Color: [0.33590734, 0.57692939, 1]
       Intensity: 1
-      Radius: 10
-      Falloff: 1
   - Entity: 6282163605936880614
     TagComponent:
       Tag: Red Ball
@@ -91,8 +108,6 @@ Entities:
     PointLightComponent:
       Color: [0, 1, 0.108108044]
       Intensity: 0.458999991
-      Radius: 7.74800014
-      Falloff: 1.17999995
   - Entity: 16619928800525008541
     TagComponent:
       Tag: Point Light 3
@@ -103,5 +118,3 @@ Entities:
     PointLightComponent:
       Color: [1, 0, 0]
       Intensity: 0.910000026
-      Radius: 2.79299998
-      Falloff: 0.990999997

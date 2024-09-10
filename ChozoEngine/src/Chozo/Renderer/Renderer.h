@@ -92,9 +92,7 @@ namespace Chozo {
                 glm::vec3 Position;
                 float Intensity;
                 glm::vec3 Color;
-                float Radius;
-                float Falloff;
-                float Padding[3];
+                float Padding;
             };
             struct PointLightData
             {
@@ -104,6 +102,24 @@ namespace Chozo {
             };
             PointLightData PointLightBuffer;
             Ref<UniformBuffer> PointLightUniformBuffer;
+
+            struct SpotLight
+            {
+                glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
+                float Intensity = 1.0f;
+                glm::vec3 Direction = { 0.0f, 0.0f, -1.0f };
+                float AngleAttenuation = 5.0f;
+                glm::vec3 Color = { 1.0f, 1.0f, 1.0f };;
+                float Angle = 10.0f;
+            };
+            struct SpotLightData
+            {
+                uint LightCount;
+                float Padding[3];
+	            SpotLight Lights[1000];
+            };
+            SpotLightData SpotLightBuffer;
+            Ref<UniformBuffer> SpotLightUniformBuffer;
 
             Renderer::Statistics Stats;
 
@@ -128,6 +144,7 @@ namespace Chozo {
 
         static bool SubmitDirectionalLight(DirectionalLightComponent* light);
         static bool SubmitPointLight(PointLightComponent* light, glm::vec3& position);
+        static bool SubmitSpotLight(SpotLightComponent* light, glm::vec3& position);
 
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 

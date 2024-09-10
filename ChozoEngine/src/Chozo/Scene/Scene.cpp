@@ -99,6 +99,19 @@ namespace Chozo {
             }
         }
 
+        // Spot lights
+        {
+            auto view = m_Registry.view<TransformComponent, SpotLightComponent>();
+            for (auto entity : view)
+            {
+                if (!m_Registry.valid(entity))
+                    continue;
+
+                const auto [transform, light] = view.get<TransformComponent, SpotLightComponent>(entity);
+                Renderer::SubmitSpotLight(&light, transform.Translation);
+            }
+        }
+
         // 3D Renderer
         FBO->Bind();
         Renderer::BeginScene(camera);
@@ -381,6 +394,11 @@ namespace Chozo {
 
     template<>
     void Scene::OnComponentAdded<PointLightComponent>(Entity entity, PointLightComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<SpotLightComponent>(Entity entity, SpotLightComponent& component)
     {
     }
 }

@@ -403,13 +403,28 @@ namespace Chozo {
                 if (ImGui::SliderFloat("##Intensity", &target, 0.0f, 10.0f))
                     component.Intensity = target;
             });
-            DrawColumnValue<float>("Radius", component.Radius, [&](auto& target) {
-                if (ImGui::SliderFloat("##Radius", &target, 0.0f, 50.0f))
-                    component.Radius = target;
+        });
+
+        DrawComponent<SpotLightComponent>("Light", entity, [](auto& component)
+        {
+            DrawColumnValue<float>("Intensity", component.Intensity, [&](auto& target) {
+                if (ImGui::SliderFloat("##Intensity", &target, 0.0f, 1.0f))
+                    component.Intensity = target;
             });
-            DrawColumnValue<float>("Falloff", component.Falloff, [&](auto& target) {
-                if (ImGui::SliderFloat("##Falloff", &target, 0.0f, 10.0f))
-                    component.Falloff = target;
+            DrawColumnValue<glm::vec3>("Direction", component.Direction, [&](auto& target) {
+                if (DrawVec3Control("Direction", target, 0.0f, 1.0f))
+                    component.Direction = target;
+            });
+            DrawColumnValue<float>("AngleAttenuation", component.AngleAttenuation, [&](auto& target) {
+                if (ImGui::SliderFloat("##AngleAttenuation", &target, 0.0f, 10.0f))
+                    component.AngleAttenuation = target;
+            });
+            DrawColumnValue<glm::vec3>("Color", component.Color, [&](auto& target) {
+                ImGui::ColorEdit3("##Color", glm::value_ptr(target));
+            });
+            DrawColumnValue<float>("Angle", component.Angle, [&](auto& target) {
+                if (ImGui::SliderFloat("##Angle", &target, 0.0f, 180.0f))
+                    component.Angle = target;
             });
         });
 
@@ -541,7 +556,7 @@ namespace Chozo {
                 {
                     float& value = std::get<float>(pair.second);
                     DrawColumnValue<float>(name, value, [&](auto& target) {
-                        if (ImGui::DragFloat(("##" + name).c_str(), &target, 0.00025f, 0.0f, 1.0f))
+                        if (ImGui::DragFloat(("##" + name).c_str(), &target, 0.0025f, 0.0f, 1.0f))
                             material->Set(pair.first, value);
                     });
                 }
@@ -650,6 +665,10 @@ namespace Chozo {
             }
             if (ImGui::MenuItem("Spot"))
             {
+                if (!entity)
+                    entity = m_Context->CreateEntity("Spot Light");
+                if (!entity.HasComponent<SpotLightComponent>())
+                    entity.AddComponent<SpotLightComponent>();
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndMenu();
