@@ -45,6 +45,8 @@ void main()
     {
         dir = normalize(dir);
         color = texture(u_Texture, dir).rgb;
+    } else {
+        discard;
     }
     
     o_Color = vec4(color, 1.0);

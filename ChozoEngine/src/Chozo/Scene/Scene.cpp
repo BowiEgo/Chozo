@@ -5,6 +5,7 @@
 #include "ScriptableEntity.h"
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
+#include "Chozo/Renderer/SceneRenderer.h"
 
 #include <glad/glad.h>
 
@@ -35,6 +36,11 @@ namespace Chozo {
         return entity;
     }
 
+    bool Scene::EntityExists(entt::entity entity)
+    {
+        return m_Registry.valid(entity);
+    }
+
     void Scene::DestroyEntity(Entity entity)
     {
         m_Registry.destroy(entity);
@@ -51,6 +57,10 @@ namespace Chozo {
         // std::vector<int> clearValues(FBO->GetSpecification().Width * FBO->GetSpecification().Height, -1);
         FBO->ClearColorAttachmentBuffer(1); // clear entity ID attachment to -1
 
+        Ref<SceneRenderer> renderer = SceneRenderer::Find(this);
+        if (!renderer)
+            return;
+
         // Skylight
         {
             auto group = m_Registry.group<SkyLightComponent>(entt::get<TransformComponent>);
@@ -61,61 +71,64 @@ namespace Chozo {
 
                 if (!skyLight.SceneEnvironment && skyLight.DynamicSky)
                 {
-                    Ref<TextureCube> preethamEnv = Renderer::GetRendererData().m_PreethamSkyRenderPass->GetOutput("EnvMap");
+                    Ref<TextureCube> preethamEnv = std::dynamic_pointer_cast<TextureCube>(Renderer::GetRendererData().m_PreethamSkyRenderPass->GetOutput("EnvMap"));
+
                     skyLight.SceneEnvironment = std::make_shared<Environment>(preethamEnv, preethamEnv);
-                    RenderCommand::RenderPreethamSky(skyLight.TurbidityAzimuthInclination.x, skyLight.TurbidityAzimuthInclination.y, skyLight.TurbidityAzimuthInclination.z);
+    
+                    Renderer::CreatePreethamSky(skyLight.TurbidityAzimuthInclination.x, skyLight.TurbidityAzimuthInclination.y, skyLight.TurbidityAzimuthInclination.z);
+                    // Renderer::RenderPBRResouces(preethamEnv);
                 }
                 m_Environment = skyLight.SceneEnvironment;
                 m_EnvironmentIntensity = skyLight.Intensity;
                 m_SkyboxLod = skyLight.Lod;
 
-                Renderer::DrawSkyLight(m_Environment, m_EnvironmentIntensity, m_SkyboxLod, camera);
+                RenderCommand::DrawSkyLight(m_Environment, m_EnvironmentIntensity, m_SkyboxLod, camera);
             }
         }
 
-        // Directional light
+        // Process lights
         {
-            auto view = m_Registry.view<TransformComponent, DirectionalLightComponent>();
-            for (auto entity : view)
+            // Directional light
             {
-                if (!m_Registry.valid(entity))
-                    continue;
+                auto view = m_Registry.view<TransformComponent, DirectionalLightComponent>();
+                for (auto entity : view)
+                {
+                    if (!m_Registry.valid(entity))
+                        continue;
 
-                const auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
-                Renderer::SubmitDirectionalLight(&light);
+                    const auto [transform, light] = view.get<TransformComponent, DirectionalLightComponent>(entity);
+                    renderer->SubmitDirectionalLight(&light);
+                }
             }
-        }
-
-        // Point lights
-        {
-            auto view = m_Registry.view<TransformComponent, PointLightComponent>();
-            for (auto entity : view)
+            // Point lights
             {
-                if (!m_Registry.valid(entity))
-                    continue;
+                auto view = m_Registry.view<TransformComponent, PointLightComponent>();
+                for (auto entity : view)
+                {
+                    if (!m_Registry.valid(entity))
+                        continue;
 
-                const auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
-                Renderer::SubmitPointLight(&light, transform.Translation);
+                    const auto [transform, light] = view.get<TransformComponent, PointLightComponent>(entity);
+                    renderer->SubmitPointLight(&light, transform.Translation);
+                }
             }
-        }
-
-        // Spot lights
-        {
-            auto view = m_Registry.view<TransformComponent, SpotLightComponent>();
-            for (auto entity : view)
+            // Spot lights
             {
-                if (!m_Registry.valid(entity))
-                    continue;
+                auto view = m_Registry.view<TransformComponent, SpotLightComponent>();
+                for (auto entity : view)
+                {
+                    if (!m_Registry.valid(entity))
+                        continue;
 
-                const auto [transform, light] = view.get<TransformComponent, SpotLightComponent>(entity);
-                Renderer::SubmitSpotLight(&light, transform.Translation);
+                    const auto [transform, light] = view.get<TransformComponent, SpotLightComponent>(entity);
+                    renderer->SubmitSpotLight(&light, transform.Translation);
+                }
             }
         }
 
         // 3D Renderer
         FBO->Bind();
-        Renderer::BeginScene(camera);
-        // Renderer::BeginBatch();
+        renderer->BeginScene(camera);
 
         // Draw meshes
         {
@@ -144,7 +157,7 @@ namespace Chozo {
             }
         }
 
-        Renderer::EndScene();
+        renderer->EndScene();
 
         // 2D Renderer
         Renderer2D::BeginScene(camera);

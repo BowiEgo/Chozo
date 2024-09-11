@@ -10,6 +10,19 @@
 #include <glad/glad.h>
 
 namespace Chozo {
+
+    static const glm::mat4 CubeTextureCaptureViews[] = 
+    {
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+        glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+    };
+
+    static const glm::mat4 CubeTextureCaptureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+
     void OpenGLRendererAPI::Init()
     {
         glEnable(GL_BLEND); GCE;
@@ -53,7 +66,7 @@ namespace Chozo {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, vertexCount); GCE;
     }
 
-    void OpenGLRendererAPI::RenderPreethamSky(float turbidity, float azimuth, float inclination)
+    void OpenGLRendererAPI::DrawPreethamSky(const float turbidity, const float azimuth, const float inclination)
     {
         Ref<Shader> preethamSkyShader = Renderer::GetRendererData().m_PreethamSkyRenderPass->GetSpecification().Pipeline->GetShader();
         preethamSkyShader->Bind();
@@ -61,7 +74,45 @@ namespace Chozo {
         preethamSkyShader->SetUniform("u_FragUniforms.Azimuth", azimuth);
         preethamSkyShader->SetUniform("u_FragUniforms.Inclination", inclination);
 
-        Ref<RenderPass> renderPass = Renderer::GetRendererData().m_PreethamSkyRenderPass;
-        renderPass->Bake();
+        Renderer::GetRendererData().m_PreethamSkyRenderPass->Bake();
+    }
+
+    void OpenGLRendererAPI::DrawEnvMap(const Ref<Shader> &shader, const Ref<TextureCube> &textureCube, const Ref<VertexArray> &VAO)
+    {
+        textureCube->Bind();
+        for (uint32_t i = 0; i < 6; i++)
+        {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textureCube->GetRendererID(), 0); GCE;
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
+
+            shader->Bind();
+            shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
+            shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+
+            RenderCommand::DrawIndexed(VAO, 0);
+        }
+    }
+
+    void OpenGLRendererAPI::DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera)
+    {
+        glm::mat4 proj = camera.GetProjection();
+        glm::mat4 view = glm::mat3(camera.GetViewMatrix());
+
+        environment->IrradianceMap->Bind();
+        Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Skybox");
+        shader->Bind();
+
+        shader->SetUniform("u_Camera.ViewMatrix", view);
+        shader->SetUniform("u_Camera.ProjectionMatrix", proj);
+
+        shader->SetUniform("u_Texture", 0);
+        shader->SetUniform("u_FragUniforms.Intensity", environmentIntensity);
+        shader->SetUniform("u_FragUniforms.TextureLod", skyboxLod);
+
+        // TODO: Change to pipeline context status.
+        glDepthFunc(GL_LEQUAL);
+        RenderCommand::DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
+        glDepthFunc(GL_LESS);
     }
 }

@@ -205,21 +205,21 @@ namespace Chozo {
         s_Data.LineShader = Shader::Create(lineShaderSpec);
 
         // Uniform buffer
-        s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData));
+        // s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData));
     }
 
     void Renderer2D::BeginScene(const glm::mat4& projection, const glm::mat4 &transform)
     {
         s_Data.CameraBuffer.ProjectionMatrix = projection;
         s_Data.CameraBuffer.ViewMatrix = glm::inverse(transform);
-        s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
+        // s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
     }
 
     void Renderer2D::BeginScene(EditorCamera& camera)
     {
         s_Data.CameraBuffer.ProjectionMatrix = camera.GetProjection();
         s_Data.CameraBuffer.ViewMatrix = camera.GetViewMatrix();
-        s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
+        // s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
     }
 
     void Renderer2D::EndScene()

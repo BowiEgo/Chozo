@@ -37,9 +37,19 @@ namespace Chozo {
             s_RendererAPI->DrawLines(vertexArray, vertexCount);
         }
 
-        inline static void RenderPreethamSky(float turbidity, float azimuth, float inclination)
+        inline static void DrawPreethamSky(const float turbidity, const float azimuth, const float inclination)
         {
-            s_RendererAPI->RenderPreethamSky(turbidity, azimuth, inclination);
+            s_RendererAPI->DrawPreethamSky(turbidity, azimuth, inclination);
+        }
+
+        inline static void DrawEnvMap(const Ref<Shader>& shader, const Ref<TextureCube>& textureCube, const Ref<VertexArray>& VAO)
+        {
+            s_RendererAPI->DrawEnvMap(shader, textureCube, VAO);
+        }
+
+        inline static void DrawSkyLight(Ref<Environment>& environment, float& environmentIntensity, float& skyboxLod, const EditorCamera& camera)
+        {
+            s_RendererAPI->DrawSkyLight(environment, environmentIntensity, skyboxLod, camera);
         }
     private:
         static RendererAPI* s_RendererAPI;

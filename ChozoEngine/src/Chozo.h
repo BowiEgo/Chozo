@@ -21,6 +21,7 @@
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
 #include "Chozo/Renderer/RenderCommand.h"
+#include "Chozo/Renderer/SceneRenderer.h"
 
 #include "Chozo/Renderer/Pipeline.h"
 #include "Chozo/Renderer/Shader.h"

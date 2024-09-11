@@ -73,6 +73,9 @@ namespace Chozo {
             if (m_Texture && dynamic_cast<TextureCube*>(m_Texture.get()))
             {
                 // CZ_CORE_INFO("TextureCube: {0}", m_Texture->GetRendererID());
+                // float width = m_ViewportSize.x;
+                // float height = m_ViewportSize.x * 0.75;
+                // m_Viewport_FBO->Resize(width, height);
                 m_Viewport_FBO->Bind();
                 Renderer2D::DrawScreen(m_Texture);
                 m_Viewport_FBO->Unbind();

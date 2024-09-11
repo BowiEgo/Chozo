@@ -62,6 +62,8 @@ namespace Chozo {
         // --------------------
         m_ActiveScene = std::make_shared<Scene>();
         m_ActiveScene->SetFinalPipeline(m_Pipeline);
+		m_ViewportRenderer = SceneRenderer::Create(m_ActiveScene);
+        m_ViewportRenderer->SetActive(true);
         // --------------------
         // Editor Camera
         // --------------------
@@ -180,7 +182,8 @@ namespace Chozo {
         if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
         {
             int pixelID = m_Viewport_FBO->ReadPixel(1, mx, my);
-            // m_Entity_Hovered = pixelID == -1 ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
+            m_Entity_Hovered = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
+                ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
         }
 
         m_Viewport_FBO->Unbind();
@@ -503,6 +506,7 @@ namespace Chozo {
         m_ActiveScene = std::make_shared<Scene>();
         m_ActiveScene->SetFinalPipeline(m_Pipeline);
         m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+        m_ViewportRenderer->SetScene(m_ActiveScene);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
         m_EnvironmentPanel.SetContext(m_ActiveScene);
         m_SceneFileName = "";
@@ -521,6 +525,7 @@ namespace Chozo {
             m_ActiveScene = std::make_shared<Scene>();
             m_ActiveScene->SetFinalPipeline(m_Pipeline);
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+            m_ViewportRenderer->SetScene(m_ActiveScene);
             m_SceneHierarchyPanel.SetContext(m_ActiveScene);
             m_EnvironmentPanel.SetContext(m_ActiveScene);
 

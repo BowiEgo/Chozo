@@ -18,6 +18,8 @@ namespace Chozo {
         virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount) override;
         virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) override;
 
-        virtual void RenderPreethamSky(float turbidity, float azimuth, float inclination) override;
+        virtual void DrawPreethamSky(const float turbidity, const float azimuth, const float inclination) override;
+        virtual void DrawEnvMap(const Ref<Shader>& shader, const Ref<TextureCube>& textureCube, const Ref<VertexArray>& VAO) override;
+        virtual void DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera) override;
     };
 }

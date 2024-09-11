@@ -48,12 +48,6 @@ namespace Chozo {
             s_Data.TextureSlots[i] = s_Data.WhiteTexture;
         }
 
-        // Uniform buffers
-        s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(RendererData::CameraData));
-        s_Data.SceneUniformBuffer = UniformBuffer::Create(sizeof(RendererData::SceneData));
-        s_Data.PointLightUniformBuffer = UniformBuffer::Create(sizeof(RendererData::PointLightData));
-        s_Data.SpotLightUniformBuffer = UniformBuffer::Create(sizeof(RendererData::SpotLightData));
-
         // Shaders
         std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
         s_Data.m_ShaderLibrary = ShaderLibrary::Create();
@@ -70,7 +64,7 @@ namespace Chozo {
         s_Data.m_ShaderLibrary->Load("CubemapPreview", "../assets/shaders/CubemapPreview.glsl.vert", "../assets/shaders/CubemapPreview.glsl.frag");
 
         // Skybox
-        s_Data.SkyBoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
+        s_Data.BoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
         // PreethamSky
         {
             Ref<Shader> preethamSkyShader = Renderer::GetRendererData().m_ShaderLibrary->Get("PreethamSky");
@@ -82,7 +76,7 @@ namespace Chozo {
             cubemapSpec.Format = ImageFormat::RGBA32F;
             cubemapSpec.Width = cubemapSize;
             cubemapSpec.Height = cubemapSize;
-    		Ref<TextureCube> environmentMap = TextureCube::Create(cubemapSpec);
+    		Ref<TextureCube> envMap = TextureCube::Create(cubemapSpec);
 
             FramebufferSpecification fbSpec;
             fbSpec.Width = cubemapSize;
@@ -93,48 +87,22 @@ namespace Chozo {
             PipelineSpecification pipelineSpec;
             pipelineSpec.Shader = preethamSkyShader;
             pipelineSpec.TargetFramebuffer = framebuffer;
-            pipelineSpec.DynamicMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
+            Ref<VertexArray> VAO = s_Data.BoxMesh->GetVertexArray();
             Ref<Pipeline> preethamSkyPipeline = Pipeline::Create(pipelineSpec);
+            preethamSkyPipeline->Submit([preethamSkyShader, envMap, VAO]()
+            {
+                RenderCommand::DrawEnvMap(preethamSkyShader, envMap, VAO);
+            });
 
             RenderPassSpecification renderPassSpec;
             renderPassSpec.Pipeline = preethamSkyPipeline;
             s_Data.m_PreethamSkyRenderPass = RenderPass::Create(renderPassSpec);
-            s_Data.m_PreethamSkyRenderPass->SetOutput("EnvMap", environmentMap);
+            s_Data.m_PreethamSkyRenderPass->SetOutput("EnvMap", envMap);
         }
     }
 
     void Renderer::Shutdown()
     {
-    }
-
-    void Renderer::BeginScene(const glm::mat4& projection, const glm::mat4 &transform)
-    {
-        s_Data.CameraBuffer.ProjectionMatrix = projection;
-        s_Data.CameraBuffer.ViewMatrix = glm::inverse(transform);
-        s_Data.CameraBuffer.InverseViewProjectionMatrix = glm::inverse(s_Data.CameraBuffer.ProjectionMatrix * s_Data.CameraBuffer.ViewMatrix);
-        s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(RendererData::CameraData));
-    }
-
-    void Renderer::BeginScene(EditorCamera& camera)
-    {
-        s_Data.CameraBuffer.ProjectionMatrix = camera.GetProjection();
-        s_Data.CameraBuffer.ViewMatrix = camera.GetViewMatrix();
-        s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(RendererData::CameraData));
-
-        s_Data.SceneBuffer.CameraPosition = camera.GetPosition();
-        s_Data.SceneBuffer.EnvironmentMapIntensity = 1.0f;
-        s_Data.SceneUniformBuffer->SetData(&s_Data.SceneBuffer, sizeof(RendererData::SceneData));
-
-        s_Data.PointLightUniformBuffer->SetData(&s_Data.PointLightBuffer, sizeof(RendererData::PointLightData));
-        s_Data.PointLightBuffer.LightCount = 0;
-
-        s_Data.SpotLightUniformBuffer->SetData(&s_Data.SpotLightBuffer, sizeof(RendererData::SpotLightData));
-        s_Data.SpotLightBuffer.LightCount = 0;
-    }
-
-    void Renderer::EndScene()
-    {
-        RenderStaticBatches();
     }
 
     void Renderer::RenderStaticBatches()
@@ -206,54 +174,6 @@ namespace Chozo {
         s_Data.Stats.TriangleCount += indexCount;
     }
 
-    bool Renderer::SubmitDirectionalLight(DirectionalLightComponent* light)
-    {
-        s_Data.SceneBuffer.Lights.Direction = light->Direction;
-        s_Data.SceneBuffer.Lights.Color = light->Color;
-        s_Data.SceneBuffer.Lights.Intensity = light->Intensity;
-
-        return true;
-    }
-
-    bool Renderer::SubmitPointLight(PointLightComponent* light, glm::vec3& position)
-    {
-        uint index = s_Data.PointLightBuffer.LightCount;
-        if (index >= 1000)
-        {
-            CZ_CORE_WARN("PointLightBuffer is full, cannot submit more point lights.");
-            return false;
-        }
-
-        s_Data.PointLightBuffer.Lights[index].Position = position;
-        s_Data.PointLightBuffer.Lights[index].Intensity = light->Intensity;
-        s_Data.PointLightBuffer.Lights[index].Color = light->Color;
-
-        s_Data.PointLightBuffer.LightCount++;
-
-        return true;
-    }
-
-    bool Renderer::SubmitSpotLight(SpotLightComponent* light, glm::vec3& position)
-    {
-        uint index = s_Data.SpotLightBuffer.LightCount;
-        if (index >= 1000)
-        {
-            CZ_CORE_WARN("SpotLightBuffer is full, cannot submit more point lights.");
-            return false;
-        }
-
-        s_Data.SpotLightBuffer.Lights[index].Position = position;
-        s_Data.SpotLightBuffer.Lights[index].Intensity = light->Intensity;
-        s_Data.SpotLightBuffer.Lights[index].Direction = light->Direction;
-        s_Data.SpotLightBuffer.Lights[index].AngleAttenuation = light->AngleAttenuation;
-        s_Data.SpotLightBuffer.Lights[index].Color = light->Color;
-        s_Data.SpotLightBuffer.Lights[index].Angle = light->Angle;
-
-        s_Data.SpotLightBuffer.LightCount++;
-
-        return true;
-    }
-
     Renderer::RendererData Renderer::GetRendererData()
     {
         return s_Data;
@@ -275,11 +195,6 @@ namespace Chozo {
     {
     }
 
-    void Renderer::RenderPreethamSky(float turbidity, float azimuth, float inclination)
-    {
-		RenderCommand::RenderPreethamSky(turbidity, azimuth, inclination);
-    }
-
     Renderer::RendererConfig& Renderer::GetConfig()
     {
         return s_Config;
@@ -290,25 +205,8 @@ namespace Chozo {
         s_Config = config;
     }
 
-    void Renderer::DrawSkyLight(Ref<Environment>& environment, float& environmentIntensity, float& skyboxLod, EditorCamera& camera)
+    void Renderer::CreatePreethamSky(const float turbidity, const float azimuth, const float inclination)
     {
-        glm::mat4 proj = camera.GetProjection();
-        glm::mat4 view = glm::mat3(camera.GetViewMatrix());
-
-        environment->IrradianceMap->Bind();
-        Ref<Shader> shader = s_Data.m_ShaderLibrary->Get("Skybox");
-        shader->Bind();
-
-        shader->SetUniform("u_Camera.ProjectionMatrix", proj);
-        shader->SetUniform("u_Camera.ViewMatrix", view);
-
-        shader->SetUniform("u_Texture", 0);
-        shader->SetUniform("u_FragUniforms.Intensity", environmentIntensity);
-        shader->SetUniform("u_FragUniforms.TextureLod", skyboxLod);
-
-        // TODO: Remove OpenGL platform codes.
-        glDepthFunc(GL_LEQUAL);
-        RenderCommand::DrawIndexed(s_Data.SkyBoxMesh->GetVertexArray(), 0);
-        glDepthFunc(GL_LESS);
+        RenderCommand::DrawPreethamSky(turbidity, azimuth, inclination);
     }
 }

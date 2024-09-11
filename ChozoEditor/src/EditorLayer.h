@@ -53,6 +53,7 @@ namespace Chozo {
 
         Ref<Scene> m_ActiveScene;
         std::string m_SceneFileName;
+		Ref<SceneRenderer> m_ViewportRenderer;
 
         Entity m_Square_Entity;
         glm::vec3 m_SquareColor = { 1.0f, 1.0f, 1.0f };

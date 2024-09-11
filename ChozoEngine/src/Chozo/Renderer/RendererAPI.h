@@ -5,6 +5,8 @@
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "Environment.h"
+#include "EditorCamera.h"
 
 namespace Chozo {
     
@@ -26,8 +28,10 @@ namespace Chozo {
         virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount) = 0;
         virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) = 0;
 
-        virtual void RenderPreethamSky(float turbidity, float azimuth, float inclination) = 0;
-    
+        virtual void DrawPreethamSky(const float turbidity, const float azimuth, const float inclination) = 0;
+        virtual void DrawEnvMap(const Ref<Shader>& shader, const Ref<TextureCube>& textureCube, const Ref<VertexArray>& VAO) = 0;
+        virtual void DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera) = 0;
+
         inline static API GetAPI() { return s_API; }
     private:
         static API s_API;

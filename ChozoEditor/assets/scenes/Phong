@@ -7,6 +7,11 @@ Entities:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    SkyLightComponent:
+      Intensity: 1
+      Lod: 0
+      DynamicSky: true
+      TurbidityAzimuthInclination: [2.74000001, 0, 0]
   - Entity: 16619928800525008541
     TagComponent:
       Tag: Point Light 3
@@ -109,8 +114,8 @@ Entities:
     SpotLightComponent:
       Intensity: 1
       Direction: [0, 0, -1]
-      AngleAttenuation: 5
-      Color: [1, 1, 1]
+      AngleAttenuation: 3.64899993
+      Color: [1, 0.949806929, 0]
       Angle: 10
   - Entity: 11734064750955055822
     TagComponent:

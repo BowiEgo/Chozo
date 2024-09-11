@@ -61,102 +61,30 @@ namespace Chozo {
             std::vector<Ref<Texture2D>> TextureSlots;
             Ref<Texture2D> WhiteTexture;
 
-            struct CameraData
-            {
-                glm::mat4 ProjectionMatrix;
-                glm::mat4 ViewMatrix;
-                glm::mat4 InverseViewProjectionMatrix;
-            };
-            CameraData CameraBuffer;
-            Ref<UniformBuffer> CameraUniformBuffer;
-
-            struct DirectionalLight
-            {
-                glm::vec3 Direction;
-                float Intensity;
-                glm::vec3 Color;
-                float Padding;
-            };
-            struct SceneData
-            {
-                DirectionalLight Lights;
-                glm::vec3 CameraPosition;
-                float EnvironmentMapIntensity;
-                float Padding[3];
-            };
-            SceneData SceneBuffer;
-            Ref<UniformBuffer> SceneUniformBuffer;
-
-            struct PointLight
-            {
-                glm::vec3 Position;
-                float Intensity;
-                glm::vec3 Color;
-                float Padding;
-            };
-            struct PointLightData
-            {
-                uint LightCount;
-                float Padding[3];
-	            PointLight Lights[1000];
-            };
-            PointLightData PointLightBuffer;
-            Ref<UniformBuffer> PointLightUniformBuffer;
-
-            struct SpotLight
-            {
-                glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
-                float Intensity = 1.0f;
-                glm::vec3 Direction = { 0.0f, 0.0f, -1.0f };
-                float AngleAttenuation = 5.0f;
-                glm::vec3 Color = { 1.0f, 1.0f, 1.0f };;
-                float Angle = 10.0f;
-            };
-            struct SpotLightData
-            {
-                uint LightCount;
-                float Padding[3];
-	            SpotLight Lights[1000];
-            };
-            SpotLightData SpotLightBuffer;
-            Ref<UniformBuffer> SpotLightUniformBuffer;
-
             Renderer::Statistics Stats;
 
             uint32_t GetMaxTriangles() { return GetMaxCount<Index>(); }
 
-            Ref<DynamicMesh> SkyBoxMesh;
-
+            Ref<DynamicMesh> BoxMesh;
 		    Ref<RenderPass> m_PreethamSkyRenderPass;
         };
 
         static void Init();
         static void Shutdown();
         
-        static void BeginScene(const glm::mat4& projection, const glm::mat4& transform);
-        static void BeginScene(EditorCamera& camera); // TODO: Remove
-        static void EndScene();
-
         static void RenderStaticBatches();
         static bool SubmitStaticMesh(StaticMesh* mesh);
         static bool RemoveStaticMesh(StaticMesh* mesh);
         static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, Material* material, uint32_t entityID = -1);
-
-        static bool SubmitDirectionalLight(DirectionalLightComponent* light);
-        static bool SubmitPointLight(PointLightComponent* light, glm::vec3& position);
-        static bool SubmitSpotLight(SpotLightComponent* light, glm::vec3& position);
 
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
         static RendererData GetRendererData();
         static void UpdateMaxTriagles(uint32_t count);
 
-		static void RenderPreethamSky(float turbidity, float azimuth, float inclination);
-		static void CreatePreethamSky(float turbidity, float azimuth, float inclination);
-
         static RendererConfig& GetConfig();
 		static void SetConfig(const RendererConfig& config);
 
-        static void DrawSkyLight(Ref<Environment>& environment, float& environmentIntensity, float& skyboxLod, EditorCamera& camera);
+		static void CreatePreethamSky(const float turbidity, const float azimuth, const float inclination);
     };
 }

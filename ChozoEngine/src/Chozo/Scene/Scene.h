@@ -23,6 +23,7 @@ namespace Chozo {
         Entity CreateEntity(const std::string& name = std::string());
         Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
         void DestroyEntity(Entity entity);
+        bool EntityExists(entt::entity entity);
 
         // TEMP
         entt::registry& Reg() { return m_Registry; }
@@ -53,5 +54,7 @@ namespace Chozo {
 		float m_SkyboxLod = 1.0f;
 
         Ref<Pipeline> m_FinalPipeline;
+
+		friend class SceneRenderer;
     };
 }

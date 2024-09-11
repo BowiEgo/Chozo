@@ -280,6 +280,20 @@ namespace Chozo {
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<SkyLightComponent>())
+        {
+            out << YAML::Key << "SkyLightComponent";
+            out << YAML::BeginMap;
+
+            auto& sc = entity.GetComponent<SkyLightComponent>();
+            out << YAML::Key << "Intensity" << YAML::Value << sc.Intensity;
+            out << YAML::Key << "Lod" << YAML::Value << sc.Lod;
+            out << YAML::Key << "DynamicSky" << YAML::Value << sc.DynamicSky;
+            out << YAML::Key << "TurbidityAzimuthInclination" << YAML::Value << sc.TurbidityAzimuthInclination;
+
+            out << YAML::EndMap;
+        }
+
         if (entity.HasComponent<SpriteRendererComponent>())
         {
             out << YAML::Key << "SpriteRendererComponent";
@@ -518,6 +532,17 @@ namespace Chozo {
 
                     comp.Primary = cameraComponent["Primary"].as<bool>();
                     comp.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+                }
+
+                auto skyLightComponent = entity["SkyLightComponent"];
+                if (skyLightComponent)
+                {
+                    auto& comp = deserializedEntity.AddComponent<SkyLightComponent>();
+                    
+                    comp.Intensity = skyLightComponent["Intensity"].as<float>();
+                    comp.Lod = skyLightComponent["Lod"].as<float>();
+                    comp.DynamicSky = skyLightComponent["DynamicSky"].as<bool>();
+                    comp.TurbidityAzimuthInclination = skyLightComponent["TurbidityAzimuthInclination"].as<glm::vec3>();
                 }
 
                 auto spriteRendererComponent = entity["SpriteRendererComponent"];

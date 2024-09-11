@@ -4,7 +4,7 @@ namespace Chozo
 {
 
     OpenGLPipeline::OpenGLPipeline(PipelineSpecification &spec)
-        : m_Shader(spec.Shader), m_TargetFramebuffer(spec.TargetFramebuffer), m_DynamicMesh(spec.DynamicMesh)
+        : m_Shader(spec.Shader), m_TargetFramebuffer(spec.TargetFramebuffer)
     {
     }
 
