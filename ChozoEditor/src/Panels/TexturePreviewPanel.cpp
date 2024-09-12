@@ -77,7 +77,7 @@ namespace Chozo {
                 // float height = m_ViewportSize.x * 0.75;
                 // m_Viewport_FBO->Resize(width, height);
                 m_Viewport_FBO->Bind();
-                Renderer2D::DrawScreen(m_Texture);
+                Renderer2D::DrawFullScreenQuad(m_Texture);
                 m_Viewport_FBO->Unbind();
 
                 DrawImage(m_FBOTexture);

@@ -4,9 +4,12 @@
 
 #include "VertexArray.h"
 #include "Shader.h"
-#include "Texture.h"
+#include "Material.h"
 #include "Environment.h"
 #include "EditorCamera.h"
+#include "RenderCommandBuffer.h"
+#include "RenderPass.h"
+#include "Pipeline.h"
 
 namespace Chozo {
     
@@ -31,6 +34,11 @@ namespace Chozo {
         virtual void DrawPreethamSky(const float turbidity, const float azimuth, const float inclination) = 0;
         virtual void DrawEnvMap(const Ref<Shader>& shader, const Ref<TextureCube>& textureCube, const Ref<VertexArray>& VAO) = 0;
         virtual void DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera) = 0;
+
+        virtual void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass) = 0;
+        virtual void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass) = 0;
+
+        virtual void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material) = 0;
 
         inline static API GetAPI() { return s_API; }
     private:

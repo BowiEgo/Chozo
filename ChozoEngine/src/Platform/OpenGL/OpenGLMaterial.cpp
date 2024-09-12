@@ -39,6 +39,40 @@ namespace Chozo {
     {
     }
 
+    void OpenGLMaterial::Set(const std::string &name, const UniformValue &value)
+    {
+        m_Uniforms[name] = value;
+    }
+
+    void OpenGLMaterial::Set(const std::string &name, const Ref<Texture> &texture)
+    {
+        uint32_t textureIndex = 0;
+
+        for (uint32_t i = 0; i < m_TextureSlots.size(); i++)
+        {
+            if (m_TextureSlots[i] == texture)
+            {
+                textureIndex = i;
+                break;
+            }
+        }
+
+        if (textureIndex == 0)
+        {
+            textureIndex = m_TextureSlotIndex;
+            m_TextureSlots[m_TextureSlotIndex] = texture;
+            m_TextureSlotIndex++;
+        }
+
+        m_Uniforms[name] = textureIndex;
+    }
+    
+    void OpenGLMaterial::BindTextures()
+    {
+        for (auto texture : m_TextureSlots)
+            texture->Bind();
+    }
+
     void OpenGLMaterial::PopulateUniforms(const Ref<OpenGLShader> &shader)
     {
         UniformTable uniformTable = shader->GetUniformTable();

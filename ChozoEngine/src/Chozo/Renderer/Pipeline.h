@@ -12,6 +12,14 @@ namespace Chozo {
     {
         Ref<Shader> Shader;
         Ref<Framebuffer> TargetFramebuffer;
+		VertexBufferLayout Layout;
+        bool BackfaceCulling = true;
+		bool DepthTest = true;
+		bool DepthWrite = true;
+		bool Wireframe = false;
+		float LineWidth = 1.0f;
+
+		std::string DebugName;
     };
 
     class Pipeline

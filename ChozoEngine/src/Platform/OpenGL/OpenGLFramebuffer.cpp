@@ -157,6 +157,9 @@ namespace Chozo {
             case ImageFormat::RGBA8:
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RGB, GL_UNSIGNED_BYTE, s_IntClearValues.data()); GCE;
                 break;
+            case ImageFormat::RGBA32F:
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RGB, GL_UNSIGNED_BYTE, s_IntClearValues.data()); GCE;
+                break;
             case ImageFormat::RED_INTEGER:
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RED_INTEGER, GL_INT, s_IntClearValues.data()); GCE;
                 break;
@@ -188,6 +191,9 @@ namespace Chozo {
                 {
                     case ImageFormat::RGBA8:
                         Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, m_Specification.Width, m_Specification.Height, i);
+                        break;
+                    case ImageFormat::RGBA32F:
+                        Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA32F, GL_RGB, GL_UNSIGNED_BYTE, m_Specification.Width, m_Specification.Height, i);
                         break;
                     case ImageFormat::RED_INTEGER:
                         Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_R32I, GL_RED_INTEGER, GL_INT, m_Specification.Width, m_Specification.Height, i);

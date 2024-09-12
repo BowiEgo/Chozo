@@ -3,6 +3,7 @@
 
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
+#include "Chozo/Renderer/SceneRenderer.h"
 
 #include <GLFW/glfw3.h>
 
@@ -79,7 +80,7 @@ namespace Chozo {
     void Application::Close()
     {
         m_Running = false;
-        Renderer::Shutdown();
+        SceneRenderer::Shutdown();
     }
 
     bool Application::OnWindowClose(WindowCloseEvent &e)

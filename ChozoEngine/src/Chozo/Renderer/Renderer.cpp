@@ -101,10 +101,6 @@ namespace Chozo {
         }
     }
 
-    void Renderer::Shutdown()
-    {
-    }
-
     void Renderer::RenderStaticBatches()
     {
         s_Data.IndexCount = 0;
@@ -172,6 +168,21 @@ namespace Chozo {
         s_Data.IndexCount += indexCount;
         s_Data.Stats.VerticesCount += vertexCount;
         s_Data.Stats.TriangleCount += indexCount;
+    }
+
+    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
+    {
+		// s_RendererAPI->BeginRenderPass(commandBuffer, renderPass);
+    }
+
+    void Renderer::EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
+    {
+		// s_RendererAPI->EndRenderPass(commandBuffer, renderPass);
+    }
+
+    void Renderer::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
+    {
+		// s_RendererAPI->SubmitFullscreenBox(commandBuffer, pipeline, material);
     }
 
     Renderer::RendererData Renderer::GetRendererData()

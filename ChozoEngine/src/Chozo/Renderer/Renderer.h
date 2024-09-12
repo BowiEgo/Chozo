@@ -11,6 +11,7 @@
 #include "Mesh.h"
 #include "UniformBuffer.h"
 #include "RenderPass.h"
+#include "RenderCommandBuffer.h"
 
 #include "Batch.h"
 
@@ -70,15 +71,20 @@ namespace Chozo {
         };
 
         static void Init();
-        static void Shutdown();
         
         static void RenderStaticBatches();
         static bool SubmitStaticMesh(StaticMesh* mesh);
         static bool RemoveStaticMesh(StaticMesh* mesh);
         static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, Material* material, uint32_t entityID = -1);
 
+        static void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
+        static void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
+
+        static void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
+
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
+        static Ref<ShaderLibrary> GetShaderLibrary() { return GetRendererData().m_ShaderLibrary; }
         static RendererData GetRendererData();
         static void UpdateMaxTriagles(uint32_t count);
 

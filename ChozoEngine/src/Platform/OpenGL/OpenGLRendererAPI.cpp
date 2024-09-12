@@ -6,6 +6,7 @@
 #include "Chozo/Renderer/Mesh.h"
 // #include "OpenGLFrameBuffer.h"
 #include "OpenGLRenderPass.h"
+#include "OpenGLMaterial.h"
 
 #include <glad/glad.h>
 
@@ -96,23 +97,49 @@ namespace Chozo {
 
     void OpenGLRendererAPI::DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera)
     {
-        glm::mat4 proj = camera.GetProjection();
-        glm::mat4 view = glm::mat3(camera.GetViewMatrix());
-
         environment->IrradianceMap->Bind();
         Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Skybox");
         shader->Bind();
-
-        shader->SetUniform("u_Camera.ViewMatrix", view);
-        shader->SetUniform("u_Camera.ProjectionMatrix", proj);
 
         shader->SetUniform("u_Texture", 0);
         shader->SetUniform("u_FragUniforms.Intensity", environmentIntensity);
         shader->SetUniform("u_FragUniforms.TextureLod", skyboxLod);
 
         // TODO: Change to pipeline context status.
-        glDepthFunc(GL_LEQUAL);
+        glDepthFunc(GL_LEQUAL); GCE;
         RenderCommand::DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
-        glDepthFunc(GL_LESS);
+        glDepthFunc(GL_LESS); GCE;
+    }
+
+    void OpenGLRendererAPI::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
+    {
+        commandBuffer->AddCommand([renderPass]()
+        {
+            renderPass->GetTargetFramebuffer()->Bind();
+        });
+    }
+
+    void OpenGLRendererAPI::EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
+    {
+        commandBuffer->AddCommand([renderPass]()
+        {
+            renderPass->GetTargetFramebuffer()->Unbind();
+        });
+    }
+
+    void OpenGLRendererAPI::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
+    {
+        commandBuffer->AddCommand([pipeline, material]()
+        {
+            OpenGLShader* shader = dynamic_cast<OpenGLShader*>(pipeline->GetShader().get());
+            dynamic_cast<OpenGLMaterial*>(material.get())->BindTextures();
+
+            shader->Bind();
+            // shader->SetUniformBlockBinding();
+
+            glDepthFunc(GL_LEQUAL); GCE;
+            RenderCommand::DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
+            glDepthFunc(GL_LESS); GCE;
+        });
     }
 }

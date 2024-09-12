@@ -13,6 +13,11 @@ namespace Chozo {
     {
     }
 
+    void OpenGLRenderPass::SetInput(std::string_view name, Ref<UniformBuffer> uniformbuffer)
+    {
+        m_UBs[std::string(name)] = uniformbuffer;
+    }
+
     void OpenGLRenderPass::SetInput(std::string_view name, Ref<TextureCube> textureCube)
     {
     }

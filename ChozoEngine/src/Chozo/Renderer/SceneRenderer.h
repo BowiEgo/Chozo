@@ -6,6 +6,7 @@
 #include "UniformBuffer.h"
 #include "RenderPass.h"
 #include "EditorCamera.h"
+#include "RenderCommandBuffer.h"
 
 #include "Chozo/Scene/Scene.h"
 #include "Chozo/Scene/Components.h"
@@ -43,6 +44,7 @@ namespace Chozo
         ~SceneRenderer() = default;
 
 		void Init();
+        static void Shutdown();
         
 		Ref<Scene> GetScene() { return m_Scene; }
 		void SetScene(Ref<Scene>& scene);
@@ -56,6 +58,10 @@ namespace Chozo
         bool SubmitPointLight(PointLightComponent* light, glm::vec3& position);
         bool SubmitSpotLight(SpotLightComponent* light, glm::vec3& position);
 
+        void SkyboxPass();
+
+        void Flush();
+
         static Ref<SceneRenderer> Create(Ref<Scene>& scene);
         static Ref<SceneRenderer> Find(Scene* scene);
     private:
@@ -63,6 +69,8 @@ namespace Chozo
 
 		Ref<Scene> m_Scene;
 		bool m_Active = false;
+
+		Ref<RenderCommandBuffer> m_CommandBuffer;
 
         struct SceneInfo
 		{
@@ -102,12 +110,13 @@ namespace Chozo
             SpotLight Lights[1000];
         } SpotLightsDataUB;
 
-        Ref<UniformBuffer> m_CameraUniformBuffer;
-        Ref<UniformBuffer> m_SceneUniformBuffer;
-        Ref<UniformBuffer> m_PointLightUniformBuffer;
-        Ref<UniformBuffer> m_SpotLightUniformBuffer;
+        Ref<UniformBuffer> m_CameraUB;
+        Ref<UniformBuffer> m_SceneUB;
+        Ref<UniformBuffer> m_PointLightUB;
+        Ref<UniformBuffer> m_SpotLightUB;
 
-        Ref<DynamicMesh> m_BoxMesh;
-        Ref<RenderPass> m_PreethamSkyRenderPass;
+        Ref<Pipeline> m_SkyboxPipeline;
+		Ref<Material> m_SkyboxMaterial;
+		Ref<RenderPass> m_SkyboxPass;
     };
 }

@@ -18,11 +18,49 @@ namespace Chozo
 
     void SceneRenderer::Init()
     {
+#ifdef CZ_PIPELINE
+        m_CommandBuffer = RenderCommandBuffer::Create();
+#endif
+
         // Uniform buffers
-        m_CameraUniformBuffer = UniformBuffer::Create(sizeof(CameraData));
-        m_SceneUniformBuffer = UniformBuffer::Create(sizeof(SceneData));
-        m_PointLightUniformBuffer = UniformBuffer::Create(sizeof(PointLightsData));
-        m_SpotLightUniformBuffer = UniformBuffer::Create(sizeof(SpotLightsData));
+        m_CameraUB = UniformBuffer::Create(sizeof(CameraData));
+        m_SceneUB = UniformBuffer::Create(sizeof(SceneData));
+        m_PointLightUB = UniformBuffer::Create(sizeof(PointLightsData));
+        m_SpotLightUB = UniformBuffer::Create(sizeof(SpotLightsData));
+
+#ifdef CZ_PIPELINE
+        // Skybox
+        {
+			auto skyboxShader = Renderer::GetShaderLibrary()->Get("Skybox");
+
+			FramebufferSpecification fbSpec;
+			fbSpec.Attachments = { ImageFormat::RGBA32F };
+			Ref<Framebuffer> skyboxFB = Framebuffer::Create(fbSpec);
+            
+			PipelineSpecification pipelineSpec;
+			pipelineSpec.DebugName = "Skybox";
+			pipelineSpec.Shader = skyboxShader;
+            pipelineSpec.DepthWrite = false;
+			pipelineSpec.DepthTest = false;
+            pipelineSpec.Layout = {
+				{ ShaderDataType::Float3, "a_Position" },
+			};
+			pipelineSpec.TargetFramebuffer = skyboxFB;
+			m_SkyboxPipeline = Pipeline::Create(pipelineSpec);
+			m_SkyboxMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
+
+			RenderPassSpecification renderPassSpec;
+			renderPassSpec.DebugName = "Skybox";
+			renderPassSpec.Pipeline = m_SkyboxPipeline;
+			m_SkyboxPass = RenderPass::Create(renderPassSpec);
+			m_SkyboxPass->SetInput("Camera", m_CameraUB);
+			m_SkyboxPass->Bake();
+        }
+#endif
+    }
+
+    void SceneRenderer::Shutdown()
+    {
     }
 
     void SceneRenderer::SetScene(Ref<Scene>& scene)
@@ -43,10 +81,10 @@ namespace Chozo
         SceneDataUB.CameraPosition = camera.GetPosition();
         SceneDataUB.EnvironmentMapIntensity = m_Scene->m_EnvironmentIntensity;
 
-        m_CameraUniformBuffer->SetData(&CameraDataUB, sizeof(CameraData));
-        m_SceneUniformBuffer->SetData(&SceneDataUB, sizeof(SceneData));
-        m_PointLightUniformBuffer->SetData(&PointLightsDataUB, sizeof(PointLightsData));
-        m_SpotLightUniformBuffer->SetData(&SpotLightsDataUB, sizeof(SpotLightsData));
+        m_CameraUB->SetData(&CameraDataUB, sizeof(CameraData));
+        m_SceneUB->SetData(&SceneDataUB, sizeof(SceneData));
+        m_PointLightUB->SetData(&PointLightsDataUB, sizeof(PointLightsData));
+        m_SpotLightUB->SetData(&SpotLightsDataUB, sizeof(SpotLightsData));
         PointLightsDataUB.LightCount = 0;
         SpotLightsDataUB.LightCount = 0;
     }
@@ -97,6 +135,33 @@ namespace Chozo
         SpotLightsDataUB.LightCount++;
 
         return true;
+    }
+
+    void SceneRenderer::SkyboxPass()
+    {
+#ifdef CZ_PIPELINE
+		Renderer::BeginRenderPass(m_CommandBuffer, m_SkyboxPass);
+
+        m_SkyboxMaterial->Set("u_Uniforms.TextureLod", m_SceneData.SkyboxLod);
+		m_SkyboxMaterial->Set("u_Uniforms.Intensity", m_SceneData.SceneEnvironmentIntensity);
+
+		// const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackCubeTexture();
+		// m_SkyboxMaterial->Set("u_Texture", radianceMap);
+
+		Renderer::SubmitFullscreenBox(m_CommandBuffer, m_SkyboxPipeline, m_SkyboxMaterial);
+
+		Renderer::EndRenderPass(m_CommandBuffer, m_SkyboxPass);
+#endif
+    }
+
+    void SceneRenderer::Flush()
+    {
+        m_CommandBuffer->Begin();
+
+        SkyboxPass();
+
+        m_CommandBuffer->End();
+        m_CommandBuffer->Submit();
     }
 
     void SceneRenderer::EndScene()

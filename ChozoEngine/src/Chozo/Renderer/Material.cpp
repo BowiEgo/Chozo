@@ -26,6 +26,18 @@ namespace Chozo {
         return nullptr;
     }
 
+    Ref<Material> Material::Create(Ref<Shader> shader, const std::string &name)
+    {
+        switch (RendererAPI::GetAPI())
+        {
+            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLMaterial>(shader, name);
+        }
+
+        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        return nullptr;
+    }
+
     Ref<Material> Material::Copy(const Ref<Material> &other, const std::string &name)
     {
         switch (RendererAPI::GetAPI())
@@ -36,10 +48,5 @@ namespace Chozo {
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
         return nullptr;
-    }
-
-    void Material::Set(const std::string &name, const UniformValue &value)
-    {
-        m_Uniforms[name] = value;
     }
 }

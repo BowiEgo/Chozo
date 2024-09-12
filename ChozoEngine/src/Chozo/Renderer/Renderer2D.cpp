@@ -286,7 +286,7 @@ namespace Chozo {
         }
     }
 
-    void Renderer2D::DrawScreen(Ref<Texture> texture)
+    void Renderer2D::DrawFullScreenQuad(Ref<Texture> texture)
     {
         glm::mat4 transform = glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 1.0f });
 
