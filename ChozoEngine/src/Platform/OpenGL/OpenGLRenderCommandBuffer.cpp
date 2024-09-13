@@ -1,5 +1,7 @@
 #include "OpenGLRenderCommandBuffer.h"
 
+#include "Chozo/Renderer/Renderer.h"
+
 namespace Chozo {
 
     OpenGLRenderCommandBuffer::OpenGLRenderCommandBuffer()
@@ -22,7 +24,7 @@ namespace Chozo {
     void OpenGLRenderCommandBuffer::Submit()
     {
         for (auto& cmd : m_Commands)
-            cmd();
+            Renderer::Submit(std::move(cmd));
     }
 
     void OpenGLRenderCommandBuffer::AddCommand(std::function<void()> &&func)

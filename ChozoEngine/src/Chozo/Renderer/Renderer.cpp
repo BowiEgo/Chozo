@@ -1,14 +1,20 @@
 #include "Renderer.h"
 
+#include "RendererAPI.h"
 #include "Geometry/BoxGeometry.h"
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Platform/OpenGL/OpenGLRendererAPI.h"
+
 namespace Chozo {
 
     static Renderer::RendererConfig s_Config;
     static Renderer::RendererData s_Data;
+    static std::vector<std::function<void()>> s_RenderCommandQueue;
+
+    RendererAPI* Renderer::s_RendererAPI;
 
     template<typename T>
     static void SetMaxSize(T*& target, T*& ptr, uint32_t newSize)
@@ -34,12 +40,26 @@ namespace Chozo {
     {
         RenderCommand::Init();
 
+        switch (RendererAPI::GetAPI())
+        {
+            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!");
+            case RendererAPI::API::OpenGL:   Renderer::s_RendererAPI = new OpenGLRendererAPI;
+        }
+
         // Textures
         s_Data.MaxTextureSlots = RenderCommand::GetMaxTextureSlots();
         s_Data.TextureSlots.resize(s_Data.MaxTextureSlots);
         s_Data.WhiteTexture = Texture2D::Create();
         uint32_t whiteTextureData = 0xffffffff;
         s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
+        {
+            const uint32_t cubemapSize = Renderer::GetConfig().EnvironmentMapResolution;
+            TextureSpecification cubemapSpec;
+            cubemapSpec.Format = ImageFormat::RGBA32F;
+            cubemapSpec.Width = cubemapSize;
+            cubemapSpec.Height = cubemapSize;
+            s_Data.PreethamSkyTextureCube = TextureCube::Create(cubemapSpec);
+        }
 
         int32_t samplers[s_Data.MaxTextureSlots];
         for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
@@ -69,35 +89,22 @@ namespace Chozo {
         {
             Ref<Shader> preethamSkyShader = Renderer::GetRendererData().m_ShaderLibrary->Get("PreethamSky");
 
-            const uint32_t cubemapSize = Renderer::GetConfig().EnvironmentMapResolution;
-            // const uint32_t irradianceMapSize = 32;
-
-            TextureSpecification cubemapSpec;
-            cubemapSpec.Format = ImageFormat::RGBA32F;
-            cubemapSpec.Width = cubemapSize;
-            cubemapSpec.Height = cubemapSize;
-    		Ref<TextureCube> envMap = TextureCube::Create(cubemapSpec);
-
             FramebufferSpecification fbSpec;
-            fbSpec.Width = cubemapSize;
-            fbSpec.Height = cubemapSize;
+            fbSpec.Width = s_Data.PreethamSkyTextureCube->GetWidth();
+            fbSpec.Height = s_Data.PreethamSkyTextureCube->GetHeight();
             fbSpec.Attachments = { ImageFormat::RGBA8 };
-            Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+            Ref<Framebuffer> preethamSkyFB = Framebuffer::Create(fbSpec);
 
             PipelineSpecification pipelineSpec;
-            pipelineSpec.Shader = preethamSkyShader;
-            pipelineSpec.TargetFramebuffer = framebuffer;
-            Ref<VertexArray> VAO = s_Data.BoxMesh->GetVertexArray();
-            Ref<Pipeline> preethamSkyPipeline = Pipeline::Create(pipelineSpec);
-            preethamSkyPipeline->Submit([preethamSkyShader, envMap, VAO]()
-            {
-                RenderCommand::DrawEnvMap(preethamSkyShader, envMap, VAO);
-            });
-
-            RenderPassSpecification renderPassSpec;
-            renderPassSpec.Pipeline = preethamSkyPipeline;
-            s_Data.m_PreethamSkyRenderPass = RenderPass::Create(renderPassSpec);
-            s_Data.m_PreethamSkyRenderPass->SetOutput("EnvMap", envMap);
+			pipelineSpec.DebugName = "PreethamSky";
+			pipelineSpec.Shader = preethamSkyShader;
+            pipelineSpec.DepthWrite = false;
+			pipelineSpec.DepthTest = false;
+            pipelineSpec.Layout = {
+				{ ShaderDataType::Float3, "a_Position" },
+			};
+			pipelineSpec.TargetFramebuffer = preethamSkyFB;
+            s_Data.m_PreethamSkyPipeline = Pipeline::Create(pipelineSpec);
         }
     }
 
@@ -172,22 +179,43 @@ namespace Chozo {
 
     void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
     {
-		// s_RendererAPI->BeginRenderPass(commandBuffer, renderPass);
+		s_RendererAPI->BeginRenderPass(commandBuffer, renderPass);
     }
 
     void Renderer::EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
     {
-		// s_RendererAPI->EndRenderPass(commandBuffer, renderPass);
+		s_RendererAPI->EndRenderPass(commandBuffer, renderPass);
     }
 
     void Renderer::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
     {
-		// s_RendererAPI->SubmitFullscreenBox(commandBuffer, pipeline, material);
+		s_RendererAPI->SubmitFullscreenBox(commandBuffer, pipeline, material);
+    }
+
+    void Renderer::Begin()
+    {
+        s_RenderCommandQueue.clear();
+    }
+
+    void Renderer::End()
+    {
+        for (auto& cmd : s_RenderCommandQueue)
+            cmd();
+    }
+
+    void Renderer::Submit(std::function<void()> &&func)
+    {
+        s_RenderCommandQueue.push_back([func = std::forward<std::function<void()>>(func)]() mutable { func(); });
     }
 
     Renderer::RendererData Renderer::GetRendererData()
     {
         return s_Data;
+    }
+
+    Ref<TextureCube> Renderer::GetPreethamSkyTextureCube()
+    {
+        return s_Data.PreethamSkyTextureCube;
     }
 
     Renderer::Statistics Renderer::GetStats()
@@ -218,6 +246,11 @@ namespace Chozo {
 
     void Renderer::CreatePreethamSky(const float turbidity, const float azimuth, const float inclination)
     {
-        RenderCommand::DrawPreethamSky(turbidity, azimuth, inclination);
+        s_RendererAPI->CreatePreethamSky(s_Data.m_PreethamSkyPipeline, turbidity, azimuth, inclination);
+    }
+
+    void Renderer::UpdatePreethamSky(const float turbidity, const float azimuth, const float inclination)
+    {
+        s_RendererAPI->DrawPreethamSky(s_Data.m_PreethamSkyPipeline, turbidity, azimuth, inclination);
     }
 }

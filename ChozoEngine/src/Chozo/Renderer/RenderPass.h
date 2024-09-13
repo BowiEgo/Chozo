@@ -26,10 +26,6 @@ namespace Chozo {
 
 		virtual void SetInput(std::string_view name, Ref<TextureCube> textureCube) = 0;
 
-        virtual void SetOutput(std::string_view name, Ref<Texture2D> texture) = 0;
-		virtual void SetOutput(std::string_view name, Ref<TextureCube> textureCube) = 0;
-		virtual Ref<Texture> GetOutput(std::string_view name) = 0;
-        
         virtual Ref<Framebuffer> GetTargetFramebuffer() const = 0;
 
         virtual void Bake() = 0;

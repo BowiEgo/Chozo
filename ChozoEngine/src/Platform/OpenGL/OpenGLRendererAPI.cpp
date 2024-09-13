@@ -67,17 +67,6 @@ namespace Chozo {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, vertexCount); GCE;
     }
 
-    void OpenGLRendererAPI::DrawPreethamSky(const float turbidity, const float azimuth, const float inclination)
-    {
-        Ref<Shader> preethamSkyShader = Renderer::GetRendererData().m_PreethamSkyRenderPass->GetSpecification().Pipeline->GetShader();
-        preethamSkyShader->Bind();
-        preethamSkyShader->SetUniform("u_FragUniforms.Turbidity", turbidity);
-        preethamSkyShader->SetUniform("u_FragUniforms.Azimuth", azimuth);
-        preethamSkyShader->SetUniform("u_FragUniforms.Inclination", inclination);
-
-        Renderer::GetRendererData().m_PreethamSkyRenderPass->Bake();
-    }
-
     void OpenGLRendererAPI::DrawEnvMap(const Ref<Shader> &shader, const Ref<TextureCube> &textureCube, const Ref<VertexArray> &VAO)
     {
         textureCube->Bind();
@@ -91,7 +80,7 @@ namespace Chozo {
             shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
             shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
 
-            RenderCommand::DrawIndexed(VAO, 0);
+            DrawIndexed(VAO, 0);
         }
     }
 
@@ -107,7 +96,7 @@ namespace Chozo {
 
         // TODO: Change to pipeline context status.
         glDepthFunc(GL_LEQUAL); GCE;
-        RenderCommand::DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
+        DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
         glDepthFunc(GL_LESS); GCE;
     }
 
@@ -125,6 +114,40 @@ namespace Chozo {
         {
             renderPass->GetTargetFramebuffer()->Unbind();
         });
+    }
+
+    void OpenGLRendererAPI::CreatePreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)
+    {
+        Renderer::Submit([pipeline, turbidity, azimuth, inclination, this]()
+        {
+            DrawPreethamSky(pipeline, turbidity, azimuth, inclination);
+        });
+    }
+
+    void OpenGLRendererAPI::DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)
+    {
+        OpenGLShader* shader = dynamic_cast<OpenGLShader*>(pipeline->GetShader().get());
+        Ref<TextureCube> textureCube = Renderer::GetPreethamSkyTextureCube();
+
+        pipeline->GetTargetFramebuffer()->Bind();
+        textureCube->Bind();
+
+        shader->Bind();
+        shader->SetUniform("u_FragUniforms.Turbidity", turbidity);
+        shader->SetUniform("u_FragUniforms.Azimuth", azimuth);
+        shader->SetUniform("u_FragUniforms.Inclination", inclination);
+        for (uint32_t i = 0; i < 6; i++)
+        {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textureCube->GetRendererID(), 0); GCE;
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
+
+            shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
+            shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+
+            DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
+        }
+        pipeline->GetTargetFramebuffer()->Unbind();
     }
 
     void OpenGLRendererAPI::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)

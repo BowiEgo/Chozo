@@ -22,20 +22,6 @@ namespace Chozo {
     {
     }
 
-    void OpenGLRenderPass::SetOutput(std::string_view name, Ref<Texture2D> texture)
-    {
-        m_Outputs[std::string(name)] = texture;
-    }
-
-    void OpenGLRenderPass::SetOutput(std::string_view name, Ref<TextureCube> textureCube)
-    {
-        m_Outputs[std::string(name)] = textureCube;
-    }
-
-    Ref<Texture> OpenGLRenderPass::GetOutput(std::string_view name)
-    {
-        return m_Outputs[std::string(name)];
-    }
 
     Ref<Framebuffer> OpenGLRenderPass::GetTargetFramebuffer() const
     {
@@ -44,9 +30,6 @@ namespace Chozo {
 
     void OpenGLRenderPass::Bake()
     {
-        for (const auto& [name, output] : m_Outputs)
-        {
-            m_Specification.Pipeline->Render();
-        }
+        m_Specification.Pipeline->Render();
     }
 }

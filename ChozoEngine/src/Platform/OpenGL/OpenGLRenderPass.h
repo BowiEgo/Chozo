@@ -16,17 +16,12 @@ namespace Chozo {
 		virtual void SetInput(std::string_view name, Ref<UniformBuffer> uniformBuffer) override;
 
         virtual void SetInput(std::string_view name, Ref<TextureCube> textureCube) override;
-        virtual void SetOutput(std::string_view name, Ref<Texture2D> texture) override;
-        virtual void SetOutput(std::string_view name, Ref<TextureCube> textureCube) override;
-        
-		virtual Ref<Texture> GetOutput(std::string_view name) override;
         
         virtual Ref<Framebuffer> GetTargetFramebuffer() const override;
 
 		virtual void Bake() override;
     private:
 		RenderPassSpecification m_Specification;
-        std::unordered_map<std::string, Ref<Texture>> m_Outputs;
         std::unordered_map<std::string, Ref<UniformBuffer>> m_UBs;
     };
 }

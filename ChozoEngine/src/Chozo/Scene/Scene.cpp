@@ -71,12 +71,11 @@ namespace Chozo {
 
                 if (!skyLight.SceneEnvironment && skyLight.DynamicSky)
                 {
-                    Ref<TextureCube> preethamEnv = std::dynamic_pointer_cast<TextureCube>(Renderer::GetRendererData().m_PreethamSkyRenderPass->GetOutput("EnvMap"));
-
-                    skyLight.SceneEnvironment = std::make_shared<Environment>(preethamEnv, preethamEnv);
-    
                     Renderer::CreatePreethamSky(skyLight.TurbidityAzimuthInclination.x, skyLight.TurbidityAzimuthInclination.y, skyLight.TurbidityAzimuthInclination.z);
-                    // Renderer::RenderPBRResouces(preethamEnv);
+                    Ref<TextureCube> preethamRadiance = Renderer::GetPreethamSkyTextureCube();
+
+                    skyLight.SceneEnvironment = std::make_shared<Environment>(preethamRadiance, preethamRadiance);
+                    // Renderer::RenderPBRResouces(preethamRadiance);
                 }
                 m_Environment = skyLight.SceneEnvironment;
                 m_EnvironmentIntensity = skyLight.Intensity;

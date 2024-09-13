@@ -12,7 +12,7 @@ file(GLOB_RECURSE chozo_engine_vendor RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} vendo
 add_library(${PROJECT_NAME} STATIC ${chozo_engine_sources} ${chozo_engine_vendor})
 set(LIBRARY_OUTPUT_PATH ${LIB_PATH})
 
-# target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_PIPELINE)
+target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_PIPELINE)
 target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_DEBUG)
 target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOW_WIDTH=1920 WINDOW_HEIGHT=1080)
 

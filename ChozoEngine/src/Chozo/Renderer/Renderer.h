@@ -67,7 +67,9 @@ namespace Chozo {
             uint32_t GetMaxTriangles() { return GetMaxCount<Index>(); }
 
             Ref<DynamicMesh> BoxMesh;
-		    Ref<RenderPass> m_PreethamSkyRenderPass;
+
+            Ref<TextureCube> PreethamSkyTextureCube;
+            Ref<Pipeline> m_PreethamSkyPipeline;
         };
 
         static void Init();
@@ -86,11 +88,19 @@ namespace Chozo {
 
         static Ref<ShaderLibrary> GetShaderLibrary() { return GetRendererData().m_ShaderLibrary; }
         static RendererData GetRendererData();
+        static Ref<TextureCube> GetPreethamSkyTextureCube();
         static void UpdateMaxTriagles(uint32_t count);
 
         static RendererConfig& GetConfig();
 		static void SetConfig(const RendererConfig& config);
 
 		static void CreatePreethamSky(const float turbidity, const float azimuth, const float inclination);
+		static void UpdatePreethamSky(const float turbidity, const float azimuth, const float inclination);
+
+		static void Begin();
+		static void End();
+        static void Submit(std::function<void()>&& func);
+    private:
+        static RendererAPI* s_RendererAPI;
     };
 }

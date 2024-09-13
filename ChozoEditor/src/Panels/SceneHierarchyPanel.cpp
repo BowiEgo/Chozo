@@ -338,17 +338,17 @@ namespace Chozo {
 
             DrawColumnValue<float>("Turbidity", component.TurbidityAzimuthInclination.x, [&](auto& target) {
                 if (ImGui::DragFloat("##Turbidity", &target, 0.01f, 0.0f, 10.0f))
-                    RenderCommand::DrawPreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
+                    Renderer::UpdatePreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
             });
 
             DrawColumnValue<float>("Azimuth", component.TurbidityAzimuthInclination.y, [&](auto& target) {
                 if (ImGui::DragFloat("##Azimuth", &target, 0.01f, 0.0f, 10.0f))
-                    RenderCommand::DrawPreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
+                    Renderer::UpdatePreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
             });
 
             DrawColumnValue<float>("Inclination", component.TurbidityAzimuthInclination.z, [&](auto& target) {
                 if (ImGui::DragFloat("##Inclination", &target, 0.01f, 0.0f, 10.0f))
-                    RenderCommand::DrawPreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
+                    Renderer::UpdatePreethamSky(component.TurbidityAzimuthInclination.x, component.TurbidityAzimuthInclination.y, component.TurbidityAzimuthInclination.z);
             });
 
             // DrawColumnValue<glm::vec3>("Light Direction", s_LightDirection, [&](auto& target) {

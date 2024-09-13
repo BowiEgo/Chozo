@@ -109,5 +109,5 @@ namespace Chozo {
         }
 
         UI::DrawButtonImage(texture, IM_COL32(255, 255, 255, 225), UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f), uv0, uv1);
-}
+    }
 }

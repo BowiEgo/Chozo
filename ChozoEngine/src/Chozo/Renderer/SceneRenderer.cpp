@@ -54,7 +54,7 @@ namespace Chozo
 			renderPassSpec.Pipeline = m_SkyboxPipeline;
 			m_SkyboxPass = RenderPass::Create(renderPassSpec);
 			m_SkyboxPass->SetInput("Camera", m_CameraUB);
-			m_SkyboxPass->Bake();
+			// m_SkyboxPass->Bake();
         }
 #endif
     }
@@ -139,7 +139,6 @@ namespace Chozo
 
     void SceneRenderer::SkyboxPass()
     {
-#ifdef CZ_PIPELINE
 		Renderer::BeginRenderPass(m_CommandBuffer, m_SkyboxPass);
 
         m_SkyboxMaterial->Set("u_Uniforms.TextureLod", m_SceneData.SkyboxLod);
@@ -151,7 +150,6 @@ namespace Chozo
 		Renderer::SubmitFullscreenBox(m_CommandBuffer, m_SkyboxPipeline, m_SkyboxMaterial);
 
 		Renderer::EndRenderPass(m_CommandBuffer, m_SkyboxPass);
-#endif
     }
 
     void SceneRenderer::Flush()

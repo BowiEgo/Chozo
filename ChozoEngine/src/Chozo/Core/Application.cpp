@@ -64,6 +64,8 @@ namespace Chozo {
             Timestep timestep = time - m_LastFrameTime;
             m_LastFrameTime = time;
 
+            Renderer::Begin();
+
             for (Layer* layer : m_LayerStack)
                 layer->OnUpdate(timestep);
 
@@ -72,6 +74,8 @@ namespace Chozo {
             for (Layer* layer : m_LayerStack)
                 layer->OnImGuiRender();
             m_ImGuiLayer->End();
+
+            Renderer::End();
 
             m_Window->OnUpdate();
         }
