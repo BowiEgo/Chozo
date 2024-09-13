@@ -33,7 +33,7 @@ namespace Chozo {
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); GCE;
     }
 
-    int OpenGLRendererAPI::GetMaxTextureSlots()
+    uint32_t OpenGLRendererAPI::GetMaxTextureSlots()
     {
         int maxTextureImageUnits;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits); GCE;
@@ -104,6 +104,11 @@ namespace Chozo {
     {
         commandBuffer->AddCommand([renderPass]()
         {
+            OpenGLShader* shader = dynamic_cast<OpenGLShader*>(renderPass->GetPipeline()->GetShader().get());
+            shader->Bind();
+            for (auto item : renderPass->GetUniformBuffers())
+                shader->SetUniformBlockBinding(item.first, item.second->GetBindingPoint());
+
             renderPass->GetTargetFramebuffer()->Bind();
         });
     }
@@ -120,7 +125,9 @@ namespace Chozo {
     {
         Renderer::Submit([pipeline, turbidity, azimuth, inclination, this]()
         {
+            pipeline->GetTargetFramebuffer()->Bind();
             DrawPreethamSky(pipeline, turbidity, azimuth, inclination);
+            pipeline->GetTargetFramebuffer()->Unbind();
         });
     }
 
@@ -155,10 +162,7 @@ namespace Chozo {
         commandBuffer->AddCommand([pipeline, material]()
         {
             OpenGLShader* shader = dynamic_cast<OpenGLShader*>(pipeline->GetShader().get());
-            dynamic_cast<OpenGLMaterial*>(material.get())->BindTextures();
-
-            shader->Bind();
-            // shader->SetUniformBlockBinding();
+            dynamic_cast<OpenGLMaterial*>(material.get())->Bind();
 
             glDepthFunc(GL_LEQUAL); GCE;
             RenderCommand::DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);

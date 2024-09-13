@@ -1,6 +1,8 @@
 #include "EditorLayer.h"
 #include "CameraController.h"
 
+#include "Panels/TexturePreviewPanel.h"
+
 #include <regex>
 
 #include <glad/glad.h>
@@ -50,9 +52,9 @@ namespace Chozo {
         // Viewport
         // --------------------
         FramebufferSpecification fbSpec;
-        fbSpec.Attachments = { ImageFormat::RGBA8, ImageFormat::RED_INTEGER, ImageFormat::Depth };
+        fbSpec.Attachments = { ImageFormat::RGBA8, ImageFormat::RED32I, ImageFormat::Depth };
         m_Viewport_FBO = Framebuffer::Create(fbSpec);
-        m_ID_FBO = Framebuffer::Create(fbSpec);
+        // m_ID_FBO = Framebuffer::Create(fbSpec);
 
         PipelineSpecification pipelineSpec;
         pipelineSpec.TargetFramebuffer = m_Viewport_FBO;
@@ -263,6 +265,14 @@ namespace Chozo {
             entityName = m_Entity_Hovered.GetComponent<TagComponent>().Tag;
         ImGui::Text("EntityHoverd: %s", entityName.c_str());
         ImGui::Separator();
+
+        if(ImGui::Button("ShowSkyboxTexture"))
+        {
+            TexturePreviewPanel::Open();
+            Ref<Texture2D> texture = m_ViewportRenderer->GetSkyboxPass()->GetOutput(0);
+            // Ref<Texture2D> texture = m_Viewport_FBO->GetImage(0);
+            TexturePreviewPanel::SetTexture(texture);
+        }
 
         // --------------------
         // Viewport

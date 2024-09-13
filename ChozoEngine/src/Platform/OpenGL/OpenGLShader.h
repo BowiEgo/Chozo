@@ -25,6 +25,7 @@ namespace Chozo {
         virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) override;
 
         virtual void SetUniformBlockBinding() const override;
+        virtual void SetUniformBlockBinding(const std::string& name, const uint32_t bindingPoint) const override;
     private:
         void SetUniformBool(const std::string& name, const bool value);
         void SetUniform1i(const std::string& name, const int value);

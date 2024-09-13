@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chozo/Renderer/Framebuffer.h"
+#include "Chozo/Renderer/Texture.h"
 
 namespace Chozo {
     
@@ -22,10 +23,14 @@ namespace Chozo {
             return m_ColorAttachments[attachmentIndex];
         };
 		virtual const FramebufferSpecification& GetSpecification() const override { return m_Specification; };
+        virtual Ref<Texture2D> GetImage(uint32_t attachmentIndex) const override { return m_AttachmentImages[attachmentIndex]; }
+		virtual Ref<Texture2D> GetDepthImage() const override { return m_DepthAttachmentImage; }
 
         virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) override;
 		void Invalidate();
 		void Release();
+    private:
+        void CreateTextures(int samples, std::vector<FramebufferTextureSpecification> attachmentSpecs, uint32_t width, uint32_t height);
     private:
         FramebufferSpecification m_Specification;
         RendererID m_RendererID = 0;
@@ -33,7 +38,10 @@ namespace Chozo {
         std::vector<FramebufferTextureSpecification> m_ColorAttachmentSpecs;
         FramebufferTextureSpecification m_DepthAttachmentSpec = ImageFormat::None;
 
-        std::vector<uint32_t> m_ColorAttachments;
-        uint32_t m_DepthAttachment;
+        std::vector<RendererID> m_ColorAttachments;
+        RendererID m_DepthAttachment;
+
+		std::vector<Ref<Texture2D>> m_AttachmentImages;
+		Ref<Texture2D> m_DepthAttachmentImage;
     };
 }

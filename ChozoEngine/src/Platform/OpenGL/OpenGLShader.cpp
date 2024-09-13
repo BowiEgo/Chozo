@@ -309,7 +309,7 @@ namespace Chozo {
 
         for (auto& kv : shaderSources)
         {
-            CZ_CORE_WARN("Compile Source: {0}", kv.second);
+            // CZ_CORE_WARN("Compile Source: {0}", kv.second);
             GLenum type = kv.first;
             const std::string& source = kv.second;
 
@@ -628,6 +628,13 @@ namespace Chozo {
             glUniformBlockBinding(m_RendererID, uniformBlockIndex2, 2);
         if (uniformBlockIndex3 != GL_INVALID_INDEX)
             glUniformBlockBinding(m_RendererID, uniformBlockIndex3, 3);
+    }
+
+    void OpenGLShader::SetUniformBlockBinding(const std::string& name, const uint32_t bindingPoint) const
+    {
+        GLuint uniformBlockIndex = glGetUniformBlockIndex(m_RendererID, name.c_str());
+        if (uniformBlockIndex != GL_INVALID_INDEX)
+            glUniformBlockBinding(m_RendererID, uniformBlockIndex, bindingPoint);
     }
 
     void OpenGLShader::SetUniformBool(const std::string &name, const bool value)

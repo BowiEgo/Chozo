@@ -3,8 +3,6 @@
 #include "Renderer.h"
 #include "RenderCommand.h"
 
-#include "Geometry/BoxGeometry.h"
-
 namespace Chozo
 {
 
@@ -46,6 +44,7 @@ namespace Chozo
 				{ ShaderDataType::Float3, "a_Position" },
 			};
 			pipelineSpec.TargetFramebuffer = skyboxFB;
+			// pipelineSpec.TargetFramebuffer = m_Scene->m_FinalPipeline->GetTargetFramebuffer();
 			m_SkyboxPipeline = Pipeline::Create(pipelineSpec);
 			m_SkyboxMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 
@@ -87,6 +86,12 @@ namespace Chozo
         m_SpotLightUB->SetData(&SpotLightsDataUB, sizeof(SpotLightsData));
         PointLightsDataUB.LightCount = 0;
         SpotLightsDataUB.LightCount = 0;
+    }
+
+    void SceneRenderer::EndScene()
+    {
+        Renderer::RenderStaticBatches();
+        Flush();
     }
 
     bool SceneRenderer::SubmitDirectionalLight(DirectionalLightComponent *light)
@@ -141,11 +146,11 @@ namespace Chozo
     {
 		Renderer::BeginRenderPass(m_CommandBuffer, m_SkyboxPass);
 
-        m_SkyboxMaterial->Set("u_Uniforms.TextureLod", m_SceneData.SkyboxLod);
-		m_SkyboxMaterial->Set("u_Uniforms.Intensity", m_SceneData.SceneEnvironmentIntensity);
+        m_SkyboxMaterial->Set("u_FragUniforms.TextureLod", m_SceneData.SkyboxLod);
+		m_SkyboxMaterial->Set("u_FragUniforms.Intensity", m_SceneData.SceneEnvironmentIntensity);
 
-		// const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackCubeTexture();
-		// m_SkyboxMaterial->Set("u_Texture", radianceMap);
+		const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackTextureCube();
+		m_SkyboxMaterial->Set("u_Texture", radianceMap);
 
 		Renderer::SubmitFullscreenBox(m_CommandBuffer, m_SkyboxPipeline, m_SkyboxMaterial);
 
@@ -159,12 +164,6 @@ namespace Chozo
         SkyboxPass();
 
         m_CommandBuffer->End();
-        m_CommandBuffer->Submit();
-    }
-
-    void SceneRenderer::EndScene()
-    {
-        Renderer::RenderStaticBatches();
     }
 
     Ref<SceneRenderer> SceneRenderer::Create(Ref<Scene>& scene)

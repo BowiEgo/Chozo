@@ -1,5 +1,7 @@
 #include "OpenGLMaterial.h"
 
+#include "Chozo/Renderer/Renderer.h"
+
 namespace Chozo {
 
     static UniformValue GetUniformDefaultValue(std::string uniformType)
@@ -26,12 +28,14 @@ namespace Chozo {
     OpenGLMaterial::OpenGLMaterial(const Ref<Shader> &shader, const std::string &name)
         : m_Shader(std::dynamic_pointer_cast<OpenGLShader>(shader)), m_Name(name)
     {
+        m_TextureSlots.resize(Renderer::GetMaxTextureSlots());
         PopulateUniforms(m_Shader);
     }
 
     OpenGLMaterial::OpenGLMaterial(const Ref<Material> &material, const std::string &name)
         : m_Shader(std::dynamic_pointer_cast<OpenGLShader>(material->GetShader())), m_Name(name)
     {
+        m_TextureSlots.resize(Renderer::GetMaxTextureSlots());
         PopulateUniforms(m_Shader);
     }
 
@@ -46,7 +50,7 @@ namespace Chozo {
 
     void OpenGLMaterial::Set(const std::string &name, const Ref<Texture> &texture)
     {
-        uint32_t textureIndex = 0;
+        int textureIndex = -1;
 
         for (uint32_t i = 0; i < m_TextureSlots.size(); i++)
         {
@@ -57,7 +61,7 @@ namespace Chozo {
             }
         }
 
-        if (textureIndex == 0)
+        if (textureIndex == -1)
         {
             textureIndex = m_TextureSlotIndex;
             m_TextureSlots[m_TextureSlotIndex] = texture;
@@ -66,11 +70,21 @@ namespace Chozo {
 
         m_Uniforms[name] = textureIndex;
     }
-    
+
+    void OpenGLMaterial::Bind()
+    {
+        BindTextures();
+        m_Shader->Bind();
+        for (auto uniform : m_Uniforms)
+        {
+            m_Shader->SetUniform(uniform.first, uniform.second);
+        }
+    }
+
     void OpenGLMaterial::BindTextures()
     {
-        for (auto texture : m_TextureSlots)
-            texture->Bind();
+        for (uint32_t i = 0; i < m_TextureSlotIndex; i++)
+            m_TextureSlots[i]->Bind(i);
     }
 
     void OpenGLMaterial::PopulateUniforms(const Ref<OpenGLShader> &shader)

@@ -3,36 +3,91 @@
 #include "Chozo/Debug/Log.h"
 #include <glad/glad.h>
 
+// namespace Chozo {
+
+//     static std::string GLenumToString(GLenum enumVal) {
+//         switch (enumVal) {
+//             case GL_R8I: return "GL_R8I";
+//             case GL_R8UI: return "GL_R8UI";
+//             case GL_R16I: return "GL_R16I";
+//             case GL_R16UI: return "GL_R16UI";
+//             case GL_R32I: return "GL_R32I";
+//             case GL_R32UI: return "GL_R32UI";
+//             case GL_R32F: return "GL_R32F";
+//             case GL_RG8: return "GL_RG8";
+//             case GL_RGB: return "GL_RGB";
+//             case GL_RGBA: return "GL_RGBA";
+//             case GL_DEPTH24_STENCIL8: return "GL_DEPTH24_STENCIL8";
+//             case GL_DEPTH_COMPONENT: return "GL_DEPTH_COMPONENT";
+//             default: return "Unknown GLenum";
+//         }
+//     }
+// }
+
+// std::ostream& operator<<(std::ostream& os, const GLenum& enumVal)
+// {
+//     const char* msg;
+//     switch (enumVal)
+//     {
+//         case GL_R8I:          msg = "GL_R8I"; break;
+//         case GL_R8UI:         msg = "GL_R8UI"; break;
+//         case GL_R16I:         msg = "GL_R16I"; break;
+//         case GL_R16UI:        msg = "GL_R16UI"; break;
+//         case GL_R32I:         msg = "GL_R32I"; break;
+//         case GL_R32UI:        msg = "GL_R32UI"; break;
+//         case GL_R32F:         msg = "GL_R32F"; break;
+//         case GL_RG8:          msg = "GL_RG8"; break;
+//         case GL_RGBA:         msg = "GL_RGBA"; break;
+//         case GL_DEPTH24_STENCIL8: msg = "GL_DEPTH24_STENCIL8"; break;
+//         case GL_DEPTH_COMPONENT:  msg = "GL_DEPTH_COMPONENT"; break;
+//         default:              msg = "Unknown GLenum"; break;
+//     }
+
+//     return os << msg; 
+// }
+
+// template <>
+// struct fmt::formatter<GLenum> {
+//     // Parse format specifications if needed (not used here)
+//     constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+//         return ctx.end();
+//     }
+
+//     // Format the GLenum as a string using the GLenumToString function
+//     template <typename FormatContext>
+//     auto format(const GLenum& enumVal, FormatContext& ctx) -> decltype(ctx.out()) {
+//         return format_to(ctx.out(), "{}", GLenumToString(enumVal));
+//     }
+// };
+
 #define EXIT_ON_GL_ERROR
 void gl_check_error(const char* function, const char* file, int line)
 {
     GLenum error = 0;
     bool is_error = false;
-    while ( (error = glGetError()) != GL_NO_ERROR)
+    while ((error = glGetError()) != GL_NO_ERROR)
     {
         is_error = true;
+        const char* errorMsg;
         switch (error)
         {
-        case GL_INVALID_ENUM: CZ_CORE_ERROR("GL_INVALID_ENUM");
-            break;
-        case GL_INVALID_VALUE: CZ_CORE_ERROR("GL_INVALID_VALUE");
-            break;
-        case GL_INVALID_OPERATION: CZ_CORE_ERROR("GL_INVALID_OPERATION");
-            break;
-        case GL_STACK_OVERFLOW: CZ_CORE_ERROR("GL_STACK_OVERFLOW");
-            break;
-        case GL_STACK_UNDERFLOW: CZ_CORE_ERROR("GL_STACK_UNDERFLOW");
-            break;
-        case GL_OUT_OF_MEMORY: CZ_CORE_ERROR("GL_OUT_OF_MEMORY");
-            break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION: CZ_CORE_ERROR("GL_INVALID_FRAMEBUFFER_OPERATION");
-            break;
-        case GL_CONTEXT_LOST: CZ_CORE_ERROR("GL_CONTEXT_LOST");
-            break;
-        default:
-            CZ_CORE_ERROR("Unkonwn error code %d", error);
+            case GL_INVALID_ENUM:                 errorMsg = "GL_INVALID_ENUM"; break;
+            case GL_INVALID_VALUE:                errorMsg = "GL_INVALID_VALUE"; break;
+            case GL_INVALID_OPERATION:            errorMsg = "GL_INVALID_OPERATION"; break;
+            case GL_STACK_OVERFLOW:               errorMsg = "GL_STACK_OVERFLOW"; break;
+            case GL_STACK_UNDERFLOW:              errorMsg = "GL_STACK_UNDERFLOW"; break;
+            case GL_OUT_OF_MEMORY:                errorMsg = "GL_OUT_OF_MEMORY"; break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION:errorMsg = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
+            case GL_CONTEXT_LOST:                 errorMsg = "GL_CONTEXT_LOST"; break;
+            default:                              errorMsg = "Unknown error"; break;
         }
-        CZ_CORE_ERROR(" encountered at function '%s' (%s:%d)\n", function, file, line);
+
+        // Extract just the file name from the full file path (optional)
+        const char* fileName = std::strrchr(file, '/');
+        fileName = fileName ? fileName + 1 : file;
+
+        // Log the error
+        CZ_CORE_ERROR("OpenGL Error: {0} at function {1} ({2}:{3})", errorMsg, function, fileName, line);
     }
 #ifdef EXIT_ON_GL_ERROR
     if (is_error)

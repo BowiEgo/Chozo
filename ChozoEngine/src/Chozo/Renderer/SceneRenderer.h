@@ -58,6 +58,8 @@ namespace Chozo
         bool SubmitPointLight(PointLightComponent* light, glm::vec3& position);
         bool SubmitSpotLight(SpotLightComponent* light, glm::vec3& position);
 
+        Ref<RenderPass> GetSkyboxPass() { return m_SkyboxPass; }
+
         void SkyboxPass();
 
         void Flush();

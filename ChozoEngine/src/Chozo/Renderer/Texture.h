@@ -24,9 +24,11 @@ namespace Chozo {
     {
 		ImageFormat Format = ImageFormat::RGBA;
 
+        uint32_t Samples = 1;
         uint32_t Width = 1, Height = 1;
         ImageParameter MinFilter = ImageParameter::LINEAR;
         ImageParameter MagFilter = ImageParameter::NEAREST;
+        ImageParameter WrapR = ImageParameter::REPEAT;
         ImageParameter WrapS = ImageParameter::REPEAT;
         ImageParameter WrapT = ImageParameter::REPEAT;
     };
@@ -34,17 +36,21 @@ namespace Chozo {
     class Texture2D : public Texture
     {
     public:
+        virtual TextureSpecification GetSpecification() const = 0;
+
+		virtual void SetData(const void* data, const uint32_t size) = 0;
+
         static Ref<Texture2D> Create(const TextureSpecification& spec = TextureSpecification());
         static Ref<Texture2D> Create(const std::string& path, const TextureSpecification& spec = TextureSpecification());
         static Ref<Texture2D> Create(const RendererID& id, const TextureSpecification& spec = TextureSpecification());
 		// static Ref<Texture2D> Create(const TextureSpecification& spec, Buffer imageData);
-
-		virtual void SetData(const void* data, const uint32_t size) = 0;
     };
 
     class TextureCube : public Texture
     {
     public:
         static Ref<TextureCube> Create(const TextureSpecification& spec = TextureSpecification());
+
+        virtual void SetData(void* data, uint32_t size) = 0;
     };
 }

@@ -19,6 +19,7 @@ namespace Chozo {
 
     void OpenGLRenderCommandBuffer::End()
     {
+        Submit();
     }
 
     void OpenGLRenderCommandBuffer::Submit()

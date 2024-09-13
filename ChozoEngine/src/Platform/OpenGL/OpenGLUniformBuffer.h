@@ -11,6 +11,7 @@ namespace Chozo {
         virtual ~OpenGLUniformBuffer() override {}
 
         virtual void SetData(const void* data, uint32_t size, uint32_t offset = 0) override;
+        virtual unsigned int GetBindingPoint() override { return m_BindingPoint; }
     private:
         static unsigned int s_UniformBindingPoint;
         unsigned int m_BindingPoint;

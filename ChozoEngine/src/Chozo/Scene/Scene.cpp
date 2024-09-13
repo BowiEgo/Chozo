@@ -54,7 +54,6 @@ namespace Chozo {
         Renderer::ResetStats();
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
         RenderCommand::Clear();
-        // std::vector<int> clearValues(FBO->GetSpecification().Width * FBO->GetSpecification().Height, -1);
         FBO->ClearColorAttachmentBuffer(1); // clear entity ID attachment to -1
 
         Ref<SceneRenderer> renderer = SceneRenderer::Find(this);
@@ -81,7 +80,7 @@ namespace Chozo {
                 m_EnvironmentIntensity = skyLight.Intensity;
                 m_SkyboxLod = skyLight.Lod;
 
-                RenderCommand::DrawSkyLight(m_Environment, m_EnvironmentIntensity, m_SkyboxLod, camera);
+                // RenderCommand::DrawSkyLight(m_Environment, m_EnvironmentIntensity, m_SkyboxLod, camera);
             }
         }
 

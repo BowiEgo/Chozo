@@ -15,10 +15,10 @@ namespace Chozo {
 
         virtual void Begin() override;
         virtual void End() override;
-
-        virtual void Submit() override;
-
+        
         virtual void AddCommand(std::function<void()>&& func) override;
+    private:
+        virtual void Submit() override;
     private:
         std::vector<std::function<void()>> m_Commands;
     };

@@ -20,6 +20,7 @@ namespace Chozo {
 
         virtual std::unordered_map<std::string, UniformValue> GetUniforms() override { return m_Uniforms; }
 
+        void Bind();
         void BindTextures();
         void PopulateUniforms(const Ref<OpenGLShader>& shader);
     private:

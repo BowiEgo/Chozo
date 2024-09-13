@@ -1,3 +1,5 @@
+#pragma once
+
 #if FMT_VERSION >= 90000
     template <> struct fmt::formatter<Chozo::Event> : ostream_formatter{};
     template <> struct fmt::formatter<Chozo::WindowCloseEvent> : ostream_formatter{};

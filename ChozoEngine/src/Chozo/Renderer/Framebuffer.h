@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "RendererTypes.h"
-#include "Image.h"
+#include "Texture.h"
 
 namespace Chozo {
 
@@ -64,6 +64,8 @@ namespace Chozo {
 		virtual RendererID GetRendererID() const = 0;
         virtual RendererID GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const = 0;
 		virtual const FramebufferSpecification& GetSpecification() const = 0;
+        virtual Ref<Texture2D> GetImage(uint32_t attachmentIndex) const = 0;
+		virtual Ref<Texture2D> GetDepthImage() const = 0;
 
         static Ref<Framebuffer> Create(const FramebufferSpecification& spec);
     };

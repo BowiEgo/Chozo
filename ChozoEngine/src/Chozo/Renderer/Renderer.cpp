@@ -52,6 +52,14 @@ namespace Chozo {
         s_Data.WhiteTexture = Texture2D::Create();
         uint32_t whiteTextureData = 0xffffffff;
         s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
+
+        TextureSpecification spec;
+		spec.Format = ImageFormat::RGBA;
+		spec.Width = 1;
+		spec.Height = 1;
+		s_Data.BlackTextureCube = TextureCube::Create(spec);
+		constexpr uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+		s_Data.BlackTextureCube->SetData((void*)&blackCubeTextureData, sizeof(blackCubeTextureData));
         {
             const uint32_t cubemapSize = Renderer::GetConfig().EnvironmentMapResolution;
             TextureSpecification cubemapSpec;
@@ -68,6 +76,9 @@ namespace Chozo {
             s_Data.TextureSlots[i] = s_Data.WhiteTexture;
         }
 
+        // Geometry
+        s_Data.BoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
+
         // Shaders
         std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
         s_Data.m_ShaderLibrary = ShaderLibrary::Create();
@@ -83,8 +94,6 @@ namespace Chozo {
 
         s_Data.m_ShaderLibrary->Load("CubemapPreview", "../assets/shaders/CubemapPreview.glsl.vert", "../assets/shaders/CubemapPreview.glsl.frag");
 
-        // Skybox
-        s_Data.BoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
         // PreethamSky
         {
             Ref<Shader> preethamSkyShader = Renderer::GetRendererData().m_ShaderLibrary->Get("PreethamSky");
@@ -213,6 +222,11 @@ namespace Chozo {
         return s_Data;
     }
 
+    Ref<TextureCube> Renderer::GetBlackTextureCube()
+    {
+        return s_Data.BlackTextureCube;
+    }
+
     Ref<TextureCube> Renderer::GetPreethamSkyTextureCube()
     {
         return s_Data.PreethamSkyTextureCube;
@@ -242,6 +256,11 @@ namespace Chozo {
     void Renderer::SetConfig(const Renderer::RendererConfig& config)
     {
         s_Config = config;
+    }
+
+    uint32_t Renderer::GetMaxTextureSlots()
+    {
+        return s_RendererAPI->GetMaxTextureSlots();
     }
 
     void Renderer::CreatePreethamSky(const float turbidity, const float azimuth, const float inclination)
