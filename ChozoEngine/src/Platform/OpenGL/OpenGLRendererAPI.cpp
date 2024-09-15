@@ -3,6 +3,7 @@
 #include "OpenGLUtils.h"
 
 #include "Chozo/Renderer/Renderer.h"
+#include "Chozo/Renderer/Renderer2D.h"
 #include "Chozo/Renderer/Mesh.h"
 // #include "OpenGLFrameBuffer.h"
 #include "OpenGLRenderPass.h"
@@ -102,14 +103,15 @@ namespace Chozo {
 
     void OpenGLRendererAPI::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
     {
-        commandBuffer->AddCommand([renderPass]()
+        commandBuffer->AddCommand([renderPass, this]()
         {
-            OpenGLShader* shader = dynamic_cast<OpenGLShader*>(renderPass->GetPipeline()->GetShader().get());
+            OpenGLShader* shader = static_cast<OpenGLShader*>(renderPass->GetPipeline()->GetShader().get());
             shader->Bind();
             for (auto item : renderPass->GetUniformBuffers())
                 shader->SetUniformBlockBinding(item.first, item.second->GetBindingPoint());
 
             renderPass->GetTargetFramebuffer()->Bind();
+            Clear();
         });
     }
 
@@ -133,7 +135,7 @@ namespace Chozo {
 
     void OpenGLRendererAPI::DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)
     {
-        OpenGLShader* shader = dynamic_cast<OpenGLShader*>(pipeline->GetShader().get());
+        OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
         Ref<TextureCube> textureCube = Renderer::GetPreethamSkyTextureCube();
 
         pipeline->GetTargetFramebuffer()->Bind();
@@ -157,16 +159,46 @@ namespace Chozo {
         pipeline->GetTargetFramebuffer()->Unbind();
     }
 
+    void OpenGLRendererAPI::SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
+    {
+        commandBuffer->AddCommand([pipeline, material]()
+        {
+            static_cast<OpenGLMaterial*>(material.get())->Bind();
+
+            glDepthFunc(GL_LEQUAL); GCE;
+            Renderer2D::DrawFullScreenQuad();
+            glDepthFunc(GL_LESS); GCE;
+        });
+    }
+
     void OpenGLRendererAPI::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
     {
         commandBuffer->AddCommand([pipeline, material]()
         {
-            OpenGLShader* shader = dynamic_cast<OpenGLShader*>(pipeline->GetShader().get());
-            dynamic_cast<OpenGLMaterial*>(material.get())->Bind();
+            static_cast<OpenGLMaterial*>(material.get())->Bind();
 
             glDepthFunc(GL_LEQUAL); GCE;
             RenderCommand::DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
             glDepthFunc(GL_LESS); GCE;
+        });
+    }
+
+    void OpenGLRendererAPI::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material)
+    {
+        commandBuffer->AddCommand([mesh, material, this]()
+        {
+            static_cast<OpenGLMaterial*>(material.get())->Bind();
+
+            uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
+            uint32_t vertexCount = mesh->GetMeshSource()->GetVertexs().size();
+
+            RenderCommand::DrawIndexed(mesh->GetVertexArray(), indexCount * 3);
+
+            auto rendererData = Renderer::GetRendererData();
+            rendererData.Stats.DrawCalls++;
+            rendererData.IndexCount += indexCount;
+            rendererData.Stats.VerticesCount += vertexCount;
+            rendererData.Stats.TriangleCount += indexCount;
         });
     }
 }

@@ -133,6 +133,7 @@ namespace Chozo {
             // m_ID_FBO->Resize(m_ViewportSize.x, m_ViewportSize.y);
             m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+            m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         }
 
         // Camera control
@@ -274,6 +275,14 @@ namespace Chozo {
             TexturePreviewPanel::SetTexture(texture);
         }
 
+        if(ImGui::Button("ShowGeometryTexture"))
+        {
+            TexturePreviewPanel::Open();
+            Ref<Texture2D> texture = m_ViewportRenderer->GetGeometryPass()->GetOutput(0);
+            // Ref<Texture2D> texture = m_Viewport_FBO->GetImage(0);
+            TexturePreviewPanel::SetTexture(texture);
+        }
+
         // --------------------
         // Viewport
         // --------------------
@@ -288,6 +297,7 @@ namespace Chozo {
         m_ViewportSize = ImGui::GetContentRegionAvail();
     
         uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID(0);
+        // uint32_t textureID = m_ViewportRenderer->GetCompositePass()->GetOutput(0)->GetRendererID();
         ImGui::Image((ImTextureID)(uintptr_t)textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
         // Viewport bounds
@@ -516,6 +526,7 @@ namespace Chozo {
         m_ActiveScene = std::make_shared<Scene>();
         m_ActiveScene->SetFinalPipeline(m_Pipeline);
         m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+        m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_ViewportRenderer->SetScene(m_ActiveScene);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
         m_EnvironmentPanel.SetContext(m_ActiveScene);
@@ -535,6 +546,7 @@ namespace Chozo {
             m_ActiveScene = std::make_shared<Scene>();
             m_ActiveScene->SetFinalPipeline(m_Pipeline);
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+            m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
             m_ViewportRenderer->SetScene(m_ActiveScene);
             m_SceneHierarchyPanel.SetContext(m_ActiveScene);
             m_EnvironmentPanel.SetContext(m_ActiveScene);

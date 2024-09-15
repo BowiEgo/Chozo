@@ -62,8 +62,9 @@ namespace Chozo {
             uint32_t TextureSlotIndex = 1; // 0 = white texture
             std::vector<Ref<Texture2D>> TextureSlots;
             Ref<Texture2D> WhiteTexture;
-            Ref<TextureCube> BlackTextureCube
-            ;
+            Ref<TextureCube> BlackTextureCube;
+
+            Ref<DynamicMesh> QuadMesh;
             Ref<DynamicMesh> BoxMesh;
 
             Renderer::Statistics Stats;
@@ -80,12 +81,14 @@ namespace Chozo {
         static void RenderStaticBatches();
         static bool SubmitStaticMesh(StaticMesh* mesh);
         static bool RemoveStaticMesh(StaticMesh* mesh);
-        static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, Material* material, uint32_t entityID = -1);
+        static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, Material* material, uint32_t entityID = -1); // TODO: Remove
 
         static void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
         static void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
 
+        static void SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
         static void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
+        static void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material);
 
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 

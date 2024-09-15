@@ -286,6 +286,26 @@ namespace Chozo {
         }
     }
 
+    void Renderer2D::DrawFullScreenQuad()
+    {
+        glm::mat4 transform = glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 1.0f });
+
+        constexpr size_t quadVertexCount = 4;
+        for (size_t i = 0; i < quadVertexCount; i++)
+        {
+            s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
+            s_Data.QuadVertexBufferPtr->TexCoord = s_Data.QuadTexCoords[i];
+            s_Data.QuadVertexBufferPtr++;
+        }
+
+        GLsizeiptr size = (uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase;
+        s_Data.QuadVertexBuffer->SetData(0, size, (float*)s_Data.QuadVertexBufferBase);
+        
+        RenderCommand::DrawIndexed(s_Data.QuadVertexArray, 6);
+
+        s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+    }
+
     void Renderer2D::DrawFullScreenQuad(Ref<Texture> texture)
     {
         glm::mat4 transform = glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 1.0f });

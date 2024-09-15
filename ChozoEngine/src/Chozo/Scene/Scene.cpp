@@ -140,10 +140,11 @@ namespace Chozo {
 
                 if (mesh.Type == MeshType::Dynamic)
                 {
-                    DynamicMesh* dynamicMesh = dynamic_cast<DynamicMesh*>(mesh.MeshInstance.get());
+                    Ref<DynamicMesh> dynamicMesh = std::dynamic_pointer_cast<DynamicMesh>(mesh.MeshInstance);
                     if (dynamicMesh->GetMeshSource()->IsBufferChanged())
                         dynamicMesh->Init();
-                    Renderer::DrawMesh(transform.GetTransform(), dynamicMesh, mesh.MaterialInstance.get(), (uint32_t)entity);
+                    Renderer::DrawMesh(transform.GetTransform(), dynamicMesh.get(), mesh.MaterialInstance.get(), (uint32_t)entity);
+                    renderer->SubmitMesh(dynamicMesh, mesh.MaterialInstance, transform.GetTransform());
                 }
                 else if (mesh.Type == MeshType::Static)
                 {

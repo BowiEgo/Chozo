@@ -45,6 +45,8 @@ namespace Chozo {
 
         // SwapChainTarget = screen buffer (i.e. no framebuffer)
 		bool SwapChainTarget = false;
+
+		std::map<uint32_t, Ref<Texture2D>> ExistingImages;
     };
     
 
@@ -56,7 +58,7 @@ namespace Chozo {
         virtual void Bind() const = 0;
         virtual void Unbind() const = 0;
 
-        virtual void Resize(float& width, float& height) = 0;
+        virtual void Resize(uint32_t width, uint32_t height) = 0;
         virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) = 0;
 
         virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) = 0;

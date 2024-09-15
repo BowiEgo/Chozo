@@ -2,6 +2,7 @@
 
 #include "BoxGeometry.h"
 #include "SphereGeometry.h"
+#include "QuadGeometry.h"
 
 namespace Chozo
 {

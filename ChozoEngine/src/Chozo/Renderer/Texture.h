@@ -40,6 +40,8 @@ namespace Chozo {
 
 		virtual void SetData(const void* data, const uint32_t size) = 0;
 
+        virtual void Resize(uint32_t width, uint32_t height) = 0;
+
         static Ref<Texture2D> Create(const TextureSpecification& spec = TextureSpecification());
         static Ref<Texture2D> Create(const std::string& path, const TextureSpecification& spec = TextureSpecification());
         static Ref<Texture2D> Create(const RendererID& id, const TextureSpecification& spec = TextureSpecification());

@@ -3,7 +3,6 @@
 #include "OpenGLUtils.h"
 
 #include "stb_image.h"
-#include <glad/glad.h>
 
 namespace Chozo
 {
@@ -46,21 +45,21 @@ namespace Chozo
             case ImageFormat::RED16UI: return GL_RED_INTEGER;
             case ImageFormat::RED32I: return GL_RED_INTEGER;
             case ImageFormat::RED32UI: return GL_RED_INTEGER;
-            case ImageFormat::RED32F: return GL_RED_INTEGER;
+            case ImageFormat::RED32F: return GL_RED;  // This is a floating-point format
             case ImageFormat::RG8: return GL_RG;
             case ImageFormat::RG16F: return GL_RG;
             case ImageFormat::RG32F: return GL_RG;
             case ImageFormat::RGB: return GL_RGB;
             case ImageFormat::RGB8: return GL_RGB;
             case ImageFormat::RGB16F: return GL_RGB;
-            case ImageFormat::RGBA: return GL_RGB;
-            case ImageFormat::RGBA8: return GL_RGB;
-            case ImageFormat::RGBA16F: return GL_RGB;
-            case ImageFormat::RGBA32F: return GL_RGB;
-            case ImageFormat::B10R11G11UF: return GL_R11F_G11F_B10F; // TODO: fix
-            case ImageFormat::SRGB: return GL_SRGB;  // TODO: fix
-            case ImageFormat::DEPTH32FSTENCIL8UINT: return GL_DEPTH32F_STENCIL8;  // TODO: fix
-            case ImageFormat::DEPTH24STENCIL8: return GL_DEPTH24_STENCIL8;  // TODO: fix
+            case ImageFormat::RGBA: return GL_RGBA;  // Should be GL_RGBA for 4 channels
+            case ImageFormat::RGBA8: return GL_RGBA;
+            case ImageFormat::RGBA16F: return GL_RGBA;
+            case ImageFormat::RGBA32F: return GL_RGBA;
+            case ImageFormat::B10R11G11UF: return GL_R11F_G11F_B10F; // Fine if using this format
+            case ImageFormat::SRGB: return GL_SRGB_ALPHA;  // Use GL_SRGB_ALPHA for SRGB with alpha
+            case ImageFormat::DEPTH32FSTENCIL8UINT: return GL_DEPTH_STENCIL;
+            case ImageFormat::DEPTH24STENCIL8: return GL_DEPTH_STENCIL;
             default: return GL_NONE;
         }
     }
@@ -69,25 +68,26 @@ namespace Chozo
     {
         switch (format)
         {
-            case ImageFormat::RED8UI: return GL_INT;
-            case ImageFormat::RED16UI: return GL_INT;
-            case ImageFormat::RED32I: return GL_INT;
-            case ImageFormat::RED32UI: return GL_INT;
-            case ImageFormat::RED32F: return GL_FLOAT;
-            case ImageFormat::RG8: return GL_UNSIGNED_BYTE;
-            case ImageFormat::RG16F: return GL_UNSIGNED_BYTE;
-            case ImageFormat::RG32F: return GL_UNSIGNED_BYTE;
-            case ImageFormat::RGB: return GL_UNSIGNED_BYTE;
-            case ImageFormat::RGB8: return GL_UNSIGNED_BYTE;
-            case ImageFormat::RGB16F: return GL_UNSIGNED_BYTE;
-            case ImageFormat::RGBA: return GL_UNSIGNED_BYTE;
-            case ImageFormat::RGBA8: return GL_UNSIGNED_BYTE;
-            case ImageFormat::RGBA16F: return GL_UNSIGNED_BYTE;
-            case ImageFormat::RGBA32F: return GL_UNSIGNED_BYTE;
-            case ImageFormat::B10R11G11UF: return GL_FLOAT; // TODO: fix
-            case ImageFormat::SRGB: return GL_UNSIGNED_BYTE;  // TODO: fix
-            case ImageFormat::DEPTH32FSTENCIL8UINT: return GL_UNSIGNED_BYTE;  // TODO: fix
-            case ImageFormat::DEPTH24STENCIL8: return GL_UNSIGNED_BYTE;  // TODO: fix
+            case ImageFormat::RED8I: return GL_BYTE;  // Signed 8-bit integer
+            case ImageFormat::RED8UI: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit integer
+            case ImageFormat::RED16UI: return GL_UNSIGNED_SHORT;  // Unsigned 16-bit integer
+            case ImageFormat::RED32I: return GL_INT;  // Signed 32-bit integer
+            case ImageFormat::RED32UI: return GL_UNSIGNED_INT;  // Unsigned 32-bit integer
+            case ImageFormat::RED32F: return GL_FLOAT;  // 32-bit float
+            case ImageFormat::RG8: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit for two channels
+            case ImageFormat::RG16F: return GL_HALF_FLOAT;  // 16-bit float (half float)
+            case ImageFormat::RG32F: return GL_FLOAT;  // 32-bit float
+            case ImageFormat::RGB: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit
+            case ImageFormat::RGB8: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit
+            case ImageFormat::RGB16F: return GL_HALF_FLOAT;  // 16-bit float
+            case ImageFormat::RGBA: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit for 4 channels
+            case ImageFormat::RGBA8: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit for 4 channels
+            case ImageFormat::RGBA16F: return GL_HALF_FLOAT;  // 16-bit float for 4 channels
+            case ImageFormat::RGBA32F: return GL_FLOAT;  // 32-bit float for 4 channels
+            case ImageFormat::B10R11G11UF: return GL_UNSIGNED_INT_10F_11F_11F_REV;  // Special packed float format
+            case ImageFormat::SRGB: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit with sRGB
+            case ImageFormat::DEPTH32FSTENCIL8UINT: return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;  // Depth + stencil combined
+            case ImageFormat::DEPTH24STENCIL8: return GL_UNSIGNED_INT_24_8;  // 24-bit depth, 8-bit stencil
             default: return GL_NONE;
         }
     }
@@ -109,9 +109,9 @@ namespace Chozo
     OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification &spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
-        GLenum internalFormat = GetGLFormat(m_Spec.Format);
-        GLenum dataFormat = GetGLDataFormat(m_Spec.Format);
-        GLenum dataType = GetGLDataType(m_Spec.Format);
+        m_InternalFormat = GetGLFormat(m_Spec.Format);
+        m_DataFormat = GetGLDataFormat(m_Spec.Format);
+        m_DataType = GetGLDataType(m_Spec.Format);
 
         glGenTextures(1, &m_RendererID); GCE;
         glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
@@ -122,9 +122,8 @@ namespace Chozo
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetGLParameter(m_Spec.WrapS)); GCE;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetGLParameter(m_Spec.WrapT)); GCE;
 
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_Width, m_Height, 0, dataFormat, dataType, nullptr); GCE;
+        glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_DataFormat, m_DataType, nullptr); GCE;
         glBindTexture(GL_TEXTURE_2D, 0); GCE;
-
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const TextureSpecification &spec)
@@ -132,24 +131,25 @@ namespace Chozo
     {
         int width, height, channels;
         stbi_set_flip_vertically_on_load(1);
-        stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
-        CZ_CORE_ASSERT(data, "Failed to load image!");
+        stbi_uc* m_DataBuffer = stbi_load(path.c_str(), &width, &height, &channels, 0);
+        CZ_CORE_ASSERT(m_DataBuffer, "Failed to load image!");
         m_Width = width;
         m_Height = height;
 
-        GLenum internalFormat = 0, dataFormat = 0;
         if (channels == 4)
         {
-            internalFormat = GL_RGBA8;
-            dataFormat = GL_RGBA;
+            m_InternalFormat = GL_RGBA8;
+            m_DataFormat = GL_RGBA;
         }
         else if (channels == 3)
         {
-            internalFormat = GL_RGB8;
-            dataFormat = GL_RGB;
+            m_InternalFormat = GL_RGB8;
+            m_DataFormat = GL_RGB;
         }
 
-        CZ_CORE_ASSERT(internalFormat & dataFormat, "Format not supported!");
+        m_DataType = GetGLDataType(m_Spec.Format);
+
+        CZ_CORE_ASSERT(m_InternalFormat & m_DataFormat, "Format not supported!");
 
         glGenTextures(1, &m_RendererID); GCE;
         glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
@@ -159,20 +159,36 @@ namespace Chozo
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetGLParameter(spec.WrapS)); GCE;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetGLParameter(spec.WrapT)); GCE;
 
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data); GCE;
+        glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, width, height, 0, m_DataFormat, m_DataType, m_DataBuffer); GCE;
         glBindTexture(GL_TEXTURE_2D, 0); GCE;
 
-        stbi_image_free(data);
+        stbi_image_free(m_DataBuffer); // TODO: maybe cause issue
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const RendererID& id, const TextureSpecification &spec)
         : m_RendererID(id), m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
+        m_InternalFormat = GetGLFormat(m_Spec.Format);
+        m_DataFormat = GetGLDataFormat(m_Spec.Format);
+        m_DataType = GetGLDataType(m_Spec.Format);
     }
 
     OpenGLTexture2D::~OpenGLTexture2D()
     {
         // glDeleteTextures(1, &m_RendererID); GCE;
+    }
+
+    void OpenGLTexture2D::Resize(uint32_t width, uint32_t height)
+    {
+        if (m_Width != width || m_Height != height)
+        {
+            m_Spec.Width = width;
+            m_Spec.Height = height;
+            m_Width = width;
+            m_Height = height;
+            glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
+            glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, width, height, 0, m_DataFormat, m_DataType, m_DataBuffer); GCE;
+        }
     }
 
     void OpenGLTexture2D::Bind(uint32_t slot) const
@@ -188,8 +204,9 @@ namespace Chozo
 
     void OpenGLTexture2D::SetData(const void *data, const uint32_t size)
     {
-        Bind();
-        glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(m_Spec.Format), m_Width, m_Height, 0, GetGLDataFormat(m_Spec.Format), GetGLDataType(m_Spec.Format), data); GCE;
+        glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
+        m_DataBuffer = (unsigned char*)data;
+        glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(m_Spec.Format), m_Width, m_Height, 0, GetGLDataFormat(m_Spec.Format), GetGLDataType(m_Spec.Format), m_DataBuffer); GCE;
     }
 
     //////////////////////////////////////////////////////////

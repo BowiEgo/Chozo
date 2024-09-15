@@ -9,8 +9,8 @@ namespace Chozo {
     public:
         TexturePreviewPanel();
 
-        static void SetTexture(Ref<Texture2D>& texture) { s_Instance->m_Texture = texture; }
-        static void SetTexture(Ref<TextureCube>& texture) { s_Instance->m_Texture = texture; }
+        static void SetTexture(Ref<Texture2D>& texture);
+        static void SetTexture(Ref<TextureCube>& texture);
         static inline void Open() { s_Show = true; }
         static inline void Close() { s_Show = false; }
 

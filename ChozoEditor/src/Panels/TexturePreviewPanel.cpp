@@ -26,6 +26,16 @@ namespace Chozo {
         m_FBOTexture = Texture2D::Create(m_Viewport_FBO->GetColorAttachmentRendererID(0), texSpec);
     }
 
+    void TexturePreviewPanel::SetTexture(Ref<Texture2D> &texture)
+    {
+        s_Instance->m_Texture = texture;
+    }
+
+    void TexturePreviewPanel::SetTexture(Ref<TextureCube> &texture)
+    {
+        s_Instance->m_Texture = texture;
+    }
+
     void TexturePreviewPanel::OnImGuiRender()
     {
         if (s_Show)

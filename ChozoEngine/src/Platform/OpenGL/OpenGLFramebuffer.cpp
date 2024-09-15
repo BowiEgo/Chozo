@@ -133,7 +133,7 @@ namespace Chozo {
         glBindFramebuffer(GL_FRAMEBUFFER, 0); GCE;
     }
 
-    void OpenGLFramebuffer::Resize(float& width, float& height)
+    void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height)
     {
         if (width == 0 || height == 0 || width > s_MaxFramebufferSize || height > s_MaxFramebufferSize)
         {
@@ -146,7 +146,11 @@ namespace Chozo {
             m_Specification.Width = width;
             m_Specification.Height = height;
             s_IntClearValues = std::vector(width * height, -1);
-            Invalidate();
+            for (auto images : m_ColorAttachmentImages)
+                images->Resize(width, height);
+
+            if (m_DepthAttachmentImage)
+                m_DepthAttachmentImage->Resize(width, height);
         }
     }
 
@@ -200,9 +204,19 @@ namespace Chozo {
             CreateTextures(m_Specification.Samples, m_ColorAttachmentSpecs, m_Specification.Width, m_Specification.Height);
 #else
             m_ColorAttachments.resize(m_ColorAttachmentSpecs.size());
-            m_AttachmentImages.resize(m_ColorAttachmentSpecs.size());
+            m_ColorAttachmentImages.resize(m_ColorAttachmentSpecs.size());
 
-            Utils::CreateTexture(multisampled, m_ColorAttachments.data(), m_ColorAttachments.size());
+            for (size_t i = 0; i < m_Specification.ExistingImages.size(); i++)
+            {
+                m_ColorAttachments[i] = m_Specification.ExistingImages[i]->GetRendererID();
+                m_ColorAttachmentImages[i] = m_Specification.ExistingImages[i];
+            }
+
+            size_t existCount = m_Specification.ExistingImages.size();
+            size_t count = m_ColorAttachments.size() - existCount;
+            RendererID* startPtr = m_ColorAttachments.data() + sizeof(RendererID) * existCount;
+            Utils::CreateTexture(multisampled, startPtr, count);
+
             for (size_t i = 0; i < m_ColorAttachmentSpecs.size(); i++)
             {
                 Utils::BindTexture(multisampled, m_ColorAttachments[i]);
@@ -231,7 +245,7 @@ namespace Chozo {
                 spec.WrapR = ImageParameter::CLAMP_TO_EDGE;
                 spec.WrapS = ImageParameter::CLAMP_TO_EDGE;
                 spec.WrapT = ImageParameter::CLAMP_TO_EDGE;
-                m_AttachmentImages[i] = Texture2D::Create(m_ColorAttachments[i], spec);
+                m_ColorAttachmentImages[i] = Texture2D::Create(m_ColorAttachments[i], spec);
             }
 #endif
         }
@@ -294,15 +308,18 @@ namespace Chozo {
         {
             glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data()); GCE;
             m_ColorAttachments.clear();
+            m_ColorAttachmentImages.clear();
         }
         
         if (m_DepthAttachment)
         {
             glDeleteTextures(1, &m_DepthAttachment); GCE;
             m_DepthAttachment = 0;
+            m_DepthAttachmentImage = nullptr;
         }
     }
 
+    // TODO: fix issue
     void OpenGLFramebuffer::CreateTextures(int samples, std::vector<FramebufferTextureSpecification> attachmentSpecs, uint32_t width, uint32_t height)
     {
         uint32_t count = attachmentSpecs.size();
@@ -310,7 +327,7 @@ namespace Chozo {
         GLenum target = multisampled ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 
         m_ColorAttachments.resize(count);
-        m_AttachmentImages.resize(count);
+        m_ColorAttachmentImages.resize(count);
 
         for (size_t i = 0; i < count; i++)
         {
@@ -330,7 +347,7 @@ namespace Chozo {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, target, texture->GetRendererID(), 0); GCE;
 
             m_ColorAttachments.push_back(texture->GetRendererID());
-            m_AttachmentImages.push_back(texture);
+            m_ColorAttachmentImages.push_back(texture);
         }
     }
 }

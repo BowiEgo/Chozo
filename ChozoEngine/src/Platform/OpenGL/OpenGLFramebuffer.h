@@ -14,7 +14,7 @@ namespace Chozo {
         virtual void Bind() const override;
         virtual void Unbind() const override;
 
-        virtual void Resize(float& width, float& height) override;
+        virtual void Resize(uint32_t width, uint32_t height) override;
         virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) override;
 
 		virtual RendererID GetRendererID() const override { return m_RendererID; };
@@ -23,7 +23,7 @@ namespace Chozo {
             return m_ColorAttachments[attachmentIndex];
         };
 		virtual const FramebufferSpecification& GetSpecification() const override { return m_Specification; };
-        virtual Ref<Texture2D> GetImage(uint32_t attachmentIndex) const override { return m_AttachmentImages[attachmentIndex]; }
+        virtual Ref<Texture2D> GetImage(uint32_t attachmentIndex) const override { return m_ColorAttachmentImages[attachmentIndex]; }
 		virtual Ref<Texture2D> GetDepthImage() const override { return m_DepthAttachmentImage; }
 
         virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) override;
@@ -41,7 +41,7 @@ namespace Chozo {
         std::vector<RendererID> m_ColorAttachments;
         RendererID m_DepthAttachment;
 
-		std::vector<Ref<Texture2D>> m_AttachmentImages;
+		std::vector<Ref<Texture2D>> m_ColorAttachmentImages;
 		Ref<Texture2D> m_DepthAttachmentImage;
     };
 }

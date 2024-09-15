@@ -54,13 +54,21 @@ namespace Chozo
         inline void SetActive(bool active) { m_Active = active; }
         inline bool IsActive() { return m_Active; }
 
+		void SetViewportSize(uint32_t width, uint32_t height);
+
         bool SubmitDirectionalLight(DirectionalLightComponent* light);
         bool SubmitPointLight(PointLightComponent* light, glm::vec3& position);
         bool SubmitSpotLight(SpotLightComponent* light, glm::vec3& position);
 
+        void SubmitMesh(Ref<DynamicMesh> mesh, Ref<Material> material, const glm::mat4& transform);
+
         Ref<RenderPass> GetSkyboxPass() { return m_SkyboxPass; }
+        Ref<RenderPass> GetGeometryPass() { return m_GeometryPass; }
+        Ref<RenderPass> GetCompositePass() { return m_CompositePass; }
 
         void SkyboxPass();
+        void GeometryPass();
+        void CompositePass();
 
         void Flush();
 
@@ -73,6 +81,15 @@ namespace Chozo
 		bool m_Active = false;
 
 		Ref<RenderCommandBuffer> m_CommandBuffer;
+
+        struct MeshData
+        {
+            Ref<Mesh> Mesh;
+            Ref<Material> Material;
+            glm::mat4 Transform;
+        };
+
+        std::vector<MeshData> m_MeshDatas;
 
         struct SceneInfo
 		{
@@ -117,8 +134,14 @@ namespace Chozo
         Ref<UniformBuffer> m_PointLightUB;
         Ref<UniformBuffer> m_SpotLightUB;
 
-        Ref<Pipeline> m_SkyboxPipeline;
 		Ref<Material> m_SkyboxMaterial;
 		Ref<RenderPass> m_SkyboxPass;
+
+		Ref<RenderPass> m_GeometryPass;
+
+		Ref<Material> m_CompositeMaterial;
+        Ref<RenderPass> m_CompositePass;
+
+		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
     };
 }

@@ -3,6 +3,8 @@
 #include "Chozo/Renderer/RendererTypes.h"
 #include "Chozo/Renderer/Texture.h"
 
+#include <glad/glad.h>
+
 namespace Chozo {
     
     class OpenGLTexture2D : public Texture2D
@@ -18,6 +20,8 @@ namespace Chozo {
 		virtual RendererID GetRendererID() const override { return m_RendererID; };
         virtual TextureSpecification GetSpecification() const override { return m_Spec; };
 
+        virtual void Resize(uint32_t width, uint32_t height) override;
+
         virtual void Bind(uint32_t slot = 0) const override;
         virtual void Unbind() const override;
 
@@ -27,6 +31,8 @@ namespace Chozo {
         std::string m_Path;
         uint32_t m_Width, m_Height;
         RendererID m_RendererID;
+        GLenum m_InternalFormat = GL_RGBA8, m_DataFormat = GL_RGBA, m_DataType = GL_UNSIGNED_BYTE;
+        unsigned char* m_DataBuffer = nullptr;
     };
 
     class OpenGLTextureCube : public TextureCube

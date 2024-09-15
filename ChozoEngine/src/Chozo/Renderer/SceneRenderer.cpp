@@ -27,13 +27,40 @@ namespace Chozo
         m_SpotLightUB = UniformBuffer::Create(sizeof(SpotLightsData));
 
 #ifdef CZ_PIPELINE
+        // Final composite
+        {
+            FramebufferSpecification fbSpec;
+            fbSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
+            fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
+            Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+
+            PipelineSpecification pipelineSpec;
+            pipelineSpec.Layout = {
+                { ShaderDataType::Float3, "a_Position" },
+                { ShaderDataType::Float2, "a_TexCoord" }
+            };
+            pipelineSpec.BackfaceCulling = false;
+            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("SceneComposite");
+            pipelineSpec.TargetFramebuffer = framebuffer;
+            pipelineSpec.DebugName = "SceneComposite";
+            pipelineSpec.DepthWrite = false;
+            pipelineSpec.DepthTest = false;
+			m_CompositeMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
+
+            RenderPassSpecification renderPassSpec;
+            renderPassSpec.DebugName = "SceneComposite";
+            renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
+            m_CompositePass = RenderPass::Create(renderPassSpec);
+        }
+
         // Skybox
         {
 			auto skyboxShader = Renderer::GetShaderLibrary()->Get("Skybox");
 
 			FramebufferSpecification fbSpec;
 			fbSpec.Attachments = { ImageFormat::RGBA32F };
-			Ref<Framebuffer> skyboxFB = Framebuffer::Create(fbSpec);
+			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
+			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
             
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "Skybox";
@@ -43,17 +70,42 @@ namespace Chozo
             pipelineSpec.Layout = {
 				{ ShaderDataType::Float3, "a_Position" },
 			};
-			pipelineSpec.TargetFramebuffer = skyboxFB;
-			// pipelineSpec.TargetFramebuffer = m_Scene->m_FinalPipeline->GetTargetFramebuffer();
-			m_SkyboxPipeline = Pipeline::Create(pipelineSpec);
+			pipelineSpec.TargetFramebuffer = framebuffer;
 			m_SkyboxMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.DebugName = "Skybox";
-			renderPassSpec.Pipeline = m_SkyboxPipeline;
+			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
 			m_SkyboxPass = RenderPass::Create(renderPassSpec);
 			m_SkyboxPass->SetInput("Camera", m_CameraUB);
 			// m_SkyboxPass->Bake();
+        }
+
+        // G-Buffer
+        {
+            // auto skyboxShader = Renderer::GetShaderLibrary()->Get("Geometry");
+
+			FramebufferSpecification fbSpec;
+			fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
+			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
+			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+            
+			PipelineSpecification pipelineSpec;
+			pipelineSpec.DebugName = "Geometry";
+			// pipelineSpec.Shader = skyboxShader;
+			// pipelineSpec.DepthOperator = DepthCompareOperator::Equal;
+            pipelineSpec.DepthWrite = false;
+            // pipelineSpec.Layout = {
+			// 	{ ShaderDataType::Float3, "a_Position" },
+			// };
+            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Basic");
+			pipelineSpec.TargetFramebuffer = framebuffer;
+
+			RenderPassSpecification renderPassSpec;
+			renderPassSpec.DebugName = "Geometry";
+			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
+			m_GeometryPass = RenderPass::Create(renderPassSpec);
+			m_GeometryPass->SetInput("Camera", m_CameraUB);
         }
 #endif
     }
@@ -69,6 +121,10 @@ namespace Chozo
 
     void SceneRenderer::BeginScene(EditorCamera& camera)
     {
+        m_CompositePass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
+        m_SkyboxPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
+        m_GeometryPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
+
         m_SceneData.SceneCamera = camera;
 		m_SceneData.SceneEnvironment = m_Scene->m_Environment;
 		m_SceneData.SceneEnvironmentIntensity = m_Scene->m_EnvironmentIntensity;
@@ -92,6 +148,15 @@ namespace Chozo
     {
         Renderer::RenderStaticBatches();
         Flush();
+    }
+
+    void SceneRenderer::SetViewportSize(uint32_t width, uint32_t height)
+    {
+        if (m_ViewportWidth != width || m_ViewportHeight != height)
+		{
+			m_ViewportWidth = width;
+			m_ViewportHeight = height;
+		}
     }
 
     bool SceneRenderer::SubmitDirectionalLight(DirectionalLightComponent *light)
@@ -142,6 +207,15 @@ namespace Chozo
         return true;
     }
 
+    void SceneRenderer::SubmitMesh(Ref<DynamicMesh> mesh, Ref<Material> material, const glm::mat4& transform)
+    {
+        MeshData meshData;
+        meshData.Mesh = mesh;
+        meshData.Material = material;
+        meshData.Transform = transform;
+        m_MeshDatas.push_back(meshData);
+    }
+
     void SceneRenderer::SkyboxPass()
     {
 		Renderer::BeginRenderPass(m_CommandBuffer, m_SkyboxPass);
@@ -152,9 +226,38 @@ namespace Chozo
 		const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackTextureCube();
 		m_SkyboxMaterial->Set("u_Texture", radianceMap);
 
-		Renderer::SubmitFullscreenBox(m_CommandBuffer, m_SkyboxPipeline, m_SkyboxMaterial);
+		Renderer::SubmitFullscreenBox(m_CommandBuffer, m_SkyboxPass->GetPipeline(), m_SkyboxMaterial);
 
 		Renderer::EndRenderPass(m_CommandBuffer, m_SkyboxPass);
+    }
+
+    void SceneRenderer::GeometryPass()
+    {
+		Renderer::BeginRenderPass(m_CommandBuffer, m_GeometryPass);
+
+        for (auto meshData : m_MeshDatas)
+        {
+            meshData.Material->Set("u_VertUniforms.ModelMatrix", meshData.Transform);
+            
+            if (static_cast<DynamicMesh*>(meshData.Mesh.get()))
+                Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), std::dynamic_pointer_cast<DynamicMesh>(meshData.Mesh), meshData.Material);
+        }
+
+		Renderer::EndRenderPass(m_CommandBuffer, m_GeometryPass);
+    }
+
+    void SceneRenderer::CompositePass()
+    {
+		Renderer::BeginRenderPass(m_CommandBuffer, m_CompositePass);
+
+        Ref<Texture2D> skyboxTex = m_SkyboxPass->GetOutput(0);
+        Ref<Texture2D> geometryTex = m_GeometryPass->GetOutput(0);
+        m_CompositeMaterial->Set("u_SkyboxTex", skyboxTex);
+        m_CompositeMaterial->Set("u_GeometryTex", geometryTex);
+        
+		Renderer::SubmitFullscreenQuad(m_CommandBuffer, m_CompositePass->GetPipeline(), m_CompositeMaterial);
+
+		Renderer::EndRenderPass(m_CommandBuffer, m_CompositePass);
     }
 
     void SceneRenderer::Flush()
@@ -162,8 +265,12 @@ namespace Chozo
         m_CommandBuffer->Begin();
 
         SkyboxPass();
+        GeometryPass();
+        // CompositePass();
 
         m_CommandBuffer->End();
+
+        m_MeshDatas.clear();
     }
 
     Ref<SceneRenderer> SceneRenderer::Create(Ref<Scene>& scene)

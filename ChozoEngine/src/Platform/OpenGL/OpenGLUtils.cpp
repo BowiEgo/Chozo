@@ -5,24 +5,38 @@
 
 // namespace Chozo {
 
-//     static std::string GLenumToString(GLenum enumVal) {
-//         switch (enumVal) {
-//             case GL_R8I: return "GL_R8I";
-//             case GL_R8UI: return "GL_R8UI";
-//             case GL_R16I: return "GL_R16I";
-//             case GL_R16UI: return "GL_R16UI";
-//             case GL_R32I: return "GL_R32I";
-//             case GL_R32UI: return "GL_R32UI";
-//             case GL_R32F: return "GL_R32F";
-//             case GL_RG8: return "GL_RG8";
-//             case GL_RGB: return "GL_RGB";
-//             case GL_RGBA: return "GL_RGBA";
-//             case GL_DEPTH24_STENCIL8: return "GL_DEPTH24_STENCIL8";
-//             case GL_DEPTH_COMPONENT: return "GL_DEPTH_COMPONENT";
-//             default: return "Unknown GLenum";
-//         }
-//     }
-// }
+    // static std::string GLenumToString(GLenum enumVal) {
+    //     switch (enumVal) {
+    //         case GL_RED_INTEGER: return "GL_RED_INTEGER";
+    //         case GL_R8I: return "GL_R8I";
+    //         case GL_R8UI: return "GL_R8UI";
+    //         case GL_R16I: return "GL_R16I";
+    //         case GL_R16UI: return "GL_R16UI";
+    //         case GL_R32I: return "GL_R32I";
+    //         case GL_R32UI: return "GL_R32UI";
+    //         case GL_R32F: return "GL_R32F";
+    //         case GL_RG8: return "GL_RG8";
+    //         case GL_RG16F: return "GL_RG16F";
+    //         case GL_RG32F: return "GL_RG32F";
+    //         case GL_RGB: return "GL_RGB";
+    //         case GL_RGB8: return "GL_RGB8";
+    //         case GL_RGB16F: return "GL_RGB16F";
+    //         case GL_RGBA: return "GL_RGBA";
+    //         case GL_RGBA8: return "GL_RGBA8";
+    //         case GL_RGBA16F: return "GL_RGBA16F";
+    //         case GL_RGBA32F: return "GL_RGBA32F";
+    //         case GL_R11F_G11F_B10F: return "GL_R11F_G11F_B10F";
+    //         case GL_SRGB: return "GL_SRGB";
+    //         case GL_DEPTH_STENCIL: return "GL_DEPTH_STENCIL";
+    //         case GL_DEPTH32F_STENCIL8: return "GL_DEPTH32F_STENCIL8";
+    //         case GL_DEPTH24_STENCIL8: return "GL_DEPTH24_STENCIL8";
+    //         case GL_INT: return "GL_INT";
+    //         case GL_FLOAT: return "GL_FLOAT";
+    //         case GL_UNSIGNED_BYTE: return "GL_UNSIGNED_BYTE";
+    //         case GL_UNSIGNED_INT_24_8: return "GL_UNSIGNED_INT_24_8";
+    //         default: return "Unknown GLenum";
+    //     }
+    // }
 
 // std::ostream& operator<<(std::ostream& os, const GLenum& enumVal)
 // {

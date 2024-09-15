@@ -2,6 +2,7 @@
 
 #include "RendererAPI.h"
 #include "Geometry/BoxGeometry.h"
+#include "Geometry/QuadGeometry.h"
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -77,6 +78,7 @@ namespace Chozo {
         }
 
         // Geometry
+        s_Data.QuadMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<QuadGeometry>()));
         s_Data.BoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
 
         // Shaders
@@ -92,7 +94,8 @@ namespace Chozo {
         s_Data.m_ShaderLibrary->Load("Skybox", "../assets/shaders/Skybox.glsl.vert", "../assets/shaders/Skybox.glsl.frag");
         s_Data.m_ShaderLibrary->Load("PreethamSky", "../assets/shaders/PreethamSky.glsl.vert", "../assets/shaders/PreethamSky.glsl.frag");
 
-        s_Data.m_ShaderLibrary->Load("CubemapPreview", "../assets/shaders/CubemapPreview.glsl.vert", "../assets/shaders/CubemapPreview.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("CubemapPreview", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/CubemapPreview.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("SceneComposite", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/SceneComposite.glsl.frag");
 
         // PreethamSky
         {
@@ -196,9 +199,19 @@ namespace Chozo {
 		s_RendererAPI->EndRenderPass(commandBuffer, renderPass);
     }
 
+    void Renderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
+    {
+		s_RendererAPI->SubmitFullscreenQuad(commandBuffer, pipeline, material);
+    }
+
     void Renderer::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
     {
 		s_RendererAPI->SubmitFullscreenBox(commandBuffer, pipeline, material);
+    }
+
+    void Renderer::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material)
+    {
+        s_RendererAPI->SubmitMeshWithMaterial(commandBuffer, pipeline, mesh, material);
     }
 
     void Renderer::Begin()

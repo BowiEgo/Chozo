@@ -32,6 +32,7 @@ namespace Chozo {
         static void NextBatch();
         static void Flush();
         // Primitives
+        static void DrawFullScreenQuad();
         static void DrawFullScreenQuad(Ref<Texture> texture);
         static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, uint32_t entityID = -1);
         static void DrawQuad(const glm::mat4& transform, Ref<Texture2D> texture, float tilingFactor, const glm::vec4& color, uint32_t entityID = -1);
