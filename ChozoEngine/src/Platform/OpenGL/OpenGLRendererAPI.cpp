@@ -128,31 +128,28 @@ namespace Chozo {
         });
     }
 
-    Ref<TextureCube> OpenGLRendererAPI::CreateCubemap(Ref<Pipeline> pipeline, const std::string filePath)
+    void OpenGLRendererAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, const std::string filePath)
     {
-        CZ_CORE_INFO("CreateCubemap: {}", filePath);
-        OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
+        std::filesystem::path path = std::filesystem::path(filePath);
+        std::string fileExtension = path.extension().string();
 
         TextureSpecification spec;
         spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
         spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
+        if (fileExtension == ".hdr")
+            spec.HDR = true;
         Ref<Texture2D> equirectangularMap = Texture2D::Create(filePath, spec);
-
-        TextureSpecification cubemapSpec;
-        cubemapSpec.Format = ImageFormat::RGBA32F;
-        cubemapSpec.Width = pipeline->GetTargetFramebuffer()->GetSpecification().Width;
-        cubemapSpec.Height = pipeline->GetTargetFramebuffer()->GetSpecification().Height;
-        Ref<TextureCube> cubeMap = TextureCube::Create(cubemapSpec);
 
         pipeline->GetTargetFramebuffer()->Bind();
         equirectangularMap->Bind();
+        OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
         shader->Bind();
         shader->SetUniform("u_EquirectangularMap", 0);
 
         for (uint32_t i = 0; i < 6; i++)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubeMap->GetRendererID(), 0); GCE;
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
             shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
@@ -161,8 +158,74 @@ namespace Chozo {
             DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
         }
         pipeline->GetTargetFramebuffer()->Unbind();
+    }
 
-        return cubeMap;
+    void OpenGLRendererAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
+    {
+        pipeline->GetTargetFramebuffer()->Bind();
+
+        if (material)
+            static_cast<OpenGLMaterial*>(material.get())->Bind();
+
+        OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
+        shader->Bind();
+
+        for (uint32_t i = 0; i < 6; i++)
+        {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
+
+            shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
+            shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+
+            DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
+        }
+        pipeline->GetTargetFramebuffer()->Unbind();
+    }
+
+    void OpenGLRendererAPI::RenderPrefilteredCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
+    {
+        pipeline->GetTargetFramebuffer()->Bind();
+
+        if (material)
+            static_cast<OpenGLMaterial*>(material.get())->Bind();
+
+        Ref<Framebuffer> fbo = pipeline->GetTargetFramebuffer();
+        OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
+        shader->Bind();
+
+        unsigned int maxMipLevels = 5;
+        for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+        {
+            // reisze framebuffer according to mip-level size.
+            unsigned int mipWidth  = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+            unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+
+            glBindTexture(GL_TEXTURE_2D, fbo->GetDepthAttachmentRendererID());
+            glTexImage2D(GL_TEXTURE_2D, mip, GL_DEPTH_COMPONENT24, mipWidth, mipHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+            glViewport(0, 0, mipWidth, mipHeight);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbo->GetDepthAttachmentRendererID(), mip);
+
+            // glBindRenderbuffer(GL_RENDERBUFFER, m_CaptureRBO);
+            // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+            // glViewport(0, 0, mipWidth, mipHeight);
+
+            float roughness = (float)mip / (float)(maxMipLevels - 1);
+
+            shader->Bind();
+            shader->SetUniform("u_FragUniforms.Roughness", roughness);
+            for (unsigned int i = 0; i < 6; ++i)
+            {
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), mip);
+
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
+                shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+
+                DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
+            }
+        }
     }
 
     void OpenGLRendererAPI::DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)
@@ -191,15 +254,46 @@ namespace Chozo {
         pipeline->GetTargetFramebuffer()->Unbind();
     }
 
+    void OpenGLRendererAPI::SubmitCubeMap(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
+    {
+        commandBuffer->AddCommand([pipeline, cubemap, material, this]()
+        {
+            if (material)
+                static_cast<OpenGLMaterial*>(material.get())->Bind();
+            else
+                pipeline->GetShader()->Bind();
+
+            for (uint32_t i = 0; i < 6; i++)
+            {
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
+
+                pipeline->GetShader()->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
+                pipeline->GetShader()->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+
+                DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
+            }
+        });
+    }
+
+    void OpenGLRendererAPI::RenderFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material)
+    {
+        if (material)
+            static_cast<OpenGLMaterial*>(material.get())->Bind();
+        else
+            pipeline->GetShader()->Bind();
+
+        glDepthFunc(GL_LEQUAL); GCE;
+        Renderer2D::DrawFullScreenQuad();
+        glDepthFunc(GL_LESS); GCE;
+    }
+
     void OpenGLRendererAPI::SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
     {
-        commandBuffer->AddCommand([pipeline, material]()
+        commandBuffer->AddCommand([pipeline, material, this]()
         {
-            static_cast<OpenGLMaterial*>(material.get())->Bind();
-
-            glDepthFunc(GL_LEQUAL); GCE;
-            Renderer2D::DrawFullScreenQuad();
-            glDepthFunc(GL_LESS); GCE;
+            RenderFullscreenQuad(pipeline, material);
         });
     }
 
@@ -207,7 +301,10 @@ namespace Chozo {
     {
         commandBuffer->AddCommand([pipeline, material]()
         {
-            static_cast<OpenGLMaterial*>(material.get())->Bind();
+            if (material)
+                static_cast<OpenGLMaterial*>(material.get())->Bind();
+            else
+                pipeline->GetShader()->Bind();
 
             glDepthFunc(GL_LEQUAL); GCE;
             RenderCommand::DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
@@ -217,9 +314,12 @@ namespace Chozo {
 
     void OpenGLRendererAPI::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material)
     {
-        commandBuffer->AddCommand([mesh, material, this]()
+        commandBuffer->AddCommand([pipeline, mesh, material, this]()
         {
-            static_cast<OpenGLMaterial*>(material.get())->Bind();
+            if (material)
+                static_cast<OpenGLMaterial*>(material.get())->Bind();
+            else
+                pipeline->GetShader()->Bind();
 
             uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
             uint32_t vertexCount = mesh->GetMeshSource()->GetVertexs().size();

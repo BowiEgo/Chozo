@@ -29,9 +29,9 @@ namespace Chozo {
         bool HDR = false;
         ImageParameter MinFilter = ImageParameter::LINEAR;
         ImageParameter MagFilter = ImageParameter::NEAREST;
-        ImageParameter WrapR = ImageParameter::REPEAT;
-        ImageParameter WrapS = ImageParameter::REPEAT;
-        ImageParameter WrapT = ImageParameter::REPEAT;
+        ImageParameter WrapR = ImageParameter::CLAMP_TO_BORDER;
+        ImageParameter WrapS = ImageParameter::CLAMP_TO_BORDER;
+        ImageParameter WrapT = ImageParameter::CLAMP_TO_BORDER;
     };
 
     class Texture2D : public Texture

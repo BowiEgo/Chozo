@@ -68,6 +68,15 @@ namespace Chozo {
             cubemapSpec.Width = cubemapSize;
             cubemapSpec.Height = cubemapSize;
             s_Data.PreethamSkyTextureCube = TextureCube::Create(cubemapSpec);
+            s_Data.StaticSkyTextureCube = TextureCube::Create(cubemapSpec);
+
+            cubemapSpec.Width = 32;
+            cubemapSpec.Height = 32;
+            s_Data.IrradianceTextureCube = TextureCube::Create(cubemapSpec);
+
+            cubemapSpec.Width = 128;
+            cubemapSpec.Height = 128;
+            s_Data.PrefilteredTextureCube = TextureCube::Create(cubemapSpec);
         }
 
         int32_t samplers[s_Data.MaxTextureSlots];
@@ -93,6 +102,10 @@ namespace Chozo {
         s_Data.m_ShaderLibrary->Load("Depth", "../assets/shaders/Basic.glsl.vert", "../assets/shaders/Depth.glsl.frag");
         
         s_Data.m_ShaderLibrary->Load("PhongLight", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/PhongLight.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("IrradianceConvolution", "../assets/shaders/CubemapSampler.glsl.vert", "../assets/shaders/IrradianceConvolution.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("Prefiltered", "../assets/shaders/CubemapSampler.glsl.vert", "../assets/shaders/Prefiltered.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("BRDF", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/BRDF.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("PBR", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/PBR.glsl.frag");
 
         s_Data.m_ShaderLibrary->Load("CubemapSampler", "../assets/shaders/CubemapSampler.glsl.vert", "../assets/shaders/CubemapSampler.glsl.frag");
         s_Data.m_ShaderLibrary->Load("PreethamSky", "../assets/shaders/PreethamSky.glsl.vert", "../assets/shaders/PreethamSky.glsl.frag");
@@ -103,47 +116,102 @@ namespace Chozo {
 
         // PreethamSky
         {
-            Ref<Shader> preethamSkyShader = Renderer::GetRendererData().m_ShaderLibrary->Get("PreethamSky");
+            Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("PreethamSky");
 
             FramebufferSpecification fbSpec;
             fbSpec.Width = s_Data.PreethamSkyTextureCube->GetWidth();
             fbSpec.Height = s_Data.PreethamSkyTextureCube->GetHeight();
             fbSpec.Attachments = { ImageFormat::RGBA8 };
-            Ref<Framebuffer> preethamSkyFB = Framebuffer::Create(fbSpec);
+            Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
             PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "PreethamSky";
-			pipelineSpec.Shader = preethamSkyShader;
+			pipelineSpec.Shader = shader;
             pipelineSpec.DepthWrite = false;
 			pipelineSpec.DepthTest = false;
             pipelineSpec.Layout = {
 				{ ShaderDataType::Float3, "a_Position" },
 			};
-			pipelineSpec.TargetFramebuffer = preethamSkyFB;
+			pipelineSpec.TargetFramebuffer = framebuffer;
             s_Data.m_PreethamSkyPipeline = Pipeline::Create(pipelineSpec);
         }
         // Cubemap-Sampler
         {
-            Ref<Shader> cubemapSamplerShader = Renderer::GetRendererData().m_ShaderLibrary->Get("CubemapSampler");
+            Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("CubemapSampler");
             const uint32_t cubemapSize = Renderer::GetConfig().EnvironmentMapResolution;
 
             FramebufferSpecification fbSpec;
             fbSpec.Width = cubemapSize;
             fbSpec.Height = cubemapSize;
             fbSpec.Attachments = { ImageFormat::RGB16F };
-            Ref<Framebuffer> cubemapSamplerFB = Framebuffer::Create(fbSpec);
+            Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
             PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "CubemapSampler";
-			pipelineSpec.Shader = cubemapSamplerShader;
+			pipelineSpec.Shader = shader;
             pipelineSpec.DepthWrite = false;
 			pipelineSpec.DepthTest = false;
             pipelineSpec.Layout = {
 				{ ShaderDataType::Float3, "a_Position" },
 			};
-			pipelineSpec.TargetFramebuffer = cubemapSamplerFB;
+			pipelineSpec.TargetFramebuffer = framebuffer;
             s_Data.m_CubemapSamplerPipeline = Pipeline::Create(pipelineSpec);
         }
+        // Irradiance Map
+        {
+            FramebufferSpecification fbSpec;
+            fbSpec.Width = 32;
+            fbSpec.Height = 32;
+			fbSpec.Attachments = { ImageFormat::RGB16F };
+			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+
+            PipelineSpecification irradiancePipelineSpec;
+			irradiancePipelineSpec.DebugName = "PBR-Irradiance";
+			irradiancePipelineSpec.TargetFramebuffer = framebuffer;
+            irradiancePipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("IrradianceConvolution");
+			s_Data.m_IrradianceMaterial = Material::Create(irradiancePipelineSpec.Shader, irradiancePipelineSpec.DebugName);
+			s_Data.m_IrradiancePipeline = Pipeline::Create(irradiancePipelineSpec);
+        }
+        // Prefiltered Map
+        {
+            FramebufferSpecification fbSpec;
+            fbSpec.Width = 128;
+            fbSpec.Height = 128;
+			fbSpec.Attachments = { ImageFormat::RGB16F };
+			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+
+            PipelineSpecification prefilteredPipelineSpec;
+			prefilteredPipelineSpec.DebugName = "PBR-Prefiltered";
+			prefilteredPipelineSpec.TargetFramebuffer = framebuffer;
+            prefilteredPipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Prefiltered");
+			s_Data.m_PrefilteredMaterial = Material::Create(prefilteredPipelineSpec.Shader, prefilteredPipelineSpec.DebugName);
+			s_Data.m_PrefilteredPipeline = Pipeline::Create(prefilteredPipelineSpec);
+        }
+        // BRDF-Texture
+        {
+            Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("BRDF");
+            FramebufferSpecification fbSpec;
+            fbSpec.Width = Renderer::GetConfig().IrradianceMapComputeSamples;
+            fbSpec.Height = Renderer::GetConfig().IrradianceMapComputeSamples;
+            fbSpec.Attachments = { ImageFormat::RG16F };
+            Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+
+            PipelineSpecification pipelineSpec;
+			pipelineSpec.DebugName = "BRDF";
+			pipelineSpec.Shader = shader;
+            pipelineSpec.DepthWrite = false;
+			pipelineSpec.DepthTest = false;
+            pipelineSpec.Layout = {
+				{ ShaderDataType::Float3, "a_Position" },
+			};
+			pipelineSpec.TargetFramebuffer = framebuffer;
+            s_Data.m_BRDFLutPipeline = Pipeline::Create(pipelineSpec);
+
+            framebuffer->Bind();
+            s_RendererAPI->RenderFullscreenQuad(s_Data.m_BRDFLutPipeline);
+            framebuffer->Unbind();
+        }
+        
     }
 
     void Renderer::RenderStaticBatches()
@@ -225,6 +293,11 @@ namespace Chozo {
 		s_RendererAPI->EndRenderPass(commandBuffer, renderPass);
     }
 
+    void Renderer::SubmitCubeMap(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
+    {
+		s_RendererAPI->SubmitCubeMap(commandBuffer, pipeline, cubemap, material);
+    }
+
     void Renderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
     {
 		s_RendererAPI->SubmitFullscreenQuad(commandBuffer, pipeline, material);
@@ -261,6 +334,11 @@ namespace Chozo {
         return s_Data;
     }
 
+    Ref<Texture2D> Renderer::GetBRDFLutTexture()
+    {
+        return s_Data.m_BRDFLutPipeline->GetTargetFramebuffer()->GetImage(0);
+    }
+
     Ref<TextureCube> Renderer::GetBlackTextureCube()
     {
         return s_Data.BlackTextureCube;
@@ -269,6 +347,16 @@ namespace Chozo {
     Ref<TextureCube> Renderer::GetStaticSkyTextureCube()
     {
         return s_Data.StaticSkyTextureCube;
+    }
+
+    Ref<TextureCube> Renderer::GetIrradianceTextureCube()
+    {
+        return s_Data.IrradianceTextureCube;
+    }
+
+    Ref<TextureCube> Renderer::GetPrefilteredTextureCube()
+    {
+        return s_Data.PrefilteredTextureCube;
     }
 
     Ref<TextureCube> Renderer::GetPreethamSkyTextureCube()
@@ -307,14 +395,15 @@ namespace Chozo {
         return s_RendererAPI->GetMaxTextureSlots();
     }
 
-    Ref<TextureCube> Renderer::CreateCubemap(const std::string& filePath)
-    {
-        return s_RendererAPI->CreateCubemap(s_Data.m_CubemapSamplerPipeline, filePath);
-    }
-
     void Renderer::CreateStaticSky(const std::string &filePath)
     {
-        s_Data.StaticSkyTextureCube = CreateCubemap(filePath);
+        s_RendererAPI->RenderCubemap(s_Data.m_CubemapSamplerPipeline, s_Data.StaticSkyTextureCube, filePath);
+
+        s_Data.m_IrradianceMaterial->Set("u_Texture", s_Data.StaticSkyTextureCube);
+        s_RendererAPI->RenderCubemap(s_Data.m_IrradiancePipeline, s_Data.IrradianceTextureCube, s_Data.m_IrradianceMaterial);
+
+        s_Data.m_PrefilteredMaterial->Set("u_Texture", s_Data.PrefilteredTextureCube);
+        s_RendererAPI->RenderCubemap(s_Data.m_PrefilteredPipeline, s_Data.PrefilteredTextureCube, s_Data.m_PrefilteredMaterial);
     }
 
     void Renderer::CreatePreethamSky(const float turbidity, const float azimuth, const float inclination)

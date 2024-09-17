@@ -22,6 +22,7 @@ namespace Chozo {
             CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is smaller than colorAttachments size");
             return m_ColorAttachments[attachmentIndex];
         };
+        virtual RendererID GetDepthAttachmentRendererID() const override { return m_DepthAttachment; }
 		virtual const FramebufferSpecification& GetSpecification() const override { return m_Specification; };
         virtual Ref<Texture2D> GetImage(uint32_t attachmentIndex) const override { return m_ColorAttachmentImages[attachmentIndex]; }
 		virtual Ref<Texture2D> GetDepthImage() const override { return m_DepthAttachmentImage; }

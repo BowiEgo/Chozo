@@ -20,8 +20,8 @@ namespace Chozo {
         m_Window = Window::Create(WindowProps(name));
         m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 
-        Renderer::Init();
         Renderer2D::Init();
+        Renderer::Init();
 
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);

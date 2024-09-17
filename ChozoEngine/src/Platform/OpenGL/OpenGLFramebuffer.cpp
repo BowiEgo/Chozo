@@ -58,9 +58,9 @@ namespace Chozo {
                 glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL); GCE;
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); GCE;
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); GCE;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); GCE;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); GCE;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); GCE;
             }
 
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, TextureTarget(multisampled), id, 0); GCE;
@@ -83,9 +83,9 @@ namespace Chozo {
                 // #endif
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); GCE;
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); GCE;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); GCE;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); GCE;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); GCE;
             }
 
             glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, TextureTarget(multisampled), id, 0); GCE;
@@ -222,6 +222,9 @@ namespace Chozo {
                 Utils::BindTexture(multisampled, m_ColorAttachments[i]);
                 switch (m_ColorAttachmentSpecs[i].TextureFormat)
                 {
+                    case ImageFormat::RG16F:
+                        Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RG16F, GL_RG, GL_FLOAT, m_Specification.Width, m_Specification.Height, i);
+                        break;
                     case ImageFormat::RGBA8:
                         Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, m_Specification.Width, m_Specification.Height, i);
                         break;
@@ -243,11 +246,9 @@ namespace Chozo {
                 spec.Format = m_ColorAttachmentSpecs[i].TextureFormat;
                 spec.Width = m_Specification.Width;
                 spec.Height = m_Specification.Height;
-                spec.MinFilter = ImageParameter::LINEAR;
-                spec.MagFilter = ImageParameter::LINEAR;
-                spec.WrapR = ImageParameter::CLAMP_TO_EDGE;
-                spec.WrapS = ImageParameter::CLAMP_TO_EDGE;
-                spec.WrapT = ImageParameter::CLAMP_TO_EDGE;
+                spec.WrapR = ImageParameter::CLAMP_TO_BORDER;
+                spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
+                spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
                 m_ColorAttachmentImages[i] = Texture2D::Create(m_ColorAttachments[i], spec);
             }
 #endif
@@ -271,11 +272,9 @@ namespace Chozo {
             spec.Format = m_DepthAttachmentSpec.TextureFormat;
             spec.Width = m_Specification.Width;
             spec.Height = m_Specification.Height;
-            spec.MinFilter = ImageParameter::LINEAR;
-            spec.MagFilter = ImageParameter::LINEAR;
-            spec.WrapR = ImageParameter::CLAMP_TO_EDGE;
-            spec.WrapS = ImageParameter::CLAMP_TO_EDGE;
-            spec.WrapT = ImageParameter::CLAMP_TO_EDGE;
+            spec.WrapR = ImageParameter::CLAMP_TO_BORDER;
+            spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
+            spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
             m_DepthAttachmentImage = Texture2D::Create(m_DepthAttachment, spec);
         }
 
@@ -339,11 +338,9 @@ namespace Chozo {
             spec.Samples = samples;
             spec.Width = width;
             spec.Height = height;
-            spec.MinFilter = ImageParameter::LINEAR;
-            spec.MagFilter = ImageParameter::LINEAR;
-            spec.WrapR = ImageParameter::CLAMP_TO_EDGE;
-            spec.WrapS = ImageParameter::CLAMP_TO_EDGE;
-            spec.WrapT = ImageParameter::CLAMP_TO_EDGE;
+            spec.WrapR = ImageParameter::CLAMP_TO_BORDER;
+            spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
+            spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
 
             Ref<Texture2D> texture = Texture2D::Create(spec);
 

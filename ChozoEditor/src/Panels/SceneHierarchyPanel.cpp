@@ -375,6 +375,7 @@ namespace Chozo {
                         {
                             std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
                             component.SourcePath = std::string(texturePath);
+                            component.SceneEnvironment = nullptr;
                         }
                     }
 

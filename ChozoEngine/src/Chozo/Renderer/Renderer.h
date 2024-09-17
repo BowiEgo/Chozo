@@ -73,8 +73,15 @@ namespace Chozo {
 
             Ref<TextureCube> PreethamSkyTextureCube;
             Ref<TextureCube> StaticSkyTextureCube;
+            Ref<TextureCube> IrradianceTextureCube;
+            Ref<TextureCube> PrefilteredTextureCube;
+            Ref<Material> m_IrradianceMaterial;
+            Ref<Material> m_PrefilteredMaterial;
             Ref<Pipeline> m_PreethamSkyPipeline;
             Ref<Pipeline> m_CubemapSamplerPipeline;
+            Ref<Pipeline> m_IrradiancePipeline;
+            Ref<Pipeline> m_PrefilteredPipeline;
+            Ref<Pipeline> m_BRDFLutPipeline;
         };
 
         static void Init();
@@ -87,6 +94,7 @@ namespace Chozo {
         static void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
         static void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
 
+        static void SubmitCubeMap(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material = nullptr);
         static void SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
         static void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
         static void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material);
@@ -95,8 +103,11 @@ namespace Chozo {
 
         static Ref<ShaderLibrary> GetShaderLibrary() { return GetRendererData().m_ShaderLibrary; }
         static RendererData GetRendererData();
+        static Ref<Texture2D> GetBRDFLutTexture();
         static Ref<TextureCube> GetBlackTextureCube();
         static Ref<TextureCube> GetStaticSkyTextureCube();
+        static Ref<TextureCube> GetIrradianceTextureCube();
+        static Ref<TextureCube> GetPrefilteredTextureCube();
         static Ref<TextureCube> GetPreethamSkyTextureCube();
         static void UpdateMaxTriagles(uint32_t count);
 

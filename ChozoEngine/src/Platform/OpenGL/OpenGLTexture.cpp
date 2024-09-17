@@ -129,11 +129,6 @@ namespace Chozo
     OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const TextureSpecification &spec)
         : m_Spec(spec), m_Path(path)
     {
-        std::filesystem::path filePath = std::filesystem::path((char*)path.c_str());
-        std::string fileExtension = filePath.extension().string();
-        if (fileExtension == ".hdr")
-            m_Spec.HDR = true;
-
         int width, height, channels;
         stbi_set_flip_vertically_on_load(1);
 

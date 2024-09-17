@@ -1,7 +1,7 @@
 #include "EditorLayer.h"
 #include "CameraController.h"
 
-#include "Panels/TexturePreviewPanel.h"
+#include "Panels/TextureViewerPanel.h"
 
 #include <regex>
 
@@ -245,7 +245,7 @@ namespace Chozo {
         m_SceneHierarchyPanel.OnImGuiRender();
         m_ContentBrowserPanel.OnImGuiRender();
         m_EnvironmentPanel.OnImGuiRender();
-        m_TexturePreviewPanel.OnImGuiRender();
+        m_TextureViewerPanel.OnImGuiRender();
 
         // --------------------
         // Settings panel
@@ -269,9 +269,9 @@ namespace Chozo {
 
         if(ImGui::Button("ShowSkyboxTexture"))
         {
-            TexturePreviewPanel::Open();
+            TextureViewerPanel::Open();
             Ref<Texture2D> texture = m_ViewportRenderer->GetSkyboxPass()->GetOutput(0);
-            TexturePreviewPanel::SetTexture(texture);
+            TextureViewerPanel::SetTexture(texture);
         }
 
         std::string buttons[8] = {
@@ -283,9 +283,39 @@ namespace Chozo {
             std::string buttonLabel = "ShowGeometryTexture_" + buttons[i];
             if(ImGui::Button(buttonLabel.c_str()))
             {
-                TexturePreviewPanel::Open();
+                TextureViewerPanel::Open();
                 Ref<Texture2D> texture = m_ViewportRenderer->GetGeometryPass()->GetOutput(i);
-                TexturePreviewPanel::SetTexture(texture);
+                TextureViewerPanel::SetTexture(texture);
+            }
+        }
+
+        {
+            std::string buttonLabel = "Irradiance";
+            if(ImGui::Button(buttonLabel.c_str()))
+            {
+                TextureViewerPanel::Open();
+                Ref<TextureCube> texture = Renderer::GetIrradianceTextureCube();
+                TextureViewerPanel::SetTexture(texture);
+            }
+        }
+
+        {
+            std::string buttonLabel = "Prefiltered";
+            if(ImGui::Button(buttonLabel.c_str()))
+            {
+                TextureViewerPanel::Open();
+                Ref<TextureCube> texture = Renderer::GetPrefilteredTextureCube();
+                TextureViewerPanel::SetTexture(texture);
+            }
+        }
+
+        {
+            std::string buttonLabel = "BRDFLut";
+            if(ImGui::Button(buttonLabel.c_str()))
+            {
+                TextureViewerPanel::Open();
+                Ref<Texture2D> texture = Renderer::GetBRDFLutTexture();
+                TextureViewerPanel::SetTexture(texture);
             }
         }
 

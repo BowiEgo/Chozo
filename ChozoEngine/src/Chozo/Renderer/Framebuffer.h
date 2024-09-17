@@ -65,6 +65,7 @@ namespace Chozo {
 
 		virtual RendererID GetRendererID() const = 0;
         virtual RendererID GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const = 0;
+        virtual RendererID GetDepthAttachmentRendererID() const = 0;
 		virtual const FramebufferSpecification& GetSpecification() const = 0;
         virtual Ref<Texture2D> GetImage(uint32_t attachmentIndex) const = 0;
 		virtual Ref<Texture2D> GetDepthImage() const = 0;

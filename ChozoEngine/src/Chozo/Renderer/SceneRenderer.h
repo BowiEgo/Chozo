@@ -67,9 +67,13 @@ namespace Chozo
         Ref<RenderPass> GetPhongLightPass() { return m_PhongLightPass; }
         Ref<RenderPass> GetCompositePass() { return m_CompositePass; }
 
+        Ref<TextureCube> GetPBRIrradiance() { return m_PBRIrradiance; }
+
         void SkyboxPass();
         void GeometryPass();
         void PhongLightPass();
+        void PBRPrePass();
+        void PBRPass();
         void CompositePass();
 
         void Flush();
@@ -143,6 +147,10 @@ namespace Chozo
 
 		Ref<Material> m_PhongLightMaterial;
 		Ref<RenderPass> m_PhongLightPass;
+
+        Ref<TextureCube> m_PBRIrradiance;
+        Ref<Material> m_PBRIrradianceMaterial, m_PBRMaterial;
+		Ref<RenderPass> m_PBRIrradiancePass, m_PBRPass;
 
 		Ref<Material> m_CompositeMaterial;
         Ref<RenderPass> m_CompositePass;

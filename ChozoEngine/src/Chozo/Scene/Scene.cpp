@@ -81,7 +81,8 @@ namespace Chozo {
                         Renderer::CreateStaticSky(skyLight.SourcePath);
         
                     Ref<TextureCube> radiance = Renderer::GetStaticSkyTextureCube();
-                    skyLight.SceneEnvironment = std::make_shared<Environment>(radiance, radiance);
+                    Ref<TextureCube> irradiance = Renderer::GetIrradianceTextureCube();
+                    skyLight.SceneEnvironment = std::make_shared<Environment>(radiance, irradiance);
                 }
                 m_Environment = skyLight.SceneEnvironment;
                 m_EnvironmentIntensity = skyLight.Intensity;

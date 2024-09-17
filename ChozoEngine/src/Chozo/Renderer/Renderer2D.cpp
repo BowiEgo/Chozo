@@ -144,6 +144,7 @@ namespace Chozo {
         s_Data.QuadVertexArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
         s_Data.QuadVertexArray->SetIndexBuffer(quadIndexBuffer);
         s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.MaxVertexs];
+        s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
 
         // Circle
         s_Data.CircleVertexArray = VertexArray::Create();
@@ -159,6 +160,7 @@ namespace Chozo {
         s_Data.CircleVertexArray->AddVertexBuffer(s_Data.CircleVertexBuffer);
         s_Data.CircleVertexArray->SetIndexBuffer(quadIndexBuffer); // use quadIndexBuffer
         s_Data.CircleVertexBufferBase = new CircleVertex[s_Data.MaxVertexs];
+        s_Data.CircleVertexBufferPtr = s_Data.CircleVertexBufferBase;
 
         // Line
         s_Data.LineVertexArray = VertexArray::Create();
@@ -170,6 +172,7 @@ namespace Chozo {
         });
         s_Data.LineVertexArray->AddVertexBuffer(s_Data.LineVertexBuffer);
         s_Data.LineVertexBufferBase = new LineVertex[s_Data.MaxVertexs];
+        s_Data.LineVertexBufferPtr = s_Data.LineVertexBufferBase;
 
         // Textures
         s_Data.MaxTextureSlots = RenderCommand::GetMaxTextureSlots();
