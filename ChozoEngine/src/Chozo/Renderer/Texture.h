@@ -26,6 +26,7 @@ namespace Chozo {
 
         uint32_t Samples = 1;
         uint32_t Width = 1, Height = 1;
+        bool HDR = false;
         ImageParameter MinFilter = ImageParameter::LINEAR;
         ImageParameter MagFilter = ImageParameter::NEAREST;
         ImageParameter WrapR = ImageParameter::REPEAT;

@@ -69,7 +69,7 @@ namespace Chozo {
         // --------------------
         // Editor Camera
         // --------------------
-        m_EditorCamera = EditorCamera(30.0f, 16.0f / 9.0f, 0.1f, 1000.0f);
+        m_EditorCamera = EditorCamera(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f);
 #if 0
         // --------------------
         // Camera entity

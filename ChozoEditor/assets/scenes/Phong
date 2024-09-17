@@ -1,73 +1,41 @@
 Scene: Untitled
 Entities:
-  - Entity: 259724390316925222
+  - Entity: 11734064750955055822
     TagComponent:
-      Tag: SkyLight
+      Tag: Spot Light 2
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [-0.253336608, -0.621094942, 2.73758817]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SkyLightComponent:
+    SpotLightComponent:
       Intensity: 1
-      Lod: 0
-      DynamicSky: true
-      TurbidityAzimuthInclination: [2.74000001, 0, 0]
-  - Entity: 16619928800525008541
+      Direction: [0, 0, -1]
+      AngleAttenuation: 0.442000002
+      Color: [0, 0.362934351, 1]
+      Angle: 16.1219997
+  - Entity: 15523543194891287388
     TagComponent:
-      Tag: Point Light 3
+      Tag: Spot Light 1
     TransformComponent:
-      Translation: [-1.96427298, 0, -0.703296185]
+      Translation: [2.07695484, 1.88760519, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpotLightComponent:
+      Intensity: 1
+      Direction: [0, 0, -1]
+      AngleAttenuation: 3.64899993
+      Color: [1, 0.949806929, 0]
+      Angle: 10
+  - Entity: 14286552634676448382
+    TagComponent:
+      Tag: Point Light 2
+    TransformComponent:
+      Translation: [-0.0921990871, 5.70424557, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     PointLightComponent:
-      Color: [1, 0, 0]
-      Intensity: 0.910000026
-  - Entity: 325427967888756542
-    TagComponent:
-      Tag: Point Light 1
-    TransformComponent:
-      Translation: [2.25546074, 0, -0.334841937]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Color: [0, 1, 0.108108044]
-      Intensity: 0.458999991
-  - Entity: 6273086195722063365
-    TagComponent:
-      Tag: DirLight
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    DirectionalLightComponent:
-      Direction: [2, -1, -2]
-      Color: [1, 1, 1]
+      Color: [0.33590734, 0.57692939, 1]
       Intensity: 1
-  - Entity: 10870368272353595086
-    TagComponent:
-      Tag: Cube
-    TransformComponent:
-      Translation: [0.152200043, 0, -2.78403163]
-      Rotation: [0, 0, 0]
-      Scale: [6.5, 2.29999995, 0.200000003]
-    MeshComponent:
-      Type: 0
-      Geometry:
-        Type: 1
-        Width: 1
-        Height: 2.29999995
-        Depth: 3
-        WidthSegments: 1
-        HeightSegments: 1
-        DepthSegments: 1
-      Material:
-        Name: Phong
-        u_Material.AmbientColor: [0.822393835, 0.822393835, 0.822393835]
-        u_Material.SpecularColor: [0.621621609, 0.621621609, 0.621621609]
-        u_Material.DiffuseColor: [0.814671814, 0.814671814, 0.814671814]
-        u_Material.AmbientStrength: 0.100000001
-        u_Material.Metalness: 0.5
-        u_Material.Roughness: 0.5
   - Entity: 6282163605936880614
     TagComponent:
       Tag: Red Ball
@@ -94,39 +62,72 @@ Entities:
         u_Material.AmbientStrength: 0.100000001
         u_Material.Metalness: 0.469999999
         u_Material.Roughness: 0.875999987
-  - Entity: 14286552634676448382
+  - Entity: 10870368272353595086
     TagComponent:
-      Tag: Point Light 2
+      Tag: Cube
     TransformComponent:
-      Translation: [-0.0921990871, 5.70424557, 0]
+      Translation: [0.152200043, 0, -2.78403163]
+      Rotation: [0, 0, 0]
+      Scale: [6.5, 2.29999995, 0.200000003]
+    MeshComponent:
+      Type: 0
+      Geometry:
+        Type: 1
+        Width: 1
+        Height: 2.29999995
+        Depth: 3
+        WidthSegments: 1
+        HeightSegments: 1
+        DepthSegments: 1
+      Material:
+        Name: Phong
+        u_Material.AmbientColor: [0.822393835, 0.822393835, 0.822393835]
+        u_Material.SpecularColor: [0.621621609, 0.621621609, 0.621621609]
+        u_Material.DiffuseColor: [0.814671814, 0.814671814, 0.814671814]
+        u_Material.AmbientStrength: 0.100000001
+        u_Material.Metalness: 0.5
+        u_Material.Roughness: 0.5
+  - Entity: 6273086195722063365
+    TagComponent:
+      Tag: DirLight
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Direction: [2, -1, -2]
+      Color: [1, 1, 1]
+      Intensity: 1
+  - Entity: 325427967888756542
+    TagComponent:
+      Tag: Point Light 1
+    TransformComponent:
+      Translation: [2.25546074, 0, -0.334841937]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     PointLightComponent:
-      Color: [0.33590734, 0.57692939, 1]
-      Intensity: 1
-  - Entity: 15523543194891287388
+      Color: [0, 1, 0.108108044]
+      Intensity: 0.458999991
+  - Entity: 16619928800525008541
     TagComponent:
-      Tag: Spot Light 1
+      Tag: Point Light 3
     TransformComponent:
-      Translation: [2.07695484, 1.88760519, 0]
+      Translation: [-1.96427298, 0, -0.703296185]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SpotLightComponent:
-      Intensity: 1
-      Direction: [0, 0, -1]
-      AngleAttenuation: 3.64899993
-      Color: [1, 0.949806929, 0]
-      Angle: 10
-  - Entity: 11734064750955055822
+    PointLightComponent:
+      Color: [1, 0, 0]
+      Intensity: 0.910000026
+  - Entity: 259724390316925222
     TagComponent:
-      Tag: Spot Light 2
+      Tag: SkyLight
     TransformComponent:
-      Translation: [-0.253336608, -0.621094942, 2.73758817]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SpotLightComponent:
+    SkyLightComponent:
       Intensity: 1
-      Direction: [0, 0, -1]
-      AngleAttenuation: 0.442000002
-      Color: [0, 0.362934351, 1]
-      Angle: 16.1219997
+      Lod: 0
+      Dynamic: false
+      SourcePath: ../assets/textures/newport_loft.hdr
+      TurbidityAzimuthInclination: [2.74000001, 0, 0]

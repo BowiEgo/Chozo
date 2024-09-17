@@ -71,9 +71,10 @@ namespace Chozo {
 
             uint32_t GetMaxTriangles() { return GetMaxCount<Index>(); }
 
-
             Ref<TextureCube> PreethamSkyTextureCube;
+            Ref<TextureCube> StaticSkyTextureCube;
             Ref<Pipeline> m_PreethamSkyPipeline;
+            Ref<Pipeline> m_CubemapSamplerPipeline;
         };
 
         static void Init();
@@ -95,6 +96,7 @@ namespace Chozo {
         static Ref<ShaderLibrary> GetShaderLibrary() { return GetRendererData().m_ShaderLibrary; }
         static RendererData GetRendererData();
         static Ref<TextureCube> GetBlackTextureCube();
+        static Ref<TextureCube> GetStaticSkyTextureCube();
         static Ref<TextureCube> GetPreethamSkyTextureCube();
         static void UpdateMaxTriagles(uint32_t count);
 
@@ -103,6 +105,8 @@ namespace Chozo {
 
         static uint32_t GetMaxTextureSlots();
 
+        static Ref<TextureCube> CreateCubemap(const std::string& filePath);
+		static void CreateStaticSky(const std::string& filePath);
 		static void CreatePreethamSky(const float turbidity, const float azimuth, const float inclination);
 		static void UpdatePreethamSky(const float turbidity, const float azimuth, const float inclination);
 

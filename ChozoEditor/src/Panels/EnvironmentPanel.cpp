@@ -3,7 +3,12 @@
 #include "PropertyUI.h"
 #include "TexturePreviewPanel.h"
 
+#include <regex>
+
 namespace Chozo {
+
+    extern const std::filesystem::path g_AssetsPath;
+    extern const std::regex imagePattern;
 
     float s_LOD;
     glm::vec3 s_LightDirection;
@@ -35,6 +40,31 @@ namespace Chozo {
         }
 
         Ref<Environment> env = m_Context->GetEnvironment();
+
+        ImGui::Button("Path");
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+            {
+                const wchar_t* path = (const wchar_t*)payload->Data;
+                CZ_INFO("Drop target: {0}", (char*)path);
+                std::filesystem::path filePath = std::filesystem::path((char*)path);
+                std::string fileExtension = filePath.extension().string();
+                if (std::regex_match(fileExtension, imagePattern))
+                {
+                    std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
+
+                    TextureSpecification spec;
+                    spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
+                    spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
+                    Ref<Texture2D> envMap = Texture2D::Create(texturePath.string(), spec);
+                    TexturePreviewPanel::Open();
+                    TexturePreviewPanel::SetTexture(envMap);
+                }
+            }
+
+            ImGui::EndDragDropTarget();
+        }
 
         DrawColumnValue<float>("Skybox LOD", s_LOD, [&](auto& target) {
             if (ImGui::DragFloat("##Skybox LOD", &target, 0.1f, 0.0f, 10.0f))

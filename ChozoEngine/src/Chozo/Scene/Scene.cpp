@@ -68,19 +68,24 @@ namespace Chozo {
             {
                 auto [transform, skyLight] = group.get<TransformComponent, SkyLightComponent>(entity);
 
-                if (!skyLight.SceneEnvironment && skyLight.DynamicSky)
+                if (skyLight.Dynamic)
                 {
-                    Renderer::CreatePreethamSky(skyLight.TurbidityAzimuthInclination.x, skyLight.TurbidityAzimuthInclination.y, skyLight.TurbidityAzimuthInclination.z);
-                    Ref<TextureCube> preethamRadiance = Renderer::GetPreethamSkyTextureCube();
+                    if (!skyLight.SceneEnvironment)
+                        Renderer::CreatePreethamSky(skyLight.TurbidityAzimuthInclination.x, skyLight.TurbidityAzimuthInclination.y, skyLight.TurbidityAzimuthInclination.z);
 
-                    skyLight.SceneEnvironment = std::make_shared<Environment>(preethamRadiance, preethamRadiance);
-                    // Renderer::RenderPBRResouces(preethamRadiance);
+                    Ref<TextureCube> radiance = Renderer::GetPreethamSkyTextureCube();
+                    skyLight.SceneEnvironment = std::make_shared<Environment>(radiance, radiance);
+                } else if (skyLight.SourcePath != "")
+                {
+                    if (!skyLight.SceneEnvironment)
+                        Renderer::CreateStaticSky(skyLight.SourcePath);
+        
+                    Ref<TextureCube> radiance = Renderer::GetStaticSkyTextureCube();
+                    skyLight.SceneEnvironment = std::make_shared<Environment>(radiance, radiance);
                 }
                 m_Environment = skyLight.SceneEnvironment;
                 m_EnvironmentIntensity = skyLight.Intensity;
                 m_SkyboxLod = skyLight.Lod;
-
-                // RenderCommand::DrawSkyLight(m_Environment, m_EnvironmentIntensity, m_SkyboxLod, camera);
             }
         }
 

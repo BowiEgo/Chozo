@@ -166,7 +166,8 @@ namespace Chozo {
         float Intensity = 1.0f;
         float Lod = 0.0f;
 
-        bool DynamicSky = true;
+        bool Dynamic = true;
+        std::string SourcePath;
         glm::vec3 TurbidityAzimuthInclination = { 2.74f, 0.0f, 0.0f };
     };
 

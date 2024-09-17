@@ -288,7 +288,8 @@ namespace Chozo {
             auto& sc = entity.GetComponent<SkyLightComponent>();
             out << YAML::Key << "Intensity" << YAML::Value << sc.Intensity;
             out << YAML::Key << "Lod" << YAML::Value << sc.Lod;
-            out << YAML::Key << "DynamicSky" << YAML::Value << sc.DynamicSky;
+            out << YAML::Key << "Dynamic" << YAML::Value << sc.Dynamic;
+            out << YAML::Key << "SourcePath" << YAML::Value << sc.SourcePath;
             out << YAML::Key << "TurbidityAzimuthInclination" << YAML::Value << sc.TurbidityAzimuthInclination;
 
             out << YAML::EndMap;
@@ -541,7 +542,8 @@ namespace Chozo {
                     
                     comp.Intensity = skyLightComponent["Intensity"].as<float>();
                     comp.Lod = skyLightComponent["Lod"].as<float>();
-                    comp.DynamicSky = skyLightComponent["DynamicSky"].as<bool>();
+                    comp.Dynamic = skyLightComponent["Dynamic"].as<bool>();
+                    comp.SourcePath = skyLightComponent["SourcePath"].as<std::string>();
                     comp.TurbidityAzimuthInclination = skyLightComponent["TurbidityAzimuthInclination"].as<glm::vec3>();
                 }
 

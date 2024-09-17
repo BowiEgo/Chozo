@@ -11,7 +11,8 @@ namespace Chozo {
 
     extern const std::filesystem::path g_AssetsPath = "../assets";
 
-    extern const std::regex imagePattern(R"(\.(png|jpg|jpeg)$)", std::regex::icase);
+    extern const std::regex imagePattern(R"(\.(png|jpg|jpeg|hdr)$)", std::regex::icase);
+    extern const std::regex hdrPattern(R"(\.(hdr)$)", std::regex::icase);
     extern const std::regex scenePattern(R"(\.(chozo)$)", std::regex::icase);
 
     static void DisplayThumbnail(const Ref<Texture2D>& icon, float thumbnailSize)

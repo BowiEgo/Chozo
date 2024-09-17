@@ -94,8 +94,9 @@ namespace Chozo {
         
         s_Data.m_ShaderLibrary->Load("PhongLight", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/PhongLight.glsl.frag");
 
-        s_Data.m_ShaderLibrary->Load("Skybox", "../assets/shaders/Skybox.glsl.vert", "../assets/shaders/Skybox.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("CubemapSampler", "../assets/shaders/CubemapSampler.glsl.vert", "../assets/shaders/CubemapSampler.glsl.frag");
         s_Data.m_ShaderLibrary->Load("PreethamSky", "../assets/shaders/PreethamSky.glsl.vert", "../assets/shaders/PreethamSky.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("Skybox", "../assets/shaders/Skybox.glsl.vert", "../assets/shaders/Skybox.glsl.frag");
 
         s_Data.m_ShaderLibrary->Load("CubemapPreview", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/CubemapPreview.glsl.frag");
         s_Data.m_ShaderLibrary->Load("SceneComposite", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/SceneComposite.glsl.frag");
@@ -120,6 +121,28 @@ namespace Chozo {
 			};
 			pipelineSpec.TargetFramebuffer = preethamSkyFB;
             s_Data.m_PreethamSkyPipeline = Pipeline::Create(pipelineSpec);
+        }
+        // Cubemap-Sampler
+        {
+            Ref<Shader> cubemapSamplerShader = Renderer::GetRendererData().m_ShaderLibrary->Get("CubemapSampler");
+            const uint32_t cubemapSize = Renderer::GetConfig().EnvironmentMapResolution;
+
+            FramebufferSpecification fbSpec;
+            fbSpec.Width = cubemapSize;
+            fbSpec.Height = cubemapSize;
+            fbSpec.Attachments = { ImageFormat::RGB16F };
+            Ref<Framebuffer> cubemapSamplerFB = Framebuffer::Create(fbSpec);
+
+            PipelineSpecification pipelineSpec;
+			pipelineSpec.DebugName = "CubemapSampler";
+			pipelineSpec.Shader = cubemapSamplerShader;
+            pipelineSpec.DepthWrite = false;
+			pipelineSpec.DepthTest = false;
+            pipelineSpec.Layout = {
+				{ ShaderDataType::Float3, "a_Position" },
+			};
+			pipelineSpec.TargetFramebuffer = cubemapSamplerFB;
+            s_Data.m_CubemapSamplerPipeline = Pipeline::Create(pipelineSpec);
         }
     }
 
@@ -243,6 +266,11 @@ namespace Chozo {
         return s_Data.BlackTextureCube;
     }
 
+    Ref<TextureCube> Renderer::GetStaticSkyTextureCube()
+    {
+        return s_Data.StaticSkyTextureCube;
+    }
+
     Ref<TextureCube> Renderer::GetPreethamSkyTextureCube()
     {
         return s_Data.PreethamSkyTextureCube;
@@ -277,6 +305,16 @@ namespace Chozo {
     uint32_t Renderer::GetMaxTextureSlots()
     {
         return s_RendererAPI->GetMaxTextureSlots();
+    }
+
+    Ref<TextureCube> Renderer::CreateCubemap(const std::string& filePath)
+    {
+        return s_RendererAPI->CreateCubemap(s_Data.m_CubemapSamplerPipeline, filePath);
+    }
+
+    void Renderer::CreateStaticSky(const std::string &filePath)
+    {
+        s_Data.StaticSkyTextureCube = CreateCubemap(filePath);
     }
 
     void Renderer::CreatePreethamSky(const float turbidity, const float azimuth, const float inclination)

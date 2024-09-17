@@ -6,11 +6,13 @@
 
 #include "PropertyUI.h"
 
+#include <regex>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Chozo {
 
     extern const std::filesystem::path g_AssetsPath;
+    extern const std::regex imagePattern;
 
     SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene> context)
     {
@@ -328,6 +330,58 @@ namespace Chozo {
 
         DrawComponent<SkyLightComponent>("SkyLight", entity, [](auto& component)
         {
+            // Camera types
+            const char* skyLightTypeStrings[] = { "Static", "Dynamic" };
+            const char* currentSkyLightType = skyLightTypeStrings[(int)component.Dynamic];
+            DrawColumnValue<const char*>("SkyLight", currentSkyLightType, [&](auto& target) {
+                if (ImGui::BeginCombo("##SkyLightType", target))
+                {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        bool isSelected = target == skyLightTypeStrings[i];
+                        if (ImGui::Selectable(skyLightTypeStrings[i], isSelected))
+                        {
+                            target = skyLightTypeStrings[i];
+                            bool val = target == "Dynamic";
+                            if (component.Dynamic != val)
+                            {
+                                component.Dynamic = (target == "Dynamic");
+                                component.SceneEnvironment = nullptr;
+                            }
+                        }
+                        
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+
+                    ImGui::EndCombo();
+                }
+            });
+
+            if (!component.Dynamic)
+            {
+                ImGui::Text("%s", component.SourcePath.c_str()); ImGui::SameLine();
+                ImGui::Button("Path");
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                    {
+                        const char* path = (const char*)payload->Data;
+                        CZ_INFO("Drop target: {0}", (char*)path);
+                        std::filesystem::path filePath = std::filesystem::path(path);
+                        std::string fileExtension = filePath.extension().string();
+
+                        if (std::regex_match(fileExtension, imagePattern))
+                        {
+                            std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
+                            component.SourcePath = std::string(texturePath);
+                        }
+                    }
+
+                    ImGui::EndDragDropTarget();
+                }
+            }
+
             DrawColumnValue<float>("Skybox LOD", component.Lod, [&](auto& target) {
                 ImGui::DragFloat("##Skybox LOD", &target, 0.1f, 0.0f, 10.0f);
             });

@@ -79,7 +79,7 @@ namespace Chozo
             case ImageFormat::RG32F: return GL_FLOAT;  // 32-bit float
             case ImageFormat::RGB: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit
             case ImageFormat::RGB8: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit
-            case ImageFormat::RGB16F: return GL_HALF_FLOAT;  // 16-bit float
+            case ImageFormat::RGB16F: return GL_FLOAT;  // 16-bit float
             case ImageFormat::RGBA: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit for 4 channels
             case ImageFormat::RGBA8: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit for 4 channels
             case ImageFormat::RGBA16F: return GL_HALF_FLOAT;  // 16-bit float for 4 channels
@@ -129,24 +129,35 @@ namespace Chozo
     OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const TextureSpecification &spec)
         : m_Spec(spec), m_Path(path)
     {
+        std::filesystem::path filePath = std::filesystem::path((char*)path.c_str());
+        std::string fileExtension = filePath.extension().string();
+        if (fileExtension == ".hdr")
+            m_Spec.HDR = true;
+
         int width, height, channels;
         stbi_set_flip_vertically_on_load(1);
-        stbi_uc* m_DataBuffer = stbi_load(path.c_str(), &width, &height, &channels, 0);
+
+        void* m_DataBuffer;
+        if (m_Spec.HDR)
+            m_DataBuffer = stbi_loadf(path.c_str(), &width, &height, &channels, 0);
+        else
+            m_DataBuffer = stbi_load(path.c_str(), &width, &height, &channels, 0);
         CZ_CORE_ASSERT(m_DataBuffer, "Failed to load image!");
+
         m_Width = width;
         m_Height = height;
 
-        if (channels == 4)
-        {
-            m_InternalFormat = GL_RGBA8;
-            m_DataFormat = GL_RGBA;
-        }
+        if (m_Spec.HDR)
+            m_Spec.Format = ImageFormat::RGB16F;
+        else if (channels == 4)
+            m_Spec.Format = ImageFormat::RGBA8;
         else if (channels == 3)
-        {
-            m_InternalFormat = GL_RGB8;
-            m_DataFormat = GL_RGB;
-        }
+            m_Spec.Format = ImageFormat::RGB8;
+        else if (channels == 1)
+            m_Spec.Format = ImageFormat::RED8UI;
 
+        m_InternalFormat = GetGLFormat(m_Spec.Format);
+        m_DataFormat = GetGLDataFormat(m_Spec.Format);
         m_DataType = GetGLDataType(m_Spec.Format);
 
         CZ_CORE_ASSERT(m_InternalFormat & m_DataFormat, "Format not supported!");

@@ -70,11 +70,12 @@ namespace Chozo
                 ImageFormat::RGB16F,
                 ImageFormat::RGB16F,
                 ImageFormat::RGB16F,
+                // ImageFormat::RED32I,
                 ImageFormat::Depth
             };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
 			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
-            
+
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "Geometry";
 			// pipelineSpec.Shader = skyboxShader;
@@ -130,7 +131,7 @@ namespace Chozo
 			m_PhongLightPass->SetInput("SpotLightData", m_SpotLightUB);
         }
 
-                // Final composite
+        // Final composite
         {
             FramebufferSpecification fbSpec;
             fbSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };

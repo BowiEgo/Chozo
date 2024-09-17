@@ -128,6 +128,43 @@ namespace Chozo {
         });
     }
 
+    Ref<TextureCube> OpenGLRendererAPI::CreateCubemap(Ref<Pipeline> pipeline, const std::string filePath)
+    {
+        CZ_CORE_INFO("CreateCubemap: {}", filePath);
+        OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
+
+        TextureSpecification spec;
+        spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
+        spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
+        Ref<Texture2D> equirectangularMap = Texture2D::Create(filePath, spec);
+
+        TextureSpecification cubemapSpec;
+        cubemapSpec.Format = ImageFormat::RGBA32F;
+        cubemapSpec.Width = pipeline->GetTargetFramebuffer()->GetSpecification().Width;
+        cubemapSpec.Height = pipeline->GetTargetFramebuffer()->GetSpecification().Height;
+        Ref<TextureCube> cubeMap = TextureCube::Create(cubemapSpec);
+
+        pipeline->GetTargetFramebuffer()->Bind();
+        equirectangularMap->Bind();
+        shader->Bind();
+        shader->SetUniform("u_EquirectangularMap", 0);
+
+        for (uint32_t i = 0; i < 6; i++)
+        {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubeMap->GetRendererID(), 0); GCE;
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
+
+            shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
+            shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+
+            DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
+        }
+        pipeline->GetTargetFramebuffer()->Unbind();
+
+        return cubeMap;
+    }
+
     void OpenGLRendererAPI::DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)
     {
         OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
