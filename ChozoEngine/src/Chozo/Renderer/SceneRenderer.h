@@ -64,10 +64,12 @@ namespace Chozo
 
         Ref<RenderPass> GetSkyboxPass() { return m_SkyboxPass; }
         Ref<RenderPass> GetGeometryPass() { return m_GeometryPass; }
+        Ref<RenderPass> GetPhongLightPass() { return m_PhongLightPass; }
         Ref<RenderPass> GetCompositePass() { return m_CompositePass; }
 
         void SkyboxPass();
         void GeometryPass();
+        void PhongLightPass();
         void CompositePass();
 
         void Flush();
@@ -138,6 +140,9 @@ namespace Chozo
 		Ref<RenderPass> m_SkyboxPass;
 
 		Ref<RenderPass> m_GeometryPass;
+
+		Ref<Material> m_PhongLightMaterial;
+		Ref<RenderPass> m_PhongLightPass;
 
 		Ref<Material> m_CompositeMaterial;
         Ref<RenderPass> m_CompositePass;

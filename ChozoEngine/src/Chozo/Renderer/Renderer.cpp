@@ -87,9 +87,12 @@ namespace Chozo {
         s_Data.m_ShaderLibrary->Load("Basic", "../assets/shaders/Basic.glsl.vert", "../assets/shaders/Basic.glsl.frag");
         s_Data.m_ShaderLibrary->Get("Basic")->Bind();
         s_Data.m_ShaderLibrary->Get("Basic")->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
+
+        s_Data.m_ShaderLibrary->Load("Geometry", "../assets/shaders/GBuffer.glsl.vert", "../assets/shaders/GBuffer.glsl.frag");
+
+        s_Data.m_ShaderLibrary->Load("Depth", "../assets/shaders/Basic.glsl.vert", "../assets/shaders/Depth.glsl.frag");
         
-        s_Data.m_ShaderLibrary->Load("Phong", "../assets/shaders/Phong.glsl.vert", "../assets/shaders/Phong.glsl.frag");
-        s_Data.m_ShaderLibrary->Get("Phong")->SetUniformBlockBinding();
+        s_Data.m_ShaderLibrary->Load("PhongLight", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/PhongLight.glsl.frag");
 
         s_Data.m_ShaderLibrary->Load("Skybox", "../assets/shaders/Skybox.glsl.vert", "../assets/shaders/Skybox.glsl.frag");
         s_Data.m_ShaderLibrary->Load("PreethamSky", "../assets/shaders/PreethamSky.glsl.vert", "../assets/shaders/PreethamSky.glsl.frag");

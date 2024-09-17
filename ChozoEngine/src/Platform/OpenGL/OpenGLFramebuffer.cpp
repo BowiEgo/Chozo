@@ -156,7 +156,7 @@ namespace Chozo {
 
     int OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
     {
-        CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is smaller than colorAttachments size");
+        CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is larger than colorAttachments size");
         glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex); GCE;
         int pixelData;
         glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData); GCE;
@@ -165,7 +165,7 @@ namespace Chozo {
 
     void OpenGLFramebuffer::ClearColorAttachmentBuffer(uint32_t attachmentIndex)
     {
-        CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is smaller than colorAttachments size");
+        CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is larger than colorAttachments size");
         Bind();
         glBindTexture(GL_TEXTURE_2D, m_ColorAttachments[attachmentIndex]); GCE;
         // // #ifdef GL_VERSION_4_4
@@ -225,8 +225,11 @@ namespace Chozo {
                     case ImageFormat::RGBA8:
                         Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA8, GL_RGB, GL_UNSIGNED_BYTE, m_Specification.Width, m_Specification.Height, i);
                         break;
+                    case ImageFormat::RGB16F:
+                        Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGB16F, GL_RGB, GL_HALF_FLOAT, m_Specification.Width, m_Specification.Height, i);
+                        break;
                     case ImageFormat::RGBA32F:
-                        Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA32F, GL_RGB, GL_UNSIGNED_BYTE, m_Specification.Width, m_Specification.Height, i);
+                        Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA32F, GL_RGBA, GL_FLOAT, m_Specification.Width, m_Specification.Height, i);
                         break;
                     case ImageFormat::RED32I:
                         Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_R32I, GL_RED_INTEGER, GL_INT, m_Specification.Width, m_Specification.Height, i);
@@ -278,8 +281,8 @@ namespace Chozo {
 
         if (m_ColorAttachments.size() > 1)
         {
-            CZ_CORE_ASSERT(m_ColorAttachments.size() <= 4, "");
-            GLenum buffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+            CZ_CORE_ASSERT(m_ColorAttachments.size() <= 8, "");
+            GLenum buffers[8] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT5, GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7 };
             glDrawBuffers(m_ColorAttachments.size(), buffers); GCE;
         }
         else if (m_ColorAttachments.empty())

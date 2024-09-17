@@ -27,32 +27,6 @@ namespace Chozo
         m_SpotLightUB = UniformBuffer::Create(sizeof(SpotLightsData));
 
 #ifdef CZ_PIPELINE
-        // Final composite
-        {
-            FramebufferSpecification fbSpec;
-            fbSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
-            fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
-            Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
-
-            PipelineSpecification pipelineSpec;
-            pipelineSpec.Layout = {
-                { ShaderDataType::Float3, "a_Position" },
-                { ShaderDataType::Float2, "a_TexCoord" }
-            };
-            pipelineSpec.BackfaceCulling = false;
-            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("SceneComposite");
-            pipelineSpec.TargetFramebuffer = framebuffer;
-            pipelineSpec.DebugName = "SceneComposite";
-            pipelineSpec.DepthWrite = false;
-            pipelineSpec.DepthTest = false;
-			m_CompositeMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
-
-            RenderPassSpecification renderPassSpec;
-            renderPassSpec.DebugName = "SceneComposite";
-            renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
-            m_CompositePass = RenderPass::Create(renderPassSpec);
-        }
-
         // Skybox
         {
 			auto skyboxShader = Renderer::GetShaderLibrary()->Get("Skybox");
@@ -77,7 +51,7 @@ namespace Chozo
 			renderPassSpec.DebugName = "Skybox";
 			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
 			m_SkyboxPass = RenderPass::Create(renderPassSpec);
-			m_SkyboxPass->SetInput("Camera", m_CameraUB);
+			m_SkyboxPass->SetInput("CameraData", m_CameraUB);
 			// m_SkyboxPass->Bake();
         }
 
@@ -86,7 +60,18 @@ namespace Chozo
             // auto skyboxShader = Renderer::GetShaderLibrary()->Get("Geometry");
 
 			FramebufferSpecification fbSpec;
-			fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
+			// fbSpec.Attachments = { ImageFormat::RGB16F, ImageFormat::RGB16F, ImageFormat::RGB16F, ImageFormat::RGB16F, ImageFormat::RGB16F, ImageFormat::RGB16F, ImageFormat::RGB16F, ImageFormat::RED32I, ImageFormat::Depth };
+			fbSpec.Attachments = {
+                ImageFormat::RGB16F,
+                ImageFormat::RGB16F,
+                ImageFormat::RGB16F,
+                ImageFormat::RGB16F,
+                ImageFormat::RGB16F,
+                ImageFormat::RGB16F,
+                ImageFormat::RGB16F,
+                ImageFormat::RGB16F,
+                ImageFormat::Depth
+            };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
 			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
             
@@ -98,14 +83,83 @@ namespace Chozo
             // pipelineSpec.Layout = {
 			// 	{ ShaderDataType::Float3, "a_Position" },
 			// };
-            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Basic");
+            // pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Depth");
 			pipelineSpec.TargetFramebuffer = framebuffer;
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.DebugName = "Geometry";
 			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
 			m_GeometryPass = RenderPass::Create(renderPassSpec);
-			m_GeometryPass->SetInput("Camera", m_CameraUB);
+			m_GeometryPass->SetInput("CameraData", m_CameraUB);
+        }
+
+        // Phong-Light
+        {
+            FramebufferSpecification fbSpec;
+			fbSpec.Attachments = { ImageFormat::RGBA32F };
+			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
+			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+
+			PipelineSpecification pipelineSpec;
+			pipelineSpec.DebugName = "PhongLight";
+            pipelineSpec.DepthWrite = false;
+			pipelineSpec.TargetFramebuffer = framebuffer;
+            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PhongLight");
+			m_PhongLightMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
+            Ref<Texture2D> positionTex = m_GeometryPass->GetOutput(0);
+            Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
+            Ref<Texture2D> ambientTex = m_GeometryPass->GetOutput(3);
+            Ref<Texture2D> diffuseTex = m_GeometryPass->GetOutput(4);
+            Ref<Texture2D> specularTex = m_GeometryPass->GetOutput(5);
+            Ref<Texture2D> metalnessTex = m_GeometryPass->GetOutput(6);
+            Ref<Texture2D> roughnessTex = m_GeometryPass->GetOutput(7);
+            m_PhongLightMaterial->Set("u_PositionTex", positionTex);
+            m_PhongLightMaterial->Set("u_NormalTex", normalTex);
+            m_PhongLightMaterial->Set("u_AmbientTex", ambientTex);
+            m_PhongLightMaterial->Set("u_DiffuseTex", diffuseTex);
+            m_PhongLightMaterial->Set("u_SpecularTex", specularTex);
+            m_PhongLightMaterial->Set("u_MetalnessTex", metalnessTex);
+            m_PhongLightMaterial->Set("u_RoughnessTex", roughnessTex);
+
+			RenderPassSpecification renderPassSpec;
+			renderPassSpec.DebugName = "PhongLight";
+			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
+			m_PhongLightPass = RenderPass::Create(renderPassSpec);
+			m_PhongLightPass->SetInput("SceneData", m_SceneUB);
+			m_PhongLightPass->SetInput("PointLightData", m_PointLightUB);
+			m_PhongLightPass->SetInput("SpotLightData", m_SpotLightUB);
+        }
+
+                // Final composite
+        {
+            FramebufferSpecification fbSpec;
+            fbSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
+            fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
+            Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+
+            PipelineSpecification pipelineSpec;
+            pipelineSpec.Layout = {
+                { ShaderDataType::Float3, "a_Position" },
+                { ShaderDataType::Float2, "a_TexCoord" }
+            };
+            pipelineSpec.BackfaceCulling = false;
+            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("SceneComposite");
+            pipelineSpec.TargetFramebuffer = framebuffer;
+            pipelineSpec.DebugName = "SceneComposite";
+            pipelineSpec.DepthWrite = false;
+            pipelineSpec.DepthTest = false;
+			m_CompositeMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
+            Ref<Texture2D> skyboxTex = m_SkyboxPass->GetOutput(0);
+            Ref<Texture2D> phongLightTex = m_PhongLightPass->GetOutput(0);
+            Ref<Texture2D> depthText = m_GeometryPass->GetOutput(2);
+            m_CompositeMaterial->Set("u_SkyboxTex", skyboxTex);
+            m_CompositeMaterial->Set("u_GeometryTex", phongLightTex);
+            m_CompositeMaterial->Set("u_DepthTex", depthText);
+
+            RenderPassSpecification renderPassSpec;
+            renderPassSpec.DebugName = "SceneComposite";
+            renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
+            m_CompositePass = RenderPass::Create(renderPassSpec);
         }
 #endif
     }
@@ -124,6 +178,7 @@ namespace Chozo
         m_CompositePass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
         m_SkyboxPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
         m_GeometryPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
+        m_PhongLightPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
 
         m_SceneData.SceneCamera = camera;
 		m_SceneData.SceneEnvironment = m_Scene->m_Environment;
@@ -234,7 +289,6 @@ namespace Chozo
     void SceneRenderer::GeometryPass()
     {
 		Renderer::BeginRenderPass(m_CommandBuffer, m_GeometryPass);
-
         for (auto meshData : m_MeshDatas)
         {
             meshData.Material->Set("u_VertUniforms.ModelMatrix", meshData.Transform);
@@ -242,21 +296,20 @@ namespace Chozo
             if (static_cast<DynamicMesh*>(meshData.Mesh.get()))
                 Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), std::dynamic_pointer_cast<DynamicMesh>(meshData.Mesh), meshData.Material);
         }
-
 		Renderer::EndRenderPass(m_CommandBuffer, m_GeometryPass);
+    }
+
+    void SceneRenderer::PhongLightPass()
+    {
+        Renderer::BeginRenderPass(m_CommandBuffer, m_PhongLightPass);
+		Renderer::SubmitFullscreenQuad(m_CommandBuffer, m_PhongLightPass->GetPipeline(), m_PhongLightMaterial);
+		Renderer::EndRenderPass(m_CommandBuffer, m_PhongLightPass);
     }
 
     void SceneRenderer::CompositePass()
     {
 		Renderer::BeginRenderPass(m_CommandBuffer, m_CompositePass);
-
-        Ref<Texture2D> skyboxTex = m_SkyboxPass->GetOutput(0);
-        Ref<Texture2D> geometryTex = m_GeometryPass->GetOutput(0);
-        m_CompositeMaterial->Set("u_SkyboxTex", skyboxTex);
-        m_CompositeMaterial->Set("u_GeometryTex", geometryTex);
-        
 		Renderer::SubmitFullscreenQuad(m_CommandBuffer, m_CompositePass->GetPipeline(), m_CompositeMaterial);
-
 		Renderer::EndRenderPass(m_CommandBuffer, m_CompositePass);
     }
 
@@ -266,7 +319,8 @@ namespace Chozo
 
         SkyboxPass();
         GeometryPass();
-        // CompositePass();
+        PhongLightPass();
+        CompositePass();
 
         m_CommandBuffer->End();
 

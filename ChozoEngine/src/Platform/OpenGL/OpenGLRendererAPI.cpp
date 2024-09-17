@@ -48,7 +48,7 @@ namespace Chozo {
 
     void OpenGLRendererAPI::Clear()
     {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); GCE;
     }
 
     void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
@@ -105,11 +105,6 @@ namespace Chozo {
     {
         commandBuffer->AddCommand([renderPass, this]()
         {
-            OpenGLShader* shader = static_cast<OpenGLShader*>(renderPass->GetPipeline()->GetShader().get());
-            shader->Bind();
-            for (auto item : renderPass->GetUniformBuffers())
-                shader->SetUniformBlockBinding(item.first, item.second->GetBindingPoint());
-
             renderPass->GetTargetFramebuffer()->Bind();
             Clear();
         });

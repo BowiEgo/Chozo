@@ -271,16 +271,22 @@ namespace Chozo {
         {
             TexturePreviewPanel::Open();
             Ref<Texture2D> texture = m_ViewportRenderer->GetSkyboxPass()->GetOutput(0);
-            // Ref<Texture2D> texture = m_Viewport_FBO->GetImage(0);
             TexturePreviewPanel::SetTexture(texture);
         }
 
-        if(ImGui::Button("ShowGeometryTexture"))
+        std::string buttons[8] = {
+            "Position", "Normal", "Depth", "Ambient", "Diffuse", "Specular", "Metalness", "Roughness"
+        };
+
+        for (int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
         {
-            TexturePreviewPanel::Open();
-            Ref<Texture2D> texture = m_ViewportRenderer->GetGeometryPass()->GetOutput(0);
-            // Ref<Texture2D> texture = m_Viewport_FBO->GetImage(0);
-            TexturePreviewPanel::SetTexture(texture);
+            std::string buttonLabel = "ShowGeometryTexture_" + buttons[i];
+            if(ImGui::Button(buttonLabel.c_str()))
+            {
+                TexturePreviewPanel::Open();
+                Ref<Texture2D> texture = m_ViewportRenderer->GetGeometryPass()->GetOutput(i);
+                TexturePreviewPanel::SetTexture(texture);
+            }
         }
 
         // --------------------
@@ -296,8 +302,8 @@ namespace Chozo {
         auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
         m_ViewportSize = ImGui::GetContentRegionAvail();
     
-        uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID(0);
-        // uint32_t textureID = m_ViewportRenderer->GetCompositePass()->GetOutput(0)->GetRendererID();
+        // uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID(0);
+        uint32_t textureID = m_ViewportRenderer->GetCompositePass()->GetOutput(0)->GetRendererID();
         ImGui::Image((ImTextureID)(uintptr_t)textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
         // Viewport bounds
