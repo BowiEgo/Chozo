@@ -42,30 +42,14 @@ struct SpotLight
     float Angle;
 };
 
-layout(std140, binding = 3) uniform SpotLightData
-{
-	uint LightCount;
-	SpotLight Lights[1000];
-} u_SpotLights;
-
-struct Material {
-    vec3 Ambient;
-    vec3 Diffuse;
-    vec3 Specular;
-    float Metalness;
-    float Roughness;
-};
-
 layout(binding = 0) uniform sampler2D u_PositionTex;
 layout(binding = 1) uniform sampler2D u_NormalTex;
-layout(binding = 2) uniform sampler2D u_AmbientTex;
-layout(binding = 3) uniform sampler2D u_DiffuseTex;
-layout(binding = 4) uniform sampler2D u_SpecularTex;
-layout(binding = 5) uniform sampler2D u_MetalnessTex;
-layout(binding = 6) uniform sampler2D u_RoughnessTex;
-layout(binding = 7) uniform samplerCube u_IrradianceMap;
-layout(binding = 8) uniform samplerCube u_PrefilterMap;
-layout(binding = 9) uniform sampler2D u_BRDFLutTex;
+layout(binding = 2) uniform sampler2D u_DiffuseTex;
+layout(binding = 3) uniform sampler2D u_MetalnessTex;
+layout(binding = 4) uniform sampler2D u_RoughnessTex;
+layout(binding = 5) uniform samplerCube u_IrradianceMap;
+layout(binding = 6) uniform samplerCube u_PrefilterMap;
+layout(binding = 7) uniform sampler2D u_BRDFLutTex;
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
@@ -116,19 +100,21 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 // ----------------------------------------------------------------------------
 void main()
 {
+    vec3 gPosition = texture(u_PositionTex, v_TexCoord).rgb;
+    vec3 gNormal = texture(u_NormalTex, v_TexCoord).rgb;
+
     vec3  albedo;
     float metallic;
     float roughness;
     float ao = 1.0;
 
-    vec3 gNormal = texture(u_NormalTex, v_TexCoord).rgb;
-    albedo    = pow(texture(u_DiffuseTex, v_TexCoord).rgb, vec3(2.2));
+    albedo    = texture(u_DiffuseTex, v_TexCoord).rgb;
     metallic  = texture(u_MetalnessTex, v_TexCoord).r;
     roughness = texture(u_RoughnessTex, v_TexCoord).r;
     // ao        = texture(aoMap, v_TexCoord).r;
 
     vec3 N = normalize(gNormal);
-    vec3 V = normalize(u_Scene.CameraPosition - v_FragPosition);
+    vec3 V = normalize(u_Scene.CameraPosition - gPosition);
     vec3 R = reflect(-V, N);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
@@ -138,12 +124,12 @@ void main()
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0; i < min(u_PointLights.LightCount, 1000); ++i)
     {
         // calculate per-light radiance
-        vec3 L = normalize(u_PointLights.Lights[i].Position - v_FragPosition);
+        vec3 L = normalize(u_PointLights.Lights[i].Position - gPosition);
         vec3 H = normalize(V + L);
-        float distance    = length(u_PointLights.Lights[i].Position - v_FragPosition);
+        float distance    = length(u_PointLights.Lights[i].Position - gPosition);
         float attenuation = 1.0 / (distance * distance);
         vec3 radiance     = u_PointLights.Lights[i].Color * attenuation;
 
@@ -187,15 +173,14 @@ void main()
     vec3 irradiance = texture(u_IrradianceMap, N).rgb;
     vec3 diffuse    = irradiance * albedo;
 
-    vec3 specular = vec3(0.0);
-
+    vec3 specularIBL = vec3(0.0);
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 4.0;
     vec3 prefilteredColor = textureLod(u_PrefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
     vec2 brdf  = texture(u_BRDFLutTex, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    specular = vec3(0.5) * (F * brdf.x + brdf.y);
+    specularIBL = prefilteredColor * (F * brdf.x + brdf.y);
 
-    ambient = (kD * diffuse + specular) * ao;
+    ambient = (kD * diffuse + specularIBL) * ao;
 
     vec3 color = ambient + Lo;
 

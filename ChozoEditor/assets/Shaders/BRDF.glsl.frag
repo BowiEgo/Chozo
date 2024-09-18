@@ -111,6 +111,6 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
 // ----------------------------------------------------------------------------
 void main() 
 {
-    vec2 integratedBRDF = IntegrateBRDF(v_TexCoord.x, 1.0 - v_TexCoord.y);
+    vec2 integratedBRDF = IntegrateBRDF(v_TexCoord.x, v_TexCoord.y);
     o_Color = vec4(integratedBRDF, 0.0, 1.0);
 }

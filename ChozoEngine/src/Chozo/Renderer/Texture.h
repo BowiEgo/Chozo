@@ -27,11 +27,27 @@ namespace Chozo {
         uint32_t Samples = 1;
         uint32_t Width = 1, Height = 1;
         bool HDR = false;
+        bool Mipmap = false;
         ImageParameter MinFilter = ImageParameter::LINEAR;
         ImageParameter MagFilter = ImageParameter::NEAREST;
         ImageParameter WrapR = ImageParameter::CLAMP_TO_BORDER;
         ImageParameter WrapS = ImageParameter::CLAMP_TO_BORDER;
         ImageParameter WrapT = ImageParameter::CLAMP_TO_BORDER;
+    };
+
+    struct TextureCubeSpecification
+    {
+        ImageFormat Format = ImageFormat::RGB16F;
+
+        uint32_t Samples = 1;
+        uint32_t Width = 1, Height = 1;
+        bool HDR = false;
+        bool Mipmap = false;
+        ImageParameter MinFilter = ImageParameter::LINEAR;
+        ImageParameter MagFilter = ImageParameter::LINEAR;
+        ImageParameter WrapR = ImageParameter::CLAMP_TO_EDGE;
+        ImageParameter WrapS = ImageParameter::CLAMP_TO_EDGE;
+        ImageParameter WrapT = ImageParameter::CLAMP_TO_EDGE;
     };
 
     class Texture2D : public Texture
@@ -52,7 +68,7 @@ namespace Chozo {
     class TextureCube : public Texture
     {
     public:
-        static Ref<TextureCube> Create(const TextureSpecification& spec = TextureSpecification());
+        static Ref<TextureCube> Create(const TextureCubeSpecification& spec = TextureCubeSpecification());
 
         virtual void SetData(void* data, uint32_t size) = 0;
     };

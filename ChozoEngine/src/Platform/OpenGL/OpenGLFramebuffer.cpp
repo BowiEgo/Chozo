@@ -58,9 +58,8 @@ namespace Chozo {
                 glTexImage2D(GL_TEXTURE_2D, 0, internalformat, width, height, 0, format, type, NULL); GCE;
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); GCE;
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); GCE;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER); GCE;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER); GCE;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); GCE;
             }
 
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, TextureTarget(multisampled), id, 0); GCE;
@@ -256,26 +255,34 @@ namespace Chozo {
 
         if (m_DepthAttachmentSpec.TextureFormat != ImageFormat::None)
         {
-            Utils::CreateTexture(multisampled, &m_DepthAttachment, 1);
-            Utils::BindTexture(multisampled, m_DepthAttachment);
-            switch (m_DepthAttachmentSpec.TextureFormat)
+            if (m_Specification.DepthRenderbuffer)
             {
-                case ImageFormat::DEPTH24STENCIL8:
-                    Utils::AttachDepthTexture(m_DepthAttachment, m_Specification.Samples, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL_ATTACHMENT, m_Specification.Width, m_Specification.Height);
-                    break;
-                default:
-                    break;
-            }
+                glGenRenderbuffers(1, &m_DepthAttachment); GCE;
+                glBindRenderbuffer(GL_RENDERBUFFER, m_DepthAttachment); GCE;
+                glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_Specification.Width, m_Specification.Height); GCE;
+                glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthAttachment); GCE;
+            } else {
+                Utils::CreateTexture(multisampled, &m_DepthAttachment, 1);
+                Utils::BindTexture(multisampled, m_DepthAttachment);
+                switch (m_DepthAttachmentSpec.TextureFormat)
+                {
+                    case ImageFormat::DEPTH24STENCIL8:
+                        Utils::AttachDepthTexture(m_DepthAttachment, m_Specification.Samples, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL_ATTACHMENT, m_Specification.Width, m_Specification.Height);
+                        break;
+                    default:
+                        break;
+                }
 
-            TextureSpecification spec;
-            spec.Samples = m_Specification.Samples;
-            spec.Format = m_DepthAttachmentSpec.TextureFormat;
-            spec.Width = m_Specification.Width;
-            spec.Height = m_Specification.Height;
-            spec.WrapR = ImageParameter::CLAMP_TO_BORDER;
-            spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
-            spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
-            m_DepthAttachmentImage = Texture2D::Create(m_DepthAttachment, spec);
+                TextureSpecification spec;
+                spec.Samples = m_Specification.Samples;
+                spec.Format = m_DepthAttachmentSpec.TextureFormat;
+                spec.Width = m_Specification.Width;
+                spec.Height = m_Specification.Height;
+                spec.WrapR = ImageParameter::CLAMP_TO_BORDER;
+                spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
+                spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
+                m_DepthAttachmentImage = Texture2D::Create(m_DepthAttachment, spec);
+            }
         }
 
         if (m_ColorAttachments.size() > 1)
@@ -315,9 +322,18 @@ namespace Chozo {
         
         if (m_DepthAttachment)
         {
-            glDeleteTextures(1, &m_DepthAttachment); GCE;
+            if (m_Specification.DepthRenderbuffer)
+            {
+                glDeleteRenderbuffers(1, &m_DepthAttachment); GCE;
+            }
+            else
+            {
+                glDeleteTextures(1, &m_DepthAttachment); GCE;
+            }
+
             m_DepthAttachment = 0;
             m_DepthAttachmentImage = nullptr;
+
         }
     }
 

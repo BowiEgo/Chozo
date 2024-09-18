@@ -44,7 +44,7 @@ namespace Chozo
     //////////////////////////////////////////////////////////
     //---------------------Texture Cube---------------------//
     //////////////////////////////////////////////////////////
-    Ref<TextureCube> TextureCube::Create(const TextureSpecification& spec)
+    Ref<TextureCube> TextureCube::Create(const TextureCubeSpecification& spec)
     {
         switch (RendererAPI::GetAPI())
         {

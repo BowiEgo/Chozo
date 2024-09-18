@@ -48,6 +48,7 @@ namespace Chozo
         REPEAT,
         MIRRORED_REPEAT,
         CLAMP_TO_EDGE,
-        CLAMP_TO_BORDER
+        CLAMP_TO_BORDER,
+		LINEAR_MIPMAP_LINEAR,
     };
 }

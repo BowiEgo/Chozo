@@ -38,7 +38,7 @@ namespace Chozo {
     class OpenGLTextureCube : public TextureCube
     {
     public:
-        OpenGLTextureCube(const TextureSpecification& spec);
+        OpenGLTextureCube(const TextureCubeSpecification& spec);
         virtual ~OpenGLTextureCube();
 
         void Invalidate();
@@ -52,7 +52,7 @@ namespace Chozo {
 
         virtual void SetData(void* data, uint32_t size) override;
     private:
-        TextureSpecification m_Spec;
+        TextureCubeSpecification m_Spec;
         uint32_t m_Width, m_Height;
         RendererID m_RendererID;
         void* m_LocalBuffer;

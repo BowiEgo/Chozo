@@ -159,26 +159,6 @@ namespace Chozo
 			pipelineSpec.TargetFramebuffer = framebuffer;
             pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PBR");
 			m_PBRMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
-            Ref<Texture2D> positionTex = m_GeometryPass->GetOutput(0);
-            Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
-            Ref<Texture2D> ambientTex = m_GeometryPass->GetOutput(3);
-            Ref<Texture2D> diffuseTex = m_GeometryPass->GetOutput(4);
-            Ref<Texture2D> specularTex = m_GeometryPass->GetOutput(5);
-            Ref<Texture2D> metalnessTex = m_GeometryPass->GetOutput(6);
-            Ref<Texture2D> roughnessTex = m_GeometryPass->GetOutput(7);
-            Ref<TextureCube> irradianceMap = Renderer::GetIrradianceTextureCube();
-            Ref<TextureCube> prefilterMap = Renderer::GetPrefilteredTextureCube();
-            Ref<Texture2D> brdfLUTTexture = Renderer::GetBRDFLutTexture();
-            m_PBRMaterial->Set("u_PositionTex", positionTex);
-            m_PBRMaterial->Set("u_NormalTex", normalTex);
-            m_PBRMaterial->Set("u_AmbientTex", ambientTex);
-            m_PBRMaterial->Set("u_DiffuseTex", diffuseTex);
-            m_PBRMaterial->Set("u_SpecularTex", specularTex);
-            m_PBRMaterial->Set("u_MetalnessTex", metalnessTex);
-            m_PBRMaterial->Set("u_RoughnessTex", roughnessTex);
-            m_PBRMaterial->Set("u_IrradianceMap", irradianceMap);
-            m_PBRMaterial->Set("u_PrefilterMap", prefilterMap);
-            m_PBRMaterial->Set("u_BRDFLutTex", brdfLUTTexture);
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.DebugName = "PBR";
@@ -188,7 +168,7 @@ namespace Chozo
 			m_PBRPass->SetInput("PointLightData", m_PointLightUB);
 			m_PBRPass->SetInput("SpotLightData", m_SpotLightUB);
 
-            TextureSpecification irrandianceMapSpec;
+            TextureCubeSpecification irrandianceMapSpec;
             irrandianceMapSpec.Width = 32;
             irrandianceMapSpec.Height = 32;
             irrandianceMapSpec.Format = ImageFormat::RGB16F;
@@ -219,10 +199,10 @@ namespace Chozo
 			m_CompositeMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
             Ref<Texture2D> skyboxTex = m_SkyboxPass->GetOutput(0);
             Ref<Texture2D> phongLightTex = m_PhongLightPass->GetOutput(0);
-            // Ref<Texture2D> PBRTex = m_PBRPass->GetOutput(0);
+            Ref<Texture2D> PBRTex = m_PBRPass->GetOutput(0);
             Ref<Texture2D> depthText = m_GeometryPass->GetOutput(2);
             m_CompositeMaterial->Set("u_SkyboxTex", skyboxTex);
-            m_CompositeMaterial->Set("u_GeometryTex", phongLightTex);
+            m_CompositeMaterial->Set("u_GeometryTex", PBRTex);
             m_CompositeMaterial->Set("u_DepthTex", depthText);
 
             RenderPassSpecification renderPassSpec;
@@ -377,19 +357,37 @@ namespace Chozo
 
     void SceneRenderer::PBRPrePass()
     {
-        m_PBRIrradiancePass->GetTargetFramebuffer()->Resize(32, 32);
-		Renderer::BeginRenderPass(m_CommandBuffer, m_PBRIrradiancePass);
+        // m_PBRIrradiancePass->GetTargetFramebuffer()->Resize(32, 32);
+		// Renderer::BeginRenderPass(m_CommandBuffer, m_PBRIrradiancePass);
 
-		const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackTextureCube();
-		m_PBRIrradianceMaterial->Set("u_Texture", radianceMap);
+		// const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackTextureCube();
+		// m_PBRIrradianceMaterial->Set("u_Texture", radianceMap);
         
-		Renderer::SubmitCubeMap(m_CommandBuffer, m_PBRIrradiancePass->GetPipeline(), m_PBRIrradiance, m_PBRIrradianceMaterial);
-		Renderer::EndRenderPass(m_CommandBuffer, m_PBRIrradiancePass);
+		// Renderer::SubmitCubeMap(m_CommandBuffer, m_PBRIrradiancePass->GetPipeline(), m_PBRIrradiance, m_PBRIrradianceMaterial);
+		// Renderer::EndRenderPass(m_CommandBuffer, m_PBRIrradiancePass);
     }
 
     void SceneRenderer::PBRPass()
     {
         Renderer::BeginRenderPass(m_CommandBuffer, m_PBRPass);
+        Ref<Texture2D> positionTex = m_GeometryPass->GetOutput(0);
+        Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
+        Ref<Texture2D> ambientTex = m_GeometryPass->GetOutput(3);
+        Ref<Texture2D> diffuseTex = m_GeometryPass->GetOutput(4);
+        Ref<Texture2D> specularTex = m_GeometryPass->GetOutput(5);
+        Ref<Texture2D> metalnessTex = m_GeometryPass->GetOutput(6);
+        Ref<Texture2D> roughnessTex = m_GeometryPass->GetOutput(7);
+        Ref<TextureCube> irradianceMap = Renderer::GetIrradianceTextureCube();
+        Ref<TextureCube> prefilterMap = Renderer::GetPrefilteredTextureCube();
+        Ref<Texture2D> brdfLUTTexture = Renderer::GetBRDFLutTexture();
+        m_PBRMaterial->Set("u_PositionTex", positionTex);
+        m_PBRMaterial->Set("u_NormalTex", normalTex);
+        m_PBRMaterial->Set("u_DiffuseTex", diffuseTex);
+        m_PBRMaterial->Set("u_MetalnessTex", metalnessTex);
+        m_PBRMaterial->Set("u_RoughnessTex", roughnessTex);
+        m_PBRMaterial->Set("u_IrradianceMap", irradianceMap);
+        m_PBRMaterial->Set("u_PrefilterMap", prefilterMap);
+        m_PBRMaterial->Set("u_BRDFLutTex", brdfLUTTexture);
 		Renderer::SubmitFullscreenQuad(m_CommandBuffer, m_PBRPass->GetPipeline(), m_PBRMaterial);
 		Renderer::EndRenderPass(m_CommandBuffer, m_PBRPass);
     }
@@ -407,8 +405,8 @@ namespace Chozo
 
         SkyboxPass();
         GeometryPass();
-        PhongLightPass();
-        // PBRPass();
+        // PhongLightPass();
+        PBRPass();
         CompositePass();
 
         m_CommandBuffer->End();

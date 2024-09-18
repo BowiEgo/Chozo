@@ -74,7 +74,7 @@ namespace Chozo {
         for (uint32_t i = 0; i < 6; i++)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textureCube->GetRendererID(), 0); GCE;
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textureCube->GetRendererID(), 0); GCE;
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
             shader->Bind();
@@ -173,7 +173,7 @@ namespace Chozo {
         for (uint32_t i = 0; i < 6; i++)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
             shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
@@ -186,15 +186,15 @@ namespace Chozo {
 
     void OpenGLRendererAPI::RenderPrefilteredCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
     {
-        pipeline->GetTargetFramebuffer()->Bind();
-
-        if (material)
-            static_cast<OpenGLMaterial*>(material.get())->Bind();
-
         Ref<Framebuffer> fbo = pipeline->GetTargetFramebuffer();
         OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
-        shader->Bind();
 
+        fbo->Bind();
+        if (material)
+            static_cast<OpenGLMaterial*>(material.get())->Bind();
+        else
+            shader->Bind();
+#if 1
         unsigned int maxMipLevels = 5;
         for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
         {
@@ -202,27 +202,26 @@ namespace Chozo {
             unsigned int mipWidth  = static_cast<unsigned int>(128 * std::pow(0.5, mip));
             unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
 
+            glBindRenderbuffer(GL_RENDERBUFFER, fbo->GetDepthAttachmentRendererID()); GCE;
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight); GCE;
+            glViewport(0, 0, mipWidth, mipHeight); GCE;
+#else
             glBindTexture(GL_TEXTURE_2D, fbo->GetDepthAttachmentRendererID());
             glTexImage2D(GL_TEXTURE_2D, mip, GL_DEPTH_COMPONENT24, mipWidth, mipHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
             glViewport(0, 0, mipWidth, mipHeight);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbo->GetDepthAttachmentRendererID(), mip);
-
-            // glBindRenderbuffer(GL_RENDERBUFFER, m_CaptureRBO);
-            // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
-            // glViewport(0, 0, mipWidth, mipHeight);
-
+#endif
             float roughness = (float)mip / (float)(maxMipLevels - 1);
 
-            shader->Bind();
             shader->SetUniform("u_FragUniforms.Roughness", roughness);
             for (unsigned int i = 0; i < 6; ++i)
             {
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), mip);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), mip); GCE;
 
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
                 shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
                 shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
-
                 DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
             }
         }
@@ -243,7 +242,7 @@ namespace Chozo {
         for (uint32_t i = 0; i < 6; i++)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textureCube->GetRendererID(), 0); GCE;
+                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textureCube->GetRendererID(), 0); GCE;
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
             shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
@@ -266,7 +265,7 @@ namespace Chozo {
             for (uint32_t i = 0; i < 6; i++)
             {
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
+                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
                 pipeline->GetShader()->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);

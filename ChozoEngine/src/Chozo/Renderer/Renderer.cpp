@@ -54,7 +54,7 @@ namespace Chozo {
         uint32_t whiteTextureData = 0xffffffff;
         s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
 
-        TextureSpecification spec;
+        TextureCubeSpecification spec;
 		spec.Format = ImageFormat::RGBA;
 		spec.Width = 1;
 		spec.Height = 1;
@@ -63,8 +63,8 @@ namespace Chozo {
 		s_Data.BlackTextureCube->SetData((void*)&blackCubeTextureData, sizeof(blackCubeTextureData));
         {
             const uint32_t cubemapSize = Renderer::GetConfig().EnvironmentMapResolution;
-            TextureSpecification cubemapSpec;
-            cubemapSpec.Format = ImageFormat::RGBA32F;
+            TextureCubeSpecification cubemapSpec;
+            cubemapSpec.Format = ImageFormat::RGB16F;
             cubemapSpec.Width = cubemapSize;
             cubemapSpec.Height = cubemapSize;
             s_Data.PreethamSkyTextureCube = TextureCube::Create(cubemapSpec);
@@ -76,6 +76,8 @@ namespace Chozo {
 
             cubemapSpec.Width = 128;
             cubemapSpec.Height = 128;
+            cubemapSpec.Mipmap = true;
+            cubemapSpec.MinFilter = ImageParameter::LINEAR_MIPMAP_LINEAR;
             s_Data.PrefilteredTextureCube = TextureCube::Create(cubemapSpec);
         }
 
@@ -177,7 +179,8 @@ namespace Chozo {
             FramebufferSpecification fbSpec;
             fbSpec.Width = 128;
             fbSpec.Height = 128;
-			fbSpec.Attachments = { ImageFormat::RGB16F };
+			fbSpec.Attachments = { ImageFormat::RGB16F, ImageFormat::Depth };
+            fbSpec.DepthRenderbuffer = true;
 			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
             PipelineSpecification prefilteredPipelineSpec;
@@ -402,8 +405,8 @@ namespace Chozo {
         s_Data.m_IrradianceMaterial->Set("u_Texture", s_Data.StaticSkyTextureCube);
         s_RendererAPI->RenderCubemap(s_Data.m_IrradiancePipeline, s_Data.IrradianceTextureCube, s_Data.m_IrradianceMaterial);
 
-        s_Data.m_PrefilteredMaterial->Set("u_Texture", s_Data.PrefilteredTextureCube);
-        s_RendererAPI->RenderCubemap(s_Data.m_PrefilteredPipeline, s_Data.PrefilteredTextureCube, s_Data.m_PrefilteredMaterial);
+        s_Data.m_PrefilteredMaterial->Set("u_Texture", s_Data.StaticSkyTextureCube);
+        s_RendererAPI->RenderPrefilteredCubemap(s_Data.m_PrefilteredPipeline, s_Data.PrefilteredTextureCube, s_Data.m_PrefilteredMaterial);
     }
 
     void Renderer::CreatePreethamSky(const float turbidity, const float azimuth, const float inclination)

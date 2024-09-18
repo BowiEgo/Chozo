@@ -75,7 +75,7 @@ namespace Chozo
             case ImageFormat::RED32UI: return GL_UNSIGNED_INT;  // Unsigned 32-bit integer
             case ImageFormat::RED32F: return GL_FLOAT;  // 32-bit float
             case ImageFormat::RG8: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit for two channels
-            case ImageFormat::RG16F: return GL_HALF_FLOAT;  // 16-bit float (half float)
+            case ImageFormat::RG16F: return GL_FLOAT;  // 16-bit float (half float)
             case ImageFormat::RG32F: return GL_FLOAT;  // 32-bit float
             case ImageFormat::RGB: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit
             case ImageFormat::RGB8: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit
@@ -102,6 +102,7 @@ namespace Chozo
             case ImageParameter::MIRRORED_REPEAT: return GL_MIRRORED_REPEAT;
             case ImageParameter::CLAMP_TO_EDGE: return GL_CLAMP_TO_EDGE;
             case ImageParameter::CLAMP_TO_BORDER: return GL_CLAMP_TO_BORDER;
+            case ImageParameter::LINEAR_MIPMAP_LINEAR: return GL_LINEAR_MIPMAP_LINEAR;
             default: return GL_NONE;
         }
     }
@@ -218,7 +219,7 @@ namespace Chozo
     //////////////////////////////////////////////////////////
     //---------------------Texture Cube---------------------//
     //////////////////////////////////////////////////////////
-    OpenGLTextureCube::OpenGLTextureCube(const TextureSpecification& spec)
+    OpenGLTextureCube::OpenGLTextureCube(const TextureCubeSpecification& spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
         Invalidate();
@@ -230,6 +231,8 @@ namespace Chozo
 
     void OpenGLTextureCube::Invalidate()
     {
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); GCE;
+
         if (m_RendererID)
         {
             glDeleteTextures(1, &m_RendererID); GCE;
@@ -239,13 +242,16 @@ namespace Chozo
         glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID); GCE;
         for (unsigned int i = 0; i < 6; ++i)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, m_Spec.Width, m_Spec.Height, 0, GL_RGB, GL_FLOAT, nullptr); GCE;
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GetGLFormat(m_Spec.Format), m_Spec.Width, m_Spec.Height, 0, GetGLDataFormat(m_Spec.Format), GetGLDataType(m_Spec.Format), nullptr); GCE;
         }
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); GCE;
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); GCE;
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE); GCE;
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR); GCE;
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR); GCE;
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GetGLParameter(m_Spec.WrapS)); GCE;
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GetGLParameter(m_Spec.WrapT)); GCE;
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GetGLParameter(m_Spec.WrapR)); GCE;
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GetGLParameter(m_Spec.MinFilter)); GCE;
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GetGLParameter(m_Spec.MagFilter)); GCE;
+
+        if (m_Spec.Mipmap)
+            glGenerateMipmap(GL_TEXTURE_CUBE_MAP); GCE;
     }
 
     void OpenGLTextureCube::Bind(uint32_t slot) const

@@ -42,6 +42,7 @@ namespace Chozo {
 
 		uint32_t Samples = 1; // multisampling
         bool HDR = false;
+        bool DepthRenderbuffer = false;
 
         // SwapChainTarget = screen buffer (i.e. no framebuffer)
 		bool SwapChainTarget = false;

@@ -184,9 +184,9 @@ namespace Chozo {
 
         if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
         {
-            int pixelID = m_Viewport_FBO->ReadPixel(1, mx, my);
-            m_Entity_Hovered = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
-                ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
+            // int pixelID = m_Viewport_FBO->ReadPixel(1, mx, my);
+            // m_Entity_Hovered = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
+            //     ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
         }
 
         m_Viewport_FBO->Unbind();
@@ -280,7 +280,7 @@ namespace Chozo {
 
         for (int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
         {
-            std::string buttonLabel = "ShowGeometryTexture_" + buttons[i];
+            std::string buttonLabel = buttons[i];
             if(ImGui::Button(buttonLabel.c_str()))
             {
                 TextureViewerPanel::Open();
