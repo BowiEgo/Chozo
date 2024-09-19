@@ -1,43 +1,5 @@
 Scene: Untitled
 Entities:
-  - Entity: 6848148216700735768
-    TagComponent:
-      Tag: Wall2
-    TransformComponent:
-      Translation: [6.07098436, 2.16633034, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 10.9759407, 10.014987]
-    MeshComponent:
-      Type: 0
-      Geometry:
-        Type: 1
-        Width: 1
-        Height: 1
-        Depth: 1
-        WidthSegments: 1
-        HeightSegments: 1
-        DepthSegments: 1
-      Material:
-        Name: Phong
-        u_Material.AmbientColor: [1, 1, 1]
-        u_Material.SpecularColor: [0.5, 0.5, 0.5]
-        u_Material.DiffuseColor: [0.5, 0.5, 0.5]
-        u_Material.AmbientStrength: 0.100000001
-        u_Material.Metalness: 0.232999995
-        u_Material.Roughness: 0.174999997
-  - Entity: 259724390316925222
-    TagComponent:
-      Tag: SkyLight
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SkyLightComponent:
-      Intensity: 1
-      Lod: 0
-      Dynamic: false
-      SourcePath: ../assets/textures/newport_loft.hdr
-      TurbidityAzimuthInclination: [2.74000001, 0, 1.07000005]
   - Entity: 16619928800525008541
     TagComponent:
       Tag: Point Light 3
@@ -69,36 +31,24 @@ Entities:
       Direction: [2, -1, -2]
       Color: [1, 1, 1]
       Intensity: 1
-  - Entity: 10870368272353595086
+  - Entity: 259724390316925222
     TagComponent:
-      Tag: Wall
+      Tag: SkyLight
     TransformComponent:
-      Translation: [0.00408828259, 2.5471909, -5.30611515]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [11.2923126, 4.3965745, 0.200000003]
-    MeshComponent:
-      Type: 0
-      Geometry:
-        Type: 1
-        Width: 1
-        Height: 2.29999995
-        Depth: 3
-        WidthSegments: 1
-        HeightSegments: 1
-        DepthSegments: 1
-      Material:
-        Name: Phong
-        u_Material.AmbientColor: [0.942084968, 0.942084968, 0.942084968]
-        u_Material.SpecularColor: [0.505791545, 0.505791545, 0.505791545]
-        u_Material.DiffuseColor: [0.254826248, 0.254826248, 0.254826248]
-        u_Material.AmbientStrength: 0.100000001
-        u_Material.Metalness: 0.317999989
-        u_Material.Roughness: 0.196999997
+      Scale: [1, 1, 1]
+    SkyLightComponent:
+      Intensity: 1
+      Lod: 0
+      Dynamic: false
+      SourcePath: ../assets/textures/newport_loft.hdr
+      TurbidityAzimuthInclination: [2.74000001, 0, 1.50999999]
   - Entity: 6282163605936880614
     TagComponent:
       Tag: Ball
     TransformComponent:
-      Translation: [0, 0, -0.39902097]
+      Translation: [1.59998524, 0, -0.39902097]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -115,11 +65,11 @@ Entities:
       Material:
         Name: Phong
         u_Material.AmbientColor: [0.760617733, 0.760617733, 0.760617733]
-        u_Material.SpecularColor: [0.772200763, 0.751192331, 0.55455339]
-        u_Material.DiffuseColor: [1, 1, 1]
+        u_Material.SpecularColor: [0.683397651, 0.683397651, 0.683397651]
+        u_Material.DiffuseColor: [0, 0.170957491, 0.471042454]
         u_Material.AmbientStrength: 0.100000001
-        u_Material.Metalness: 0.0649999976
-        u_Material.Roughness: 0.112999998
+        u_Material.Metalness: 0
+        u_Material.Roughness: 0.0930000022
   - Entity: 14286552634676448382
     TagComponent:
       Tag: Point Light 2
@@ -181,3 +131,28 @@ Entities:
         u_Material.AmbientStrength: 0.100000001
         u_Material.Metalness: 0.331999987
         u_Material.Roughness: 0.179000005
+  - Entity: 4243028344171873172
+    TagComponent:
+      Tag: Box
+    TransformComponent:
+      Translation: [-1.51258516, 0, 0.0550541878]
+      Rotation: [0, 0, 0]
+      Scale: [1.29999995, 1.29999995, 1.29999995]
+    MeshComponent:
+      Type: 0
+      Geometry:
+        Type: 1
+        Width: 1
+        Height: 1
+        Depth: 1
+        WidthSegments: 1
+        HeightSegments: 1
+        DepthSegments: 1
+      Material:
+        Name: Phong
+        u_Material.AmbientColor: [1, 1, 1]
+        u_Material.SpecularColor: [0.5, 0.5, 0.5]
+        u_Material.DiffuseColor: [0.424710453, 0, 0]
+        u_Material.AmbientStrength: 0.100000001
+        u_Material.Metalness: 0.907999992
+        u_Material.Roughness: 0.119999997

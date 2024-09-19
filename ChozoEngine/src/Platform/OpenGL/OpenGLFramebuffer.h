@@ -14,7 +14,7 @@ namespace Chozo {
         virtual void Bind() const override;
         virtual void Unbind() const override;
 
-        virtual void Resize(uint32_t width, uint32_t height) override;
+        virtual void Resize(uint32_t width, uint32_t height, int mip = -1) override;
         virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) override;
 
 		virtual RendererID GetRendererID() const override { return m_RendererID; };

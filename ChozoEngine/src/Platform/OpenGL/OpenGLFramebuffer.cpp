@@ -132,7 +132,7 @@ namespace Chozo {
         glBindFramebuffer(GL_FRAMEBUFFER, 0); GCE;
     }
 
-    void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height)
+    void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height, int mip)
     {
         if (width == 0 || height == 0 || width > s_MaxFramebufferSize || height > s_MaxFramebufferSize)
         {
@@ -149,7 +149,19 @@ namespace Chozo {
                 images->Resize(width, height);
 
             if (m_DepthAttachmentImage)
-                m_DepthAttachmentImage->Resize(width, height);
+            {
+                if (m_Specification.DepthRenderbuffer)
+                {
+                    glBindRenderbuffer(GL_RENDERBUFFER, m_DepthAttachment); GCE;
+                    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height); GCE;
+                } else {
+                    m_DepthAttachmentImage->Resize(width, height);
+                    if (mip > -1)
+                        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachment, mip);
+                }
+
+            }
+            glViewport(0, 0, width, height); GCE;
         }
     }
 
@@ -164,6 +176,7 @@ namespace Chozo {
 
     void OpenGLFramebuffer::ClearColorAttachmentBuffer(uint32_t attachmentIndex)
     {
+        return;
         CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is larger than colorAttachments size");
         Bind();
         glBindTexture(GL_TEXTURE_2D, m_ColorAttachments[attachmentIndex]); GCE;

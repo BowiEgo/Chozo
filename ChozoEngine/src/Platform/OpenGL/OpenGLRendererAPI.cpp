@@ -194,25 +194,16 @@ namespace Chozo {
             static_cast<OpenGLMaterial*>(material.get())->Bind();
         else
             shader->Bind();
-#if 1
+
         unsigned int maxMipLevels = 5;
         for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
         {
             // reisze framebuffer according to mip-level size.
             unsigned int mipWidth  = static_cast<unsigned int>(128 * std::pow(0.5, mip));
             unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+            fbo->Resize(mipWidth, mipHeight, mip);
 
-            glBindRenderbuffer(GL_RENDERBUFFER, fbo->GetDepthAttachmentRendererID()); GCE;
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight); GCE;
-            glViewport(0, 0, mipWidth, mipHeight); GCE;
-#else
-            glBindTexture(GL_TEXTURE_2D, fbo->GetDepthAttachmentRendererID());
-            glTexImage2D(GL_TEXTURE_2D, mip, GL_DEPTH_COMPONENT24, mipWidth, mipHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-            glViewport(0, 0, mipWidth, mipHeight);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbo->GetDepthAttachmentRendererID(), mip);
-#endif
             float roughness = (float)mip / (float)(maxMipLevels - 1);
-
             shader->SetUniform("u_FragUniforms.Roughness", roughness);
             for (unsigned int i = 0; i < 6; ++i)
             {
@@ -225,6 +216,7 @@ namespace Chozo {
                 DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
             }
         }
+        fbo->Unbind();
     }
 
     void OpenGLRendererAPI::DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "czpch.h"
+#include <future>
 
 #include "EditorCamera.h"
 #include "RenderCommand.h"
@@ -124,6 +125,7 @@ namespace Chozo {
 		static void Begin();
 		static void End();
         static void Submit(std::function<void()>&& func);
+        static void DebouncedSubmit(std::function<void()>&& func, uint32_t delay = 100);
     private:
         static RendererAPI* s_RendererAPI;
     };

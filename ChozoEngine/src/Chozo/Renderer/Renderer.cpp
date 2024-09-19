@@ -14,6 +14,8 @@ namespace Chozo {
     static Renderer::RendererConfig s_Config;
     static Renderer::RendererData s_Data;
     static std::vector<std::function<void()>> s_RenderCommandQueue;
+    static std::atomic<std::chrono::steady_clock::time_point> s_LastSubmitTime = std::chrono::steady_clock::now();
+    static std::future<void> s_DebounceTask;
 
     RendererAPI* Renderer::s_RendererAPI;
 
@@ -332,6 +334,28 @@ namespace Chozo {
         s_RenderCommandQueue.push_back([func = std::forward<std::function<void()>>(func)]() mutable { func(); });
     }
 
+    void Renderer::DebouncedSubmit(std::function<void()> &&func, uint32_t delay)
+    {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - s_LastSubmitTime.load()).count();
+
+        if (s_DebounceTask.valid())
+            s_DebounceTask.wait();
+
+        if (elapsed < delay)
+        {
+            s_DebounceTask = std::async(std::launch::async, [func = std::move(func), delay]() mutable {
+                std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+                Submit(std::move(func));
+            });
+        }
+        else
+            Submit(std::move(func));
+
+
+        s_LastSubmitTime.store(std::chrono::steady_clock::now());
+    }
+
     Renderer::RendererData Renderer::GetRendererData()
     {
         return s_Data;
@@ -400,22 +424,40 @@ namespace Chozo {
 
     void Renderer::CreateStaticSky(const std::string &filePath)
     {
-        s_RendererAPI->RenderCubemap(s_Data.m_CubemapSamplerPipeline, s_Data.StaticSkyTextureCube, filePath);
+        Submit([filePath](){
+            s_RendererAPI->RenderCubemap(s_Data.m_CubemapSamplerPipeline, s_Data.StaticSkyTextureCube, filePath);
 
-        s_Data.m_IrradianceMaterial->Set("u_Texture", s_Data.StaticSkyTextureCube);
-        s_RendererAPI->RenderCubemap(s_Data.m_IrradiancePipeline, s_Data.IrradianceTextureCube, s_Data.m_IrradianceMaterial);
+            s_Data.m_IrradianceMaterial->Set("u_Texture", s_Data.StaticSkyTextureCube);
+            s_RendererAPI->RenderCubemap(s_Data.m_IrradiancePipeline, s_Data.IrradianceTextureCube, s_Data.m_IrradianceMaterial);
 
-        s_Data.m_PrefilteredMaterial->Set("u_Texture", s_Data.StaticSkyTextureCube);
-        s_RendererAPI->RenderPrefilteredCubemap(s_Data.m_PrefilteredPipeline, s_Data.PrefilteredTextureCube, s_Data.m_PrefilteredMaterial);
+            s_Data.m_PrefilteredMaterial->Set("u_Texture", s_Data.StaticSkyTextureCube);
+            s_RendererAPI->RenderPrefilteredCubemap(s_Data.m_PrefilteredPipeline, s_Data.PrefilteredTextureCube, s_Data.m_PrefilteredMaterial);
+        });
     }
 
     void Renderer::CreatePreethamSky(const float turbidity, const float azimuth, const float inclination)
     {
         s_RendererAPI->CreatePreethamSky(s_Data.m_PreethamSkyPipeline, turbidity, azimuth, inclination);
+
+        Submit([](){
+            s_Data.m_IrradianceMaterial->Set("u_Texture", s_Data.PreethamSkyTextureCube);
+            s_RendererAPI->RenderCubemap(s_Data.m_IrradiancePipeline, s_Data.IrradianceTextureCube, s_Data.m_IrradianceMaterial);
+
+            s_Data.m_PrefilteredMaterial->Set("u_Texture", s_Data.PreethamSkyTextureCube);
+            s_RendererAPI->RenderPrefilteredCubemap(s_Data.m_PrefilteredPipeline, s_Data.PrefilteredTextureCube, s_Data.m_PrefilteredMaterial);
+        });
     }
 
     void Renderer::UpdatePreethamSky(const float turbidity, const float azimuth, const float inclination)
     {
         s_RendererAPI->DrawPreethamSky(s_Data.m_PreethamSkyPipeline, turbidity, azimuth, inclination);
+
+        Submit([](){
+            s_Data.m_IrradianceMaterial->Set("u_Texture", s_Data.PreethamSkyTextureCube);
+            s_RendererAPI->RenderCubemap(s_Data.m_IrradiancePipeline, s_Data.IrradianceTextureCube, s_Data.m_IrradianceMaterial);
+
+            s_Data.m_PrefilteredMaterial->Set("u_Texture", s_Data.PreethamSkyTextureCube);
+            s_RendererAPI->RenderPrefilteredCubemap(s_Data.m_PrefilteredPipeline, s_Data.PrefilteredTextureCube, s_Data.m_PrefilteredMaterial);
+        });
     }
 }
