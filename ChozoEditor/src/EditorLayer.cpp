@@ -44,76 +44,21 @@ namespace Chozo {
 
     void EditorLayer::OnAttach()
     {
-        m_CheckerboardTexture = Texture2D::Create("../assets/textures/checkerboard.png");
-        m_OpenGLLogoTexture = Texture2D::Create("../assets/textures/OpenGL_Logo.png");
         m_IconPlay = Texture2D::Create("../resources/icons/Toolbar/play.png");
         m_IconStop = Texture2D::Create("../resources/icons/Toolbar/stop.png");
-        // --------------------
-        // Viewport
-        // --------------------
-        FramebufferSpecification fbSpec;
-        fbSpec.Attachments = { ImageFormat::RGBA8, ImageFormat::RED32I, ImageFormat::Depth };
-        m_Viewport_FBO = Framebuffer::Create(fbSpec);
-        // m_ID_FBO = Framebuffer::Create(fbSpec);
-
-        PipelineSpecification pipelineSpec;
-        pipelineSpec.TargetFramebuffer = m_Viewport_FBO;
-        m_Pipeline = Pipeline::Create(pipelineSpec);
         // --------------------
         // Scene
         // --------------------
         m_ActiveScene = std::make_shared<Scene>();
-        m_ActiveScene->SetFinalPipeline(m_Pipeline);
 		m_ViewportRenderer = SceneRenderer::Create(m_ActiveScene);
         m_ViewportRenderer->SetActive(true);
         // --------------------
         // Editor Camera
         // --------------------
         m_EditorCamera = EditorCamera(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f);
-#if 0
         // --------------------
-        // Camera entity
+        // Panels
         // --------------------
-        m_Camera_A = m_ActiveScene->CreateEntity("Camera A");
-        m_Camera_A.AddCompoent<CameraComponent>();
-        m_Camera_A.GetComponent<CameraComponent>().Primary = m_Camera_A_Is_Primary;
-        m_Camera_A.GetComponent<TransformComponent>().Translation.z = 6.0f;
-        m_Camera_B = m_ActiveScene->CreateEntity("Camera B");
-        m_Camera_B.AddCompoent<CameraComponent>();
-        m_Camera_B.GetComponent<CameraComponent>().Primary = !m_Camera_A_Is_Primary;
-        m_Camera_B.GetComponent<CameraComponent>().Camera.SetProjectionType(SceneCamera::ProjectionType::Orthographic);
-        m_Camera_B.GetComponent<CameraComponent>().Camera.SetOrthographicFarClip(100.0f);
-        // --------------------
-        // Square entity
-        // --------------------
-        m_Square_Entity = m_ActiveScene->CreateEntity("Orange Square");
-        m_Square_Entity.AddCompoent<SpriteRendererComponent>(glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
-
-        auto greenSquare = m_ActiveScene->CreateEntity("Green Square");
-        greenSquare.AddCompoent<SpriteRendererComponent>(glm::vec4(0.5f, 1.0f, 0.0f, 1.0f));
-        greenSquare.GetComponent<TransformComponent>().Translation.x = 3.0f;
-        greenSquare.GetComponent<TransformComponent>().Translation.z = -6.0f;
-        // --------------------
-        // Square grid entities
-        // --------------------
-        // for (float y = -10.0f; y < 10.0f; y += 0.25f)
-        // {
-        //     for (float x = -10.0f; x < 10.0f; x += 0.25f)
-        //     {
-        //         glm::vec4 color = { (x + 10.0f) / 20.0f, 0.2f, (y + 10.0f) / 20.0f, 1.0f };
-
-        //         Entity entity = m_ActiveScene->CreateEntity("Grid Square");
-        //         glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.22f, 0.22f, 0.0f });
-        //         entity.GetComponent<TransformComponent>().Transform = transform;
-        //         entity.AddCompoent<SpriteRendererComponent>(color);
-        //     }
-        // }
-        // --------------------
-        // Camera controller
-        // --------------------
-        m_Camera_A.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
-        m_Camera_B.AddCompoent<NativeScriptComponent>().Bind<CameraController>();
-#endif
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
         m_EnvironmentPanel.SetContext(m_ActiveScene);
     }
@@ -125,38 +70,9 @@ namespace Chozo {
     void EditorLayer::OnUpdate(Timestep ts)
     {
         // Resize
-        if (FramebufferSpecification spec = m_Viewport_FBO->GetSpecification();
-            m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && // zero size framebuffer is invalid
-            (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
-        {
-            m_Viewport_FBO->Resize(m_ViewportSize.x, m_ViewportSize.y);
-            // m_ID_FBO->Resize(m_ViewportSize.x, m_ViewportSize.y);
-            m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-            m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-            m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-        }
-
-        // Camera control
-        if (m_Camera_A && m_Camera_A.HasComponent<NativeScriptComponent>())
-        {
-            auto nsc_A = m_Camera_A.GetComponent<NativeScriptComponent>();
-            if (nsc_A.Instance)
-                static_cast<CameraController*>(nsc_A.Instance.get())->SetActive(m_ViewportFocused);
-        }
-
-        if (m_Camera_B && m_Camera_B.HasComponent<NativeScriptComponent>())
-        {
-            auto nsc_B = m_Camera_B.GetComponent<NativeScriptComponent>();
-            if (nsc_B.Instance)
-                static_cast<CameraController*>(nsc_B.Instance.get())->SetActive(m_ViewportFocused);
-        }
-
-        // m_Viewport_FBO->Bind();
-        // Renderer2D::ResetStats();
-        // Renderer::ResetStats();
-        // RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-        // RenderCommand::Clear();
-        // m_Viewport_FBO->ClearColorAttachmentBuffer(1, (void*)-1); // clear entity ID attachment to -1
+        m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+        m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
 
         // Update scene
         switch (m_SceneState)
@@ -184,12 +100,11 @@ namespace Chozo {
 
         if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
         {
-            // int pixelID = m_Viewport_FBO->ReadPixel(1, mx, my);
-            // m_Entity_Hovered = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
-            //     ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
+            int pixelID = m_ViewportRenderer->GetGeometryPass()->GetTargetFramebuffer()->ReadPixel(5, mx, my);
+            // CZ_CORE_INFO("{}, {} : {}", mx, my, pixelID);
+            m_Entity_Hovered = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
+                ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
         }
-
-        m_Viewport_FBO->Unbind();
     }
 
     void EditorLayer::OnImGuiRender()
@@ -274,10 +189,9 @@ namespace Chozo {
             TextureViewerPanel::SetTexture(texture);
         }
 
-        std::string buttons[8] = {
-            "Position", "Normal", "Depth", "Ambient", "Diffuse", "Specular", "Metalness", "Roughness"
+        std::string buttons[4] = {
+            "Position", "Normal", "Depth", "Albedo"
         };
-
         for (int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
         {
             std::string buttonLabel = buttons[i];
@@ -285,6 +199,20 @@ namespace Chozo {
             {
                 TextureViewerPanel::Open();
                 Ref<Texture2D> texture = m_ViewportRenderer->GetGeometryPass()->GetOutput(i);
+                TextureViewerPanel::SetTexture(texture);
+            }
+        }
+
+        std::string materialButtons[4] = {
+             "Ambient", "Specular", "Metalness", "Roughness"
+        };
+
+        {
+            std::string buttonLabel = "ID";
+            if(ImGui::Button(buttonLabel.c_str()))
+            {
+                TextureViewerPanel::Open();
+                Ref<Texture2D> texture = m_ViewportRenderer->GetIDPass()->GetOutput(0);
                 TextureViewerPanel::SetTexture(texture);
             }
         }
@@ -332,7 +260,6 @@ namespace Chozo {
         auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
         m_ViewportSize = ImGui::GetContentRegionAvail();
     
-        // uint32_t textureID = m_Viewport_FBO->GetColorAttachmentRendererID(0);
         uint32_t textureID = m_ViewportRenderer->GetCompositePass()->GetOutput(0)->GetRendererID();
         ImGui::Image((ImTextureID)(uintptr_t)textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
@@ -560,10 +487,9 @@ namespace Chozo {
     void EditorLayer::NewScene()
     {
         m_ActiveScene = std::make_shared<Scene>();
-        m_ActiveScene->SetFinalPipeline(m_Pipeline);
         m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-        m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_ViewportRenderer->SetScene(m_ActiveScene);
+        m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
         m_EnvironmentPanel.SetContext(m_ActiveScene);
         m_SceneFileName = "";
@@ -580,10 +506,9 @@ namespace Chozo {
         if (!path.empty())
         {
             m_ActiveScene = std::make_shared<Scene>();
-            m_ActiveScene->SetFinalPipeline(m_Pipeline);
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-            m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
             m_ViewportRenderer->SetScene(m_ActiveScene);
+            m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
             m_SceneHierarchyPanel.SetContext(m_ActiveScene);
             m_EnvironmentPanel.SetContext(m_ActiveScene);
 

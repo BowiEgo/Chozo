@@ -35,8 +35,6 @@ namespace Chozo {
         Entity GetPrimaryCameraEntity();
 
         Ref<Environment> GetEnvironment() { return m_Environment; }
-
-        inline void SetFinalPipeline(Ref<Pipeline>& pipeline) { m_FinalPipeline = pipeline; };
     private:
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
@@ -52,8 +50,6 @@ namespace Chozo {
 		Ref<Environment> m_Environment;
 		float m_EnvironmentIntensity = 0.0f;
 		float m_SkyboxLod = 1.0f;
-
-        Ref<Pipeline> m_FinalPipeline;
 
 		friend class SceneRenderer;
     };

@@ -44,12 +44,11 @@ struct SpotLight
 
 layout(binding = 0) uniform sampler2D u_PositionTex;
 layout(binding = 1) uniform sampler2D u_NormalTex;
-layout(binding = 2) uniform sampler2D u_DiffuseTex;
-layout(binding = 3) uniform sampler2D u_MetalnessTex;
-layout(binding = 4) uniform sampler2D u_RoughnessTex;
-layout(binding = 5) uniform samplerCube u_IrradianceMap;
-layout(binding = 6) uniform samplerCube u_PrefilterMap;
-layout(binding = 7) uniform sampler2D u_BRDFLutTex;
+layout(binding = 2) uniform sampler2D u_AlbedoTex;
+layout(binding = 3) uniform sampler2D u_MaterialPropTex;
+layout(binding = 4) uniform samplerCube u_IrradianceMap;
+layout(binding = 5) uniform samplerCube u_PrefilterMap;
+layout(binding = 6) uniform sampler2D u_BRDFLutTex;
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
@@ -108,9 +107,11 @@ void main()
     float roughness;
     float ao = 1.0;
 
-    albedo    = texture(u_DiffuseTex, v_TexCoord).rgb;
-    metallic  = texture(u_MetalnessTex, v_TexCoord).r;
-    roughness = texture(u_RoughnessTex, v_TexCoord).r;
+    vec4 materialProps = texture(u_MaterialPropTex, v_TexCoord);
+
+    albedo    = texture(u_AlbedoTex, v_TexCoord).rgb;
+    metallic  = materialProps.r;
+    roughness = materialProps.g;
     // ao        = texture(aoMap, v_TexCoord).r;
 
     vec3 N = normalize(gNormal);

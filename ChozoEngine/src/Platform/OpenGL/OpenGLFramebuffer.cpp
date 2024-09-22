@@ -8,7 +8,6 @@
 namespace Chozo {
 
     static const uint32_t s_MaxFramebufferSize = 8192;
-    static std::vector<int> s_IntClearValues(1, -1);
 
     namespace Utils {
 
@@ -42,6 +41,30 @@ namespace Chozo {
         static void AttachColorTexture(RendererID id, int samples, int index)
         {
             bool multisampled = samples > 1;
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, TextureTarget(multisampled), id, 0); GCE;
+        }
+
+        static void AttachColorTexture(RendererID id, TextureSpecification spec, int index)
+        {
+            bool multisampled = spec.Samples > 1;
+
+            GLenum internalformat = GetGLFormat(spec.Format);
+            GLenum dataFormat = GetGLDataFormat(spec.Format);
+            GLenum dataType = GetGLDataType(spec.Format);
+
+            if (multisampled)
+            {
+                glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, spec.Samples, internalformat, spec.Width, spec.Height, GL_FALSE); GCE;
+            }
+            else
+            {
+                glTexImage2D(GL_TEXTURE_2D, 0, internalformat, spec.Width, spec.Height, 0, dataFormat, dataType, NULL); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetGLParameter(spec.MinFilter)); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetGLParameter(spec.MagFilter)); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetGLParameter(spec.WrapS)); GCE;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetGLParameter(spec.WrapT)); GCE;
+            }
 
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, TextureTarget(multisampled), id, 0); GCE;
         }
@@ -144,7 +167,8 @@ namespace Chozo {
         {
             m_Specification.Width = width;
             m_Specification.Height = height;
-            s_IntClearValues = std::vector(width * height, -1);
+            m_IntClearValues = std::vector(width * height, -1);
+            CZ_CORE_INFO("{}, {}: {}", width, height, m_IntClearValues.size());
             for (auto images : m_ColorAttachmentImages)
                 images->Resize(width, height);
 
@@ -167,16 +191,17 @@ namespace Chozo {
 
     int OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
     {
+        Bind();
         CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is larger than colorAttachments size");
         glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex); GCE;
         int pixelData;
         glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData); GCE;
+        Unbind();
         return pixelData;
     }
 
     void OpenGLFramebuffer::ClearColorAttachmentBuffer(uint32_t attachmentIndex)
     {
-        return;
         CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is larger than colorAttachments size");
         Bind();
         glBindTexture(GL_TEXTURE_2D, m_ColorAttachments[attachmentIndex]); GCE;
@@ -186,18 +211,19 @@ namespace Chozo {
         switch (m_ColorAttachmentSpecs[attachmentIndex].TextureFormat)
         {
             case ImageFormat::RGBA8:
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RGB, GL_UNSIGNED_BYTE, s_IntClearValues.data()); GCE;
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RGB, GL_UNSIGNED_BYTE, m_IntClearValues.data()); GCE;
                 break;
             case ImageFormat::RGBA32F:
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RGB, GL_UNSIGNED_BYTE, s_IntClearValues.data()); GCE;
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RGB, GL_UNSIGNED_BYTE, m_IntClearValues.data()); GCE;
                 break;
             case ImageFormat::RED32I:
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RED_INTEGER, GL_INT, s_IntClearValues.data()); GCE;
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Specification.Width, m_Specification.Height, GL_RED_INTEGER, GL_INT, m_IntClearValues.data()); GCE;
                 break;
             default:
                 break;
         }
         glBindTexture(GL_TEXTURE_2D, 0); GCE;
+        Unbind();
     }
 
     void OpenGLFramebuffer::Invalidate()
@@ -231,6 +257,20 @@ namespace Chozo {
 
             for (size_t i = 0; i < m_ColorAttachmentSpecs.size(); i++)
             {
+                TextureSpecification spec;
+                spec.Samples = m_Specification.Samples;
+                spec.Format = m_ColorAttachmentSpecs[i].TextureFormat;
+                spec.Width = m_Specification.Width;
+                spec.Height = m_Specification.Height;
+                if (m_ColorAttachmentSpecs[i].TextureFormat == ImageFormat::RED32I)
+                {
+                    spec.MinFilter = ImageParameter::NEAREST;
+                    spec.MagFilter = ImageParameter::NEAREST;
+                }
+                spec.WrapR = ImageParameter::CLAMP_TO_BORDER;
+                spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
+                spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
+
                 Utils::BindTexture(multisampled, m_ColorAttachments[i]);
                 switch (m_ColorAttachmentSpecs[i].TextureFormat)
                 {
@@ -247,20 +287,12 @@ namespace Chozo {
                         Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA32F, GL_RGBA, GL_FLOAT, m_Specification.Width, m_Specification.Height, i);
                         break;
                     case ImageFormat::RED32I:
-                        Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_R32I, GL_RED_INTEGER, GL_INT, m_Specification.Width, m_Specification.Height, i);
+                        Utils::AttachColorTexture(m_ColorAttachments[i], spec, i);
                         break;
                     default:
                         break;
                 }
 
-                TextureSpecification spec;
-                spec.Samples = m_Specification.Samples;
-                spec.Format = m_ColorAttachmentSpecs[i].TextureFormat;
-                spec.Width = m_Specification.Width;
-                spec.Height = m_Specification.Height;
-                spec.WrapR = ImageParameter::CLAMP_TO_BORDER;
-                spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
-                spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
                 m_ColorAttachmentImages[i] = Texture2D::Create(m_ColorAttachments[i], spec);
             }
 #endif

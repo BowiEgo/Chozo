@@ -18,7 +18,7 @@ namespace Chozo {
         inline float GetDistance() {  return m_Distance; };
         inline void SetDistance(float distance) { m_Distance = distance; }
 
-        inline void SetViewportSize(float width, float height) { m_ViewportWidth = width; m_ViewportHeight = height; UpdateProjection(); }
+        void SetViewportSize(float width, float height);
 
         const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
         glm::mat4 GetViewProjectionMatrix() const { return m_ProjectionMatrix * m_ViewMatrix; }

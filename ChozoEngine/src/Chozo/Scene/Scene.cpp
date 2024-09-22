@@ -48,18 +48,20 @@ namespace Chozo {
 
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
     {
-        Ref<Framebuffer> FBO = m_FinalPipeline->GetTargetFramebuffer();
-        FBO->Bind();
-        Renderer2D::ResetStats();
-        Renderer::ResetStats();
-        RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-        RenderCommand::Clear();
-        FBO->ClearColorAttachmentBuffer(1); // clear entity ID attachment to -1
+        // Ref<Framebuffer> FBO = m_FinalPipeline->GetTargetFramebuffer();
+        // FBO->Bind();
+        // Renderer2D::ResetStats();
+        // Renderer::ResetStats();
+        // RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+        // RenderCommand::Clear();
+        // FBO->ClearColorAttachmentBuffer(1); // clear entity ID attachment to -1
 
         Ref<SceneRenderer> renderer = SceneRenderer::Find(this);
         if (!renderer)
             return;
 
+        // renderer->GetGeometryPass()->GetTargetFramebuffer()->ClearColorAttachmentBuffer(5);
+        
         // Skylight
         {
             auto group = m_Registry.group<SkyLightComponent>(entt::get<TransformComponent>);
@@ -131,7 +133,7 @@ namespace Chozo {
         }
 
         // 3D Renderer
-        FBO->Bind();
+        // FBO->Bind();
         renderer->BeginScene(camera);
 
         // Draw meshes
@@ -199,14 +201,14 @@ namespace Chozo {
 
     void Scene::OnUpdateRuntime(Timestep ts)
     {
-        Ref<Framebuffer> FBO = m_FinalPipeline->GetTargetFramebuffer();
-        FBO->Bind();
-        Renderer2D::ResetStats();
-        Renderer::ResetStats();
-        RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-        RenderCommand::Clear();
-        int clearValue = -1;
-        FBO->ClearColorAttachmentBuffer(1); // clear entity ID attachment to -1
+        // Ref<Framebuffer> FBO = m_FinalPipeline->GetTargetFramebuffer();
+        // FBO->Bind();
+        // Renderer2D::ResetStats();
+        // Renderer::ResetStats();
+        // RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
+        // RenderCommand::Clear();
+        // int clearValue = -1;
+        // FBO->ClearColorAttachmentBuffer(1); // clear entity ID attachment to -1
         
         // Update scripts
         {
@@ -302,6 +304,10 @@ namespace Chozo {
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)
     {
+        bool inValid = width <= 0.0f || height <= 0.0f;
+        if (inValid || (m_ViewportWidth == width && m_ViewportHeight == height))
+            return;
+
         m_ViewportWidth = width;
         m_ViewportHeight = height;
 

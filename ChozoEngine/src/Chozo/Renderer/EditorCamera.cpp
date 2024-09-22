@@ -41,6 +41,17 @@ namespace Chozo {
         dispatcher.Dispatch<MouseScrolledEvent>(CZ_BIND_EVENT_FN(EditorCamera::OnMouseScroll));
     }
 
+    void EditorCamera::SetViewportSize(float width, float height)
+    {
+        bool inValid = width <= 0.0f || height <= 0.0f;
+        if (inValid || (m_ViewportWidth == width && m_ViewportHeight == height))
+            return;
+
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+        UpdateProjection();
+    }
+
     glm::vec3 EditorCamera::GetUpDirection() const
     {
         return glm::rotate(GetOrientation(), glm::vec3(0.0f, 1.0f, 0.0f));

@@ -105,7 +105,9 @@ namespace Chozo {
     {
         commandBuffer->AddCommand([renderPass, this]()
         {
-            renderPass->GetTargetFramebuffer()->Bind();
+            Ref<Framebuffer> fbo = renderPass->GetTargetFramebuffer();
+            fbo->Bind();
+            SetClearColor(fbo->GetSpecification().ClearColor);
             Clear();
         });
     }

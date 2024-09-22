@@ -49,20 +49,17 @@ layout(std140, binding = 3) uniform SpotLightData
 } u_SpotLights;
 
 struct Material {
-    vec3 Ambient;
     vec3 Diffuse;
-    vec3 Specular;
     float Metalness;
     float Roughness;
+    float Ambient;
+    float Specular;
 };
 
 layout(binding = 0) uniform sampler2D u_PositionTex;
 layout(binding = 1) uniform sampler2D u_NormalTex;
-layout(binding = 2) uniform sampler2D u_AmbientTex;
-layout(binding = 3) uniform sampler2D u_DiffuseTex;
-layout(binding = 4) uniform sampler2D u_SpecularTex;
-layout(binding = 5) uniform sampler2D u_MetalnessTex;
-layout(binding = 6) uniform sampler2D u_RoughnessTex;
+layout(binding = 2) uniform sampler2D u_AlbedoTex;
+layout(binding = 3) uniform sampler2D u_MaterialPropTex;
 
 float Constant = 1.0;
 float Linear = 0.09f;
@@ -80,7 +77,7 @@ vec3 calcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, Material ma
     float spec = pow(max(dot(normal, halfDir), 0.0), shininess);
 
     float fresnelFactor = pow(1.0 - max(dot(viewDir, normal), 0.0), 5.0);
-    vec3 specular = mix(material.Specular, vec3(1.0), fresnelFactor);
+    vec3 specular = mix(vec3(material.Specular), vec3(1.0), fresnelFactor);
 
     vec3 result = mix(diffuse, specular, material.Metalness) * light.Color * light.Intensity;
     result += specular * spec * (1.0 - material.Metalness);
@@ -97,7 +94,7 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, M
 
     float shininess = (1.01 - material.Roughness) * 128.0;
     float spec = pow(max(dot(normal, halfDir), 0.0), shininess);
-    vec3 specular = spec * material.Specular;
+    vec3 specular = spec * vec3(material.Specular);
 
     float distance    = length(light.Position - fragPos);
     float attenuation = 1.0 / (Constant + Linear * distance + 
@@ -120,7 +117,7 @@ vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, Mat
 
     float shininess = (1.01 - material.Roughness) * 128.0;
     float spec = pow(max(dot(normal, halfDir), 0.0), shininess);
-    vec3 specular = spec * material.Specular;
+    vec3 specular = spec * vec3(material.Specular);
 
     float distance = length(light.Position - fragPos);
     float theta = dot(lightDir, -spotDir);
@@ -147,11 +144,13 @@ void main()
 
     vec3 gPosition = texture(u_PositionTex, v_TexCoord).rgb;
     vec3 gNormal = texture(u_NormalTex, v_TexCoord).rgb;
-    vec3 gAmbient = texture(u_AmbientTex, v_TexCoord).rgb;
-    vec3 gDiffuse = texture(u_DiffuseTex, v_TexCoord).rgb;
-    vec3 gSpecular = texture(u_SpecularTex, v_TexCoord).rgb;
-    float gMetalness = texture(u_MetalnessTex, v_TexCoord).r;
-    float gRoughness = texture(u_RoughnessTex, v_TexCoord).r;
+    vec3 gDiffuse = texture(u_AlbedoTex, v_TexCoord).rgb;
+    vec4 gMaterialProps = texture(u_MaterialPropTex, v_TexCoord);
+
+    float gMetalness = gMaterialProps.r;
+    float gRoughness = gMaterialProps.g;
+    float gAmbient = gMaterialProps.b;
+    float gSpecular = gMaterialProps.a;
 
     Material material;
     material.Diffuse = gDiffuse;
@@ -170,7 +169,7 @@ void main()
     for(int i = 0; i < u_SpotLights.LightCount; i++)
         spotLights += calcSpotLight(u_SpotLights.Lights[i], normal, gPosition, viewDirection, material);
 
-    finalLight = gAmbient + directionalLight + pointLights + spotLights;
+    finalLight = vec3(gAmbient) + directionalLight + pointLights + spotLights;
 
     o_Color = vec4(finalLight, 1.0);
 }

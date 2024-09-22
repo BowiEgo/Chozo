@@ -44,5 +44,7 @@ namespace Chozo {
 
 		std::vector<Ref<Texture2D>> m_ColorAttachmentImages;
 		Ref<Texture2D> m_DepthAttachmentImage;
+
+        std::vector<int> m_IntClearValues = { -1 };
     };
 }

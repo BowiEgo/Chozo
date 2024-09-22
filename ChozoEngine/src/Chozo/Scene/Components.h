@@ -97,12 +97,12 @@ namespace Chozo {
             if (!MaterialInstance)
             {
                 MaterialInstance = Material::Create("Phong");
-                MaterialInstance->Set("u_Material.AmbientColor", glm::vec3(1.0f, 1.0f, 1.0f));
-                MaterialInstance->Set("u_Material.DiffuseColor", glm::vec3(0.5f, 0.5f, 0.5f));
-                MaterialInstance->Set("u_Material.SpecularColor", glm::vec3(0.5f, 0.5f, 0.5f));
-                MaterialInstance->Set("u_Material.AmbientStrength", 0.1f);
+                MaterialInstance->Set("u_Material.Albedo", glm::vec3(0.5f, 0.5f, 0.5f));
                 MaterialInstance->Set("u_Material.Metalness", 0.5f);
                 MaterialInstance->Set("u_Material.Roughness", 0.5f);
+                MaterialInstance->Set("u_Material.Ambient", 1.0f);
+                MaterialInstance->Set("u_Material.AmbientStrength", 0.1f);
+                MaterialInstance->Set("u_Material.Specular", 0.5f);
             }
 
             GenerateMeshInstance();

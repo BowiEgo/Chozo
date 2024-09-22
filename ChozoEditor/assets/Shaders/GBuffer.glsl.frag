@@ -3,12 +3,9 @@
 layout(location = 0) out vec4 o_Position;
 layout(location = 1) out vec4 o_Normal;
 layout(location = 2) out vec4 o_Depth;
-layout(location = 3) out vec4 o_Ambient;
-layout(location = 4) out vec4 o_Diffuse;
-layout(location = 5) out vec4 o_Specular;
-layout(location = 6) out vec4 o_Metalness;
-layout(location = 7) out vec4 o_Roughness;
-// layout(location = 8) out int o_EntityID;
+layout(location = 3) out vec4 o_Albedo;
+layout(location = 4) out vec4 o_MaterialProperties;
+layout(location = 5) out int o_EntityID;
 
 layout(location = 0) in vec3 v_Normal;
 layout(location = 1) in vec2 v_TexCoord;
@@ -17,12 +14,12 @@ layout(location = 3) in flat int v_EntityID;
 
 layout(push_constant) uniform FragUniforms
 {
-    vec3 AmbientColor;
-    vec3 DiffuseColor;
-    vec3 SpecularColor;
-    float AmbientStrength;
+    vec3 Albedo;
     float Metalness;
     float Roughness;
+    float Ambient;
+    float AmbientStrength;
+    float Specular;
 } u_Material;
 
 float near = 0.1;
@@ -36,17 +33,15 @@ float LinearizeDepth(float depth)
 
 void main()
 {
-    float alpha = v_EntityID == -1 ? 0.0 : 1.0;
     float depth = LinearizeDepth(pow(gl_FragCoord.z, 0.3)) / far;
 
     o_Position = vec4(v_FragPosition, 1.0);
     o_Normal = vec4(normalize(v_Normal), 1.0);
     o_Depth = vec4(vec3(depth), 1.0);
-    o_Ambient = vec4(u_Material.AmbientColor * u_Material.AmbientStrength, 1.0);
-    o_Diffuse = vec4(u_Material.DiffuseColor, 1.0);
-    o_Specular = vec4(u_Material.SpecularColor, 1.0);
-    o_Metalness = vec4(vec3(u_Material.Metalness), 1.0);
-    o_Roughness = vec4(vec3(u_Material.Roughness), 1.0);
-
-    // o_EntityID = v_EntityID;
+    o_Albedo = vec4(u_Material.Albedo, 1.0);
+    o_MaterialProperties.r = u_Material.Metalness;
+    o_MaterialProperties.g = u_Material.Roughness;
+    o_MaterialProperties.b = u_Material.Ambient * u_Material.AmbientStrength;
+    o_MaterialProperties.a = u_Material.Specular;
+    o_EntityID = v_EntityID;
 }
