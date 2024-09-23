@@ -26,8 +26,13 @@ namespace Chozo {
         virtual void OnImGuiRender() override;
         virtual void OnEvent(Event& e) override;
     private:
+        Entity PickEntity(uint32_t mx, uint32_t my);
+
+        void OnDragAndDrop();
+
         bool OnKeyPressed(KeyPressedEvent& e);
         bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+        bool OnMouseButtonReleased(MouseButtonReleasedEvent& e);
 
         std::pair<float, float> GetMouseViewportSpace();
         
@@ -62,7 +67,7 @@ namespace Chozo {
         int m_GizmoType = ImGuizmo::OPERATION::TRANSLATE; // -1 = no gizmo
 		int m_GizmoMode = 0; // 0 = local
 
-        Entity m_Entity_Hovered;
+        Entity m_Entity_Selected;
 
         enum class SceneState
         {

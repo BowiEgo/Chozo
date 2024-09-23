@@ -5,6 +5,8 @@
 #include "Chozo/Core/UUID.h"
 
 #include "entt.hpp"
+#include "spdlog/spdlog.h"
+#include "spdlog/fmt/ostr.h"
 
 namespace Chozo
 {
@@ -63,4 +65,28 @@ namespace Chozo
         entt::entity m_EntityHandle{ entt::null };
         Scene* m_Scene = nullptr;
     };
+
+    inline std::ostream& operator<<(std::ostream& os, const Entity& entity)
+    {
+        os << (char)(uint64_t)entity;
+        return os;
+    }
+
 }
+
+#if FMT_VERSION >= 90000
+namespace fmt {
+    template <>
+    struct formatter<Chozo::Entity> {
+        // This parses the format specifications (if any) for Entity, which we don't use in this case
+        constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+        // This formats the Entity for output
+        template <typename FormatContext>
+        auto format(const Chozo::Entity& entity, FormatContext& ctx) {
+            // Use the Entity's conversion operator to uint64_t, and then format it
+            return format_to(ctx.out(), "{}", (uint64_t)entity);
+        }
+    };
+}
+#endif

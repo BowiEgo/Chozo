@@ -45,8 +45,8 @@ namespace Chozo
         inline bool IsBufferChanged() { return m_Is_Buffer_Changed; }
         inline void SetBufferChanged(bool changed) { m_Is_Buffer_Changed = changed; }
 
-        inline uint64_t GetEntityID() const { return m_EntityID; }
-        inline void SetEntityID(uint64_t id) { m_EntityID = id; }
+        inline uint64_t GetEntityID() const { return m_EntityID - 1; }
+        inline void SetEntityID(uint64_t id) { m_EntityID = id + 1; }
 
         void CallGenerate();
         void AfterGenerate(bool successed);

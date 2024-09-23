@@ -90,21 +90,6 @@ namespace Chozo {
                 break;
             }
         }
-
-        auto [mx, my] = ImGui::GetMousePos();
-        mx -= m_ViewportBounds[0].x;
-        my -= m_ViewportBounds[0].y;
-        auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
-        auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
-        my = viewportHeight - my;
-
-        if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
-        {
-            int pixelID = m_ViewportRenderer->GetGeometryPass()->GetTargetFramebuffer()->ReadPixel(5, mx, my);
-            // CZ_CORE_INFO("{}, {} : {}", mx, my, pixelID);
-            m_Entity_Hovered = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
-                ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
-        }
     }
 
     void EditorLayer::OnImGuiRender()
@@ -177,8 +162,8 @@ namespace Chozo {
         ImGui::Text("Vertices: %d", Renderer::GetStats().GetTotalVerticesCount());
 
         std::string entityName = "Null";
-        if (m_Entity_Hovered)
-            entityName = m_Entity_Hovered.GetComponent<TagComponent>().Tag;
+        if (m_Entity_Selected)
+            entityName = m_Entity_Selected.GetComponent<TagComponent>().Tag;
         ImGui::Text("EntityHoverd: %s", entityName.c_str());
         ImGui::Separator();
 
@@ -277,24 +262,7 @@ namespace Chozo {
         // Drag and drop
         if (ImGui::BeginDragDropTarget())
         {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-            {
-                const wchar_t* path = (const wchar_t*)payload->Data;
-                CZ_INFO("Drop target: {0}", (char*)path);
-                std::filesystem::path filePath = std::filesystem::path((char*)path);
-                std::string fileExtension = filePath.extension().string();
-                if (std::regex_match(fileExtension, imagePattern))
-                {
-                    if (m_Entity_Hovered)
-                    {
-                        std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
-                        m_Entity_Hovered.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
-                    }
-                }
-                else
-                    OpenScene(g_AssetsPath / std::filesystem::path((char*)path));
-            }
-
+            OnDragAndDrop();
             ImGui::EndDragDropTarget();
         }
 
@@ -411,6 +379,51 @@ namespace Chozo {
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<KeyPressedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
         dispatcher.Dispatch<MouseButtonPressedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
+        dispatcher.Dispatch<MouseButtonReleasedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnMouseButtonReleased));
+    }
+
+    Entity EditorLayer::PickEntity(uint32_t mx, uint32_t my)
+    {
+        Entity entity;
+
+        mx -= m_ViewportBounds[0].x;
+        my -= m_ViewportBounds[0].y;
+        auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
+        auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
+        my = viewportHeight - my;
+
+        if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
+        {
+            int pixelID = m_ViewportRenderer->GetGeometryPass()->GetTargetFramebuffer()->ReadPixel(5, mx, my) - 1;
+            entity = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
+                ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
+        }
+
+        return entity;
+    }
+
+    void EditorLayer::OnDragAndDrop()
+    {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+        {
+            const wchar_t* path = (const wchar_t*)payload->Data;
+            CZ_INFO("Drop target: {0}", (char*)path);
+            std::filesystem::path filePath = std::filesystem::path((char*)path);
+            std::string fileExtension = filePath.extension().string();
+            if (std::regex_match(fileExtension, imagePattern))
+            {
+                auto [mx, my] = ImGui::GetMousePos();
+                Entity entity = PickEntity(mx, my);
+                CZ_CORE_INFO("{}", entity);
+                if (entity)
+                {
+                    std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
+                    // m_Entity_Selected.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
+                }
+            }
+            else
+                OpenScene(g_AssetsPath / std::filesystem::path((char*)path));
+        }
     }
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent &e)
@@ -463,10 +476,16 @@ namespace Chozo {
 
     bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent &e)
     {
+        return false;
+    }
+
+    bool EditorLayer::OnMouseButtonReleased(MouseButtonReleasedEvent &e)
+    {
         if (e.GetMouseButton() == MouseButton::Left && !Input::IsKeyPressed(Key::LeftAlt) && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && m_ViewportHovered && m_AllowViewportCameraEvents)
         {
-            m_SceneHierarchyPanel.SetSelectedEntity(m_Entity_Hovered);
-
+            auto [mx, my] = ImGui::GetMousePos();
+            m_Entity_Selected = PickEntity(mx, my);
+            m_SceneHierarchyPanel.SetSelectedEntity(m_Entity_Selected);
             return true;
         }
 

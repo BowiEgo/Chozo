@@ -168,7 +168,6 @@ namespace Chozo {
             m_Specification.Width = width;
             m_Specification.Height = height;
             m_IntClearValues = std::vector(width * height, -1);
-            CZ_CORE_INFO("{}, {}: {}", width, height, m_IntClearValues.size());
             for (auto images : m_ColorAttachmentImages)
                 images->Resize(width, height);
 
