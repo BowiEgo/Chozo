@@ -12,13 +12,16 @@ namespace Chozo {
         OpenGLMaterial(const Ref<Material>& material, const std::string& name);
         virtual ~OpenGLMaterial() override;
 
+        virtual void Set(const std::string& name, const std::string& sourcePath) override;
         virtual void Set(const std::string& name, const UniformValue& value) override;
 		virtual void Set(const std::string& name, const Ref<Texture>& texture) override;
+
 
 		virtual std::string GetName() override { return m_Name; }
 		virtual Ref<Shader> GetShader() override { return m_Shader; }
 
-        virtual std::unordered_map<std::string, UniformValue> GetUniforms() override { return m_Uniforms; }
+        virtual std::map<std::string, UniformValue> GetUniforms() override { return m_Uniforms; }
+        virtual inline std::string GetUniromSourcePath(const std::string& name) override { return m_UniformSourcePaths[name]; }
 
         void Bind();
         void BindTextures();
@@ -26,7 +29,8 @@ namespace Chozo {
     private:
         Ref<OpenGLShader> m_Shader;
 		std::string m_Name;
-        std::unordered_map<std::string, UniformValue> m_Uniforms;
+        std::map<std::string, UniformValue> m_Uniforms;
+        std::unordered_map<std::string, std::string> m_UniformSourcePaths;
         std::vector<Ref<Texture>> m_TextureSlots;
         uint32_t m_TextureSlotIndex = 0;
     };

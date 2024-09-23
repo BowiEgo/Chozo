@@ -7,6 +7,11 @@
 
 #include <vector>
 
+namespace Chozo {
+
+    extern const std::filesystem::path g_AssetsPath;
+}
+
 namespace Chozo::UI {
 
     class ScopedStyle
@@ -227,4 +232,25 @@ namespace Chozo::UI {
 	{
 		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 	};
+
+	//=========================================================================================
+	/// FileButton
+
+	static void FileButton(std::string* filePath)
+	{
+		ImGui::Button("...", ImVec2(40.0f, 0.0f));
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+			{
+				const wchar_t* path = (const wchar_t*)payload->Data;
+				std::filesystem::path fullPath = g_AssetsPath / std::filesystem::path((char*)path);
+
+            	CZ_INFO("FileButton: {0}", fullPath.string().c_str());
+				*filePath = fullPath.string();
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+	}
 }

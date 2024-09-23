@@ -3,6 +3,7 @@
 #include  "Chozo/Renderer/Geometry/Geometry.h"
 #include  "Chozo/Renderer/Geometry/BoxGeometry.h"
 #include  "Chozo/Renderer/Geometry/SphereGeometry.h"
+#include "Chozo/ImGui/ImGuiUI.h"
 
 #include "PropertyUI.h"
 
@@ -583,29 +584,39 @@ namespace Chozo {
                 if (std::holds_alternative<glm::vec4>(pair.second))
                 {
                     glm::vec4& value = std::get<glm::vec4>(pair.second);
-                    DrawColumnValue<glm::vec4>(name, value, [&](auto& target) {
-                        if (pair.first.find("Color") > 0 || pair.first.find("Albedo"))
-                        {
+                    if (pair.first.find("Color") > 0 || pair.first.find("Albedo"))
+                    {
+                        DrawColumnValue<glm::vec4>(name, value, [&](auto& target) {
                             if (ImGui::ColorEdit4(("##" + name).c_str(), glm::value_ptr(target)))
                                 material->Set(pair.first, value);
-                        }
-                    });
+                        });
+                    }
                 }
                 else if (std::holds_alternative<glm::vec3>(pair.second))
                 {
                     glm::vec3& value = std::get<glm::vec3>(pair.second);
-                    DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
-                        if (pair.first.find("Color") > 0 || pair.first.find("Albedo"))
-                        {
+                    if (pair.first.find("Color") > 0 || pair.first.find("Albedo"))
+                    {
+                        DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
                             if (ImGui::ColorEdit3(("##" + name).c_str(), glm::value_ptr(target)))
                                 material->Set(pair.first, value);
-                        }
-                        else
-                        {
+                        });
+
+                        // if (pair.first.find("Albedo") > 0)
+                        // {
+                        //     std::string filePath = material->GetUniromSourcePath("u_AlbedoTex");
+                        //     UI::FileButton(&filePath);
+                        //     material->Set("u_AlbedoTex", filePath);
+                        //     ImGui::SameLine(); ImGui::Text("%s", filePath.c_str());
+                        // }
+                    }
+                    else
+                    {
+                        DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
                             if (DrawVec3Control("##" + name, target))
                                 material->Set(pair.first, value);
-                        }
-                    });
+                        });
+                    }
                 }
                 else if (std::holds_alternative<float>(pair.second))
                 {

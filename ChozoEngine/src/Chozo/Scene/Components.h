@@ -98,6 +98,7 @@ namespace Chozo {
             {
                 MaterialInstance = Material::Create("Phong");
                 MaterialInstance->Set("u_Material.Albedo", glm::vec3(0.5f, 0.5f, 0.5f));
+                MaterialInstance->Set("u_AlbedoTex", "");
                 MaterialInstance->Set("u_Material.Metalness", 0.5f);
                 MaterialInstance->Set("u_Material.Roughness", 0.5f);
                 MaterialInstance->Set("u_Material.Ambient", 1.0f);

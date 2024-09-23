@@ -22,6 +22,13 @@ layout(push_constant) uniform FragUniforms
     float Specular;
 } u_Material;
 
+layout(binding = 0) uniform sampler2D u_NormalTex;
+layout(binding = 1) uniform sampler2D u_AlbedoTex;
+layout(binding = 2) uniform sampler2D u_MetalnessTex;
+layout(binding = 3) uniform sampler2D u_RoughnessTex;
+layout(binding = 4) uniform sampler2D u_AmbientTex;
+layout(binding = 5) uniform sampler2D u_SpecularTex;
+
 float near = 0.1;
 float far  = 20.0;
 
