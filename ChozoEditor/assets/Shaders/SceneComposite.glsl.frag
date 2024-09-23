@@ -11,13 +11,19 @@ layout(binding = 2) uniform sampler2D u_DepthTex;
 void main()
 {
     vec3 color = vec3(0.0);
+    float alpha = 1.0;
     float depth = 0.0;
     depth = texture(u_DepthTex, v_TexCoord).r;
 
-    if (depth > 0.1)
+    if (depth > 0.0)
         color = texture(u_GeometryTex, v_TexCoord).rgb;
     else
-        color = texture(u_SkyboxTex, v_TexCoord).rgb;
+    {
+        vec4 env = texture(u_SkyboxTex, v_TexCoord);
+        color = env.rgb;
+        if (env.a == 0)
+            alpha = 0.0;
+    }
 
-    o_Color = vec4(color, 1.0);
+    o_Color = vec4(color, alpha);
 }

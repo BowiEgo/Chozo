@@ -160,6 +160,8 @@ namespace Chozo {
         // ImGui::Text("Lines: %d", Renderer2D::GetStats().LineCount);
         ImGui::Text("Triangles: %d", Renderer::GetStats().GetTotalTrianglesCount());
         ImGui::Text("Vertices: %d", Renderer::GetStats().GetTotalVerticesCount());
+        ImGui::Text("ClearColor:"); ImGui::SameLine();
+        ImGui::ColorEdit4("##ClearColor", glm::value_ptr(Renderer::GetConfig().ClearColor));
 
         std::string entityName = "Null";
         if (m_Entity_Selected)

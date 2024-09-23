@@ -29,6 +29,8 @@ namespace Chozo {
             // Tiering settings
             uint32_t EnvironmentMapResolution = 1024;
             uint32_t IrradianceMapComputeSamples = 512;
+
+            glm::vec4 ClearColor = { 0.143f, 0.143f, 0.143f, 1.0f };
         };
 
         struct Statistics

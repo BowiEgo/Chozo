@@ -23,7 +23,7 @@ namespace Chozo {
             return m_ColorAttachments[attachmentIndex];
         };
         virtual RendererID GetDepthAttachmentRendererID() const override { return m_DepthAttachment; }
-		virtual const FramebufferSpecification& GetSpecification() const override { return m_Specification; };
+		virtual FramebufferSpecification& GetSpecification() override { return m_Specification; };
         virtual Ref<Texture2D> GetImage(uint32_t attachmentIndex) const override { return m_ColorAttachmentImages[attachmentIndex]; }
 		virtual Ref<Texture2D> GetDepthImage() const override { return m_DepthAttachmentImage; }
 

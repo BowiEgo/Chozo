@@ -43,7 +43,7 @@ namespace Chozo {
 
     void Chozo::OpenGLRendererAPI::SetClearColor(const glm::vec4& color)
     {
-        glClearColor(color.r, color.g, color.b, color.b); GCE;
+        glClearColor(color.r, color.g, color.b, color.a); GCE;
     }
 
     void OpenGLRendererAPI::Clear()

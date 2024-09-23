@@ -14,5 +14,4 @@ layout (push_constant) uniform Uniforms
 void main()
 {
 	o_Color = textureLod(u_Texture, v_TexCoords, u_FragUniforms.TextureLod) * u_FragUniforms.Intensity;
-	o_Color.a = 1.0;
 }
