@@ -507,13 +507,7 @@ namespace Chozo {
 
     void EditorLayer::NewScene()
     {
-        m_ActiveScene = std::make_shared<Scene>();
-        m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-        m_ViewportRenderer->SetScene(m_ActiveScene);
-        m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-        m_EnvironmentPanel.SetContext(m_ActiveScene);
-        m_SceneFileName = "";
+        OpenScene("");
     }
 
     void EditorLayer::OpenScene()
@@ -524,20 +518,21 @@ namespace Chozo {
 
     void EditorLayer::OpenScene(const std::filesystem::path &path)
     {
+        m_Entity_Selected = Entity();
+        m_ActiveScene = std::make_shared<Scene>();
+        m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+        m_ViewportRenderer->SetScene(m_ActiveScene);
+        m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        m_EnvironmentPanel.SetContext(m_ActiveScene);
+        m_SceneFileName = path.filename();
+        m_EditorCamera.Reset();
+
         if (!path.empty())
         {
-            m_ActiveScene = std::make_shared<Scene>();
-            m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-            m_ViewportRenderer->SetScene(m_ActiveScene);
-            m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-            m_EnvironmentPanel.SetContext(m_ActiveScene);
-
             SceneSerializer serializer(m_ActiveScene);
             serializer.Deserialize(path.string());
         }
-
-        m_SceneFileName = path.filename();
     }
 
     void EditorLayer::SaveSceneAs()

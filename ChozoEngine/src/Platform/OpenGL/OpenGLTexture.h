@@ -32,7 +32,7 @@ namespace Chozo {
         uint32_t m_Width, m_Height;
         RendererID m_RendererID;
         GLenum m_InternalFormat = GL_RGBA8, m_DataFormat = GL_RGBA, m_DataType = GL_UNSIGNED_BYTE;
-        unsigned char* m_DataBuffer = nullptr;
+        void* m_DataBuffer = nullptr;
     };
 
     class OpenGLTextureCube : public TextureCube

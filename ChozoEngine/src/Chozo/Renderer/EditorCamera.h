@@ -12,6 +12,8 @@ namespace Chozo {
         EditorCamera() = default;
         EditorCamera(float fov, float aspectRatio, float nearClip, float farClip);
 
+        virtual void Reset() override;
+
         void OnUpdate(Timestep ts);
         void OnEvent(Event& e);
 

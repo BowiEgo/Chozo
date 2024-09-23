@@ -41,12 +41,7 @@ namespace Chozo {
         if (s_Show)
         {
             // Resize
-            if (FramebufferSpecification spec = m_Viewport_FBO->GetSpecification();
-                m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f && // zero size framebuffer is invalid
-                (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
-            {
-                m_Viewport_FBO->Resize(m_ViewportSize.x, m_ViewportSize.y);
-            }
+            m_Viewport_FBO->Resize(m_ViewportSize.x, m_ViewportSize.y);
 
             ImGui::SetNextWindowSize(ImVec2(800, 600));
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });

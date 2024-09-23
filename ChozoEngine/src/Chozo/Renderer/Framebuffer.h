@@ -62,7 +62,7 @@ namespace Chozo {
         virtual void Resize(uint32_t width, uint32_t height, int mip = -1) = 0;
         virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) = 0;
 
-        virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) = 0;
+        // virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) = 0;
 
 		virtual RendererID GetRendererID() const = 0;
         virtual RendererID GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const = 0;

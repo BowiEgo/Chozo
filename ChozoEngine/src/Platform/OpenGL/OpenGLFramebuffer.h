@@ -11,6 +11,9 @@ namespace Chozo {
         OpenGLFramebuffer(const FramebufferSpecification& spec);
         virtual ~OpenGLFramebuffer();
 
+        void Invalidate();
+		void Release();
+
         virtual void Bind() const override;
         virtual void Unbind() const override;
 
@@ -26,12 +29,12 @@ namespace Chozo {
 		virtual FramebufferSpecification& GetSpecification() override { return m_Specification; };
         virtual Ref<Texture2D> GetImage(uint32_t attachmentIndex) const override { return m_ColorAttachmentImages[attachmentIndex]; }
 		virtual Ref<Texture2D> GetDepthImage() const override { return m_DepthAttachmentImage; }
-
+#if 0
         virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) override;
-		void Invalidate();
-		void Release();
+#endif
     private:
-        void CreateTextures(int samples, std::vector<FramebufferTextureSpecification> attachmentSpecs, uint32_t width, uint32_t height);
+        void CreateColorAttachmentImages(int samples, std::vector<FramebufferTextureSpecification> attachmentSpecs, uint32_t width, uint32_t height);
+        void CreateDepthAttachmentImage(int samples, FramebufferTextureSpecification attachmentSpec, uint32_t width, uint32_t height);
     private:
         FramebufferSpecification m_Specification;
         RendererID m_RendererID = 0;
@@ -44,7 +47,5 @@ namespace Chozo {
 
 		std::vector<Ref<Texture2D>> m_ColorAttachmentImages;
 		Ref<Texture2D> m_DepthAttachmentImage;
-
-        std::vector<int> m_IntClearValues = { -1 };
     };
 }

@@ -190,9 +190,5 @@ void main()
     // gamma correct
     color = pow(color, vec3(1.0/2.2));
 
-    float alpha = 1.0;
-    if (gNormal == vec3(0.0))
-        discard;
-
-    o_Color = vec4(color, alpha);
+    o_Color = vec4(color, 1.0);
 }

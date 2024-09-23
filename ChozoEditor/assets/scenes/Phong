@@ -1,30 +1,137 @@
 Scene: Untitled
 Entities:
-  - Entity: 4243028344171873172
+  - Entity: 10112667130733777206
     TagComponent:
-      Tag: Box
+      Tag: Sphere
     TransformComponent:
-      Translation: [-1.51258516, 0, 0.0550541878]
+      Translation: [0, 0, 2.7857933]
       Rotation: [0, 0, 0]
-      Scale: [1.29999995, 1.29999995, 1.29999995]
+      Scale: [1, 1, 1]
     MeshComponent:
       Type: 0
       Geometry:
-        Type: 1
-        Width: 1
-        Height: 1
-        Depth: 1
-        WidthSegments: 1
-        HeightSegments: 1
-        DepthSegments: 1
+        Type: 2
+        Radius: 1
+        PhiLength: 6.28318548
+        PhiStart: 0
+        ThetaStart: 0
+        ThetaLength: 3.14159274
+        WidthSegments: 32
+        HeightSegments: 16
       Material:
         Name: Phong
-        u_Material.Roughness: 0.119999997
-        u_Material.Specular: 0.5
-        u_Material.Albedo: [0.424710453, 0, 0]
+        u_Material.Albedo: [0.5, 0.5, 0.5]
         u_Material.Ambient: 1
-        u_Material.Metalness: 0.907999992
         u_Material.AmbientStrength: 0.100000001
+        u_Material.Metalness: 0.5
+        u_Material.Roughness: 0.5
+        u_Material.Specular: 0.5
+  - Entity: 16619928800525008541
+    TagComponent:
+      Tag: Point Light 3
+    TransformComponent:
+      Translation: [0.733436644, 0.662373006, 1.82410276]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 0.910000026
+  - Entity: 325427967888756542
+    TagComponent:
+      Tag: Point Light 1
+    TransformComponent:
+      Translation: [0.664758325, -1.23669028, 1.74006104]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 0.458999991
+  - Entity: 6273086195722063365
+    TagComponent:
+      Tag: DirLight
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Direction: [2, -1, -2]
+      Color: [1, 1, 1]
+      Intensity: 1
+  - Entity: 259724390316925222
+    TagComponent:
+      Tag: SkyLight
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SkyLightComponent:
+      Intensity: 1
+      Lod: 0
+      Dynamic: false
+      SourcePath: ../assets/textures/newport_loft.hdr
+      TurbidityAzimuthInclination: [2.74000001, 0, 1.50999999]
+  - Entity: 6282163605936880614
+    TagComponent:
+      Tag: Ball
+    TransformComponent:
+      Translation: [1.59998524, 0.82896775, -0.39902097]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      Type: 0
+      Geometry:
+        Type: 2
+        Radius: 1
+        PhiLength: 6.28318548
+        PhiStart: 0
+        ThetaStart: 0
+        ThetaLength: 3.14159274
+        WidthSegments: 64
+        HeightSegments: 32
+      Material:
+        Name: Phong
+        u_Material.Albedo: [0, 0.170957491, 0.471042454]
+        u_Material.Ambient: 0.760617733
+        u_Material.AmbientStrength: 0.100000001
+        u_Material.Metalness: 0
+        u_Material.Roughness: 0.0930000022
+        u_Material.Specular: 0.683397651
+  - Entity: 14286552634676448382
+    TagComponent:
+      Tag: Point Light 2
+    TransformComponent:
+      Translation: [-0.991848767, -0.160079226, 1.79999983]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 1
+  - Entity: 15523543194891287388
+    TagComponent:
+      Tag: Spot Light 1
+    TransformComponent:
+      Translation: [2.07695484, 1.88760519, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpotLightComponent:
+      Intensity: 1
+      Direction: [0, 0, -1]
+      AngleAttenuation: 3.64899993
+      Color: [0.895752907, 0.852701843, 0.038043566]
+      Angle: 10
+  - Entity: 11734064750955055822
+    TagComponent:
+      Tag: Spot Light 2
+    TransformComponent:
+      Translation: [-0.253336608, -0.319707543, 2.73758817]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpotLightComponent:
+      Intensity: 1
+      Direction: [0, 0, -1]
+      AngleAttenuation: 0.442000002
+      Color: [0, 0.362934351, 1]
+      Angle: 16.1219997
   - Entity: 4787851598022005227
     TagComponent:
       Tag: Floor
@@ -44,115 +151,34 @@ Entities:
         DepthSegments: 1
       Material:
         Name: Phong
-        u_Material.Roughness: 0.179000005
-        u_Material.Specular: 0.5
         u_Material.Albedo: [0.5, 0.5, 0.5]
         u_Material.Ambient: 1
-        u_Material.Metalness: 0.331999987
         u_Material.AmbientStrength: 0.100000001
-  - Entity: 11734064750955055822
+        u_Material.Metalness: 0.331999987
+        u_Material.Roughness: 0.179000005
+        u_Material.Specular: 0.5
+  - Entity: 4243028344171873172
     TagComponent:
-      Tag: Spot Light 2
+      Tag: Box
     TransformComponent:
-      Translation: [-0.253336608, -0.319707543, 2.73758817]
+      Translation: [-1.51258516, 0, 0.0550541878]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpotLightComponent:
-      Intensity: 1
-      Direction: [0, 0, -1]
-      AngleAttenuation: 0.442000002
-      Color: [0, 0.362934351, 1]
-      Angle: 16.1219997
-  - Entity: 15523543194891287388
-    TagComponent:
-      Tag: Spot Light 1
-    TransformComponent:
-      Translation: [2.07695484, 1.88760519, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpotLightComponent:
-      Intensity: 1
-      Direction: [0, 0, -1]
-      AngleAttenuation: 3.64899993
-      Color: [0.895752907, 0.852701843, 0.038043566]
-      Angle: 10
-  - Entity: 14286552634676448382
-    TagComponent:
-      Tag: Point Light 2
-    TransformComponent:
-      Translation: [-0.991848767, -0.160079226, 1.79999983]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 1
-  - Entity: 6282163605936880614
-    TagComponent:
-      Tag: Ball
-    TransformComponent:
-      Translation: [1.59998524, 0, -0.39902097]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [1.29999995, 1.29999995, 1.29999995]
     MeshComponent:
       Type: 0
       Geometry:
-        Type: 2
-        Radius: 1
-        PhiLength: 6.28318548
-        PhiStart: 0
-        ThetaStart: 0
-        ThetaLength: 3.14159274
-        WidthSegments: 64
-        HeightSegments: 32
+        Type: 1
+        Width: 1
+        Height: 1
+        Depth: 1
+        WidthSegments: 1
+        HeightSegments: 1
+        DepthSegments: 1
       Material:
         Name: Phong
-        u_Material.Roughness: 0.0930000022
-        u_Material.Specular: 0.683397651
-        u_Material.Albedo: [0, 0.170957491, 0.471042454]
-        u_Material.Ambient: 0.760617733
-        u_Material.Metalness: 0
+        u_Material.Albedo: [0.424710453, 0, 0]
+        u_Material.Ambient: 1
         u_Material.AmbientStrength: 0.100000001
-  - Entity: 259724390316925222
-    TagComponent:
-      Tag: SkyLight
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SkyLightComponent:
-      Intensity: 1
-      Lod: 0
-      Dynamic: false
-      SourcePath: ../assets/textures/newport_loft.hdr
-      TurbidityAzimuthInclination: [2.74000001, 0, 1.50999999]
-  - Entity: 6273086195722063365
-    TagComponent:
-      Tag: DirLight
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    DirectionalLightComponent:
-      Direction: [2, -1, -2]
-      Color: [1, 1, 1]
-      Intensity: 1
-  - Entity: 325427967888756542
-    TagComponent:
-      Tag: Point Light 1
-    TransformComponent:
-      Translation: [0.664758325, -1.23669028, 1.74006104]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 0.458999991
-  - Entity: 16619928800525008541
-    TagComponent:
-      Tag: Point Light 3
-    TransformComponent:
-      Translation: [0.733436644, 0.662373006, 1.82410276]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 0.910000026
+        u_Material.Metalness: 0.907999992
+        u_Material.Roughness: 0.119999997
+        u_Material.Specular: 0.5

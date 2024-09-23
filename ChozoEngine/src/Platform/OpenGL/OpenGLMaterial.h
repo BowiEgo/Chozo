@@ -18,7 +18,7 @@ namespace Chozo {
 		virtual std::string GetName() override { return m_Name; }
 		virtual Ref<Shader> GetShader() override { return m_Shader; }
 
-        virtual std::unordered_map<std::string, UniformValue> GetUniforms() override { return m_Uniforms; }
+        virtual std::map<std::string, UniformValue> GetUniforms() override { return m_Uniforms; }
 
         void Bind();
         void BindTextures();
@@ -26,7 +26,7 @@ namespace Chozo {
     private:
         Ref<OpenGLShader> m_Shader;
 		std::string m_Name;
-        std::unordered_map<std::string, UniformValue> m_Uniforms;
+        std::map<std::string, UniformValue> m_Uniforms;
         std::vector<Ref<Texture>> m_TextureSlots;
         uint32_t m_TextureSlotIndex = 0;
     };

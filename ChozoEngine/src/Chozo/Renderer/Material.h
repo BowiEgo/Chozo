@@ -18,7 +18,7 @@ namespace Chozo
         virtual void Set(const std::string& name, const UniformValue& value) = 0;
 		virtual void Set(const std::string& name, const Ref<Texture>& texture) = 0;
 
-        virtual std::unordered_map<std::string, UniformValue> GetUniforms() = 0;
+        virtual std::map<std::string, UniformValue> GetUniforms() = 0;
 
 		virtual std::string GetName() = 0;
 		virtual Ref<Shader> GetShader() = 0;

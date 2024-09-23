@@ -4,6 +4,35 @@
 
 namespace Chozo {
 
+    int GetChannelCount(const ImageFormat& format)
+    {
+        switch (format)
+        {
+            case ImageFormat::RED8I: return 1;
+            case ImageFormat::RED8UI: return 1;
+            case ImageFormat::RED16I: return 1;
+            case ImageFormat::RED16UI: return 1;
+            case ImageFormat::RED32I: return 1;
+            case ImageFormat::RED32UI: return 1;
+            case ImageFormat::RED32F: return 1;
+            case ImageFormat::RG8: return 2;
+            case ImageFormat::RG16F: return 2;
+            case ImageFormat::RG32F: return 2;
+            case ImageFormat::RGB: return 3;
+            case ImageFormat::RGB8: return 3;
+            case ImageFormat::RGB16F: return 3;
+            case ImageFormat::RGBA: return 4;
+            case ImageFormat::RGBA8: return 4;
+            case ImageFormat::RGBA16F: return 4;
+            case ImageFormat::RGBA32F: return 4;
+            case ImageFormat::B10R11G11UF: return 3;
+            case ImageFormat::SRGB: return 3;
+            case ImageFormat::DEPTH32FSTENCIL8UINT: return 2;
+            case ImageFormat::DEPTH24STENCIL8: return 2;
+            default: return 4;
+        }
+    }
+
     GLenum GetGLFormat(const ImageFormat& format)
     {
         switch (format)

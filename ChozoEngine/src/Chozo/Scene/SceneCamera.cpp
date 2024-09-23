@@ -9,6 +9,10 @@ namespace Chozo
         RecaculateProjection();
     }
 
+    void SceneCamera::Reset()
+    {
+    }
+
     void SceneCamera::SetPerspective(float verticalFOV, float nearClip, float farClip)
     {
         m_ProjectionType = ProjectionType::Perspective;

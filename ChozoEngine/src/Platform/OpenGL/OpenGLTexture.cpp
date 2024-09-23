@@ -83,18 +83,32 @@ namespace Chozo
     OpenGLTexture2D::~OpenGLTexture2D()
     {
         glDeleteTextures(1, &m_RendererID); GCE;
+        // delete m_DataBuffer;
     }
 
     void OpenGLTexture2D::Resize(uint32_t width, uint32_t height)
     {
         if (m_Width != width || m_Height != height)
         {
+            // int channel = GetChannelCount(m_Spec.Format);
+
+            // m_DataBuffer = new unsigned char[m_Spec.Width * m_Spec.Height * channel * sizeof(float)];
             m_Spec.Width = width;
             m_Spec.Height = height;
             m_Width = width;
             m_Height = height;
             glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
-            glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, width, height, 0, m_DataFormat, m_DataType, m_DataBuffer); GCE;
+            // glGetTexImage(GL_TEXTURE_2D, 0, m_DataFormat, m_DataType, m_DataBuffer); GCE;
+            glTexImage2D(GL_TEXTURE_2D,
+                0,
+                m_InternalFormat,
+                width,
+                height,
+                0,
+                m_DataFormat,
+                m_DataType,
+                m_DataBuffer
+            ); GCE;
         }
     }
 
