@@ -6,7 +6,7 @@ namespace Chozo {
 
     class Entity;
 
-    class ScriptableEntity
+    class ScriptableEntity : public RefCounted
     {
     public:
         virtual ~ScriptableEntity() = default;

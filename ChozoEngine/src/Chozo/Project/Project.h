@@ -16,7 +16,7 @@ namespace Chozo {
 		std::string ProjectDirectory;
 	};
 
-    class Project
+    class Project : public RefCounted
     {
     public:
         Project();

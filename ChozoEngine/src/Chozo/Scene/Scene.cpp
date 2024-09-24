@@ -76,7 +76,7 @@ namespace Chozo {
                         Renderer::CreatePreethamSky(skyLight.TurbidityAzimuthInclination.x, skyLight.TurbidityAzimuthInclination.y, skyLight.TurbidityAzimuthInclination.z);
 
                     Ref<TextureCube> radiance = Renderer::GetPreethamSkyTextureCube();
-                    skyLight.SceneEnvironment = std::make_shared<Environment>(radiance, radiance);
+                    skyLight.SceneEnvironment = Ref<Environment>::Create(radiance, radiance);
                 } else if (skyLight.SourcePath != "")
                 {
                     if (!skyLight.SceneEnvironment)
@@ -84,7 +84,7 @@ namespace Chozo {
         
                     Ref<TextureCube> radiance = Renderer::GetStaticSkyTextureCube();
                     Ref<TextureCube> irradiance = Renderer::GetIrradianceTextureCube();
-                    skyLight.SceneEnvironment = std::make_shared<Environment>(radiance, irradiance);
+                    skyLight.SceneEnvironment = Ref<Environment>::Create(radiance, irradiance);
                 }
                 m_Environment = skyLight.SceneEnvironment;
                 m_EnvironmentIntensity = skyLight.Intensity;
@@ -148,7 +148,7 @@ namespace Chozo {
 
                 if (mesh.Type == MeshType::Dynamic)
                 {
-                    Ref<DynamicMesh> dynamicMesh = std::dynamic_pointer_cast<DynamicMesh>(mesh.MeshInstance);
+                    Ref<DynamicMesh> dynamicMesh = mesh.MeshInstance.As<DynamicMesh>();
                     if (dynamicMesh->GetMeshSource()->IsBufferChanged())
                         dynamicMesh->Init();
                     // Renderer::DrawMesh(transform.GetTransform(), dynamicMesh.get(), mesh.MaterialInstance.get(), (uint32_t)entity);
@@ -238,7 +238,7 @@ namespace Chozo {
         //         if (!skyLight.SceneEnvironment && skyLight.DynamicSky)
         //         {
         //             Ref<TextureCube> preethamEnv = Renderer::CreatePreethamSky(skyLight.TurbidityAzimuthInclination.x, skyLight.TurbidityAzimuthInclination.y, skyLight.TurbidityAzimuthInclination.z);
-        //             skyLight.SceneEnvironment = std::make_shared<Environment>(preethamEnv, preethamEnv);
+        //             skyLight.SceneEnvironment = Ref<Environment>::Create(preethamEnv, preethamEnv);
         //             m_Environment = skyLight.SceneEnvironment;
         //             m_EnvironmentIntensity = skyLight.Intensity;
         //             m_SkyboxLod = skyLight.Lod;

@@ -7,7 +7,7 @@
 
 namespace Chozo {
 
-    class Texture
+    class Texture : public RefCounted
     {
     public:
         virtual ~Texture() = default;

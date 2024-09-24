@@ -15,7 +15,7 @@ namespace Chozo
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLTexture2D>(spec);
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLTexture2D>::Create(spec);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -27,7 +27,7 @@ namespace Chozo
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLTexture2D>(path, spec);
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLTexture2D>::Create(path, spec);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -39,7 +39,7 @@ namespace Chozo
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLTexture2D>(id, spec);
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLTexture2D>::Create(id, spec);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -55,7 +55,7 @@ namespace Chozo
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLTextureCube>(spec);
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLTextureCube>::Create(spec);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");

@@ -91,8 +91,8 @@ namespace Chozo {
         }
 
         // Geometry
-        s_Data.QuadMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<QuadGeometry>()));
-        s_Data.BoxMesh = std::make_shared<DynamicMesh>(static_cast<Ref<MeshSource>>(std::make_shared<BoxGeometry>()));
+        s_Data.QuadMesh = Ref<DynamicMesh>::Create(Ref<QuadGeometry>::Create().As<MeshSource>());
+        s_Data.BoxMesh = Ref<DynamicMesh>::Create(Ref<BoxGeometry>::Create().As<MeshSource>());
 
         // Shaders
         std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);

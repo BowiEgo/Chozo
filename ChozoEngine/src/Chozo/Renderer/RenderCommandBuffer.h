@@ -4,7 +4,7 @@
 
 namespace Chozo {
 
-    class RenderCommandBuffer
+    class RenderCommandBuffer : public RefCounted
     {
     public:
         virtual ~RenderCommandBuffer() {};

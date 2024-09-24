@@ -197,14 +197,14 @@ namespace Chozo
 
     std::pair<Ref<Batch<Vertex>>, Ref<Batch<Index>>> BatchManager::CreateBatches()
     {
-        Ref<Batch<Vertex>> vertexBatch = std::make_shared<Batch<Vertex>>();
+        Ref<Batch<Vertex>> vertexBatch = Ref<Batch<Vertex>>::Create();
         m_VertexBatches.push_back(vertexBatch);
 
-        Ref<Batch<Index>> indexBatch = std::make_shared<Batch<Index>>();
+        Ref<Batch<Index>> indexBatch =  Ref<Batch<Index>>::Create();
         m_IndexBatches.push_back(indexBatch);
 
         // Crate RenderSource for GPU
-        Ref<RenderSource> renderSource = std::make_shared<RenderSource>(GetMaxCount<Vertex>(), GetMaxCount<Index>());
+        Ref<RenderSource> renderSource =  Ref<RenderSource>::Create(GetMaxCount<Vertex>(), GetMaxCount<Index>());
         m_RenderSources[m_VertexBatches.size() - 1] = renderSource;
         // CZ_CORE_INFO("CreateRenderSource: VAO, {0}", renderSource->VAO->GetRendererID());
 

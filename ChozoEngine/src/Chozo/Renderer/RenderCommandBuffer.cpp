@@ -9,7 +9,7 @@ namespace Chozo {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLRenderCommandBuffer>();
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLRenderCommandBuffer>::Create();
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");

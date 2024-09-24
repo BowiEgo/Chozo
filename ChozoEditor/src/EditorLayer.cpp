@@ -49,7 +49,7 @@ namespace Chozo {
         // --------------------
         // Scene
         // --------------------
-        m_ActiveScene = std::make_shared<Scene>();
+        m_ActiveScene = Ref<Scene>::Create();
 		m_ViewportRenderer = SceneRenderer::Create(m_ActiveScene);
         m_ViewportRenderer->SetActive(true);
         // --------------------
@@ -505,7 +505,7 @@ namespace Chozo {
 
     void EditorLayer::NewScene()
     {
-        m_ActiveScene = std::make_shared<Scene>();
+        m_ActiveScene = Ref<Scene>::Create();
         m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
         m_ViewportRenderer->SetScene(m_ActiveScene);
         m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
@@ -524,7 +524,7 @@ namespace Chozo {
     {
         if (!path.empty())
         {
-            m_ActiveScene = std::make_shared<Scene>();
+            m_ActiveScene = Ref<Scene>::Create();
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
             m_ViewportRenderer->SetScene(m_ActiveScene);
             m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);

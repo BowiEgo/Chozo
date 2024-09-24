@@ -10,7 +10,7 @@ namespace Chozo {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLVertexBuffer>(size);
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLVertexBuffer>::Create(size);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -22,7 +22,7 @@ namespace Chozo {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLVertexBuffer>(vertices, size);
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLVertexBuffer>::Create(vertices, size);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");

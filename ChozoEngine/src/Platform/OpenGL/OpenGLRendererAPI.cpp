@@ -252,7 +252,7 @@ namespace Chozo {
         commandBuffer->AddCommand([pipeline, cubemap, material, this]()
         {
             if (material)
-                static_cast<OpenGLMaterial*>(material.get())->Bind();
+                material.As<OpenGLMaterial>()->Bind();
             else
                 pipeline->GetShader()->Bind();
 
@@ -295,7 +295,7 @@ namespace Chozo {
         commandBuffer->AddCommand([pipeline, material]()
         {
             if (material)
-                static_cast<OpenGLMaterial*>(material.get())->Bind();
+                material.As<OpenGLMaterial>()->Bind();
             else
                 pipeline->GetShader()->Bind();
 
@@ -310,7 +310,7 @@ namespace Chozo {
         commandBuffer->AddCommand([pipeline, mesh, material, this]()
         {
             if (material)
-                static_cast<OpenGLMaterial*>(material.get())->Bind();
+                material.As<OpenGLMaterial>()->Bind();
             else
                 pipeline->GetShader()->Bind();
 

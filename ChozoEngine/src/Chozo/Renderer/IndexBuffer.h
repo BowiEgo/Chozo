@@ -5,7 +5,7 @@
 #include "RendererTypes.h"
 namespace Chozo {
 
-    class IndexBuffer
+    class IndexBuffer : public RefCounted
     {
     public:
         virtual ~IndexBuffer() {}

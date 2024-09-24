@@ -15,10 +15,11 @@ namespace Chozo {
         virtual void Set(const std::string& name, const std::string& sourcePath) override;
         virtual void Set(const std::string& name, const UniformValue& value) override;
 		virtual void Set(const std::string& name, const Ref<Texture>& texture) override;
-
+		virtual void Set(const std::string& name, const Ref<Texture2D>& texture) override;
+		virtual void Set(const std::string& name, const Ref<TextureCube>& texture) override;
 
 		virtual std::string GetName() override { return m_Name; }
-		virtual Ref<Shader> GetShader() override { return m_Shader; }
+		virtual Ref<Shader> GetShader() const override { return m_Shader; }
 
         virtual std::map<std::string, UniformValue> GetUniforms() override { return m_Uniforms; }
         virtual inline std::string GetUniromSourcePath(const std::string& name) override { return m_UniformSourcePaths[name]; }

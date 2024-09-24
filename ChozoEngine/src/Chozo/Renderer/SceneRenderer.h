@@ -38,7 +38,7 @@ namespace Chozo
         float Angle = 10.0f;
     };
 
-    class SceneRenderer
+    class SceneRenderer : public RefCounted
     {
     public:
         ~SceneRenderer() = default;
@@ -46,13 +46,13 @@ namespace Chozo
 		void Init();
         static void Shutdown();
         
-		Ref<Scene> GetScene() { return m_Scene; }
+		Ref<Scene> GetScene() const { return m_Scene; }
 		void SetScene(Ref<Scene>& scene);
         void BeginScene(EditorCamera& camera); // TODO: Remove
         void EndScene(); // TODO: Remove
 
         inline void SetActive(bool active) { m_Active = active; }
-        inline bool IsActive() { return m_Active; }
+        inline bool IsActive() const { return m_Active; }
 
 		void SetViewportSize(uint32_t width, uint32_t height);
 

@@ -16,7 +16,7 @@ namespace Chozo {
 		std::string DebugName;
     };
 
-    class RenderPass
+    class RenderPass : public RefCounted
     {
     public:
         ~RenderPass() = default;

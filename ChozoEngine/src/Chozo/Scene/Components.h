@@ -89,7 +89,7 @@ namespace Chozo {
             : MeshInstance(std::move(other.MeshInstance)),
               Type(other.Type)
         {
-            other.MeshSrc.reset();  // Prevent copying or using original object.
+            other.MeshSrc.Reset();  // Prevent copying or using original object.
         }
         MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic, Ref<Material> material = nullptr)
             : MeshSrc(meshSrc), Type(meshType), MaterialInstance(material)
@@ -113,17 +113,17 @@ namespace Chozo {
         void GenerateMeshInstance()
         {
             MeshSrc->CallGenerate();
-            MeshInstance.reset();
+            MeshInstance.Reset();
 
             switch (Type) {
                 case MeshType::Dynamic:
-                    MeshInstance = std::make_shared<DynamicMesh>(MeshSrc);
+                    MeshInstance = Ref<DynamicMesh>::Create(MeshSrc);
                     break;
                 case MeshType::Instanced:
-                    MeshInstance = std::make_shared<InstancedMesh>(MeshSrc);
+                    MeshInstance = Ref<InstancedMesh>::Create(MeshSrc);
                     break;
                 case MeshType::Static:
-                    MeshInstance = std::make_shared<StaticMesh>(MeshSrc);
+                    MeshInstance = Ref<StaticMesh>::Create(MeshSrc);
                     break;
                 default:
                     CZ_CORE_ERROR("Unknown mesh type!");
@@ -156,7 +156,7 @@ namespace Chozo {
         void Bind()
         {
             InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
-            DestroyScript = [](NativeScriptComponent* nsc) { nsc->Instance.reset(); };
+            DestroyScript = [](NativeScriptComponent* nsc) { nsc->Instance.Reset(); };
         }
     };
 

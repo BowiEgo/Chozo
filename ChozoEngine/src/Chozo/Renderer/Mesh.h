@@ -26,7 +26,7 @@ namespace Chozo
 
     class Mesh;
 
-    class MeshSource
+    class MeshSource : public RefCounted
     {
     public:
         MeshSource() = default;
@@ -63,7 +63,7 @@ namespace Chozo
         bool m_Is_Buffer_Changed = false;
     };
 
-    class Mesh
+    class Mesh : public RefCounted
     {
     public:
         Mesh() = default;
@@ -71,7 +71,7 @@ namespace Chozo
             : m_MeshSource(meshSource) {}
         virtual ~Mesh() = default;
 
-        Ref<MeshSource> GetMeshSource() { return m_MeshSource; }
+        Ref<MeshSource> GetMeshSource() const { return m_MeshSource; }
     protected:
         Ref<MeshSource> m_MeshSource;
         Ref<RenderSource> m_RenderSource;
@@ -86,9 +86,9 @@ namespace Chozo
 
         void Init();
 
-        inline Ref<VertexArray> GetVertexArray() { return m_RenderSource->VAO; }
-        inline Ref<VertexBuffer> GetVertexBuffer() { return m_RenderSource->VBO; }
-        inline Ref<IndexBuffer> GetIndexBuffer() { return m_RenderSource->IBO; }
+        inline Ref<VertexArray> GetVertexArray() const { return m_RenderSource->VAO; }
+        inline Ref<VertexBuffer> GetVertexBuffer() const { return m_RenderSource->VBO; }
+        inline Ref<IndexBuffer> GetIndexBuffer() const { return m_RenderSource->IBO; }
     };
 
     class InstancedMesh : public Mesh

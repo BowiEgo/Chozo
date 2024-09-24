@@ -7,7 +7,7 @@
 namespace Chozo
 {
 
-    class Material
+    class Material : public RefCounted
     {
     public:
         static Ref<Material> Create(const std::string& name = "");
@@ -18,11 +18,13 @@ namespace Chozo
         virtual void Set(const std::string& name, const std::string& sourcePath) = 0;
         virtual void Set(const std::string& name, const UniformValue& value) = 0;
 		virtual void Set(const std::string& name, const Ref<Texture>& texture) = 0;
+		virtual void Set(const std::string& name, const Ref<Texture2D>& texture) = 0;
+		virtual void Set(const std::string& name, const Ref<TextureCube>& texture) = 0;
 
         virtual std::map<std::string, UniformValue> GetUniforms() = 0;
         virtual std::string GetUniromSourcePath(const std::string& name) = 0;
 
 		virtual std::string GetName() = 0;
-		virtual Ref<Shader> GetShader() = 0;
+		virtual Ref<Shader> GetShader() const = 0;
     };
 }

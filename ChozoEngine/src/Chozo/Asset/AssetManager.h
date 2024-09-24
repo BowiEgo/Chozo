@@ -7,7 +7,7 @@
 
 namespace Chozo {
 
-	class AssetManager
+	class AssetManager : public RefCounted
 	{
 	public:
 		AssetManager() = default;

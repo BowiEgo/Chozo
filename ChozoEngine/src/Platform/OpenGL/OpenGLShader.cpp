@@ -576,7 +576,7 @@ namespace Chozo {
         glUseProgram(0);
     }
 
-    void OpenGLShader::SetUniform(const std::string &name, const UniformValue &value, const uint32_t count)
+    void OpenGLShader::SetUniform(const std::string &name, const UniformValue &value, const uint32_t count) const
     {
         std::visit([&](auto&& val) {
             using T = std::decay_t<decltype(val)>;
@@ -637,72 +637,72 @@ namespace Chozo {
             glUniformBlockBinding(m_RendererID, uniformBlockIndex, bindingPoint);
     }
 
-    void OpenGLShader::SetUniformBool(const std::string &name, const bool value)
+    void OpenGLShader::SetUniformBool(const std::string &name, const bool value) const
     {
         glUniform1i(GetUniformLoaction(name), value ? 1 : 0);
     }
 
-    void OpenGLShader::SetUniform1i(const std::string &name, const int value)
+    void OpenGLShader::SetUniform1i(const std::string &name, const int value) const
     {
         glUniform1i(GetUniformLoaction(name), value);
     }
 
-    void OpenGLShader::SetUniform1iV(const std::string &name, const int *values, const uint32_t count)
+    void OpenGLShader::SetUniform1iV(const std::string &name, const int *values, const uint32_t count) const
     {
         glUniform1iv(GetUniformLoaction(name), count, values);
     }
 
-    void OpenGLShader::SetUniform1f(const std::string& name, const float value)
+    void OpenGLShader::SetUniform1f(const std::string& name, const float value) const
     {
         glUniform1f(GetUniformLoaction(name), value);
     }
 
-    void OpenGLShader::SetUniform2f(const std::string& name, const float v0, const float v1)
+    void OpenGLShader::SetUniform2f(const std::string& name, const float v0, const float v1) const
     {
         glUniform2f(GetUniformLoaction(name), v0, v1);
     }
 
-    void OpenGLShader::SetUniform3f(const std::string& name, const float v0, const float v1, const float v2)
+    void OpenGLShader::SetUniform3f(const std::string& name, const float v0, const float v1, const float v2) const
     {
         glUniform3f(GetUniformLoaction(name), v0, v1, v2);
     }
 
-    void OpenGLShader::SetUniform4f(const std::string& name, const float v0, const float v1, const float v2, const float v3)
+    void OpenGLShader::SetUniform4f(const std::string& name, const float v0, const float v1, const float v2, const float v3) const
     {
         glUniform4f(GetUniformLoaction(name), v0, v1, v2, v3);
     }
 
-    void OpenGLShader::SetUniformVec2(const std::string &name, const glm::vec2 &vector)
+    void OpenGLShader::SetUniformVec2(const std::string &name, const glm::vec2 &vector) const
     {
         glUniform2f(GetUniformLoaction(name), vector.x, vector.y);
     }
 
-    void OpenGLShader::SetUniformVec3(const std::string &name, const glm::vec3 &vector)
+    void OpenGLShader::SetUniformVec3(const std::string &name, const glm::vec3 &vector) const
     {
         glUniform3f(GetUniformLoaction(name), vector.x, vector.y, vector.z);
     }
 
-    void OpenGLShader::SetUniformVec3(const std::string &name, const float vector[3])
+    void OpenGLShader::SetUniformVec3(const std::string &name, const float vector[3]) const
     {
         glUniform3f(GetUniformLoaction(name), vector[0], vector[1], vector[2]);
     }
 
-    void OpenGLShader::SetUniformVec4(const std::string &name, const glm::vec4 &vector)
+    void OpenGLShader::SetUniformVec4(const std::string &name, const glm::vec4 &vector) const
     {
         glUniform4f(GetUniformLoaction(name), vector.x, vector.y, vector.z, vector.w);
     }
 
-    void OpenGLShader::SetUniformMat3(const std::string& name, const glm::mat3& matrix)
+    void OpenGLShader::SetUniformMat3(const std::string& name, const glm::mat3& matrix) const
     {
         glUniformMatrix3fv(GetUniformLoaction(name), 1, GL_FALSE, &matrix[0][0]);
     }
 
-    void OpenGLShader::SetUniformMat4(const std::string& name, const glm::mat4& matrix)
+    void OpenGLShader::SetUniformMat4(const std::string& name, const glm::mat4& matrix) const
     {
         glUniformMatrix4fv(GetUniformLoaction(name), 1, GL_FALSE, &matrix[0][0]);
     }
 
-    void OpenGLShader::SetUniformMat4V(const std::string& name, const std::vector<glm::mat4>& value, const uint32_t count)
+    void OpenGLShader::SetUniformMat4V(const std::string& name, const std::vector<glm::mat4>& value, const uint32_t count) const
     {
         glUniformMatrix4fv(GetUniformLoaction(name), count, GL_FALSE, &value[0][0][0]);
     }

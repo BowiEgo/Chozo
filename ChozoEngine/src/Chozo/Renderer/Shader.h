@@ -29,7 +29,7 @@ namespace Chozo {
         std::string VertexFilepath, FragmentFilepath;
     };
     
-    class Shader
+    class Shader : public RefCounted
     {
     public:
         virtual ~Shader() = default;
@@ -40,7 +40,7 @@ namespace Chozo {
         virtual const std::string& GetName() const = 0;
         virtual const RendererID& GetRendererID() const = 0;
 
-        virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) = 0;
+        virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) const = 0;
         virtual void SetUniformBlockBinding() const = 0;
         virtual void SetUniformBlockBinding(const std::string& name, const uint32_t bindingPoint) const = 0;
 
@@ -48,7 +48,7 @@ namespace Chozo {
         static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
     };
 
-    class ShaderLibrary
+    class ShaderLibrary : public RefCounted
     {
     public:
         ShaderLibrary() = default;

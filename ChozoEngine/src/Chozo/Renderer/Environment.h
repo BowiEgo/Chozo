@@ -4,7 +4,7 @@
 
 namespace Chozo {
 
-    class Environment
+    class Environment : public RefCounted
     {
     public:
         Ref<TextureCube> RadianceMap;

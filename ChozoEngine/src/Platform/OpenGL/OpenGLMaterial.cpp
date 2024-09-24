@@ -26,14 +26,14 @@ namespace Chozo {
     }
 
     OpenGLMaterial::OpenGLMaterial(const Ref<Shader> &shader, const std::string &name)
-        : m_Shader(std::dynamic_pointer_cast<OpenGLShader>(shader)), m_Name(name)
+        : m_Shader(shader.As<OpenGLShader>()), m_Name(name)
     {
         m_TextureSlots.resize(Renderer::GetMaxTextureSlots());
         PopulateUniforms(m_Shader);
     }
 
     OpenGLMaterial::OpenGLMaterial(const Ref<Material> &material, const std::string &name)
-        : m_Shader(std::dynamic_pointer_cast<OpenGLShader>(material->GetShader())), m_Name(name)
+        : m_Shader(material->GetShader().As<OpenGLShader>()), m_Name(name)
     {
         m_TextureSlots.resize(Renderer::GetMaxTextureSlots());
         PopulateUniforms(m_Shader);
@@ -84,6 +84,16 @@ namespace Chozo {
         }
 
         m_Uniforms[name] = textureIndex;
+    }
+
+    void OpenGLMaterial::Set(const std::string &name, const Ref<Texture2D> &texture)
+    {
+        Set(name, texture.As<Texture>());
+    }
+
+    void OpenGLMaterial::Set(const std::string &name, const Ref<TextureCube> &texture)
+    {
+        Set(name, texture.As<Texture>());
     }
 
     void OpenGLMaterial::Bind()

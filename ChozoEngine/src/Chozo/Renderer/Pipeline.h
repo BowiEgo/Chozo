@@ -22,7 +22,7 @@ namespace Chozo {
 		std::string DebugName;
     };
 
-    class Pipeline
+    class Pipeline : public RefCounted
     {
     public:
         ~Pipeline() = default;

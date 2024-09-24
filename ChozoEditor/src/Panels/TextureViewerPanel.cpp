@@ -80,7 +80,7 @@ namespace Chozo {
             }
 
             if (m_Texture && dynamic_cast<Texture2D*>(m_Texture.get()))
-                DrawImage(std::dynamic_pointer_cast<Texture2D>(m_Texture));
+                DrawImage(m_Texture.As<Texture2D>());
 
             if (m_Texture && dynamic_cast<TextureCube*>(m_Texture.get()))
             {

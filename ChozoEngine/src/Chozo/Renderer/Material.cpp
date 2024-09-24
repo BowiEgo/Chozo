@@ -19,7 +19,7 @@ namespace Chozo {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLMaterial>(shader, name);
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLMaterial>::Create(shader, name);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -31,7 +31,7 @@ namespace Chozo {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLMaterial>(shader, name);
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLMaterial>::Create(shader, name);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -43,7 +43,7 @@ namespace Chozo {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return std::make_shared<OpenGLMaterial>(other, name);
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLMaterial>::Create(other, name);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");

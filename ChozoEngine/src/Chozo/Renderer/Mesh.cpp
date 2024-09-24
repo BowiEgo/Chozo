@@ -66,7 +66,7 @@ namespace Chozo
     void DynamicMesh::Init()
     {
         m_MeshSource->AfterGenerate(true);
-        m_RenderSource = std::make_shared<RenderSource>(GetMaxCount<Vertex>(), GetMaxCount<Index>());
+        m_RenderSource = Ref<RenderSource>::Create(GetMaxCount<Vertex>(), GetMaxCount<Index>());
         m_RenderSource->VBO->SetData(0, m_MeshSource->GetVertexs().size() * sizeof(Vertex), m_MeshSource->GetVertexs().data());
         m_RenderSource->IBO->SetData(0, m_MeshSource->GetIndexs().size() * 3, m_MeshSource->GetIndexs().data());
     }
@@ -82,7 +82,7 @@ namespace Chozo
     //////////////////////////////////////////////////////////////////////////////////
 	// StaticMesh
 	//////////////////////////////////////////////////////////////////////////////////
-    
+
     void StaticMesh::OnSubmit(bool successed)
     {
         m_MeshSource->AfterGenerate(successed);

@@ -51,7 +51,7 @@ namespace Chozo {
     };
     
 
-    class Framebuffer
+    class Framebuffer : public RefCounted
     {
     public:
         virtual ~Framebuffer() {}

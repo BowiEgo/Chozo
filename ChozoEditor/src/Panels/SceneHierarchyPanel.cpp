@@ -679,7 +679,7 @@ namespace Chozo {
                         entity = m_Context->CreateEntity("Box");
                     if (!entity.HasComponent<MeshComponent>())
                     {
-                        Ref<Geometry> geom = std::make_shared<BoxGeometry>();
+                        Ref<Geometry> geom = Ref<BoxGeometry>::Create();
                         geom->SetEntityID((uint64_t)entity);
                         entity.AddComponent<MeshComponent>(geom);
                     }
@@ -691,7 +691,7 @@ namespace Chozo {
                         entity = m_Context->CreateEntity("Sphere");
                     if (!entity.HasComponent<MeshComponent>())
                     {
-                        Ref<Geometry> geom = std::make_shared<SphereGeometry>();
+                        Ref<Geometry> geom = Ref<SphereGeometry>::Create();
                         geom->SetEntityID((uint64_t)entity);
                         entity.AddComponent<MeshComponent>(geom);
                     }

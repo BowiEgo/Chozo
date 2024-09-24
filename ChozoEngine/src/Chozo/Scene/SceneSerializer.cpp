@@ -573,7 +573,7 @@ namespace Chozo {
 
                     switch (geomType) {
                         case GeometryType::Box:
-                            geom = std::make_shared<BoxGeometry>(
+                            geom = Ref<BoxGeometry>::Create(
                                 geometry["Width"].as<float>(),
                                 geometry["Height"].as<float>(),
                                 geometry["Depth"].as<float>(),
@@ -583,7 +583,7 @@ namespace Chozo {
                             );
                             break;
                         case GeometryType::Sphere:
-                            geom = std::make_shared<SphereGeometry>(
+                            geom = Ref<SphereGeometry>::Create(
                                 geometry["Radius"].as<float>(),
                                 geometry["WidthSegments"].as<uint32_t>(),
                                 geometry["HeightSegments"].as<uint32_t>(),

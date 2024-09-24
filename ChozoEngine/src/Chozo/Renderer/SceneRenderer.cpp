@@ -332,8 +332,8 @@ namespace Chozo
         {
             meshData.Material->Set("u_VertUniforms.ModelMatrix", meshData.Transform);
             
-            if (static_cast<DynamicMesh*>(meshData.Mesh.get()))
-                Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), std::dynamic_pointer_cast<DynamicMesh>(meshData.Mesh), meshData.Material);
+            if (meshData.Mesh.As<DynamicMesh>())
+                Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.Material);
         }
 		Renderer::EndRenderPass(m_CommandBuffer, m_GeometryPass);
     }

@@ -106,7 +106,7 @@ namespace Chozo {
         std::vector<BufferElement>::const_iterator end() const { return m_Elements.end(); }
     };
 
-    class VertexBuffer
+    class VertexBuffer : public RefCounted
     {
     public:
         virtual ~VertexBuffer() {}

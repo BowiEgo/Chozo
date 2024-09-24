@@ -35,7 +35,7 @@ namespace Chozo
     };
 
     template<typename T>
-    class Batch
+    class Batch : public RefCounted
     {
     public:
 

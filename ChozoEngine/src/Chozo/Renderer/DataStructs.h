@@ -41,14 +41,16 @@ namespace Chozo
 	std::cout << std::endl;
 #endif
 
-	struct RenderSource
+	struct RenderSource : public RefCounted
     {
         Ref<VertexArray> VAO;
         Ref<VertexBuffer> VBO;
         Ref<IndexBuffer> IBO;
 
 		RenderSource() = default;
-        RenderSource(const RenderSource&) = default;
+        RenderSource(const RenderSource& other) = delete;
+        // {
+        // }
 		RenderSource(uint32_t vertexCount, uint32_t indexCount)
 		{
 			VAO = VertexArray::Create();
