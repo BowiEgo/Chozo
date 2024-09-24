@@ -3,6 +3,7 @@
 #include "czpch.h"
 
 #include "Asset.h"
+#include "AssetRegistry.h"
 
 namespace Chozo {
 
@@ -10,20 +11,18 @@ namespace Chozo {
 	{
 	public:
 		AssetManager() = default;
-		~AssetManager() = default;
+		virtual ~AssetManager() = default;
 
-		Ref<Asset> GetAsset(AssetHandle assetHandle);
-		void AddAsset(Ref<Asset> asset);
-		bool ReloadData(AssetHandle assetHandle);
-		bool IsAssetHandleValid(AssetHandle assetHandle);
-		bool IsMemoryAsset(AssetHandle handle);
-		bool IsAssetLoaded(AssetHandle handle);
-		void RemoveAsset(AssetHandle handle);
+		virtual Ref<Asset> GetAsset(AssetHandle assetHandle) = 0;
+		virtual void AddMemoryOnlyAsset(Ref<Asset> asset) = 0;
+		virtual bool ReloadData(AssetHandle assetHandle) = 0;
+		virtual bool IsAssetHandleValid(AssetHandle assetHandle) = 0;
+		virtual bool IsMemoryAsset(AssetHandle handle) = 0;
+		virtual bool IsAssetLoaded(AssetHandle handle) = 0;
+		virtual void RemoveAsset(AssetHandle handle) = 0;
 
-		const std::unordered_map<AssetHandle, Ref<Asset>>& GetLoadedAssets();
-		const std::unordered_map<AssetHandle, Ref<Asset>>& GetMemoryOnlyAssets();
-    private:
-		std::unordered_map<AssetHandle, Ref<Asset>> m_Assets;
+		virtual std::unordered_set<AssetHandle> GetAllAssetsWithType(AssetType type) = 0;
+		virtual const std::unordered_map<AssetHandle, Ref<Asset>>& GetLoadedAssets() = 0;
+		virtual const std::unordered_map<AssetHandle, Ref<Asset>>& GetMemoryOnlyAssets() = 0;
 	};
-
 }
