@@ -7,6 +7,10 @@
 namespace Chozo
 {
 
+    //////////////////////////////////////////////////////////////////////////////////
+	// OpenGLTexture2D
+	//////////////////////////////////////////////////////////////////////////////////
+
     OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification &spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
@@ -116,9 +120,10 @@ namespace Chozo
         glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(m_Spec.Format), m_Width, m_Height, 0, GetGLDataFormat(m_Spec.Format), GetGLDataType(m_Spec.Format), m_DataBuffer); GCE;
     }
 
-    //////////////////////////////////////////////////////////
-    //---------------------Texture Cube---------------------//
-    //////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////
+	// OpenGLTextureCube
+	//////////////////////////////////////////////////////////////////////////////////
+
     OpenGLTextureCube::OpenGLTextureCube(const TextureCubeSpecification& spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {

@@ -8,7 +8,7 @@
 #include <glad/glad.h>
 
 #include "Chozo/Scene/SceneSerializer.h"
-#include "Chozo/Utils/PlatformUtils.h"
+#include "Chozo/Utilities/PlatformUtils.h"
 #include "Chozo/Math/Math.h"
 
 namespace Chozo {
