@@ -12,6 +12,7 @@ namespace Chozo {
         ContentBrowserPanel();
 
         void OnImGuiRender();
+		void RenderAssetMenu(float height);
 		void RenderDirectoryHierarchy(std::filesystem::path directory);
 		void RenderTopBar(float height);
 		void RenderBottomBar(float height);

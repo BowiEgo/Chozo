@@ -93,6 +93,9 @@ namespace Chozo {
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
 
+            const float assetMenuHeight = 26.0f;
+            RenderAssetMenu(assetMenuHeight);
+
             ImGui::BeginChild("##folders_common");
             {
                 for (auto& p : std::filesystem::directory_iterator(g_AssetsPath))
@@ -106,7 +109,6 @@ namespace Chozo {
             ImGui::TableSetColumnIndex(1);
 
             // Directory Content
-
             const float topBarHeight = 26.0f;
             const float bottomBarHeight = 32.0f;
             ImGui::BeginChild("##directory_structure", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetWindowHeight() - topBarHeight - bottomBarHeight));
@@ -134,7 +136,7 @@ namespace Chozo {
                     if (filenameString == ".DS_Store")
                         continue;
                     
-                    ImGui::PushID(filenameString.c_str());
+                    UI::ScopedID id(filenameString.c_str());
 
                     Ref<Texture2D> icon;
                     TextureSpecification spec;
@@ -177,7 +179,6 @@ namespace Chozo {
                     DisplayCenteredText(filenameString);
                     
                     ImGui::NextColumn();
-                    ImGui::PopID();
                 }
 
                 ImGui::Columns(1);
@@ -194,6 +195,15 @@ namespace Chozo {
         ImGui::End();
     }
 
+    void ContentBrowserPanel::RenderAssetMenu(float height)
+    {
+        ImGui::BeginChild("##asset_menu", ImVec2(0, height));
+        UI::IconButton("Add New", IM_COL32(70, 160, 0, 255), IM_COL32(70, 180, 40, 255), IM_COL32(100, 190, 40, 255)); ImGui::SameLine();
+        UI::IconButton("Import", IM_COL32(210, 130, 0, 255), IM_COL32(210, 150, 40, 255), IM_COL32(240, 160, 40, 255)); ImGui::SameLine();
+        UI::IconButton("Save All", IM_COL32(33, 33, 33, 255), IM_COL32(55, 55, 55, 255), IM_COL32(77, 77, 77, 255)); ImGui::SameLine();
+        ImGui::EndChild();
+    }
+
     void ContentBrowserPanel::RenderDirectoryHierarchy(std::filesystem::path directory)
     {
 		std::string name = directory.filename().string();
@@ -201,8 +211,8 @@ namespace Chozo {
 		// bool previousState = ImGui::TreeNodeBehaviorIsOpen(ImGui::GetID(id.c_str()));
 
         auto* window = ImGui::GetCurrentWindow();
-        window->DC.CurrLineSize.y = 20.0f;
-        window->DC.CurrLineTextBaseOffset = 3.0f;
+        // window->DC.CurrLineSize.y = 20.0f;
+        // window->DC.CurrLineTextBaseOffset = 3.0f;
 
         // const ImRect itemRect = { window->WorkRect.Min.x, window->DC.CursorPos.y,
         //                           window->WorkRect.Max.x, window->DC.CursorPos.y + window->DC.CurrLineSize.y };
@@ -225,6 +235,8 @@ namespace Chozo {
 		// };
 
 		// Tree Node
+		UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+
         ImGuiTreeNodeFlags flags = (directory == m_CurrentDirectory ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
         bool opened = ImGui::TreeNodeWithIcon(m_HierachyDirectoryIcon, window->GetID(id.c_str()), flags, name.c_str(), NULL);

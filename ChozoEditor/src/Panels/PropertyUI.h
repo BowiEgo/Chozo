@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chozo.h"
+#include "Chozo/ImGui/ImGuiUI.h"
 
 #include <imgui_internal.h>
 
@@ -13,7 +14,7 @@ namespace Chozo {
         ImGuiIO& io = ImGui::GetIO();
         auto boldFont = io.Fonts->Fonts[0];
 
-        ImGui::PushID(label.c_str());
+        UI::ScopedID id(label.c_str());
 
         ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
@@ -75,8 +76,6 @@ namespace Chozo {
         ImGui::PopStyleVar();
 
         // ImGui::Columns(1);
-
-        ImGui::PopID();
 
         return valueChanged;
     }

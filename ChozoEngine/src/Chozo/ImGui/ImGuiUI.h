@@ -10,6 +10,205 @@
 namespace Chozo {
 
     extern const std::filesystem::path g_AssetsPath;
+
+	enum class ImGuiStyleType
+	{
+		Alpha,
+		DisabledAlpha,
+		WindowPadding,
+		WindowRounding,
+		WindowBorderSize,
+		WindowMinSize,
+		WindowTitleAlign,
+		WindowMenuButtonPosition,
+		ChildRounding,
+		ChildBorderSize,
+		PopupRounding,
+		PopupBorderSize,
+		FramePadding,
+		FrameRounding,
+		FrameBorderSize,
+		ItemSpacing,
+		ItemInnerSpacing,
+		CellPadding,
+		TouchExtraPadding,
+		IndentSpacing,
+		ColumnsMinSpacing,
+		ScrollbarSize,
+		ScrollbarRounding,
+		GrabMinSize,
+		GrabRounding,
+		LogSliderDeadzone,
+		TabRounding,
+		TabBorderSize,
+		TabMinWidthForCloseButton,
+		TabBarBorderSize,
+		TableAngledHeadersAngle,
+		TableAngledHeadersTextAlign,
+		ColorButtonPosition,
+		ButtonTextAlign,
+		SelectableTextAlign,
+		SeparatorTextBorderSize,
+		SeparatorTextAlign,
+		SeparatorTextPadding,
+		DisplayWindowPadding,
+		DisplaySafeAreaPadding,
+		DockingSeparatorSize,
+		MouseCursorScale,
+		AntiAliasedLines,
+		AntiAliasedLinesUseTex,
+		AntiAliasedFill,
+		CurveTessellationTol,
+		CircleTessellationMaxError,
+		HoverStationaryDelay,
+		HoverDelayShort,
+		HoverDelayNormal,
+		HoverFlagsForTooltipNav
+	};
+
+	enum class ImGuiFontStyle
+	{
+		FallbackAdvanceX,
+		FontSize,
+		EllipsisWidth,
+		EllipsisCharStep,
+		Scale,
+		Ascent, Descent,
+	};
+
+	struct ImGuiFontExtended : public ImFont
+	{
+		template<typename T>
+		T& GetStyleVar(ImGuiFontStyle fontStyle)
+		{
+			if constexpr (std::is_same_v<T, float>)
+			{
+				switch (fontStyle)
+				{
+					case ImGuiFontStyle::FallbackAdvanceX:	return FallbackAdvanceX;
+					case ImGuiFontStyle::FontSize:			return FontSize;
+					case ImGuiFontStyle::EllipsisWidth:		return EllipsisWidth;
+					case ImGuiFontStyle::EllipsisCharStep:	return EllipsisCharStep;
+					case ImGuiFontStyle::Scale:				return Scale;
+					case ImGuiFontStyle::Ascent:			return Ascent;
+					case ImGuiFontStyle::Descent:			return Descent;
+					default:
+						IM_ASSERT(false && "Unsupported style variable!");
+						static float dummy = 0.0f;
+						return dummy;
+				}
+			}
+		}
+	};
+
+	struct ImGuiStyleExtended : public ImGuiStyle
+	{
+		template<typename T>
+		T& GetStyleVar(ImGuiStyleType styleVar)
+		{
+			if constexpr (std::is_same_v<T, float>)
+			{
+				switch (styleVar)
+				{
+					case ImGuiStyleType::Alpha:            return Alpha;
+					case ImGuiStyleType::DisabledAlpha:    return DisabledAlpha;
+					case ImGuiStyleType::WindowRounding:   return WindowRounding;
+					case ImGuiStyleType::WindowBorderSize: return WindowBorderSize;
+					case ImGuiStyleType::ChildRounding:    return ChildRounding;
+					case ImGuiStyleType::ChildBorderSize:  return ChildBorderSize;
+					case ImGuiStyleType::PopupRounding:    return PopupRounding;
+					case ImGuiStyleType::PopupBorderSize:  return PopupBorderSize;
+					case ImGuiStyleType::FrameRounding:    return FrameRounding;
+					case ImGuiStyleType::FrameBorderSize:  return FrameBorderSize;
+					case ImGuiStyleType::IndentSpacing:    return IndentSpacing;
+					case ImGuiStyleType::ColumnsMinSpacing:return ColumnsMinSpacing;
+					case ImGuiStyleType::ScrollbarSize:    return ScrollbarSize;
+					case ImGuiStyleType::ScrollbarRounding:return ScrollbarRounding;
+					case ImGuiStyleType::GrabMinSize:      return GrabMinSize;
+					case ImGuiStyleType::GrabRounding:     return GrabRounding;
+					case ImGuiStyleType::LogSliderDeadzone:return LogSliderDeadzone;
+					case ImGuiStyleType::TabRounding:      return TabRounding;
+					case ImGuiStyleType::TabBorderSize:    return TabBorderSize;
+					case ImGuiStyleType::TabMinWidthForCloseButton: return TabMinWidthForCloseButton;
+					case ImGuiStyleType::TabBarBorderSize: return TabBarBorderSize;
+					case ImGuiStyleType::CurveTessellationTol: return CurveTessellationTol;
+					case ImGuiStyleType::CircleTessellationMaxError: return CircleTessellationMaxError;
+					case ImGuiStyleType::HoverStationaryDelay: return HoverStationaryDelay;
+					case ImGuiStyleType::HoverDelayShort: return HoverDelayShort;
+					case ImGuiStyleType::HoverDelayNormal: return HoverDelayNormal;
+					default:
+						IM_ASSERT(false && "Unsupported style variable!");
+						static float dummy = 0.0f;
+						return dummy;
+				}
+			}
+			else if constexpr (std::is_same_v<T, ImGuiHoveredFlags>)
+			{
+
+				switch (styleVar)
+				{
+					case ImGuiStyleType::HoverFlagsForTooltipNav: return HoverFlagsForTooltipNav;
+				default:
+						IM_ASSERT(false && "Unsupported style variable!");
+						static int dummy = 0;
+						return dummy;
+				}
+			}
+			else if constexpr (std::is_same_v<T, ImVec2>)
+			{
+				switch (styleVar)
+				{
+					case ImGuiStyleType::WindowPadding:    return WindowPadding;
+					case ImGuiStyleType::FramePadding:     return FramePadding;
+					case ImGuiStyleType::ItemSpacing:      return ItemSpacing;
+					case ImGuiStyleType::ItemInnerSpacing: return ItemInnerSpacing;
+					case ImGuiStyleType::CellPadding:      return CellPadding;
+					case ImGuiStyleType::TouchExtraPadding:return TouchExtraPadding;
+					case ImGuiStyleType::DisplayWindowPadding: return DisplayWindowPadding;
+					case ImGuiStyleType::DisplaySafeAreaPadding: return DisplaySafeAreaPadding;
+					default:
+						IM_ASSERT(false && "Unsupported style variable!");
+						static ImVec2 dummy(0.0f, 0.0f);
+						return dummy;
+				}
+			}
+			else if constexpr (std::is_same_v<T, ImVec4>)
+			{
+				switch (styleVar)
+				{
+					case ImGuiStyleType::SeparatorTextPadding: return SeparatorTextPadding;
+					default:
+						IM_ASSERT(false && "Unsupported style variable!");
+						static ImVec4 dummy(0.0f, 0.0f, 0.0f, 0.0f);
+						return dummy;
+				}
+			}
+			else if constexpr (std::is_same_v<T, bool>)
+			{
+				switch (styleVar)
+				{
+					case ImGuiStyleType::AntiAliasedLines:        return AntiAliasedLines;
+					case ImGuiStyleType::AntiAliasedLinesUseTex:  return AntiAliasedLinesUseTex;
+					case ImGuiStyleType::AntiAliasedFill:         return AntiAliasedFill;
+					default:
+						IM_ASSERT(false && "Unsupported style variable!");
+						static bool dummy = false;
+						return dummy;
+				}
+			}
+			else if constexpr (std::is_same_v<T, ImGuiDir>)
+			{
+				switch (styleVar)
+				{
+					case ImGuiStyleType::WindowMenuButtonPosition: return WindowMenuButtonPosition;
+					default:
+						IM_ASSERT(false && "Unsupported style variable!");
+						static ImGuiDir dummy = ImGuiDir_None;
+						return dummy;
+				}
+			}
+		}
+	};
 }
 
 namespace Chozo::UI {
@@ -23,6 +222,79 @@ namespace Chozo::UI {
         ScopedStyle(ImGuiStyleVar styleVar, T value) { ImGui::PushStyleVar(styleVar, value); }
         ~ScopedStyle() { ImGui::PopStyleVar(); }
     };
+
+	template <typename T>
+	class ScopedFrameStyle
+    {
+    public:
+        ScopedFrameStyle(const ScopedFrameStyle&) = delete;
+        ScopedFrameStyle& operator=(const ScopedFrameStyle&) = delete;
+        ScopedFrameStyle(ImGuiStyleType styleType, T value) {
+			ImGuiStyleExtended& style = static_cast<ImGuiStyleExtended&>(ImGui::GetStyle());
+			m_StyleType = styleType;
+			m_OldValue = style.GetStyleVar<T>(styleType);
+			style.GetStyleVar<T>(styleType) = value;
+		}
+        ~ScopedFrameStyle() {
+			ImGuiStyleExtended& style = static_cast<ImGuiStyleExtended&>(ImGui::GetStyle());
+			style.GetStyleVar<T>(m_StyleType) = m_OldValue;
+		}
+	private:
+        ImGuiStyleType m_StyleType;
+		T m_OldValue;
+    };
+
+	class ScopedColor
+	{
+	public:
+		ScopedColor(const ScopedColor&) = delete;
+		ScopedColor& operator=(const ScopedColor&) = delete;
+		template<typename T>
+		ScopedColor(ImGuiCol colourId, T colour) { ImGui::PushStyleColor(colourId, ImColor(colour).Value); }
+		~ScopedColor() { ImGui::PopStyleColor(); }
+	};
+
+	class ScopedFont
+	{
+	public:
+		ScopedFont(const ScopedFont&) = delete;
+		ScopedFont& operator=(const ScopedFont&) = delete;
+		ScopedFont(ImFont* font) { ImGui::PushFont(font); }
+		~ScopedFont() { ImGui::PopFont(); }
+	};
+
+	template <typename T>
+	class ScopedFontStyle
+	{
+	public:
+		ScopedFontStyle(const ScopedFontStyle&) = delete;
+		ScopedFontStyle& operator=(const ScopedFontStyle&) = delete;
+		ScopedFontStyle(ImGuiFontStyle fontStyle, T value) {
+			ImGuiFontExtended* font = static_cast<ImGuiFontExtended*>(ImGui::GetFont());
+			m_FontStyle = fontStyle;
+			m_OldValue = font->GetStyleVar<T>(fontStyle);
+			font->GetStyleVar<T>(fontStyle) = value;
+			ImGui::PushFont(font);
+		}
+        ~ScopedFontStyle() {
+			ImGuiFontExtended* font = static_cast<ImGuiFontExtended*>(ImGui::GetFont());
+			font->GetStyleVar<T>(m_FontStyle) = m_OldValue;
+			ImGui::PopFont();
+		}
+	private:
+		ImGuiFontStyle m_FontStyle;
+		T m_OldValue;
+	};
+
+	class ScopedID
+	{
+	public:
+		ScopedID(const ScopedID&) = delete;
+		ScopedID& operator=(const ScopedID&) = delete;
+		template<typename T>
+		ScopedID(T id) { ImGui::PushID(id); }
+		~ScopedID() { ImGui::PopID(); }
+	};
 
     class ScopedColorStack
     {
@@ -232,6 +504,20 @@ namespace Chozo::UI {
 	{
 		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 	};
+
+	//=========================================================================================
+	/// IconButton
+	static void IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32 bgPressed)
+	{
+		UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 0.0f));
+		UI::ScopedFrameStyle<float> frameRounding(ImGuiStyleType::FrameRounding, 2.0f);
+		UI::ScopedFontStyle<float> font(ImGuiFontStyle::Scale, 1.2f);
+		UI::ScopedColorStack buttonColors(ImGuiCol_Button, bgNormal,
+										  ImGuiCol_ButtonHovered, bgHovered,
+										  ImGuiCol_ButtonActive, bgPressed);
+
+        ImGui::Button(label.c_str());
+	}
 
 	//=========================================================================================
 	/// FileButton
