@@ -34,6 +34,28 @@ namespace Chozo {
 		std::filesystem::path GetFileSystemPath(const AssetMetadata& metadata);
 		std::string GetFileSystemPathString(const AssetMetadata& metadata);
 		std::filesystem::path GetRelativePath(const std::filesystem::path& filepath);
+
+		template<typename T, typename... Args>
+		Ref<T> CreateNewAsset(const std::string& filename, const std::string& directoryPath, Args&&... args)
+		{
+			AssetMetadata metadata;
+			metadata.Handle = AssetHandle();
+			if (directoryPath.empty() || directoryPath == ".")
+				metadata.FilePath = filename;
+			else
+				metadata.FilePath = GetRelativePath(directoryPath + "/" + filename);
+			metadata.IsDataLoaded = true;
+			metadata.Type = T::GetStaticType();
+			
+			m_AssetRegistry[metadata.Handle] = metadata;
+
+			Ref<T> asset = T::Create(std::forward<Args>(args)...);
+			
+			asset->Handle = metadata.Handle;
+			m_MemoryAssets[asset->Handle] = asset;
+
+			return asset;
+		}
     private:
 		AssetMetadata& GetMetadataInternal(AssetHandle handle);
     private:

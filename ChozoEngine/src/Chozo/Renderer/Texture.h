@@ -2,12 +2,13 @@
 
 #include "czpch.h"
 
+#include "Chozo/Asset/Asset.h"
 #include "RendererTypes.h"
 #include "Image.h"
 
 namespace Chozo {
 
-    class Texture : public RefCounted
+    class Texture : public Asset
     {
     public:
         virtual ~Texture() = default;
@@ -18,6 +19,9 @@ namespace Chozo {
 
         virtual void Bind(uint32_t slot = 0) const = 0;
         virtual void Unbind() const = 0;
+
+        static AssetType GetStaticType() { return AssetType::Texture; }
+		virtual AssetType GetAssetType() const override { return GetStaticType(); }
     };
 
     struct TextureSpecification

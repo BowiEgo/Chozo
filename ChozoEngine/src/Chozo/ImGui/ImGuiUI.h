@@ -507,7 +507,7 @@ namespace Chozo::UI {
 
 	//=========================================================================================
 	/// IconButton
-	static void IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32 bgPressed)
+	static bool IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32 bgPressed)
 	{
 		UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 0.0f));
 		UI::ScopedFrameStyle<float> frameRounding(ImGuiStyleType::FrameRounding, 2.0f);
@@ -516,7 +516,7 @@ namespace Chozo::UI {
 										  ImGuiCol_ButtonHovered, bgHovered,
 										  ImGuiCol_ButtonActive, bgPressed);
 
-        ImGui::Button(label.c_str());
+        return ImGui::Button(label.c_str());
 	}
 
 	//=========================================================================================

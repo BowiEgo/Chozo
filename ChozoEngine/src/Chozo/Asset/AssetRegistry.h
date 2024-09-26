@@ -10,13 +10,13 @@ namespace Chozo {
 	{
 	public:
 		AssetMetadata& operator[](const AssetHandle handle);
-		AssetMetadata& Get(const AssetHandle handle);
-		const AssetMetadata& Get(const AssetHandle handle) const;
+		// AssetMetadata& Get(const AssetHandle handle);
+		// const AssetMetadata& Get(const AssetHandle handle) const;
 
-		size_t Count() const { return m_AssetRegistry.size(); }
+		// size_t Count() const { return m_AssetRegistry.size(); }
 		bool Contains(const AssetHandle handle) const;
-		size_t Remove(const AssetHandle handle);
-		void Clear();
+		// size_t Remove(const AssetHandle handle);
+		// void Clear();
 
 		auto begin() { return m_AssetRegistry.begin(); }
 		auto end() { return m_AssetRegistry.end(); }

@@ -10,6 +10,10 @@ namespace Chozo {
 
 	static AssetMetadata s_NullMetadata;
 
+    EditorAssetManager::EditorAssetManager()
+    {
+    }
+
     EditorAssetManager::~EditorAssetManager()
     {
     }
@@ -41,17 +45,47 @@ namespace Chozo {
     void EditorAssetManager::AddMemoryOnlyAsset(Ref<Asset> asset)
     {
         AssetMetadata metadata;
-		metadata.Handle = asset->Handle;
-		metadata.Type = asset->GetAssetType();
-		metadata.IsMemoryAsset = true;
-		m_AssetRegistry[metadata.Handle] = metadata;
+        metadata.Handle = asset->Handle;
+        metadata.Type = asset->GetAssetType();
+        metadata.IsMemoryAsset = true;
+        m_AssetRegistry[metadata.Handle] = metadata;
 
-		m_MemoryAssets[asset->Handle] = asset;
+        m_MemoryAssets[asset->Handle] = asset;
+    }
+
+    bool EditorAssetManager::ReloadData(AssetHandle assetHandle)
+    {
+        return false;
+    }
+
+    bool EditorAssetManager::IsAssetHandleValid(AssetHandle assetHandle)
+    {
+        return false;
+    }
+
+    bool EditorAssetManager::IsAssetLoaded(AssetHandle handle)
+    {
+        return false;
     }
 
     void EditorAssetManager::RemoveAsset(AssetHandle handle)
     {
         
+    }
+
+    std::unordered_set<AssetHandle> EditorAssetManager::GetAllAssetsWithType(AssetType type)
+    {
+        return std::unordered_set<AssetHandle>();
+    }
+
+    const std::unordered_map<AssetHandle, Ref<Asset>> &EditorAssetManager::GetLoadedAssets()
+    {
+        return m_LoadedAssets;
+    }
+
+    const std::unordered_map<AssetHandle, Ref<Asset>> &EditorAssetManager::GetMemoryOnlyAssets()
+    {
+        return m_MemoryAssets;
     }
 
     const AssetMetadata &EditorAssetManager::GetMetadata(AssetHandle handle)
