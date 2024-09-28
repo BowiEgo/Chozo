@@ -84,6 +84,5 @@ namespace Chozo {
 		return std::make_unique<T>(std::forward<Args>(args)...);
 	}
 
-    // template<typename T>
-    // using Ref = std::shared_ptr<T>;
+	using byte = uint8_t;
 }
