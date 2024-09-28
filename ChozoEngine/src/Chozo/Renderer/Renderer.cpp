@@ -97,27 +97,27 @@ namespace Chozo {
         // Shaders
         std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
         s_Data.m_ShaderLibrary = ShaderLibrary::Create();
-        s_Data.m_ShaderLibrary->Load("Basic", "../assets/shaders/Basic.glsl.vert", "../assets/shaders/Basic.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("Basic", "../resources/shaders/Basic.glsl.vert", "../resources/shaders/Basic.glsl.frag");
         s_Data.m_ShaderLibrary->Get("Basic")->Bind();
         s_Data.m_ShaderLibrary->Get("Basic")->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
 
-        s_Data.m_ShaderLibrary->Load("ID", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/ID.glsl.frag");
-        s_Data.m_ShaderLibrary->Load("Geometry", "../assets/shaders/GBuffer.glsl.vert", "../assets/shaders/GBuffer.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("ID", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/ID.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("Geometry", "../resources/shaders/GBuffer.glsl.vert", "../resources/shaders/GBuffer.glsl.frag");
 
-        s_Data.m_ShaderLibrary->Load("Depth", "../assets/shaders/Basic.glsl.vert", "../assets/shaders/Depth.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("Depth", "../resources/shaders/Basic.glsl.vert", "../resources/shaders/Depth.glsl.frag");
         
-        s_Data.m_ShaderLibrary->Load("PhongLight", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/PhongLight.glsl.frag");
-        s_Data.m_ShaderLibrary->Load("IrradianceConvolution", "../assets/shaders/CubemapSampler.glsl.vert", "../assets/shaders/IrradianceConvolution.glsl.frag");
-        s_Data.m_ShaderLibrary->Load("Prefiltered", "../assets/shaders/CubemapSampler.glsl.vert", "../assets/shaders/Prefiltered.glsl.frag");
-        s_Data.m_ShaderLibrary->Load("BRDF", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/BRDF.glsl.frag");
-        s_Data.m_ShaderLibrary->Load("PBR", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/PBR.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("PhongLight", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/PhongLight.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("IrradianceConvolution", "../resources/shaders/CubemapSampler.glsl.vert", "../resources/shaders/IrradianceConvolution.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("Prefiltered", "../resources/shaders/CubemapSampler.glsl.vert", "../resources/shaders/Prefiltered.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("BRDF", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/BRDF.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("PBR", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/PBR.glsl.frag");
 
-        s_Data.m_ShaderLibrary->Load("CubemapSampler", "../assets/shaders/CubemapSampler.glsl.vert", "../assets/shaders/CubemapSampler.glsl.frag");
-        s_Data.m_ShaderLibrary->Load("PreethamSky", "../assets/shaders/PreethamSky.glsl.vert", "../assets/shaders/PreethamSky.glsl.frag");
-        s_Data.m_ShaderLibrary->Load("Skybox", "../assets/shaders/Skybox.glsl.vert", "../assets/shaders/Skybox.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("CubemapSampler", "../resources/shaders/CubemapSampler.glsl.vert", "../resources/shaders/CubemapSampler.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("PreethamSky", "../resources/shaders/PreethamSky.glsl.vert", "../resources/shaders/PreethamSky.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("Skybox", "../resources/shaders/Skybox.glsl.vert", "../resources/shaders/Skybox.glsl.frag");
 
-        s_Data.m_ShaderLibrary->Load("CubemapPreview", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/CubemapPreview.glsl.frag");
-        s_Data.m_ShaderLibrary->Load("SceneComposite", "../assets/shaders/FullScreenQuad.glsl.vert", "../assets/shaders/SceneComposite.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("CubemapPreview", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/CubemapPreview.glsl.frag");
+        s_Data.m_ShaderLibrary->Load("SceneComposite", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/SceneComposite.glsl.frag");
 
         // PreethamSky
         {

@@ -52,7 +52,7 @@ namespace Chozo {
         static const char* GetCacheDirectory()
         {
             // TODO: make sure the assets directory is valid
-            return "../assets/cache/shader/opengl";
+            return "../caches/shader/opengl";
         }
 
         static void CreateCacheDirectoryIfNeeded()

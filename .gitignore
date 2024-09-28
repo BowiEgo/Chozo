@@ -4,7 +4,8 @@
 bin/
 build/
 lib/
-ChozoEditor/assets/cache
+ChozoEditor/assets
+ChozoEditor/caches
 vcpkg_installed
 
 # Files

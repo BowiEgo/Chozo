@@ -29,15 +29,15 @@ namespace Chozo {
         //io.ConfigViewportsNoAutoMerge = true;
         //io.ConfigViewportsNoTaskBarIcon = true;
 
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Open_Sans/static/OpenSans-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Nunito/static/Nunito-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Nunito_Sans/static/NunitoSans_10pt-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Raleway/static/Raleway-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Roboto/Roboto-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Abel/Abel-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Nanum_Gothic/NanumGothic-Regular.ttf", 16.0f);
-        io.Fonts->AddFontFromFileTTF("../assets/fonts/Titillium_Web/TitilliumWeb-Bold.ttf", 18.0f);
-        io.FontDefault =  io.Fonts->AddFontFromFileTTF("../assets/fonts/Titillium_Web/TitilliumWeb-Regular.ttf", 18.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Open_Sans/static/OpenSans-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Nunito/static/Nunito-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Nunito_Sans/static/NunitoSans_10pt-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Raleway/static/Raleway-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Roboto/Roboto-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Abel/Abel-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Nanum_Gothic/NanumGothic-Regular.ttf", 16.0f);
+        io.Fonts->AddFontFromFileTTF("../resources/fonts/Titillium_Web/TitilliumWeb-Bold.ttf", 18.0f);
+        io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Titillium_Web/TitilliumWeb-Regular.ttf", 18.0f);
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
