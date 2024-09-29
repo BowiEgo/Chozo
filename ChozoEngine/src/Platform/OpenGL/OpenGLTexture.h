@@ -10,15 +10,17 @@ namespace Chozo {
     class OpenGLTexture2D : public Texture2D
     {
     public:
-        OpenGLTexture2D(const TextureSpecification& spec);
-        OpenGLTexture2D(const std::string& path, const TextureSpecification& spec);
-        OpenGLTexture2D(const RendererID& id, const TextureSpecification& spec);
+        OpenGLTexture2D(const Texture2DSpecification& spec);
+        OpenGLTexture2D(const std::string& path, const Texture2DSpecification& spec);
+        OpenGLTexture2D(const RendererID& id, const Texture2DSpecification& spec);
+        OpenGLTexture2D(Buffer imageBuffer, const Texture2DSpecification& spec);
+
         virtual ~OpenGLTexture2D();
 
         virtual uint32_t GetWidth() const override { return m_Width; };
         virtual uint32_t GetHeight() const override { return m_Height; };
 		virtual RendererID GetRendererID() const override { return m_RendererID; };
-        virtual TextureSpecification GetSpecification() const override { return m_Spec; };
+        virtual Texture2DSpecification GetSpecification() const override { return m_Spec; };
 
         virtual void Resize(uint32_t width, uint32_t height) override;
 
@@ -26,8 +28,9 @@ namespace Chozo {
         virtual void Unbind() const override;
 
         virtual void SetData(const void* data, const uint32_t size) override;
+        virtual void CopyToHostBuffer(Buffer& buffer) override;
     private:
-        TextureSpecification m_Spec;
+        Texture2DSpecification m_Spec;
         std::string m_Path;
         uint32_t m_Width, m_Height;
         RendererID m_RendererID;
@@ -51,6 +54,7 @@ namespace Chozo {
         virtual void Unbind() const override;
 
         virtual void SetData(void* data, uint32_t size) override;
+        virtual void CopyToHostBuffer(Buffer& buffer) override;
     private:
         TextureCubeSpecification m_Spec;
         uint32_t m_Width, m_Height;

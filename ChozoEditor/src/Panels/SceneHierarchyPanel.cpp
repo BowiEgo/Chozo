@@ -361,23 +361,23 @@ namespace Chozo {
 
             if (!component.Dynamic)
             {
-                ImGui::Text("%s", component.SourcePath.c_str()); ImGui::SameLine();
+                // ImGui::Text("%s", component.SourcePath.c_str()); ImGui::SameLine();
                 ImGui::Button("Path");
                 if (ImGui::BeginDragDropTarget())
                 {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
                     {
-                        const char* path = (const char*)payload->Data;
-                        CZ_INFO("Drop target: {0}", (char*)path);
-                        std::filesystem::path filePath = std::filesystem::path(path);
-                        std::string fileExtension = filePath.extension().string();
+                        // const char* path = (const char*)payload->Data;
+                        // CZ_INFO("Drop target: {0}", (char*)path);
+                        // std::filesystem::path filePath = std::filesystem::path(path);
+                        // std::string fileExtension = filePath.extension().string();
 
-                        if (std::regex_match(fileExtension, imagePattern))
-                        {
-                            std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
-                            component.SourcePath = std::string(texturePath);
-                            component.SceneEnvironment = nullptr;
-                        }
+                        // if (std::regex_match(fileExtension, imagePattern))
+                        // {
+                        //     std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
+                        //     component.Source = std::string(texturePath);
+                        //     component.SceneEnvironment = nullptr;
+                        // }
                     }
 
                     ImGui::EndDragDropTarget();

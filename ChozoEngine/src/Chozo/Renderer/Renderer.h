@@ -118,7 +118,7 @@ namespace Chozo {
         static uint32_t GetMaxTextureSlots();
 
         static Ref<TextureCube> CreateCubemap(const std::string& filePath);
-		static void CreateStaticSky(const std::string& filePath);
+		static void CreateStaticSky( const Ref<Texture2D> texture);
 		static void CreatePreethamSky(const float turbidity, const float azimuth, const float inclination);
 		static void UpdatePreethamSky(const float turbidity, const float azimuth, const float inclination);
 

@@ -35,9 +35,16 @@ namespace Chozo {
 		AssetType Type;
 
 		std::filesystem::path FilePath;
+		uint64_t FileSize;
 		bool IsDataLoaded = false;
 		bool IsMemoryAsset = false;
 
 		bool IsValid() const { return Handle != 0 && !IsMemoryAsset; }
+	};
+
+	struct Texture2DMetadata
+	{
+		uint32_t Width, Height;
+		uint16_t Format;
 	};
 }

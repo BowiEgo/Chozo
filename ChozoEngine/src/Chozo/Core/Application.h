@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "Chozo/Core/Base.h"
 #include "Chozo/Core/Timestep.h"
 #include "Chozo/Core/Window.h"

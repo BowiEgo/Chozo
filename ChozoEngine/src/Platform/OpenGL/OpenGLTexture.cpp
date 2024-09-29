@@ -7,11 +7,9 @@
 namespace Chozo
 {
 
-    //////////////////////////////////////////////////////////////////////////////////
-	// OpenGLTexture2D
-	//////////////////////////////////////////////////////////////////////////////////
-
-    OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification &spec)
+    //==============================================================================
+	///  OpenGLTexture2D
+    OpenGLTexture2D::OpenGLTexture2D(const Texture2DSpecification &spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
         m_InternalFormat = GetGLFormat(m_Spec.Format);
@@ -31,7 +29,7 @@ namespace Chozo
         glBindTexture(GL_TEXTURE_2D, 0); GCE;
     }
 
-    OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const TextureSpecification &spec)
+    OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const Texture2DSpecification &spec)
         : m_Spec(spec), m_Path(path)
     {
         int width, height, channels;
@@ -76,12 +74,32 @@ namespace Chozo
         stbi_image_free(m_DataBuffer); // TODO: maybe cause issue
     }
 
-    OpenGLTexture2D::OpenGLTexture2D(const RendererID& id, const TextureSpecification &spec)
+    OpenGLTexture2D::OpenGLTexture2D(const RendererID& id, const Texture2DSpecification &spec)
         : m_RendererID(id), m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
         m_InternalFormat = GetGLFormat(m_Spec.Format);
         m_DataFormat = GetGLDataFormat(m_Spec.Format);
         m_DataType = GetGLDataType(m_Spec.Format);
+    }
+
+    OpenGLTexture2D::OpenGLTexture2D(Buffer imageBuffer, const Texture2DSpecification &spec)
+        : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
+    {
+        m_InternalFormat = GetGLFormat(m_Spec.Format);
+        m_DataFormat = GetGLDataFormat(m_Spec.Format);
+        m_DataType = GetGLDataType(m_Spec.Format);
+
+        glGenTextures(1, &m_RendererID); GCE;
+        glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetGLParameter(m_Spec.MinFilter)); GCE;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetGLParameter(m_Spec.MagFilter)); GCE;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GetGLParameter(m_Spec.WrapR)); GCE;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetGLParameter(m_Spec.WrapS)); GCE;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetGLParameter(m_Spec.WrapT)); GCE;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_DataFormat, m_DataType, imageBuffer.Data); GCE;
+        glBindTexture(GL_TEXTURE_2D, 0); GCE;
     }
 
     OpenGLTexture2D::~OpenGLTexture2D()
@@ -120,10 +138,18 @@ namespace Chozo
         glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(m_Spec.Format), m_Width, m_Height, 0, GetGLDataFormat(m_Spec.Format), GetGLDataType(m_Spec.Format), m_DataBuffer); GCE;
     }
 
-    //////////////////////////////////////////////////////////////////////////////////
-	// OpenGLTextureCube
-	//////////////////////////////////////////////////////////////////////////////////
+    void OpenGLTexture2D::CopyToHostBuffer(Buffer& buffer)
+    {
+        uint64_t size = m_Width * m_Height * Utils::GetBytesPerPixel(m_Spec.Format);
+        buffer.Allocate(size);
+        
+        glBindTexture(GL_TEXTURE_2D, m_RendererID);
+        glGetTexImage(GL_TEXTURE_2D, 0, m_DataFormat, m_DataType, buffer.Data);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 
+	//==============================================================================
+	/// OpenGLTextureCube
     OpenGLTextureCube::OpenGLTextureCube(const TextureCubeSpecification& spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
@@ -179,5 +205,9 @@ namespace Chozo
         {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GetGLFormat(m_Spec.Format), m_Spec.Width, m_Spec.Height, 0, GetGLDataFormat(m_Spec.Format), GL_FLOAT, static_cast<float*>(data) + (size / 6) * i); GCE;
         }
+    }
+
+    void OpenGLTextureCube::CopyToHostBuffer(Buffer& buffer)
+    {
     }
 }

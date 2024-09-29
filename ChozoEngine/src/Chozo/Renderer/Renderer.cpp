@@ -423,10 +423,10 @@ namespace Chozo {
         return s_RendererAPI->GetMaxTextureSlots();
     }
 
-    void Renderer::CreateStaticSky(const std::string &filePath)
+    void Renderer::CreateStaticSky(const Ref<Texture2D> texture)
     {
-        Submit([filePath](){
-            s_RendererAPI->RenderCubemap(s_Data.m_CubemapSamplerPipeline, s_Data.StaticSkyTextureCube, filePath);
+        Submit([texture](){
+            s_RendererAPI->RenderCubemap(s_Data.m_CubemapSamplerPipeline, s_Data.StaticSkyTextureCube, texture);
 
             s_Data.m_IrradianceMaterial->Set("u_Texture", s_Data.StaticSkyTextureCube);
             s_RendererAPI->RenderCubemap(s_Data.m_IrradiancePipeline, s_Data.IrradianceTextureCube, s_Data.m_IrradianceMaterial);

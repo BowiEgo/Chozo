@@ -130,20 +130,10 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRendererAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, const std::string filePath)
+    void OpenGLRendererAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, const Ref<Texture2D> texture)
     {
-        std::filesystem::path path = std::filesystem::path(filePath);
-        std::string fileExtension = path.extension().string();
-
-        TextureSpecification spec;
-        spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
-        spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
-        if (fileExtension == ".hdr")
-            spec.HDR = true;
-        Ref<Texture2D> equirectangularMap = Texture2D::Create(filePath, spec);
-
         pipeline->GetTargetFramebuffer()->Bind();
-        equirectangularMap->Bind();
+        texture->Bind();
         OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
         shader->Bind();
         shader->SetUniform("u_EquirectangularMap", 0);

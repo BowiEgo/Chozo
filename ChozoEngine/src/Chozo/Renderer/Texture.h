@@ -2,6 +2,7 @@
 
 #include "czpch.h"
 
+#include "Chozo/Core/Buffer.h"
 #include "Chozo/Asset/Asset.h"
 #include "RendererTypes.h"
 #include "Image.h"
@@ -22,9 +23,11 @@ namespace Chozo {
 
         static AssetType GetStaticType() { return AssetType::Texture; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
+
+        virtual void CopyToHostBuffer(Buffer& buffer) = 0;
     };
 
-    struct TextureSpecification
+    struct Texture2DSpecification
     {
 		ImageFormat Format = ImageFormat::RGBA;
 
@@ -57,16 +60,16 @@ namespace Chozo {
     class Texture2D : public Texture
     {
     public:
-        virtual TextureSpecification GetSpecification() const = 0;
+        virtual Texture2DSpecification GetSpecification() const = 0;
 
 		virtual void SetData(const void* data, const uint32_t size) = 0;
-
         virtual void Resize(uint32_t width, uint32_t height) = 0;
 
-        static Ref<Texture2D> Create(const TextureSpecification& spec = TextureSpecification());
-        static Ref<Texture2D> Create(const std::string& path, const TextureSpecification& spec = TextureSpecification());
-        static Ref<Texture2D> Create(const RendererID& id, const TextureSpecification& spec = TextureSpecification());
-		// static Ref<Texture2D> Create(const TextureSpecification& spec, Buffer imageData);
+        static Ref<Texture2D> Create(const Texture2DSpecification& spec = Texture2DSpecification());
+        static Ref<Texture2D> Create(const std::string& path, const Texture2DSpecification& spec = Texture2DSpecification());
+        static Ref<Texture2D> Create(const RendererID& id, const Texture2DSpecification& spec = Texture2DSpecification());
+        static Ref<Texture2D> Create(Buffer imageBuffer, const Texture2DSpecification& spec);
+		// static Ref<Texture2D> Create(const Texture2DSpecification& spec, Buffer imageData);
     };
 
     class TextureCube : public Texture

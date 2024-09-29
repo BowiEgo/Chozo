@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Asset.h"
+#include "AssetSerializer.h"
 
 namespace Chozo
 {
@@ -9,10 +10,9 @@ namespace Chozo
     {
     public:
         static void Init();
-		static void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset);
-		static void Serialize(const Ref<Asset>& asset);
-		static bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset);
+		static uint64_t Serialize(const AssetMetadata& metadata, Ref<Asset>& asset);
+		static Ref<Asset> Deserialize(const AssetMetadata& metadata);
     private:
-		// static std::unordered_map<AssetType, Scope<AssetSerializer>> s_Serializers;
+		static std::unordered_map<AssetType, Scope<AssetSerializer>> s_Serializers;
     };
 }

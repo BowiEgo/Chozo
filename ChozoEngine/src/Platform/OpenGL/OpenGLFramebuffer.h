@@ -31,13 +31,13 @@ namespace Chozo {
 		void Invalidate();
 		void Release();
     private:
-        void CreateTextures(int samples, std::vector<FramebufferTextureSpecification> attachmentSpecs, uint32_t width, uint32_t height);
+        void CreateTextures(int samples, std::vector<FramebufferTexture2DSpecification> attachmentSpecs, uint32_t width, uint32_t height);
     private:
         FramebufferSpecification m_Specification;
         RendererID m_RendererID = 0;
 
-        std::vector<FramebufferTextureSpecification> m_ColorAttachmentSpecs;
-        FramebufferTextureSpecification m_DepthAttachmentSpec = ImageFormat::None;
+        std::vector<FramebufferTexture2DSpecification> m_ColorAttachmentSpecs;
+        FramebufferTexture2DSpecification m_DepthAttachmentSpec = ImageFormat::None;
 
         std::vector<RendererID> m_ColorAttachments;
         RendererID m_DepthAttachment;

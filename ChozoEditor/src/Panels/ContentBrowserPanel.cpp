@@ -68,6 +68,7 @@ namespace Chozo {
     ContentBrowserPanel::ContentBrowserPanel()
     {
         m_AssetManager = Ref<EditorAssetManager>::Create();
+        AssetManager::SetActived(m_AssetManager);
 
         m_HierachyDirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder-open-1.png");
         m_DirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder.png");
@@ -79,6 +80,8 @@ namespace Chozo {
         m_RefreshIcon = Texture2D::Create("../resources/icons/ContentBrowser/refresh.png");
         m_SearchIcon = Texture2D::Create("../resources/icons/ContentBrowser/search.png");
         m_ClearIcon = Texture2D::Create("../resources/icons/ContentBrowser/clear.png");
+
+        OnBrowserRefresh();
     }
 
     void ContentBrowserPanel::OnImGuiRender()
@@ -129,52 +132,45 @@ namespace Chozo {
 
                 if (m_CurrentDirectory)
                 {
-                    for (auto& p : m_CurrentDirectory->SubDirectories)
+                    for (auto& p : m_CurrentDirectory->SubDirSorted)
                     {
-                        Ref<DirectoryInfo> dir = p.second;
+                        Ref<DirectoryInfo> dir = m_CurrentDirectory->SubDirectories[p];
                         auto relativePath = dir->FilePath;
                         std::string filenameString = relativePath.filename().string();
-                        // Exclude files
-                        if (filenameString == ".DS_Store")
-                            continue;
                         
                         UI::ScopedID id(filenameString.c_str());
 
                         Ref<Texture2D> icon;
-                        TextureSpecification spec;
-                        spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
-                        spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
-
-                        // if (p.is_directory())
-                        // {
-                            icon = dir->SubDirectories.empty() ? m_EmptyDirectoryIcon : m_DirectoryIcon;
-                        // }
-                        // else
-                        // {
-                        //     std::string fileExtension = path.extension().string();
-                        //     if (std::regex_match(fileExtension, imagePattern))
-                        //     {
-
-                        //         auto it = m_TextureCaches.find(filenameString);
-                        //         if (it != m_TextureCaches.end())
-                        //             icon = it->second;
-                        //         else
-                        //         {
-                        //             Ref<Texture2D> texture = Texture2D::Create(path.string(), spec);
-                        //             m_TextureCaches[filenameString] = texture;
-                        //             icon = texture;
-                        //         }
-                        //     }
-                        //     else
-                        //         icon = m_TextFileIcon;
-                        // }
-
+                        icon = dir->SubDirectories.empty() ? m_EmptyDirectoryIcon : m_DirectoryIcon;
+   
                         DisplayThumbnail(icon, thumbnailSize);
                         DisplayDragDrop(relativePath);
                         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                             m_CurrentDirectory = dir;
                         DisplayCenteredText(filenameString);
                         
+                        ImGui::NextColumn();
+                    }
+
+                    for (auto& p : m_CurrentDirectory->AssetsSorted)
+                    {
+                        Ref<Asset> asset = m_AssetManager->GetAsset(p);
+                        AssetMetadata metadata = m_AssetManager->GetMetadata(asset->Handle);
+                        AssetType assetType = asset->GetAssetType();
+                        std::string filenameString = metadata.FilePath.filename().string();
+
+                        UI::ScopedID id(filenameString.c_str());
+
+                        Ref<Texture2D> icon;
+
+                        if (assetType == AssetType::Texture)
+                            icon = asset.As<Texture2D>();
+                        else
+                            icon = m_TextFileIcon;
+
+                        DisplayThumbnail(icon, thumbnailSize);
+                        DisplayDragDrop(metadata.FilePath);
+                        DisplayCenteredText(filenameString);
                         ImGui::NextColumn();
                     }
                 }
@@ -196,19 +192,27 @@ namespace Chozo {
     void ContentBrowserPanel::RenderAssetMenu(float height)
     {
         ImGui::BeginChild("##asset_menu", ImVec2(0, height));
-        UI::IconButton("Add New", IM_COL32(70, 160, 0, 255), IM_COL32(70, 180, 40, 255), IM_COL32(100, 190, 40, 255)); ImGui::SameLine();
+        UI::IconButton("Add New", IM_COL32(70, 160, 0, 255), IM_COL32(70, 180, 40, 255), IM_COL32(100, 190, 40, 255));
+        ImGui::SameLine();
+        
         if (UI::IconButton("Import", IM_COL32(210, 130, 0, 255), IM_COL32(210, 150, 40, 255), IM_COL32(240, 160, 40, 255)))
         {
             ImportAssets();
         }
         ImGui::SameLine();
-        UI::IconButton("Save All", IM_COL32(33, 33, 33, 255), IM_COL32(55, 55, 55, 255), IM_COL32(77, 77, 77, 255)); ImGui::SameLine();
+        
+        if (UI::IconButton("Save All", IM_COL32(33, 33, 33, 255), IM_COL32(55, 55, 55, 255), IM_COL32(77, 77, 77, 255)))
+        {
+            SaveAllAssets();
+        }
+        ImGui::SameLine();
+
         ImGui::EndChild();
     }
 
     void ContentBrowserPanel::RenderDirectoryHierarchy(Ref<DirectoryInfo> directory)
     {
-		std::string name = directory->FilePath.filename().string();
+		std::string name = directory == m_BaseDirectory ? "All" : directory->FilePath.filename().string();
 		std::string id = name + "_TreeNode";
 		// bool previousState = ImGui::TreeNodeBehaviorIsOpen(ImGui::GetID(id.c_str()));
 
@@ -241,6 +245,11 @@ namespace Chozo {
 
         ImGuiTreeNodeFlags flags = (directory == m_CurrentDirectory ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+        if (directory == m_BaseDirectory)
+            flags |= ImGuiTreeNodeFlags_DefaultOpen;
+        if (directory->SubDirectories.empty())
+            flags |= ImGuiTreeNodeFlags_Leaf;
+
         bool opened = ImGui::TreeNodeWithIcon(m_HierachyDirectoryIcon, window->GetID(id.c_str()), flags, name.c_str(), NULL);
 
         if (ImGui::IsItemClicked())
@@ -250,10 +259,8 @@ namespace Chozo {
         // Draw children
         if (opened)
         {
-            for (auto& child : directory->SubDirectories)
-            {
-                RenderDirectoryHierarchy(child.second);
-            }
+            for (auto handle : directory->SubDirSorted)
+                RenderDirectoryHierarchy(directory->SubDirectories[handle]);
 
 			ImGui::TreePop();
         }
@@ -293,19 +300,13 @@ namespace Chozo {
                 m_ForwardIcon_Disabled = (m_NextDirectory == nullptr);
 
                 if (contentBrowserButton("##back", m_BackIcon, m_BackIcon_Disabled))
-				{
                     OnBrowserBack();
-				}
 
                 if (contentBrowserButton("##forward", m_BackIcon, m_ForwardIcon_Disabled, true))
-				{
                     OnBrowserForward();
-				}
 
                 if (contentBrowserButton("##refresh", m_RefreshIcon))
-				{
                     OnBrowserRefresh();
-				}
             }
         }
 
@@ -389,10 +390,49 @@ namespace Chozo {
 
     void ContentBrowserPanel::ImportAssets()
     {
-        std::string path = FileDialogs::OpenFile("Import (*.png)\0*.jpeg\0");
-        Ref<Asset> textureAsset =  CreateAsset<Texture2D>(path, path);
+        std::filesystem::path path = FileDialogs::OpenFile("Import (*.png)\0*.jpeg\0");
+
+        std::string fileExtension = path.extension().string();
+        Texture2DSpecification spec;
+        spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
+        spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
+        if (fileExtension == ".hdr")
+            spec.HDR = true;
+
+        Ref<Asset> textureAsset = CreateAsset<Texture2D>(path.filename().stem().string(), m_CurrentDirectory, path.string(), spec);
 
         return;
+    }
+
+    void ContentBrowserPanel::SaveAllAssets()
+    {
+        m_AssetManager->SaveAssets();
+    }
+
+    void ContentBrowserPanel::AddAssetsToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata)
+    {
+        directory->Assets[metadata.Handle] = m_AssetManager->GetMetadata(metadata.Handle);
+        directory->AssetsSorted.push_back(metadata.Handle);
+    }
+
+    void ContentBrowserPanel::SortAssets(Ref<DirectoryInfo> directory)
+    {
+        std::sort(directory->AssetsSorted.begin(), directory->AssetsSorted.end(), 
+            [&](const auto& a, const auto& b) {
+                const auto& assetA = directory->Assets[a].FilePath.filename().string();
+                const auto& assetB = directory->Assets[b].FilePath.filename().string();
+                return assetA < assetB;
+        });
+    }
+
+    void ContentBrowserPanel::SortSubDirs(Ref<DirectoryInfo> directory)
+    {
+        std::sort(directory->SubDirSorted.begin(), directory->SubDirSorted.end(), 
+            [&](const auto& a, const auto& b) {
+                const auto& dirA = directory->SubDirectories[a]->FilePath.filename().string();
+                const auto& dirB = directory->SubDirectories[b]->FilePath.filename().string();
+                return dirA < dirB;
+        });
     }
 
     void ContentBrowserPanel::OnBrowserBack()
@@ -433,9 +473,17 @@ namespace Chozo {
 			{
 				AssetHandle subdirHandle = ProcessDirectory(entry.path(), directoryInfo);
 				directoryInfo->SubDirectories[subdirHandle] = m_Directories[subdirHandle];
+                directoryInfo->SubDirSorted.push_back(subdirHandle);
 				continue;
 			}
+
+			auto metadata = m_AssetManager->GetMetadata(entry.path());
+            if (metadata.IsValid())
+                AddAssetsToDir(directoryInfo, metadata);
         }
+
+        SortSubDirs(directoryInfo);
+        SortAssets(directoryInfo);
 
 		m_Directories[directoryInfo->Handle] = directoryInfo;
 

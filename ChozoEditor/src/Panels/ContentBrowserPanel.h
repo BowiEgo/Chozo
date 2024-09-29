@@ -14,9 +14,11 @@ namespace Chozo {
 
 		std::filesystem::path FilePath;
 
-		std::vector<AssetHandle> Assets;
+		std::map<AssetHandle, AssetMetadata> Assets;
+		std::vector<AssetHandle> AssetsSorted;
 
 		std::map<AssetHandle, Ref<DirectoryInfo>> SubDirectories;
+        std::vector<AssetHandle> SubDirSorted;
 	};
 
     class ContentBrowserPanel
@@ -32,7 +34,12 @@ namespace Chozo {
     private:
         void ImportAssets();
 		template<typename T, typename... Args>
-        Ref<T> CreateAsset(const std::string& filepath, Args&&... args);
+        Ref<T> CreateAsset(const std::string& filename, Ref<DirectoryInfo>& directory, Args&&... args);
+        void SaveAllAssets();
+
+        void AddAssetsToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata);
+        void SortAssets(Ref<DirectoryInfo> directory);
+        void SortSubDirs(Ref<DirectoryInfo> directory);
 
         void OnBrowserBack();
         void OnBrowserForward();
@@ -49,16 +56,18 @@ namespace Chozo {
         Ref<Texture2D> m_HierachyDirectoryIcon, m_DirectoryIcon, m_EmptyDirectoryIcon, m_TextFileIcon,
             m_BackIcon, m_RefreshIcon, m_SearchIcon, m_ClearIcon;
         bool m_BackIcon_Disabled, m_ForwardIcon_Disabled, m_RefreshIcon_Disabled;
-        std::unordered_map<std::string, Ref<Texture2D>> m_TextureCaches;
 
 		char m_SearchBuffer[MAX_SEARCH_BUFFER_LENGTH];
     };
     
     template <typename T, typename... Args>
-    inline Ref<T> ContentBrowserPanel::CreateAsset(const std::string &path, Args &&...args)
+    inline Ref<T> ContentBrowserPanel::CreateAsset(const std::string& filename, Ref<DirectoryInfo>& directory, Args &&...args)
     {
-        std::filesystem::path filePath(path);
-        Ref<T> asset = m_AssetManager->CreateNewAsset<T>(filePath.filename().string(), m_CurrentDirectory->FilePath.string(), std::forward<Args>(args)...);
+        Ref<T> asset = m_AssetManager->CreateNewAsset<T>(filename, directory->FilePath.string(), std::forward<Args>(args)...);
+        auto metadata = m_AssetManager->GetMetadata(asset->Handle);
+
+        AddAssetsToDir(directory, metadata);
+        SortAssets(directory);
 
         return asset;
     }

@@ -6,6 +6,7 @@
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
 #include "Chozo/Renderer/SceneRenderer.h"
+#include "Chozo/Asset/AssetManager.h"
 
 #include <glad/glad.h>
 
@@ -77,10 +78,13 @@ namespace Chozo {
 
                     Ref<TextureCube> radiance = Renderer::GetPreethamSkyTextureCube();
                     skyLight.SceneEnvironment = Ref<Environment>::Create(radiance, radiance);
-                } else if (skyLight.SourcePath != "")
+                } else if (skyLight.Source != 0)
                 {
                     if (!skyLight.SceneEnvironment)
-                        Renderer::CreateStaticSky(skyLight.SourcePath);
+                    {
+                        Ref<Texture2D> texture = AssetManager::GetActived()->GetAsset(skyLight.Source);
+                        Renderer::CreateStaticSky(texture);
+                    }
         
                     Ref<TextureCube> radiance = Renderer::GetStaticSkyTextureCube();
                     Ref<TextureCube> irradiance = Renderer::GetIrradianceTextureCube();

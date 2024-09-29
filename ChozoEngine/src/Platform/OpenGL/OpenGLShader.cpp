@@ -11,6 +11,7 @@
 
 #include "Chozo/Core/Timer.h"
 #include "Chozo/Renderer/RenderCommand.h"
+#include "Chozo/Serialization/FileStream.h"
 
 namespace Chozo {
 
@@ -392,6 +393,7 @@ namespace Chozo {
             std::filesystem::path shaderFilepath = m_Filepaths[stage];
             std::filesystem::path cachePath = cacheDirectory / (shaderFilepath.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
 
+            // TODO: Change to FileReader
             std::ifstream in(cachePath, std::ios::in | std::ios::binary);
             if (in.is_open())
             {
@@ -414,13 +416,11 @@ namespace Chozo {
 
                 shaderData[stage] = std::vector<uint32_t>(module.cbegin(), module.cend());
 
-                std::ofstream out(cachePath, std::ios::out | std::ios::binary);
-                if (out.is_open())
+                FileStreamWriter writer(cachePath);
+                if (writer.IsStreamGood())
                 {
                     auto& data = shaderData[stage];
-                    out.write((char*)data.data(), data.size() * sizeof(uint32_t));
-                    out.flush();
-                    out.close(); 
+		            writer.WriteData((char*)shaderData[stage].data(), data.size() * sizeof(uint32_t));
                 }
             }
         }

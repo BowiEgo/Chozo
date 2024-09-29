@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AssetManager.h"
+#include "AssetImporter.h"
 
 namespace Chozo {
 
@@ -27,6 +28,7 @@ namespace Chozo {
 		const AssetMetadata& GetMetadata(const std::filesystem::path& filepath);
 
 		AssetHandle ImportAsset(const std::filesystem::path& filepath);
+		void SaveAssets();
 
 		AssetType GetAssetTypeFromExtension(const std::string& extension);
 		AssetType GetAssetTypeFromPath(const std::filesystem::path& path);
@@ -43,20 +45,25 @@ namespace Chozo {
 			if (directoryPath.empty() || directoryPath == ".")
 				metadata.FilePath = filename;
 			else
-				metadata.FilePath = GetRelativePath(directoryPath + "/" + filename);
+				metadata.FilePath = directoryPath + "/" + filename;
 			metadata.IsDataLoaded = true;
 			metadata.Type = T::GetStaticType();
 			
 			m_AssetRegistry[metadata.Handle] = metadata;
 
-			Ref<T> asset = T::Create(std::forward<Args>(args)...);
-			
+			Ref<Asset> asset = T::Create(std::forward<Args>(args)...);
 			asset->Handle = metadata.Handle;
 			m_MemoryAssets[asset->Handle] = asset;
+			metadata.FileSize = AssetImporter::Serialize(metadata, asset);
 
 			return asset;
 		}
     private:
+		void LoadAssetRegistry();
+		void ProcessDirectory(const std::filesystem::path& directoryPath);
+		void ReloadAssets();
+		void WriteRegistryToFile();
+
 		AssetMetadata& GetMetadataInternal(AssetHandle handle);
     private:
 		std::unordered_map<AssetHandle, Ref<Asset>> m_LoadedAssets;

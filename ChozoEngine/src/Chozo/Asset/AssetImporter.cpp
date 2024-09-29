@@ -3,15 +3,21 @@
 namespace Chozo
 {
 
-    bool AssetImporter::TryLoadData(const AssetMetadata &metadata, Ref<Asset> &asset)
-    {
-        return false;
-        // if (s_Serializers.find(metadata.Type) == s_Serializers.end())
-        // {
-		// 	CZ_CORE_WARN("There's currently no importer for assets of type {0}", metadata.FilePath.stem().string());
-        //     return false;
-        // }
+	std::unordered_map<AssetType, Scope<AssetSerializer>> AssetImporter::s_Serializers;
 
-        // return s_Serializers[metadata.Type]->TryLoadData(metadata, asset);
+    void AssetImporter::Init()
+    {
+		s_Serializers.clear();
+		s_Serializers[AssetType::Texture] = CreateScope<TextureSerializer>();
+    }
+
+    uint64_t AssetImporter::Serialize(const AssetMetadata& metadata, Ref<Asset>& asset)
+    {
+		return s_Serializers[metadata.Type]->Serialize(metadata, asset);
+    }
+
+    Ref<Asset> AssetImporter::Deserialize(const AssetMetadata &metadata)
+    {
+		return s_Serializers[metadata.Type]->Deserialize(metadata);
     }
 }

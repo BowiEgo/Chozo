@@ -20,7 +20,7 @@ namespace Chozo {
         fbSpec.Attachments = { ImageFormat::RGBA8 };
         m_Viewport_FBO = Framebuffer::Create(fbSpec);
 
-        TextureSpecification texSpec;
+        Texture2DSpecification texSpec;
         texSpec.Width = m_ViewportSize.x;
         texSpec.Height = m_ViewportSize.y;
         m_FBOTexture = Texture2D::Create(m_Viewport_FBO->GetColorAttachmentRendererID(0), texSpec);
@@ -69,7 +69,7 @@ namespace Chozo {
                     {
                         std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
 
-                        TextureSpecification spec;
+                        Texture2DSpecification spec;
                         spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
                         spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
                         m_Texture = Texture2D::Create(texturePath.string(), spec);

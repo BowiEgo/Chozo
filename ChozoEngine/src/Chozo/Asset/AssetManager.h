@@ -24,5 +24,10 @@ namespace Chozo {
 		virtual std::unordered_set<AssetHandle> GetAllAssetsWithType(AssetType type) = 0;
 		virtual const std::unordered_map<AssetHandle, Ref<Asset>>& GetLoadedAssets() = 0;
 		virtual const std::unordered_map<AssetHandle, Ref<Asset>>& GetMemoryOnlyAssets() = 0;
+
+		inline static void SetActived(Ref<AssetManager> assetManager) { s_ActivedAssetManager = assetManager; }
+		inline static Ref<AssetManager> GetActived() { return s_ActivedAssetManager; }
+	private:
+		static Ref<AssetManager> s_ActivedAssetManager;
 	};
 }

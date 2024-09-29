@@ -49,7 +49,7 @@ namespace Chozo {
 
         if (sourcePath != "")
         {
-            // TextureSpecification spec;
+            // Texture2DSpecification spec;
             // spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
             // spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
             // Ref<Texture2D> texture = Texture2D::Create(sourcePath, spec);

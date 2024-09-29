@@ -13,10 +13,10 @@ namespace Chozo {
         Texture, RenderBuffer
     };
 
-    struct FramebufferTextureSpecification
+    struct FramebufferTexture2DSpecification
     {
-        FramebufferTextureSpecification() = default;
-        FramebufferTextureSpecification(ImageFormat format)
+        FramebufferTexture2DSpecification() = default;
+        FramebufferTexture2DSpecification(ImageFormat format)
             : TextureFormat(format) {};
 
         // FBObjectFormat ObjectFormat = FBObjectFormat::Texture;
@@ -27,10 +27,10 @@ namespace Chozo {
     struct FramebufferAttachmentSpecification
     {
         FramebufferAttachmentSpecification() = default;
-        FramebufferAttachmentSpecification(std::initializer_list<FramebufferTextureSpecification> attachments)
+        FramebufferAttachmentSpecification(std::initializer_list<FramebufferTexture2DSpecification> attachments)
             : Attachments(attachments) {};
 
-        std::vector<FramebufferTextureSpecification> Attachments;
+        std::vector<FramebufferTexture2DSpecification> Attachments;
     };
 
     struct FramebufferSpecification

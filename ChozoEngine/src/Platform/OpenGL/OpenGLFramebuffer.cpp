@@ -45,7 +45,7 @@ namespace Chozo {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, TextureTarget(multisampled), id, 0); GCE;
         }
 
-        static void AttachColorTexture(RendererID id, TextureSpecification spec, int index)
+        static void AttachColorTexture(RendererID id, Texture2DSpecification spec, int index)
         {
             bool multisampled = spec.Samples > 1;
 
@@ -256,7 +256,7 @@ namespace Chozo {
 
             for (size_t i = 0; i < m_ColorAttachmentSpecs.size(); i++)
             {
-                TextureSpecification spec;
+                Texture2DSpecification spec;
                 spec.Samples = m_Specification.Samples;
                 spec.Format = m_ColorAttachmentSpecs[i].TextureFormat;
                 spec.Width = m_Specification.Width;
@@ -317,7 +317,7 @@ namespace Chozo {
                         break;
                 }
 
-                TextureSpecification spec;
+                Texture2DSpecification spec;
                 spec.Samples = m_Specification.Samples;
                 spec.Format = m_DepthAttachmentSpec.TextureFormat;
                 spec.Width = m_Specification.Width;
@@ -382,7 +382,7 @@ namespace Chozo {
     }
 
     // TODO: fix issue
-    void OpenGLFramebuffer::CreateTextures(int samples, std::vector<FramebufferTextureSpecification> attachmentSpecs, uint32_t width, uint32_t height)
+    void OpenGLFramebuffer::CreateTextures(int samples, std::vector<FramebufferTexture2DSpecification> attachmentSpecs, uint32_t width, uint32_t height)
     {
         uint32_t count = attachmentSpecs.size();
         bool multisampled = samples > 1;
@@ -393,7 +393,7 @@ namespace Chozo {
 
         for (size_t i = 0; i < count; i++)
         {
-            TextureSpecification spec;
+            Texture2DSpecification spec;
             spec.Format = attachmentSpecs[i].TextureFormat;
             spec.Samples = samples;
             spec.Width = width;

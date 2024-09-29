@@ -18,7 +18,7 @@ namespace Chozo {
         virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount) override;
         virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) override;
 
-        virtual void RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, const std::string filePath) override;
+        virtual void RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, const Ref<Texture2D> texture) override;
         virtual void RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material = nullptr) override;
         virtual void RenderPrefilteredCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material = nullptr) override;
         virtual void DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination) override;
