@@ -35,6 +35,12 @@ namespace Chozo {
 			return buffer;
 		}
 
+		void CopyTo(Buffer& other)
+		{
+			other.Allocate(Size);
+			memcpy(other.Data, Data, Size);
+		}
+
 		void Allocate(uint64_t size)
 		{
 			delete[] (byte*)Data;

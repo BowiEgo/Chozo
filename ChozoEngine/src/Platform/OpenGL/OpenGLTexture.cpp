@@ -1,6 +1,7 @@
 #include "OpenGLTexture.h"
 
 #include "OpenGLUtils.h"
+#include "Chozo/FileSystem/TextureImporter.h"
 
 #include "stb_image.h"
 
@@ -12,66 +13,15 @@ namespace Chozo
     OpenGLTexture2D::OpenGLTexture2D(const Texture2DSpecification &spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
-        m_InternalFormat = GetGLFormat(m_Spec.Format);
-        m_DataFormat = GetGLDataFormat(m_Spec.Format);
-        m_DataType = GetGLDataType(m_Spec.Format);
-
-        glGenTextures(1, &m_RendererID); GCE;
-        glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetGLParameter(m_Spec.MinFilter)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetGLParameter(m_Spec.MagFilter)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GetGLParameter(m_Spec.WrapR)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetGLParameter(m_Spec.WrapS)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetGLParameter(m_Spec.WrapT)); GCE;
-
-        glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_DataFormat, m_DataType, nullptr); GCE;
-        glBindTexture(GL_TEXTURE_2D, 0); GCE;
+        Invalidate();
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const Texture2DSpecification &spec)
         : m_Spec(spec), m_Path(path)
     {
-        int width, height, channels;
-        stbi_set_flip_vertically_on_load(1);
+        m_Buffer = TextureImporter::ToBufferFromFile(path, m_Spec.Format, m_Width, m_Height);
 
-        void* m_DataBuffer;
-        if (m_Spec.HDR)
-            m_DataBuffer = stbi_loadf(path.c_str(), &width, &height, &channels, 0);
-        else
-            m_DataBuffer = stbi_load(path.c_str(), &width, &height, &channels, 0);
-        CZ_CORE_ASSERT(m_DataBuffer, "Failed to load image!");
-
-        m_Width = width;
-        m_Height = height;
-
-        if (m_Spec.HDR)
-            m_Spec.Format = ImageFormat::RGB16F;
-        else if (channels == 4)
-            m_Spec.Format = ImageFormat::RGBA8;
-        else if (channels == 3)
-            m_Spec.Format = ImageFormat::RGB8;
-        else if (channels == 1)
-            m_Spec.Format = ImageFormat::RED8UI;
-
-        m_InternalFormat = GetGLFormat(m_Spec.Format);
-        m_DataFormat = GetGLDataFormat(m_Spec.Format);
-        m_DataType = GetGLDataType(m_Spec.Format);
-
-        CZ_CORE_ASSERT(m_InternalFormat & m_DataFormat, "Format not supported!");
-
-        glGenTextures(1, &m_RendererID); GCE;
-        glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetGLParameter(spec.MinFilter)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetGLParameter(spec.MagFilter)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetGLParameter(spec.WrapS)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetGLParameter(spec.WrapT)); GCE;
-
-        glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, width, height, 0, m_DataFormat, m_DataType, m_DataBuffer); GCE;
-        glBindTexture(GL_TEXTURE_2D, 0); GCE;
-
-        stbi_image_free(m_DataBuffer); // TODO: maybe cause issue
+        Invalidate();
     }
 
     OpenGLTexture2D::OpenGLTexture2D(const RendererID& id, const Texture2DSpecification &spec)
@@ -82,29 +32,21 @@ namespace Chozo
         m_DataType = GetGLDataType(m_Spec.Format);
     }
 
-    OpenGLTexture2D::OpenGLTexture2D(Buffer imageBuffer, const Texture2DSpecification &spec)
+    OpenGLTexture2D::OpenGLTexture2D(Buffer buffer, const Texture2DSpecification &spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
-        m_InternalFormat = GetGLFormat(m_Spec.Format);
-        m_DataFormat = GetGLDataFormat(m_Spec.Format);
-        m_DataType = GetGLDataType(m_Spec.Format);
+        if (m_Buffer.Size != 0)
+            m_Buffer.Release();
 
-        glGenTextures(1, &m_RendererID); GCE;
-        glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetGLParameter(m_Spec.MinFilter)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetGLParameter(m_Spec.MagFilter)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GetGLParameter(m_Spec.WrapR)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetGLParameter(m_Spec.WrapS)); GCE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetGLParameter(m_Spec.WrapT)); GCE;
-
-        glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_DataFormat, m_DataType, imageBuffer.Data); GCE;
-        glBindTexture(GL_TEXTURE_2D, 0); GCE;
+        m_Buffer = Buffer::Copy(buffer);
+        Invalidate();
     }
 
     OpenGLTexture2D::~OpenGLTexture2D()
     {
         glDeleteTextures(1, &m_RendererID); GCE;
+        if (m_Buffer.Size != 0)
+            m_Buffer.Release();
     }
 
     void OpenGLTexture2D::Resize(uint32_t width, uint32_t height)
@@ -116,7 +58,7 @@ namespace Chozo
             m_Width = width;
             m_Height = height;
             glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
-            glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, width, height, 0, m_DataFormat, m_DataType, m_DataBuffer); GCE;
+            glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, width, height, 0, m_DataFormat, m_DataType, m_Buffer.Data); GCE;
         }
     }
 
@@ -134,21 +76,48 @@ namespace Chozo
     void OpenGLTexture2D::SetData(const void *data, const uint32_t size)
     {
         glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
-        m_DataBuffer = (unsigned char*)data;
-        glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(m_Spec.Format), m_Width, m_Height, 0, GetGLDataFormat(m_Spec.Format), GetGLDataType(m_Spec.Format), m_DataBuffer); GCE;
+        m_Buffer.Data = (byte*)data;
+        glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(m_Spec.Format), m_Width, m_Height, 0, GetGLDataFormat(m_Spec.Format), GetGLDataType(m_Spec.Format), m_Buffer.Data); GCE;
     }
 
     void OpenGLTexture2D::CopyToHostBuffer(Buffer& buffer)
     {
+        if (m_Buffer.Size != 0)
+        {
+            m_Buffer.CopyTo(buffer);
+            return;
+        }
+
         uint64_t size = m_Width * m_Height * Utils::GetBytesPerPixel(m_Spec.Format);
         buffer.Allocate(size);
-        
+
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
         glGetTexImage(GL_TEXTURE_2D, 0, m_DataFormat, m_DataType, buffer.Data);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-	//==============================================================================
+    void OpenGLTexture2D::Invalidate()
+    {
+        m_InternalFormat = GetGLFormat(m_Spec.Format);
+        m_DataFormat = GetGLDataFormat(m_Spec.Format);
+        m_DataType = GetGLDataType(m_Spec.Format);
+
+        CZ_CORE_ASSERT(m_InternalFormat & m_DataFormat, "Format not supported!");
+
+        glGenTextures(1, &m_RendererID); GCE;
+        glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GetGLParameter(m_Spec.MinFilter)); GCE;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GetGLParameter(m_Spec.MagFilter)); GCE;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GetGLParameter(m_Spec.WrapS)); GCE;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GetGLParameter(m_Spec.WrapT)); GCE;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_DataFormat, m_DataType, m_Buffer.Data); GCE;
+        glBindTexture(GL_TEXTURE_2D, 0); GCE;
+    }
+
+    //==============================================================================
 	/// OpenGLTextureCube
     OpenGLTextureCube::OpenGLTextureCube(const TextureCubeSpecification& spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)

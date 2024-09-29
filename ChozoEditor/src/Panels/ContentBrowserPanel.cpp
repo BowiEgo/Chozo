@@ -70,16 +70,16 @@ namespace Chozo {
         m_AssetManager = Ref<EditorAssetManager>::Create();
         AssetManager::SetActived(m_AssetManager);
 
-        m_HierachyDirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder-open-1.png");
-        m_DirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder.png");
-        m_EmptyDirectoryIcon = Texture2D::Create("../resources/icons/ContentBrowser/folder-empty.png");
-        m_TextFileIcon = Texture2D::Create("../resources/icons/ContentBrowser/file.png");
+        m_HierachyDirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-open-1.png"));
+        m_DirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder.png"));
+        m_EmptyDirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-empty.png"));
+        m_TextFileIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/file.png"));
 
         // Toolbar
-        m_BackIcon = Texture2D::Create("../resources/icons/ContentBrowser/left-arrow.png");
-        m_RefreshIcon = Texture2D::Create("../resources/icons/ContentBrowser/refresh.png");
-        m_SearchIcon = Texture2D::Create("../resources/icons/ContentBrowser/search.png");
-        m_ClearIcon = Texture2D::Create("../resources/icons/ContentBrowser/clear.png");
+        m_BackIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/left-arrow.png"));
+        m_RefreshIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/refresh.png"));
+        m_SearchIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/search.png"));
+        m_ClearIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/clear.png"));
 
         OnBrowserRefresh();
     }
@@ -392,12 +392,9 @@ namespace Chozo {
     {
         std::filesystem::path path = FileDialogs::OpenFile("Import (*.png)\0*.jpeg\0");
 
-        std::string fileExtension = path.extension().string();
         Texture2DSpecification spec;
         spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
         spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
-        if (fileExtension == ".hdr")
-            spec.HDR = true;
 
         Ref<Asset> textureAsset = CreateAsset<Texture2D>(path.filename().stem().string(), m_CurrentDirectory, path.string(), spec);
 

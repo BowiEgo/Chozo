@@ -33,7 +33,6 @@ namespace Chozo {
 
         uint32_t Samples = 1;
         uint32_t Width = 1, Height = 1;
-        bool HDR = false;
         bool Mipmap = false;
         ImageParameter MinFilter = ImageParameter::LINEAR;
         ImageParameter MagFilter = ImageParameter::NEAREST;
@@ -68,8 +67,7 @@ namespace Chozo {
         static Ref<Texture2D> Create(const Texture2DSpecification& spec = Texture2DSpecification());
         static Ref<Texture2D> Create(const std::string& path, const Texture2DSpecification& spec = Texture2DSpecification());
         static Ref<Texture2D> Create(const RendererID& id, const Texture2DSpecification& spec = Texture2DSpecification());
-        static Ref<Texture2D> Create(Buffer imageBuffer, const Texture2DSpecification& spec);
-		// static Ref<Texture2D> Create(const Texture2DSpecification& spec, Buffer imageData);
+        static Ref<Texture2D> Create(Buffer imageBuffer, const Texture2DSpecification& spec = Texture2DSpecification());
     };
 
     class TextureCube : public Texture

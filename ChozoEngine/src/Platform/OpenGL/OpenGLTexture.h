@@ -30,12 +30,14 @@ namespace Chozo {
         virtual void SetData(const void* data, const uint32_t size) override;
         virtual void CopyToHostBuffer(Buffer& buffer) override;
     private:
+        void Invalidate();
+    private:
         Texture2DSpecification m_Spec;
         std::string m_Path;
         uint32_t m_Width, m_Height;
         RendererID m_RendererID;
         GLenum m_InternalFormat = GL_RGBA8, m_DataFormat = GL_RGBA, m_DataType = GL_UNSIGNED_BYTE;
-        unsigned char* m_DataBuffer = nullptr;
+        Buffer m_Buffer;
     };
 
     class OpenGLTextureCube : public TextureCube

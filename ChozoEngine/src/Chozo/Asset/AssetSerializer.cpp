@@ -3,7 +3,7 @@
 #include "Chozo/Project/Project.h"
 #include "Chozo/Renderer/Texture.h"
 
-#include "Chozo/Serialization/FileStream.h"
+#include "Chozo/FileSystem/FileStream.h"
 
 namespace Chozo {
 

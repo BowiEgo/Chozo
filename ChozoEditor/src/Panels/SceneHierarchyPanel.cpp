@@ -279,7 +279,7 @@ namespace Chozo {
                 {
                     const wchar_t* path = (const wchar_t*)payload->Data;
                     std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
-                    component.Texture = Texture2D::Create(texturePath.string());
+                    component.Texture = Texture2D::Create(texturePath.string(), Texture2DSpecification());
                 }
 
                 ImGui::EndDragDropTarget();
