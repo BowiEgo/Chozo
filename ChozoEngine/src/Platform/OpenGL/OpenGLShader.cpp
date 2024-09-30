@@ -12,6 +12,7 @@
 #include "Chozo/Core/Timer.h"
 #include "Chozo/Renderer/RenderCommand.h"
 #include "Chozo/FileSystem/FileStream.h"
+#include "Chozo/Utilities/FileUtils.h"
 
 namespace Chozo {
 
@@ -48,21 +49,6 @@ namespace Chozo {
             }
             CZ_CORE_ASSERT(false, "");
             return nullptr;
-        }
-
-        static const char* GetCacheDirectory()
-        {
-            // TODO: make sure the assets directory is valid
-            return "../caches/shader/opengl";
-        }
-
-        static void CreateCacheDirectoryIfNeeded()
-        {
-            {
-                std::string cacheDirectory = GetCacheDirectory();
-                if (!std::filesystem::exists(cacheDirectory))
-                    std::filesystem::create_directories(cacheDirectory);
-            }
         }
 
         static const char* GLShaderStageCachedOpenGLFileExtension(uint32_t stage)
@@ -172,7 +158,7 @@ namespace Chozo {
 
     OpenGLShader::OpenGLShader(const ShaderSpecification &spec)
     {
-        Utils::CreateCacheDirectoryIfNeeded();
+        Utils::File::CreateDirectoryIfNeeded(Utils::File::GetShaderCacheDirectory());
 
         std::unordered_map<GLenum, std::string> shaderSources;
         std::string vertexSrc = ReadFile(spec.VertexFilepath);
@@ -207,7 +193,7 @@ namespace Chozo {
     OpenGLShader::OpenGLShader(const std::string& name, const std::string& vertexFilePath, const std::string& fragmentFilePath)
         : m_Name(name)
     {
-        Utils::CreateCacheDirectoryIfNeeded();
+        Utils::File::CreateDirectoryIfNeeded(Utils::File::GetShaderCacheDirectory());
 
         std::unordered_map<GLenum, std::string> shaderSources;
         std::string vertexSrc = ReadFile(vertexFilePath);
@@ -384,7 +370,7 @@ namespace Chozo {
         if (optimize)
             options.SetOptimizationLevel(shaderc_optimization_level_performance);
         
-        std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
+        std::filesystem::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
 
         auto& shaderData = m_VulkanSPIRV;
         shaderData.clear();
@@ -440,7 +426,7 @@ namespace Chozo {
         if (optimize)
             options.SetOptimizationLevel(shaderc_optimization_level_performance);
         
-        std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
+        std::filesystem::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
 
         shaderData.clear();
         m_OpenGLSourceCode.clear();
