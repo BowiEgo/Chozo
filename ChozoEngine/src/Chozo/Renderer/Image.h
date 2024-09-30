@@ -22,21 +22,20 @@ namespace Chozo
 		RGBA,
 		RGBA16F,
 		RGBA32F,
-        // Color
         RGBA8,
-        // ID
         RED_INTEGER,
-
 		B10R11G11UF,
-
 		SRGB,
 
+		// Depth/Stencil
 		DEPTH32FSTENCIL8UINT,
 		DEPTH32F,
-        // Depth/Stencil
 		DEPTH24STENCIL8,
 
 		// Defaults
+		NORMAL = RGBA,
+		HDR = RGBA32F,
+		ID = RED_INTEGER,
 		Depth = DEPTH24STENCIL8,
 	};
 

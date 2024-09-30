@@ -8,7 +8,17 @@ namespace Chozo
     void AssetImporter::Init()
     {
 		s_Serializers.clear();
-		s_Serializers[AssetType::Texture] = CreateScope<TextureSerializer>();
+        for (int i = 0; i < static_cast<int>(AssetType::None); i++)
+        {
+            AssetType type = static_cast<AssetType>(i);
+            switch (type)
+            {
+            case AssetType::Texture:
+                s_Serializers[type] = CreateScope<TextureSerializer>(); break;
+            default:
+                break;
+            }
+        }
     }
 
     uint64_t AssetImporter::Serialize(const AssetMetadata& metadata, Ref<Asset>& asset)

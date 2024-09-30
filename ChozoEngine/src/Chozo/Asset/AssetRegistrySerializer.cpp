@@ -84,7 +84,7 @@ namespace Chozo {
             {
                 AssetMetadata metadata;
                 metadata.Handle = asset["Handle"].as<uint64_t>();
-                metadata.Type = Utils::AssetTypeFromString(asset["Type"].as<std::string>());
+                metadata.Type = Utils::StringToAssetType(asset["Type"].as<std::string>());
                 metadata.FilePath = asset["FilePath"].as<std::string>();
                 metadata.FileSize = asset["FileSize"].as<uint64_t>();
                 m_AssetRegistry[metadata.Handle] = metadata;

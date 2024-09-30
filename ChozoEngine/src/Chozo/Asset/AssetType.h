@@ -4,32 +4,32 @@
 
 namespace Chozo {
 
-	enum class AssetType : uint16_t
-	{
-		None = 0,
-		Texture,
+	#define FOREACH_ASSET_TYPE(TYPE) \
+        	TYPE(Texture) \
+
+	enum class AssetType : uint16_t {
+		#define GENERATE_ENUM(ENUM) ENUM,
+		FOREACH_ASSET_TYPE(GENERATE_ENUM)
+		#undef GENERATE_ENUM
+		None
 	};
 
 	namespace Utils {
 
-		inline AssetType AssetTypeFromString(std::string_view assetType)
-		{
-			if (assetType == "None")                return AssetType::None;
-			if (assetType == "Texture")             return AssetType::Texture;
-
+		inline AssetType StringToAssetType(std::string_view assetType) {
+			#define GENERATE_IF(ENUM) if (assetType == #ENUM) return AssetType::ENUM;
+			FOREACH_ASSET_TYPE(GENERATE_IF)
+			#undef GENERATE_IF
 			return AssetType::None;
 		}
 
-		inline const char* AssetTypeToString(AssetType assetType)
-		{
-			switch (assetType)
-			{
-				case AssetType::None:                return "None";
-				case AssetType::Texture:             return "Texture";
+		inline const char* AssetTypeToString(AssetType assetType) {
+			switch (assetType) {
+				#define GENERATE_CASE(ENUM) case AssetType::ENUM: return #ENUM;
+				FOREACH_ASSET_TYPE(GENERATE_CASE)
+				#undef GENERATE_CASE
+				default: return "Unknown";
 			}
-
-			CZ_CORE_ASSERT(false, "Unknown Asset Type");
-			return "None";
 		}
 	}
 }
