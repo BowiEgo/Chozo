@@ -13,15 +13,17 @@ namespace Chozo {
 
         if (stbi_is_hdr(path.c_str()))
 		{
+            // float gamma = ExtractGammaFromHDR(path);
+            // CZ_CORE_INFO("file: {}, gamma: {}", path, gamma);
 			imageBuffer.Data = (byte*)stbi_loadf(path.c_str(), &width, &height, &channels, 4);
 			imageBuffer.Size = width * height * 4 * sizeof(float);
-			outFormat = ImageFormat::RGBA32F;
+			outFormat = ImageFormat::HDR;
 		}
         else
 		{
 			imageBuffer.Data = stbi_load(path.c_str(), &width, &height, &channels, 4);
 			imageBuffer.Size = width * height * 4;
-			outFormat = ImageFormat::RGBA;
+			outFormat = ImageFormat::NORMAL;
 		}
 
 		if (!imageBuffer.Data)
@@ -64,5 +66,38 @@ namespace Chozo {
 		outWidth = width;
 		outHeight = height;
 		return imageBuffer;
+    }
+
+    float TextureImporter::ExtractGammaFromHDR(const std::string& filepath)
+    {
+        std::ifstream file(filepath);
+        std::string line;
+        float gamma = 2.2f; // Default gamma value if none is found
+
+        if (!file.is_open())
+        {
+            std::cerr << "Failed to open file: " << filepath << std::endl;
+            return gamma;
+        }
+
+        // Read the file line by line
+        while (std::getline(file, line))
+        {
+            // Stop reading the header when an empty line or resolution is encountered
+            if (line.empty() || line[0] == '-' || line.find("FORMAT=") != std::string::npos)
+                break;
+
+            // Look for the line starting with "GAMMA="
+            if (line.find("GAMMA=") != std::string::npos)
+            {
+                // Extract the gamma value
+                std::string gammaValue = line.substr(6); // Skip "GAMMA="
+                gamma = std::stof(gammaValue);
+                break;
+            }
+        }
+
+        file.close();
+        return gamma;
     }
 }
