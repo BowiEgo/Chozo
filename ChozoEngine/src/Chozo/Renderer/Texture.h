@@ -9,22 +9,11 @@
 
 namespace Chozo {
 
-    class Texture : public Asset
+    enum class TextureType
     {
-    public:
-        virtual ~Texture() = default;
-
-        virtual uint32_t GetWidth() const = 0;
-        virtual uint32_t GetHeight() const = 0;
-		virtual RendererID GetRendererID() const = 0;
-
-        virtual void Bind(uint32_t slot = 0) const = 0;
-        virtual void Unbind() const = 0;
-
-        static AssetType GetStaticType() { return AssetType::Texture; }
-		virtual AssetType GetAssetType() const override { return GetStaticType(); }
-
-        virtual void CopyToHostBuffer(Buffer& buffer) = 0;
+        None,
+        Texture2D,
+        TextureCube
     };
 
     struct Texture2DSpecification
@@ -56,9 +45,28 @@ namespace Chozo {
         ImageParameter WrapT = ImageParameter::CLAMP_TO_EDGE;
     };
 
+    class Texture : public Asset
+    {
+    public:
+        virtual ~Texture() = default;
+
+        virtual uint32_t GetWidth() const = 0;
+        virtual uint32_t GetHeight() const = 0;
+		virtual RendererID GetRendererID() const = 0;
+        virtual TextureType GetType() const = 0;
+
+        static AssetType GetStaticType() { return AssetType::Texture; }
+		virtual AssetType GetAssetType() const override { return GetStaticType(); }
+
+        virtual void CopyToHostBuffer(Buffer& buffer) = 0;
+    };
+
+
     class Texture2D : public Texture
     {
     public:
+        virtual inline TextureType GetType() const override { return s_Type; }
+
         virtual Texture2DSpecification GetSpecification() const = 0;
 
 		virtual void SetData(const void* data, const uint32_t size) = 0;
@@ -68,13 +76,19 @@ namespace Chozo {
         static Ref<Texture2D> Create(const std::string& path, const Texture2DSpecification& spec = Texture2DSpecification());
         static Ref<Texture2D> Create(const RendererID& id, const Texture2DSpecification& spec = Texture2DSpecification());
         static Ref<Texture2D> Create(Buffer imageBuffer, const Texture2DSpecification& spec = Texture2DSpecification());
+    private:
+        static TextureType s_Type;
     };
 
     class TextureCube : public Texture
     {
     public:
-        static Ref<TextureCube> Create(const TextureCubeSpecification& spec = TextureCubeSpecification());
+        virtual inline TextureType GetType() const override { return s_Type; }
 
         virtual void SetData(void* data, uint32_t size) = 0;
+
+        static Ref<TextureCube> Create(const TextureCubeSpecification& spec = TextureCubeSpecification());
+    private:
+        static TextureType s_Type;
     };
 }

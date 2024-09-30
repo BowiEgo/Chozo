@@ -1,6 +1,7 @@
 #include "OpenGLMaterial.h"
 
 #include "Chozo/Renderer/Renderer.h"
+#include "OpenGLTexture.h"
 
 namespace Chozo {
 
@@ -101,15 +102,28 @@ namespace Chozo {
         BindTextures();
         m_Shader->Bind();
         for (auto uniform : m_Uniforms)
-        {
             m_Shader->SetUniform(uniform.first, uniform.second);
-        }
     }
 
     void OpenGLMaterial::BindTextures()
     {
         for (uint32_t i = 0; i < m_TextureSlotIndex; i++)
-            m_TextureSlots[i]->Bind(i);
+        {
+            auto texture = m_TextureSlots[i];
+
+            switch (texture->GetType())
+            {
+            case TextureType::Texture2D:
+                texture.As<OpenGLTexture2D>()->Bind(i);
+                break;
+            case TextureType::TextureCube:
+                texture.As<OpenGLTextureCube>()->Bind(i);
+                break;
+            default:
+                CZ_CORE_ERROR("Error: Unknown texture type!");
+                break;
+            }
+        }
     }
 
     void OpenGLMaterial::PopulateUniforms(const Ref<OpenGLShader> &shader)

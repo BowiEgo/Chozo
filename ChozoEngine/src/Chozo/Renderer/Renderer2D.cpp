@@ -255,38 +255,38 @@ namespace Chozo {
 
     void Renderer2D::Flush()
     {
-        if (s_Data.QuadIndexCount)
-        {
-            GLsizeiptr size = (uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase;
-            s_Data.QuadVertexBuffer->SetData(0, size, (float*)s_Data.QuadVertexBufferBase);
+        // if (s_Data.QuadIndexCount)
+        // {
+        //     GLsizeiptr size = (uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase;
+        //     s_Data.QuadVertexBuffer->SetData(0, size, (float*)s_Data.QuadVertexBufferBase);
 
-            for (uint32_t i = 0; i < s_Data.TextureSlots.size(); i++)
-                s_Data.TextureSlots[i]->Bind(i);
+        //     for (uint32_t i = 0; i < s_Data.TextureSlots.size(); i++)
+        //         s_Data.TextureSlots[i]->Bind(i);
 
-            s_Data.TextureShader->Bind();
-            RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
-            s_Data.Stats.DrawCalls++;
-        }
+        //     s_Data.TextureShader->Bind();
+        //     RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
+        //     s_Data.Stats.DrawCalls++;
+        // }
 
-        if (s_Data.CircleIndexCount)
-        {
-            GLsizeiptr size = (uint8_t*)s_Data.CircleVertexBufferPtr - (uint8_t*)s_Data.CircleVertexBufferBase;
-            s_Data.CircleVertexBuffer->SetData(0, size, (float*)s_Data.CircleVertexBufferBase);
+        // if (s_Data.CircleIndexCount)
+        // {
+        //     GLsizeiptr size = (uint8_t*)s_Data.CircleVertexBufferPtr - (uint8_t*)s_Data.CircleVertexBufferBase;
+        //     s_Data.CircleVertexBuffer->SetData(0, size, (float*)s_Data.CircleVertexBufferBase);
 
-            s_Data.CircleShader->Bind();
-            RenderCommand::DrawIndexed(s_Data.CircleVertexArray, s_Data.QuadIndexCount);
-            s_Data.Stats.DrawCalls++;
-        }
+        //     s_Data.CircleShader->Bind();
+        //     RenderCommand::DrawIndexed(s_Data.CircleVertexArray, s_Data.QuadIndexCount);
+        //     s_Data.Stats.DrawCalls++;
+        // }
 
-        if (s_Data.LineVertexCount)
-        {
-            GLsizeiptr size = (uint8_t*)s_Data.LineVertexBufferPtr - (uint8_t*)s_Data.LineVertexBufferBase;
-            s_Data.LineVertexBuffer->SetData(0, size, (float*)s_Data.LineVertexBufferBase);
+        // if (s_Data.LineVertexCount)
+        // {
+        //     GLsizeiptr size = (uint8_t*)s_Data.LineVertexBufferPtr - (uint8_t*)s_Data.LineVertexBufferBase;
+        //     s_Data.LineVertexBuffer->SetData(0, size, (float*)s_Data.LineVertexBufferBase);
 
-            s_Data.LineShader->Bind();
-            RenderCommand::DrawLines(s_Data.LineVertexArray, s_Data.LineVertexCount);
-            s_Data.Stats.DrawCalls++;
-        }
+        //     s_Data.LineShader->Bind();
+        //     RenderCommand::DrawLines(s_Data.LineVertexArray, s_Data.LineVertexCount);
+        //     s_Data.Stats.DrawCalls++;
+        // }
     }
 
     void Renderer2D::DrawFullScreenQuad()
@@ -303,32 +303,13 @@ namespace Chozo {
 
         GLsizeiptr size = (uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase;
         s_Data.QuadVertexBuffer->SetData(0, size, (float*)s_Data.QuadVertexBufferBase);
-        
-        RenderCommand::DrawIndexed(s_Data.QuadVertexArray, 6);
 
-        s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+        FlushQuadBuffer();
     }
 
-    void Renderer2D::DrawFullScreenQuad(Ref<Texture> texture)
+    void Renderer2D::FlushQuadBuffer()
     {
-        glm::mat4 transform = glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 1.0f });
-
-        constexpr size_t quadVertexCount = 4;
-        for (size_t i = 0; i < quadVertexCount; i++)
-        {
-            s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
-            s_Data.QuadVertexBufferPtr->TexCoord = s_Data.QuadTexCoords[i];
-            s_Data.QuadVertexBufferPtr++;
-        }
-
-        GLsizeiptr size = (uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase;
-        s_Data.QuadVertexBuffer->SetData(0, size, (float*)s_Data.QuadVertexBufferBase);
-        
-        texture->Bind();
-        Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("CubemapPreview");
-        shader->Bind();
-        shader->SetUniform("u_Texture", 0);
-        RenderCommand::DrawIndexed(s_Data.QuadVertexArray, 6);
+        RenderCommand::DrawIndexed(s_Data.QuadVertexArray, 0);
 
         s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
     }

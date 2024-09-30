@@ -24,6 +24,19 @@ namespace Chozo {
         texSpec.Width = m_ViewportSize.x;
         texSpec.Height = m_ViewportSize.y;
         m_FBOTexture = Texture2D::Create(m_Viewport_FBO->GetColorAttachmentRendererID(0), texSpec);
+
+        PipelineSpecification pipelineSpec;
+        pipelineSpec.DebugName = "TextureViewer";
+        pipelineSpec.Shader = Renderer::GetRendererData().m_ShaderLibrary->Get("CubemapPreview");
+        pipelineSpec.DepthWrite = false;
+        pipelineSpec.DepthTest = false;
+        pipelineSpec.Layout = {
+            { ShaderDataType::Float3, "a_Position" },
+        };
+        pipelineSpec.TargetFramebuffer = m_Viewport_FBO;
+
+        m_Material = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
+        m_Pipeline = Pipeline::Create(pipelineSpec);
     }
 
     void TextureViewerPanel::SetTexture(Ref<Texture2D> &texture)
@@ -88,8 +101,11 @@ namespace Chozo {
                 // float width = m_ViewportSize.x;
                 // float height = m_ViewportSize.x * 0.75;
                 // m_Viewport_FBO->Resize(width, height);
+
+                // TODO: Change to Async Commandbuffer
                 m_Viewport_FBO->Bind();
-                Renderer2D::DrawFullScreenQuad(m_Texture);
+                m_Material->Set("u_Texture", m_Texture);
+                Renderer::GetAPI()->RenderFullscreenQuad(m_Pipeline, m_Material);
                 m_Viewport_FBO->Unbind();
 
                 DrawImage(m_FBOTexture);

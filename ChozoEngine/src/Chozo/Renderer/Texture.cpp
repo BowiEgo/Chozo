@@ -6,9 +6,9 @@
 namespace Chozo
 {
 
-    //////////////////////////////////////////////////////////////////////////////////
-	// Texture2D
-	//////////////////////////////////////////////////////////////////////////////////
+	//==============================================================================
+	/// Texture2D
+    TextureType Texture2D::s_Type = TextureType::Texture2D;
 
     Ref<Texture2D> Texture2D::Create(const Texture2DSpecification& spec)
     {
@@ -58,9 +58,9 @@ namespace Chozo
         return nullptr;
     }
 
-    //////////////////////////////////////////////////////////////////////////////////
-	// TextureCube
-	//////////////////////////////////////////////////////////////////////////////////
+	//==============================================================================
+	/// TextureCube
+    TextureType TextureCube::s_Type = TextureType::TextureCube;
 
     Ref<TextureCube> TextureCube::Create(const TextureCubeSpecification& spec)
     {

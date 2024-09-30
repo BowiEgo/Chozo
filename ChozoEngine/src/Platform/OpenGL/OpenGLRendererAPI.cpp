@@ -8,6 +8,7 @@
 // #include "OpenGLFrameBuffer.h"
 #include "OpenGLRenderPass.h"
 #include "OpenGLMaterial.h"
+#include "OpenGLTexture.h"
 
 #include <glad/glad.h>
 
@@ -70,7 +71,7 @@ namespace Chozo {
 
     void OpenGLRendererAPI::DrawEnvMap(const Ref<Shader> &shader, const Ref<TextureCube> &textureCube, const Ref<VertexArray> &VAO)
     {
-        textureCube->Bind();
+        textureCube.As<OpenGLTextureCube>()->Bind();
         for (uint32_t i = 0; i < 6; i++)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
@@ -87,7 +88,7 @@ namespace Chozo {
 
     void OpenGLRendererAPI::DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera)
     {
-        environment->IrradianceMap->Bind();
+        environment->IrradianceMap.As<OpenGLTextureCube>()->Bind();
         Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Skybox");
         shader->Bind();
 
@@ -133,7 +134,7 @@ namespace Chozo {
     void OpenGLRendererAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, const Ref<Texture2D> texture)
     {
         pipeline->GetTargetFramebuffer()->Bind();
-        texture->Bind();
+        texture.As<OpenGLTexture2D>()->Bind();
         OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
         shader->Bind();
         shader->SetUniform("u_EquirectangularMap", 0);
@@ -217,7 +218,7 @@ namespace Chozo {
         Ref<TextureCube> textureCube = Renderer::GetPreethamSkyTextureCube();
 
         pipeline->GetTargetFramebuffer()->Bind();
-        textureCube->Bind();
+        textureCube.As<OpenGLTextureCube>()->Bind();
 
         shader->Bind();
         shader->SetUniform("u_FragUniforms.Turbidity", turbidity);
@@ -267,9 +268,9 @@ namespace Chozo {
         else
             pipeline->GetShader()->Bind();
 
-        glDepthFunc(GL_LEQUAL); GCE;
+        PrepareGLContext(pipeline);
         Renderer2D::DrawFullScreenQuad();
-        glDepthFunc(GL_LESS); GCE;
+        ResetGLContext();
     }
 
     void OpenGLRendererAPI::SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
@@ -282,16 +283,16 @@ namespace Chozo {
 
     void OpenGLRendererAPI::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
     {
-        commandBuffer->AddCommand([pipeline, material]()
+        commandBuffer->AddCommand([pipeline, material, this]()
         {
             if (material)
                 material.As<OpenGLMaterial>()->Bind();
             else
                 pipeline->GetShader()->Bind();
 
-            glDepthFunc(GL_LEQUAL); GCE;
+            PrepareGLContext(pipeline);
             RenderCommand::DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
-            glDepthFunc(GL_LESS); GCE;
+            ResetGLContext();
         });
     }
 
@@ -315,5 +316,16 @@ namespace Chozo {
             rendererData.Stats.VerticesCount += vertexCount;
             rendererData.Stats.TriangleCount += indexCount;
         });
+    }
+
+    void OpenGLRendererAPI::PrepareGLContext(Ref<Pipeline> pipeline)
+    {
+        if (pipeline->GetSpec().DepthWrite)
+            glDepthFunc(GL_LEQUAL); GCE;
+    }
+
+    void OpenGLRendererAPI::ResetGLContext()
+    {
+        glDepthFunc(GL_LESS); GCE;
     }
 }

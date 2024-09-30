@@ -18,6 +18,9 @@ namespace Chozo {
     private:
         void DrawImage(Ref<Texture2D> texture);
     private:
+        Ref<Pipeline> m_Pipeline;
+        Ref<Material> m_Material;
+
         Ref<Framebuffer> m_Viewport_FBO;
         ImVec2 m_ViewportSize;
 

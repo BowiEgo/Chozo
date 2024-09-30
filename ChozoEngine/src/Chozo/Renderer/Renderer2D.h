@@ -33,7 +33,6 @@ namespace Chozo {
         static void Flush();
         // Primitives
         static void DrawFullScreenQuad();
-        static void DrawFullScreenQuad(Ref<Texture> texture);
         static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, uint32_t entityID = -1);
         static void DrawQuad(const glm::mat4& transform, Ref<Texture2D> texture, float tilingFactor, const glm::vec4& color, uint32_t entityID = -1);
         static void DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, uint32_t entityID = -1);
@@ -61,6 +60,7 @@ namespace Chozo {
         static void ResetStats();
     private:
         static void FlushAndReset();
+        static void FlushQuadBuffer();
     private:
         struct SceneData
         {

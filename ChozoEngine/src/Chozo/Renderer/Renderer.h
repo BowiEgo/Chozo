@@ -100,7 +100,7 @@ namespace Chozo {
         static void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
         static void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material);
 
-        inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
+        inline static RendererAPI* GetAPI() { return s_RendererAPI; }
 
         static Ref<ShaderLibrary> GetShaderLibrary() { return GetRendererData().m_ShaderLibrary; }
         static RendererData GetRendererData();

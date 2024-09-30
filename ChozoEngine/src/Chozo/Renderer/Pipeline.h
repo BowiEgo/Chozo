@@ -27,6 +27,7 @@ namespace Chozo {
     public:
         ~Pipeline() = default;
 
+        virtual PipelineSpecification GetSpec() const = 0;
         virtual Ref<Shader> GetShader() const = 0;
         virtual Ref<Framebuffer> GetTargetFramebuffer() const = 0;
 

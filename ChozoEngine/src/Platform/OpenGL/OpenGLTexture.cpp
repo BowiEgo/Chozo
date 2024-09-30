@@ -75,8 +75,9 @@ namespace Chozo
 
     void OpenGLTexture2D::SetData(const void *data, const uint32_t size)
     {
+        m_Buffer.Allocate(size);
+        m_Buffer.Write(data, size);
         glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
-        m_Buffer.Data = (byte*)data;
         glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(m_Spec.Format), m_Width, m_Height, 0, GetGLDataFormat(m_Spec.Format), GetGLDataType(m_Spec.Format), m_Buffer.Data); GCE;
     }
 
@@ -89,12 +90,17 @@ namespace Chozo
         }
 
         uint64_t size = m_Width * m_Height * Utils::GetBytesPerPixel(m_Spec.Format);
-        buffer.Allocate(size);
+        m_Buffer.Allocate(size);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
-        glGetTexImage(GL_TEXTURE_2D, 0, m_DataFormat, m_DataType, buffer.Data);
+        glGetTexImage(GL_TEXTURE_2D, 0, m_DataFormat, m_DataType, m_Buffer.Data);
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        if (m_Buffer.Size != 0)
+            m_Buffer.CopyTo(buffer);
+        else
+            CZ_CORE_WARN("Texture buffer data is empty.");
     }
 
     void OpenGLTexture2D::Invalidate()
