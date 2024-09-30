@@ -1,21 +1,22 @@
 #include "ContentBrowserPanel.h"
 
+#include <regex>
+
 #include "Chozo/ImGui/CustomTreeNode.h"
 #include "Chozo/ImGui/ImGuiUI.h"
 #include "Chozo/ImGui/Colors.h"
 
 #include "Chozo/Utilities/PlatformUtils.h"
 
-#include <regex>
 #include <imgui_internal.h>
 
 namespace Chozo {
 
-    extern const std::filesystem::path g_AssetsPath = "../assets";
+    extern const std::filesystem::path g_AssetsPath;
 
-    extern const std::regex imagePattern(R"(\.(png|jpg|jpeg|hdr)$)", std::regex::icase);
-    extern const std::regex hdrPattern(R"(\.(hdr)$)", std::regex::icase);
-    extern const std::regex scenePattern(R"(\.(chozo)$)", std::regex::icase);
+    extern const std::regex imagePattern;
+    extern const std::regex hdrPattern;
+    extern const std::regex scenePattern;
 
     static void DisplayThumbnail(const Ref<Texture2D>& icon, float thumbnailSize)
     {
@@ -67,9 +68,6 @@ namespace Chozo {
 
     ContentBrowserPanel::ContentBrowserPanel()
     {
-        m_AssetManager = Ref<EditorAssetManager>::Create();
-        AssetManager::SetActived(m_AssetManager);
-
         m_HierachyDirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-open-1.png"));
         m_DirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder.png"));
         m_EmptyDirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-empty.png"));
@@ -154,8 +152,8 @@ namespace Chozo {
 
                     for (auto& p : m_CurrentDirectory->AssetsSorted)
                     {
-                        Ref<Asset> asset = m_AssetManager->GetAsset(p);
-                        AssetMetadata metadata = m_AssetManager->GetMetadata(asset->Handle);
+                        Ref<Asset> asset = Application::GetAssetManager()->GetAsset(p);
+                        AssetMetadata metadata = Application::GetAssetManager()->GetMetadata(asset->Handle);
                         AssetType assetType = asset->GetAssetType();
                         std::string filenameString = metadata.FilePath.filename().string();
 
@@ -403,12 +401,12 @@ namespace Chozo {
 
     void ContentBrowserPanel::SaveAllAssets()
     {
-        m_AssetManager->SaveAssets();
+        Application::GetAssetManager()->SaveAssets();
     }
 
     void ContentBrowserPanel::AddAssetsToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata)
     {
-        directory->Assets[metadata.Handle] = m_AssetManager->GetMetadata(metadata.Handle);
+        directory->Assets[metadata.Handle] = Application::GetAssetManager()->GetMetadata(metadata.Handle);
         directory->AssetsSorted.push_back(metadata.Handle);
     }
 
@@ -474,7 +472,7 @@ namespace Chozo {
 				continue;
 			}
 
-			auto metadata = m_AssetManager->GetMetadata(entry.path());
+			auto metadata = Application::GetAssetManager()->GetMetadata(entry.path());
             if (metadata.IsValid())
                 AddAssetsToDir(directoryInfo, metadata);
         }

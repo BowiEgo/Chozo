@@ -8,6 +8,8 @@
 #include "Chozo/Renderer/SceneRenderer.h"
 #include "Chozo/Asset/AssetManager.h"
 
+#include "Chozo/Core/Application.h"
+
 #include <glad/glad.h>
 
 namespace Chozo {
@@ -82,7 +84,7 @@ namespace Chozo {
                 {
                     if (!skyLight.SceneEnvironment)
                     {
-                        Ref<Texture2D> texture = AssetManager::GetActived()->GetAsset(skyLight.Source);
+                        Ref<Texture2D> texture = Application::GetAssetManager()->GetAsset(skyLight.Source);
                         Renderer::CreateStaticSky(texture);
                     }
         

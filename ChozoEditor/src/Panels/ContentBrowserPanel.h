@@ -47,8 +47,6 @@ namespace Chozo {
 
 		AssetHandle ProcessDirectory(const std::filesystem::path& directoryPath, const Ref<DirectoryInfo>& parent);
     private:
-		Ref<EditorAssetManager> m_AssetManager;
-
 		std::unordered_map<AssetHandle, Ref<DirectoryInfo>> m_Directories;
 		Ref<DirectoryInfo> m_BaseDirectory;
         Ref<DirectoryInfo> m_PreviousDirectory, m_CurrentDirectory, m_NextDirectory;
@@ -63,8 +61,8 @@ namespace Chozo {
     template <typename T, typename... Args>
     inline Ref<T> ContentBrowserPanel::CreateAsset(const std::string& filename, Ref<DirectoryInfo>& directory, Args &&...args)
     {
-        Ref<T> asset = m_AssetManager->CreateNewAsset<T>(filename, directory->FilePath.string(), std::forward<Args>(args)...);
-        auto metadata = m_AssetManager->GetMetadata(asset->Handle);
+        Ref<T> asset = Application::GetAssetManager()->CreateNewAsset<T>(filename, directory->FilePath.string(), std::forward<Args>(args)...);
+        auto metadata = Application::GetAssetManager()->GetMetadata(asset->Handle);
 
         AddAssetsToDir(directory, metadata);
         SortAssets(directory);

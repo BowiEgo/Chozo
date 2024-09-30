@@ -10,6 +10,8 @@
 
 #include "Chozo/ImGui/ImGuiLayer.h"
 
+#include "Chozo/Asset/EditorAssetManager.h"
+
 namespace Chozo
 {
     class CHOZO_API Application
@@ -29,6 +31,8 @@ namespace Chozo
         inline Window& GetWindow() { return *m_Window; }
         inline ImGuiLayer& GetImGuiLayer() { return *m_ImGuiLayer; }
         inline static Application& Get() { return *s_Instance; }
+
+        static inline Ref<EditorAssetManager> GetAssetManager() { return s_Instance->m_AssetManager; }
     private:
         bool OnWindowClose(WindowCloseEvent& e);
     private:
@@ -40,6 +44,7 @@ namespace Chozo
         float m_LastFrameTime = 0.0f;
     private:
         static Application* s_Instance;
+		Ref<EditorAssetManager> m_AssetManager;
     };
 
     // To be defined in CLIENT

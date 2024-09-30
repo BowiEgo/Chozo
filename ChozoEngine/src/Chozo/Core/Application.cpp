@@ -1,4 +1,7 @@
 #include "Application.h"
+
+#include <regex>
+
 #include "Input.h"
 
 #include "Chozo/Renderer/Renderer.h"
@@ -10,6 +13,15 @@
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
 namespace Chozo {
+
+    // TODO: Move to Project
+    extern const std::filesystem::path g_AssetsPath = "../assets";
+
+    // TODO: Remove
+    extern const std::regex imagePattern(R"(\.(png|jpg|jpeg|hdr)$)", std::regex::icase);
+    extern const std::regex hdrPattern(R"(\.(hdr)$)", std::regex::icase);
+    extern const std::regex scenePattern(R"(\.(chozo)$)", std::regex::icase);
+
     Application* Application::s_Instance = nullptr;
 
     Application::Application(const std::string& name)
@@ -19,6 +31,9 @@ namespace Chozo {
 
         m_Window = Window::Create(WindowProps(name));
         m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+
+        // TODO: Move to Project
+        m_AssetManager = Ref<EditorAssetManager>::Create();
 
         Renderer2D::Init();
         Renderer::Init();
