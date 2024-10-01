@@ -1,8 +1,9 @@
 #include "TextureViewerPanel.h"
 
-#include "Chozo/ImGui/ImGuiUI.h"
 #include <regex>
 // #include <imgui_internal.h>
+#include "Chozo/ImGui/ImGuiUI.h"
+#include "Chozo/Utilities/StringUtils.h"
 
 namespace Chozo {
 
@@ -69,28 +70,7 @@ namespace Chozo {
             m_ViewportSize.x += 2;
             m_ViewportSize.y += 2;
 
-            ImGui::InvisibleButton("##DragDropTarget", m_ViewportSize);
-            if (ImGui::BeginDragDropTarget())
-            {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-                {
-                    const wchar_t* path = (const wchar_t*)payload->Data;
-                    CZ_INFO("Drop target: {0}", (char*)path);
-                    std::filesystem::path filePath = std::filesystem::path((char*)path);
-                    std::string fileExtension = filePath.extension().string();
-                    if (std::regex_match(fileExtension, imagePattern))
-                    {
-                        std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
-
-                        Texture2DSpecification spec;
-                        spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
-                        spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
-                        m_Texture = Texture2D::Create(texturePath.string(), spec);
-                    }
-                }
-
-                ImGui::EndDragDropTarget();
-            }
+            OnDragAndDrop();
 
             if (m_Texture && dynamic_cast<Texture2D*>(m_Texture.get()))
                 DrawImage(m_Texture.As<Texture2D>());
@@ -114,6 +94,26 @@ namespace Chozo {
 
             ImGui::PopStyleVar();
             ImGui::End();
+        }
+    }
+
+    void TextureViewerPanel::OnDragAndDrop()
+    {
+        ImGui::InvisibleButton("##DragDropTarget", m_ViewportSize);
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+            {
+                const wchar_t* handle_wchar = (const wchar_t*)payload->Data;
+                AssetHandle handle = Utils::WChar::WCharToUint64(handle_wchar);
+                CZ_INFO("Drop target: {0}", std::to_string(handle));
+
+                Ref<Asset> asset = Application::GetAssetManager()->GetAsset(handle);
+                if (asset->GetAssetType() == AssetType::Texture)
+                    m_Texture = asset.As<Texture2D>();
+            }
+
+            ImGui::EndDragDropTarget();
         }
     }
 

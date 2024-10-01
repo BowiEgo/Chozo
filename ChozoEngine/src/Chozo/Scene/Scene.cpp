@@ -85,7 +85,8 @@ namespace Chozo {
                     if (!skyLight.SceneEnvironment)
                     {
                         Ref<Texture2D> texture = Application::GetAssetManager()->GetAsset(skyLight.Source);
-                        Renderer::CreateStaticSky(texture);
+                        if (texture)
+                            Renderer::CreateStaticSky(texture);
                     }
         
                     Ref<TextureCube> radiance = Renderer::GetStaticSkyTextureCube();

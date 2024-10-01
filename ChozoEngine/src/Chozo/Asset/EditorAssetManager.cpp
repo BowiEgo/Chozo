@@ -4,8 +4,8 @@
 #include "AssetImporter.h"
 #include "AssetRegistrySerializer.h"
 
-#include "Chozo/Utilities/StringUtils.h"
 #include "Chozo/Utilities/PlatformUtils.h"
+#include "Chozo/Utilities/StringUtils.h"
 #include "Chozo/Project/Project.h"
 
 #include "Chozo/Renderer/Texture.h"

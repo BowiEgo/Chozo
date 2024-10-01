@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Chozo/Renderer/Texture.h"
-
 #include <imgui.h>
 #include <imgui_internal.h>
 
 #include <vector>
+
+#include "Chozo/Renderer/Texture.h"
+#include "Chozo/Utilities/StringUtils.h"
 
 namespace Chozo {
 
@@ -538,5 +539,22 @@ namespace Chozo::UI {
 
 			ImGui::EndDragDropTarget();
 		}
+	}
+
+	static void BeginDragAndDrop(std::function<void(AssetHandle handle)>&& func)
+	{
+		if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+            {
+                const wchar_t* handle_wchar = (const wchar_t*)payload->Data;
+                AssetHandle handle = Utils::WChar::WCharToUint64(handle_wchar);
+                CZ_INFO("Drop target: {0}", std::to_string(handle));
+
+				func(handle);
+            }
+
+            ImGui::EndDragDropTarget();
+        }
 	}
 }

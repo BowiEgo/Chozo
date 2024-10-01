@@ -2,6 +2,7 @@
 
 #include "Chozo.h"
 #include "Chozo/Asset/EditorAssetManager.h"
+#include "Chozo/Thumbnail/ThumbnailManager.h"
 
 namespace Chozo {
 
@@ -56,6 +57,8 @@ namespace Chozo {
         bool m_BackIcon_Disabled, m_ForwardIcon_Disabled, m_RefreshIcon_Disabled;
 
 		char m_SearchBuffer[MAX_SEARCH_BUFFER_LENGTH];
+
+        Ref<ThumbnailManager> m_ThumbnailManager;
     };
     
     template <typename T, typename... Args>
@@ -66,6 +69,8 @@ namespace Chozo {
 
         AddAssetsToDir(directory, metadata);
         SortAssets(directory);
+
+        m_ThumbnailManager->CreateThumbnail(metadata, asset);
 
         return asset;
     }

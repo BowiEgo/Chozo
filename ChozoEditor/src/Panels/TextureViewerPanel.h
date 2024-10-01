@@ -16,6 +16,7 @@ namespace Chozo {
 
         void OnImGuiRender();
     private:
+        void OnDragAndDrop();
         void DrawImage(Ref<Texture2D> texture);
     private:
         Ref<Pipeline> m_Pipeline;

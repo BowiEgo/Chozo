@@ -56,18 +56,21 @@ namespace Chozo {
         ImGui::TextWrapped("%s", text.c_str());
     }
 
-    static void DisplayDragDrop(const std::string& relativePath)
+    static void DisplayDragDrop(const AssetHandle& handle)
     {
         if (ImGui::BeginDragDropSource())
         {
-            const wchar_t* itemPath = (const wchar_t*)relativePath.c_str();
-            ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
+            std::wstring handle_wstr = std::to_wstring(handle);
+            const wchar_t* handle_wchar = handle_wstr.c_str();
+            ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", handle_wchar, (wcslen(handle_wchar) + 1) * sizeof(wchar_t));
             ImGui::EndDragDropSource();
         }
     }
 
     ContentBrowserPanel::ContentBrowserPanel()
     {
+        m_ThumbnailManager = Ref<ThumbnailManager>::Create();
+
         m_HierachyDirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-open-1.png"));
         m_DirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder.png"));
         m_EmptyDirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-empty.png"));
@@ -142,7 +145,7 @@ namespace Chozo {
                         icon = dir->SubDirectories.empty() ? m_EmptyDirectoryIcon : m_DirectoryIcon;
    
                         DisplayThumbnail(icon, thumbnailSize);
-                        DisplayDragDrop(relativePath);
+                        DisplayDragDrop(dir->Handle);
                         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                             m_CurrentDirectory = dir;
                         DisplayCenteredText(filenameString);
@@ -162,12 +165,12 @@ namespace Chozo {
                         Ref<Texture2D> icon;
 
                         if (assetType == AssetType::Texture)
-                            icon = asset.As<Texture2D>();
+                            icon = m_ThumbnailManager->GetThumbnail(metadata.Handle);
                         else
                             icon = m_TextFileIcon;
 
                         DisplayThumbnail(icon, thumbnailSize);
-                        DisplayDragDrop(metadata.FilePath);
+                        DisplayDragDrop(metadata.Handle);
                         DisplayCenteredText(filenameString);
                         ImGui::NextColumn();
                     }
@@ -396,7 +399,7 @@ namespace Chozo {
 
         Ref<Asset> textureAsset = CreateAsset<Texture2D>(path.filename().stem().string(), m_CurrentDirectory, path.string(), spec);
 
-        return;
+        SaveAllAssets();
     }
 
     void ContentBrowserPanel::SaveAllAssets()

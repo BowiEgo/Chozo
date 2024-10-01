@@ -168,7 +168,7 @@ namespace Chozo {
         float Lod = 0.0f;
 
         bool Dynamic = true;
-        UUID Source;
+        AssetHandle Source;
         glm::vec3 TurbidityAzimuthInclination = { 2.74f, 0.0f, 0.0f };
     };
 

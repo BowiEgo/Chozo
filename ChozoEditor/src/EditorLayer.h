@@ -28,7 +28,7 @@ namespace Chozo {
     private:
         Entity PickEntity(uint32_t mx, uint32_t my);
 
-        void OnDragAndDrop();
+        void OnDragAndDrop(AssetHandle handle);
 
         bool OnKeyPressed(KeyPressedEvent& e);
         bool OnMouseButtonPressed(MouseButtonPressedEvent& e);

@@ -86,7 +86,7 @@ namespace Chozo {
         const ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
         if (ImGui::BeginTable("table", 2, flags))
         {
-            ImGui::SetNextItemWidth(50.0f);
+            ImGui::SetNextItemWidth(25.0f);
             ImGui::TableNextRow();
             for (int column = 0; column < 2; column++)
             {
@@ -101,6 +101,48 @@ namespace Chozo {
                     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
                     uiFunction(target);
                     ImGui::PopItemWidth();
+                }
+            }
+            ImGui::EndTable();
+        }
+    }
+
+    template<typename Callback>
+    static void DrawColumnPath(const std::string& name, AssetMetadata metadata, Callback callback)
+    {
+        const ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
+        if (ImGui::BeginTable("table", 2, flags))
+        {
+            ImGui::SetNextItemWidth(25.0f);
+            ImGui::TableNextRow();
+            for (int column = 0; column < 2; column++)
+            {
+                ImGui::TableSetColumnIndex(column);
+                if (column == 0)
+                {
+                    ImGui::Text("%s", name.c_str());
+                    ImGui::TableNextColumn();
+                }
+                else
+                {
+                    char pathBuffer[256];
+                    strncpy(pathBuffer, metadata.FilePath.string().c_str(), sizeof(pathBuffer));
+
+                    ImVec2 buttonSize(20.0f, 0.0f);
+
+                    float buttonWidth = buttonSize.x + ImGui::GetStyle().FramePadding.x * 2;
+                    float pathWidth = ImGui::GetContentRegionAvail().x - buttonWidth;
+                    ImGui::PushItemWidth(pathWidth);
+                    ImGui::InputText("##Path", pathBuffer, 24);
+                    ImGui::PopItemWidth();
+
+                    ImGui::SameLine();
+                    // ImGui::SetCursorPosX(ImGui::GetCursorPosX() + pathWidth);
+                    ImGui::Button("...", buttonSize);
+                    UI::BeginDragAndDrop([&](AssetHandle handle){
+                        const AssetMetadata sourceMetadata = Application::GetAssetManager()->GetMetadata(handle);
+                        callback(sourceMetadata);
+                    });
                 }
             }
             ImGui::EndTable();

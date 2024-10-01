@@ -33,7 +33,6 @@ namespace Chozo
 		DEPTH24STENCIL8,
 
 		// Defaults
-		NORMAL = RGBA,
 		HDR = RGBA32F,
 		ID = RED_INTEGER,
 		Depth = DEPTH24STENCIL8,

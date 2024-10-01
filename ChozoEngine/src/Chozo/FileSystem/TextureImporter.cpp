@@ -23,7 +23,7 @@ namespace Chozo {
 		{
 			imageBuffer.Data = stbi_load(path.c_str(), &width, &height, &channels, 4);
 			imageBuffer.Size = width * height * 4;
-			outFormat = ImageFormat::NORMAL;
+			outFormat = ImageFormat::RGBA;
 		}
 
 		if (!imageBuffer.Data)

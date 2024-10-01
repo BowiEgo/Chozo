@@ -273,17 +273,9 @@ namespace Chozo {
             });
             // Texture
             ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
-            if (ImGui::BeginDragDropTarget())
-            {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-                {
-                    const wchar_t* path = (const wchar_t*)payload->Data;
-                    std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
-                    component.Texture = Texture2D::Create(texturePath.string(), Texture2DSpecification());
-                }
-
-                ImGui::EndDragDropTarget();
-            }
+            UI::BeginDragAndDrop([](AssetHandle handle){
+                // TODO: Finish
+            });
             DrawColumnValue<float>("Tiling Factor", component.TilingFactor, [&](auto& target) {
                 ImGui::DragFloat("##Tiling Factor", &target, 0.1f, 0.0f, 100.0f);
             });
@@ -329,7 +321,7 @@ namespace Chozo {
             });
         });
 
-        DrawComponent<SkyLightComponent>("SkyLight", entity, [](auto& component)
+        DrawComponent<SkyLightComponent>("SkyLight", entity, [](SkyLightComponent& component)
         {
             // Camera types
             const char* skyLightTypeStrings[] = { "Static", "Dynamic" };
@@ -361,27 +353,15 @@ namespace Chozo {
 
             if (!component.Dynamic)
             {
-                // ImGui::Text("%s", component.SourcePath.c_str()); ImGui::SameLine();
-                ImGui::Button("Path");
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                const AssetMetadata metadata = Application::GetAssetManager()->GetMetadata(component.Source);
+
+                DrawColumnPath("File", metadata, [&](AssetMetadata sourceMetadata) {
+                    if (sourceMetadata.Type == AssetType::Texture)
                     {
-                        // const char* path = (const char*)payload->Data;
-                        // CZ_INFO("Drop target: {0}", (char*)path);
-                        // std::filesystem::path filePath = std::filesystem::path(path);
-                        // std::string fileExtension = filePath.extension().string();
-
-                        // if (std::regex_match(fileExtension, imagePattern))
-                        // {
-                        //     std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
-                        //     component.Source = std::string(texturePath);
-                        //     component.SceneEnvironment = nullptr;
-                        // }
+                        component.Source = sourceMetadata.Handle;
+                        component.SceneEnvironment = nullptr;
                     }
-
-                    ImGui::EndDragDropTarget();
-                }
+                });
             }
 
             DrawColumnValue<float>("Skybox LOD", component.Lod, [&](auto& target) {
@@ -751,4 +731,5 @@ namespace Chozo {
 
         return entity;
     }
+
 }

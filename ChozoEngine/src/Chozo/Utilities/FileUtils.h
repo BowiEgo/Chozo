@@ -1,7 +1,5 @@
 #pragma once
 
-#include "czpch.h"
-
 namespace Chozo::Utils {
 
     namespace File {

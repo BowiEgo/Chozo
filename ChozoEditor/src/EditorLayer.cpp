@@ -1,21 +1,17 @@
 #include "EditorLayer.h"
 #include "CameraController.h"
 
-#include "Panels/TextureViewerPanel.h"
-
 #include <regex>
-
 #include <glad/glad.h>
+
+#include "Panels/TextureViewerPanel.h"
 
 #include "Chozo/Scene/SceneSerializer.h"
 #include "Chozo/Utilities/PlatformUtils.h"
+#include "Chozo/ImGui/ImGuiUI.h"
 #include "Chozo/Math/Math.h"
 
 namespace Chozo {
-
-    extern const std::filesystem::path g_AssetsPath;
-    extern const std::regex imagePattern;
-    extern const std::regex scenePattern;
 
     std::string ReadFile(const std::string &filepath)
     {
@@ -260,11 +256,9 @@ namespace Chozo {
         m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
 
         // Drag and drop
-        if (ImGui::BeginDragDropTarget())
-        {
-            OnDragAndDrop();
-            ImGui::EndDragDropTarget();
-        }
+        UI::BeginDragAndDrop([this](AssetHandle handle){
+            OnDragAndDrop(handle);
+        });
 
         // Gizmos
         Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
@@ -402,28 +396,25 @@ namespace Chozo {
         return entity;
     }
 
-    void EditorLayer::OnDragAndDrop()
+    void EditorLayer::OnDragAndDrop(AssetHandle handle)
     {
-        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-        {
-            const wchar_t* path = (const wchar_t*)payload->Data;
-            CZ_INFO("Drop target: {0}", (char*)path);
-            std::filesystem::path filePath = std::filesystem::path((char*)path);
-            std::string fileExtension = filePath.extension().string();
-            if (std::regex_match(fileExtension, imagePattern))
-            {
-                auto [mx, my] = ImGui::GetMousePos();
-                Entity entity = PickEntity(mx, my);
-                CZ_CORE_INFO("{}", entity);
-                if (entity)
-                {
-                    std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
-                    // m_Entity_Selected.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
-                }
-            }
-            else
-                OpenScene(g_AssetsPath / std::filesystem::path((char*)path));
-        }
+        // Ref<Asset> asset =  Application::GetAssetManager()->GetAsset(handle);
+
+        // std::filesystem::path filePath = std::filesystem::path((char*)path);
+        // std::string fileExtension = filePath.extension().string();
+        // if (std::regex_match(fileExtension, imagePattern))
+        // {
+        //     auto [mx, my] = ImGui::GetMousePos();
+        //     Entity entity = PickEntity(mx, my);
+        //     CZ_CORE_INFO("{}", entity);
+        //     if (entity)
+        //     {
+        //         std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
+        //         // m_Entity_Selected.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
+        //     }
+        // }
+        // else
+        //     OpenScene(g_AssetsPath / std::filesystem::path((char*)path));
     }
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent &e)
