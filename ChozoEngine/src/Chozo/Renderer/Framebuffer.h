@@ -36,7 +36,7 @@ namespace Chozo {
     struct FramebufferSpecification
     {
         uint32_t Width = 1, Height = 1;
-		glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		glm::vec4 ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
 
         FramebufferAttachmentSpecification Attachments;
 
@@ -62,12 +62,12 @@ namespace Chozo {
         virtual void Resize(uint32_t width, uint32_t height, int mip = -1) = 0;
         virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) = 0;
 
-        virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) = 0;
+        // virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) = 0;
 
 		virtual RendererID GetRendererID() const = 0;
         virtual RendererID GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const = 0;
         virtual RendererID GetDepthAttachmentRendererID() const = 0;
-		virtual const FramebufferSpecification& GetSpecification() const = 0;
+		virtual FramebufferSpecification& GetSpecification() = 0;
         virtual Ref<Texture2D> GetImage(uint32_t attachmentIndex) const = 0;
 		virtual Ref<Texture2D> GetDepthImage() const = 0;
 

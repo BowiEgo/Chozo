@@ -14,6 +14,8 @@ namespace Chozo {
 
         virtual ~Camera() = default;
 
+        virtual void Reset() = 0;
+
         const glm::mat4& GetProjection() const { return m_ProjectionMatrix; }
     protected:
         glm::mat4 m_ProjectionMatrix = glm::mat4(1.0f);

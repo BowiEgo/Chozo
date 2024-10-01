@@ -16,6 +16,14 @@ namespace Chozo {
         UpdateView();
     }
 
+    void EditorCamera::Reset()
+    {
+        m_Distance = 10.0f;
+        m_Pitch = 0.0f;
+        m_Yaw = 0.0f;
+        UpdateView();
+    }
+
     void EditorCamera::OnUpdate(Timestep ts)
     {
         if (Input::IsKeyPressed(Key::LeftAlt))

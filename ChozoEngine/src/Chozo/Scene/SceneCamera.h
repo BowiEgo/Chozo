@@ -13,6 +13,8 @@ namespace Chozo
         SceneCamera();
         virtual ~SceneCamera() = default;
 
+        virtual void Reset() override;
+
         inline void SetProjectionType(ProjectionType type) { m_ProjectionType = type; RecaculateProjection(); }
         inline ProjectionType GetProjectionType() const { return m_ProjectionType; }
         void SetViewportSize(uint32_t width, uint32_t height);

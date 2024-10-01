@@ -49,9 +49,22 @@ namespace Chozo
         CLAMP_TO_BORDER,
 		LINEAR_MIPMAP_LINEAR,
     };
+	
+	namespace Image {
 
-	namespace Utils {
-		
+		static bool IsDepthFormat(ImageFormat format)
+		{
+			switch (format)
+			{
+				case ImageFormat::DEPTH32FSTENCIL8UINT: return true;
+				case ImageFormat::DEPTH32F: return true;
+				case ImageFormat::DEPTH24STENCIL8: return true;
+				default: return false;
+			}
+
+			return false;
+		}
+
 		static uint32_t GetBytesPerPixel(ImageFormat format)
 		{
 			switch (format)
@@ -83,6 +96,5 @@ namespace Chozo
 			}
 			return 0;
 		}
-	} // namespace Utils
-	
+	}
 }

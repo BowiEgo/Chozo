@@ -15,6 +15,7 @@ void gl_check_error(const char* function, const char* file, int line);
 
 namespace Chozo
 {
+    int GetChannelCount(const ImageFormat& format);
     GLenum GetGLFormat(const ImageFormat& format);
     GLenum GetGLDataFormat(const ImageFormat& format);
     GLenum GetGLDataType(const ImageFormat& format);

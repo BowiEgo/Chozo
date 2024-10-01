@@ -29,6 +29,7 @@ namespace Chozo
 			auto skyboxShader = Renderer::GetShaderLibrary()->Get("Skybox");
 
 			FramebufferSpecification fbSpec;
+            fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 			fbSpec.Attachments = { ImageFormat::RGBA32F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
 			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
@@ -55,6 +56,7 @@ namespace Chozo
         // G-Buffer
         {
 			FramebufferSpecification fbSpec;
+            fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			fbSpec.Attachments = {
                 ImageFormat::RGB16F,
                 ImageFormat::RGB16F,
@@ -138,6 +140,7 @@ namespace Chozo
         // PBR
         {
             FramebufferSpecification fbSpec;
+            fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			fbSpec.Attachments = { ImageFormat::RGBA32F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
 			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
@@ -170,7 +173,7 @@ namespace Chozo
         // Final composite
         {
             FramebufferSpecification fbSpec;
-            fbSpec.ClearColor = { 0.1f, 0.1f, 0.1f, 1 };
+            fbSpec.ClearColor = Renderer::GetConfig().ClearColor;
             fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
             Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
@@ -389,6 +392,8 @@ namespace Chozo
 
     void SceneRenderer::CompositePass()
     {
+        m_CompositePass->GetTargetFramebuffer()->GetSpecification().ClearColor = Renderer::GetConfig().ClearColor;
+
 		Renderer::BeginRenderPass(m_CommandBuffer, m_CompositePass);
 		Renderer::SubmitFullscreenQuad(m_CommandBuffer, m_CompositePass->GetPipeline(), m_CompositeMaterial);
 		Renderer::EndRenderPass(m_CommandBuffer, m_CompositePass);

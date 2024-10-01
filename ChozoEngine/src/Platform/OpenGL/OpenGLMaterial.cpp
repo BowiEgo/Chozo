@@ -44,21 +44,6 @@ namespace Chozo {
     {
     }
 
-    void OpenGLMaterial::Set(const std::string &name, const std::string &sourcePath)
-    {
-        m_UniformSourcePaths[name] = sourcePath;
-
-        if (sourcePath != "")
-        {
-            // Texture2DSpecification spec;
-            // spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
-            // spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
-            // Ref<Texture2D> texture = Texture2D::Create(sourcePath, spec);
-
-            // Set(name, texture);
-        }
-    }
-
     void OpenGLMaterial::Set(const std::string &name, const UniformValue &value)
     {
         m_Uniforms[name] = value;

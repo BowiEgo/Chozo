@@ -156,6 +156,8 @@ namespace Chozo {
         // ImGui::Text("Lines: %d", Renderer2D::GetStats().LineCount);
         ImGui::Text("Triangles: %d", Renderer::GetStats().GetTotalTrianglesCount());
         ImGui::Text("Vertices: %d", Renderer::GetStats().GetTotalVerticesCount());
+        ImGui::Text("ClearColor:"); ImGui::SameLine();
+        ImGui::ColorEdit4("##ClearColor", glm::value_ptr(Renderer::GetConfig().ClearColor));
 
         std::string entityName = "Null";
         if (m_Entity_Selected)
@@ -496,13 +498,7 @@ namespace Chozo {
 
     void EditorLayer::NewScene()
     {
-        m_ActiveScene = Ref<Scene>::Create();
-        m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-        m_ViewportRenderer->SetScene(m_ActiveScene);
-        m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-        m_EnvironmentPanel.SetContext(m_ActiveScene);
-        m_SceneFileName = "";
+        OpenScene("");
     }
 
     void EditorLayer::OpenScene()
@@ -513,20 +509,21 @@ namespace Chozo {
 
     void EditorLayer::OpenScene(const std::filesystem::path &path)
     {
+        m_Entity_Selected = Entity();
+        m_ActiveScene = Ref<Scene>::Create();
+        m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+        m_ViewportRenderer->SetScene(m_ActiveScene);
+        m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        m_EnvironmentPanel.SetContext(m_ActiveScene);
+        m_SceneFileName = path.filename();
+        m_EditorCamera.Reset();
+
         if (!path.empty())
         {
-            m_ActiveScene = Ref<Scene>::Create();
-            m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-            m_ViewportRenderer->SetScene(m_ActiveScene);
-            m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-            m_EnvironmentPanel.SetContext(m_ActiveScene);
-
             SceneSerializer serializer(m_ActiveScene);
             serializer.Deserialize(path.string());
         }
-
-        m_SceneFileName = path.filename();
     }
 
     void EditorLayer::SaveSceneAs()

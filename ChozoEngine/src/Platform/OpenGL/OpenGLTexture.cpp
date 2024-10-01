@@ -53,6 +53,9 @@ namespace Chozo
     {
         if (m_Width != width || m_Height != height)
         {
+            // int channel = GetChannelCount(m_Spec.Format);
+
+            // m_DataBuffer = new unsigned char[m_Spec.Width * m_Spec.Height * channel * sizeof(float)];
             m_Spec.Width = width;
             m_Spec.Height = height;
             m_Width = width;
@@ -89,7 +92,7 @@ namespace Chozo
             return;
         }
 
-        uint64_t size = m_Width * m_Height * Utils::GetBytesPerPixel(m_Spec.Format);
+        uint64_t size = m_Width * m_Height * Image::GetBytesPerPixel(m_Spec.Format);
         m_Buffer.Allocate(size);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
