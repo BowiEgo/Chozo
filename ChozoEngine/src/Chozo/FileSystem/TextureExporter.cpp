@@ -8,7 +8,7 @@
 
 namespace Chozo {
 
-    Buffer TextureExporter::ToFileFromBuffer(std::filesystem::path path, Buffer sourceBuffer, uint32_t sourceWidth, uint32_t sourceHeight, uint32_t targetWidth, uint32_t targetHeight, bool isHDR)
+    Buffer TextureExporter::ToFileFromBuffer(fs::path path, Buffer sourceBuffer, uint32_t sourceWidth, uint32_t sourceHeight, uint32_t targetWidth, uint32_t targetHeight, bool isHDR)
     {
         std::string filepath = path.string() + ".png";
         int channels = 4; // 4 channels for RGBA

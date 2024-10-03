@@ -7,7 +7,7 @@
 
 namespace Chozo {
 
-    extern const std::filesystem::path g_AssetsPath;
+    extern const fs::path g_AssetsPath;
     extern const std::regex imagePattern;
 
     float s_LOD;

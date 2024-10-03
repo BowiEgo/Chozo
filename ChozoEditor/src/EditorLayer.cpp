@@ -402,7 +402,7 @@ namespace Chozo {
     {
         // Ref<Asset> asset =  Application::GetAssetManager()->GetAsset(handle);
 
-        // std::filesystem::path filePath = std::filesystem::path((char*)path);
+        // fs::path filePath = fs::path((char*)path);
         // std::string fileExtension = filePath.extension().string();
         // if (std::regex_match(fileExtension, imagePattern))
         // {
@@ -411,12 +411,12 @@ namespace Chozo {
         //     CZ_CORE_INFO("{}", entity);
         //     if (entity)
         //     {
-        //         std::filesystem::path texturePath = g_AssetsPath / std::filesystem::path((char*)path);
+        //         fs::path texturePath = g_AssetsPath / fs::path((char*)path);
         //         // m_Entity_Selected.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
         //     }
         // }
         // else
-        //     OpenScene(g_AssetsPath / std::filesystem::path((char*)path));
+        //     OpenScene(g_AssetsPath / fs::path((char*)path));
     }
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent &e)
@@ -507,7 +507,7 @@ namespace Chozo {
         OpenScene(filepath);
     }
 
-    void EditorLayer::OpenScene(const std::filesystem::path &path)
+    void EditorLayer::OpenScene(const fs::path &path)
     {
         m_Entity_Selected = Entity();
         m_ActiveScene = Ref<Scene>::Create();

@@ -5,7 +5,7 @@ namespace Chozo
 {
 	//==============================================================================
 	/// FileStreamWriter
-	FileStreamWriter::FileStreamWriter(const std::filesystem::path& path)
+	FileStreamWriter::FileStreamWriter(const fs::path& path)
 		: m_Path(path)
 	{
 		m_Stream = std::ofstream(path, std::ifstream::out | std::ifstream::binary);
@@ -24,7 +24,7 @@ namespace Chozo
 
 	//==============================================================================
 	/// FileStreamReader
-	FileStreamReader::FileStreamReader(const std::filesystem::path& path)
+	FileStreamReader::FileStreamReader(const fs::path& path)
 		: m_Path(path)
 	{
 		m_Stream = std::ifstream(path, std::ifstream::in | std::ifstream::binary);

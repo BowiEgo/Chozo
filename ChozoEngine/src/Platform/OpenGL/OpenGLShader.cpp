@@ -167,9 +167,9 @@ namespace Chozo {
         shaderSources[GL_FRAGMENT_SHADER] = fragmentSrc;
         // Compile(shaderSources);
 
-        std::filesystem::path vertexPath(spec.VertexFilepath);
+        fs::path vertexPath(spec.VertexFilepath);
         m_Filepaths[GL_VERTEX_SHADER] = vertexPath;
-        std::filesystem::path fragmentPath(spec.FragmentFilepath);
+        fs::path fragmentPath(spec.FragmentFilepath);
         m_Filepaths[GL_FRAGMENT_SHADER] = fragmentPath;
 
         {
@@ -202,9 +202,9 @@ namespace Chozo {
         shaderSources[GL_FRAGMENT_SHADER] = fragmentSrc;
         // Compile(shaderSources);
 
-        std::filesystem::path vertexPath(vertexFilePath);
+        fs::path vertexPath(vertexFilePath);
         m_Filepaths[GL_VERTEX_SHADER] = vertexPath;
-        std::filesystem::path fragmentPath(fragmentFilePath);
+        fs::path fragmentPath(fragmentFilePath);
         m_Filepaths[GL_FRAGMENT_SHADER] = fragmentPath;
 
         {
@@ -369,14 +369,14 @@ namespace Chozo {
         if (optimize)
             options.SetOptimizationLevel(shaderc_optimization_level_performance);
         
-        std::filesystem::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
+        fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
 
         auto& shaderData = m_VulkanSPIRV;
         shaderData.clear();
         for (auto&& [stage, source] : shaderSources)
         {
-            std::filesystem::path shaderFilepath = m_Filepaths[stage];
-            std::filesystem::path cachePath = cacheDirectory / (shaderFilepath.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
+            fs::path shaderFilepath = m_Filepaths[stage];
+            fs::path cachePath = cacheDirectory / (shaderFilepath.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
 
             // TODO: Change to FileReader
             std::ifstream in(cachePath, std::ios::in | std::ios::binary);
@@ -425,14 +425,14 @@ namespace Chozo {
         if (optimize)
             options.SetOptimizationLevel(shaderc_optimization_level_performance);
         
-        std::filesystem::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
+        fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
 
         shaderData.clear();
         m_OpenGLSourceCode.clear();
         for (auto&& [stage, spirv] : m_VulkanSPIRV)
         {
-            std::filesystem::path shaderFilepath = m_Filepaths[stage];
-            std::filesystem::path cachePath = cacheDirectory / (shaderFilepath.filename().string() + Utils::GLShaderStageCachedOpenGLFileExtension(stage));
+            fs::path shaderFilepath = m_Filepaths[stage];
+            fs::path cachePath = cacheDirectory / (shaderFilepath.filename().string() + Utils::GLShaderStageCachedOpenGLFileExtension(stage));
 
             std::ifstream in(cachePath, std::ios::in | std::ios::binary);
             spirv_cross::CompilerGLSL glslCompiler(spirv);

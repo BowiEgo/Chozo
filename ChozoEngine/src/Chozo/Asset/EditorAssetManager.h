@@ -25,17 +25,17 @@ namespace Chozo {
 
 		// Editor-only
 		const AssetMetadata& GetMetadata(AssetHandle handle);
-		const AssetMetadata& GetMetadata(const std::filesystem::path& filepath);
+		const AssetMetadata& GetMetadata(const fs::path& filepath);
 
-		AssetHandle ImportAsset(const std::filesystem::path& filepath);
+		AssetHandle ImportAsset(const fs::path& filepath);
 		void SaveAssets();
 
 		AssetType GetAssetTypeFromExtension(const std::string& extension);
-		AssetType GetAssetTypeFromPath(const std::filesystem::path& path);
+		AssetType GetAssetTypeFromPath(const fs::path& path);
 
-		std::filesystem::path GetFileSystemPath(const AssetMetadata& metadata);
+		fs::path GetFileSystemPath(const AssetMetadata& metadata);
 		std::string GetFileSystemPathString(const AssetMetadata& metadata);
-		std::filesystem::path GetRelativePath(const std::filesystem::path& filepath);
+		fs::path GetRelativePath(const fs::path& filepath);
 
 		template<typename T, typename... Args>
 		Ref<T> CreateNewAsset(const std::string& filename, const std::string& directoryPath, Args&&... args)
@@ -60,7 +60,7 @@ namespace Chozo {
 		}
     private:
 		void LoadAssetRegistry();
-		void ProcessDirectory(const std::filesystem::path& directoryPath);
+		void ProcessDirectory(const fs::path& directoryPath);
 		void ReloadAssets();
 		void WriteRegistryToFile();
 

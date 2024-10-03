@@ -12,7 +12,7 @@
 
 namespace Chozo {
 
-    extern const std::filesystem::path g_AssetsPath;
+    extern const fs::path g_AssetsPath;
     extern const std::regex imagePattern;
 
     SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene> context)

@@ -24,8 +24,28 @@ namespace Chozo::Utils {
 
         static void CreateDirectoryIfNeeded(std::string directory)
         {
-            if (!std::filesystem::exists(directory))
-                std::filesystem::create_directories(directory);
+            if (!fs::exists(directory))
+                fs::create_directories(directory);
+        }
+
+        static void DeleteFile(const std::string& filepath)
+        {
+            try
+            {
+                if (fs::exists(filepath))
+                {
+                    fs::remove(filepath);
+                    CZ_CORE_TRACE("File deleted successfully");
+                }
+                else
+                {
+                    CZ_CORE_WARN("File not found");
+                }
+            }
+            catch (const fs::filesystem_error& err)
+            {
+                CZ_CORE_ERROR("Error: {}", err.what());
+            }
         }
 
         static std::string BytesToHumanReadable(uint64_t bytes) {

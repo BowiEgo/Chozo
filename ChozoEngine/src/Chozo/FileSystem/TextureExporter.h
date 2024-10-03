@@ -9,7 +9,7 @@ namespace Chozo {
 	class TextureExporter
 	{
 	public:
-		static Buffer ToFileFromBuffer(std::filesystem::path path, Buffer sourceBuffer, uint32_t sourceWidth, uint32_t sourceHeight, uint32_t targetWidth, uint32_t targetHeight, bool isHDR = false);
+		static Buffer ToFileFromBuffer(fs::path path, Buffer sourceBuffer, uint32_t sourceWidth, uint32_t sourceHeight, uint32_t targetWidth, uint32_t targetHeight, bool isHDR = false);
     private:
         static void ResizeImageData(void* sourceData, void* targetData, uint32_t sourceWidth, uint32_t sourceHeight, uint32_t targetWidth, uint32_t targetHeight);
         static void ResizeHDRImageData(void* sourceData, void* targetData, uint32_t sourceWidth, uint32_t sourceHeight, uint32_t targetWidth, uint32_t targetHeight, int channels);

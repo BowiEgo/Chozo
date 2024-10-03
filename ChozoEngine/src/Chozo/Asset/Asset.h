@@ -34,7 +34,7 @@ namespace Chozo {
 		AssetHandle Handle = 0;
 		AssetType Type;
 
-		std::filesystem::path FilePath;
+		fs::path FilePath;
 		uint64_t FileSize;
 		bool IsDataLoaded = false;
 		bool IsMemoryAsset = false;

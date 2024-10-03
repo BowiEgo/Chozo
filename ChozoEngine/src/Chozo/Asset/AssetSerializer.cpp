@@ -7,15 +7,15 @@
 
 namespace Chozo {
 
-    extern const std::filesystem::path g_AssetsPath;
+    extern const fs::path g_AssetsPath;
 
 	//==============================================================================
 	/// TextureSerializer
     uint64_t TextureSerializer::Serialize(const AssetMetadata& metadata, Ref<Asset>& asset) const
     {
-        std::filesystem::path path(metadata.FilePath);
-        std::filesystem::path filepath = g_AssetsPath / path;
-        std::filesystem::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+        fs::path path(metadata.FilePath);
+        fs::path filepath = g_AssetsPath / path;
+        fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
 
         FileStreamWriter stream(dest);
 
@@ -38,9 +38,9 @@ namespace Chozo {
 
     Ref<Asset> TextureSerializer::Deserialize(const AssetMetadata& metadata) const
     {
-        std::filesystem::path path(metadata.FilePath);
-        std::filesystem::path filepath = g_AssetsPath / path;
-        std::filesystem::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+        fs::path path(metadata.FilePath);
+        fs::path filepath = g_AssetsPath / path;
+        fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
 
         FileStreamReader stream(dest);
 		Texture2DMetadata texture2DMetadata;

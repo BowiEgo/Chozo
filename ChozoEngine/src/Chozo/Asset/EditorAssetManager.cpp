@@ -12,7 +12,7 @@
 
 namespace Chozo {
 
-    extern const std::filesystem::path g_AssetsPath;
+    extern const fs::path g_AssetsPath;
 	static AssetMetadata s_NullMetadata;
 
     EditorAssetManager::EditorAssetManager()
@@ -76,7 +76,15 @@ namespace Chozo {
 
     void EditorAssetManager::RemoveAsset(AssetHandle handle)
     {
-        
+        AssetMetadata metadata = GetMetadata(handle);
+        if (metadata.IsValid())
+        {
+            m_AssetRegistry.Remove(handle);
+            SaveAssets();
+
+            fs::path filePath = Utils::File::GetAssetDirectory() / metadata.FilePath;
+            Utils::File::DeleteFile(filePath.string() + ".asset");
+        }
     }
 
     std::unordered_set<AssetHandle> EditorAssetManager::GetAllAssetsWithType(AssetType type)
@@ -102,7 +110,7 @@ namespace Chozo {
 		return s_NullMetadata;
     }
 
-    const AssetMetadata &EditorAssetManager::GetMetadata(const std::filesystem::path &filepath)
+    const AssetMetadata &EditorAssetManager::GetMetadata(const fs::path &filepath)
     {
 		const auto relativePath = GetRelativePath(filepath).replace_extension().string();
         
@@ -115,9 +123,9 @@ namespace Chozo {
 		return s_NullMetadata;
     }
 
-    AssetHandle EditorAssetManager::ImportAsset(const std::filesystem::path &filepath)
+    AssetHandle EditorAssetManager::ImportAsset(const fs::path &filepath)
     {
-		std::filesystem::path path = GetRelativePath(filepath);
+		fs::path path = GetRelativePath(filepath);
 
         if (auto& metadata = GetMetadata(path); metadata.IsValid())
             return metadata.Handle;
@@ -150,12 +158,12 @@ namespace Chozo {
 		return s_AssetExtensionMap.at(ext.c_str());
     }
 
-    AssetType EditorAssetManager::GetAssetTypeFromPath(const std::filesystem::path &path)
+    AssetType EditorAssetManager::GetAssetTypeFromPath(const fs::path &path)
     {
 		return GetAssetTypeFromExtension(path.extension().string());
     }
 
-    std::filesystem::path EditorAssetManager::GetFileSystemPath(const AssetMetadata &metadata)
+    fs::path EditorAssetManager::GetFileSystemPath(const AssetMetadata &metadata)
     {
 		return Project::GetAssetDirectory() / metadata.FilePath;
     }
@@ -165,9 +173,9 @@ namespace Chozo {
 		return GetFileSystemPath(metadata).string();
     }
 
-    std::filesystem::path EditorAssetManager::GetRelativePath(const std::filesystem::path &filepath)
+    fs::path EditorAssetManager::GetRelativePath(const fs::path &filepath)
     {
-        return std::filesystem::relative(filepath, g_AssetsPath);
+        return fs::relative(filepath, g_AssetsPath);
     }
 
     void EditorAssetManager::LoadAssetRegistry()
@@ -178,8 +186,8 @@ namespace Chozo {
 
         for (auto& [handle, metadata] : m_AssetRegistry)
         {
-            std::filesystem::path path(metadata.FilePath);
-            std::filesystem::path filepath = g_AssetsPath / path;
+            fs::path path(metadata.FilePath);
+            fs::path filepath = g_AssetsPath / path;
             
             // TODO: Remove
 		    Ref<Asset> asset = AssetImporter::Deserialize(metadata);
@@ -190,9 +198,9 @@ namespace Chozo {
         return;
     }
 
-    void EditorAssetManager::ProcessDirectory(const std::filesystem::path &directoryPath)
+    void EditorAssetManager::ProcessDirectory(const fs::path &directoryPath)
     {
-        for (auto entry : std::filesystem::directory_iterator(directoryPath))
+        for (auto entry : fs::directory_iterator(directoryPath))
 		{
 			if (entry.is_directory())
 				ProcessDirectory(entry.path());

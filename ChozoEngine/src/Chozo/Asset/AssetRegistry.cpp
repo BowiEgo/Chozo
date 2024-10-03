@@ -17,4 +17,13 @@ namespace Chozo {
 
 		return m_AssetRegistry.find(handle) != m_AssetRegistry.end();
     }
+
+    size_t AssetRegistry::Remove(const AssetHandle handle)
+    {
+		std::scoped_lock<std::mutex> lock(s_AssetRegistryMutex);
+
+		m_AssetRegistry.erase(handle);
+
+        return Count();
+    }
 }

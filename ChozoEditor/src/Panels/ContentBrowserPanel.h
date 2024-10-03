@@ -42,7 +42,8 @@ namespace Chozo {
         void SortAssets(Ref<DirectoryInfo> directory);
         void SortSubDirs(Ref<DirectoryInfo> directory);
 
-		AssetHandle ProcessDirectory(const std::filesystem::path& directoryPath, const Ref<DirectoryInfo>& parent);
+		AssetHandle ProcessDirectory(const fs::path& directoryPath, const Ref<DirectoryInfo>& parent);
+        void DeleteItem(Ref<ContentItem> item);
     public:
         static float s_Padding;
         static float s_ThumbnailSize;
@@ -54,7 +55,7 @@ namespace Chozo {
 		Ref<DirectoryInfo> m_BaseDirectory;
         Ref<DirectoryInfo> m_PreviousDirectory, m_CurrentDirectory, m_NextDirectory;
 
-        std::vector<ContentItem> m_CurrentItems;
+        std::vector<Ref<ContentItem>> m_CurrentItems;
 
         bool m_BackIcon_Disabled, m_ForwardIcon_Disabled, m_RefreshIcon_Disabled;
 

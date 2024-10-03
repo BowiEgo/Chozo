@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include "Ref.h"
 
@@ -74,6 +75,9 @@
 #define CZ_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 
 namespace Chozo {
+	namespace fs = std::filesystem;
+	
+	using byte = uint8_t;
 
     template<typename T>
     using Scope = std::unique_ptr<T>;
@@ -84,5 +88,4 @@ namespace Chozo {
 		return std::make_unique<T>(std::forward<Args>(args)...);
 	}
 
-	using byte = uint8_t;
 }

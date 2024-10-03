@@ -10,7 +10,7 @@
 
 namespace Chozo {
 
-    extern const std::filesystem::path g_AssetsPath;
+    extern const fs::path g_AssetsPath;
 
 	enum class ImGuiStyleType
 	{
@@ -531,7 +531,7 @@ namespace Chozo::UI {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
 				const wchar_t* path = (const wchar_t*)payload->Data;
-				std::filesystem::path fullPath = g_AssetsPath / std::filesystem::path((char*)path);
+				fs::path fullPath = g_AssetsPath / fs::path((char*)path);
 
             	CZ_INFO("FileButton: {0}", fullPath.string().c_str());
 				*filePath = fullPath.string();

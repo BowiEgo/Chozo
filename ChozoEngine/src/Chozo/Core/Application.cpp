@@ -15,7 +15,7 @@
 namespace Chozo {
 
     // TODO: Move to Project
-    extern const std::filesystem::path g_AssetsPath = "../assets";
+    extern const fs::path g_AssetsPath = "../assets";
 
     // TODO: Remove
     extern const std::regex imagePattern(R"(\.(png|jpg|jpeg|hdr)$)", std::regex::icase);

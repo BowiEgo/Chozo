@@ -10,7 +10,7 @@ namespace Chozo {
     TextureViewerPanel* TextureViewerPanel::s_Instance = nullptr;
     bool TextureViewerPanel::s_Show = false;
 
-    extern const std::filesystem::path g_AssetsPath;
+    extern const fs::path g_AssetsPath;
     extern const std::regex imagePattern;
 
     TextureViewerPanel::TextureViewerPanel()

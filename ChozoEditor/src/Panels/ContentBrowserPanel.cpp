@@ -38,6 +38,12 @@ namespace Chozo {
 
     void ContentBrowserPanel::OnImGuiRender()
     {
+        for (auto item : m_CurrentItems)
+        {
+            if (item && item->ShouldDelete())
+                DeleteItem(item);
+        }
+
         ImGui::Begin("Content Browser");
         
         ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable
@@ -84,8 +90,11 @@ namespace Chozo {
                 {
                     for (auto item : m_CurrentItems)
                     {
-                        item.OnImGuiRender();
-                        ImGui::NextColumn();
+                        if (!item->ShouldDelete())
+                        {
+                            item->OnImGuiRender();
+                            ImGui::NextColumn();
+                        }
                     }
                 }
 
@@ -125,10 +134,10 @@ namespace Chozo {
         m_CurrentItems.clear();
 
         for (auto& [subdirHandle, subDir] : directory->SubDirectories)
-            m_CurrentItems.push_back(ContentItem(subDir));
+            m_CurrentItems.push_back(Ref<ContentItem>::Create(subDir));
         
         for (auto& [AssetHandle, metadata] : directory->Assets)
-            m_CurrentItems.push_back(ContentItem(metadata));
+            m_CurrentItems.push_back(Ref<ContentItem>::Create(metadata));
     }
 
     void ContentBrowserPanel::OnBrowserBack()
@@ -355,7 +364,7 @@ namespace Chozo {
 
     void ContentBrowserPanel::ImportAssets()
     {
-        std::filesystem::path path = FileDialogs::OpenFile("Import (*.png)\0*.jpeg\0");
+        fs::path path = FileDialogs::OpenFile("Import (*.png)\0*.jpeg\0");
 
         Texture2DSpecification spec;
         spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
@@ -399,7 +408,7 @@ namespace Chozo {
         });
     }
 
-    AssetHandle ContentBrowserPanel::ProcessDirectory(const std::filesystem::path &directoryPath, const Ref<DirectoryInfo> &parent)
+    AssetHandle ContentBrowserPanel::ProcessDirectory(const fs::path &directoryPath, const Ref<DirectoryInfo> &parent)
     {
 		Ref<DirectoryInfo> directoryInfo = Ref<DirectoryInfo>::Create();
         directoryInfo->Handle = AssetHandle();
@@ -408,9 +417,9 @@ namespace Chozo {
 		if (directoryPath == Utils::File::GetAssetDirectory())
             directoryInfo->FilePath = "";
         else
-			directoryInfo->FilePath = std::filesystem::relative(directoryPath, Utils::File::GetAssetDirectory());
+			directoryInfo->FilePath = fs::relative(directoryPath, Utils::File::GetAssetDirectory());
 
-		for (auto entry : std::filesystem::directory_iterator(directoryPath))
+		for (auto entry : fs::directory_iterator(directoryPath))
         {
             if (entry.is_directory())
 			{
@@ -433,5 +442,20 @@ namespace Chozo {
 		m_Directories[directoryInfo->Handle] = directoryInfo;
 
         return directoryInfo->Handle;
+    }
+
+    void ContentBrowserPanel::DeleteItem(Ref<ContentItem> item)
+    {
+        auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [item](const Ref<ContentItem> i) {
+            return i == item;
+        });
+
+        if (it != m_CurrentItems.end())
+        {
+            m_CurrentItems.erase(it);
+            m_CurrentDirectory->Assets.erase(item->GetHandle());
+            Application::GetAssetManager()->RemoveAsset(item->GetHandle());
+            m_ThumbnailManager->RemoveThumbnail(item->GetHandle());
+        }
     }
 }

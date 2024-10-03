@@ -14,7 +14,7 @@ namespace Chozo
 	class FileStreamWriter : public StreamWriter
 	{
 	public:
-		FileStreamWriter(const std::filesystem::path& path);
+		FileStreamWriter(const fs::path& path);
 		FileStreamWriter(const FileStreamWriter&) = delete;
 		virtual ~FileStreamWriter();
 
@@ -24,7 +24,7 @@ namespace Chozo
 		bool WriteData(const char* data, size_t size) final;
 
 	private:
-		std::filesystem::path m_Path;
+		fs::path m_Path;
 		std::ofstream m_Stream;
 	};
 
@@ -33,7 +33,7 @@ namespace Chozo
 	class FileStreamReader : public StreamReader
 	{
 	public:
-		FileStreamReader(const std::filesystem::path& path);
+		FileStreamReader(const fs::path& path);
 		FileStreamReader(const FileStreamReader&) = delete;
 		~FileStreamReader();
 
@@ -43,7 +43,7 @@ namespace Chozo
 		bool ReadData(char* destination, size_t size) override;
 
 	private:
-		std::filesystem::path m_Path;
+		fs::path m_Path;
 		std::ifstream m_Stream;
 	};
 

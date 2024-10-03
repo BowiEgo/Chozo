@@ -30,10 +30,10 @@ namespace Chozo {
         }
 
         std::string filename = std::to_string(metadata.Handle);
-        std::filesystem::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
+        fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
         Utils::File::CreateDirectoryIfNeeded(cacheDir.string());
 
-        std::filesystem::path filepath = cacheDir / filename;
+        fs::path filepath = cacheDir / filename;
         Buffer buffer = TextureExporter::ToFileFromBuffer(
                         filepath,
                         originalBuffer,

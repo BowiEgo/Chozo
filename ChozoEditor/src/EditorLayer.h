@@ -38,7 +38,7 @@ namespace Chozo {
         
         void NewScene();
         void OpenScene();
-        void OpenScene(const std::filesystem::path& path);
+        void OpenScene(const fs::path& path);
         void SaveSceneAs();
 
         void OnScenePlay();

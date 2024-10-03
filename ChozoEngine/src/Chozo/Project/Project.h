@@ -30,10 +30,10 @@ namespace Chozo {
         inline static Ref<AssetManager> GetAssetManager() { return s_AssetManager; }
 		// inline static Ref<EditorAssetManager> GetEditorAssetManager() { return s_AssetManager.As<EditorAssetManager>(); }
 
-        static std::filesystem::path GetAssetDirectory()
+        static fs::path GetAssetDirectory()
 		{
 			CZ_CORE_ASSERT(s_ActiveProject, "");
-			return std::filesystem::path(s_ActiveProject->GetConfig().ProjectDirectory) / s_ActiveProject->GetConfig().AssetDirectory;
+			return fs::path(s_ActiveProject->GetConfig().ProjectDirectory) / s_ActiveProject->GetConfig().AssetDirectory;
 		}
     private:
 		ProjectConfig m_Config;

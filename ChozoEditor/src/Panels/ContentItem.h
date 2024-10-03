@@ -12,7 +12,7 @@ namespace Chozo {
 		AssetHandle Handle;
 		Ref<DirectoryInfo> Parent;
 
-		std::filesystem::path FilePath = "";
+		fs::path FilePath = "";
 
 		std::map<AssetHandle, AssetMetadata> Assets;
 		std::vector<AssetHandle> AssetsSorted;
@@ -26,16 +26,24 @@ namespace Chozo {
         Asset,
     };
     
-    class ContentItem
+    class ContentItem : public RefCounted
     {
     public:
         ContentItem(Ref<DirectoryInfo> directory);
         ContentItem(AssetMetadata metadata);
         ~ContentItem() = default;
 
+        inline bool ShouldDelete() { return m_Delete; }
+        inline AssetHandle GetHandle() { return m_Handle; }
+
         void OnImGuiRender();
-        void RenderTooltip();
     private:
+        void RenderThumbnail(const Ref<Texture2D>& icon, float thumbnailSize);
+        void RenderTooltip();
+        void RenderContexMenu();
+        void RenderDragDrop(const AssetHandle& handle);
+        void RenderCenteredText(const std::string& text);
+
         void OnDoubleClick();
     private:
         ContentItemType m_Type;
@@ -43,6 +51,7 @@ namespace Chozo {
         std::string m_Filename;
         uint64_t m_Size;
         Ref<Texture2D> m_Thumbnail;
+        bool m_Delete = false;
     };
 
 } // namespace Chozo

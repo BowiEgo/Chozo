@@ -13,24 +13,32 @@ namespace Chozo {
     {
         YAML::Emitter out;
         out << YAML::BeginMap;
-        out << YAML::Key << "Assets" << YAML::Value << YAML::BeginSeq;
-
-        for (auto& [handle, metadata] : m_AssetRegistry)
+        out << YAML::Key << "Assets";
+        if (!m_AssetRegistry.Empty())
         {
-            out << YAML::BeginMap;
-			out << YAML::Key << "Handle" << YAML::Value << handle;
-			out << YAML::Key << "FilePath" << YAML::Value << metadata.FilePath;
-			out << YAML::Key << "FileSize" << YAML::Value << metadata.FileSize;
-			out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(metadata.Type);
-			out << YAML::EndMap;
+            out << YAML::BeginSeq;
+            for (const auto& [handle, metadata] : m_AssetRegistry)
+            {
+                out << YAML::BeginMap;
+                out << YAML::Key << "Handle" << YAML::Value << handle;
+                out << YAML::Key << "FilePath" << YAML::Value << metadata.FilePath;
+                out << YAML::Key << "FileSize" << YAML::Value << metadata.FileSize;
+                out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(metadata.Type);
+                out << YAML::EndMap;
+            }
+            
+            out << YAML::EndSeq;
+        }
+        else
+        {
+            out << YAML::Null;
         }
 
-        out << YAML::EndSeq;
         out << YAML::EndMap;
 
-        std::filesystem::path dirPath(filepath);
-        if (!(std::filesystem::exists(dirPath) && std::filesystem::is_directory(dirPath)))
-            std::filesystem::create_directories(dirPath.parent_path().string());
+        fs::path dirPath(filepath);
+        if (!(fs::exists(dirPath) && fs::is_directory(dirPath)))
+            fs::create_directories(dirPath.parent_path().string());
 
         std::ofstream fout(filepath);
         fout << out.c_str();

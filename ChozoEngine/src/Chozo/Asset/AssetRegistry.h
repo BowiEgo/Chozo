@@ -13,9 +13,10 @@ namespace Chozo {
 		// AssetMetadata& Get(const AssetHandle handle);
 		// const AssetMetadata& Get(const AssetHandle handle) const;
 
-		// size_t Count() const { return m_AssetRegistry.size(); }
+		bool Empty() const {return m_AssetRegistry.empty(); }
+		size_t Count() const { return m_AssetRegistry.size(); }
 		bool Contains(const AssetHandle handle) const;
-		// size_t Remove(const AssetHandle handle);
+		size_t Remove(const AssetHandle handle);
 		// void Clear();
 
 		auto begin() { return m_AssetRegistry.begin(); }
