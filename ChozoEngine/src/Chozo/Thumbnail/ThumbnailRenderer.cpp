@@ -1,7 +1,6 @@
 #include "ThumbnailRenderer.h"
 
 #include "Chozo/FileSystem/TextureExporter.h"
-#include "Chozo/Utilities/FileUtils.h"
 
 namespace Chozo {
 

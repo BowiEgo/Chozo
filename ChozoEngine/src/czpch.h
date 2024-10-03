@@ -17,6 +17,9 @@
 
 #include "Chozo/Debug/Log.h"
 
+// TODO: Remove
+#include "Chozo/Utilities/FileUtils.h"
+
 #ifndef WINDOW_WIDTH
 #define WINDOW_WIDTH 1920
 #endif

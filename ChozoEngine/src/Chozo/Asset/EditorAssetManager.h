@@ -48,13 +48,13 @@ namespace Chozo {
 				metadata.FilePath = directoryPath + "/" + filename;
 			metadata.IsDataLoaded = true;
 			metadata.Type = T::GetStaticType();
-			
-			m_AssetRegistry[metadata.Handle] = metadata;
 
 			Ref<Asset> asset = T::Create(std::forward<Args>(args)...);
 			asset->Handle = metadata.Handle;
 			m_MemoryAssets[asset->Handle] = asset;
 			metadata.FileSize = AssetImporter::Serialize(metadata, asset);
+
+			m_AssetRegistry[metadata.Handle] = metadata;
 
 			return asset;
 		}

@@ -12,75 +12,26 @@
 
 namespace Chozo {
 
-    extern const std::filesystem::path g_AssetsPath;
-
-    extern const std::regex imagePattern;
-    extern const std::regex hdrPattern;
-    extern const std::regex scenePattern;
-
-    static void DisplayThumbnail(const Ref<Texture2D>& icon, float thumbnailSize)
-    {
-        float imageAspectRatio = static_cast<float>(icon->GetHeight()) / static_cast<float>(icon->GetWidth());
-        ImVec2 uv0(0.0f, 1.0f);
-        ImVec2 uv1(1.0f, 0.0f);
-        ImVec2 size(thumbnailSize, thumbnailSize);
-
-        if (imageAspectRatio <= 1.0f) {
-            float offsetY = (1.0f - 1.0f / imageAspectRatio) / 2.0f;
-            uv0.y = 1.0f - offsetY;
-            uv1.y = offsetY;
-        } else {
-            float offsetX = (1.0f - imageAspectRatio) / 2.0f;
-            uv0.x = offsetX;
-            uv1.x = 1.0f - offsetX;
-        }
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::InvisibleButton("##thumbnailButton", size);
-        UI::DrawButtonImage(icon, IM_COL32(255, 255, 255, 225), UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f), uv0, uv1);
-
-        ImGui::PopStyleColor();
-    }
-
-    static void DisplayCenteredText(const std::string& text)
-    {
-        float columnWidth = ImGui::GetContentRegionAvail().x;
-        ImVec2 textSize = ImGui::CalcTextSize(text.c_str(), nullptr, false, columnWidth);
-        float textX = (columnWidth - textSize.x) / 2.0f;
-
-        if (textSize.x > columnWidth) {
-            textX = 0;
-        }
-
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + textX);
-        ImGui::TextWrapped("%s", text.c_str());
-    }
-
-    static void DisplayDragDrop(const AssetHandle& handle)
-    {
-        if (ImGui::BeginDragDropSource())
-        {
-            std::wstring handle_wstr = std::to_wstring(handle);
-            const wchar_t* handle_wchar = handle_wstr.c_str();
-            ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", handle_wchar, (wcslen(handle_wchar) + 1) * sizeof(wchar_t));
-            ImGui::EndDragDropSource();
-        }
-    }
+	float ContentBrowserPanel::s_Padding = 16.0f;
+	float ContentBrowserPanel::s_ThumbnailSize = 100.0f;
+	ContentBrowserPanel* ContentBrowserPanel::s_Instance;
+    std::unordered_map<std::string, Ref<Texture2D>> ContentBrowserPanel::s_Icons;
 
     ContentBrowserPanel::ContentBrowserPanel()
     {
-        m_ThumbnailManager = Ref<ThumbnailManager>::Create();
+		s_Instance = this;
 
-        m_HierachyDirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-open-1.png"));
-        m_DirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder.png"));
-        m_EmptyDirectoryIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-empty.png"));
-        m_TextFileIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/file.png"));
-
+        s_Icons["HierachyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-open-1.png"));
+        s_Icons["Directory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder.png"));
+        s_Icons["EmptyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-empty.png"));
+        s_Icons["TextFile"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/file.png"));
         // Toolbar
-        m_BackIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/left-arrow.png"));
-        m_RefreshIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/refresh.png"));
-        m_SearchIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/search.png"));
-        m_ClearIcon = Texture2D::Create(std::string("../resources/icons/ContentBrowser/clear.png"));
+        s_Icons["Back"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/left-arrow.png"));
+        s_Icons["Refresh"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/refresh.png"));
+        s_Icons["Search"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/search.png"));
+        s_Icons["Clear"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/clear.png"));
+
+        m_ThumbnailManager = Ref<ThumbnailManager>::Create();
 
         OnBrowserRefresh();
     }
@@ -121,9 +72,7 @@ namespace Chozo {
                 UI::ScopedStyle frameBorderSize(ImGuiStyleVar_FrameBorderSize, 0.0f);
                 RenderTopBar(topBarHeight);
 
-                static float padding = 16.0f;
-                static float thumbnailSize = 100;
-                float cellSize = thumbnailSize + padding;
+                float cellSize = s_ThumbnailSize + s_Padding;
 
                 float panelWidth = ImGui::GetContentRegionAvail().x;
                 int columnCount = (int)(panelWidth / cellSize);
@@ -133,45 +82,9 @@ namespace Chozo {
 
                 if (m_CurrentDirectory)
                 {
-                    for (auto& p : m_CurrentDirectory->SubDirSorted)
+                    for (auto item : m_CurrentItems)
                     {
-                        Ref<DirectoryInfo> dir = m_CurrentDirectory->SubDirectories[p];
-                        auto relativePath = dir->FilePath;
-                        std::string filenameString = relativePath.filename().string();
-                        
-                        UI::ScopedID id(filenameString.c_str());
-
-                        Ref<Texture2D> icon;
-                        icon = dir->SubDirectories.empty() ? m_EmptyDirectoryIcon : m_DirectoryIcon;
-   
-                        DisplayThumbnail(icon, thumbnailSize);
-                        DisplayDragDrop(dir->Handle);
-                        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-                            m_CurrentDirectory = dir;
-                        DisplayCenteredText(filenameString);
-                        
-                        ImGui::NextColumn();
-                    }
-
-                    for (auto& p : m_CurrentDirectory->AssetsSorted)
-                    {
-                        Ref<Asset> asset = Application::GetAssetManager()->GetAsset(p);
-                        AssetMetadata metadata = Application::GetAssetManager()->GetMetadata(asset->Handle);
-                        AssetType assetType = asset->GetAssetType();
-                        std::string filenameString = metadata.FilePath.filename().string();
-
-                        UI::ScopedID id(filenameString.c_str());
-
-                        Ref<Texture2D> icon;
-
-                        if (assetType == AssetType::Texture)
-                            icon = m_ThumbnailManager->GetThumbnail(metadata.Handle);
-                        else
-                            icon = m_TextFileIcon;
-
-                        DisplayThumbnail(icon, thumbnailSize);
-                        DisplayDragDrop(metadata.Handle);
-                        DisplayCenteredText(filenameString);
+                        item.OnImGuiRender();
                         ImGui::NextColumn();
                     }
                 }
@@ -179,8 +92,8 @@ namespace Chozo {
                 ImGui::Columns(1);
 
                 // Status bar
-                // ImGui::SliderFloat("Thumbnail Size", &thumbnailSize, 64.0f, 256.0f);
-                // ImGui::SliderFloat("Padding", &padding, 0.0f, 32.0f);
+                // ImGui::SliderFloat("Thumbnail Size", &s_ThumbnailSize, 64.0f, 256.0f);
+                // ImGui::SliderFloat("Padding", &s_Padding, 0.0f, 32.0f);
             };
             ImGui::EndChild();
 
@@ -188,6 +101,58 @@ namespace Chozo {
         }
 
         ImGui::End();
+    }
+
+    void ContentBrowserPanel::ChangeDirectory(Ref<DirectoryInfo> directory)
+    {
+        m_NextDirectory = nullptr;
+        m_PreviousDirectory = m_CurrentDirectory;
+        m_CurrentDirectory = directory;
+
+        OnDirectoryChange(directory);
+    }
+
+    void ContentBrowserPanel::ChangeDirectory(AssetHandle directoryHandle)
+    {
+        ChangeDirectory(m_Directories[directoryHandle]);
+    }
+
+    void ContentBrowserPanel::OnDirectoryChange(Ref<DirectoryInfo> directory)
+    {
+        if (!m_CurrentDirectory)
+            return;
+
+        m_CurrentItems.clear();
+
+        for (auto& [subdirHandle, subDir] : directory->SubDirectories)
+            m_CurrentItems.push_back(ContentItem(subDir));
+        
+        for (auto& [AssetHandle, metadata] : directory->Assets)
+            m_CurrentItems.push_back(ContentItem(metadata));
+    }
+
+    void ContentBrowserPanel::OnBrowserBack()
+    {
+        if (!m_BackIcon_Disabled)
+        {
+		    m_NextDirectory = m_CurrentDirectory;
+    		m_PreviousDirectory = m_CurrentDirectory->Parent;
+            m_CurrentDirectory = m_PreviousDirectory;
+            OnDirectoryChange(m_CurrentDirectory);
+        }
+    }
+
+    void ContentBrowserPanel::OnBrowserForward()
+    {
+        m_CurrentDirectory = m_NextDirectory;
+        OnDirectoryChange(m_CurrentDirectory);
+    }
+
+    void ContentBrowserPanel::OnBrowserRefresh()
+    {
+		AssetHandle baseDirectoryHandle = ProcessDirectory(Utils::File::GetAssetDirectory(), nullptr);
+		m_BaseDirectory = m_Directories[baseDirectoryHandle];
+        OnDirectoryChange(m_CurrentDirectory);
     }
 
     void ContentBrowserPanel::RenderAssetMenu(float height)
@@ -251,12 +216,11 @@ namespace Chozo {
         if (directory->SubDirectories.empty())
             flags |= ImGuiTreeNodeFlags_Leaf;
 
-        bool opened = ImGui::TreeNodeWithIcon(m_HierachyDirectoryIcon, window->GetID(id.c_str()), flags, name.c_str(), NULL);
+        bool opened = ImGui::TreeNodeWithIcon(s_Icons["HierachyDirectory"], window->GetID(id.c_str()), flags, name.c_str(), NULL);
 
         if (ImGui::IsItemClicked())
-        {
-            m_CurrentDirectory = directory;
-        }
+            ChangeDirectory(directory);
+
         // Draw children
         if (opened)
         {
@@ -300,13 +264,13 @@ namespace Chozo {
                 m_BackIcon_Disabled = (m_CurrentDirectory == m_BaseDirectory);
                 m_ForwardIcon_Disabled = (m_NextDirectory == nullptr);
 
-                if (contentBrowserButton("##back", m_BackIcon, m_BackIcon_Disabled))
+                if (contentBrowserButton("##back", s_Icons["Back"], m_BackIcon_Disabled))
                     OnBrowserBack();
 
-                if (contentBrowserButton("##forward", m_BackIcon, m_ForwardIcon_Disabled, true))
+                if (contentBrowserButton("##forward", s_Icons["Back"], m_ForwardIcon_Disabled, true))
                     OnBrowserForward();
 
-                if (contentBrowserButton("##refresh", m_RefreshIcon))
+                if (contentBrowserButton("##refresh", s_Icons["Refresh"]))
                     OnBrowserRefresh();
             }
         }
@@ -334,7 +298,7 @@ namespace Chozo {
             {
                 const float iconYOffset = framePaddingY;
 				UI::ShiftCursorY(iconYOffset);
-                ImGui::Image((ImTextureID)(uintptr_t)m_SearchIcon->GetRendererID(), iconSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
+                ImGui::Image((ImTextureID)(uintptr_t)s_Icons["Search"]->GetRendererID(), iconSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
 				UI::ShiftCursorY(-iconYOffset);
                 ImGui::SameLine();
 
@@ -358,7 +322,7 @@ namespace Chozo {
                     {
                     }
 
-                    UI::DrawButtonImage(m_ClearIcon, IM_COL32(160, 160, 160, 200),
+                    UI::DrawButtonImage(s_Icons["Clear"], IM_COL32(160, 160, 160, 200),
                         IM_COL32(170, 170, 170, 255),
                         IM_COL32(160, 160, 160, 150),
                         UI::RectExpanded(UI::GetItemRect(), -2.0f, -2.0f));
@@ -400,6 +364,8 @@ namespace Chozo {
         Ref<Asset> textureAsset = CreateAsset<Texture2D>(path.filename().stem().string(), m_CurrentDirectory, path.string(), spec);
 
         SaveAllAssets();
+
+        OnBrowserRefresh();
     }
 
     void ContentBrowserPanel::SaveAllAssets()
@@ -433,37 +399,16 @@ namespace Chozo {
         });
     }
 
-    void ContentBrowserPanel::OnBrowserBack()
-    {
-        if (!m_BackIcon_Disabled)
-        {
-		    m_NextDirectory = m_CurrentDirectory;
-    		m_PreviousDirectory = m_CurrentDirectory->Parent;
-            m_CurrentDirectory = m_PreviousDirectory;
-        }
-    }
-
-    void ContentBrowserPanel::OnBrowserForward()
-    {
-        m_CurrentDirectory = m_NextDirectory;
-    }
-
-    void ContentBrowserPanel::OnBrowserRefresh()
-    {
-		AssetHandle baseDirectoryHandle = ProcessDirectory(g_AssetsPath, nullptr);
-		m_BaseDirectory = m_Directories[baseDirectoryHandle];
-    }
-
     AssetHandle ContentBrowserPanel::ProcessDirectory(const std::filesystem::path &directoryPath, const Ref<DirectoryInfo> &parent)
     {
 		Ref<DirectoryInfo> directoryInfo = Ref<DirectoryInfo>::Create();
         directoryInfo->Handle = AssetHandle();
         directoryInfo->Parent = parent;
 
-		if (directoryPath == g_AssetsPath)
+		if (directoryPath == Utils::File::GetAssetDirectory())
             directoryInfo->FilePath = "";
         else
-			directoryInfo->FilePath = std::filesystem::relative(directoryPath, g_AssetsPath);
+			directoryInfo->FilePath = std::filesystem::relative(directoryPath, Utils::File::GetAssetDirectory());
 
 		for (auto entry : std::filesystem::directory_iterator(directoryPath))
         {
@@ -477,7 +422,9 @@ namespace Chozo {
 
 			auto metadata = Application::GetAssetManager()->GetMetadata(entry.path());
             if (metadata.IsValid())
+            {
                 AddAssetsToDir(directoryInfo, metadata);
+            }
         }
 
         SortSubDirs(directoryInfo);

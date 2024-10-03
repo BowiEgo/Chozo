@@ -4,6 +4,12 @@ namespace Chozo::Utils {
 
     namespace File {
 
+        static const char* GetAssetDirectory()
+        {
+            // TODO: make sure the assets directory is valid
+            return "../assets";
+        }
+
         static const char* GetShaderCacheDirectory()
         {
             // TODO: make sure the assets directory is valid
@@ -20,6 +26,26 @@ namespace Chozo::Utils {
         {
             if (!std::filesystem::exists(directory))
                 std::filesystem::create_directories(directory);
+        }
+
+        static std::string BytesToHumanReadable(uint64_t bytes) {
+            const uint64_t KB = 1024;
+            const uint64_t MB = KB * 1024;
+            const uint64_t GB = MB * 1024;
+
+            std::ostringstream oss;
+
+            if (bytes >= GB) {
+                oss << std::fixed << std::setprecision(2) << static_cast<double>(bytes) / GB << " GB";
+            } else if (bytes >= MB) {
+                oss << std::fixed << std::setprecision(2) << static_cast<double>(bytes) / MB << " MB";
+            } else if (bytes >= KB) {
+                oss << std::fixed << std::setprecision(2) << static_cast<double>(bytes) / KB << " KB";
+            } else {
+                oss << bytes << " Bytes";
+            }
+
+            return oss.str();
         }
     }
 }

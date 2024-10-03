@@ -1,8 +1,6 @@
 #include "ThumbnailManager.h"
 #include "ThumbnailExporter.h"
 
-#include "Chozo/Utilities/FileUtils.h"
-
 namespace Chozo {
 
     ThumbnailManager::ThumbnailManager()

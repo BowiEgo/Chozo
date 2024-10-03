@@ -29,7 +29,7 @@ namespace Chozo {
         texture2DMetadata.Format = (uint16_t)texture->GetSpecification().Format;
 		stream.WriteRaw(texture2DMetadata);
 		stream.WriteBuffer(buffer);
-        uint64_t size = buffer.GetSize();
+        uint64_t size = buffer.GetSize() + sizeof(texture2DMetadata);
 
         buffer.Release();
 

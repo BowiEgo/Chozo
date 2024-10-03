@@ -1,5 +1,7 @@
 #pragma once
 
+#include "czpch.h"
+
 #include <cstdint>
 
 namespace Chozo {

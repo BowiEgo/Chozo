@@ -12,7 +12,6 @@
 #include "Chozo/Core/Timer.h"
 #include "Chozo/Renderer/RenderCommand.h"
 #include "Chozo/FileSystem/FileStream.h"
-#include "Chozo/Utilities/FileUtils.h"
 
 namespace Chozo {
 
