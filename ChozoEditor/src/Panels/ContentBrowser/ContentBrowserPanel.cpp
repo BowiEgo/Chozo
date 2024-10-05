@@ -32,17 +32,20 @@ namespace Chozo {
         s_Icons["Clear"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/clear.png"));
 
         m_ThumbnailManager = Ref<ThumbnailManager>::Create();
+        m_ContentSelection = ContentSelection();
 
         OnBrowserRefresh();
     }
 
     void ContentBrowserPanel::OnImGuiRender()
     {
+        std::vector<Ref<ContentItem>> itemsDeleted;
         for (auto item : m_CurrentItems)
         {
             if (item && item->ShouldDelete())
-                DeleteItem(item);
+                itemsDeleted.push_back(item);
         }
+        DeleteItems(itemsDeleted);
 
         ImGui::Begin("Content Browser");
         
@@ -88,11 +91,16 @@ namespace Chozo {
 
                 if (m_CurrentDirectory)
                 {
+                    m_HoveredItem = nullptr;
                     for (auto item : m_CurrentItems)
                     {
                         if (!item->ShouldDelete())
                         {
                             item->OnImGuiRender();
+
+                            if (item->IsHovered())
+                                m_HoveredItem = item;
+                                
                             ImGui::NextColumn();
                         }
                     }
@@ -100,12 +108,43 @@ namespace Chozo {
 
                 ImGui::Columns(1);
 
+                m_ContentSelection.OnImGuiRender();
+                RenderItemContextMenu();
+
+                if (m_HoveredItem)
+                {
+                    if (ImGui::IsMouseClicked(0))
+                    {
+                        ImGui::CloseCurrentPopup();
+                        m_ContentSelection.Select(m_HoveredItem);
+                    }
+
+                    if (ImGui::IsMouseClicked(1))
+                    {
+                        if (m_ContentSelection.Size() <= 1)
+                        {
+                            m_ContentSelection.Select(m_HoveredItem);
+                        }
+                        ImGui::OpenPopup("ItemContextMenu");
+                    }
+                }
+                else
+                {
+                    if (ImGui::IsMouseClicked(0))
+                    {
+                        if (!ImGui::IsPopupOpen("ItemContextMenu"))
+                            m_ContentSelection.Clear();
+
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+
                 // Status bar
                 // ImGui::SliderFloat("Thumbnail Size", &s_ThumbnailSize, 64.0f, 256.0f);
                 // ImGui::SliderFloat("Padding", &s_Padding, 0.0f, 32.0f);
             };
-            ImGui::EndChild();
 
+            ImGui::EndChild();
             ImGui::EndTable();
         }
 
@@ -162,6 +201,27 @@ namespace Chozo {
 		AssetHandle baseDirectoryHandle = ProcessDirectory(Utils::File::GetAssetDirectory(), nullptr);
 		m_BaseDirectory = m_Directories[baseDirectoryHandle];
         OnDirectoryChange(m_CurrentDirectory);
+    }
+
+    void ContentBrowserPanel::RenderItemContextMenu()
+    {
+        if (ImGui::BeginPopup("ItemContextMenu"))
+        {
+            if (ImGui::MenuItem("Delete"))
+            {
+                auto items = m_ContentSelection.GetSelection();
+                for (auto [handle, item] : items)
+                {
+                    item->Delete();
+                }
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::MenuItem("Properties"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
     }
 
     void ContentBrowserPanel::RenderAssetMenu(float height)
@@ -444,18 +504,25 @@ namespace Chozo {
         return directoryInfo->Handle;
     }
 
-    void ContentBrowserPanel::DeleteItem(Ref<ContentItem> item)
+    void ContentBrowserPanel::DeleteItems(std::vector<Ref<ContentItem>> items)
     {
-        auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [item](const Ref<ContentItem> i) {
-            return i == item;
-        });
-
-        if (it != m_CurrentItems.end())
+        bool shouldRefresh = items.size() > 0;
+        for (auto item : items)
         {
-            m_CurrentItems.erase(it);
-            m_CurrentDirectory->Assets.erase(item->GetHandle());
-            Application::GetAssetManager()->RemoveAsset(item->GetHandle());
-            m_ThumbnailManager->RemoveThumbnail(item->GetHandle());
+            auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [item](const Ref<ContentItem> i) {
+                return i == item;
+            });
+
+            if (it != m_CurrentItems.end())
+            {
+                m_CurrentItems.erase(it);
+                m_CurrentDirectory->Assets.erase(item->GetHandle());
+                Application::GetAssetManager()->RemoveAsset(item->GetHandle());
+                m_ThumbnailManager->RemoveThumbnail(item->GetHandle());
+            }
         }
+
+        if (shouldRefresh)
+            OnBrowserRefresh();
     }
 }

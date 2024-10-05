@@ -9,7 +9,7 @@
 #include <ImGuizmo.h>
 
 #include "Panels/SceneHierarchyPanel.h"
-#include "Panels/ContentBrowserPanel.h"
+#include "Panels/ContentBrowser/ContentBrowserPanel.h"
 #include "Panels/EnvironmentPanel.h"
 #include "Panels/TextureViewerPanel.h"
 

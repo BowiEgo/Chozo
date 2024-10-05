@@ -3,6 +3,8 @@
 #include "Chozo/Asset/Asset.h"
 #include "Chozo/Renderer/Texture.h"
 
+#include "Chozo/ImGui/ImGuiUI.h"
+
 namespace Chozo {
 
     class ContentBrowserPanel;
@@ -33,14 +35,18 @@ namespace Chozo {
         ContentItem(AssetMetadata metadata);
         ~ContentItem() = default;
 
-        inline bool ShouldDelete() { return m_Delete; }
-        inline AssetHandle GetHandle() { return m_Handle; }
-
         void OnImGuiRender();
+
+        inline bool ShouldDelete() { return m_Delete; }
+        inline bool IsHovered() { return m_Hovered; }
+        inline AssetHandle GetHandle() const { return m_Handle; }
+        inline std::pair<ImVec2, ImVec2> GetRect() const { return m_Rect; }
+        inline void Delete() { m_Delete = true; }
+        inline void Select() { m_Select = true; }
+        inline void Deselect() { m_Select = false; }
     private:
         void RenderThumbnail(const Ref<Texture2D>& icon, float thumbnailSize);
         void RenderTooltip();
-        void RenderContexMenu();
         void RenderDragDrop(const AssetHandle& handle);
         void RenderCenteredText(const std::string& text);
 
@@ -51,7 +57,12 @@ namespace Chozo {
         std::string m_Filename;
         uint64_t m_Size;
         Ref<Texture2D> m_Thumbnail;
+
+        std::pair<ImVec2, ImVec2> m_Rect;
+
         bool m_Delete = false;
+        bool m_Select = false;
+        bool m_Hovered = false;
     };
 
 } // namespace Chozo

@@ -1,8 +1,6 @@
 #include "ContentItem.h"
 #include "ContentBrowserPanel.h"
 
-#include "Chozo/ImGui/ImGuiUI.h"
-
 namespace Chozo {
 
     ContentItem::ContentItem(Ref<DirectoryInfo> directory)
@@ -28,13 +26,33 @@ namespace Chozo {
 
     void ContentItem::OnImGuiRender()
     {
-        UI::ScopedID id(m_Filename.c_str());
+        ImVec2 textSize = ImGui::CalcTextSize(m_Filename.c_str());
+        ImVec2 thumbnailSize = ImVec2(ContentBrowserPanel::s_ThumbnailSize, ContentBrowserPanel::s_ThumbnailSize);
+        ImVec2 itemSize = ImVec2(thumbnailSize.x, thumbnailSize.y + textSize.y + ImGui::GetStyle().ItemSpacing.y);
 
+        m_Rect.first = ImGui::GetCursorScreenPos();
+        m_Rect.second = m_Rect.first + itemSize;
+
+        auto [rectMin, rectMax] = m_Rect;
+
+        UI::ScopedID id(m_Filename.c_str());
+        ImGui::Selectable("##Selectable", m_Select, ImGuiSelectableFlags_None, itemSize);
+
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
+            m_Hovered = true;
+        else
+            m_Hovered = false;
+
+        ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+        cursorPos.y = cursorPos.y - itemSize.y - 6.0f;
+        ImGui::SetCursorScreenPos(cursorPos);
         RenderThumbnail(m_Thumbnail, ContentBrowserPanel::s_ThumbnailSize);
         RenderTooltip();
-        RenderContexMenu();
         RenderDragDrop(m_Handle);
         RenderCenteredText(m_Filename);
+
+        // if (m_Select)
+        //     ImGui::GetWindowDrawList()->AddRect(rectMin, rectMax, IM_COL32(150, 150, 150, 255));
     }
 
     void ContentItem::RenderThumbnail(const Ref<Texture2D>& icon, float thumbnailSize)
@@ -67,22 +85,9 @@ namespace Chozo {
     {
         if (ImGui::BeginItemTooltip())
         {
-            ImGui::Text("Handle: %s", std::to_string(m_Handle).c_str());
+            ImGui::Text("ID: %s", std::to_string(m_Handle).c_str());
             ImGui::Text("Size: %s", Utils::File::BytesToHumanReadable(m_Size).c_str());
             ImGui::EndTooltip();
-        }
-    }
-
-    void ContentItem::RenderContexMenu()
-    {
-        if (ImGui::BeginPopupContextItem())
-        {
-            if (ImGui::MenuItem("Delete"))
-            {
-                m_Delete = true;
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
         }
     }
 

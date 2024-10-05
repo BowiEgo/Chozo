@@ -5,6 +5,7 @@
 #include "Chozo/Thumbnail/ThumbnailManager.h"
 
 #include "ContentItem.h"
+#include "ContentSelection.h"
 
 namespace Chozo {
 
@@ -26,8 +27,21 @@ namespace Chozo {
         inline Ref<ThumbnailManager> GetThumbnailManager() { return m_ThumbnailManager; }
     public:
         inline static Ref<Texture2D> GetIcon(std::string name) { return s_Icons[name]; }
+        inline static std::vector<Ref<ContentItem>> GetItems() { return s_Instance->m_CurrentItems; }
 		inline static ContentBrowserPanel& Get() { return *s_Instance; }
+
+        inline static void Select(Ref<ContentItem> item) { s_Instance->m_ContentSelection.Select(item); }
+        inline static void Select(AssetHandle handle) {
+            if (s_Instance->m_CurrentItems[handle])
+                s_Instance->m_ContentSelection.Select(s_Instance->m_CurrentItems[handle]);
+        }
+        inline static void Deselect(Ref<ContentItem> item) {s_Instance->m_ContentSelection.Deselect(item); }
+        inline static void Deselect(AssetHandle handle) {
+            if (s_Instance->m_CurrentItems[handle])
+                s_Instance->m_ContentSelection.Deselect(s_Instance->m_CurrentItems[handle]);
+        }
     private:
+        void RenderItemContextMenu();
 		void RenderAssetMenu(float height);
 		void RenderDirectoryHierarchy(Ref<DirectoryInfo> directory);
 		void RenderTopBar(float height);
@@ -43,7 +57,7 @@ namespace Chozo {
         void SortSubDirs(Ref<DirectoryInfo> directory);
 
 		AssetHandle ProcessDirectory(const fs::path& directoryPath, const Ref<DirectoryInfo>& parent);
-        void DeleteItem(Ref<ContentItem> item);
+        void DeleteItems(std::vector<Ref<ContentItem>> items);
     public:
         static float s_Padding;
         static float s_ThumbnailSize;
@@ -56,6 +70,9 @@ namespace Chozo {
         Ref<DirectoryInfo> m_PreviousDirectory, m_CurrentDirectory, m_NextDirectory;
 
         std::vector<Ref<ContentItem>> m_CurrentItems;
+        Ref<ContentItem> m_HoveredItem;
+
+        ContentSelection m_ContentSelection;
 
         bool m_BackIcon_Disabled, m_ForwardIcon_Disabled, m_RefreshIcon_Disabled;
 

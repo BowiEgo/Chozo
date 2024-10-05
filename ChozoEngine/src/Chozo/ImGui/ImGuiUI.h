@@ -10,8 +10,6 @@
 
 namespace Chozo {
 
-    extern const fs::path g_AssetsPath;
-
 	enum class ImGuiStyleType
 	{
 		Alpha,
@@ -395,7 +393,6 @@ namespace Chozo::UI {
 
 	//=========================================================================================
 	/// Cursor
-
 	static void ShiftCursorX(float distance)
 	{
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + distance);
@@ -414,7 +411,6 @@ namespace Chozo::UI {
 
     //=========================================================================================
 	/// Rectangle
-
 	inline ImRect GetItemRect()
 	{
 		return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
@@ -447,7 +443,6 @@ namespace Chozo::UI {
 
     //=========================================================================================
 	/// Button Image
-
 	inline void DrawButtonImage(const Ref<Texture2D>& image, ImU32 tint, ImVec2 rectMin, ImVec2 rectMax, ImVec2 uv0, ImVec2 uv1)
 	{
 		auto* drawList = ImGui::GetWindowDrawList();
@@ -522,7 +517,6 @@ namespace Chozo::UI {
 
 	//=========================================================================================
 	/// FileButton
-
 	static void FileButton(std::string* filePath)
 	{
 		ImGui::Button("...", ImVec2(40.0f, 0.0f));
@@ -531,7 +525,7 @@ namespace Chozo::UI {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
 			{
 				const wchar_t* path = (const wchar_t*)payload->Data;
-				fs::path fullPath = g_AssetsPath / fs::path((char*)path);
+				fs::path fullPath = Utils::File::GetAssetDirectory() / fs::path((char*)path);
 
             	CZ_INFO("FileButton: {0}", fullPath.string().c_str());
 				*filePath = fullPath.string();
@@ -540,7 +534,8 @@ namespace Chozo::UI {
 			ImGui::EndDragDropTarget();
 		}
 	}
-
+	//=========================================================================================
+	/// DragAndDrop
 	static void BeginDragAndDrop(std::function<void(AssetHandle handle)>&& func)
 	{
 		if (ImGui::BeginDragDropTarget())
@@ -556,5 +551,41 @@ namespace Chozo::UI {
 
             ImGui::EndDragDropTarget();
         }
+	}
+
+	static void DrawDashedRect(ImVec2 min, ImVec2 max, ImU32 color, float thickness = 1.0f, float dashLength = 5.0f, float gapLength = 5.0f)
+	{
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		ImVec2 size;
+		size.x = max.x - min.x;
+		size.y = max.y - min.y;
+
+		// Top side
+		for (float x = min.x; x < max.x; x += dashLength + gapLength)
+		{
+			float endX = ImMin(x + dashLength, max.x);
+			drawList->AddLine(ImVec2(x, min.y), ImVec2(endX, min.y), color, thickness);
+		}
+
+		// Bottom side
+		for (float x = min.x; x < max.x; x += dashLength + gapLength)
+		{
+			float endX = ImMin(x + dashLength, max.x);
+			drawList->AddLine(ImVec2(x, max.y), ImVec2(endX, max.y), color, thickness);
+		}
+
+		// Left side
+		for (float y = min.y; y < max.y; y += dashLength + gapLength)
+		{
+			float endY = ImMin(y + dashLength, max.y);
+			drawList->AddLine(ImVec2(min.x, y), ImVec2(min.x, endY), color, thickness);
+		}
+
+		// Right side
+		for (float y = min.y; y < max.y; y += dashLength + gapLength)
+		{
+			float endY = ImMin(y + dashLength, max.y);
+			drawList->AddLine(ImVec2(max.x, y), ImVec2(max.x, endY), color, thickness);
+		}
 	}
 }
