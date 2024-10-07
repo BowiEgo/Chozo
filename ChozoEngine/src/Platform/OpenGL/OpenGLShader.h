@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chozo/Renderer/Shader.h"
+#include "OpenGLUniformBuffer.h"
 
 typedef unsigned int GLenum; // TODO: remove!
 
@@ -23,9 +24,8 @@ namespace Chozo {
 
         virtual const std::unordered_map<std::string, std::string> GetUniformTable() const { return m_UniformTable; }
         virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) const override;
-
-        virtual void SetUniformBlockBinding() const override;
-        virtual void SetUniformBlockBinding(const std::string& name, const uint32_t bindingPoint) const override;
+    public:
+        void SetUniformBlockBinding(const std::string& name, const uint32_t bindingPoint) const;
     private:
         void SetUniformBool(const std::string& name, const bool value) const;
         void SetUniform1i(const std::string& name, const int value) const;

@@ -31,12 +31,6 @@ namespace Chozo {
         virtual Ref<Shader> GetShader() const = 0;
         virtual Ref<Framebuffer> GetTargetFramebuffer() const = 0;
 
-        virtual void Submit(std::function<void()>&& func) = 0;
-
-        virtual void Begin() = 0;
-        virtual void End() = 0;
-        virtual void Render() = 0;
-
         static Ref<Pipeline> Create(PipelineSpecification& spec);
     };
 }

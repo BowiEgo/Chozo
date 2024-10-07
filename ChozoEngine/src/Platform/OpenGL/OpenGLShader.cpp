@@ -599,27 +599,13 @@ namespace Chozo {
         }, value);
     }
 
-    void OpenGLShader::SetUniformBlockBinding() const
-    {
-        GLuint uniformBlockIndex0 = glGetUniformBlockIndex(m_RendererID, "CameraData");
-        GLuint uniformBlockIndex1 = glGetUniformBlockIndex(m_RendererID, "SceneData");
-        GLuint uniformBlockIndex2 = glGetUniformBlockIndex(m_RendererID, "PointLightData");
-        GLuint uniformBlockIndex3 = glGetUniformBlockIndex(m_RendererID, "SpotLightData");
-        if (uniformBlockIndex0 != GL_INVALID_INDEX)
-            glUniformBlockBinding(m_RendererID, uniformBlockIndex0, 0);
-        if (uniformBlockIndex1 != GL_INVALID_INDEX)
-            glUniformBlockBinding(m_RendererID, uniformBlockIndex1, 1);
-        if (uniformBlockIndex2 != GL_INVALID_INDEX)
-            glUniformBlockBinding(m_RendererID, uniformBlockIndex2, 2);
-        if (uniformBlockIndex3 != GL_INVALID_INDEX)
-            glUniformBlockBinding(m_RendererID, uniformBlockIndex3, 3);
-    }
-
     void OpenGLShader::SetUniformBlockBinding(const std::string& name, const uint32_t bindingPoint) const
     {
         GLuint uniformBlockIndex = glGetUniformBlockIndex(m_RendererID, name.c_str());
         if (uniformBlockIndex != GL_INVALID_INDEX)
             glUniformBlockBinding(m_RendererID, uniformBlockIndex, bindingPoint);
+        else
+            CZ_CORE_WARN("Uniform Block '{}' not found in shader!", name);
     }
 
     void OpenGLShader::SetUniformBool(const std::string &name, const bool value) const

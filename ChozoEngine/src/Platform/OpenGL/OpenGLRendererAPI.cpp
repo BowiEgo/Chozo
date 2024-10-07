@@ -5,7 +5,7 @@
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
 #include "Chozo/Renderer/Mesh.h"
-// #include "OpenGLFrameBuffer.h"
+#include "OpenGLPipeline.h"
 #include "OpenGLRenderPass.h"
 #include "OpenGLMaterial.h"
 #include "OpenGLTexture.h"
@@ -133,12 +133,14 @@ namespace Chozo {
 
     void OpenGLRendererAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, const Ref<Texture2D> texture)
     {
-        pipeline->GetTargetFramebuffer()->Bind();
+        auto fbo = pipeline->GetTargetFramebuffer();
+        auto shader = pipeline->GetShader();
+
+        fbo->Bind();
+        pipeline.As<OpenGLPipeline>()->BindUniformBlock();
         texture.As<OpenGLTexture2D>()->Bind();
-        OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
         shader->Bind();
         shader->SetUniform("u_EquirectangularMap", 0);
-
         for (uint32_t i = 0; i < 6; i++)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
@@ -150,19 +152,18 @@ namespace Chozo {
 
             DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
         }
-        pipeline->GetTargetFramebuffer()->Unbind();
+        fbo->Unbind();
     }
 
     void OpenGLRendererAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
     {
-        pipeline->GetTargetFramebuffer()->Bind();
+        auto fbo = pipeline->GetTargetFramebuffer();
+        auto shader = pipeline->GetShader();
 
-        if (material)
-            static_cast<OpenGLMaterial*>(material.get())->Bind();
-
-        OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
+        fbo->Bind();
+        pipeline.As<OpenGLPipeline>()->BindUniformBlock();
+        if (material) { material.As<OpenGLMaterial>()->Bind(); }
         shader->Bind();
-
         for (uint32_t i = 0; i < 6; i++)
         {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
@@ -174,20 +175,18 @@ namespace Chozo {
 
             DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
         }
-        pipeline->GetTargetFramebuffer()->Unbind();
+        fbo->Unbind();
     }
 
     void OpenGLRendererAPI::RenderPrefilteredCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
     {
-        Ref<Framebuffer> fbo = pipeline->GetTargetFramebuffer();
-        OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
+        auto fbo = pipeline->GetTargetFramebuffer();
+        auto shader = pipeline->GetShader();
 
         fbo->Bind();
-        if (material)
-            static_cast<OpenGLMaterial*>(material.get())->Bind();
-        else
-            shader->Bind();
-
+        pipeline.As<OpenGLPipeline>()->BindUniformBlock();
+        if (material) { material.As<OpenGLMaterial>()->Bind(); }
+        shader->Bind();
         unsigned int maxMipLevels = 5;
         for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
         {
@@ -214,12 +213,12 @@ namespace Chozo {
 
     void OpenGLRendererAPI::DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)
     {
-        OpenGLShader* shader = static_cast<OpenGLShader*>(pipeline->GetShader().get());
-        Ref<TextureCube> textureCube = Renderer::GetPreethamSkyTextureCube();
+        auto fbo = pipeline->GetTargetFramebuffer();
+        auto textureCube = Renderer::GetPreethamSkyTextureCube();
+        auto shader = pipeline->GetShader();
 
-        pipeline->GetTargetFramebuffer()->Bind();
+        fbo->Bind();
         textureCube.As<OpenGLTextureCube>()->Bind();
-
         shader->Bind();
         shader->SetUniform("u_FragUniforms.Turbidity", turbidity);
         shader->SetUniform("u_FragUniforms.Azimuth", azimuth);
@@ -235,26 +234,26 @@ namespace Chozo {
 
             DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
         }
-        pipeline->GetTargetFramebuffer()->Unbind();
+        fbo->Unbind();
     }
 
     void OpenGLRendererAPI::SubmitCubeMap(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
     {
         commandBuffer->AddCommand([pipeline, cubemap, material, this]()
         {
-            if (material)
-                material.As<OpenGLMaterial>()->Bind();
-            else
-                pipeline->GetShader()->Bind();
+            auto shader = pipeline->GetShader();
 
+            pipeline.As<OpenGLPipeline>()->BindUniformBlock();
+            if (material) { material.As<OpenGLMaterial>()->Bind(); }
+            shader->Bind();
             for (uint32_t i = 0; i < 6; i++)
             {
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, 
                     GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
-                pipeline->GetShader()->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
-                pipeline->GetShader()->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+                shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
+                shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
 
                 DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
             }
@@ -263,11 +262,11 @@ namespace Chozo {
 
     void OpenGLRendererAPI::RenderFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material)
     {
-        if (material)
-            static_cast<OpenGLMaterial*>(material.get())->Bind();
-        else
-            pipeline->GetShader()->Bind();
+        auto shader = pipeline->GetShader();
 
+        pipeline.As<OpenGLPipeline>()->BindUniformBlock();
+        if (material) { material.As<OpenGLMaterial>()->Bind(); }
+        shader->Bind();
         PrepareGLContext(pipeline);
         Renderer2D::DrawFullScreenQuad();
         ResetGLContext();
@@ -285,10 +284,9 @@ namespace Chozo {
     {
         commandBuffer->AddCommand([pipeline, material, this]()
         {
-            if (material)
-                material.As<OpenGLMaterial>()->Bind();
-            else
-                pipeline->GetShader()->Bind();
+            pipeline.As<OpenGLPipeline>()->BindUniformBlock();
+            
+            if (material) { material.As<OpenGLMaterial>()->Bind(); }
 
             PrepareGLContext(pipeline);
             RenderCommand::DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
@@ -300,10 +298,11 @@ namespace Chozo {
     {
         commandBuffer->AddCommand([pipeline, mesh, material, this]()
         {
-            if (material)
-                material.As<OpenGLMaterial>()->Bind();
-            else
-                pipeline->GetShader()->Bind();
+            auto shader = pipeline->GetShader();
+
+            pipeline.As<OpenGLPipeline>()->BindUniformBlock();
+            if (material) { material.As<OpenGLMaterial>()->Bind(); }
+            shader->Bind();
 
             uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
             uint32_t vertexCount = mesh->GetMeshSource()->GetVertexs().size();

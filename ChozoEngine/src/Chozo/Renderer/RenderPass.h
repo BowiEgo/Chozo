@@ -25,8 +25,6 @@ namespace Chozo {
 		virtual void SetInput(std::string_view name, Ref<UniformBuffer> uniformBuffer) = 0;
 		virtual void SetInput(std::string_view name, Ref<TextureCube> textureCube) = 0;
 
-        virtual std::unordered_map<std::string, Ref<UniformBuffer>> GetUniformBuffers() = 0;
-
 		virtual Ref<Texture2D> GetOutput(uint32_t index) = 0;
 
         virtual Ref<Pipeline> GetPipeline() const = 0;

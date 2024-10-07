@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Chozo/Renderer/UniformBuffer.h"
 #include "Chozo/Renderer/RenderPass.h"
+#include "Chozo/Renderer/UniformBuffer.h"
 #include "Chozo/Renderer/Texture.h"
 
 namespace Chozo {
@@ -16,8 +16,6 @@ namespace Chozo {
 		virtual void SetInput(std::string_view name, Ref<UniformBuffer> uniformBuffer) override;
         virtual void SetInput(std::string_view name, Ref<TextureCube> textureCube) override;
 
-        virtual std::unordered_map<std::string, Ref<UniformBuffer>> GetUniformBuffers() override { return m_UBs; }
-
 		virtual Ref<Texture2D> GetOutput(uint32_t index) override;
         
         virtual Ref<Pipeline> GetPipeline() const override;
@@ -26,6 +24,5 @@ namespace Chozo {
 		virtual void Bake() override;
     private:
 		RenderPassSpecification m_Specification;
-        std::unordered_map<std::string, Ref<UniformBuffer>> m_UBs;
     };
 }

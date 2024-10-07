@@ -1,5 +1,7 @@
 #include "OpenGLPipeline.h"
 
+#include "OpenGLShader.h"
+
 namespace Chozo
 {
 
@@ -8,20 +10,12 @@ namespace Chozo
     {
     }
 
-    void OpenGLPipeline::Begin()
+    void OpenGLPipeline::BindUniformBlock()
     {
-        m_TargetFramebuffer->Bind();
-    }
+        if (!m_Shader)
+            return;
 
-    void OpenGLPipeline::End()
-    {
-        m_TargetFramebuffer->Unbind();
-    }
-
-    void OpenGLPipeline::Render()
-    {
-        Begin();
-        m_RenderFunction();
-        End();
+        for (auto [name, uniformBuffer] : m_UBs)
+            m_Shader.As<OpenGLShader>()->SetUniformBlockBinding(std::string(name), uniformBuffer.As<OpenGLUniformBuffer>()->GetBindingPoint());
     }
 }

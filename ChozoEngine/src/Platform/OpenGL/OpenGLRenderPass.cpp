@@ -1,7 +1,6 @@
 #include "OpenGLRenderPass.h"
 
-#include "OpenGLUtils.h"
-#include "OpenGLShader.h"
+#include "OpenGLPipeline.h"
 #include "Chozo/Renderer/RenderCommand.h"
 
 #include <glad/glad.h>
@@ -16,14 +15,7 @@ namespace Chozo {
 
     void OpenGLRenderPass::SetInput(std::string_view name, Ref<UniformBuffer> uniformbuffer)
     {
-        m_UBs[std::string(name)] = uniformbuffer;
-
-        OpenGLShader* shader = static_cast<OpenGLShader*>(m_Specification.Pipeline->GetShader().get());
-        if (shader)
-        {
-            shader->Bind();
-            shader->SetUniformBlockBinding(std::string(name), uniformbuffer->GetBindingPoint());
-        }
+        m_Specification.Pipeline.As<OpenGLPipeline>()->m_UBs[std::string(name)] = uniformbuffer.As<OpenGLUniformBuffer>();
     }
 
     void OpenGLRenderPass::SetInput(std::string_view name, Ref<TextureCube> textureCube)
@@ -48,6 +40,5 @@ namespace Chozo {
 
     void OpenGLRenderPass::Bake()
     {
-        m_Specification.Pipeline->Render();
     }
 }

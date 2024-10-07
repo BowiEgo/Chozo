@@ -73,6 +73,7 @@ namespace Chozo
 			pipelineSpec.DebugName = "Geometry";
 			// pipelineSpec.DepthOperator = DepthCompareOperator::Equal;
             pipelineSpec.DepthWrite = false;
+            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Geometry");
 			pipelineSpec.TargetFramebuffer = framebuffer;
 
 			RenderPassSpecification renderPassSpec;
@@ -158,7 +159,7 @@ namespace Chozo
 			m_PBRPass = RenderPass::Create(renderPassSpec);
 			m_PBRPass->SetInput("SceneData", m_SceneUB);
 			m_PBRPass->SetInput("PointLightData", m_PointLightUB);
-			m_PBRPass->SetInput("SpotLightData", m_SpotLightUB);
+			// m_PBRPass->SetInput("SpotLightData", m_SpotLightUB);
 
             TextureCubeSpecification irrandianceMapSpec;
             irrandianceMapSpec.Width = 32;
