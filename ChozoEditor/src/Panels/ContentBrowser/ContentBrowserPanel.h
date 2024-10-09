@@ -41,6 +41,7 @@ namespace Chozo {
                 s_Instance->m_ContentSelection.Deselect(s_Instance->m_CurrentItems[handle]);
         }
     private:
+        void RenderAddNewContextMenu();
         void RenderItemContextMenu();
 		void RenderAssetMenu(float height);
 		void RenderDirectoryHierarchy(Ref<DirectoryInfo> directory);

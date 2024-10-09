@@ -7,6 +7,7 @@
 #include "Chozo/ImGui/Colors.h"
 
 #include "Chozo/Utilities/PlatformUtils.h"
+#include "Chozo/Renderer/Material.h"
 
 #include <imgui_internal.h>
 
@@ -203,6 +204,32 @@ namespace Chozo {
         OnDirectoryChange(m_CurrentDirectory);
     }
 
+    void ContentBrowserPanel::RenderAddNewContextMenu()
+    {
+        if (ImGui::BeginPopup("AddNewContextMenu"))
+        {
+            if (ImGui::MenuItem("Folder"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::MenuItem("Texture"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::MenuItem("Material"))
+            {
+                CreateAsset<Material>("material", m_CurrentDirectory, "Phong");
+                OnBrowserRefresh();
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::MenuItem("Mesh"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+    }
+
     void ContentBrowserPanel::RenderItemContextMenu()
     {
         if (ImGui::BeginPopup("ItemContextMenu"))
@@ -227,7 +254,11 @@ namespace Chozo {
     void ContentBrowserPanel::RenderAssetMenu(float height)
     {
         ImGui::BeginChild("##asset_menu", ImVec2(0, height));
-        UI::IconButton("Add New", IM_COL32(70, 160, 0, 255), IM_COL32(70, 180, 40, 255), IM_COL32(100, 190, 40, 255));
+        if (UI::IconButton("Add New", IM_COL32(70, 160, 0, 255), IM_COL32(70, 180, 40, 255), IM_COL32(100, 190, 40, 255)))
+        {
+            ImGui::OpenPopup("AddNewContextMenu");
+        }
+        RenderAddNewContextMenu();
         ImGui::SameLine();
         
         if (UI::IconButton("Import", IM_COL32(210, 130, 0, 255), IM_COL32(210, 150, 40, 255), IM_COL32(240, 160, 40, 255)))
@@ -433,7 +464,6 @@ namespace Chozo {
         Ref<Asset> textureAsset = CreateAsset<Texture2D>(path.filename().stem().string(), m_CurrentDirectory, path.string(), spec);
 
         SaveAllAssets();
-
         OnBrowserRefresh();
     }
 

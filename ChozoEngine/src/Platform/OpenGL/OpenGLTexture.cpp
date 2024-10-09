@@ -95,8 +95,8 @@ namespace Chozo
         uint64_t size = m_Width * m_Height * Image::GetBytesPerPixel(m_Spec.Format);
         m_Buffer.Allocate(size);
 
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glGetTexImage(GL_TEXTURE_2D, 0, m_DataFormat, m_DataType, m_Buffer.Data);
         glBindTexture(GL_TEXTURE_2D, 0);
 

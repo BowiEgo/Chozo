@@ -6,6 +6,7 @@ namespace Chozo {
 
 	#define FOREACH_ASSET_TYPE(TYPE) \
         	TYPE(Texture) \
+        	TYPE(Material) \
 
 	enum class AssetType : uint16_t {
 		#define GENERATE_ENUM(ENUM) ENUM,

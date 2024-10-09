@@ -14,6 +14,8 @@ namespace Chozo {
             {
             case AssetType::Texture:
                 s_Renderers[type] = CreateScope<TextureThumbnailRenderer>(); break;
+            case AssetType::Material:
+                s_Renderers[type] = CreateScope<MaterialThumbnailRenderer>(); break;
             default:
                 break;
             }

@@ -20,6 +20,8 @@ namespace Chozo {
 
         if (metadata.Type == AssetType::Texture)
             m_Thumbnail = ContentBrowserPanel::Get().GetThumbnailManager()->GetThumbnail(metadata.Handle);
+        else if (metadata.Type == AssetType::Material)
+            m_Thumbnail = ContentBrowserPanel::Get().GetThumbnailManager()->GetThumbnail(metadata.Handle);
         else
             m_Thumbnail = ContentBrowserPanel::GetIcon("TextFile");
     }

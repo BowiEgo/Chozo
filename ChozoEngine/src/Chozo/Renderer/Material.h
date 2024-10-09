@@ -7,13 +7,16 @@
 namespace Chozo
 {
 
-    class Material : public RefCounted
+    class Material : public Asset
     {
     public:
         static Ref<Material> Create(const std::string& name = "");
         static Ref<Material> Create(Ref<Shader> shader, const std::string& name = "");
 		static Ref<Material> Copy(const Ref<Material>& other, const std::string& name = "");
         virtual ~Material() = default;
+
+        static AssetType GetStaticType() { return AssetType::Material; }
+		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
         virtual void Set(const std::string& name, const UniformValue& value) = 0;
 		virtual void Set(const std::string& name, const Ref<Texture>& texture) = 0;

@@ -2,6 +2,7 @@
 
 #include "Chozo/Project/Project.h"
 #include "Chozo/Renderer/Texture.h"
+#include "Chozo/Renderer/Material.h"
 
 #include "Chozo/FileSystem/FileStream.h"
 
@@ -59,5 +60,31 @@ namespace Chozo {
         buffer.Release();
 
         return texture;
+    }
+
+    //==============================================================================
+	/// MaterialSerializer
+    uint64_t MaterialSerializer::Serialize(const AssetMetadata &metadata, Ref<Asset> &asset) const
+    {
+        fs::path path(metadata.FilePath);
+        fs::path filepath = g_AssetsPath / path;
+        fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+
+        FileStreamWriter stream(dest);
+
+		Buffer buffer;
+        Ref<Material> material = asset.As<Material>();
+        
+		stream.WriteBuffer(buffer);
+        uint64_t size = buffer.GetSize();
+
+        buffer.Release();
+
+        return size;
+    }
+
+    Ref<Asset> MaterialSerializer::Deserialize(const AssetMetadata &metadata) const
+    {
+        return Ref<Asset>();
     }
 }

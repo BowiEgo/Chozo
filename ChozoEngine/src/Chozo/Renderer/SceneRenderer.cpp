@@ -175,7 +175,7 @@ namespace Chozo
         {
             FramebufferSpecification fbSpec;
             fbSpec.ClearColor = Renderer::GetConfig().ClearColor;
-            fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
+            fbSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
             Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
             PipelineSpecification pipelineSpec;

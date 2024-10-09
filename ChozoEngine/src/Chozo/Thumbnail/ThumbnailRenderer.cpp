@@ -1,10 +1,12 @@
 #include "ThumbnailRenderer.h"
 
 #include "Chozo/FileSystem/TextureExporter.h"
+#include "Chozo/Scene/Entity.h"
+#include "Chozo/Renderer/Geometry/SphereGeometry.h"
 
 namespace Chozo {
 
-    Ref<Texture2D> TextureThumbnailRenderer::Render(AssetMetadata metadata, Ref<Asset> asset) const
+    Ref<Texture2D> TextureThumbnailRenderer::Render(AssetMetadata metadata, Ref<Asset> asset)
     {
         if (asset->GetAssetType() != AssetType::Texture)
             CZ_CORE_ERROR("[TextureThumbnailRenderer] asset type invalid!");
@@ -53,4 +55,58 @@ namespace Chozo {
         return outputTexture;
     }
 
+    //==============================================================================
+    /// MaterialThumbnailRenderer
+    MaterialThumbnailRenderer::MaterialThumbnailRenderer()
+    {
+        m_Scene = Ref<Scene>::Create();
+		m_SceneRenderer = SceneRenderer::Create(m_Scene);
+        m_SceneRenderer->SetActive(true);
+        m_SceneRenderer->SetViewportSize(100, 100);
+        m_Camera = EditorCamera(12.0f, 1.0f, 0.1f, 1000.0f);
+
+        auto sphere = m_Scene->CreateEntity("Sphere");
+        Ref<Geometry> geom = Ref<SphereGeometry>::Create();
+        sphere.AddComponent<MeshComponent>(geom);
+
+        auto pointLight = m_Scene->CreateEntity("Point Light");
+        pointLight.AddComponent<PointLightComponent>();
+        pointLight.GetComponent<TransformComponent>().Translation.x = 2.0f;
+        pointLight.GetComponent<TransformComponent>().Translation.y = 2.0f;
+        pointLight.GetComponent<TransformComponent>().Translation.z = 2.0f;
+
+        OnUpdate();
+    }
+
+    Ref<Texture2D> MaterialThumbnailRenderer::Render(AssetMetadata metadata, Ref<Asset> asset)
+    {
+        if (asset->GetAssetType() != AssetType::Material)
+            CZ_CORE_ERROR("[MaterialThumbnailRenderer] asset type invalid!");
+
+        Ref<Texture2D> texture = GetOutput();
+
+        Buffer originalBuffer;
+        texture->CopyToHostBuffer(originalBuffer);
+
+        std::string filename = std::to_string(metadata.Handle);
+        fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
+        Utils::File::CreateDirectoryIfNeeded(cacheDir.string());
+
+        fs::path filepath = cacheDir / filename;
+        Buffer buffer = TextureExporter::ToFileFromBuffer(
+                        filepath,
+                        originalBuffer,
+                        100, 100,
+                        100, 100,
+                        false);
+
+        originalBuffer.Release();
+
+        return texture;
+    }
+
+    void MaterialThumbnailRenderer::OnUpdate()
+    {
+        m_Scene->OnUpdateEditor(0, m_Camera);
+    }
 } // namespace Chozo

@@ -19,4 +19,11 @@ namespace Chozo {
 		virtual uint64_t Serialize(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
 		virtual Ref<Asset> Deserialize(const AssetMetadata& metadata) const override;
 	};
+
+	class MaterialSerializer : public AssetSerializer
+	{
+	public:
+		virtual uint64_t Serialize(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		virtual Ref<Asset> Deserialize(const AssetMetadata& metadata) const override;
+	};
 }
