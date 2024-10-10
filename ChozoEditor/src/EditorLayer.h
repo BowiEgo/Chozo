@@ -9,6 +9,7 @@
 #include <ImGuizmo.h>
 
 #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/PropertiesPanel.h"
 #include "Panels/ContentBrowser/ContentBrowserPanel.h"
 #include "Panels/EnvironmentPanel.h"
 #include "Panels/TextureViewerPanel.h"
@@ -59,6 +60,7 @@ namespace Chozo {
 
         // Panels
         SceneHierarchyPanel m_SceneHierarchyPanel;
+        PropertiesPanel m_PropertiesPanel;
         ContentBrowserPanel m_ContentBrowserPanel;
         EnvironmentPanel m_EnvironmentPanel;
         TextureViewerPanel m_TextureViewerPanel;

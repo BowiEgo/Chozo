@@ -65,6 +65,7 @@ namespace Chozo {
             uint32_t TextureSlotIndex = 1; // 0 = white texture
             std::vector<Ref<Texture2D>> TextureSlots;
             Ref<Texture2D> WhiteTexture;
+            Ref<Texture2D> CheckerboardTexture;
             Ref<TextureCube> BlackTextureCube;
 
             Ref<DynamicMesh> QuadMesh;
@@ -107,6 +108,7 @@ namespace Chozo {
         static Ref<ShaderLibrary> GetShaderLibrary() { return GetRendererData().m_ShaderLibrary; }
         static RendererData GetRendererData();
         static Ref<Texture2D> GetBRDFLutTexture();
+        static Ref<Texture2D> GetCheckerboardTexture();
         static Ref<TextureCube> GetBlackTextureCube();
         static Ref<TextureCube> GetStaticSkyTextureCube();
         static Ref<TextureCube> GetIrradianceTextureCube();

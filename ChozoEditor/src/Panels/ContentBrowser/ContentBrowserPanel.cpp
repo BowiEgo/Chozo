@@ -110,8 +110,8 @@ namespace Chozo {
                 ImGui::Columns(1);
 
                 m_ContentSelection.OnImGuiRender();
-                RenderItemContextMenu();
 
+                RenderItemContextMenu();
                 if (m_HoveredItem)
                 {
                     if (ImGui::IsMouseClicked(0))

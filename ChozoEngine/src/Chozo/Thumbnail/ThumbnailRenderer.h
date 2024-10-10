@@ -28,6 +28,8 @@ namespace Chozo {
         virtual Ref<Texture2D> Render(AssetMetadata metadata, Ref<Asset> asset) override;
 
         void OnUpdate();
+        Entity GetSphere();
+        
         inline Ref<Scene> GetScene() { return m_Scene; }
         inline Ref<Texture2D> GetOutput() { return m_SceneRenderer->GetCompositePass()->GetOutput(0); }
     private:

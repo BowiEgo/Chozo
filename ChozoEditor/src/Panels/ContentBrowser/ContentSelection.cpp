@@ -21,9 +21,13 @@ namespace Chozo {
 
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         {
+            m_Disabled = false;
             m_Selecting = false;
             m_StartPos = io.MousePos;
             m_EndPos = m_StartPos;
+
+            if (ContentBrowserPanel::GetHoveredItem())
+                m_Disabled = true;
         }
         else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
         {
@@ -33,7 +37,7 @@ namespace Chozo {
             float deltaY = m_EndPos.y - m_StartPos.y;
             float distance = sqrtf(deltaX * deltaX + deltaY * deltaY);
 
-            if (distance > selectionThreshold)
+            if (distance > selectionThreshold && !m_Disabled)
             {
                 m_Selecting = true;
             }

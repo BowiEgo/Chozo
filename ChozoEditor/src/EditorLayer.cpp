@@ -11,6 +11,9 @@
 #include "Chozo/ImGui/ImGuiUI.h"
 #include "Chozo/Math/Math.h"
 
+// TODO: Remove
+#include "Chozo/Thumbnail/ThumbnailExporter.h"
+
 namespace Chozo {
 
     std::string ReadFile(const std::string &filepath)
@@ -56,6 +59,7 @@ namespace Chozo {
         // Panels
         // --------------------
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        PropertiesPanel::SetContext(m_ActiveScene);
         m_EnvironmentPanel.SetContext(m_ActiveScene);
     }
 
@@ -139,6 +143,7 @@ namespace Chozo {
         // Panels
         // --------------------
         m_SceneHierarchyPanel.OnImGuiRender();
+        m_PropertiesPanel.OnImGuiRender();
         m_ContentBrowserPanel.OnImGuiRender();
         m_EnvironmentPanel.OnImGuiRender();
         m_TextureViewerPanel.OnImGuiRender();
@@ -230,6 +235,18 @@ namespace Chozo {
             }
         }
 
+        {
+            std::string buttonLabel = "Thumbnail";
+            if(ImGui::Button(buttonLabel.c_str()))
+            {
+                TextureViewerPanel::Open();
+
+                ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
+                Ref<Texture2D> texture = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetOutput();
+                TextureViewerPanel::SetTexture(texture);
+            }
+        }
+
         // --------------------
         // Viewport
         // --------------------
@@ -263,7 +280,11 @@ namespace Chozo {
         });
 
         // Gizmos
-        Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+        Entity selectedEntity;
+
+        if (PropertiesPanel::GetContext() == m_ActiveScene)
+            selectedEntity = PropertiesPanel::GetSelectedEntity();
+
         if (selectedEntity)
         {
             bool isExcluded = (selectedEntity.HasComponent<CameraComponent>() && selectedEntity.GetComponent<CameraComponent>().Primary);
@@ -478,7 +499,8 @@ namespace Chozo {
         {
             auto [mx, my] = ImGui::GetMousePos();
             m_Entity_Selected = PickEntity(mx, my);
-            m_SceneHierarchyPanel.SetSelectedEntity(m_Entity_Selected);
+            PropertiesPanel::SetContext(m_ActiveScene);
+            PropertiesPanel::SetSelectedEntity(m_Entity_Selected);
             return true;
         }
 
@@ -515,6 +537,7 @@ namespace Chozo {
         m_ViewportRenderer->SetScene(m_ActiveScene);
         m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        PropertiesPanel::SetContext(m_ActiveScene);
         m_EnvironmentPanel.SetContext(m_ActiveScene);
         m_SceneFileName = path.filename();
         m_EditorCamera.Reset();

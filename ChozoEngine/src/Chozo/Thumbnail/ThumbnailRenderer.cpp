@@ -74,8 +74,6 @@ namespace Chozo {
         pointLight.GetComponent<TransformComponent>().Translation.x = 2.0f;
         pointLight.GetComponent<TransformComponent>().Translation.y = 2.0f;
         pointLight.GetComponent<TransformComponent>().Translation.z = 2.0f;
-
-        OnUpdate();
     }
 
     Ref<Texture2D> MaterialThumbnailRenderer::Render(AssetMetadata metadata, Ref<Asset> asset)
@@ -108,5 +106,16 @@ namespace Chozo {
     void MaterialThumbnailRenderer::OnUpdate()
     {
         m_Scene->OnUpdateEditor(0, m_Camera);
+    }
+
+    Entity MaterialThumbnailRenderer::GetSphere()
+    {
+        auto view = m_Scene->Reg().view<TransformComponent, MeshComponent>();
+        for (auto entity : view)
+        {
+            return Entity{ entity, m_Scene.get() };
+        }
+
+        return Entity();
     }
 } // namespace Chozo

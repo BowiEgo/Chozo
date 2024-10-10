@@ -55,6 +55,7 @@ namespace Chozo {
         s_Data.WhiteTexture = Texture2D::Create();
         uint32_t whiteTextureData = 0xffffffff;
         s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
+        s_Data.CheckerboardTexture = Texture2D::Create(std::string("../resources/textures/CheckerboardTexture.png"));
 
         TextureCubeSpecification spec;
 		spec.Format = ImageFormat::RGBA;
@@ -365,6 +366,11 @@ namespace Chozo {
     Ref<Texture2D> Renderer::GetBRDFLutTexture()
     {
         return s_Data.m_BRDFLutPipeline->GetTargetFramebuffer()->GetImage(0);
+    }
+
+    Ref<Texture2D> Renderer::GetCheckerboardTexture()
+    {
+        return s_Data.CheckerboardTexture;
     }
 
     Ref<TextureCube> Renderer::GetBlackTextureCube()

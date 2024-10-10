@@ -1,5 +1,7 @@
 #include "ContentItem.h"
 #include "ContentBrowserPanel.h"
+#include "../PropertiesPanel.h"
+#include "Chozo/Thumbnail/ThumbnailExporter.h"
 
 namespace Chozo {
 
@@ -14,6 +16,7 @@ namespace Chozo {
     ContentItem::ContentItem(AssetMetadata metadata)
     {
         m_Type = ContentItemType::Asset;
+        m_AssetType = metadata.Type;
         m_Handle = metadata.Handle;
         m_Filename = metadata.FilePath.filename().string();
         m_Size = metadata.FileSize;
@@ -37,9 +40,21 @@ namespace Chozo {
 
         auto [rectMin, rectMax] = m_Rect;
 
-        UI::ScopedID id(m_Filename.c_str());
-        ImGui::Selectable("##Selectable", m_Select, ImGuiSelectableFlags_None, itemSize);
+        UI::ScopedID id(m_Handle);
+        if (ImGui::Selectable("##Selectable", m_Select, ImGuiSelectableFlags_None, itemSize))
+        {
+            if (m_AssetType == AssetType::Material)
+            {
+                auto scene = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetScene();
+                auto sphere = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetSphere();
+                PropertiesPanel::Get().SetContext(scene);
+                PropertiesPanel::Get().SetSelectedEntity(sphere, { PropertyType::Material });
+                ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
+            }
+        }
 
+        RenderDragDrop(m_Handle);
+        
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
             m_Hovered = true;
         else
@@ -50,11 +65,13 @@ namespace Chozo {
         ImGui::SetCursorScreenPos(cursorPos);
         RenderThumbnail(m_Thumbnail, ContentBrowserPanel::s_ThumbnailSize);
         RenderTooltip();
-        RenderDragDrop(m_Handle);
         RenderCenteredText(m_Filename);
 
-        // if (m_Select)
-        //     ImGui::GetWindowDrawList()->AddRect(rectMin, rectMax, IM_COL32(150, 150, 150, 255));
+        // if (!m_Select)
+        // {
+        //     // ImGui::GetWindowDrawList()->AddRect(rectMin, rectMax, IM_COL32(150, 150, 150, 255));
+        //     PropertiesPanel::Get().SetSelectedEntity({});
+        // }
     }
 
     void ContentItem::RenderThumbnail(const Ref<Texture2D>& icon, float thumbnailSize)

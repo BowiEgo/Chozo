@@ -22,6 +22,7 @@ namespace Chozo {
         inline std::unordered_map<AssetHandle, Ref<ContentItem>> GetSelection() { return m_Selection; }
         inline uint32_t Size() { return m_Selection.size(); }
     private:
+        bool m_Disabled = false;
         bool m_Selecting = false;
         ImVec2 m_StartPos, m_EndPos;
         std::unordered_map<AssetHandle, Ref<ContentItem>> m_Selection;

@@ -53,6 +53,7 @@ namespace Chozo {
         void OnDoubleClick();
     private:
         ContentItemType m_Type;
+        AssetType m_AssetType;
         AssetHandle m_Handle;
         std::string m_Filename;
         uint64_t m_Size;

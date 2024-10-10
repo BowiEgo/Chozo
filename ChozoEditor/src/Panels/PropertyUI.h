@@ -107,6 +107,33 @@ namespace Chozo {
         }
     }
 
+    template<typename UIFunction>
+    static void DrawColumnValue(const std::string& name, UIFunction uiFunction)
+    {
+        const ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
+        if (ImGui::BeginTable("table", 2, flags))
+        {
+            ImGui::SetNextItemWidth(25.0f);
+            ImGui::TableNextRow();
+            for (int column = 0; column < 2; column++)
+            {
+                ImGui::TableSetColumnIndex(column);
+                if (column == 0)
+                {
+                    ImGui::Text("%s", name.c_str());
+                    ImGui::TableNextColumn();
+                }
+                else
+                {
+                    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+                    uiFunction();
+                    ImGui::PopItemWidth();
+                }
+            }
+            ImGui::EndTable();
+        }
+    }
+
     template<typename Callback>
     static void DrawColumnPath(const std::string& name, AssetMetadata metadata, Callback callback)
     {

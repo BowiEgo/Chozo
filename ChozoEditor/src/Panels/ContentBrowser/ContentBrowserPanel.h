@@ -26,9 +26,10 @@ namespace Chozo {
         void OnBrowserRefresh();
         inline Ref<ThumbnailManager> GetThumbnailManager() { return m_ThumbnailManager; }
     public:
+		inline static ContentBrowserPanel& Get() { return *s_Instance; }
         inline static Ref<Texture2D> GetIcon(std::string name) { return s_Icons[name]; }
         inline static std::vector<Ref<ContentItem>> GetItems() { return s_Instance->m_CurrentItems; }
-		inline static ContentBrowserPanel& Get() { return *s_Instance; }
+        inline static Ref<ContentItem> GetHoveredItem() { return s_Instance->m_HoveredItem; }
 
         inline static void Select(Ref<ContentItem> item) { s_Instance->m_ContentSelection.Select(item); }
         inline static void Select(AssetHandle handle) {
