@@ -1,6 +1,6 @@
 #include "ContentItem.h"
 #include "ContentBrowserPanel.h"
-#include "../PropertiesPanel.h"
+#include "../MaterialPanel.h"
 #include "Chozo/Thumbnail/ThumbnailExporter.h"
 
 namespace Chozo {
@@ -45,16 +45,19 @@ namespace Chozo {
         {
             if (m_AssetType == AssetType::Material)
             {
+                auto material = Application::GetAssetManager()->GetAsset(m_Handle);
                 auto scene = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetScene();
                 auto sphere = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetSphere();
-                PropertiesPanel::Get().SetContext(scene);
-                PropertiesPanel::Get().SetSelectedEntity(sphere, { PropertyType::Material });
+                ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
                 ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
+                MaterialPanel::SetContext(scene);
+                MaterialPanel::SetMaterial(material);
+                MaterialPanel::Open();
             }
         }
 
         RenderDragDrop(m_Handle);
-        
+
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
             m_Hovered = true;
         else

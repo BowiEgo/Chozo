@@ -37,7 +37,9 @@ namespace Chozo {
         : m_Shader(material->GetShader().As<OpenGLShader>()), m_Name(name)
     {
         m_TextureSlots.resize(Renderer::GetMaxTextureSlots());
-        PopulateUniforms(m_Shader);
+        auto uniforms = material.As<OpenGLMaterial>()->GetUniforms();
+        for (auto [uniformName, uniformValue] : uniforms)
+            Set(uniformName, uniformValue);
     }
 
     OpenGLMaterial::~OpenGLMaterial()

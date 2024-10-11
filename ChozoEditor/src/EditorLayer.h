@@ -11,6 +11,7 @@
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/PropertiesPanel.h"
 #include "Panels/ContentBrowser/ContentBrowserPanel.h"
+#include "Panels/MaterialPanel.h"
 #include "Panels/EnvironmentPanel.h"
 #include "Panels/TextureViewerPanel.h"
 
@@ -63,6 +64,7 @@ namespace Chozo {
         PropertiesPanel m_PropertiesPanel;
         ContentBrowserPanel m_ContentBrowserPanel;
         EnvironmentPanel m_EnvironmentPanel;
+        MaterialPanel m_MaterialPanel;
         TextureViewerPanel m_TextureViewerPanel;
 
         // Gizmo

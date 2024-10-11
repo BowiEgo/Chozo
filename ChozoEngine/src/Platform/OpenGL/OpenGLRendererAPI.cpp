@@ -32,6 +32,7 @@ namespace Chozo {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); GCE;
 
         glEnable(GL_DEPTH_TEST); GCE;
+        glEnable(GL_STENCIL_TEST); GCE;
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); GCE;
     }
 
@@ -99,7 +100,7 @@ namespace Chozo {
         // TODO: Change to pipeline context status.
         glDepthFunc(GL_LEQUAL); GCE;
         DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
-        glDepthFunc(GL_LESS); GCE;
+        ResetGLContext();
     }
 
     void OpenGLRendererAPI::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
@@ -307,7 +308,9 @@ namespace Chozo {
             uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
             uint32_t vertexCount = mesh->GetMeshSource()->GetVertexs().size();
 
+            glEnable(GL_CULL_FACE); GCE;
             RenderCommand::DrawIndexed(mesh->GetVertexArray(), indexCount * 3);
+            glDisable(GL_CULL_FACE); GCE;
 
             auto rendererData = Renderer::GetRendererData();
             rendererData.Stats.DrawCalls++;

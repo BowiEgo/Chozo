@@ -1,12 +1,12 @@
 #include "PropertiesPanel.h"
 
 #include "SceneHierarchyPanel.h"
+#include "MaterialPanel.h"
 
 #include "Chozo/Renderer/Geometry/Geometry.h"
 #include "Chozo/Renderer/Geometry/BoxGeometry.h"
 #include "Chozo/Renderer/Geometry/SphereGeometry.h"
 #include "Chozo/ImGui/ImGuiUI.h"
-#include "Chozo/Thumbnail/ThumbnailExporter.h"
 
 #include "PropertyUI.h"
 
@@ -44,6 +44,15 @@ namespace Chozo {
         if (m_SelectionContext)
             DrawComponents(m_SelectionContext);
         ImGui::End();
+    }
+
+    void PropertiesPanel::SetSelectedEntity(Entity entity, std::vector<PropertyType> filter)
+    {
+        s_Instance->m_SelectionContext = entity;
+        s_Instance->m_Filter = filter;
+
+        if (entity && entity.HasComponent<MeshComponent>())
+            s_Instance->OnMeshChange(entity);
     }
 
     template<typename T, typename UIFunction>
@@ -553,105 +562,17 @@ namespace Chozo {
     {
         DrawComponent<MeshComponent>("Material", entity, [entity, this](auto& component)
         {
-            Ref<Material> material = component.MaterialInstance;
-
-            Ref<Texture2D> preview = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetOutput();
-            RenderPreviewImage(preview);
-
-            for (auto& pair : material->GetUniforms())
-            {
-                std::string name = pair.first.substr(pair.first.find('.') + 1);
-                if (std::holds_alternative<glm::vec4>(pair.second))
-                {
-                    glm::vec4& value = std::get<glm::vec4>(pair.second);
-                    if (pair.first.find("Color") > 0 || pair.first.find("Albedo"))
-                    {
-                        DrawColumnValue<glm::vec4>(name, value, [&](auto& target) {
-                            if (ImGui::ColorEdit4(("##" + name).c_str(), glm::value_ptr(target)))
-                            {
-                                material->Set(pair.first, value);
-                                ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
-                            }
-                        });
-                    }
-                }
-                else if (std::holds_alternative<glm::vec3>(pair.second))
-                {
-                    glm::vec3& value = std::get<glm::vec3>(pair.second);
-                    if (pair.first.find("Color") || pair.first.find("Albedo"))
-                    {
-                        DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
-                            if (ImGui::ColorEdit3(("##" + name).c_str(), glm::value_ptr(target)))
-                            {
-                                material->Set(pair.first, value);
-                                ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
-                            }
-                        });
-                        RenderPreviewImage();
-
-                        // if (pair.first.find("Albedo"))
-                        // {
-                        //     std::string filePath = material->GetUniromSourcePath("u_AlbedoTex");
-                        //     UI::FileButton(&filePath);
-                        //     material->Set("u_AlbedoTex", filePath);
-                        //     ImGui::SameLine(); ImGui::Text("%s", filePath.c_str());
-                        // }
-                    }
-                    else
-                    {
-                        DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
-                            if (DrawVec3Control("##" + name, target))
-                                material->Set(pair.first, value);
-                        });
-                    }
-                }
-                else if (std::holds_alternative<float>(pair.second))
-                {
-                    float& value = std::get<float>(pair.second);
-                    DrawColumnValue<float>(name, value, [&](auto& target) {
-                        if (ImGui::DragFloat(("##" + name).c_str(), &target, 0.0025f, 0.0f, 1.0f))
-                            material->Set(pair.first, value);
-                    });
-                    if (name == "Metalness")
-                    {
-                        RenderPreviewImage();
-                    }
-                    else if (name == "Roughness")
-                    {
-                        RenderPreviewImage();
-                    }
-                }
-
-            }
-            DrawColumnValue("Normal", [&]() {
-                
-                RenderPreviewImage();
-            });
+            if (ImGui::Button("Open Material"))
+                OnMeshChange(entity);
         });
     }
 
-    void PropertiesPanel::RenderPreviewImage(Ref<Texture2D> texture)
+    void PropertiesPanel::OnMeshChange(Entity entity)
     {
-        texture = texture ? texture : Renderer::GetCheckerboardTexture();
-
-        float imageAspectRatio = static_cast<float>(texture->GetHeight()) / static_cast<float>(texture->GetWidth());
-        ImVec2 uv0(0.0f, 1.0f);
-        ImVec2 uv1(1.0f, 0.0f);
-        ImVec2 size(80, 80);
-
-        if (imageAspectRatio <= 1.0f) {
-            float offsetY = (1.0f - 1.0f / imageAspectRatio) / 2.0f;
-            uv0.y = 1.0f - offsetY;
-            uv1.y = offsetY;
-        } else {
-            float offsetX = (1.0f - imageAspectRatio) / 2.0f;
-            uv0.x = offsetX;
-            uv1.x = 1.0f - offsetX;
-        }
-
-        UI::ScopedColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::InvisibleButton("##thumbnailButton", size);
-        UI::DrawButtonImage(texture, IM_COL32(255, 255, 255, 225), UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f), uv0, uv1);
+        auto material = entity.GetComponent<MeshComponent>().MaterialInstance;
+        MaterialPanel::SetContext(m_Context);
+        MaterialPanel::SetMaterial(material);
+        MaterialPanel::Open();
     }
 
 } // namespace Chozo

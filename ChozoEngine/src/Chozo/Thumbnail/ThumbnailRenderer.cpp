@@ -62,12 +62,16 @@ namespace Chozo {
         m_Scene = Ref<Scene>::Create();
 		m_SceneRenderer = SceneRenderer::Create(m_Scene);
         m_SceneRenderer->SetActive(true);
-        m_SceneRenderer->SetViewportSize(100, 100);
+        m_SceneRenderer->SetViewportSize(200, 200);
         m_Camera = EditorCamera(12.0f, 1.0f, 0.1f, 1000.0f);
 
         auto sphere = m_Scene->CreateEntity("Sphere");
         Ref<Geometry> geom = Ref<SphereGeometry>::Create();
         sphere.AddComponent<MeshComponent>(geom);
+
+        auto dirLight = m_Scene->CreateEntity("Directional Light");
+        dirLight.AddComponent<DirectionalLightComponent>();
+        dirLight.GetComponent<DirectionalLightComponent>().Direction = glm::vec3(-45.0f, 45.0f, 45.0f);
 
         auto pointLight = m_Scene->CreateEntity("Point Light");
         pointLight.AddComponent<PointLightComponent>();
@@ -81,6 +85,9 @@ namespace Chozo {
         if (asset->GetAssetType() != AssetType::Material)
             CZ_CORE_ERROR("[MaterialThumbnailRenderer] asset type invalid!");
 
+        SetMaterial(asset.As<Material>());
+
+        // TODO: Change to Sync callback
         Ref<Texture2D> texture = GetOutput();
 
         Buffer originalBuffer;
@@ -103,6 +110,24 @@ namespace Chozo {
         return texture;
     }
 
+    void MaterialThumbnailRenderer::SetMaterial(Ref<Material> material)
+    {
+        auto sphere = GetSphere();
+        sphere.GetComponent<MeshComponent>().MaterialInstance = Material::Copy(material);
+        OnUpdate();
+    }
+
+    void MaterialThumbnailRenderer::SetMaterialValue(Ref<Material> material, std::string name, UniformValue value)
+    {
+        auto sphere = GetSphere();
+
+        if (sphere.GetComponent<MeshComponent>().MaterialInstance->GetShader() != material->GetShader())
+            sphere.GetComponent<MeshComponent>().MaterialInstance = Material::Copy(material);
+
+        sphere.GetComponent<MeshComponent>().MaterialInstance->Set(name, value);
+        OnUpdate();
+    }
+
     void MaterialThumbnailRenderer::OnUpdate()
     {
         m_Scene->OnUpdateEditor(0, m_Camera);
@@ -112,10 +137,13 @@ namespace Chozo {
     {
         auto view = m_Scene->Reg().view<TransformComponent, MeshComponent>();
         for (auto entity : view)
-        {
             return Entity{ entity, m_Scene.get() };
-        }
 
         return Entity();
+    }
+
+    Ref<Material> MaterialThumbnailRenderer::GetMaterial()
+    {
+        return GetSphere().GetComponent<MeshComponent>().MaterialInstance;
     }
 } // namespace Chozo

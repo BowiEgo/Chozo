@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chozo.h"
+#include "Chozo/Thumbnail/ThumbnailExporter.h"
 
 namespace Chozo {
 
@@ -27,7 +28,7 @@ namespace Chozo {
 
         void OnImGuiRender();
 
-        inline static void SetSelectedEntity(Entity entity,std::vector<PropertyType> filter = {
+        static void SetSelectedEntity(Entity entity, std::vector<PropertyType> filter = {
             PropertyType::Tag,
             PropertyType::Transform,
             PropertyType::Camera,
@@ -38,10 +39,7 @@ namespace Chozo {
             PropertyType::Light,
             PropertyType::Geometry,
             PropertyType::Material,
-        }) {
-            s_Instance->m_SelectionContext = entity;
-            s_Instance->m_Filter = filter;
-        }
+        });
         inline static Entity GetSelectedEntity() { return s_Instance->m_SelectionContext; }
 		inline static PropertiesPanel& Get() { return *s_Instance; }
         inline static Ref<Scene> GetContext() { return s_Instance->m_Context; }
@@ -61,7 +59,7 @@ namespace Chozo {
         void DrawGeometryProperties(Entity entity);
         void DrawMaterialProperties(Entity entity);
 
-        void RenderPreviewImage(Ref<Texture2D> texture = nullptr);
+        void OnMeshChange(Entity entity);
     private:
 		static PropertiesPanel* s_Instance;
 

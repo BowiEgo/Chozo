@@ -8,6 +8,7 @@
 
 #include "Chozo/Utilities/PlatformUtils.h"
 #include "Chozo/Renderer/Material.h"
+#include "Chozo/Thumbnail/ThumbnailExporter.h"
 
 #include <imgui_internal.h>
 
@@ -218,7 +219,16 @@ namespace Chozo {
             }
             if (ImGui::MenuItem("Material"))
             {
-                CreateAsset<Material>("material", m_CurrentDirectory, "Phong");
+                auto material = CreateAsset<Material>("material", m_CurrentDirectory, "Phong");
+                material->Set("u_Material.Albedo", glm::vec3(0.5f, 0.5f, 0.5f));
+                // material->Set("u_AlbedoTex", "");
+                material->Set("u_Material.Metalness", 0.5f);
+                material->Set("u_Material.Roughness", 0.5f);
+                material->Set("u_Material.Ambient", 1.0f);
+                material->Set("u_Material.AmbientStrength", 0.1f);
+                material->Set("u_Material.Specular", 0.5f);
+                ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
+                ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
                 OnBrowserRefresh();
                 ImGui::CloseCurrentPopup();
             }

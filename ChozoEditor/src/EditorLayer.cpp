@@ -146,6 +146,7 @@ namespace Chozo {
         m_PropertiesPanel.OnImGuiRender();
         m_ContentBrowserPanel.OnImGuiRender();
         m_EnvironmentPanel.OnImGuiRender();
+        m_MaterialPanel.OnImGuiRender();
         m_TextureViewerPanel.OnImGuiRender();
 
         // --------------------
@@ -499,8 +500,7 @@ namespace Chozo {
         {
             auto [mx, my] = ImGui::GetMousePos();
             m_Entity_Selected = PickEntity(mx, my);
-            PropertiesPanel::SetContext(m_ActiveScene);
-            PropertiesPanel::SetSelectedEntity(m_Entity_Selected);
+            m_SceneHierarchyPanel.SetSelectedEntity(m_Entity_Selected);
             return true;
         }
 
