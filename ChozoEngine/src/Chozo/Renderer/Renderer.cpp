@@ -102,6 +102,8 @@ namespace Chozo {
         s_Data.m_ShaderLibrary->Get("Basic")->Bind();
         s_Data.m_ShaderLibrary->Get("Basic")->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
 
+        s_Data.m_ShaderLibrary->Load("Solid", "../resources/shaders/Basic.glsl.vert", "../resources/shaders/Solid.glsl.frag");
+
         s_Data.m_ShaderLibrary->Load("ID", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/ID.glsl.frag");
         s_Data.m_ShaderLibrary->Load("Geometry", "../resources/shaders/GBuffer.glsl.vert", "../resources/shaders/GBuffer.glsl.frag");
 

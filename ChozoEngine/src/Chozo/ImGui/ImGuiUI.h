@@ -501,6 +501,24 @@ namespace Chozo::UI {
 		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 	};
 
+	inline void DrawButtonImageByRatio(const Ref<Texture2D>& image)
+	{
+		float imageAspectRatio = static_cast<float>(image->GetHeight()) / static_cast<float>(image->GetWidth());
+        ImVec2 uv0(0.0f, 1.0f);
+        ImVec2 uv1(1.0f, 0.0f);
+        if (imageAspectRatio <= 1.0f) {
+            float offsetY = (1.0f - 1.0f / imageAspectRatio) / 2.0f;
+            uv0.y = 1.0f - offsetY;
+            uv1.y = offsetY;
+        } else {
+            float offsetX = (1.0f - imageAspectRatio) / 2.0f;
+            uv0.x = offsetX;
+            uv1.x = 1.0f - offsetX;
+        }
+
+        UI::DrawButtonImage(image, IM_COL32(255, 255, 255, 225), UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f), uv0, uv1);
+	}
+
 	//=========================================================================================
 	/// IconButton
 	static bool IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32 bgPressed)

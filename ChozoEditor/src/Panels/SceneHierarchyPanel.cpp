@@ -147,7 +147,7 @@ namespace Chozo {
                         entity = s_Instance->m_Context->CreateEntity("Box");
                     if (!entity.HasComponent<MeshComponent>())
                     {
-                        Ref<Geometry> geom = Ref<BoxGeometry>::Create();
+                        auto geom = Ref<BoxGeometry>::Create();
                         geom->SetEntityID((uint64_t)entity);
                         entity.AddComponent<MeshComponent>(geom);
                     }
@@ -159,7 +159,7 @@ namespace Chozo {
                         entity = s_Instance->m_Context->CreateEntity("Sphere");
                     if (!entity.HasComponent<MeshComponent>())
                     {
-                        Ref<Geometry> geom = Ref<SphereGeometry>::Create();
+                        auto geom = Ref<SphereGeometry>::Create();
                         geom->SetEntityID((uint64_t)entity);
                         entity.AddComponent<MeshComponent>(geom);
                     }

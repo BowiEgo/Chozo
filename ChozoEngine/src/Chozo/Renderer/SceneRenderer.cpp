@@ -83,11 +83,34 @@ namespace Chozo
 			m_GeometryPass->SetInput("CameraData", m_CameraUB);
         }
 
+        // Solid
+        {
+            FramebufferSpecification fbSpec;
+            fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+			fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGB16F, ImageFormat::RED32I, ImageFormat::Depth };
+			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
+
+			PipelineSpecification pipelineSpec;
+			pipelineSpec.DebugName = "Solid";
+            pipelineSpec.DepthWrite = false;
+            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Solid");
+			pipelineSpec.TargetFramebuffer = framebuffer;
+			m_SolidMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
+
+			RenderPassSpecification renderPassSpec;
+			renderPassSpec.DebugName = "Solid";
+			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
+			m_SolidPass = RenderPass::Create(renderPassSpec);
+			m_SolidPass->SetInput("CameraData", m_CameraUB);
+			m_SolidPass->SetInput("SceneData", m_SceneUB);
+        }
+
         // ID
         {
             FramebufferSpecification fbSpec;
 			fbSpec.Attachments = {
                 ImageFormat::RGB16F,
+                ImageFormat::RED32I,
             };
 
             Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
@@ -98,8 +121,14 @@ namespace Chozo
             pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("ID");
 			pipelineSpec.TargetFramebuffer = framebuffer;
 			m_IDMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
-            Ref<Texture2D> idText = m_GeometryPass->GetOutput(5);
-            m_IDMaterial->Set("u_IdText", idText);
+            Ref<Texture2D> solidIdTex = m_SolidPass->GetOutput(2);
+            Ref<Texture2D> solidDepthTex = m_SolidPass->GetOutput(1);
+            Ref<Texture2D> PBRIdTex = m_GeometryPass->GetOutput(5);
+            Ref<Texture2D> PBRDepthTex = m_GeometryPass->GetOutput(2);
+            m_IDMaterial->Set("u_SolidIdTex", solidIdTex);
+            m_IDMaterial->Set("u_SolidDepthTex", solidDepthTex);
+            m_IDMaterial->Set("u_PBRIdTex", PBRIdTex);
+            m_IDMaterial->Set("u_PBRDepthTex", PBRDepthTex);
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.DebugName = "ID";
@@ -191,12 +220,16 @@ namespace Chozo
             pipelineSpec.DepthTest = false;
 			m_CompositeMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
             Ref<Texture2D> skyboxTex = m_SkyboxPass->GetOutput(0);
+            Ref<Texture2D> solidTex = m_SolidPass->GetOutput(0);
+            Ref<Texture2D> solidDepthTex = m_SolidPass->GetOutput(1);
             Ref<Texture2D> phongLightTex = m_PhongLightPass->GetOutput(0);
             Ref<Texture2D> PBRTex = m_PBRPass->GetOutput(0);
-            Ref<Texture2D> depthText = m_GeometryPass->GetOutput(2);
+            Ref<Texture2D> PBRDepthTex = m_GeometryPass->GetOutput(2);
             m_CompositeMaterial->Set("u_SkyboxTex", skyboxTex);
-            m_CompositeMaterial->Set("u_GeometryTex", PBRTex);
-            m_CompositeMaterial->Set("u_DepthTex", depthText);
+            m_CompositeMaterial->Set("u_SolidTex", solidTex);
+            m_CompositeMaterial->Set("u_SolidDepthTex", solidDepthTex);
+            m_CompositeMaterial->Set("u_PBRTex", PBRTex);
+            m_CompositeMaterial->Set("u_PBRDepthTex", PBRDepthTex);
 
             RenderPassSpecification renderPassSpec;
             renderPassSpec.DebugName = "SceneComposite";
@@ -220,6 +253,7 @@ namespace Chozo
         m_SkyboxPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
         m_GeometryPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
         m_IDPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
+        m_SolidPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
         m_PhongLightPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
         m_PBRPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
 
@@ -334,6 +368,9 @@ namespace Chozo
 		Renderer::BeginRenderPass(m_CommandBuffer, m_GeometryPass);
         for (auto meshData : m_MeshDatas)
         {
+            if (!meshData.Material)
+                continue;
+
             meshData.Material->Set("u_VertUniforms.ModelMatrix", meshData.Transform);
             
             if (meshData.Mesh.As<DynamicMesh>())
@@ -347,6 +384,23 @@ namespace Chozo
 		Renderer::BeginRenderPass(m_CommandBuffer, m_IDPass);
 		Renderer::SubmitFullscreenQuad(m_CommandBuffer, m_IDPass->GetPipeline(), m_IDMaterial);
 		Renderer::EndRenderPass(m_CommandBuffer, m_IDPass);
+    }
+
+    void SceneRenderer::SolidPass()
+    {
+		Renderer::BeginRenderPass(m_CommandBuffer, m_SolidPass);
+        for (auto meshData : m_MeshDatas)
+        {
+            if (!meshData.Material)
+            {
+                auto material = Material::Copy(m_SolidMaterial);
+                material->Set("u_VertUniforms.ModelMatrix", meshData.Transform);
+                
+                if (meshData.Mesh.As<DynamicMesh>())
+                    Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_SolidPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), material);
+            }
+        }
+		Renderer::EndRenderPass(m_CommandBuffer, m_SolidPass);
     }
 
     void SceneRenderer::PhongLightPass()
@@ -406,6 +460,7 @@ namespace Chozo
 
         SkyboxPass();
         GeometryPass();
+        SolidPass();
         IDPass();
         // PhongLightPass();
         PBRPass();

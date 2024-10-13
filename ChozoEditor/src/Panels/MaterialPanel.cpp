@@ -7,13 +7,95 @@ namespace Chozo {
 	MaterialPanel* MaterialPanel::s_Instance;
     bool MaterialPanel::s_Show = false;
 
+    Ref<Texture2D>& MaterialPanel::GetPreviewTextureByType(PreviewType type)
+    {
+        switch (type) {
+            #define GENERATE_CASE(ENUM) case PreviewType::ENUM: return m_##ENUM##Texture;
+            FOREACH_PREVIEW_TYPE(GENERATE_CASE)
+            #undef GENERATE_CASE
+            default: return m_AlbedoTexture;
+        }
+    }
+
+    void MaterialPanel::UpdatePreviewTextureByType(PreviewType type)
+    {
+        switch (type) {
+            #define GENERATE_CASE(ENUM) case PreviewType::ENUM: { \
+                auto checkerboard = Renderer::GetCheckerboardTexture(); \
+                if (m_##ENUM##Texture && m_##ENUM##Texture != checkerboard) \
+                { \
+                    m_Material->Set("u_" #ENUM "Tex", m_##ENUM##Texture); \
+                    m_Material->Set("u_Material.enable" #ENUM "Tex", true); \
+                    OnMaterialChange(m_Material, "u_" #ENUM "Tex", m_##ENUM##Texture); \
+                    OnMaterialChange(m_Material, "u_Material.enable" #ENUM "Tex", true); \
+                } \
+                else \
+                { \
+                    m_AlbedoTexture = checkerboard; \
+                    m_Material->Set("u_Material.enableAlbedoTex", false); \
+                    OnMaterialChange(m_Material, "u_Material.enableAlbedoTex", false); \
+                } \
+                break; \
+            };
+            FOREACH_PREVIEW_TYPE(GENERATE_CASE)
+            #undef GENERATE_CASE
+            default: return;
+        }
+    }
+
+    void MaterialPanel::RenderPreviewImageByType(PreviewType type)
+    {
+        switch (type) {
+            #define GENERATE_CASE(ENUM) case PreviewType::ENUM: { \
+                UI::DrawButtonImageByRatio(m_##ENUM##Texture); \
+                break; \
+            };
+            FOREACH_PREVIEW_TYPE(GENERATE_CASE)
+            #undef GENERATE_CASE
+            default: return;
+        }
+    }
+
     MaterialPanel::MaterialPanel()
     {
         s_Instance = this;
+        Init();
     }
+
+    void MaterialPanel::Init()
+    {
+        auto checkerboard = Renderer::GetCheckerboardTexture();
+        s_Instance->m_AlbedoTexture = s_Instance->m_AlbedoTexture ? s_Instance->m_AlbedoTexture : checkerboard;
+        s_Instance->m_MetalnessTexture = checkerboard;
+        s_Instance->m_RoughnessTexture = checkerboard;
+        s_Instance->m_NormalTexture = checkerboard;
+    }
+
+    void MaterialPanel::SetMaterial(Ref<Material> material)
+    {
+        s_Instance->m_Material = material;
+        s_Instance->m_PreviewUpdated = true;
+
+        if (!material)
+            return;
+
+        ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
+        ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
+
+        auto checkerboard = Renderer::GetCheckerboardTexture();
+        auto albedoTex = material->GetTexture("u_AlbedoTex");
+        auto metalnessTex = material->GetTexture("u_MetalnessTex");
+        auto roughnessTex = material->GetTexture("u_RoughnessTex");
+        auto normalTex = material->GetTexture("u_NormalTex");
+        s_Instance->m_AlbedoTexture = albedoTex ? albedoTex : checkerboard;
+        s_Instance->m_MetalnessTexture = metalnessTex ? metalnessTex : checkerboard;
+        s_Instance->m_RoughnessTexture = roughnessTex ? roughnessTex : checkerboard;
+        s_Instance->m_NormalTexture = normalTex ? normalTex : checkerboard;
+    }
+
     void MaterialPanel::OnImGuiRender()
     {
-        if (!s_Show)
+        if (!s_Show || !m_Material)
             return;
 
         ImGui::Begin("Material");
@@ -31,7 +113,7 @@ namespace Chozo {
             preview = m_PreviewCache;
         }
 
-        RenderPreviewImage(preview);
+        RenderPreviewImage(PreviewType::None, preview);
 
         if (!m_Material)
             m_Material = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetMaterial();
@@ -65,7 +147,7 @@ namespace Chozo {
                             OnMaterialChange(m_Material, pair.first, value);
                         }
                     });
-                    RenderPreviewImage();
+                    RenderPreviewImage(PreviewType::Albedo);
 
                     // if (pair.first.find("Albedo"))
                     // {
@@ -98,45 +180,40 @@ namespace Chozo {
                 });
                 if (name == "Metalness")
                 {
-                    RenderPreviewImage();
+                    RenderPreviewImage(PreviewType::Metalness);
                 }
                 else if (name == "Roughness")
                 {
-                    RenderPreviewImage();
+                    RenderPreviewImage(PreviewType::Roughness);
                 }
             }
 
         }
         DrawColumnValue("Normal", [&]() {
-            
-            RenderPreviewImage();
+            RenderPreviewImage(PreviewType::Normal);
         });
 
         ImGui::End();
     }
 
-    void MaterialPanel::RenderPreviewImage(Ref<Texture2D> texture)
+    void MaterialPanel::RenderPreviewImage(PreviewType type, Ref<Texture2D> texture)
     {
-        texture = texture ? texture : Renderer::GetCheckerboardTexture();
+        auto checkerboard = Renderer::GetCheckerboardTexture();
 
-        float imageAspectRatio = static_cast<float>(texture->GetHeight()) / static_cast<float>(texture->GetWidth());
-        ImVec2 uv0(0.0f, 1.0f);
-        ImVec2 uv1(1.0f, 0.0f);
-        ImVec2 size(80, 80);
+        ImGui::InvisibleButton("##thumbnailButton", ImVec2{80, 80});
 
-        if (imageAspectRatio <= 1.0f) {
-            float offsetY = (1.0f - 1.0f / imageAspectRatio) / 2.0f;
-            uv0.y = 1.0f - offsetY;
-            uv1.y = offsetY;
-        } else {
-            float offsetX = (1.0f - imageAspectRatio) / 2.0f;
-            uv0.x = offsetX;
-            uv1.x = 1.0f - offsetX;
-        }
+        UI::BeginDragAndDrop([checkerboard, texture, type, this](AssetHandle handle) {
+            Ref<Asset> asset = Application::GetAssetManager()->GetAsset(handle);
+            auto& previewTex = GetPreviewTextureByType(type);
+            previewTex = asset.As<Texture2D>();
 
-        UI::ScopedColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::InvisibleButton("##thumbnailButton", size);
-        UI::DrawButtonImage(texture, IM_COL32(255, 255, 255, 225), UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f), uv0, uv1);
+            UpdatePreviewTextureByType(type);
+        });
+
+        if (type == PreviewType::None)
+            UI::DrawButtonImageByRatio(texture);
+        else
+            RenderPreviewImageByType(type);
     }
 
     void MaterialPanel::OnMaterialChange(Ref<Material> material, std::string name, UniformValue value)
@@ -144,13 +221,9 @@ namespace Chozo {
         ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterialValue(material, name, value);
     }
 
-    void MaterialPanel::SetThumbnailMaterial(Entity entity)
+    void MaterialPanel::OnMaterialChange(Ref<Material> material, std::string name, Ref<Texture2D> texture)
     {
-        if (m_Context != ThumbnailExporter::GetMaterialThumbnailRenderer()->GetScene())
-        {
-            auto material = entity.GetComponent<MeshComponent>().MaterialInstance;
-            ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
-        }
+        ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterialValue(material, name, texture);
     }
 
 }

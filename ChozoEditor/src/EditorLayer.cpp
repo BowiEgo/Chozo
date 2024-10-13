@@ -248,6 +248,28 @@ namespace Chozo {
             }
         }
 
+        {
+            std::string buttonLabel = "Solid";
+            if(ImGui::Button(buttonLabel.c_str()))
+            {
+                TextureViewerPanel::Open();
+
+                Ref<Texture2D> texture = m_ViewportRenderer->GetSolidPass()->GetOutput(0);
+                TextureViewerPanel::SetTexture(texture);
+            }
+        }
+
+        {
+            std::string buttonLabel = "Solid Depth";
+            if(ImGui::Button(buttonLabel.c_str()))
+            {
+                TextureViewerPanel::Open();
+
+                Ref<Texture2D> texture = m_ViewportRenderer->GetSolidPass()->GetOutput(1);
+                TextureViewerPanel::SetTexture(texture);
+            }
+        }
+
         // --------------------
         // Viewport
         // --------------------
@@ -276,7 +298,7 @@ namespace Chozo {
         m_AllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
 
         // Drag and drop
-        UI::BeginDragAndDrop([this](AssetHandle handle){
+        UI::BeginDragAndDrop([this](AssetHandle handle) {
             OnDragAndDrop(handle);
         });
 
@@ -412,7 +434,7 @@ namespace Chozo {
 
         if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
         {
-            int pixelID = m_ViewportRenderer->GetGeometryPass()->GetTargetFramebuffer()->ReadPixel(5, mx, my) - 1;
+            int pixelID = m_ViewportRenderer->GetIDPass()->GetTargetFramebuffer()->ReadPixel(1, mx, my) - 1;
             entity = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
                 ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
         }

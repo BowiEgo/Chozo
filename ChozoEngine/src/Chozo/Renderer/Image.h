@@ -19,6 +19,7 @@ namespace Chozo
 		RGB,
 		RGB8,
 		RGB16F,
+		RGB32F,
 		RGBA,
 		RGBA16F,
 		RGBA32F,
@@ -83,6 +84,7 @@ namespace Chozo
 				case ImageFormat::RGB:            return 3;  // 8-bit per component, 3 components
 				case ImageFormat::RGB8:           return 3;  // 8-bit per component, 3 components
 				case ImageFormat::RGB16F:         return 6;  // 16-bit float, 3 components (RGB) = 3 * 2
+				case ImageFormat::RGB32F:         return 12; // 32-bit float, 3 components (RGB) = 3 * 4
 				case ImageFormat::RGBA:           return 4;  // 8-bit per component, 4 components (RGBA)
 				case ImageFormat::RGBA8:          return 4;  // 8-bit per component, 4 components (RGBA)
 				case ImageFormat::RGBA16F:        return 8;  // 16-bit float, 4 components (RGBA) = 4 * 2

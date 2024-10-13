@@ -21,6 +21,7 @@ namespace Chozo {
             case ImageFormat::RGB: return 3;
             case ImageFormat::RGB8: return 3;
             case ImageFormat::RGB16F: return 3;
+            case ImageFormat::RGB32F: return 3;
             case ImageFormat::RGBA: return 4;
             case ImageFormat::RGBA8: return 4;
             case ImageFormat::RGBA16F: return 4;
@@ -50,6 +51,7 @@ namespace Chozo {
             case ImageFormat::RGB: return GL_RGB;
             case ImageFormat::RGB8: return GL_RGB8;
             case ImageFormat::RGB16F: return GL_RGB16F;
+            case ImageFormat::RGB32F: return GL_RGB32F;
             case ImageFormat::RGBA: return GL_RGBA;
             case ImageFormat::RGBA8: return GL_RGBA8;
             case ImageFormat::RGBA16F: return GL_RGBA16F;
@@ -78,6 +80,7 @@ namespace Chozo {
             case ImageFormat::RGB: return GL_RGB;
             case ImageFormat::RGB8: return GL_RGB;
             case ImageFormat::RGB16F: return GL_RGB;
+            case ImageFormat::RGB32F: return GL_RGB;
             case ImageFormat::RGBA: return GL_RGBA;  // Should be GL_RGBA for 4 channels
             case ImageFormat::RGBA8: return GL_RGBA;
             case ImageFormat::RGBA16F: return GL_RGBA;
@@ -106,6 +109,7 @@ namespace Chozo {
             case ImageFormat::RGB: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit
             case ImageFormat::RGB8: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit
             case ImageFormat::RGB16F: return GL_FLOAT;  // 16-bit float
+            case ImageFormat::RGB32F: return GL_FLOAT;  // 32-bit float
             case ImageFormat::RGBA: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit for 4 channels
             case ImageFormat::RGBA8: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit for 4 channels
             case ImageFormat::RGBA16F: return GL_HALF_FLOAT;  // 16-bit float for 4 channels

@@ -94,18 +94,6 @@ namespace Chozo {
         MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic, Ref<Material> material = nullptr)
             : MeshSrc(meshSrc), Type(meshType), MaterialInstance(material)
         {
-            if (!MaterialInstance)
-            {
-                MaterialInstance = Material::Create("Phong");
-                MaterialInstance->Set("u_Material.Albedo", glm::vec3(0.5f, 0.5f, 0.5f));
-                // MaterialInstance->Set("u_AlbedoTex", "");
-                MaterialInstance->Set("u_Material.Metalness", 0.5f);
-                MaterialInstance->Set("u_Material.Roughness", 0.5f);
-                MaterialInstance->Set("u_Material.Ambient", 1.0f);
-                MaterialInstance->Set("u_Material.AmbientStrength", 0.1f);
-                MaterialInstance->Set("u_Material.Specular", 0.5f);
-            }
-
             GenerateMeshInstance();
         }
         ~MeshComponent() {}

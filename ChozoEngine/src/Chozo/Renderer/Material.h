@@ -24,6 +24,9 @@ namespace Chozo
 		virtual void Set(const std::string& name, const Ref<TextureCube>& texture) = 0;
 
         virtual std::map<std::string, UniformValue> GetUniforms() = 0;
+        virtual Ref<Texture2D> GetTexture(std::string name) = 0;
+        virtual std::vector<Ref<Texture>> GetAllTextures() const = 0;
+        virtual uint32_t GetLastTextureSlotIndex() const = 0;
 
 		virtual std::string GetName() = 0;
 		virtual Ref<Shader> GetShader() const = 0;

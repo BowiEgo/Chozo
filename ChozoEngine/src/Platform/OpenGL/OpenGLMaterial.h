@@ -21,6 +21,10 @@ namespace Chozo {
 		virtual Ref<Shader> GetShader() const override { return m_Shader; }
 
         virtual std::map<std::string, UniformValue> GetUniforms() override { return m_Uniforms; }
+        virtual Ref<Texture2D> GetTexture(std::string name) override;
+
+        virtual inline std::vector<Ref<Texture>> GetAllTextures() const override { return m_TextureSlots; }
+        virtual inline uint32_t GetLastTextureSlotIndex() const override { return m_TextureSlotIndex; }
 
         void Bind();
         void BindTextures();

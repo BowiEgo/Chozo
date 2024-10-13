@@ -56,7 +56,7 @@ namespace Chozo
                 vertice.Normal.z = zPos;
 
                 vertice.TexCoord.x = u + uOffset;
-                vertice.TexCoord.x = 1 - v;
+                vertice.TexCoord.y = 1 - v;
 
                 vertice.EntityID = m_EntityID;
 

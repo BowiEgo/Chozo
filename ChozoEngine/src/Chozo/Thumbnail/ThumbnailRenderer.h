@@ -33,6 +33,7 @@ namespace Chozo {
         Ref<Material> GetMaterial();
         void SetMaterial(Ref<Material> material);
         void SetMaterialValue(Ref<Material> material, std::string name, UniformValue value);
+        void SetMaterialValue(Ref<Material> material, std::string name, Ref<Texture2D> texture);
         inline Ref<Scene> GetScene() { return m_Scene; }
         inline Ref<Texture2D> GetOutput() { return m_SceneRenderer->GetCompositePass()->GetOutput(0); }
     private:

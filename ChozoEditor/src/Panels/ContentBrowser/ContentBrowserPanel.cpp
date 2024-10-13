@@ -227,6 +227,10 @@ namespace Chozo {
                 material->Set("u_Material.Ambient", 1.0f);
                 material->Set("u_Material.AmbientStrength", 0.1f);
                 material->Set("u_Material.Specular", 0.5f);
+                material->Set("u_Material.enableAlbedoTex", false);
+                material->Set("u_Material.enableMetalnessTex", false);
+                material->Set("u_Material.enableRoughnessTex", false);
+                material->Set("u_Material.enableNormalTex", false);
                 ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
                 ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
                 OnBrowserRefresh();
@@ -468,8 +472,8 @@ namespace Chozo {
         fs::path path = FileDialogs::OpenFile("Import (*.png)\0*.jpeg\0");
 
         Texture2DSpecification spec;
-        spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
-        spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
+        spec.WrapS = ImageParameter::CLAMP_TO_EDGE;
+        spec.WrapT = ImageParameter::CLAMP_TO_EDGE;
 
         Ref<Asset> textureAsset = CreateAsset<Texture2D>(path.filename().stem().string(), m_CurrentDirectory, path.string(), spec);
 

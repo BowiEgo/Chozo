@@ -36,7 +36,8 @@ namespace Chozo {
     OpenGLMaterial::OpenGLMaterial(const Ref<Material> &material, const std::string &name)
         : m_Shader(material->GetShader().As<OpenGLShader>()), m_Name(name)
     {
-        m_TextureSlots.resize(Renderer::GetMaxTextureSlots());
+        m_TextureSlots = material->GetAllTextures();
+        m_TextureSlotIndex = material->GetLastTextureSlotIndex();
         auto uniforms = material.As<OpenGLMaterial>()->GetUniforms();
         for (auto [uniformName, uniformValue] : uniforms)
             Set(uniformName, uniformValue);
@@ -82,6 +83,31 @@ namespace Chozo {
     void OpenGLMaterial::Set(const std::string &name, const Ref<TextureCube> &texture)
     {
         Set(name, texture.As<Texture>());
+    }
+
+    Ref<Texture2D> OpenGLMaterial::GetTexture(std::string name)
+    {
+        UniformValue value = m_Uniforms[name];
+
+        if (std::holds_alternative<bool>(value))
+        {
+            if (std::get<bool>(value))
+                CZ_CORE_ERROR("{} does not contain int/unsigned int value", name);
+
+            return nullptr;
+        }
+        else if (std::holds_alternative<int>(value))
+        {
+            uint32_t slotIndex = std::get<int>(value);
+            return m_TextureSlots[slotIndex];
+        }
+        else if (std::holds_alternative<unsigned int>(value))
+        {
+            uint32_t slotIndex = std::get<unsigned int>(value);
+            return m_TextureSlots[slotIndex];
+        }
+
+        return nullptr;
     }
 
     void OpenGLMaterial::Bind()

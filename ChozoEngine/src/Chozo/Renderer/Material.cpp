@@ -11,6 +11,8 @@ namespace Chozo {
         Ref<Shader> shader;
         if (name == "Basic")
             shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Basic");
+        if (name == "Solid")
+            shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Solid");
         else if (name == "Phong")
             shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Geometry");
         else

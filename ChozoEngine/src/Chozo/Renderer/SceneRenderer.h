@@ -65,6 +65,7 @@ namespace Chozo
         Ref<RenderPass> GetSkyboxPass() { return m_SkyboxPass; }
         Ref<RenderPass> GetGeometryPass() { return m_GeometryPass; }
         Ref<RenderPass> GetIDPass() { return m_IDPass; }
+        Ref<RenderPass> GetSolidPass() { return m_SolidPass; }
         Ref<RenderPass> GetPhongLightPass() { return m_PhongLightPass; }
         Ref<RenderPass> GetCompositePass() { return m_CompositePass; }
 
@@ -72,7 +73,8 @@ namespace Chozo
 
         void SkyboxPass();
         void GeometryPass();
-        void IDPass(); // Only supported in editor mode.
+        void IDPass(); // TODO: Only supported in editor mode.
+        void SolidPass();
         void PhongLightPass();
         void PBRPrePass();
         void PBRPass();
@@ -149,6 +151,9 @@ namespace Chozo
         
 		Ref<Material> m_IDMaterial;
 		Ref<RenderPass> m_IDPass;
+
+		Ref<Material> m_SolidMaterial;
+		Ref<RenderPass> m_SolidPass;
 
 		Ref<Material> m_PhongLightMaterial;
 		Ref<RenderPass> m_PhongLightPass;

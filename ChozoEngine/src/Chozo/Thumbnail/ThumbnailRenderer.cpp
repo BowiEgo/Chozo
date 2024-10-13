@@ -72,6 +72,7 @@ namespace Chozo {
         auto dirLight = m_Scene->CreateEntity("Directional Light");
         dirLight.AddComponent<DirectionalLightComponent>();
         dirLight.GetComponent<DirectionalLightComponent>().Direction = glm::vec3(-45.0f, 45.0f, 45.0f);
+        dirLight.GetComponent<DirectionalLightComponent>().Intensity = 2.0f;
 
         auto pointLight = m_Scene->CreateEntity("Point Light");
         pointLight.AddComponent<PointLightComponent>();
@@ -125,6 +126,17 @@ namespace Chozo {
             sphere.GetComponent<MeshComponent>().MaterialInstance = Material::Copy(material);
 
         sphere.GetComponent<MeshComponent>().MaterialInstance->Set(name, value);
+        OnUpdate();
+    }
+
+    void MaterialThumbnailRenderer::SetMaterialValue(Ref<Material> material, std::string name, Ref<Texture2D> texture)
+    {
+        auto sphere = GetSphere();
+
+        if (sphere.GetComponent<MeshComponent>().MaterialInstance->GetShader() != material->GetShader())
+            sphere.GetComponent<MeshComponent>().MaterialInstance = Material::Copy(material);
+
+        sphere.GetComponent<MeshComponent>().MaterialInstance->Set(name, texture);
         OnUpdate();
     }
 
