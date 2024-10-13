@@ -219,7 +219,7 @@ namespace Chozo {
             }
             if (ImGui::MenuItem("Material"))
             {
-                auto material = CreateAsset<Material>("material", m_CurrentDirectory, "Phong");
+                auto material = CreateAsset<Material>("material", m_CurrentDirectory, "PBR");
                 material->Set("u_Material.Albedo", glm::vec3(0.5f, 0.5f, 0.5f));
                 // material->Set("u_AlbedoTex", "");
                 material->Set("u_Material.Metalness", 0.5f);

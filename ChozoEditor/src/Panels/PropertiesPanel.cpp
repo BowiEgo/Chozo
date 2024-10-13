@@ -50,17 +50,17 @@ namespace Chozo {
     {
         s_Instance->m_SelectionContext = entity;
         s_Instance->m_Filter = filter;
-
-        if (entity && entity.HasComponent<MeshComponent>())
-            s_Instance->OnMeshChange(entity);
+        s_Instance->OnSelectedChange(entity);
     }
 
     template<typename T, typename UIFunction>
     static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
     {
-        const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen
-            | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth
+        ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth
             | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_FramePadding;
+        if (name == "Transform")
+            treeNodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+
         if (entity.HasComponent<T>())
         {
             auto& component = entity.GetComponent<T>();
@@ -562,17 +562,43 @@ namespace Chozo {
     {
         DrawComponent<MeshComponent>("Material", entity, [entity, this](auto& component)
         {
-            if (ImGui::Button("Open Material"))
-                OnMeshChange(entity);
+            Ref<Material> material = component.MaterialInstance;
+
+            auto name = material ? material->GetName() : "Solid";
+
+            ImGui::Text("%s", name.c_str());
+            ImGui::SameLine();
+
+            if (material)
+            {
+                if (ImGui::Button("Open Material"))
+                    OpenMaterialPanel(entity);
+            }
+            else
+            {
+                if (ImGui::Button("Create Material"))
+                {
+
+                }
+            }
         });
     }
 
-    void PropertiesPanel::OnMeshChange(Entity entity)
+    void PropertiesPanel::OpenMaterialPanel(Entity entity)
     {
-        auto material = entity.GetComponent<MeshComponent>().MaterialInstance;
+        Ref<Material> material;
+        if (entity && entity.HasComponent<MeshComponent>())
+        {
+            material = entity.GetComponent<MeshComponent>().MaterialInstance;
+        }
         MaterialPanel::SetContext(m_Context);
         MaterialPanel::SetMaterial(material);
         MaterialPanel::Open();
+    }
+
+    void PropertiesPanel::OnSelectedChange(Entity entity)
+    {
+        OpenMaterialPanel(entity);        
     }
 
 } // namespace Chozo
