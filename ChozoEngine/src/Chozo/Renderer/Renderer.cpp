@@ -317,9 +317,9 @@ namespace Chozo {
 		s_RendererAPI->SubmitFullscreenBox(commandBuffer, pipeline, material);
     }
 
-    void Renderer::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material)
+    void Renderer::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material, glm::mat4 transform)
     {
-        s_RendererAPI->SubmitMeshWithMaterial(commandBuffer, pipeline, mesh, material);
+        s_RendererAPI->SubmitMeshWithMaterial(commandBuffer, pipeline, mesh, material, transform);
     }
 
     void Renderer::Begin()

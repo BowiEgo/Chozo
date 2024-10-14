@@ -31,9 +31,9 @@ namespace Chozo {
                 } \
                 else \
                 { \
-                    m_AlbedoTexture = checkerboard; \
-                    m_Material->Set("u_Material.enableAlbedoTex", false); \
-                    OnMaterialChange(m_Material, "u_Material.enableAlbedoTex", false); \
+                    m_##ENUM##Texture = checkerboard; \
+                    m_Material->Set("u_Material.enable" #ENUM "Tex", false); \
+                    OnMaterialChange(m_Material, "u_Material.enable" #ENUM "Tex", false); \
                 } \
                 break; \
             };
@@ -80,7 +80,6 @@ namespace Chozo {
             return;
 
         ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
-        ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
 
         auto checkerboard = Renderer::GetCheckerboardTexture();
         auto albedoTex = material->GetTexture("u_AlbedoTex");

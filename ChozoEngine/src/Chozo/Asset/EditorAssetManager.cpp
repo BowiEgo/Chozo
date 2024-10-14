@@ -18,7 +18,6 @@ namespace Chozo {
     EditorAssetManager::EditorAssetManager()
     {
         AssetImporter::Init();
-        LoadAssetRegistry();
     }
 
     EditorAssetManager::~EditorAssetManager()
@@ -27,29 +26,29 @@ namespace Chozo {
 
     Ref<Asset> EditorAssetManager::GetAsset(AssetHandle assetHandle)
     {
-        return m_MemoryAssets[assetHandle];
+        if (IsMemoryAsset(assetHandle))
+			return m_MemoryAssets[assetHandle];
 
         auto& metadata = GetMetadataInternal(assetHandle);
         if (!metadata.IsValid())
             return nullptr;
 
-        Ref<Asset> asset;
-        // if (!metadata.IsDataLoaded)
-        // {
-        //     metadata.IsDataLoaded = AssetImporter::TryLoadData(metadata, asset);
-        //     if (!metadata.IsDataLoaded)
-        //         return nullptr;
-            
-        //     m_LoadedAssets[assetHandle] = asset;
-        // }
-        // else
-        //     asset = m_LoadedAssets[assetHandle];
-
-        return asset;
+        if (!metadata.IsDataLoaded)
+        {
+            auto asset = AssetImporter::TryLoadData(metadata);
+            asset->Handle = assetHandle;
+            metadata.IsDataLoaded = !!asset;
+            if (asset)
+                m_LoadedAssets[assetHandle] = asset;
+            return asset;
+        }
+        else
+            return m_LoadedAssets[assetHandle];
     }
 
     void EditorAssetManager::AddMemoryOnlyAsset(Ref<Asset> asset)
     {
+        asset->Handle = AssetHandle();
         AssetMetadata metadata;
         metadata.Handle = asset->Handle;
         metadata.Type = asset->GetAssetType();
@@ -66,7 +65,8 @@ namespace Chozo {
 
     bool EditorAssetManager::IsAssetHandleValid(AssetHandle handle)
     {
-        return false;
+        AssetMetadata metadata = GetMetadata(handle);
+        return metadata.IsValid();
     }
 
     bool EditorAssetManager::IsAssetLoaded(AssetHandle handle)
@@ -193,7 +193,7 @@ namespace Chozo {
 		    Ref<Asset> asset = AssetImporter::Deserialize(metadata);
 
 			asset->Handle = handle;
-			m_MemoryAssets[handle] = asset;
+			m_LoadedAssets[handle] = asset;
         }
         return;
     }
@@ -217,6 +217,12 @@ namespace Chozo {
     void EditorAssetManager::WriteRegistryToFile()
     {
         AssetRegistrySerializer serializer(m_AssetRegistry);
+
+        for (auto [handle, metadata] : m_AssetRegistry)
+        {
+            auto asset = GetAsset(handle);
+            AssetImporter::Serialize(metadata, asset);
+        }
 
         serializer.Serialize("../assets/AssetRegistry.czar");
     }

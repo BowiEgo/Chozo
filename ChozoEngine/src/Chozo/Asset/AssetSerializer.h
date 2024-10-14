@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Asset.h"
+#include "Chozo/Renderer/Material.h"
 
 namespace Chozo {
 
@@ -25,5 +26,8 @@ namespace Chozo {
 	public:
 		virtual uint64_t Serialize(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
 		virtual Ref<Asset> Deserialize(const AssetMetadata& metadata) const override;
+	private:
+		std::string SerializeToYAML(Ref<Material> material) const;
+		Ref<Material> DeserializeFromYAML(const std::string& yamlString) const;
 	};
 }

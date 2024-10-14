@@ -12,8 +12,11 @@ namespace Chozo {
         OpenGLMaterial(const Ref<Material>& material, const std::string& name);
         virtual ~OpenGLMaterial() override;
 
+		virtual void CopyProperties(const Ref<Material> other) override;
+
         virtual void Set(const std::string& name, const UniformValue& value) override;
 		virtual void Set(const std::string& name, const Ref<Texture>& texture) override;
+		virtual void SetTextureHandle(const std::string& name, const AssetHandle handle) override;
 		virtual void Set(const std::string& name, const Ref<Texture2D>& texture) override;
 		virtual void Set(const std::string& name, const Ref<TextureCube>& texture) override;
 

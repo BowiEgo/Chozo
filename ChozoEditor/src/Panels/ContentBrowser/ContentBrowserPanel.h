@@ -41,6 +41,7 @@ namespace Chozo {
             if (s_Instance->m_CurrentItems[handle])
                 s_Instance->m_ContentSelection.Deselect(s_Instance->m_CurrentItems[handle]);
         }
+        static Ref<Material> CreateMaterial();
     private:
         void RenderAddNewContextMenu();
         void RenderItemContextMenu();

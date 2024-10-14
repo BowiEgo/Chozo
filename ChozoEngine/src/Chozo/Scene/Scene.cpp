@@ -159,7 +159,8 @@ namespace Chozo {
                     if (dynamicMesh->GetMeshSource()->IsBufferChanged())
                         dynamicMesh->Init();
                     // Renderer::DrawMesh(transform.GetTransform(), dynamicMesh.get(), mesh.MaterialInstance.get(), (uint32_t)entity);
-                    renderer->SubmitMesh(dynamicMesh, mesh.MaterialInstance, transform.GetTransform());
+                    auto material = Application::GetAssetManager()->GetAsset(mesh.MaterialHandle);
+                    renderer->SubmitMesh(dynamicMesh, material, transform.GetTransform());
                 }
                 else if (mesh.Type == MeshType::Static)
                 {

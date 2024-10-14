@@ -49,7 +49,6 @@ namespace Chozo {
                 auto scene = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetScene();
                 auto sphere = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetSphere();
                 ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
-                ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
                 MaterialPanel::SetContext(scene);
                 MaterialPanel::SetMaterial(material);
                 MaterialPanel::Open();

@@ -444,7 +444,18 @@ namespace Chozo {
 
     void EditorLayer::OnDragAndDrop(AssetHandle handle)
     {
-        // Ref<Asset> asset =  Application::GetAssetManager()->GetAsset(handle);
+        Ref<Asset> asset =  Application::GetAssetManager()->GetAsset(handle);
+        if (asset->GetAssetType() == AssetType::Material)
+        {
+            auto [mx, my] = ImGui::GetMousePos();
+            auto entity = PickEntity(mx, my);
+            if (entity && entity.HasComponent<MeshComponent>())
+            {
+                auto tag = entity.GetComponent<TagComponent>().Tag;
+                CZ_CORE_INFO("{}", tag);
+                entity.GetComponent<MeshComponent>().MaterialHandle = handle;
+            }
+        }
 
         // fs::path filePath = fs::path((char*)path);
         // std::string fileExtension = filePath.extension().string();

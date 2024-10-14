@@ -30,7 +30,7 @@ namespace Chozo {
         void OnUpdate();
     
         Entity GetSphere();
-        Ref<Material> GetMaterial();
+        inline Ref<Material> GetMaterial() { return m_Material; }
         void SetMaterial(Ref<Material> material);
         void SetMaterialValue(Ref<Material> material, std::string name, UniformValue value);
         void SetMaterialValue(Ref<Material> material, std::string name, Ref<Texture2D> texture);
@@ -39,7 +39,10 @@ namespace Chozo {
     private:
         Ref<Scene> m_Scene;
 		Ref<SceneRenderer> m_SceneRenderer;
+        Ref<Material> m_Material;
         EditorCamera m_Camera;
+
+        static uint32_t s_MaterialThumbnailSize;
     };
     
 } // namespace Chozo

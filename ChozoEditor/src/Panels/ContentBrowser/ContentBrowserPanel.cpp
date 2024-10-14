@@ -205,6 +205,33 @@ namespace Chozo {
         OnDirectoryChange(m_CurrentDirectory);
     }
 
+    Ref<Material> ContentBrowserPanel::CreateMaterial()
+    {
+        if (!s_Instance->m_CurrentDirectory)
+        {
+            CZ_CORE_ERROR("ContentBrowser: Current directory is not exist!");
+            return nullptr;
+        }
+
+        auto material = s_Instance->CreateAsset<Material>("material", s_Instance->m_CurrentDirectory, "PBR");
+        material->Set("u_Material.Albedo", glm::vec3(0.5f, 0.5f, 0.5f));
+        // material->Set("u_AlbedoTex", "");
+        material->Set("u_Material.Metalness", 0.5f);
+        material->Set("u_Material.Roughness", 0.5f);
+        material->Set("u_Material.Ambient", 1.0f);
+        material->Set("u_Material.AmbientStrength", 0.1f);
+        material->Set("u_Material.Specular", 0.5f);
+        material->Set("u_Material.enableAlbedoTex", false);
+        material->Set("u_Material.enableMetalnessTex", false);
+        material->Set("u_Material.enableRoughnessTex", false);
+        material->Set("u_Material.enableNormalTex", false);
+        ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
+        ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
+        s_Instance->OnBrowserRefresh();
+
+        return material;
+    }
+
     void ContentBrowserPanel::RenderAddNewContextMenu()
     {
         if (ImGui::BeginPopup("AddNewContextMenu"))
@@ -219,21 +246,7 @@ namespace Chozo {
             }
             if (ImGui::MenuItem("Material"))
             {
-                auto material = CreateAsset<Material>("material", m_CurrentDirectory, "PBR");
-                material->Set("u_Material.Albedo", glm::vec3(0.5f, 0.5f, 0.5f));
-                // material->Set("u_AlbedoTex", "");
-                material->Set("u_Material.Metalness", 0.5f);
-                material->Set("u_Material.Roughness", 0.5f);
-                material->Set("u_Material.Ambient", 1.0f);
-                material->Set("u_Material.AmbientStrength", 0.1f);
-                material->Set("u_Material.Specular", 0.5f);
-                material->Set("u_Material.enableAlbedoTex", false);
-                material->Set("u_Material.enableMetalnessTex", false);
-                material->Set("u_Material.enableRoughnessTex", false);
-                material->Set("u_Material.enableNormalTex", false);
-                ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
-                ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
-                OnBrowserRefresh();
+                CreateMaterial();
                 ImGui::CloseCurrentPopup();
             }
             if (ImGui::MenuItem("Mesh"))
@@ -483,7 +496,15 @@ namespace Chozo {
 
     void ContentBrowserPanel::SaveAllAssets()
     {
-        Application::GetAssetManager()->SaveAssets();
+        auto assetManager = Application::GetAssetManager();
+        assetManager->SaveAssets();
+
+        for (auto item : m_CurrentItems)
+        {
+            auto metadata = assetManager->GetMetadata(item->GetHandle());
+            auto asset = assetManager->GetAsset(metadata.Handle);
+            m_ThumbnailManager->CreateThumbnail(metadata, asset);
+        }
     }
 
     void ContentBrowserPanel::AddAssetsToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata)

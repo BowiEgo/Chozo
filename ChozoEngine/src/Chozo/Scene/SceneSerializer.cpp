@@ -152,7 +152,6 @@ namespace Chozo {
         return out;
     }
 
-
     YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
     {
         out << YAML::Flow;
@@ -357,21 +356,7 @@ namespace Chozo {
 
             out << YAML::Key << "Material" << YAML::Value;
             out << YAML::BeginMap;
-            out << YAML::Key << "Name" << YAML::Value << mc.MaterialInstance->GetName();
-            for (auto& pair : mc.MaterialInstance->GetUniforms())
-            {
-                std::visit([&](auto&& arg) {
-                    using T = std::decay_t<decltype(arg)>;
-                    if constexpr (std::is_same_v<T, glm::mat3>)
-                    {}
-                    if constexpr (std::is_same_v<T, glm::mat4>)
-                    {}
-                    else
-                    {
-                        out << YAML::Key << pair.first << YAML::Value << arg;
-                    }
-                }, pair.second);
-            }
+            out << YAML::Key << "Handle" << YAML::Value << mc.MaterialHandle;
             out << YAML::EndMap;
 
             out << YAML::EndMap;
@@ -564,85 +549,46 @@ namespace Chozo {
                 }
 
                 auto meshComponent = entity["MeshComponent"];
-                Ref<Geometry> geom;
+                Ref<Geometry> geometry;
                 if (meshComponent)
                 {
-                    auto geometry = meshComponent["Geometry"];
-                    auto type = geometry["Type"].as<int>();
-                    auto geomType = GeometryType(geometry["Type"].as<int>());
+                    auto geometryNode = meshComponent["Geometry"];
+                    auto type = geometryNode["Type"].as<int>();
+                    auto geomType = GeometryType(geometryNode["Type"].as<int>());
 
                     switch (geomType) {
                         case GeometryType::Box:
-                            geom = Ref<BoxGeometry>::Create(
-                                geometry["Width"].as<float>(),
-                                geometry["Height"].as<float>(),
-                                geometry["Depth"].as<float>(),
-                                geometry["WidthSegments"].as<uint32_t>(),
-                                geometry["HeightSegments"].as<uint32_t>(),
-                                geometry["DepthSegments"].as<uint32_t>()
+                            geometry = Ref<BoxGeometry>::Create(
+                                geometryNode["Width"].as<float>(),
+                                geometryNode["Height"].as<float>(),
+                                geometryNode["Depth"].as<float>(),
+                                geometryNode["WidthSegments"].as<uint32_t>(),
+                                geometryNode["HeightSegments"].as<uint32_t>(),
+                                geometryNode["DepthSegments"].as<uint32_t>()
                             );
                             break;
                         case GeometryType::Sphere:
-                            geom = Ref<SphereGeometry>::Create(
-                                geometry["Radius"].as<float>(),
-                                geometry["WidthSegments"].as<uint32_t>(),
-                                geometry["HeightSegments"].as<uint32_t>(),
-                                geometry["PhiStart"].as<float>(),
-                                geometry["PhiLength"].as<float>(),
-                                geometry["ThetaStart"].as<float>(),
-                                geometry["ThetaLength"].as<float>()
+                            geometry = Ref<SphereGeometry>::Create(
+                                geometryNode["Radius"].as<float>(),
+                                geometryNode["WidthSegments"].as<uint32_t>(),
+                                geometryNode["HeightSegments"].as<uint32_t>(),
+                                geometryNode["PhiStart"].as<float>(),
+                                geometryNode["PhiLength"].as<float>(),
+                                geometryNode["ThetaStart"].as<float>(),
+                                geometryNode["ThetaLength"].as<float>()
                             );
                             break;
                         default:
                             break;
                     }
 
-                    geom->SetEntityID(deserializedEntity);
+                    geometry->SetEntityID(deserializedEntity);
                     auto meshType = MeshType(meshComponent["Type"].as<int>());
 
-                    auto material = meshComponent["Material"];
-                    Ref<Material> mate = Material::Create(material["Name"].as<std::string>());
-                    for (const auto& pair : material)
-                    {
-                        std::string key = pair.first.as<std::string>();
-                        if (key == "Name")
-                            continue;
+                    auto materialNode = meshComponent["Material"];
+                    auto materialHandle = materialNode["Handle"].as<uint64_t>();
 
-                        const YAML::Node& valueNode = pair.second;
-                        UniformValue value;
-
-                        if (valueNode.IsScalar()) {
-                            try {
-                                if (valueNode.Tag() == "tag:yaml.org,2002:bool") {
-                                    value = valueNode.as<bool>();
-                                } else if (valueNode.Tag() == "tag:yaml.org,2002:int") {
-                                    value = valueNode.as<int>();
-                                } else if (valueNode.Tag() == "tag:yaml.org,2002:float" || valueNode.Tag() == "tag:yaml.org,2002:float") {
-                                    value = valueNode.as<float>();
-                                } else {
-                                    try {
-                                        value = valueNode.as<float>();
-                                    } catch (const YAML::TypedBadConversion<float>&) {
-                                        // value = valueNode.as<std::string>();
-                                    }
-                                }
-                            } catch (const YAML::Exception& e) {
-                                CZ_CORE_ERROR("YAML parsing error: {0}", e.what());
-                            }
-                        } else if (valueNode.IsSequence()) {
-                            if (valueNode.size() == 2) {
-                                value = glm::vec2(valueNode[0].as<float>(), valueNode[1].as<float>());
-                            } else if (valueNode.size() == 3) {
-                                value = glm::vec3(valueNode[0].as<float>(), valueNode[1].as<float>(), valueNode[2].as<float>());
-                            } else if (valueNode.size() == 4) {
-                                value = glm::vec4(valueNode[0].as<float>(), valueNode[1].as<float>(), valueNode[2].as<float>(), valueNode[3].as<float>());
-                            }
-                        }
-
-                        mate->Set(key, value);
-                    }
-
-                    auto& mc = deserializedEntity.AddComponent<MeshComponent>(geom, meshType, mate);
+                    auto& mc = deserializedEntity.AddComponent<MeshComponent>(geometry, meshType, materialHandle);
                 }
             
                 auto dirLightComponent = entity["DirectionalLightComponent"];

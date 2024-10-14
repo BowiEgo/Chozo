@@ -1,6 +1,7 @@
 #include "PropertiesPanel.h"
 
 #include "SceneHierarchyPanel.h"
+#include "ContentBrowser/ContentBrowserPanel.h"
 #include "MaterialPanel.h"
 
 #include "Chozo/Renderer/Geometry/Geometry.h"
@@ -562,11 +563,15 @@ namespace Chozo {
     {
         DrawComponent<MeshComponent>("Material", entity, [entity, this](auto& component)
         {
-            Ref<Material> material = component.MaterialInstance;
+            AssetHandle handle = component.MaterialHandle;
+            Ref<Material> material = Application::GetAssetManager()->GetAsset(handle);
 
             auto name = material ? material->GetName() : "Solid";
 
             ImGui::Text("%s", name.c_str());
+            ImGui::SameLine();
+
+            ImGui::Text("%s", std::to_string(handle).c_str());
             ImGui::SameLine();
 
             if (material)
@@ -578,7 +583,9 @@ namespace Chozo {
             {
                 if (ImGui::Button("Create Material"))
                 {
-
+                    auto material = ContentBrowserPanel::CreateMaterial();
+                    component.MaterialHandle = material->Handle;
+                    OpenMaterialPanel(entity);
                 }
             }
         });
@@ -586,14 +593,19 @@ namespace Chozo {
 
     void PropertiesPanel::OpenMaterialPanel(Entity entity)
     {
-        Ref<Material> material;
         if (entity && entity.HasComponent<MeshComponent>())
         {
-            material = entity.GetComponent<MeshComponent>().MaterialInstance;
+            AssetHandle handle = entity.GetComponent<MeshComponent>().MaterialHandle;
+            if (Application::GetAssetManager()->IsAssetHandleValid(handle))
+            {
+                Ref<Material> material;
+                material = Application::GetAssetManager()->GetAsset(handle).As<Material>();
+
+                MaterialPanel::SetContext(m_Context);
+                MaterialPanel::SetMaterial(material);
+                MaterialPanel::Open();
+            }
         }
-        MaterialPanel::SetContext(m_Context);
-        MaterialPanel::SetMaterial(material);
-        MaterialPanel::Open();
     }
 
     void PropertiesPanel::OnSelectedChange(Entity entity)

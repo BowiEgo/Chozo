@@ -19,12 +19,15 @@ namespace Chozo {
             out << YAML::BeginSeq;
             for (const auto& [handle, metadata] : m_AssetRegistry)
             {
-                out << YAML::BeginMap;
-                out << YAML::Key << "Handle" << YAML::Value << handle;
-                out << YAML::Key << "FilePath" << YAML::Value << metadata.FilePath;
-                out << YAML::Key << "FileSize" << YAML::Value << metadata.FileSize;
-                out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(metadata.Type);
-                out << YAML::EndMap;
+                if (!metadata.IsMemoryAsset)
+                {
+                    out << YAML::BeginMap;
+                    out << YAML::Key << "Handle" << YAML::Value << handle;
+                    out << YAML::Key << "FilePath" << YAML::Value << metadata.FilePath;
+                    out << YAML::Key << "FileSize" << YAML::Value << metadata.FileSize;
+                    out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(metadata.Type);
+                    out << YAML::EndMap;
+                }
             }
             
             out << YAML::EndSeq;

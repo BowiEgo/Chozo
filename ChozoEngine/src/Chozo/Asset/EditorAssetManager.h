@@ -51,15 +51,16 @@ namespace Chozo {
 
 			Ref<Asset> asset = T::Create(std::forward<Args>(args)...);
 			asset->Handle = metadata.Handle;
-			m_MemoryAssets[asset->Handle] = asset;
+			m_LoadedAssets[asset->Handle] = asset;
 			metadata.FileSize = AssetImporter::Serialize(metadata, asset);
 
 			m_AssetRegistry[metadata.Handle] = metadata;
 
 			return asset;
 		}
-    private:
+		
 		void LoadAssetRegistry();
+    private:
 		void ProcessDirectory(const fs::path& directoryPath);
 		void ReloadAssets();
 		void WriteRegistryToFile();

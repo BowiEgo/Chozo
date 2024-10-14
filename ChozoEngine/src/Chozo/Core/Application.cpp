@@ -32,11 +32,12 @@ namespace Chozo {
         m_Window = Window::Create(WindowProps(name));
         m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 
-        // TODO: Move to Project
-        m_AssetManager = Ref<EditorAssetManager>::Create();
-
         Renderer2D::Init();
         Renderer::Init();
+        // TODO: Move to Project
+        m_AssetManager = Ref<EditorAssetManager>::Create();
+        CZ_CORE_WARN("m_AssetManager");
+        m_AssetManager->LoadAssetRegistry();
 
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);

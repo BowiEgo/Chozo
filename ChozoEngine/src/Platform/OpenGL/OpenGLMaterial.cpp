@@ -1,5 +1,6 @@
 #include "OpenGLMaterial.h"
 
+#include "Chozo/Core/Application.h"
 #include "Chozo/Renderer/Renderer.h"
 #include "OpenGLTexture.h"
 
@@ -30,21 +31,30 @@ namespace Chozo {
         : m_Shader(shader.As<OpenGLShader>()), m_Name(name)
     {
         m_TextureSlots.resize(Renderer::GetMaxTextureSlots());
+        m_TextureAssetHandles.resize(Renderer::GetMaxTextureSlots());
         PopulateUniforms(m_Shader);
     }
 
     OpenGLMaterial::OpenGLMaterial(const Ref<Material> &material, const std::string &name)
         : m_Shader(material->GetShader().As<OpenGLShader>()), m_Name(name)
     {
-        m_TextureSlots = material->GetAllTextures();
-        m_TextureSlotIndex = material->GetLastTextureSlotIndex();
-        auto uniforms = material.As<OpenGLMaterial>()->GetUniforms();
-        for (auto [uniformName, uniformValue] : uniforms)
-            Set(uniformName, uniformValue);
+        CopyProperties(material);
     }
 
     OpenGLMaterial::~OpenGLMaterial()
     {
+    }
+
+    void OpenGLMaterial::CopyProperties(const Ref<Material> other)
+    {
+        CZ_CORE_ASSERT(m_Shader == other->GetShader(), "Copy material failed because shader is not same.");
+
+        m_TextureSlots = other->GetAllTextures();
+        m_TextureSlotIndex = other->GetLastTextureSlotIndex();
+        m_TextureAssetHandles = other->GetTextureAssetHandles();
+        auto uniforms = other.As<OpenGLMaterial>()->GetUniforms();
+        for (auto [uniformName, uniformValue] : uniforms)
+            Set(uniformName, uniformValue);
     }
 
     void OpenGLMaterial::Set(const std::string &name, const UniformValue &value)
@@ -54,6 +64,9 @@ namespace Chozo {
 
     void OpenGLMaterial::Set(const std::string &name, const Ref<Texture> &texture)
     {
+        if (texture->GetAssetType() != AssetType::Texture)
+            return;
+
         int textureIndex = -1;
 
         for (uint32_t i = 0; i < m_TextureSlots.size(); i++)
@@ -69,10 +82,41 @@ namespace Chozo {
         {
             textureIndex = m_TextureSlotIndex;
             m_TextureSlots[m_TextureSlotIndex] = texture;
+            if (texture->GetType() == TextureType::Texture2D && Application::GetAssetManager()->IsAssetHandleValid(texture->Handle))
+            {
+                m_TextureAssetHandles[m_TextureSlotIndex] = { name, texture->Handle };
+            }
             m_TextureSlotIndex++;
         }
 
         m_Uniforms[name] = textureIndex;
+    }
+
+    void OpenGLMaterial::SetTextureHandle(const std::string &name, const AssetHandle handle)
+    {
+        CZ_CORE_WARN("SetTextureHandle");
+        if (Application::GetAssetManager()->IsAssetHandleValid(handle))
+        {
+            int textureIndex = -1;
+            for (uint32_t i = 0; i < m_TextureSlots.size(); i++)
+            {
+                if (m_TextureSlots[i] && m_TextureSlots[i]->Handle == handle)
+                {
+                    textureIndex = i;
+                    break;
+                }
+            }
+
+            if (textureIndex == -1)
+            {
+                textureIndex = m_TextureSlotIndex;
+                m_TextureSlots[m_TextureSlotIndex] = nullptr;
+                m_TextureAssetHandles[m_TextureSlotIndex] = { name, handle };
+                m_TextureSlotIndex++;
+            }
+
+            m_Uniforms[name] = textureIndex;
+        }
     }
 
     void OpenGLMaterial::Set(const std::string &name, const Ref<Texture2D> &texture)
@@ -88,6 +132,7 @@ namespace Chozo {
     Ref<Texture2D> OpenGLMaterial::GetTexture(std::string name)
     {
         UniformValue value = m_Uniforms[name];
+        uint32_t slotIndex;
 
         if (std::holds_alternative<bool>(value))
         {
@@ -98,16 +143,23 @@ namespace Chozo {
         }
         else if (std::holds_alternative<int>(value))
         {
-            uint32_t slotIndex = std::get<int>(value);
-            return m_TextureSlots[slotIndex];
+            slotIndex = std::get<int>(value);
         }
         else if (std::holds_alternative<unsigned int>(value))
         {
-            uint32_t slotIndex = std::get<unsigned int>(value);
-            return m_TextureSlots[slotIndex];
+            slotIndex = std::get<unsigned int>(value);
         }
 
-        return nullptr;
+        auto texture = m_TextureSlots[slotIndex];
+        if (!texture)
+        {
+            auto handle = std::get<1>(m_TextureAssetHandles[slotIndex]);
+            texture = Application::GetAssetManager()->GetAsset(handle).As<Texture2D>();
+            if (texture)
+                m_TextureSlots[slotIndex] = texture;
+        }
+
+        return texture;
     }
 
     void OpenGLMaterial::Bind()
@@ -123,6 +175,13 @@ namespace Chozo {
         for (uint32_t i = 0; i < m_TextureSlotIndex; i++)
         {
             auto texture = m_TextureSlots[i];
+            if (!texture)
+            {
+                auto handle = std::get<1>(m_TextureAssetHandles[i]);
+                texture = Application::GetAssetManager()->GetAsset(handle).As<Texture2D>();
+                if (texture)
+                    m_TextureSlots[i] = texture;
+            }
 
             switch (texture->GetType())
             {

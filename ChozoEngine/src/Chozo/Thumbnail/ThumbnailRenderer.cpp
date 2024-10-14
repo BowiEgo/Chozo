@@ -1,8 +1,11 @@
 #include "ThumbnailRenderer.h"
 
+#include "Chozo/Core/Application.h"
 #include "Chozo/FileSystem/TextureExporter.h"
 #include "Chozo/Scene/Entity.h"
 #include "Chozo/Renderer/Geometry/SphereGeometry.h"
+
+#include <glad/glad.h>
 
 namespace Chozo {
 
@@ -22,7 +25,7 @@ namespace Chozo {
 
         if (originalWidth < originalHeight)
         {
-            targetHeight = 100;
+            targetHeight = 100; // TODO: Move to Config
             targetWidth = static_cast<int>(targetHeight * (static_cast<float>(originalWidth) / originalHeight));
         }
         else
@@ -57,17 +60,21 @@ namespace Chozo {
 
     //==============================================================================
     /// MaterialThumbnailRenderer
+    uint32_t MaterialThumbnailRenderer::s_MaterialThumbnailSize = 200;
+
     MaterialThumbnailRenderer::MaterialThumbnailRenderer()
     {
         m_Scene = Ref<Scene>::Create();
 		m_SceneRenderer = SceneRenderer::Create(m_Scene);
         m_SceneRenderer->SetActive(true);
-        m_SceneRenderer->SetViewportSize(200, 200);
+        m_SceneRenderer->SetViewportSize(s_MaterialThumbnailSize, s_MaterialThumbnailSize);
         m_Camera = EditorCamera(12.0f, 1.0f, 0.1f, 1000.0f);
 
         auto sphere = m_Scene->CreateEntity("Sphere");
         Ref<Geometry> geom = Ref<SphereGeometry>::Create();
-        sphere.AddComponent<MeshComponent>(geom);
+        m_Material = Material::Create("PBR");
+        Application::GetAssetManager()->AddMemoryOnlyAsset(m_Material);
+        sphere.AddComponent<MeshComponent>(geom, MeshType::Dynamic, m_Material->Handle);
 
         auto dirLight = m_Scene->CreateEntity("Directional Light");
         dirLight.AddComponent<DirectionalLightComponent>();
@@ -83,11 +90,12 @@ namespace Chozo {
 
     Ref<Texture2D> MaterialThumbnailRenderer::Render(AssetMetadata metadata, Ref<Asset> asset)
     {
+        CZ_CORE_INFO("Render");
         if (asset->GetAssetType() != AssetType::Material)
             CZ_CORE_ERROR("[MaterialThumbnailRenderer] asset type invalid!");
 
         SetMaterial(asset.As<Material>());
-
+        glFinish();
         // TODO: Change to Sync callback
         Ref<Texture2D> texture = GetOutput();
 
@@ -102,19 +110,20 @@ namespace Chozo {
         Buffer buffer = TextureExporter::ToFileFromBuffer(
                         filepath,
                         originalBuffer,
-                        100, 100,
+                        s_MaterialThumbnailSize, s_MaterialThumbnailSize,
                         100, 100,
                         false);
 
+        Ref<Texture2D> result = Texture2D::Create(originalBuffer, texture->GetSpecification());
         originalBuffer.Release();
 
-        return texture;
+        return result;
     }
 
     void MaterialThumbnailRenderer::SetMaterial(Ref<Material> material)
     {
         auto sphere = GetSphere();
-        sphere.GetComponent<MeshComponent>().MaterialInstance = Material::Copy(material);
+        m_Material->CopyProperties(material);
         OnUpdate();
     }
 
@@ -122,10 +131,10 @@ namespace Chozo {
     {
         auto sphere = GetSphere();
 
-        if (sphere.GetComponent<MeshComponent>().MaterialInstance->GetShader() != material->GetShader())
-            sphere.GetComponent<MeshComponent>().MaterialInstance = Material::Copy(material);
+        // if (m_Material->GetShader() != material->GetShader())
+        //     sphere.GetComponent<MeshComponent>().MaterialInstance = Material::Copy(material);
 
-        sphere.GetComponent<MeshComponent>().MaterialInstance->Set(name, value);
+        m_Material->Set(name, value);
         OnUpdate();
     }
 
@@ -133,10 +142,7 @@ namespace Chozo {
     {
         auto sphere = GetSphere();
 
-        if (sphere.GetComponent<MeshComponent>().MaterialInstance->GetShader() != material->GetShader())
-            sphere.GetComponent<MeshComponent>().MaterialInstance = Material::Copy(material);
-
-        sphere.GetComponent<MeshComponent>().MaterialInstance->Set(name, texture);
+        m_Material->Set(name, texture);
         OnUpdate();
     }
 
@@ -154,8 +160,4 @@ namespace Chozo {
         return Entity();
     }
 
-    Ref<Material> MaterialThumbnailRenderer::GetMaterial()
-    {
-        return GetSphere().GetComponent<MeshComponent>().MaterialInstance;
-    }
 } // namespace Chozo

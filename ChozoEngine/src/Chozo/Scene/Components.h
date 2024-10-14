@@ -79,7 +79,7 @@ namespace Chozo {
     {
         Ref<Mesh> MeshInstance;
         Ref<MeshSource> MeshSrc;
-        Ref<Material> MaterialInstance;
+        AssetHandle MaterialHandle;
 
         MeshType Type = MeshType::Dynamic;
 
@@ -91,8 +91,8 @@ namespace Chozo {
         {
             other.MeshSrc.Reset();  // Prevent copying or using original object.
         }
-        MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic, Ref<Material> material = nullptr)
-            : MeshSrc(meshSrc), Type(meshType), MaterialInstance(material)
+        MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic, AssetHandle materialHandle = 0)
+            : MeshSrc(meshSrc), Type(meshType), MaterialHandle(materialHandle)
         {
             GenerateMeshInstance();
         }
@@ -167,7 +167,7 @@ namespace Chozo {
 
     struct DirectionalLightComponent
 	{
-		glm::vec3 Direction = { 1.0f, -1.0f, 1.0f };
+		glm::vec3 Direction = { -45.0f, 45.0f, 45.0f };
 		glm::vec3 Color = { 1.0f, 1.0f, 1.0f };
 		float Intensity = 1.0f;
 	};

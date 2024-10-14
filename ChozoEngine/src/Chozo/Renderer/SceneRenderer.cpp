@@ -371,10 +371,8 @@ namespace Chozo
             if (!meshData.Material)
                 continue;
 
-            meshData.Material->Set("u_VertUniforms.ModelMatrix", meshData.Transform);
-            
             if (meshData.Mesh.As<DynamicMesh>())
-                Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.Material);
+                Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.Material, meshData.Transform);
         }
 		Renderer::EndRenderPass(m_CommandBuffer, m_GeometryPass);
     }
@@ -394,10 +392,9 @@ namespace Chozo
             if (!meshData.Material)
             {
                 auto material = Material::Copy(m_SolidMaterial);
-                material->Set("u_VertUniforms.ModelMatrix", meshData.Transform);
                 
                 if (meshData.Mesh.As<DynamicMesh>())
-                    Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_SolidPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), material);
+                    Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_SolidPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), material, meshData.Transform);
             }
         }
 		Renderer::EndRenderPass(m_CommandBuffer, m_SolidPass);
