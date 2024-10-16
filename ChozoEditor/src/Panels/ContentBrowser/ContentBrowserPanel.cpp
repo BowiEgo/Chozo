@@ -509,6 +509,7 @@ namespace Chozo {
         fs::path path = FileDialogs::OpenFile("Import (*.png)\0*.jpeg\0");
 
         Texture2DSpecification spec;
+        spec.WrapR = ImageParameter::CLAMP_TO_EDGE;
         spec.WrapS = ImageParameter::CLAMP_TO_EDGE;
         spec.WrapT = ImageParameter::CLAMP_TO_EDGE;
 

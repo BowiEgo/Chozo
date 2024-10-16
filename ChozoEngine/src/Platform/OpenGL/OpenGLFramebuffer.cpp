@@ -220,9 +220,6 @@ namespace Chozo {
                 spec.MinFilter = ImageParameter::NEAREST;
                 spec.MagFilter = ImageParameter::NEAREST;
             }
-            spec.WrapR = ImageParameter::CLAMP_TO_BORDER;
-            spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
-            spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
 
             Ref<Texture2D> texture = Texture2D::Create(spec);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, target, texture->GetRendererID(), 0); GCE;
@@ -244,9 +241,6 @@ namespace Chozo {
         spec.Height = m_Specification.Height;
         spec.MinFilter = ImageParameter::LINEAR;
         spec.MagFilter = ImageParameter::LINEAR;
-        spec.WrapR = ImageParameter::CLAMP_TO_BORDER;
-        spec.WrapS = ImageParameter::CLAMP_TO_BORDER;
-        spec.WrapT = ImageParameter::CLAMP_TO_BORDER;
 
         m_DepthAttachmentImage = Texture2D::Create(spec);
         m_DepthAttachment = m_DepthAttachmentImage->GetRendererID();
