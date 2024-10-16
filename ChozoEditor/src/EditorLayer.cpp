@@ -363,7 +363,8 @@ namespace Chozo {
                     ImGuizmo::OPERATION(m_GizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform),
                     nullptr, snap ? snapValues : nullptr);
 
-                if (ImGuizmo::IsUsing())
+                bool disabled = Input::IsKeyPressed(CZ_KEY_LEFT_ALT);
+                if (ImGuizmo::IsUsing() && !disabled)
                 {
                     glm::vec3 translation, rotation, scale;
                     Math::DecomposeTransform(transform, translation, rotation, scale);
