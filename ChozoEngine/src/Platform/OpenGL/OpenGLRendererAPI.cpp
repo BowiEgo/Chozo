@@ -325,13 +325,11 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRendererAPI::CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, Callback<void, const Buffer&> callback)
+    void OpenGLRendererAPI::CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest)
     {
-        commandBuffer->AddCommand([source, callback]() mutable
+        commandBuffer->AddCommand([source, &dest]() mutable
         {
-            Buffer destination;
-            source->CopyToHostBuffer(destination, true);
-            callback(destination);
+            source->CopyToHostBuffer(dest, true);
         });
     }
 

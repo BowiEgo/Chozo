@@ -282,9 +282,9 @@ namespace Chozo
         Flush();
     }
 
-    void SceneRenderer::EndScene(Callback<void, const Buffer&> callback)
+    void SceneRenderer::EndScene(SharedBuffer& dest)
     {
-        CopyImage(callback);
+        CopyImage(dest);
     }
 
     void SceneRenderer::SetViewportSize(uint32_t width, uint32_t height)
@@ -473,7 +473,7 @@ namespace Chozo
         m_MeshDatas.clear();
     }
 
-    void SceneRenderer::CopyImage(Callback<void, const Buffer&> callback)
+    void SceneRenderer::CopyImage(SharedBuffer& dest)
     {
         m_CommandBuffer->Begin();
 
@@ -484,7 +484,7 @@ namespace Chozo
         // PhongLightPass();
         PBRPass();
         CompositePass();
-        Renderer::CopyImage(m_CommandBuffer, m_CompositePass->GetOutput(0), callback);
+        Renderer::CopyImage(m_CommandBuffer, m_CompositePass->GetOutput(0), dest);
 
         m_CommandBuffer->End();
 

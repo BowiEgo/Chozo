@@ -58,6 +58,7 @@ namespace Chozo {
         static AssetType GetStaticType() { return AssetType::Texture; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
+        virtual void ExtractBuffer() = 0;
         virtual void CopyToHostBuffer(Buffer& buffer, bool isRaw = false) = 0;
     };
 

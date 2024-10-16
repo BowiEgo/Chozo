@@ -8,6 +8,7 @@
 #include "Chozo/Core/Input.h"
 #include "Chozo/Core/KeyCodes.h"
 #include "Chozo/Core/MouseButtonCodes.h"
+#include "Chozo/Core/Pool.h"
 
 #include "Chozo/Debug/Log.h"
 

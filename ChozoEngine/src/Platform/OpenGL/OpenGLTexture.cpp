@@ -84,14 +84,8 @@ namespace Chozo
         glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(m_Spec.Format), m_Width, m_Height, 0, GetGLDataFormat(m_Spec.Format), GetGLDataType(m_Spec.Format), m_Buffer.Data); GCE;
     }
 
-    void OpenGLTexture2D::CopyToHostBuffer(Buffer& buffer, bool isRaw)
+    void OpenGLTexture2D::ExtractBuffer()
     {
-        if (m_Buffer.Size != 0 && !isRaw)
-        {
-            m_Buffer.CopyTo(buffer);
-            return;
-        }
-
         uint64_t size = m_Width * m_Height * Image::GetBytesPerPixel(m_Spec.Format);
         m_Buffer.Allocate(size);
 
@@ -99,9 +93,29 @@ namespace Chozo
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glGetTexImage(GL_TEXTURE_2D, 0, m_DataFormat, m_DataType, m_Buffer.Data);
         glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    void OpenGLTexture2D::CopyToHostBuffer(Buffer& buffer, bool isRaw)
+    {
+        auto sharedBuffer = dynamic_cast<SharedBuffer*>(&buffer);
+        if (m_Buffer.Size != 0 && !isRaw)
+        {
+            if (sharedBuffer)
+                sharedBuffer->Copy(m_Buffer);
+            else
+                m_Buffer.CopyTo(buffer);
+            return;
+        }
+
+        ExtractBuffer();
 
         if (m_Buffer.Size != 0)
-            m_Buffer.CopyTo(buffer);
+        {
+            if (sharedBuffer)
+                sharedBuffer->Copy(m_Buffer);
+            else
+                m_Buffer.CopyTo(buffer);
+        }
         else
             CZ_CORE_WARN("Texture buffer data is empty.");
     }
@@ -183,6 +197,10 @@ namespace Chozo
         {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GetGLFormat(m_Spec.Format), m_Spec.Width, m_Spec.Height, 0, GetGLDataFormat(m_Spec.Format), GL_FLOAT, static_cast<float*>(data) + (size / 6) * i); GCE;
         }
+    }
+
+    void OpenGLTextureCube::ExtractBuffer()
+    {
     }
 
     void OpenGLTextureCube::CopyToHostBuffer(Buffer& buffer, bool isRaw)

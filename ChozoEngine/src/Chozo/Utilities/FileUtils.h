@@ -1,8 +1,8 @@
 #pragma once
 
-namespace Chozo::Utils {
+namespace Chozo {
 
-    namespace File {
+    namespace Utils::File {
 
         static const char* GetAssetDirectory()
         {

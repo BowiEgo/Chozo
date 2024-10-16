@@ -36,7 +36,7 @@ namespace Chozo {
         void PrepareRender(Ref<SceneRenderer> renderer);
         void SubmitMeshes(Ref<SceneRenderer> renderer);
 
-        void RenderToBuffer(EditorCamera& camera, Callback<void, const Buffer&> callback);
+        void RenderToBuffer(EditorCamera& camera, SharedBuffer& dest);
 
         Entity GetPrimaryCameraEntity();
 

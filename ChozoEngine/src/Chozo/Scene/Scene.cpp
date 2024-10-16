@@ -239,7 +239,7 @@ namespace Chozo {
         }
     }
 
-    void Scene::RenderToBuffer(EditorCamera& camera, Callback<void, const Buffer&> callback)
+    void Scene::RenderToBuffer(EditorCamera& camera, SharedBuffer& dest)
     {
         Ref<SceneRenderer> renderer = SceneRenderer::Find(this);
         if (!renderer)
@@ -250,7 +250,7 @@ namespace Chozo {
         // 3D Renderer
         renderer->BeginScene(camera);
         SubmitMeshes(renderer);
-        renderer->EndScene(callback);
+        renderer->EndScene(dest);
     }
 
     // void Scene::DrawIDBuffer(Ref<Framebuffer> target, EditorCamera& camera)

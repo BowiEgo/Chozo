@@ -1,9 +1,10 @@
 #include "ThumbnailRenderer.h"
 
 #include "Chozo/Core/Application.h"
-#include "Chozo/FileSystem/TextureExporter.h"
-#include "Chozo/Scene/Entity.h"
 #include "Chozo/Renderer/Geometry/SphereGeometry.h"
+#include "Chozo/Scene/Entity.h"
+#include "Chozo/FileSystem/TextureExporter.h"
+#include "Chozo/Utilities/FileUtils.h"
 
 #include <glad/glad.h>
 
@@ -11,26 +12,6 @@ namespace Chozo {
 
 	std::unordered_map<AssetType, Scope<ThumbnailRenderer>> ThumbnailRenderer::s_Renderers;
     uint32_t ThumbnailRenderer::s_ThumbnailSize = 200;
-
-    using Size = std::pair<uint32_t, uint32_t>;
-
-    namespace Utils {
-
-        static void ExportPNG(std::string filename, Buffer source, Size srcSize, Size outputSize, bool isHDR)
-        {
-            fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
-            fs::path filepath = cacheDir / filename;
-
-            Utils::File::CreateDirectoryIfNeeded(cacheDir.string());
-
-            Buffer buffer = TextureExporter::ToFileFromBuffer(
-                            filepath,
-                            source,
-                            srcSize.first, srcSize.second,
-                            outputSize.first, outputSize.second,
-                            isHDR);
-        }
-    }
 
     void ThumbnailRenderer::Init()
     {
@@ -77,55 +58,18 @@ namespace Chozo {
 
     void TextureThumbnailRenderer::Render(Ref<ThumbnailPoolTask> task)
     {
-        Ref<Asset> asset = task->Source;
-        AssetHandle handle = asset->Handle;
-
-        Buffer srcBuffer;
-        Ref<Texture2D> src = asset.As<Texture2D>();
-        src->CopyToHostBuffer(srcBuffer);
-
-        Size srcSize(src->GetWidth(), src->GetHeight());
-        Size outputSize(0, 0);
-        auto [srcWidth, srcHeight] = srcSize;
-
-        if (srcWidth < srcHeight)
-        {
-            outputSize.second = ThumbnailRenderer::GetThumbnailSize(); // TODO: Move to Config
-            outputSize.first = static_cast<int>(outputSize.second * (static_cast<float>(srcWidth) / srcHeight));
-        }
-        else
-        {
-            outputSize.first = ThumbnailRenderer::GetThumbnailSize();
-            outputSize.second = static_cast<int>(outputSize.first * (static_cast<float>(srcHeight) / srcWidth));
-        }
-
-        if (task->Flags & TaskFlags_Export)
-        {
-            bool isHDR = src->GetSpecification().Format == ImageFormat::HDR;
-            std::string filename = std::to_string(handle);
-            
-            Utils::ExportPNG(filename, srcBuffer, srcSize, outputSize, isHDR);
-        }
-
-        Texture2DSpecification spec;
-        spec.Width = srcSize.first;
-        spec.Height = srcSize.second;
-        spec.Format = ImageFormat::RGBA;
-        task->Thumbnail = Texture2D::Create(srcBuffer, spec);
-
-        task->Status = TaskStatus::Finished;
+        Ref<Texture2D> src = task->Source.As<Texture2D>();
+        src->CopyToHostBuffer(task->ImageData);
     }
 
     //==============================================================================
     /// MaterialThumbnailRenderer
-    uint32_t MaterialThumbnailRenderer::s_MaterialThumbnailSize = 200;
-
     MaterialThumbnailRenderer::MaterialThumbnailRenderer()
     {
         m_Scene = Ref<Scene>::Create();
 		m_SceneRenderer = SceneRenderer::Create(m_Scene);
         m_SceneRenderer->SetActive(true);
-        m_SceneRenderer->SetViewportSize(s_MaterialThumbnailSize, s_MaterialThumbnailSize);
+        m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_Camera = EditorCamera(12.0f, 1.0f, 0.1f, 1000.0f);
 
         auto sphere = m_Scene->CreateEntity("Sphere");
@@ -152,31 +96,7 @@ namespace Chozo {
         AssetHandle handle = asset->Handle;
 
         SetMaterial(asset.As<Material>());
-
-        RenderToBuffer([task, handle, this](Buffer output) mutable {
-            fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
-            Utils::File::CreateDirectoryIfNeeded(cacheDir.string());
-
-            Size srcSize(s_MaterialThumbnailSize, s_MaterialThumbnailSize);
-            Size outputSize(ThumbnailRenderer::GetThumbnailSize(), ThumbnailRenderer::GetThumbnailSize());
-
-            if (task->Flags & TaskFlags_Export)
-            {
-                std::string filename = std::to_string(handle);
-                Utils::ExportPNG(filename, output,
-                    srcSize,
-                    outputSize,
-                    false);
-            }
-
-            Texture2DSpecification spec;
-            spec.Width = srcSize.first;
-            spec.Height = srcSize.second;
-            spec.Format = ImageFormat::RGBA;
-            task->Thumbnail = Texture2D::Create(output, spec);
-
-            task->Status = TaskStatus::Finished;
-        });
+        RenderToBuffer(task->ImageData);
     }
 
     void MaterialThumbnailRenderer::SetMaterial(Ref<Material> material)
@@ -210,9 +130,9 @@ namespace Chozo {
         m_Scene->OnUpdateEditor(0, m_Camera);
     }
 
-    void MaterialThumbnailRenderer::RenderToBuffer(Callback<void, const Buffer&> callback)
+    void MaterialThumbnailRenderer::RenderToBuffer(SharedBuffer& dest)
     {
-        m_Scene->RenderToBuffer(m_Camera, callback);
+        m_Scene->RenderToBuffer(m_Camera, dest);
     }
 
     Entity MaterialThumbnailRenderer::GetSphere()

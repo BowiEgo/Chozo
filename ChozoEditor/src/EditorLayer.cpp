@@ -12,8 +12,7 @@
 #include "Chozo/Math/Math.h"
 
 // TODO: Remove
-#include "Chozo/Thumbnail/ThumbnailManager.h"
-#include "Chozo/Thumbnail/ThumbnailPool.h"
+#include "Thumbnail/ThumbnailManager.h"
 
 namespace Chozo {
 
@@ -65,7 +64,6 @@ namespace Chozo {
 
         ThumbnailRenderer::Init();
         ThumbnailManager::Init();
-        ThumbnailPool::Init();
     }
 
     void EditorLayer::OnDetach()
@@ -95,8 +93,6 @@ namespace Chozo {
                 break;
             }
         }
-
-        ThumbnailPool::Update();
     }
 
     void EditorLayer::OnImGuiRender()

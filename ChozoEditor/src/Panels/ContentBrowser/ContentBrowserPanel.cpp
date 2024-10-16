@@ -8,9 +8,9 @@
 
 #include "Chozo/Utilities/PlatformUtils.h"
 #include "Chozo/Renderer/Material.h"
-#include "Chozo/Thumbnail/ThumbnailManager.h"
-#include "Chozo/Thumbnail/ThumbnailPool.h"
+#include "Chozo/Core/Pool.h"
 
+#include "Thumbnail/ThumbnailManager.h"
 #include <imgui_internal.h>
 
 namespace Chozo {
@@ -244,8 +244,9 @@ namespace Chozo {
         material->Set("u_Material.enableRoughnessTex", false);
         material->Set("u_Material.enableNormalTex", false);
 
-        ThumbnailPool::CreateTask(material, TaskFlags_Export);
-        ThumbnailPool::Start();
+        auto task = Ref<ThumbnailPoolTask>::Create(material, PoolTaskFlags_Export);
+        Pool::AddTask(task);
+        Pool::Start();
         s_Instance->OnBrowserRefresh();
 
         return material;
@@ -527,10 +528,11 @@ namespace Chozo {
             auto metadata = assetManager->GetMetadata(item->GetHandle());
             auto asset = assetManager->GetAsset(metadata.Handle);
 
-            ThumbnailPool::CreateTask(asset, TaskFlags_Export);
+            auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
+            Pool::AddTask(task);
         }
 
-        ThumbnailPool::Start();
+        Pool::Start();
     }
 
     void ContentBrowserPanel::AddAssetsToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata)

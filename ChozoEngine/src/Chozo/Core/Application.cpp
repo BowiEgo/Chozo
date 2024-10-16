@@ -4,6 +4,7 @@
 
 #include "Input.h"
 
+#include "Pool.h"
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
 #include "Chozo/Renderer/SceneRenderer.h"
@@ -32,6 +33,7 @@ namespace Chozo {
         m_Window = Window::Create(WindowProps(name));
         m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 
+        Pool::Init();
         Renderer2D::Init();
         Renderer::Init();
         // TODO: Move to Project
@@ -81,6 +83,8 @@ namespace Chozo {
             m_LastFrameTime = time;
 
             Renderer::Begin();
+
+            Pool::Update();
 
             for (Layer* layer : m_LayerStack)
                 layer->OnUpdate(timestep);

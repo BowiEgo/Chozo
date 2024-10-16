@@ -52,7 +52,7 @@ namespace Chozo
 		void SetScene(Ref<Scene>& scene);
         void BeginScene(EditorCamera& camera); // TODO: Remove
         void EndScene(); // TODO: Remove
-        void EndScene(Callback<void, const Buffer&> callback); // TODO: Remove
+        void EndScene(SharedBuffer& dest); // TODO: Remove
 
         inline void SetActive(bool active) { m_Active = active; }
         inline bool IsActive() const { return m_Active; }
@@ -84,7 +84,7 @@ namespace Chozo
         void CompositePass();
 
         void Flush();
-        void CopyImage(Callback<void, const Buffer&> callback);
+        void CopyImage(SharedBuffer& dest);
 
         static Ref<SceneRenderer> Create(Ref<Scene>& scene);
         static Ref<SceneRenderer> Find(Scene* scene);

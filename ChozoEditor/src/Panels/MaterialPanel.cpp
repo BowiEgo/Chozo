@@ -1,6 +1,6 @@
 #include "MaterialPanel.h"
 
-#include "Chozo/Thumbnail/ThumbnailRenderer.h"
+#include "Thumbnail/ThumbnailRenderer.h"
 
 #include "PropertyUI.h"
 

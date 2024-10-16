@@ -1,7 +1,7 @@
 #include "ContentItem.h"
 #include "ContentBrowserPanel.h"
-#include "../MaterialPanel.h"
-#include "Chozo/Thumbnail/ThumbnailManager.h"
+#include "Panels/MaterialPanel.h"
+#include "Thumbnail/ThumbnailManager.h"
 
 namespace Chozo {
 

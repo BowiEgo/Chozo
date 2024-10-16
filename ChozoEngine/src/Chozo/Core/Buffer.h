@@ -41,7 +41,7 @@ namespace Chozo {
 			memcpy(other.Data, Data, Size);
 		}
 
-		void Allocate(uint64_t size)
+		virtual void Allocate(uint64_t size)
 		{
 			delete[] (byte*)Data;
 			Data = nullptr;
@@ -53,7 +53,7 @@ namespace Chozo {
 			Size = size;
 		}
 
-		void Release()
+		virtual void Release()
 		{
 			delete[] (byte*)Data;
 			Data = nullptr;
@@ -116,19 +116,76 @@ namespace Chozo {
 		inline uint64_t GetSize() const { return Size; }
 	};
 
-	struct BufferSafe : public Buffer
+	struct SafeBuffer : public Buffer
 	{
-		~BufferSafe()
+		~SafeBuffer()
 		{
 			Release();
 		}
 
-		static BufferSafe Copy(const void* data, uint64_t size)
+		static SafeBuffer Copy(const void* data, uint64_t size)
 		{
-			BufferSafe buffer;
+			SafeBuffer buffer;
 			buffer.Allocate(size);
 			memcpy(buffer.Data, data, size);
 			return buffer;
+		}
+	};
+
+	struct SharedBuffer : public Buffer
+	{
+		std::shared_ptr<byte[]> SharedData;
+
+		SharedBuffer() : Buffer() {}
+
+		SharedBuffer(const void* data, uint64_t size = 0)
+		{
+			Allocate(size);
+			memcpy(SharedData.get(), data, size);
+		}
+
+		void Copy(const Buffer& other)
+		{
+			Allocate(other.Size);
+			memcpy(SharedData.get(), other.Data, other.Size);
+		}
+
+		void Allocate(uint64_t size) override
+		{
+			Release();
+
+			if (size == 0)
+				return;
+
+			SharedData.reset(new byte[size], std::default_delete<byte[]>());
+			Data = SharedData.get();
+			Size = size;
+		}
+
+		void Release() override
+		{
+			SharedData.reset();
+			Data = nullptr;
+			Size = 0;
+		}
+
+		SharedBuffer(const SharedBuffer& other)
+		{
+			SharedData = other.SharedData;
+			Data = SharedData.get();
+			Size = other.Size;
+		}
+
+		SharedBuffer& operator=(const SharedBuffer& other)
+		{
+			if (this != &other)
+			{
+				Release();
+				SharedData = other.SharedData;
+				Data = SharedData.get();
+				Size = other.Size;
+			}
+			return *this;
 		}
 	};
 }

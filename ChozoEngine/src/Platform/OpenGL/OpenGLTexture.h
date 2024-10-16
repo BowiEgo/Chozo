@@ -25,6 +25,7 @@ namespace Chozo {
         virtual void Resize(uint32_t width, uint32_t height) override;
 
         virtual void SetData(const void* data, const uint32_t size) override;
+        virtual void ExtractBuffer() override;
         virtual void CopyToHostBuffer(Buffer& buffer, bool isRaw = false) override;
 
         void Bind(uint32_t slot = 0) const;
@@ -53,6 +54,7 @@ namespace Chozo {
 		virtual RendererID GetRendererID() const override { return m_RendererID; };
 
         virtual void SetData(void* data, uint32_t size) override;
+        virtual void ExtractBuffer() override;
         virtual void CopyToHostBuffer(Buffer& buffer, bool isRaw = false) override;
 
         void Bind(uint32_t slot = 0) const;

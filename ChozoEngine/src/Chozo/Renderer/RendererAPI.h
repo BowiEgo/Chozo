@@ -48,7 +48,7 @@ namespace Chozo {
         virtual void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material = nullptr) = 0;
         virtual void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material, glm::mat4 transform) = 0;
 
-        virtual void CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, Callback<void, const Buffer&> callback) = 0;
+        virtual void CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest) = 0;
 
         inline static API GetAPI() { return s_API; }
     private:

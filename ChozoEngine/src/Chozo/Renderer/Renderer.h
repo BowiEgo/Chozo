@@ -103,7 +103,7 @@ namespace Chozo {
         static void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
         static void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material, glm::mat4 transform);
 
-        static void CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, Callback<void, const Buffer&> callback);
+        static void CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest);
 
         inline static RendererAPI* GetAPI() { return s_RendererAPI; }
 

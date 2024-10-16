@@ -6,10 +6,29 @@
 #include "Chozo/Renderer/SceneRenderer.h"
 #include "Chozo/Renderer/Texture.h"
 #include "Chozo/Renderer/Material.h"
+#include "Chozo/FileSystem/TextureExporter.h"
 
 #include "ThumbnailPoolTask.h"
 
 namespace Chozo {
+
+    namespace Utils {
+
+        static void ExportPNG(std::string filename, Buffer source, glm::vec2 srcSize, glm::vec2 outputSize, bool isHDR)
+        {
+            fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
+            fs::path filepath = cacheDir / filename;
+
+            Utils::File::CreateDirectoryIfNeeded(cacheDir.string());
+
+            Buffer buffer = TextureExporter::ToFileFromBuffer(
+                            filepath,
+                            source,
+                            srcSize.x, srcSize.y,
+                            outputSize.x, outputSize.y,
+                            isHDR);
+        }
+    }
 
     class ThumbnailRenderer
     {
@@ -46,7 +65,7 @@ namespace Chozo {
         virtual void Render(Ref<ThumbnailPoolTask> task) override;
 
         void OnUpdate();
-        void RenderToBuffer(Callback<void, const Buffer&> callback);
+        void RenderToBuffer(SharedBuffer& dest);
     
         Entity GetSphere();
         inline Ref<Material> GetMaterial() { return m_Material; }
@@ -56,14 +75,13 @@ namespace Chozo {
         inline Ref<Scene> GetScene() { return m_Scene; }
         inline Ref<SceneRenderer> GetSceneRenderer() { return m_SceneRenderer; }
         inline Ref<Texture2D> GetOutput() { return m_SceneRenderer->GetCompositePass()->GetOutput(0); }
-        inline uint32_t GetThumbnailSize() { return s_MaterialThumbnailSize; }
+        inline glm::vec2 GetViewportSize() { return m_ViewportSize; }
     private:
         Ref<Scene> m_Scene;
 		Ref<SceneRenderer> m_SceneRenderer;
         Ref<Material> m_Material;
         EditorCamera m_Camera;
-
-        static uint32_t s_MaterialThumbnailSize;
+        glm::vec2 m_ViewportSize{200, 200};
     };
     
 } // namespace Chozo
