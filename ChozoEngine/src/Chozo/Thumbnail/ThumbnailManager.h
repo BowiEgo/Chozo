@@ -1,25 +1,26 @@
 #pragma once
 
 #include "ThumbnailRenderer.h"
-
 #include "Chozo/Asset/Asset.h"
-#include "Chozo/Core/Application.h"
 
 namespace Chozo {
     
     class ThumbnailManager : public RefCounted
     {
     public:
-        ThumbnailManager();
-        ~ThumbnailManager();
+        ThumbnailManager() {};
+        ~ThumbnailManager() {};
 
-        void ImportThumbnail(AssetHandle id);
-        void CreateThumbnail(AssetMetadata metadata, Ref<Asset> asset);
-        void RemoveThumbnail(AssetHandle id);
+        static void Init();
 
-        Ref<Texture2D> GetThumbnail(AssetHandle assetHandle);
+        static void ImportThumbnail(AssetHandle handle);
+        static void DeleteThumbnail(AssetHandle handle);
+        inline static void SetThumbnail(AssetHandle assetHandle, Ref<Texture2D> texture) { s_Instance->m_Thumbnails[assetHandle] = texture; }
+        static Ref<Texture2D> GetThumbnail(AssetHandle assetHandle);
     private:
-        // TODO: ThumbnailPool
+        static Ref<ThumbnailManager> s_Instance;
+        static std::unordered_map<AssetType, Scope<ThumbnailRenderer>> s_Renderers;
+
 		std::unordered_map<AssetHandle, Ref<Texture2D>> m_Thumbnails;
     };
 } // namespace Chozo

@@ -41,11 +41,13 @@ namespace Chozo {
         inline bool IsHovered() { return m_Hovered; }
         inline AssetHandle GetHandle() const { return m_Handle; }
         inline std::pair<ImVec2, ImVec2> GetRect() const { return m_Rect; }
+        inline std::string GetFilename() const { return m_Filename; }
         inline void Delete() { m_Delete = true; }
         inline void Select() { m_Select = true; }
         inline void Deselect() { m_Select = false; }
     private:
-        void RenderThumbnail(const Ref<Texture2D>& icon, float thumbnailSize);
+        void UpdateThumbnail();
+        void RenderThumbnail();
         void RenderTooltip();
         void RenderDragDrop(const AssetHandle& handle);
         void RenderCenteredText(const std::string& text);
@@ -64,6 +66,7 @@ namespace Chozo {
         bool m_Delete = false;
         bool m_Select = false;
         bool m_Hovered = false;
+        bool m_Empty = false;
     };
 
 } // namespace Chozo

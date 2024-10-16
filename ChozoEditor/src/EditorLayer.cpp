@@ -12,7 +12,8 @@
 #include "Chozo/Math/Math.h"
 
 // TODO: Remove
-#include "Chozo/Thumbnail/ThumbnailExporter.h"
+#include "Chozo/Thumbnail/ThumbnailManager.h"
+#include "Chozo/Thumbnail/ThumbnailPool.h"
 
 namespace Chozo {
 
@@ -61,6 +62,10 @@ namespace Chozo {
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
         PropertiesPanel::SetContext(m_ActiveScene);
         m_EnvironmentPanel.SetContext(m_ActiveScene);
+
+        ThumbnailRenderer::Init();
+        ThumbnailManager::Init();
+        ThumbnailPool::Init();
     }
 
     void EditorLayer::OnDetach()
@@ -90,6 +95,8 @@ namespace Chozo {
                 break;
             }
         }
+
+        ThumbnailPool::Update();
     }
 
     void EditorLayer::OnImGuiRender()
@@ -242,8 +249,8 @@ namespace Chozo {
             {
                 TextureViewerPanel::Open();
 
-                ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
-                Ref<Texture2D> texture = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetOutput();
+                ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->OnUpdate();
+                Ref<Texture2D> texture = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->GetOutput();
                 TextureViewerPanel::SetTexture(texture);
             }
         }

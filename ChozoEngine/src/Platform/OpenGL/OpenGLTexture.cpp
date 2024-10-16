@@ -84,9 +84,9 @@ namespace Chozo
         glTexImage2D(GL_TEXTURE_2D, 0, GetGLFormat(m_Spec.Format), m_Width, m_Height, 0, GetGLDataFormat(m_Spec.Format), GetGLDataType(m_Spec.Format), m_Buffer.Data); GCE;
     }
 
-    void OpenGLTexture2D::CopyToHostBuffer(Buffer& buffer)
+    void OpenGLTexture2D::CopyToHostBuffer(Buffer& buffer, bool isRaw)
     {
-        if (m_Buffer.Size != 0)
+        if (m_Buffer.Size != 0 && !isRaw)
         {
             m_Buffer.CopyTo(buffer);
             return;
@@ -185,7 +185,7 @@ namespace Chozo
         }
     }
 
-    void OpenGLTextureCube::CopyToHostBuffer(Buffer& buffer)
+    void OpenGLTextureCube::CopyToHostBuffer(Buffer& buffer, bool isRaw)
     {
     }
 }

@@ -83,7 +83,7 @@ namespace Chozo {
 		stream.WriteString(yamlString);
         uint64_t size = stream.GetStreamPosition() - start;
 
-#if 1
+#if 0
         fs::path dest2 = filepath.parent_path() / (filepath.filename().string() + ".txt");
         fs::path dirPath(dest2);
         if (!(fs::exists(dirPath) && fs::is_directory(dirPath)))

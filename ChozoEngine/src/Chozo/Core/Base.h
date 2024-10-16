@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <functional>
 #include "Ref.h"
 
 #ifdef ENGINE_PLATFORM_WIN32
@@ -78,6 +79,9 @@ namespace Chozo {
 	namespace fs = std::filesystem;
 	
 	using byte = uint8_t;
+
+    template<typename T, typename ... Args>
+	using Callback = std::function<T(Args&& ...args)>;
 
     template<typename T>
     using Scope = std::unique_ptr<T>;

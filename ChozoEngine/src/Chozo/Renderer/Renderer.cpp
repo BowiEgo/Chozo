@@ -322,6 +322,11 @@ namespace Chozo {
         s_RendererAPI->SubmitMeshWithMaterial(commandBuffer, pipeline, mesh, material, transform);
     }
 
+    void Renderer::CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, Callback<void, const Buffer&> callback)
+    {
+        s_RendererAPI->CopyImage(commandBuffer, source, callback);
+    }
+
     void Renderer::Begin()
     {
         s_RenderCommandQueue.clear();

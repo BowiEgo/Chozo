@@ -8,7 +8,8 @@
 
 #include "Chozo/Utilities/PlatformUtils.h"
 #include "Chozo/Renderer/Material.h"
-#include "Chozo/Thumbnail/ThumbnailExporter.h"
+#include "Chozo/Thumbnail/ThumbnailManager.h"
+#include "Chozo/Thumbnail/ThumbnailPool.h"
 
 #include <imgui_internal.h>
 
@@ -33,7 +34,6 @@ namespace Chozo {
         s_Icons["Search"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/search.png"));
         s_Icons["Clear"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/clear.png"));
 
-        m_ThumbnailManager = Ref<ThumbnailManager>::Create();
         m_ContentSelection = ContentSelection();
 
         OnBrowserRefresh();
@@ -213,7 +213,25 @@ namespace Chozo {
             return nullptr;
         }
 
-        auto material = s_Instance->CreateAsset<Material>("material", s_Instance->m_CurrentDirectory, "PBR");
+        int maxIndex = -1;
+        std::regex pattern(R"(material_(\d+))");
+        std::smatch match;
+
+        for (const auto& item : s_Instance->m_CurrentItems) {
+            auto name = item->GetFilename();
+            if (name == "material") {
+                maxIndex = 0;
+            } else if (std::regex_search(name, match, pattern)) {
+                int index = std::stoi(match[1]);
+                maxIndex = std::max(maxIndex, index);
+            }
+        }
+
+        std::string filename = "material";
+        if (maxIndex > -1)
+            filename += ("_" + std::to_string(maxIndex + 1));
+
+        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, "PBR");
         material->Set("u_Material.Albedo", glm::vec3(0.5f, 0.5f, 0.5f));
         // material->Set("u_AlbedoTex", "");
         material->Set("u_Material.Metalness", 0.5f);
@@ -225,8 +243,9 @@ namespace Chozo {
         material->Set("u_Material.enableMetalnessTex", false);
         material->Set("u_Material.enableRoughnessTex", false);
         material->Set("u_Material.enableNormalTex", false);
-        ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
-        ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
+
+        ThumbnailPool::CreateTask(material, TaskFlags_Export);
+        ThumbnailPool::Start();
         s_Instance->OnBrowserRefresh();
 
         return material;
@@ -261,6 +280,10 @@ namespace Chozo {
     {
         if (ImGui::BeginPopup("ItemContextMenu"))
         {
+            if (ImGui::MenuItem("Rename"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
             if (ImGui::MenuItem("Delete"))
             {
                 auto items = m_ContentSelection.GetSelection();
@@ -503,8 +526,11 @@ namespace Chozo {
         {
             auto metadata = assetManager->GetMetadata(item->GetHandle());
             auto asset = assetManager->GetAsset(metadata.Handle);
-            m_ThumbnailManager->CreateThumbnail(metadata, asset);
+
+            ThumbnailPool::CreateTask(asset, TaskFlags_Export);
         }
+
+        ThumbnailPool::Start();
     }
 
     void ContentBrowserPanel::AddAssetsToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata)
@@ -583,7 +609,7 @@ namespace Chozo {
                 m_CurrentItems.erase(it);
                 m_CurrentDirectory->Assets.erase(item->GetHandle());
                 Application::GetAssetManager()->RemoveAsset(item->GetHandle());
-                m_ThumbnailManager->RemoveThumbnail(item->GetHandle());
+                ThumbnailManager::DeleteThumbnail(item->GetHandle());
             }
         }
 

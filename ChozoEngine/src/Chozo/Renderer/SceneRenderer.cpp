@@ -282,6 +282,11 @@ namespace Chozo
         Flush();
     }
 
+    void SceneRenderer::EndScene(Callback<void, const Buffer&> callback)
+    {
+        CopyImage(callback);
+    }
+
     void SceneRenderer::SetViewportSize(uint32_t width, uint32_t height)
     {
         bool inValid = width <= 0.0f || height <= 0.0f;
@@ -468,7 +473,25 @@ namespace Chozo
         m_MeshDatas.clear();
     }
 
-    Ref<SceneRenderer> SceneRenderer::Create(Ref<Scene>& scene)
+    void SceneRenderer::CopyImage(Callback<void, const Buffer&> callback)
+    {
+        m_CommandBuffer->Begin();
+
+        SkyboxPass();
+        GeometryPass();
+        SolidPass();
+        IDPass();
+        // PhongLightPass();
+        PBRPass();
+        CompositePass();
+        Renderer::CopyImage(m_CommandBuffer, m_CompositePass->GetOutput(0), callback);
+
+        m_CommandBuffer->End();
+
+        m_MeshDatas.clear();
+    }
+
+    Ref<SceneRenderer> SceneRenderer::Create(Ref<Scene> &scene)
     {
         Ref<SceneRenderer> sceneRenderer = Ref<SceneRenderer>(new SceneRenderer(scene));
         s_SceneRenderers.push_back(sceneRenderer);

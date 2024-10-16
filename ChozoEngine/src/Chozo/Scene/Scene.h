@@ -13,6 +13,7 @@
 namespace Chozo {
 
     class Entity;
+    class SceneRenderer;
 
     class Scene : public RefCounted
     {
@@ -31,6 +32,11 @@ namespace Chozo {
         void OnUpdateEditor(Timestep ts, EditorCamera& camera);
         void OnUpdateRuntime(Timestep ts);
         void OnViewportResize(uint32_t width, uint32_t height);
+
+        void PrepareRender(Ref<SceneRenderer> renderer);
+        void SubmitMeshes(Ref<SceneRenderer> renderer);
+
+        void RenderToBuffer(EditorCamera& camera, Callback<void, const Buffer&> callback);
 
         Entity GetPrimaryCameraEntity();
 

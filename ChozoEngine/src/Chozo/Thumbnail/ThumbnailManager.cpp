@@ -1,20 +1,17 @@
 #include "ThumbnailManager.h"
-#include "ThumbnailExporter.h"
 
 namespace Chozo {
 
-    ThumbnailManager::ThumbnailManager()
+    Ref<ThumbnailManager> ThumbnailManager::s_Instance;
+
+    void ThumbnailManager::Init()
     {
-        ThumbnailExporter::Init();
+        s_Instance = Ref<ThumbnailManager>::Create();
     }
 
-    ThumbnailManager::~ThumbnailManager()
+    void ThumbnailManager::ImportThumbnail(AssetHandle handle)
     {
-    }
-
-    void ThumbnailManager::ImportThumbnail(AssetHandle assetHandle)
-    {
-        std::string filename = std::to_string(assetHandle) + ".png";
+        std::string filename = std::to_string(handle) + ".png";
         fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
         fs::path filepath = cacheDir / filename;
 
@@ -22,33 +19,33 @@ namespace Chozo {
         spec.Format = ImageFormat::RGBA;
         Ref<Texture2D> thumbnail = Texture2D::Create(filepath.string(), spec);
 
-        m_Thumbnails[assetHandle] = thumbnail;
+        SetThumbnail(handle, thumbnail);
     }
 
-    void ThumbnailManager::CreateThumbnail(AssetMetadata metadata, Ref<Asset> asset)
+    void ThumbnailManager::DeleteThumbnail(AssetHandle assetHandle)
     {
-        Ref<Texture2D> thumbnail = ThumbnailExporter::Render(metadata, asset);
-        m_Thumbnails[metadata.Handle] = thumbnail;
-    }
+        auto thumbnails = s_Instance->m_Thumbnails;
 
-    void ThumbnailManager::RemoveThumbnail(AssetHandle assetHandle)
-    {
-        if (m_Thumbnails.find(assetHandle) != m_Thumbnails.end())
+        if (thumbnails.find(assetHandle) != thumbnails.end())
         {
             std::string filename = std::to_string(assetHandle) + ".png";
             fs::path filePath = Utils::File::GetThumbnailCacheDirectory() / fs::path(filename);
             Utils::File::DeleteFile(filePath);
-            m_Thumbnails.erase(assetHandle);
+            thumbnails.erase(assetHandle);
         }
     }
 
     Ref<Texture2D> ThumbnailManager::GetThumbnail(AssetHandle assetHandle)
     {
-        if (m_Thumbnails.find(assetHandle) == m_Thumbnails.end())
+        auto thumbnails = s_Instance->m_Thumbnails;
+
+        if (thumbnails.find(assetHandle) == thumbnails.end())
             ImportThumbnail(assetHandle);
 
-        return m_Thumbnails[assetHandle];
-        // TODO: return errorTexture
+        if (thumbnails[assetHandle])
+            return thumbnails[assetHandle];
+        else
+            return Texture2D::Create(); // TODO: return errorTexture
     }
 
 } // namespace Chozo

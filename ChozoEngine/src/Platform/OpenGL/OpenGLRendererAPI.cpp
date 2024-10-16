@@ -325,6 +325,16 @@ namespace Chozo {
         });
     }
 
+    void OpenGLRendererAPI::CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, Callback<void, const Buffer&> callback)
+    {
+        commandBuffer->AddCommand([source, callback]() mutable
+        {
+            Buffer destination;
+            source->CopyToHostBuffer(destination, true);
+            callback(destination);
+        });
+    }
+
     void OpenGLRendererAPI::PrepareGLContext(Ref<Pipeline> pipeline)
     {
         if (pipeline->GetSpec().DepthWrite)

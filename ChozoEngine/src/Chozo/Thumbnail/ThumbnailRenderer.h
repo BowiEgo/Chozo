@@ -7,27 +7,46 @@
 #include "Chozo/Renderer/Texture.h"
 #include "Chozo/Renderer/Material.h"
 
+#include "ThumbnailPoolTask.h"
+
 namespace Chozo {
-    
-    class ThumbnailRenderer : public RefCounted
+
+    class ThumbnailRenderer
     {
     public:
-        virtual Ref<Texture2D> Render(AssetMetadata metadata, Ref<Asset> asset) = 0;
+        virtual ~ThumbnailRenderer() = default;
+        virtual void Render(Ref<ThumbnailPoolTask> task) = 0;
+
+        static void Init();
+        static void RenderTask(Ref<ThumbnailPoolTask> task);
+
+        template <typename T>
+		static T* GetRenderer();
+
+        inline static ThumbnailRenderer* GetRenderer(AssetType type) {
+            CZ_CORE_ASSERT(s_Renderers[type], std::string(Utils::AssetTypeToString(type)) + "ThumbnailRenderer has not been initialized.");
+            return s_Renderers[type].get();
+        }
+        inline static uint32_t GetThumbnailSize() { return s_ThumbnailSize; }
+    private:
+        static std::unordered_map<AssetType, Scope<ThumbnailRenderer>> s_Renderers;
+        static uint32_t s_ThumbnailSize;
     };
 
     class TextureThumbnailRenderer : public ThumbnailRenderer
     {
     public:
-        virtual Ref<Texture2D> Render(AssetMetadata metadata, Ref<Asset> asset) override;
+        virtual void Render(Ref<ThumbnailPoolTask> task) override;
     };
 
     class MaterialThumbnailRenderer : public ThumbnailRenderer
     {
     public:
         MaterialThumbnailRenderer();
-        virtual Ref<Texture2D> Render(AssetMetadata metadata, Ref<Asset> asset) override;
+        virtual void Render(Ref<ThumbnailPoolTask> task) override;
 
         void OnUpdate();
+        void RenderToBuffer(Callback<void, const Buffer&> callback);
     
         Entity GetSphere();
         inline Ref<Material> GetMaterial() { return m_Material; }
@@ -35,7 +54,9 @@ namespace Chozo {
         void SetMaterialValue(Ref<Material> material, std::string name, UniformValue value);
         void SetMaterialValue(Ref<Material> material, std::string name, Ref<Texture2D> texture);
         inline Ref<Scene> GetScene() { return m_Scene; }
+        inline Ref<SceneRenderer> GetSceneRenderer() { return m_SceneRenderer; }
         inline Ref<Texture2D> GetOutput() { return m_SceneRenderer->GetCompositePass()->GetOutput(0); }
+        inline uint32_t GetThumbnailSize() { return s_MaterialThumbnailSize; }
     private:
         Ref<Scene> m_Scene;
 		Ref<SceneRenderer> m_SceneRenderer;

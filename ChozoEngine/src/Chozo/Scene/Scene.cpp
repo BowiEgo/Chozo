@@ -51,20 +51,90 @@ namespace Chozo {
 
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
     {
-        // Ref<Framebuffer> FBO = m_FinalPipeline->GetTargetFramebuffer();
-        // FBO->Bind();
-        // Renderer2D::ResetStats();
-        // Renderer::ResetStats();
-        // RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-        // RenderCommand::Clear();
-        // FBO->ClearColorAttachmentBuffer(1); // clear entity ID attachment to -1
-
         Ref<SceneRenderer> renderer = SceneRenderer::Find(this);
         if (!renderer)
             return;
 
-        // renderer->GetGeometryPass()->GetTargetFramebuffer()->ClearColorAttachmentBuffer(5);
-        
+        PrepareRender(renderer);
+
+        // 3D Renderer
+        renderer->BeginScene(camera);
+        SubmitMeshes(renderer);
+        renderer->EndScene();
+
+        // 2D Renderer
+        Renderer2D::BeginScene(camera);
+        Renderer2D::BeginBatch();
+        // Draw sprites
+        {
+            auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+            for (auto entity : group)
+            {
+                if (!m_Registry.valid(entity))
+                    continue;
+            
+                const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+                Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
+                // Renderer2D::DrawRect(transform.GetTransform(), sprite.Color, (uint32_t)entity);
+            }
+        }
+
+        // Draw circles
+        {
+            auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
+            for (auto entity : view)
+            {
+                if (!m_Registry.valid(entity))
+                    continue;
+            
+                const auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
+                Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (uint32_t)entity);
+            }
+        }
+
+        Renderer2D::EndScene();
+    }
+
+    void Scene::OnUpdateRuntime(Timestep ts)
+    {
+        // Update scripts
+        {
+            m_Registry.view<NativeScriptComponent>().each([=](auto entity, NativeScriptComponent& nsc)
+            {
+                // TODO: Move to Scene::OnScenePlay
+                if (!nsc.Instance)
+                {
+                    nsc.Instance = nsc.InstantiateScript();
+                    nsc.Instance->m_Entity = Entity{ entity, this };
+
+                    nsc.Instance->OnCreate();
+                }
+
+                nsc.Instance->OnUpdate(ts);
+            });
+        }
+    }
+
+    void Scene::OnViewportResize(uint32_t width, uint32_t height)
+    {
+        bool inValid = width <= 0.0f || height <= 0.0f;
+        if (inValid || (m_ViewportWidth == width && m_ViewportHeight == height))
+            return;
+
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+
+        auto view = m_Registry.view<CameraComponent>();
+        for (auto entity : view)
+        {
+            auto& cameraComponent = view.get<CameraComponent>(entity);
+            if (!cameraComponent.FixedAspectRatio)
+                cameraComponent.Camera.SetViewportSize(width, height);
+        }
+    }
+
+    void Scene::PrepareRender(Ref<SceneRenderer> renderer)
+    {
         // Skylight
         {
             auto group = m_Registry.group<SkyLightComponent>(entt::get<TransformComponent>);
@@ -138,194 +208,49 @@ namespace Chozo {
                 }
             }
         }
-
-        // 3D Renderer
-        // FBO->Bind();
-        renderer->BeginScene(camera);
-
-        // Draw meshes
-        {
-            auto view = m_Registry.view<TransformComponent, MeshComponent>();
-            for (auto entity : view)
-            {
-                if (!m_Registry.valid(entity))
-                    continue;
-
-                const auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
-
-                if (mesh.Type == MeshType::Dynamic)
-                {
-                    Ref<DynamicMesh> dynamicMesh = mesh.MeshInstance.As<DynamicMesh>();
-                    if (dynamicMesh->GetMeshSource()->IsBufferChanged())
-                        dynamicMesh->Init();
-                    // Renderer::DrawMesh(transform.GetTransform(), dynamicMesh.get(), mesh.MaterialInstance.get(), (uint32_t)entity);
-                    auto material = Application::GetAssetManager()->GetAsset(mesh.MaterialHandle);
-                    renderer->SubmitMesh(dynamicMesh, material, transform.GetTransform());
-                }
-                else if (mesh.Type == MeshType::Static)
-                {
-                    StaticMesh* staticMesh = dynamic_cast<StaticMesh*>(mesh.MeshInstance.get());
-                    staticMesh->GetMeshSource()->SetLocalTransform(transform.GetTransform());
-                    if (staticMesh->GetMeshSource()->IsBufferChanged())
-                        Renderer::SubmitStaticMesh(staticMesh);
-                }
-            }
-        }
-
-        renderer->EndScene();
-
-        // 2D Renderer
-        Renderer2D::BeginScene(camera);
-        Renderer2D::BeginBatch();
-        // Draw sprites
-        {
-            auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-            for (auto entity : group)
-            {
-                if (!m_Registry.valid(entity))
-                    continue;
-            
-                const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
-                // Renderer2D::DrawRect(transform.GetTransform(), sprite.Color, (uint32_t)entity);
-            }
-        }
-
-        // Draw circles
-        {
-            auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
-            for (auto entity : view)
-            {
-                if (!m_Registry.valid(entity))
-                    continue;
-            
-                const auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
-                Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (uint32_t)entity);
-            }
-        }
-
-        Renderer2D::EndScene();
     }
 
-    void Scene::OnUpdateRuntime(Timestep ts)
+    void Scene::SubmitMeshes(Ref<SceneRenderer> renderer)
     {
-        // Ref<Framebuffer> FBO = m_FinalPipeline->GetTargetFramebuffer();
-        // FBO->Bind();
-        // Renderer2D::ResetStats();
-        // Renderer::ResetStats();
-        // RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
-        // RenderCommand::Clear();
-        // int clearValue = -1;
-        // FBO->ClearColorAttachmentBuffer(1); // clear entity ID attachment to -1
-        
-        // Update scripts
-        {
-            m_Registry.view<NativeScriptComponent>().each([=](auto entity, NativeScriptComponent& nsc)
-            {
-                // TODO: Move to Scene::OnScenePlay
-                if (!nsc.Instance)
-                {
-                    nsc.Instance = nsc.InstantiateScript();
-                    nsc.Instance->m_Entity = Entity{ entity, this };
-
-                    nsc.Instance->OnCreate();
-                }
-
-                nsc.Instance->OnUpdate(ts);
-            });
-        }
-
-        // // Skylight
-        // {
-        //     auto group = m_Registry.group<SkyLightComponent>(entt::get<TransformComponent>);
-
-        //     for (auto entity : group)
-        //     {
-        //         auto [transform, skyLight] = group.get<TransformComponent, SkyLightComponent>(entity);
-
-        //         if (!skyLight.SceneEnvironment && skyLight.DynamicSky)
-        //         {
-        //             Ref<TextureCube> preethamEnv = Renderer::CreatePreethamSky(skyLight.TurbidityAzimuthInclination.x, skyLight.TurbidityAzimuthInclination.y, skyLight.TurbidityAzimuthInclination.z);
-        //             skyLight.SceneEnvironment = Ref<Environment>::Create(preethamEnv, preethamEnv);
-        //             m_Environment = skyLight.SceneEnvironment;
-        //             m_EnvironmentIntensity = skyLight.Intensity;
-        //             m_SkyboxLod = skyLight.Lod;
-        //         }
-
-        //         Renderer::DrawSkyLight(m_Environment, m_EnvironmentIntensity, m_SkyboxLod);
-        //     }
-        // }
-
-        // Render 2D scene
-        {
-            Camera* mainCamera = nullptr;
-            glm::mat4 cameraTransform;
-            {
-                auto view = m_Registry.view<TransformComponent, CameraComponent>();
-                for (auto entity : view)
-                {
-                    const auto [transform, camera] = view.get<TransformComponent, CameraComponent>(entity);
-                    if (camera.Primary)
-                    {
-                        mainCamera = &camera.Camera;
-                        cameraTransform = transform.GetTransform();
-                        break;
-                    }
-                }
-            }
-
-            if (mainCamera)
-            {
-                Renderer2D::BeginScene(mainCamera->GetProjection(), cameraTransform);
-                Renderer2D::BeginBatch();
-
-                // Draw sprites
-                {
-                    auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-                    for (auto entity : group)
-                    {
-                        if (!m_Registry.valid(entity))
-                            continue;
-                    
-                        const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                        Renderer2D::DrawSprite(transform.GetTransform(), sprite, (uint32_t)entity);
-                    }
-                }
-
-                // Draw circles
-                {
-                    auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
-                    for (auto entity : view)
-                    {
-                        if (!m_Registry.valid(entity))
-                            continue;
-                    
-                        const auto [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
-                        Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, circle.Fade, (uint32_t)entity);
-                    }
-                }
-
-                Renderer2D::EndScene();
-            }
-        }
-    }
-
-    void Scene::OnViewportResize(uint32_t width, uint32_t height)
-    {
-        bool inValid = width <= 0.0f || height <= 0.0f;
-        if (inValid || (m_ViewportWidth == width && m_ViewportHeight == height))
-            return;
-
-        m_ViewportWidth = width;
-        m_ViewportHeight = height;
-
-        auto view = m_Registry.view<CameraComponent>();
+        auto view = m_Registry.view<TransformComponent, MeshComponent>();
         for (auto entity : view)
         {
-            auto& cameraComponent = view.get<CameraComponent>(entity);
-            if (!cameraComponent.FixedAspectRatio)
-                cameraComponent.Camera.SetViewportSize(width, height);
+            if (!m_Registry.valid(entity))
+                continue;
+
+            const auto [transform, mesh] = view.get<TransformComponent, MeshComponent>(entity);
+
+            if (mesh.Type == MeshType::Dynamic)
+            {
+                Ref<DynamicMesh> dynamicMesh = mesh.MeshInstance.As<DynamicMesh>();
+                if (dynamicMesh->GetMeshSource()->IsBufferChanged())
+                    dynamicMesh->Init();
+                // Renderer::DrawMesh(transform.GetTransform(), dynamicMesh.get(), mesh.MaterialInstance.get(), (uint32_t)entity);
+                auto material = Application::GetAssetManager()->GetAsset(mesh.MaterialHandle);
+                renderer->SubmitMesh(dynamicMesh, material, transform.GetTransform());
+            }
+            else if (mesh.Type == MeshType::Static)
+            {
+                StaticMesh* staticMesh = dynamic_cast<StaticMesh*>(mesh.MeshInstance.get());
+                staticMesh->GetMeshSource()->SetLocalTransform(transform.GetTransform());
+                if (staticMesh->GetMeshSource()->IsBufferChanged())
+                    Renderer::SubmitStaticMesh(staticMesh);
+            }
         }
+    }
+
+    void Scene::RenderToBuffer(EditorCamera& camera, Callback<void, const Buffer&> callback)
+    {
+        Ref<SceneRenderer> renderer = SceneRenderer::Find(this);
+        if (!renderer)
+            return;
+
+        PrepareRender(renderer);
+
+        // 3D Renderer
+        renderer->BeginScene(camera);
+        SubmitMeshes(renderer);
+        renderer->EndScene(callback);
     }
 
     // void Scene::DrawIDBuffer(Ref<Framebuffer> target, EditorCamera& camera)

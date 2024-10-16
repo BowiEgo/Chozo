@@ -1,7 +1,7 @@
 #include "ContentItem.h"
 #include "ContentBrowserPanel.h"
 #include "../MaterialPanel.h"
-#include "Chozo/Thumbnail/ThumbnailExporter.h"
+#include "Chozo/Thumbnail/ThumbnailManager.h"
 
 namespace Chozo {
 
@@ -10,7 +10,7 @@ namespace Chozo {
         m_Type = ContentItemType::Directory;
         m_Handle = directory->Handle;
         m_Filename = directory->FilePath.filename().string();
-        m_Thumbnail = directory->SubDirectories.empty() ? ContentBrowserPanel::GetIcon("EmptyDirectory") : ContentBrowserPanel::GetIcon("Directory");
+        m_Empty = directory->SubDirectories.empty() && directory->Assets.empty();
     }
 
     ContentItem::ContentItem(AssetMetadata metadata)
@@ -20,13 +20,6 @@ namespace Chozo {
         m_Handle = metadata.Handle;
         m_Filename = metadata.FilePath.filename().string();
         m_Size = metadata.FileSize;
-
-        if (metadata.Type == AssetType::Texture)
-            m_Thumbnail = ContentBrowserPanel::Get().GetThumbnailManager()->GetThumbnail(metadata.Handle);
-        else if (metadata.Type == AssetType::Material)
-            m_Thumbnail = ContentBrowserPanel::Get().GetThumbnailManager()->GetThumbnail(metadata.Handle);
-        else
-            m_Thumbnail = ContentBrowserPanel::GetIcon("TextFile");
     }
 
     void ContentItem::OnImGuiRender()
@@ -45,10 +38,11 @@ namespace Chozo {
         {
             if (m_AssetType == AssetType::Material)
             {
+                auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
                 auto material = Application::GetAssetManager()->GetAsset(m_Handle);
-                auto scene = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetScene();
-                auto sphere = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetSphere();
-                ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
+                auto scene = renderer->GetScene();
+                auto sphere = renderer->GetSphere();
+                renderer->SetMaterial(material);
                 MaterialPanel::SetContext(scene);
                 MaterialPanel::SetMaterial(material);
                 MaterialPanel::Open();
@@ -65,7 +59,7 @@ namespace Chozo {
         ImVec2 cursorPos = ImGui::GetCursorScreenPos();
         cursorPos.y = cursorPos.y - itemSize.y - 6.0f;
         ImGui::SetCursorScreenPos(cursorPos);
-        RenderThumbnail(m_Thumbnail, ContentBrowserPanel::s_ThumbnailSize);
+        RenderThumbnail();
         RenderTooltip();
         RenderCenteredText(m_Filename);
 
@@ -76,9 +70,28 @@ namespace Chozo {
         // }
     }
 
-    void ContentItem::RenderThumbnail(const Ref<Texture2D>& icon, float thumbnailSize)
+    void ContentItem::UpdateThumbnail()
     {
-        float imageAspectRatio = static_cast<float>(icon->GetHeight()) / static_cast<float>(icon->GetWidth());
+        if (m_Type == ContentItemType::Directory)
+            m_Thumbnail = m_Empty ? ContentBrowserPanel::GetIcon("EmptyDirectory") : ContentBrowserPanel::GetIcon("Directory");
+        else
+        {
+            if (m_AssetType == AssetType::Texture)
+                m_Thumbnail = ThumbnailManager::GetThumbnail(m_Handle);
+            else if (m_AssetType == AssetType::Material)
+                m_Thumbnail = ThumbnailManager::GetThumbnail(m_Handle);
+            else
+                m_Thumbnail = ContentBrowserPanel::GetIcon("TextFile");
+
+        }
+    }
+
+    void ContentItem::RenderThumbnail()
+    {
+        UpdateThumbnail();
+
+        float thumbnailSize = ContentBrowserPanel::s_ThumbnailSize;
+        float imageAspectRatio = static_cast<float>(m_Thumbnail->GetHeight()) / static_cast<float>(m_Thumbnail->GetWidth());
         ImVec2 uv0(0.0f, 1.0f);
         ImVec2 uv1(1.0f, 0.0f);
         ImVec2 size(thumbnailSize, thumbnailSize);
@@ -95,7 +108,7 @@ namespace Chozo {
 
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
         ImGui::InvisibleButton("##thumbnailButton", size);
-        UI::DrawButtonImage(icon, IM_COL32(255, 255, 255, 225), UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f), uv0, uv1);
+        UI::DrawButtonImage(m_Thumbnail, IM_COL32(255, 255, 255, 225), UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f), uv0, uv1);
 
         ImGui::PopStyleColor();
 

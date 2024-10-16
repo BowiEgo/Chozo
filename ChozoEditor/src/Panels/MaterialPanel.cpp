@@ -1,5 +1,7 @@
 #include "MaterialPanel.h"
 
+#include "Chozo/Thumbnail/ThumbnailRenderer.h"
+
 #include "PropertyUI.h"
 
 namespace Chozo {
@@ -79,7 +81,7 @@ namespace Chozo {
         if (!material)
             return;
 
-        ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterial(material);
+        ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->SetMaterial(material);
 
         auto checkerboard = Renderer::GetCheckerboardTexture();
         auto albedoTex = material->GetTexture("u_AlbedoTex");
@@ -102,8 +104,8 @@ namespace Chozo {
         Ref<Texture2D> preview;
         if (m_PreviewUpdated)
         {
-            ThumbnailExporter::GetMaterialThumbnailRenderer()->OnUpdate();
-            preview = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetOutput();
+            ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->OnUpdate();
+            preview = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->GetOutput();
             m_PreviewCache = preview;
             m_PreviewUpdated = false;
         }
@@ -115,7 +117,7 @@ namespace Chozo {
         RenderPreviewImage(PreviewType::None, preview);
 
         if (!m_Material)
-            m_Material = ThumbnailExporter::GetMaterialThumbnailRenderer()->GetMaterial();
+            m_Material = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->GetMaterial();
 
         for (auto& pair : m_Material->GetUniforms())
         {
@@ -217,12 +219,12 @@ namespace Chozo {
 
     void MaterialPanel::OnMaterialChange(Ref<Material> material, std::string name, UniformValue value)
     {
-        ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterialValue(material, name, value);
+        ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->SetMaterialValue(material, name, value);
     }
 
     void MaterialPanel::OnMaterialChange(Ref<Material> material, std::string name, Ref<Texture2D> texture)
     {
-        ThumbnailExporter::GetMaterialThumbnailRenderer()->SetMaterialValue(material, name, texture);
+        ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->SetMaterialValue(material, name, texture);
     }
 
 }

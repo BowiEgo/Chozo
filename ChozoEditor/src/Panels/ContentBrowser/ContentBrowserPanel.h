@@ -2,7 +2,6 @@
 
 #include "Chozo/Core/Application.h"
 #include "Chozo/Asset/EditorAssetManager.h"
-#include "Chozo/Thumbnail/ThumbnailManager.h"
 
 #include "ContentItem.h"
 #include "ContentSelection.h"
@@ -24,7 +23,6 @@ namespace Chozo {
         void OnBrowserBack();
         void OnBrowserForward();
         void OnBrowserRefresh();
-        inline Ref<ThumbnailManager> GetThumbnailManager() { return m_ThumbnailManager; }
     public:
 		inline static ContentBrowserPanel& Get() { return *s_Instance; }
         inline static Ref<Texture2D> GetIcon(std::string name) { return s_Icons[name]; }
@@ -80,8 +78,6 @@ namespace Chozo {
         bool m_BackIcon_Disabled, m_ForwardIcon_Disabled, m_RefreshIcon_Disabled;
 
 		char m_SearchBuffer[MAX_SEARCH_BUFFER_LENGTH];
-
-        Ref<ThumbnailManager> m_ThumbnailManager;
     };
     
     template <typename T, typename... Args>
@@ -92,8 +88,6 @@ namespace Chozo {
 
         AddAssetsToDir(directory, metadata);
         SortAssets(directory);
-
-        m_ThumbnailManager->CreateThumbnail(metadata, asset);
 
         return asset;
     }

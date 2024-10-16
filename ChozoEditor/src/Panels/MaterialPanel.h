@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Chozo.h"
-#include "Chozo/Thumbnail/ThumbnailExporter.h"
 
 namespace Chozo {
 
