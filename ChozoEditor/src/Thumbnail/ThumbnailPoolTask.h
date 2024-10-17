@@ -29,13 +29,6 @@ namespace Chozo {
         {
         }
 
-        virtual inline TaskStatus GetStatus() override { 
-            if (ImageData.Data && ImageData.Size > 0)
-                return TaskStatus::Finished;
-            else
-                return TaskStatus::Unfinished;
-        };
-
         virtual void Execute() override;
         virtual void Finish() override;
     private:

@@ -6,6 +6,7 @@ namespace Chozo {
 
     void ThumbnailPoolTask::Execute()
     {
+        SetStatus(TaskStatus::Executed); // Right now SetStatus should before RenderTask.
         ThumbnailRenderer::RenderTask(this);
     }
 

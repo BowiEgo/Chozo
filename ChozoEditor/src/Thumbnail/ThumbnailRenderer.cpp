@@ -62,6 +62,7 @@ namespace Chozo {
     {
         Ref<Texture2D> src = task->Source.As<Texture2D>();
         src->CopyToHostBuffer(task->ImageData);
+        task->SetStatus(TaskStatus::Finished);
     }
 
     //==============================================================================
@@ -97,9 +98,9 @@ namespace Chozo {
         m_SceneRenderer->AddEventListener(
             EventType::SceneRender,
             [task, this](Event& e) mutable -> bool {
-                CZ_CORE_INFO("Execute");
                 SetMaterial(task->Source.As<Material>());
                 m_SceneRenderer->CopyCompositeImage(task->ImageData);
+                task->SetStatus(TaskStatus::Finished);
                 return true;
             },
             true

@@ -8,7 +8,8 @@
 namespace Chozo {
 
     enum class TaskStatus {
-        Unfinished,
+        None,
+        Executed,
         Finished,
     };
 
@@ -17,6 +18,7 @@ namespace Chozo {
     class PoolTask : public RefCounted
     {
     public:
+
         PoolTask() = default;
 
         virtual bool operator==(const PoolTask& other) const
@@ -24,12 +26,14 @@ namespace Chozo {
 			return m_Handle == other.GetHandle();
 		}
 
-        virtual TaskStatus GetStatus() = 0;
         virtual void Execute() = 0;
         virtual void Finish() = 0;
 
         inline UUID GetHandle() const { return m_Handle; }
+        inline void SetStatus(TaskStatus status) { m_Status = status; };
+        inline TaskStatus GetStatus() const { return m_Status; };
     protected:
         UUID m_Handle;
+        TaskStatus m_Status = TaskStatus::None;
     };
 }

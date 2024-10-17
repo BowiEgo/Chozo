@@ -20,11 +20,11 @@ namespace Chozo {
         {
             auto& task = tasks[0];
 
-            if (task->GetStatus() == TaskStatus::Unfinished)
+            if (task->GetStatus() == TaskStatus::None && task->GetStatus() != TaskStatus::Executed)
             {
                 task->Execute();
             }
-            else
+            else if (task->GetStatus() == TaskStatus::Finished)
             {
                 task->Finish();
                 RemoveTask(task);
