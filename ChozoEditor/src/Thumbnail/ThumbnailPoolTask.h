@@ -11,9 +11,9 @@ namespace Chozo {
 
     enum Thumbnail_PoolTaskFlags_ {
         PoolTaskFlags_None     = 0,
-        PoolTaskFlags_Export   = 1 << 0,
-        PoolTaskFlags_Import   = 1 << 1,
-        PoolTaskFlags_Process  = 1 << 2,
+        PoolTaskFlags_Export   = BIT(0),
+        PoolTaskFlags_Import   = BIT(1),
+        PoolTaskFlags_Process  = BIT(2),
     };
 
     class ThumbnailPoolTask : public PoolTask

@@ -77,8 +77,8 @@ namespace Chozo {
         {
             ImGuiIO& io = ImGui::GetIO();
             bool handled = false;
-            handled |= e.isInCategory(EventCategoryMouse) & io.WantCaptureMouse;
-            handled |= e.isInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
+            handled |= e.isInCategory(EventCategory_Mouse) & io.WantCaptureMouse;
+            handled |= e.isInCategory(EventCategory_Keyboard) & io.WantCaptureKeyboard;
             e.SetHandled(handled);
         }
     }

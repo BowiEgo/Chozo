@@ -20,7 +20,7 @@ namespace Chozo {
         }
 
         EVENT_CLASS_TYPE(WindowResize)
-        EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(EventCategory_Application)
     private:
         unsigned int m_Width, m_Height;
     };
@@ -31,7 +31,7 @@ namespace Chozo {
         WindowCloseEvent() {}
 
         EVENT_CLASS_TYPE(WindowClose)
-        EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(EventCategory_Application)
     };
 
     class CHOZO_API AppTickEvent : public Event
@@ -40,7 +40,7 @@ namespace Chozo {
         AppTickEvent() {}
 
         EVENT_CLASS_TYPE(AppTick)
-        EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(EventCategory_Application)
     };
 
     class CHOZO_API AppUpdateEvent : public Event
@@ -49,7 +49,7 @@ namespace Chozo {
         AppUpdateEvent() {}
 
         EVENT_CLASS_TYPE(AppUpdate)
-        EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(EventCategory_Application)
     };
 
     class CHOZO_API AppRenderEvent : public Event
@@ -58,6 +58,6 @@ namespace Chozo {
         AppRenderEvent() {}
 
         EVENT_CLASS_TYPE(AppRender)
-        EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(EventCategory_Application)
     };
 }

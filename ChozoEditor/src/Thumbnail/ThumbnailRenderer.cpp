@@ -95,7 +95,7 @@ namespace Chozo {
     void MaterialThumbnailRenderer::Render(Ref<ThumbnailPoolTask> task)
     {
         m_SceneRenderer->AddEventListener(
-            EventType::AppRender,
+            EventType::SceneRender,
             [task, this](Event& e) mutable -> bool {
                 CZ_CORE_INFO("Execute");
                 SetMaterial(task->Source.As<Material>());

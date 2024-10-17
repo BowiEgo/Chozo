@@ -9,6 +9,7 @@ namespace Chozo {
         None = 0,
         WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
         AppTick, AppUpdate, AppRender,
+        SceneRender,
         KeyPressed, KeyReleased, KeyTyped,
         MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
     };
@@ -16,11 +17,12 @@ namespace Chozo {
     enum EventCategory
     {
         None = 0,
-        EventCategoryApplication = BIT(0),
-        EventCategoryInput       = BIT(1),
-        EventCategoryKeyboard    = BIT(2),
-        EventCategoryMouse       = BIT(3),
-        EventCategoryMouseButton = BIT(4),
+        EventCategory_Application = BIT(0),
+        EventCategory_Render      = BIT(1),
+        EventCategory_Input       = BIT(2),
+        EventCategory_Keyboard    = BIT(3),
+        EventCategory_Mouse       = BIT(4),
+        EventCategory_MouseButton = BIT(5),
     };
 
 #define EVENT_CLASS_TYPE(type) static EventType GetStaticType() { return EventType::type; }\

@@ -9,7 +9,7 @@ namespace Chozo {
     public:
         inline KeyCode GetKeyCode() const { return m_KeyCode; }
 
-        EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
+        EVENT_CLASS_CATEGORY(EventCategory_Keyboard | EventCategory_Input)
     protected:
         KeyEvent(KeyCode keycode)
             : m_KeyCode(keycode) {}

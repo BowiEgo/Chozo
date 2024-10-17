@@ -463,7 +463,7 @@ namespace Chozo
         PBRPass();
         CompositePass();
 
-        AppRenderEvent event;
+        SceneRenderEvent event;
         m_EventBus.Dispatch(event);
 
         m_CommandBuffer->End();

@@ -11,6 +11,8 @@
 #include "Chozo/Scene/Scene.h"
 #include "Chozo/Scene/Components.h"
 
+#include "Chozo/Events/RenderEvent.h"
+
 #include <glad/glad.h>
 
 namespace Chozo
