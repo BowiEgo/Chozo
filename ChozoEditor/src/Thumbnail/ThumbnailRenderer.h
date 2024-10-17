@@ -65,7 +65,6 @@ namespace Chozo {
         virtual void Render(Ref<ThumbnailPoolTask> task) override;
 
         void OnUpdate();
-        void RenderToBuffer(SharedBuffer& dest);
     
         Entity GetSphere();
         inline Ref<Material> GetMaterial() { return m_Material; }

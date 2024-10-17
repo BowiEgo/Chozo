@@ -56,6 +56,8 @@ namespace Chozo {
             return nullptr;
     }
 
+    //==============================================================================
+    /// TextureThumbnailRenderer
     void TextureThumbnailRenderer::Render(Ref<ThumbnailPoolTask> task)
     {
         Ref<Texture2D> src = task->Source.As<Texture2D>();
@@ -92,11 +94,17 @@ namespace Chozo {
 
     void MaterialThumbnailRenderer::Render(Ref<ThumbnailPoolTask> task)
     {
-        Ref<Asset> asset = task->Source;
-        AssetHandle handle = asset->Handle;
-
-        SetMaterial(asset.As<Material>());
-        RenderToBuffer(task->ImageData);
+        m_SceneRenderer->AddEventListener(
+            EventType::AppRender,
+            [task, this](Event& e) mutable -> bool {
+                CZ_CORE_INFO("Execute");
+                SetMaterial(task->Source.As<Material>());
+                m_SceneRenderer->CopyCompositeImage(task->ImageData);
+                return true;
+            },
+            true
+        );
+        OnUpdate();
     }
 
     void MaterialThumbnailRenderer::SetMaterial(Ref<Material> material)
@@ -128,11 +136,6 @@ namespace Chozo {
     void MaterialThumbnailRenderer::OnUpdate()
     {
         m_Scene->OnUpdateEditor(0, m_Camera);
-    }
-
-    void MaterialThumbnailRenderer::RenderToBuffer(SharedBuffer& dest)
-    {
-        m_Scene->RenderToBuffer(m_Camera, dest);
     }
 
     Entity MaterialThumbnailRenderer::GetSphere()

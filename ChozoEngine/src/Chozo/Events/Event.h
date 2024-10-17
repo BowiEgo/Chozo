@@ -45,6 +45,11 @@ namespace Chozo {
         bool m_Handled = false;
     };
 
+    inline std::ostream& operator<<(std::ostream& os, const Event& e)
+    {
+        return os << e.ToString(); 
+    };
+
     class EventDispatcher
     {
         template<typename T>
@@ -70,8 +75,48 @@ namespace Chozo {
         Event& m_Event;
     };
 
-    inline std::ostream& operator<<(std::ostream& os, const Event& e)
+    using EventCallback = std::function<bool(Event&)>;
+
+    class EventBus
     {
-        return os << e.ToString(); 
+        using EventListener = std::pair<bool, EventCallback>;
+    public:
+        EventBus()
+        {
+        }
+
+        void AddListener(const EventType type, const EventCallback& callback, bool destroy = false)
+        {
+            m_Listeners[type].push_back({destroy, std::move(callback)});
+        }
+
+        void Dispatch(Event& event)
+        {
+            auto eventType = event.GetEventType();
+            auto it = m_Listeners.find(eventType);
+
+            if (it != m_Listeners.end())
+            {
+                for (auto itListener = it->second.begin(); itListener != it->second.end(); )
+                {
+                    bool destroy = std::get<0>(*itListener);
+                    auto callback = std::get<1>(*itListener);
+
+                    if (!event.m_Handled)
+                    {
+                        event.m_Handled = callback(event);
+                        if (destroy)
+                            itListener = it->second.erase(itListener);
+                    }
+                    else
+                    {
+                        ++itListener;
+                    }
+                }
+            }
+        }
+
+    private:
+        std::unordered_map<EventType, std::vector<EventListener>> m_Listeners;
     };
 }

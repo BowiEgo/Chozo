@@ -239,43 +239,6 @@ namespace Chozo {
         }
     }
 
-    void Scene::RenderToBuffer(EditorCamera& camera, SharedBuffer& dest)
-    {
-        Ref<SceneRenderer> renderer = SceneRenderer::Find(this);
-        if (!renderer)
-            return;
-
-        PrepareRender(renderer);
-
-        // 3D Renderer
-        renderer->BeginScene(camera);
-        SubmitMeshes(renderer);
-        renderer->EndScene(dest);
-    }
-
-    // void Scene::DrawIDBuffer(Ref<Framebuffer> target, EditorCamera& camera)
-    // {
-    //     target->Bind();
-    //     {
-    //         // Render to ID buffer
-    //         Renderer2D::BeginScene(camera);
-    //         Renderer2D::BeginBatch();
-
-    //         auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-    //         for (auto entity : group)
-    //         {
-    //             if (!m_Registry.valid(entity))
-    //                 continue;
-            
-    //             const auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-    //             Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color, (uint32_t)entity);
-    //         }
-
-    //         Renderer2D::EndScene();
-    //     }
-    //     target->Unbind();
-    // }
-
     Entity Scene::GetPrimaryCameraEntity()
     {
         auto view = m_Registry.view<CameraComponent>();

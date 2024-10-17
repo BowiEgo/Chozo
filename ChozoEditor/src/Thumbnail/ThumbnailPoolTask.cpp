@@ -4,7 +4,6 @@
 
 namespace Chozo {
 
-
     void ThumbnailPoolTask::Execute()
     {
         ThumbnailRenderer::RenderTask(this);

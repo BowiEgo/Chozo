@@ -52,10 +52,11 @@ namespace Chozo
 		void SetScene(Ref<Scene>& scene);
         void BeginScene(EditorCamera& camera); // TODO: Remove
         void EndScene(); // TODO: Remove
-        void EndScene(SharedBuffer& dest); // TODO: Remove
 
         inline void SetActive(bool active) { m_Active = active; }
         inline bool IsActive() const { return m_Active; }
+
+        inline void AddEventListener(const EventType type, const EventCallback& cb, bool destroy = true) { m_EventBus.AddListener(type, cb, destroy); }
 
 		void SetViewportSize(uint32_t width, uint32_t height);
 
@@ -84,7 +85,7 @@ namespace Chozo
         void CompositePass();
 
         void Flush();
-        void CopyImage(SharedBuffer& dest);
+        void CopyCompositeImage(SharedBuffer& dest);
 
         static Ref<SceneRenderer> Create(Ref<Scene>& scene);
         static Ref<SceneRenderer> Find(Scene* scene);
@@ -93,6 +94,8 @@ namespace Chozo
 
 		Ref<Scene> m_Scene;
 		bool m_Active = false;
+
+        EventBus m_EventBus;
 
 		Ref<RenderCommandBuffer> m_CommandBuffer;
 

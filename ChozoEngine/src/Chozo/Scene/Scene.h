@@ -26,7 +26,6 @@ namespace Chozo {
         void DestroyEntity(Entity entity);
         bool EntityExists(entt::entity entity);
 
-        // TEMP
         entt::registry& Reg() { return m_Registry; }
 
         void OnUpdateEditor(Timestep ts, EditorCamera& camera);
@@ -35,8 +34,6 @@ namespace Chozo {
 
         void PrepareRender(Ref<SceneRenderer> renderer);
         void SubmitMeshes(Ref<SceneRenderer> renderer);
-
-        void RenderToBuffer(EditorCamera& camera, SharedBuffer& dest);
 
         Entity GetPrimaryCameraEntity();
 
