@@ -81,7 +81,10 @@ namespace Chozo {
         if (!material)
             return;
 
-        ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->SetMaterial(material);
+        auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
+        renderer->SetMaterial(material);
+        renderer->Update();
+        renderer->ClearCache();
 
         auto checkerboard = Renderer::GetCheckerboardTexture();
         auto albedoTex = material->GetTexture("u_AlbedoTex");
@@ -101,23 +104,18 @@ namespace Chozo {
 
         ImGui::Begin("Material");
 
-        Ref<Texture2D> preview;
+        auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
         if (m_PreviewUpdated)
         {
-            ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->OnUpdate();
-            preview = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->GetOutput();
-            m_PreviewCache = preview;
+            if (!renderer->GetCache())
+                renderer->Update();
             m_PreviewUpdated = false;
         }
-        else
-        {
-            preview = m_PreviewCache;
-        }
-
+        Ref<Texture2D> preview = renderer->GetOutput();
         RenderPreviewImage(PreviewType::None, preview);
 
         if (!m_Material)
-            m_Material = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->GetMaterial();
+            m_Material = renderer->GetMaterial();
 
         for (auto& pair : m_Material->GetUniforms())
         {
@@ -219,12 +217,15 @@ namespace Chozo {
 
     void MaterialPanel::OnMaterialChange(Ref<Material> material, std::string name, UniformValue value)
     {
-        ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->SetMaterialValue(material, name, value);
+        auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
+        renderer->SetMaterialValue(material, name, value);
+        renderer->Update();
     }
 
     void MaterialPanel::OnMaterialChange(Ref<Material> material, std::string name, Ref<Texture2D> texture)
     {
-        ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->SetMaterialValue(material, name, texture);
+        auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
+        renderer->SetMaterialValue(material, name, texture);
+        renderer->Update();
     }
-
 }

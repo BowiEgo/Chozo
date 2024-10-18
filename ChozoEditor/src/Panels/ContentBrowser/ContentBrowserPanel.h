@@ -52,6 +52,7 @@ namespace Chozo {
 		template<typename T, typename... Args>
         Ref<T> CreateAsset(const std::string& filename, Ref<DirectoryInfo>& directory, Args&&... args);
         void SaveAllAssets();
+        void RenderItemThumbnails(std::vector<Ref<ContentItem>> items);
 
         void AddAssetsToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata);
         void SortAssets(Ref<DirectoryInfo> directory);

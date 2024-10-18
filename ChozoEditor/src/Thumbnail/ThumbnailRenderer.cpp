@@ -97,46 +97,50 @@ namespace Chozo {
     {
         m_SceneRenderer->AddEventListener(
             EventType::SceneRender,
-            [task, this](Event& e) mutable -> bool {
+            [&task, this](Event& e) -> bool {
                 SetMaterial(task->Source.As<Material>());
-                m_SceneRenderer->CopyCompositeImage(task->ImageData);
+                m_SceneRenderer->CopyImage(
+                    m_SceneRenderer->GetCompositePass()->GetOutput(0),
+                    task->ImageData);
                 task->SetStatus(TaskStatus::Finished);
                 return true;
             },
             true
         );
-        OnUpdate();
+        Update();
+    }
+
+    void MaterialThumbnailRenderer::Update()
+    {
+        m_Scene->OnUpdateEditor(0, m_Camera);
     }
 
     void MaterialThumbnailRenderer::SetMaterial(Ref<Material> material)
     {
         auto sphere = GetSphere();
         m_Material->CopyProperties(material);
-        // OnUpdate();
     }
 
     void MaterialThumbnailRenderer::SetMaterialValue(Ref<Material> material, std::string name, UniformValue value)
     {
-        auto sphere = GetSphere();
-
+        // auto sphere = GetSphere();
         // if (m_Material->GetShader() != material->GetShader())
         //     sphere.GetComponent<MeshComponent>().MaterialInstance = Material::Copy(material);
-
         m_Material->Set(name, value);
-        OnUpdate();
+        m_Cache = nullptr;
     }
 
     void MaterialThumbnailRenderer::SetMaterialValue(Ref<Material> material, std::string name, Ref<Texture2D> texture)
     {
-        auto sphere = GetSphere();
-
         m_Material->Set(name, texture);
-        OnUpdate();
+        m_Cache = nullptr;
     }
 
-    void MaterialThumbnailRenderer::OnUpdate()
+    void MaterialThumbnailRenderer::CreateCache()
     {
-        m_Scene->OnUpdateEditor(0, m_Camera);
+        auto compositeImage = m_SceneRenderer->GetCompositePass()->GetOutput(0);
+        compositeImage->ExtractBuffer();
+        m_Cache = Texture2D::Create(compositeImage);
     }
 
     Entity MaterialThumbnailRenderer::GetSphere()

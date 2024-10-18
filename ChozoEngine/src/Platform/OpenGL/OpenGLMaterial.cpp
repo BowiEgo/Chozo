@@ -94,7 +94,6 @@ namespace Chozo {
 
     void OpenGLMaterial::SetTextureHandle(const std::string &name, const AssetHandle handle)
     {
-        CZ_CORE_WARN("SetTextureHandle");
         if (Application::GetAssetManager()->IsAssetHandleValid(handle))
         {
             int textureIndex = -1;

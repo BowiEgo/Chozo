@@ -47,7 +47,6 @@ namespace Chozo {
 
         Ref<Scene> m_Context;
         Ref<Material> m_Material;
-        Ref<Texture2D> m_PreviewCache;
         Ref<Texture2D> m_AlbedoTexture, m_MetalnessTexture, m_RoughnessTexture, m_NormalTexture;
         bool m_PreviewUpdated;
     };

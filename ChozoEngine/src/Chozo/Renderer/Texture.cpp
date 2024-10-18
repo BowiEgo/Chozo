@@ -10,12 +10,24 @@ namespace Chozo
 	/// Texture2D
     TextureType Texture2D::s_Type = TextureType::Texture2D;
 
-    Ref<Texture2D> Texture2D::Create(const Texture2DSpecification& spec)
+    Ref<Texture2D> Texture2D::Create(const Texture2DSpecification &spec)
     {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
             case RendererAPI::API::OpenGL:   return Ref<OpenGLTexture2D>::Create(spec);
+        }
+
+        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        return nullptr;
+    }
+
+    Ref<Texture2D> Texture2D::Create(const Ref<Texture2D> other)
+    {
+        switch (RendererAPI::GetAPI())
+        {
+            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLTexture2D>::Create(other);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");

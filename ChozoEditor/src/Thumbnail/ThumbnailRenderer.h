@@ -64,23 +64,28 @@ namespace Chozo {
         MaterialThumbnailRenderer();
         virtual void Render(Ref<ThumbnailPoolTask> task) override;
 
-        void OnUpdate();
+        void Update();
     
-        Entity GetSphere();
         inline Ref<Material> GetMaterial() { return m_Material; }
         void SetMaterial(Ref<Material> material);
         void SetMaterialValue(Ref<Material> material, std::string name, UniformValue value);
         void SetMaterialValue(Ref<Material> material, std::string name, Ref<Texture2D> texture);
-        inline Ref<Scene> GetScene() { return m_Scene; }
+        inline glm::vec2 GetViewportSize() const { return m_ViewportSize; }
+        inline Ref<Scene> GetScene() const { return m_Scene; }
         inline Ref<SceneRenderer> GetSceneRenderer() { return m_SceneRenderer; }
-        inline Ref<Texture2D> GetOutput() { return m_SceneRenderer->GetCompositePass()->GetOutput(0); }
-        inline glm::vec2 GetViewportSize() { return m_ViewportSize; }
+        inline Ref<Texture2D> GetOutput() { return m_Cache ? m_Cache : m_SceneRenderer->GetCompositePass()->GetOutput(0); }
+        void CreateCache();
+        inline void ClearCache() { m_Cache = nullptr; }
+        inline Ref<Texture2D> GetCache() const { return m_Cache; }
     private:
+        Entity GetSphere();
+    private:
+        glm::vec2 m_ViewportSize{200, 200};
+        EditorCamera m_Camera;
         Ref<Scene> m_Scene;
 		Ref<SceneRenderer> m_SceneRenderer;
         Ref<Material> m_Material;
-        EditorCamera m_Camera;
-        glm::vec2 m_ViewportSize{200, 200};
+        Ref<Texture2D> m_Cache;
     };
     
 } // namespace Chozo

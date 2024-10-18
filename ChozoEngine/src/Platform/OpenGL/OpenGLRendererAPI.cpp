@@ -329,7 +329,8 @@ namespace Chozo {
     {
         commandBuffer->AddCommand([source, &dest]() mutable
         {
-            source->CopyToHostBuffer(dest, true);
+            source->ExtractBuffer();
+            source->CopyToHostBuffer(dest);
         });
     }
 

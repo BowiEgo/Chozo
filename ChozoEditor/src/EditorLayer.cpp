@@ -245,7 +245,7 @@ namespace Chozo {
             {
                 TextureViewerPanel::Open();
 
-                ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->OnUpdate();
+                ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->Update();
                 Ref<Texture2D> texture = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->GetOutput();
                 TextureViewerPanel::SetTexture(texture);
             }
@@ -456,7 +456,7 @@ namespace Chozo {
             if (entity && entity.HasComponent<MeshComponent>())
             {
                 auto tag = entity.GetComponent<TagComponent>().Tag;
-                CZ_CORE_INFO("{}", tag);
+                CZ_CORE_INFO("EditorLayer::OnDragAndDrop-> tag: {}", tag);
                 entity.GetComponent<MeshComponent>().MaterialHandle = handle;
             }
         }

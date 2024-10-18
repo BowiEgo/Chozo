@@ -523,8 +523,13 @@ namespace Chozo {
     {
         auto assetManager = Application::GetAssetManager();
         assetManager->SaveAssets();
+        RenderItemThumbnails(m_CurrentItems);
+    }
 
-        for (auto item : m_CurrentItems)
+    void ContentBrowserPanel::RenderItemThumbnails(std::vector<Ref<ContentItem>> items)
+    {
+        auto assetManager = Application::GetAssetManager();
+        for (auto item : items)
         {
             auto metadata = assetManager->GetMetadata(item->GetHandle());
             auto asset = assetManager->GetAsset(metadata.Handle);
@@ -533,6 +538,8 @@ namespace Chozo {
             Pool::AddTask(task);
         }
 
+        // Cache the renderer ouput for MaterialPanel because it will change after thumbnails rendered.
+        ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->CreateCache();
         Pool::Start();
     }
 

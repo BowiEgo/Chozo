@@ -87,7 +87,7 @@ namespace Chozo
         void CompositePass();
 
         void Flush();
-        void CopyCompositeImage(SharedBuffer& dest);
+        void CopyImage(Ref<Texture2D> source, SharedBuffer& dest);
 
         static Ref<SceneRenderer> Create(Ref<Scene>& scene);
         static Ref<SceneRenderer> Find(Scene* scene);
