@@ -1,13 +1,28 @@
 #include "MaterialPanel.h"
 
 #include "Thumbnail/ThumbnailRenderer.h"
-
 #include "PropertyUI.h"
+
+#include <typeindex>
 
 namespace Chozo {
 
 	MaterialPanel* MaterialPanel::s_Instance;
     bool MaterialPanel::s_Show = false;
+
+    std::vector<std::string> MaterialPropTypes = {
+        "Albedo",
+        "Metalness",
+        "Roughness",
+        "Normal",
+        "Ambient",
+        "AmbientStrength",
+        "Specular",
+        "enableAlbedoTex",
+        "enableMetalnessTex",
+        "enableRoughnessTex",
+        "enableNormalTex",
+    };
 
     Ref<Texture2D>& MaterialPanel::GetPreviewTextureByType(PreviewType type)
     {
@@ -42,6 +57,27 @@ namespace Chozo {
             FOREACH_PREVIEW_TYPE(GENERATE_CASE)
             #undef GENERATE_CASE
             default: return;
+        }
+    }
+
+    void MaterialPanel::RenderTextureProp(PreviewType type)
+    {
+        if (type == PreviewType::None)
+            return;
+
+        std::string typeString = PreviewTypeToString(type);
+        std::string uniformName = "u_Material.enable" + typeString + "Tex";
+        bool enabled = std::get<bool>(m_Material->GetUniforms()[uniformName]);
+        bool changed = false;
+
+        DrawColumnImage("##", enabled, changed, [type, this]() {
+            RenderPreviewImage(type);
+        });
+
+        if (changed)
+        {
+            m_Material->Set(uniformName, enabled);
+            OnMaterialChange(m_Material, uniformName, enabled);
         }
     }
 
@@ -102,96 +138,143 @@ namespace Chozo {
         if (!s_Show || !m_Material)
             return;
 
+        auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
+        ImVec2 windowPadding = ImGui::GetStyle().WindowPadding;
+		UI::ScopedStyle padding(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::Begin("Material");
 
-        auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
-        if (m_PreviewUpdated)
+        // Preview
         {
-            if (!renderer->GetCache())
-                renderer->Update();
-            m_PreviewUpdated = false;
+            if (m_PreviewUpdated)
+            {
+                if (!renderer->GetCache())
+                    renderer->Update();
+                m_PreviewUpdated = false;
+            }
+
+            Ref<Texture2D> preview = renderer->GetOutput();
+            RenderPreviewImage(PreviewType::None, preview);
         }
-        Ref<Texture2D> preview = renderer->GetOutput();
-        RenderPreviewImage(PreviewType::None, preview);
 
-        if (!m_Material)
-            m_Material = renderer->GetMaterial();
-
-        for (auto& pair : m_Material->GetUniforms())
+        // Properties
         {
-            std::string name = pair.first.substr(pair.first.find('.') + 1);
-            if (std::holds_alternative<glm::vec4>(pair.second))
-            {
-                glm::vec4& value = std::get<glm::vec4>(pair.second);
-                if (pair.first.find("Color") > 0 || pair.first.find("Albedo"))
-                {
-                    DrawColumnValue<glm::vec4>(name, value, [&](auto& target) {
-                        if (ImGui::ColorEdit4(("##" + name).c_str(), glm::value_ptr(target)))
-                        {
-                            m_Material->Set(pair.first, value);
-                            OnMaterialChange(m_Material, pair.first, value);
-                        }
-                    });
-                }
-            }
-            else if (std::holds_alternative<glm::vec3>(pair.second))
-            {
-                glm::vec3& value = std::get<glm::vec3>(pair.second);
-                if (pair.first.find("Color") || pair.first.find("Albedo"))
-                {
-                    DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
-                        if (ImGui::ColorEdit3(("##" + name).c_str(), glm::value_ptr(target)))
-                        {
-                            m_Material->Set(pair.first, value);
-                            OnMaterialChange(m_Material, pair.first, value);
-                        }
-                    });
-                    RenderPreviewImage(PreviewType::Albedo);
+            UI::ScopedStyle padding(ImGuiStyleVar_WindowPadding, windowPadding);
+            ImGui::BeginChild("ScrollableArea", ImVec2(0, 0), true, ImGuiWindowFlags_NoScrollbar);
 
-                    // if (pair.first.find("Albedo"))
-                    // {
-                    //     std::string filePath = material->GetUniromSourcePath("u_AlbedoTex");
-                    //     UI::FileButton(&filePath);
-                    //     material->Set("u_AlbedoTex", filePath);
-                    //     ImGui::SameLine(); ImGui::Text("%s", filePath.c_str());
-                    // }
-                }
-                else
+            if (!m_Material)
+                m_Material = renderer->GetMaterial();
+
+            for (auto propName : MaterialPropTypes)
+            {
+                std::string uniformName = "u_Material." + propName;
+                auto value = m_Material->GetUniforms()[uniformName];
+                auto previewType = StringToPreviewType(propName);
+
+                if (std::holds_alternative<glm::vec3>(value))
                 {
-                    DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
-                        if (DrawVec3Control("##" + name, target))
+                    auto& target = std::get<glm::vec3>(value);
+                    DrawColumnValue<glm::vec3>(propName, target, [&](auto& target) {
+                        if (ImGui::ColorEdit3(("##" + propName).c_str(), glm::value_ptr(target)))
                         {
-                            m_Material->Set(pair.first, value);
-                            OnMaterialChange(m_Material, pair.first, value);
+                            m_Material->Set(uniformName, target);
+                            OnMaterialChange(m_Material, uniformName, target);
                         }
                     });
+
+                    RenderTextureProp(previewType);
                 }
-            }
-            else if (std::holds_alternative<float>(pair.second))
-            {
-                float& value = std::get<float>(pair.second);
-                DrawColumnValue<float>(name, value, [&](auto& target) {
-                    if (ImGui::DragFloat(("##" + name).c_str(), &target, 0.0025f, 0.0f, 1.0f))
-                    {
-                        m_Material->Set(pair.first, value);
-                        OnMaterialChange(m_Material, pair.first, value);
-                    }
-                });
-                if (name == "Metalness")
+
+                if (propName == "Normal")
                 {
-                    RenderPreviewImage(PreviewType::Metalness);
+                    DrawColumnValue("Normal", [&]() {
+                    });
+                    RenderTextureProp(PreviewType::Normal);
                 }
-                else if (name == "Roughness")
+
+                if (std::holds_alternative<float>(value))
                 {
-                    RenderPreviewImage(PreviewType::Roughness);
+                    auto& target = std::get<float>(value);
+                    DrawColumnValue<float>(propName, target, [&](auto& target) {
+                        if (ImGui::DragFloat(("##" + propName).c_str(), &target, 0.0025f, 0.0f, 1.0f))
+                        {
+                            m_Material->Set(uniformName, target);
+                            OnMaterialChange(m_Material, uniformName, target);
+                        }
+                    });
+
+                    RenderTextureProp(previewType);
                 }
             }
 
+            // for (auto& pair : m_Material->GetUniforms())
+            // {
+            //     std::string name = pair.first.substr(pair.first.find('.') + 1);
+            //     if (std::holds_alternative<glm::vec4>(pair.second))
+            //     {
+            //         glm::vec4& value = std::get<glm::vec4>(pair.second);
+            //         if (pair.first.find("Color") > 0 || pair.first.find("Albedo"))
+            //         {
+            //             DrawColumnValue<glm::vec4>(name, value, [&](auto& target) {
+            //                 if (ImGui::ColorEdit4(("##" + name).c_str(), glm::value_ptr(target)))
+            //                 {
+            //                     m_Material->Set(pair.first, value);
+            //                     OnMaterialChange(m_Material, pair.first, value);
+            //                 }
+            //             });
+            //         }
+            //     }
+            //     else if (std::holds_alternative<glm::vec3>(pair.second))
+            //     {
+            //         glm::vec3& value = std::get<glm::vec3>(pair.second);
+            //         if (pair.first.find("Color") || pair.first.find("Albedo"))
+            //         {
+            //             DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
+            //                 if (ImGui::ColorEdit3(("##" + name).c_str(), glm::value_ptr(target)))
+            //                 {
+            //                     m_Material->Set(pair.first, value);
+            //                     OnMaterialChange(m_Material, pair.first, value);
+            //                 }
+            //             });
+
+            //             RenderTextureProp(PreviewType::Albedo);
+            //         }
+            //         else
+            //         {
+            //             DrawColumnValue<glm::vec3>(name, value, [&](auto& target) {
+            //                 if (DrawVec3Control("##" + name, target))
+            //                 {
+            //                     m_Material->Set(pair.first, value);
+            //                     OnMaterialChange(m_Material, pair.first, value);
+            //                 }
+            //             });
+            //         }
+            //     }
+            //     else if (std::holds_alternative<float>(pair.second))
+            //     {
+            //         if (name == "Metalness")
+            //         {
+            //             RenderTextureProp(PreviewType::Metalness);
+            //         }
+            //         else if (name == "Roughness")
+            //         {
+            //             RenderTextureProp(PreviewType::Roughness);
+            //         }
+            //         float& value = std::get<float>(pair.second);
+            //         DrawColumnValue<float>(name, value, [&](auto& target) {
+            //             if (ImGui::DragFloat(("##" + name).c_str(), &target, 0.0025f, 0.0f, 1.0f))
+            //             {
+            //                 m_Material->Set(pair.first, value);
+            //                 OnMaterialChange(m_Material, pair.first, value);
+            //             }
+            //         });
+            //     }
+            // }
+            // DrawColumnValue("Normal", [&]() {
+            // });
+            // RenderTextureProp(PreviewType::Normal);
         }
-        DrawColumnValue("Normal", [&]() {
-            RenderPreviewImage(PreviewType::Normal);
-        });
 
+        ImGui::EndChild();
         ImGui::End();
     }
 

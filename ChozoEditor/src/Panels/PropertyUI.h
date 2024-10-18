@@ -80,8 +80,8 @@ namespace Chozo {
         return valueChanged;
     }
 
-    template<typename targetValueType, typename UIFunction>
-    static void DrawColumnValue(const std::string& name, targetValueType& target, UIFunction uiFunction)
+    template<typename targetValueType, typename UIFunc>
+    static void DrawColumnValue(const std::string& name, targetValueType& target, UIFunc uiFunc)
     {
         const ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
         if (ImGui::BeginTable("table", 2, flags))
@@ -99,7 +99,7 @@ namespace Chozo {
                 else
                 {
                     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-                    uiFunction(target);
+                    uiFunc(target);
                     ImGui::PopItemWidth();
                 }
             }
@@ -107,8 +107,8 @@ namespace Chozo {
         }
     }
 
-    template<typename UIFunction>
-    static void DrawColumnValue(const std::string& name, UIFunction uiFunction)
+    template<typename UIFunc>
+    static void DrawColumnValue(const std::string& name, UIFunc uiFunc)
     {
         const ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
         if (ImGui::BeginTable("table", 2, flags))
@@ -126,7 +126,7 @@ namespace Chozo {
                 else
                 {
                     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-                    uiFunction();
+                    uiFunc();
                     ImGui::PopItemWidth();
                 }
             }
@@ -170,6 +170,34 @@ namespace Chozo {
                         const AssetMetadata sourceMetadata = Application::GetAssetManager()->GetMetadata(handle);
                         callback(sourceMetadata);
                     });
+                }
+            }
+            ImGui::EndTable();
+        }
+    }
+
+
+    template<typename ImageFunc>
+    static void DrawColumnImage(const std::string& name, bool& target, bool& changed, ImageFunc imageFunc)
+    {
+        const ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
+        if (ImGui::BeginTable("table", 2, flags))
+        {
+            ImGui::SetNextItemWidth(25.0f);
+            ImGui::TableNextRow();
+            for (int column = 0; column < 2; column++)
+            {
+                ImGui::TableSetColumnIndex(column);
+                if (column == 0)
+                {
+                    imageFunc();
+                    ImGui::TableNextColumn();
+                }
+                else
+                {
+                    ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+                    changed = ImGui::Checkbox(name.c_str(), &target);
+                    ImGui::PopItemWidth();
                 }
             }
             ImGui::EndTable();

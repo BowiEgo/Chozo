@@ -17,6 +17,22 @@ namespace Chozo {
 		None
 	};
 
+    inline PreviewType StringToPreviewType(std::string_view type) {
+        #define GENERATE_IF(ENUM) if (type == #ENUM) return PreviewType::ENUM;
+        FOREACH_PREVIEW_TYPE(GENERATE_IF)
+        #undef GENERATE_IF
+        return PreviewType::None;
+    }
+
+    inline const char* PreviewTypeToString(PreviewType type) {
+        switch (type) {
+            #define GENERATE_CASE(ENUM) case PreviewType::ENUM: return #ENUM;
+            FOREACH_PREVIEW_TYPE(GENERATE_CASE)
+            #undef GENERATE_CASE
+            default: return "Unknown";
+        }
+    }
+
     class MaterialPanel
     {
     public:
@@ -36,6 +52,7 @@ namespace Chozo {
         Ref<Texture2D>& GetPreviewTextureByType(PreviewType type);
         void UpdatePreviewTextureByType(PreviewType type);
 
+        void RenderTextureProp(PreviewType type);
         void RenderPreviewImageByType(PreviewType type);
         void RenderPreviewImage(PreviewType type = PreviewType::None, Ref<Texture2D> texture = nullptr);
 
