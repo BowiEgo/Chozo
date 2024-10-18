@@ -35,7 +35,7 @@ namespace Chozo {
 			return buffer;
 		}
 
-		void CopyTo(Buffer& other)
+		void CopyTo(Buffer& other) const
 		{
 			other.Allocate(Size);
 			memcpy(other.Data, Data, Size);

@@ -59,7 +59,7 @@ namespace Chozo {
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
         virtual void ExtractBuffer() = 0;
-        virtual void CopyToHostBuffer(Buffer& buffer, bool isRaw = false) = 0;
+        virtual void CopyToHostBuffer(Buffer& buffer) const = 0;
     };
 
 
@@ -74,6 +74,7 @@ namespace Chozo {
         virtual void Resize(uint32_t width, uint32_t height) = 0;
 
         static Ref<Texture2D> Create(const Texture2DSpecification& spec = Texture2DSpecification());
+        static Ref<Texture2D> Create(const Ref<Texture2D> other);
         static Ref<Texture2D> Create(const std::string& path, const Texture2DSpecification& spec = Texture2DSpecification());
         static Ref<Texture2D> Create(const RendererID& id, const Texture2DSpecification& spec = Texture2DSpecification());
         static Ref<Texture2D> Create(Buffer imageBuffer, const Texture2DSpecification& spec = Texture2DSpecification());

@@ -471,9 +471,9 @@ namespace Chozo
         m_MeshDatas.clear();
     }
 
-    void SceneRenderer::CopyCompositeImage(SharedBuffer &dest)
+    void SceneRenderer::CopyImage(Ref<Texture2D> source, SharedBuffer &dest)
     {
-        Renderer::CopyImage(m_CommandBuffer, m_CompositePass->GetOutput(0), dest);
+        Renderer::CopyImage(m_CommandBuffer, source, dest);
     }
 
     Ref<SceneRenderer> SceneRenderer::Create(Ref<Scene> &scene)

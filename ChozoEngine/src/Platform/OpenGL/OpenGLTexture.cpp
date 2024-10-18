@@ -16,6 +16,13 @@ namespace Chozo
         Invalidate();
     }
 
+    OpenGLTexture2D::OpenGLTexture2D(const Ref<OpenGLTexture2D> other)
+        : m_Spec(other->GetSpecification()), m_Width(other->GetWidth()), m_Height(other->GetHeight())
+    {
+        other->CopyToHostBuffer(m_Buffer);
+        Invalidate();
+    }
+
     OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const Texture2DSpecification &spec)
         : m_Spec(spec), m_Path(path)
     {
@@ -95,19 +102,9 @@ namespace Chozo
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void OpenGLTexture2D::CopyToHostBuffer(Buffer& buffer, bool isRaw)
+    void OpenGLTexture2D::CopyToHostBuffer(Buffer& buffer) const
     {
         auto sharedBuffer = dynamic_cast<SharedBuffer*>(&buffer);
-        if (m_Buffer.Size != 0 && !isRaw)
-        {
-            if (sharedBuffer)
-                sharedBuffer->Copy(m_Buffer);
-            else
-                m_Buffer.CopyTo(buffer);
-            return;
-        }
-
-        ExtractBuffer();
 
         if (m_Buffer.Size != 0)
         {
@@ -203,7 +200,7 @@ namespace Chozo
     {
     }
 
-    void OpenGLTextureCube::CopyToHostBuffer(Buffer& buffer, bool isRaw)
+    void OpenGLTextureCube::CopyToHostBuffer(Buffer& buffer) const
     {
     }
 }

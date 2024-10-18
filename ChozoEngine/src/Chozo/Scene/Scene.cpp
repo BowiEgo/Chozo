@@ -55,10 +55,10 @@ namespace Chozo {
         if (!renderer)
             return;
 
-        PrepareRender(renderer);
 
         // 3D Renderer
         renderer->BeginScene(camera);
+        PrepareRender(renderer);
         SubmitMeshes(renderer);
         renderer->EndScene();
 

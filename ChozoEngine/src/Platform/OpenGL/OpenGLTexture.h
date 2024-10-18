@@ -11,6 +11,7 @@ namespace Chozo {
     {
     public:
         OpenGLTexture2D(const Texture2DSpecification& spec);
+        OpenGLTexture2D(const Ref<OpenGLTexture2D> other);
         OpenGLTexture2D(const std::string& path, const Texture2DSpecification& spec);
         OpenGLTexture2D(const RendererID& id, const Texture2DSpecification& spec);
         OpenGLTexture2D(Buffer imageBuffer, const Texture2DSpecification& spec);
@@ -26,7 +27,7 @@ namespace Chozo {
 
         virtual void SetData(const void* data, const uint32_t size) override;
         virtual void ExtractBuffer() override;
-        virtual void CopyToHostBuffer(Buffer& buffer, bool isRaw = false) override;
+        virtual void CopyToHostBuffer(Buffer& buffer) const override;
 
         void Bind(uint32_t slot = 0) const;
         void Unbind() const;
@@ -55,7 +56,7 @@ namespace Chozo {
 
         virtual void SetData(void* data, uint32_t size) override;
         virtual void ExtractBuffer() override;
-        virtual void CopyToHostBuffer(Buffer& buffer, bool isRaw = false) override;
+        virtual void CopyToHostBuffer(Buffer& buffer) const override;
 
         void Bind(uint32_t slot = 0) const;
         void Unbind() const;
