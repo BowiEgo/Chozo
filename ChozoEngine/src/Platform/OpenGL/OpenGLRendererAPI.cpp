@@ -313,6 +313,7 @@ namespace Chozo {
             uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
             uint32_t vertexCount = mesh->GetMeshSource()->GetVertexs().size();
 
+            glDisable(GL_BLEND); GCE;
             glEnable(GL_CULL_FACE); GCE;
             RenderCommand::DrawIndexed(mesh->GetVertexArray(), indexCount * 3);
             glDisable(GL_CULL_FACE); GCE;

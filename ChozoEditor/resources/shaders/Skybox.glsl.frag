@@ -13,5 +13,11 @@ layout (push_constant) uniform Uniforms
 
 void main()
 {
-	o_Color = textureLod(u_Texture, v_TexCoords, u_FragUniforms.TextureLod) * u_FragUniforms.Intensity;
+	vec4 texture = textureLod(u_Texture, v_TexCoords, u_FragUniforms.TextureLod) * u_FragUniforms.Intensity;
+	vec3 color = texture.rgb;
+
+	color = color / (color + vec3(1.0));
+    color = pow(color, vec3(1.0/2.2)); 
+
+	o_Color = vec4(color, texture.a);
 }
