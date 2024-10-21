@@ -220,7 +220,7 @@ namespace Chozo {
         for (const auto& item : s_Instance->m_CurrentItems) {
             auto name = item->GetFilename();
             if (name == "material") {
-                maxIndex = 0;
+                maxIndex = std::max(maxIndex, 0);
             } else if (std::regex_search(name, match, pattern)) {
                 int index = std::stoi(match[1]);
                 maxIndex = std::max(maxIndex, index);
