@@ -11,110 +11,125 @@ layout(push_constant) uniform Uniforms
 } u_FragUniforms;
 
 const float PI = 3.14159265359;
-// ----------------------------------------------------------------------------
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
-    float a = roughness*roughness;
-    float a2 = a*a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH*NdotH;
+const float TwoPI = 2 * PI;
+const float Epsilon = 0.00001;
 
-    float nom   = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
+// ---------------------------------------------------------------------------------------------------
+// The following code (from Unreal Engine 4's paper) shows how to filter the environment map
+// for different roughnesses. This is mean to be computed offline and stored in cube map mips,
+// so turning this on online will cause poor performance
+// Compute Van der Corput radical inverse
+// See: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
+float RadicalInverse_VdC(uint bits)
+{
+	bits = (bits << 16u) | (bits >> 16u);
+	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+	return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+}
 
-    return nom / denom;
-}
-// ----------------------------------------------------------------------------
-// http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
-// efficient VanDerCorpus calculation.
-float RadicalInverse_VdC(uint bits) 
+// Compute orthonormal basis for converting from tanget/shading space to world space.
+void ComputeBasisVectors(const vec3 N, out vec3 S, out vec3 T)
 {
-     bits = (bits << 16u) | (bits >> 16u);
-     bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-     bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-     bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-     bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-     return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+	// Branchless select non-degenerate T.
+	T = cross(N, vec3(0.0, 1.0, 0.0));
+	T = mix(cross(N, vec3(1.0, 0.0, 0.0)), T, step(Epsilon, dot(T, T)));
+
+	T = normalize(T);
+	S = normalize(cross(N, T));
 }
-// ----------------------------------------------------------------------------
-vec2 Hammersley(uint i, uint N)
+
+const uint NumSamples = 1024;
+const float InvNumSamples = 1.0 / float(NumSamples);
+
+vec2 SampleHammersley(uint i)
 {
-	return vec2(float(i)/float(N), RadicalInverse_VdC(i));
+	return vec2(i * InvNumSamples, RadicalInverse_VdC(i));
 }
-// ----------------------------------------------------------------------------
-vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
+
+// Convert point from tangent/shading space to world space.
+vec3 TangentToWorld(const vec3 v, const vec3 N, const vec3 S, const vec3 T)
 {
-	float a = roughness*roughness;
-	
-	float phi = 2.0 * PI * Xi.x;
-	float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
-	float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
-	
-	// from spherical coordinates to cartesian coordinates - halfway vector
-	vec3 H;
-	H.x = cos(phi) * sinTheta;
-	H.y = sin(phi) * sinTheta;
-	H.z = cosTheta;
-	
-	// from tangent-space H vector to world-space sample vector
-	vec3 up          = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-	vec3 tangent   = normalize(cross(up, N));
-	vec3 bitangent = cross(N, tangent);
-	
-	vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
-	return normalize(sampleVec);
+	return S * v.x + T * v.y + N * v.z;
 }
-// ----------------------------------------------------------------------------
-const vec2 invAtan = vec2(0.1591, 0.3183);
-vec2 SampleSphericalMap(vec3 v)
+
+// Importance sample GGX normal distribution function for a fixed roughness value.
+// This returns normalized half-vector between Li & Lo.
+// For derivation see: http://blog.tobias-franke.eu/2014/03/30/notes_on_importance_sampling.html
+vec3 SampleGGX(float u1, float u2, float roughness)
 {
-    vec2 uv = vec2(atan(v.z, v.x), asin(v.y));
-    uv *= invAtan;
-    uv += 0.5;
-    return uv;
+	float alpha = roughness * roughness;
+
+	float cosTheta = sqrt((1.0 - u2) / (1.0 + (alpha*alpha - 1.0) * u2));
+	float sinTheta = sqrt(1.0 - cosTheta*cosTheta); // Trig. identity
+	float phi = TwoPI * u1;
+
+	// Convert to Cartesian upon return.
+	return vec3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
+}
+
+// GGX/Towbridge-Reitz normal distribution function.
+// Uses Disney's reparametrization of alpha = roughness^2
+float NdfGGX(float cosLh, float roughness)
+{
+	float alpha = roughness * roughness;
+	float alphaSq = alpha * alpha;
+
+	float denom = (cosLh * cosLh) * (alphaSq - 1.0) + 1.0;
+	return alphaSq / (PI * denom * denom);
 }
 
 void main()
-{		
+{
+    // Solid angle associated with a single cubemap texel at zero mipmap level.
+	// This will come in handy for importance sampling below.
+    vec2 inputSize = vec2(textureSize(u_Texture, 0));
+	float wt = 4.0 * PI / (6 * inputSize.x * inputSize.y);
+
 	vec3 N = normalize(v_WorldPosition);
+
+    vec3 Lo = N;
+	
+	vec3 S, T;
+	ComputeBasisVectors(N, S, T);
+
+	vec3 color = vec3(0);
+	float weight = 0;
     
-    // make the simplifying assumption that V equals R equals the normal 
-    vec3 R = N;
-    vec3 V = R;
+    // Convolve environment map using GGX NDF importance sampling.
+	// Weight by cosine term since Epic claims it generally improves quality.
+	for(uint i = 0; i < NumSamples; i++)
+	{
+		vec2 u = SampleHammersley(i);
+		vec3 Lh = TangentToWorld(SampleGGX(u.x, u.y, u_FragUniforms.Roughness), N, S, T);
 
-    const uint SAMPLE_COUNT = 1024u;
-    vec3 prefilteredColor = vec3(0.0);
-    float totalWeight = 0.0;
-    
-    for(uint i = 0u; i < SAMPLE_COUNT; ++i)
-    {
-        // generates a sample vector that's biased towards the preferred alignment direction (importance sampling).
-        vec2 Xi = Hammersley(i, SAMPLE_COUNT);
-        vec3 H = ImportanceSampleGGX(Xi, N, u_FragUniforms.Roughness);
-        vec3 L  = normalize(2.0 * dot(V, H) * H - V);
+		// Compute incident direction (Li) by reflecting viewing direction (Lo) around half-vector (Lh).
+		vec3 Li = 2.0 * dot(Lo, Lh) * Lh - Lo;
 
-        float NdotL = max(dot(N, L), 0.0);
-        if(NdotL > 0.0)
-        {
-            // sample from the environment's mip level based on roughness/pdf
-            float D   = DistributionGGX(N, H, u_FragUniforms.Roughness);
-            float NdotH = max(dot(N, H), 0.0);
-            float HdotV = max(dot(H, V), 0.0);
-            float pdf = D * NdotH / (4.0 * HdotV) + 0.0001; 
+		float cosLi = dot(N, Li);
+		if(cosLi > 0.0) {
+			// Use Mipmap Filtered Importance Sampling to improve convergence.
+			// See: https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch20.html, section 20.4
 
-            float resolution = 512.0; // resolution of source cubemap (per face)
-            float saTexel  = 4.0 * PI / (6.0 * resolution * resolution);
-            float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
+			float cosLh = max(dot(N, Lh), 0.0);
 
-            float mipLevel = u_FragUniforms.Roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel); 
-            
-            prefilteredColor += textureLod(u_Texture, L, mipLevel).rgb * NdotL;
-            totalWeight      += NdotL;
-        }
-    }
+			// GGX normal distribution function (D term) probability density function.
+			// Scaling by 1/4 is due to change of density in terms of Lh to Li (and since N=V, rest of the scaling factor cancels out).
+			float pdf = NdfGGX(cosLh, u_FragUniforms.Roughness) * 0.25;
 
-    prefilteredColor = prefilteredColor / totalWeight;
+			// Solid angle associated with this sample.
+			float ws = 1.0 / (NumSamples * pdf);
 
-    o_Color = vec4(prefilteredColor, 1.0);
+			// Mip level to sample from.
+			float mipLevel = max(0.5 * log2(ws / wt) + 1.0, 0.0);
+
+			color  += textureLod(u_Texture, Li, mipLevel).rgb * cosLi;
+			weight += cosLi;
+		}
+	}
+	color /= weight;
+
+    o_Color = vec4(color, 1.0);
 }
