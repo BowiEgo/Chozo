@@ -23,8 +23,8 @@ namespace Chozo {
         uint32_t Samples = 1;
         uint32_t Width = 1, Height = 1;
         bool Mipmap = false;
-        ImageParameter MinFilter = ImageParameter::LINEAR;
-        ImageParameter MagFilter = ImageParameter::NEAREST;
+        ImageParameter MinFilter = ImageParameter::NEAREST;
+        ImageParameter MagFilter = ImageParameter::LINEAR;
         ImageParameter WrapR = ImageParameter::CLAMP_TO_BORDER;
         ImageParameter WrapS = ImageParameter::CLAMP_TO_BORDER;
         ImageParameter WrapT = ImageParameter::CLAMP_TO_BORDER;
