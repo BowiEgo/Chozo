@@ -215,7 +215,7 @@ void main()
 
     m_Params.Albedo    = texture(u_AlbedoTex, v_TexCoord).rgb;
     m_Params.Metalness  = materialProps.r;
-    m_Params.Roughness = materialProps.g;
+    m_Params.Roughness = max(materialProps.g, 0.001);
     m_Params.Normal = normalize(texture(u_NormalTex, v_TexCoord).rgb);
     m_Params.View = normalize(u_Scene.CameraPosition - gPosition);
     m_Params.NdotV = max(dot(m_Params.Normal, m_Params.View), 0.0);
