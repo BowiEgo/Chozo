@@ -48,7 +48,7 @@ namespace Chozo {
 		{
 			imageBuffer.Data = (byte*)stbi_loadf_from_memory((const stbi_uc*)buffer.Data, (int)buffer.Size, &width, &height, &channels, STBI_rgb_alpha);
 			imageBuffer.Size = width * height * 4 * sizeof(float);
-			outFormat = ImageFormat::RGBA32F;
+			outFormat = ImageFormat::HDR;
 		}
 		else
 		{

@@ -178,6 +178,7 @@ namespace Chozo {
 			irradiancePipelineSpec.TargetFramebuffer = framebuffer;
             irradiancePipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("IrradianceConvolution");
 			s_Data.m_IrradianceMaterial = Material::Create(irradiancePipelineSpec.Shader, irradiancePipelineSpec.DebugName);
+            // s_Data.m_IrradianceMaterial->Set("u_FragUniforms.Samples", GetConfig().IrradianceMapComputeSamples);
 			s_Data.m_IrradiancePipeline = Pipeline::Create(irradiancePipelineSpec);
         }
         // Prefiltered Map

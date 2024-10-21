@@ -64,17 +64,14 @@ namespace Chozo {
 
     void TextureExporter::ApplyGammaCorrectionAndClamp(float* sourceData, unsigned char* targetData, uint32_t size, float gamma)
     {
+        float invGamma = 1.0f / gamma;
         for (uint32_t i = 0; i < size; ++i)
         {
             // Crop to range [0.0, 1.0]
-            float pixel = sourceData[i];
-            if (pixel < 0.0f)
-                pixel = 0.0f;
-            if (pixel > 1.0f)
-                pixel = 1.0f;
+            float pixel = std::clamp(sourceData[i], 0.0f, 1.0f);
 
             // Gamma correction
-            targetData[i] = static_cast<unsigned char>(255.0f * std::pow(pixel, 1.0f / 2.2f));
+            targetData[i] = static_cast<unsigned char>(255.0f * std::pow(pixel, invGamma));
         }
     }
 }
