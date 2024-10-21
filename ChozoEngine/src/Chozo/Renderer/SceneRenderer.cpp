@@ -30,7 +30,7 @@ namespace Chozo
 
 			FramebufferSpecification fbSpec;
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-			fbSpec.Attachments = { ImageFormat::RGBA32F };
+			fbSpec.Attachments = { ImageFormat::RGBA16F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
 			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
             
@@ -39,9 +39,9 @@ namespace Chozo
 			pipelineSpec.Shader = skyboxShader;
             pipelineSpec.DepthWrite = false;
 			pipelineSpec.DepthTest = false;
-            pipelineSpec.Layout = {
-				{ ShaderDataType::Float3, "a_Position" },
-			};
+            // pipelineSpec.Layout = {
+			// 	{ ShaderDataType::Float3, "a_Position" },
+			// };
 			pipelineSpec.TargetFramebuffer = framebuffer;
 			m_SkyboxMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 
@@ -109,7 +109,7 @@ namespace Chozo
         {
             FramebufferSpecification fbSpec;
 			fbSpec.Attachments = {
-                ImageFormat::RGB16F,
+                ImageFormat::RGB8,
                 ImageFormat::RED32I,
             };
 
@@ -171,7 +171,7 @@ namespace Chozo
         {
             FramebufferSpecification fbSpec;
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-			fbSpec.Attachments = { ImageFormat::RGBA32F };
+			fbSpec.Attachments = { ImageFormat::RGBA16F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
 			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
