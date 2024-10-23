@@ -15,11 +15,16 @@ namespace Chozo {
     class Entity;
     class SceneRenderer;
 
-    class Scene : public RefCounted
+    class Scene : public Asset
     {
     public:
         Scene();
         ~Scene();
+
+        static Ref<Scene> Create() { return Ref<Scene>::Create(); }
+
+        static AssetType GetStaticType() { return AssetType::Scene; }
+		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
         Entity CreateEntity(const std::string& name = std::string());
         Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());

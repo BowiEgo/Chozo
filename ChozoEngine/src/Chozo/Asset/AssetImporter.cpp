@@ -17,6 +17,8 @@ namespace Chozo
                 s_Serializers[type] = CreateScope<TextureSerializer>(); break;
 			case AssetType::Material:
                 s_Serializers[type] = CreateScope<MaterialSerializer>(); break;
+			case AssetType::Scene:
+                s_Serializers[type] = CreateScope<SceneSerializer>(); break;
             default:
                 break;
             }

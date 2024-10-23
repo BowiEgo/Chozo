@@ -205,6 +205,21 @@ namespace Chozo {
         OnDirectoryChange(m_CurrentDirectory);
     }
 
+    Ref<Scene> ContentBrowserPanel::CreateScene()
+    {
+        if (!s_Instance->m_CurrentDirectory)
+        {
+            CZ_CORE_ERROR("ContentBrowser: Current directory is not exist!");
+            return nullptr;
+        }
+
+        auto filename = s_Instance->CreateItemName(AssetType::Scene);
+
+        auto scene = s_Instance->CreateAsset<Scene>(filename, s_Instance->m_CurrentDirectory);
+        s_Instance->OnBrowserRefresh();
+        return scene;
+    }
+
     Ref<Material> ContentBrowserPanel::CreateMaterial()
     {
         if (!s_Instance->m_CurrentDirectory)
@@ -213,23 +228,7 @@ namespace Chozo {
             return nullptr;
         }
 
-        int maxIndex = -1;
-        std::regex pattern(R"(material_(\d+))");
-        std::smatch match;
-
-        for (const auto& item : s_Instance->m_CurrentItems) {
-            auto name = item->GetFilename();
-            if (name == "material") {
-                maxIndex = std::max(maxIndex, 0);
-            } else if (std::regex_search(name, match, pattern)) {
-                int index = std::stoi(match[1]);
-                maxIndex = std::max(maxIndex, index);
-            }
-        }
-
-        std::string filename = "material";
-        if (maxIndex > -1)
-            filename += ("_" + std::to_string(maxIndex + 1));
+        auto filename = s_Instance->CreateItemName(AssetType::Material);
 
         auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, "PBR");
         material->Set("u_Material.Albedo", glm::vec3(0.5f, 0.5f, 0.5f));
@@ -258,6 +257,11 @@ namespace Chozo {
         {
             if (ImGui::MenuItem("Folder"))
             {
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::MenuItem("Scene"))
+            {
+                CreateScene();
                 ImGui::CloseCurrentPopup();
             }
             if (ImGui::MenuItem("Texture"))
@@ -534,8 +538,12 @@ namespace Chozo {
             auto metadata = assetManager->GetMetadata(item->GetHandle());
             auto asset = assetManager->GetAsset(metadata.Handle);
 
-            auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
-            Pool::AddTask(task);
+            if (asset)
+            {
+                auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
+                Pool::AddTask(task);
+            }
+
         }
 
         // Cache the renderer ouput for MaterialPanel because it will change after thumbnails rendered.
@@ -625,5 +633,30 @@ namespace Chozo {
 
         if (shouldRefresh)
             OnBrowserRefresh();
+    }
+
+    std::string ContentBrowserPanel::CreateItemName(AssetType type)
+    {
+        auto itemType = Utils::AssetTypeToString(type);
+
+        int maxIndex = -1;
+        std::regex pattern(R"(material_(\d+))");
+        std::smatch match;
+
+        for (const auto& item : s_Instance->m_CurrentItems) {
+            auto name = item->GetFilename();
+            if (name == itemType) {
+                maxIndex = std::max(maxIndex, 0);
+            } else if (std::regex_search(name, match, pattern)) {
+                int index = std::stoi(match[1]);
+                maxIndex = std::max(maxIndex, index);
+            }
+        }
+
+        std::string itemName = itemType;
+        if (maxIndex > -1)
+            itemName += ("_" + std::to_string(maxIndex + 1));
+
+        return itemName;
     }
 }

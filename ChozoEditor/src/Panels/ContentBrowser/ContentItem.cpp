@@ -76,7 +76,9 @@ namespace Chozo {
             m_Thumbnail = m_Empty ? ContentBrowserPanel::GetIcon("EmptyDirectory") : ContentBrowserPanel::GetIcon("Directory");
         else
         {
-            if (m_AssetType == AssetType::Texture)
+            if (m_AssetType == AssetType::Scene)
+                m_Thumbnail = ThumbnailManager::GetThumbnail(m_Handle);
+            else if (m_AssetType == AssetType::Texture)
                 m_Thumbnail = ThumbnailManager::GetThumbnail(m_Handle);
             else if (m_AssetType == AssetType::Material)
                 m_Thumbnail = ThumbnailManager::GetThumbnail(m_Handle);

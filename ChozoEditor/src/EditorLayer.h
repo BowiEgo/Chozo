@@ -38,10 +38,10 @@ namespace Chozo {
 
         std::pair<float, float> GetMouseViewportSpace();
         
-        void NewScene();
-        void OpenScene();
-        void OpenScene(const fs::path& path);
-        void SaveSceneAs();
+        void NewProject();
+        void OpenProject();
+        void OpenProject(const fs::path& path);
+        void SaveProjectAs();
 
         void OnScenePlay();
         void OnSceneStop();

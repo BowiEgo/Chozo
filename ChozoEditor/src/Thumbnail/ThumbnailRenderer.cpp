@@ -21,12 +21,14 @@ namespace Chozo {
             AssetType type = static_cast<AssetType>(i);
             switch (type)
             {
-            case AssetType::Texture:
-                s_Renderers[type] = CreateScope<TextureThumbnailRenderer>(); break;
-            case AssetType::Material:
-                s_Renderers[type] = CreateScope<MaterialThumbnailRenderer>(); break;
-            default:
-                break;
+                case AssetType::Scene:
+                    s_Renderers[type] = CreateScope<SceneThumbnailRenderer>(); break;
+                case AssetType::Texture:
+                    s_Renderers[type] = CreateScope<TextureThumbnailRenderer>(); break;
+                case AssetType::Material:
+                    s_Renderers[type] = CreateScope<MaterialThumbnailRenderer>(); break;
+                default:
+                    break;
             }
         }
     }
@@ -54,6 +56,42 @@ namespace Chozo {
             return static_cast<MaterialThumbnailRenderer*>(s_Renderers[AssetType::Material].get());
         else
             return nullptr;
+    }
+
+
+    //==============================================================================
+    /// SceneThumbnailRenderer
+    SceneThumbnailRenderer::SceneThumbnailRenderer()
+    {
+		m_SceneRenderer = SceneRenderer::Create(m_Scene);
+        m_SceneRenderer->SetActive(true);
+        m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_Camera = EditorCamera(6.0f, 1.0f, 0.1f, 1000.0f);
+    }
+
+    void SceneThumbnailRenderer::Render(Ref<ThumbnailPoolTask> task)
+    {
+#if 0
+        m_Scene = task->Source.As<Scene>();
+        m_SceneRenderer->SetScene(m_Scene);
+
+        m_SceneRenderer->AddEventListener(
+            EventType::SceneRender,
+            [&task, this](Event& e) -> bool {
+                m_SceneRenderer->CopyImage(
+                    m_SceneRenderer->GetCompositePass()->GetOutput(0),
+                    task->ImageData);
+                task->SetStatus(TaskStatus::Finished);
+                return true;
+            },
+            true
+        );
+
+        m_Scene->OnUpdateEditor(0, m_Camera);
+#else
+        Renderer::GetRendererData().WhiteTexture->CopyToHostBuffer(task->ImageData);
+        task->SetStatus(TaskStatus::Finished);
+#endif
     }
 
     //==============================================================================

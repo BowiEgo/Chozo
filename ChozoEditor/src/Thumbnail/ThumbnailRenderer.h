@@ -52,6 +52,18 @@ namespace Chozo {
         static uint32_t s_ThumbnailSize;
     };
 
+    class SceneThumbnailRenderer : public ThumbnailRenderer
+    {
+    public:
+        SceneThumbnailRenderer();
+        virtual void Render(Ref<ThumbnailPoolTask> task) override;
+    private:
+        glm::vec2 m_ViewportSize{200, 200};
+        EditorCamera m_Camera;
+        Ref<Scene> m_Scene;
+		Ref<SceneRenderer> m_SceneRenderer;
+    };
+
     class TextureThumbnailRenderer : public ThumbnailRenderer
     {
     public:

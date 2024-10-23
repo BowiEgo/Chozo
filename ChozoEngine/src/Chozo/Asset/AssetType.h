@@ -5,6 +5,7 @@
 namespace Chozo {
 
 	#define FOREACH_ASSET_TYPE(TYPE) \
+        	TYPE(Scene) \
         	TYPE(Texture) \
         	TYPE(Material) \
 

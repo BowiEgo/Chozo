@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chozo/Core/Application.h"
+#include "Chozo/Scene/Scene.h"
 #include "Chozo/Asset/EditorAssetManager.h"
 
 #include "ContentItem.h"
@@ -39,6 +40,7 @@ namespace Chozo {
             if (s_Instance->m_CurrentItems[handle])
                 s_Instance->m_ContentSelection.Deselect(s_Instance->m_CurrentItems[handle]);
         }
+        static Ref<Scene> CreateScene();
         static Ref<Material> CreateMaterial();
     private:
         void RenderAddNewContextMenu();
@@ -60,6 +62,8 @@ namespace Chozo {
 
 		AssetHandle ProcessDirectory(const fs::path& directoryPath, const Ref<DirectoryInfo>& parent);
         void DeleteItems(std::vector<Ref<ContentItem>> items);
+
+        std::string CreateItemName(AssetType type);
     public:
         static float s_Padding;
         static float s_ThumbnailSize;

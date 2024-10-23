@@ -6,7 +6,6 @@
 
 #include "Panels/TextureViewerPanel.h"
 
-#include "Chozo/Scene/SceneSerializer.h"
 #include "Chozo/Utilities/PlatformUtils.h"
 #include "Chozo/ImGui/ImGuiUI.h"
 #include "Chozo/Math/Math.h"
@@ -129,11 +128,11 @@ namespace Chozo {
             if (ImGui::BeginMenu("File"))
             {
                 if (ImGui::MenuItem("New", "Ctrl+N"))
-                    NewScene();
+                    // NewProject();
                 if (ImGui::MenuItem("Open...", "Ctrl+O"))
-                    OpenScene();
+                    // OpenProject();
                 if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S", nullptr))
-                    SaveSceneAs();
+                    // SaveProjectAs();
 
                 if (ImGui::MenuItem("Quit")) Application::Get().Close();
                 ImGui::EndMenu();
@@ -449,16 +448,37 @@ namespace Chozo {
     void EditorLayer::OnDragAndDrop(AssetHandle handle)
     {
         Ref<Asset> asset =  Application::GetAssetManager()->GetAsset(handle);
-        if (asset->GetAssetType() == AssetType::Material)
+
+        switch (asset->GetAssetType())
         {
-            auto [mx, my] = ImGui::GetMousePos();
-            auto entity = PickEntity(mx, my);
-            if (entity && entity.HasComponent<MeshComponent>())
+            case AssetType::Material:
             {
-                auto tag = entity.GetComponent<TagComponent>().Tag;
-                CZ_CORE_INFO("EditorLayer::OnDragAndDrop-> tag: {}", tag);
-                entity.GetComponent<MeshComponent>().MaterialHandle = handle;
+                auto [mx, my] = ImGui::GetMousePos();
+                auto entity = PickEntity(mx, my);
+                if (entity && entity.HasComponent<MeshComponent>())
+                {
+                    auto tag = entity.GetComponent<TagComponent>().Tag;
+                    CZ_CORE_INFO("EditorLayer::OnDragAndDrop-> tag: {}", tag);
+                    entity.GetComponent<MeshComponent>().MaterialHandle = handle;
+                }
+                break;
             }
+            case AssetType::Scene:
+            {
+                m_Entity_Selected = Entity();
+                m_ActiveScene = asset.As<Scene>();
+                m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+                m_ViewportRenderer->SetScene(m_ActiveScene);
+                m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+                m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+                PropertiesPanel::SetContext(m_ActiveScene);
+                m_EnvironmentPanel.SetContext(m_ActiveScene);
+                m_SceneFileName = "path.filename()";
+                m_EditorCamera.Reset();
+                break;
+            }
+            default:
+                break;
         }
 
         // fs::path filePath = fs::path((char*)path);
@@ -491,19 +511,19 @@ namespace Chozo {
             case Key::N:
             {
                 if (control)
-                    NewScene();
+                    // NewProject();
                 break;
             }
             case Key::O:
             {
                 if (control)
-                    OpenScene();
+                    // OpenProject();
                 break;
             }
             case Key::S:
             {
                 if (control && shift)
-                    SaveSceneAs();
+                    // SaveProjectAs();
                 break;
             }
 
@@ -555,45 +575,29 @@ namespace Chozo {
 		return { (mx / viewportWidth) * 2.0f - 1.0f, ((my / viewportHeight) * 2.0f - 1.0f) * -1.0f };
     }
 
-    void EditorLayer::NewScene()
+    void EditorLayer::NewProject()
     {
-        OpenScene("");
+        OpenProject("");
     }
 
-    void EditorLayer::OpenScene()
+    void EditorLayer::OpenProject()
     {
-        std::string filepath = FileDialogs::OpenFile("Chozo Scene (*.chozo)\0*.chozo\0");
-        OpenScene(filepath);
+        std::string filepath = FileDialogs::OpenFile("Chozo Project (*.chozo)\0*.chozo\0");
+        OpenProject(filepath);
     }
 
-    void EditorLayer::OpenScene(const fs::path &path)
+    void EditorLayer::OpenProject(const fs::path &path)
     {
-        m_Entity_Selected = Entity();
-        m_ActiveScene = Ref<Scene>::Create();
-        m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-        m_ViewportRenderer->SetScene(m_ActiveScene);
-        m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-        PropertiesPanel::SetContext(m_ActiveScene);
-        m_EnvironmentPanel.SetContext(m_ActiveScene);
-        m_SceneFileName = path.filename();
-        m_EditorCamera.Reset();
-
-        if (!path.empty())
-        {
-            SceneSerializer serializer(m_ActiveScene);
-            serializer.Deserialize(path.string());
-        }
     }
 
-    void EditorLayer::SaveSceneAs()
+    void EditorLayer::SaveProjectAs()
     {
-        std::string filepath = FileDialogs::SaveFile("Chozo Scene (*.chozo)\0*.chozo\0", m_SceneFileName);
-        if (!filepath.empty())
-        {
-            SceneSerializer serializer(m_ActiveScene);
-            serializer.Serialize(filepath);
-        }
+        // std::string filepath = FileDialogs::SaveFile("Chozo Project (*.chozo)\0*.chozo\0", m_ProjectFileName);
+        // if (!filepath.empty())
+        // {
+        //     ProjectSerializer serializer(m_ActiveProject);
+        //     serializer.Serialize(filepath);
+        // }
     }
 
     void EditorLayer::OnScenePlay()
