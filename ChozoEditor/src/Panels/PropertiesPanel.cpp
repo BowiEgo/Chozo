@@ -313,7 +313,7 @@ namespace Chozo {
                         {
                             target = meshTypeStrings[i];
                             component.Type = MeshType(i);
-                            component.GenerateMeshInstance();
+                            // component.GenerateMeshInstance();
                         }
                         
                         if (isSelected)
@@ -479,7 +479,7 @@ namespace Chozo {
     {
         DrawComponent<MeshComponent>("Geometry", entity, [entity](auto& component)
         {
-            if (Geometry* geom = dynamic_cast<Geometry*>(component.MeshInstance->GetMeshSource().get()))
+            if (Geometry* geom = dynamic_cast<Geometry*>(component.MeshInstance.get()))
             {
                 if (BoxGeometry* box = dynamic_cast<BoxGeometry*>(geom))
                 {

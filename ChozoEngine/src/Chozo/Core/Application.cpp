@@ -15,14 +15,6 @@
 
 namespace Chozo {
 
-    // TODO: Move to Project
-    extern const fs::path g_AssetsPath = "../assets";
-
-    // TODO: Remove
-    extern const std::regex imagePattern(R"(\.(png|jpg|jpeg|hdr)$)", std::regex::icase);
-    extern const std::regex hdrPattern(R"(\.(hdr)$)", std::regex::icase);
-    extern const std::regex scenePattern(R"(\.(chozo)$)", std::regex::icase);
-
     Application* Application::s_Instance = nullptr;
 
     Application::Application(const std::string& name)

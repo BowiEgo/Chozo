@@ -3,7 +3,6 @@
 #define MAX_TEXTURE_SLOTS 32
 
 layout(location = 0) out vec4 o_Color;
-layout(location = 1) out int o_EntityID;
 
 struct VertexOutput
 {
@@ -59,5 +58,4 @@ void main()
     }
 
     o_Color = texColor;
-    o_EntityID = v_EntityID;
 }

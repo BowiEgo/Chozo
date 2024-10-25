@@ -12,7 +12,6 @@ namespace Chozo
         : m_Radius(radius), m_WidthSegments(widthSegments), m_HeightSegments(heightSegments),
           m_PhiStart(phiStart), m_PhiLength(phiLength), m_ThetaStart(thetaStart), m_ThetaLength(thetaLength)
     {
-        CallGenerate();
     }
 
     MeshBuffer* SphereGeometry::Generate()
@@ -57,8 +56,6 @@ namespace Chozo
 
                 vertice.TexCoord.x = u + uOffset;
                 vertice.TexCoord.y = 1 - v;
-
-                vertice.EntityID = m_EntityID;
 
                 verticesRow.push_back(index++);
                 buffer->Vertexs.push_back(vertice);

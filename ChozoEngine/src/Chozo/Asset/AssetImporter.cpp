@@ -13,14 +13,14 @@ namespace Chozo
             AssetType type = static_cast<AssetType>(i);
             switch (type)
             {
-            case AssetType::Texture:
-                s_Serializers[type] = CreateScope<TextureSerializer>(); break;
-			case AssetType::Material:
-                s_Serializers[type] = CreateScope<MaterialSerializer>(); break;
-			case AssetType::Scene:
-                s_Serializers[type] = CreateScope<SceneSerializer>(); break;
-            default:
-                break;
+				case AssetType::Texture:
+					s_Serializers[type] = CreateScope<TextureSerializer>(); break;
+				case AssetType::Material:
+					s_Serializers[type] = CreateScope<MaterialSerializer>(); break;
+				case AssetType::Scene:
+					s_Serializers[type] = CreateScope<SceneSerializer>(); break;
+				default:
+					break;
             }
         }
     }

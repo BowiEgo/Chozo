@@ -78,7 +78,7 @@ namespace Chozo {
     struct MeshComponent
     {
         Ref<Mesh> MeshInstance;
-        Ref<MeshSource> MeshSrc;
+        // Ref<MeshSource> MeshSrc;
         AssetHandle MaterialHandle;
 
         MeshType Type = MeshType::Dynamic;
@@ -89,37 +89,43 @@ namespace Chozo {
             : MeshInstance(std::move(other.MeshInstance)),
               Type(other.Type)
         {
-            other.MeshSrc.Reset();  // Prevent copying or using original object.
+            // other.MeshSrc.Reset();  // Prevent copying or using original object.
         }
-        MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic, AssetHandle materialHandle = 0)
-            : MeshSrc(meshSrc), Type(meshType), MaterialHandle(materialHandle)
+        MeshComponent(Ref<Mesh> mesh, MeshType meshType = MeshType::Dynamic, AssetHandle materialHandle = 0)
+            : MeshInstance(mesh), Type(meshType), MaterialHandle(materialHandle)
         {
-            GenerateMeshInstance();
         }
+        // MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic, AssetHandle materialHandle = 0)
+        //     : MeshSrc(meshSrc), Type(meshType), MaterialHandle(materialHandle)
+        // {
+        //     // GenerateMeshInstance();
+        // }
         ~MeshComponent() {}
 
-        void GenerateMeshInstance()
-        {
-            MeshSrc->CallGenerate();
-            MeshInstance.Reset();
+        // void GenerateMeshInstance()
+        // {
+        //     // if (MeshSrc.As<Geometry>())
+        //     //     MeshSrc.As<Geometry>()->CallGenerate();
 
-            switch (Type) {
-                case MeshType::Dynamic:
-                    MeshInstance = Ref<DynamicMesh>::Create(MeshSrc);
-                    break;
-                case MeshType::Instanced:
-                    MeshInstance = Ref<InstancedMesh>::Create(MeshSrc);
-                    break;
-                case MeshType::Static:
-                    MeshInstance = Ref<StaticMesh>::Create(MeshSrc);
-                    break;
-                default:
-                    CZ_CORE_ERROR("Unknown mesh type!");
-                    break;
-            }
+        //     MeshInstance.Reset();
 
-            MeshSrc->SetBufferChanged(true);
-        }
+        //     switch (Type) {
+        //         case MeshType::Dynamic:
+        //             MeshInstance = Ref<DynamicMesh>::Create(MeshSrc);
+        //             break;
+        //         case MeshType::Instanced:
+        //             MeshInstance = Ref<InstancedMesh>::Create(MeshSrc);
+        //             break;
+        //         case MeshType::Static:
+        //             MeshInstance = Ref<StaticMesh>::Create(MeshSrc);
+        //             break;
+        //         default:
+        //             CZ_CORE_ERROR("Unknown mesh type!");
+        //             break;
+        //     }
+
+        //     // MeshSrc->SetBufferChanged(true);
+        // }
     };
 
     struct CameraComponent

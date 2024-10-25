@@ -10,7 +10,6 @@ layout(location = 5) out int o_EntityID;
 layout(location = 0) in vec3 v_Normal;
 layout(location = 1) in vec2 v_TexCoord;
 layout(location = 2) in vec3 v_FragPosition;
-layout(location = 3) in flat int v_EntityID;
 
 layout(push_constant) uniform FragUniforms
 {
@@ -25,6 +24,8 @@ layout(push_constant) uniform FragUniforms
     int enableMetalnessTex;
     int enableRoughnessTex;
     int enableNormalTex;
+
+    int ID;
 } u_Material;
 
 layout(binding = 0) uniform sampler2D u_NormalTex;
@@ -55,5 +56,5 @@ void main()
     o_MaterialProperties.g = (u_Material.enableRoughnessTex == 1) ? texture(u_RoughnessTex, v_TexCoord).r : u_Material.Roughness;
     o_MaterialProperties.b = u_Material.Ambient * u_Material.AmbientStrength;
     o_MaterialProperties.a = u_Material.Specular;
-    o_EntityID = v_EntityID;
+    o_EntityID = u_Material.ID;
 }

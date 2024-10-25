@@ -4,41 +4,45 @@
 #include "SphereGeometry.h"
 #include "QuadGeometry.h"
 
-namespace Chozo
-{
+namespace Chozo {
+        
+    void Geometry::SetLocalTransform(const glm::mat4 &transform)
+    {
+        if (m_LocalTransform == transform)
+            return;
 
-    // Ref<Geometry> Geometry::Create(const GeometryType type, GeometryProps props)
-    // {
-    //     switch (type)
-    //     {
-    //         case GeometryType::Plane:
-    //         {
-    //             return std::make_shared<Geometry>();
-    //         }
-    //         case GeometryType::Box:
-    //         {
-    //             BoxGeometryProps* boxProps = dynamic_cast<BoxGeometryProps*>(&props);
-    //             return std::make_shared<BoxGeometry>(
-    //                 boxProps->Width,
-    //                 boxProps->Height,
-    //                 boxProps->Depth,
-    //                 boxProps->WidthSegments,
-    //                 boxProps->HeightSegments,
-    //                 boxProps->DepthSegments
-    //             );
-    //         }
-    //         case GeometryType::Sphere:
-    //         {
-    //             return std::make_shared<SphereGeometry>(props);
-    //         }
-    //         case GeometryType::Cone:
-    //         {
-    //             return std::make_shared<Geometry>();
-    //         }
-    //         case GeometryType::Cylinder:
-    //         {
-    //             return std::make_shared<Geometry>();
-    //         }
-    //     }
-    // }
+        m_LocalTransform = transform;
+        CallGenerate();
+    }
+
+    void Geometry::CallGenerate()
+    {
+        MeshBuffer* buffer = Generate();
+        m_TempBuffer.Vertexs = buffer->Vertexs;
+        m_TempBuffer.Indexs = buffer->Indexs;
+        m_TempBuffer.IndexCount = buffer->IndexCount;
+        m_TempBuffer.IndicesCount = buffer->IndicesCount;
+
+        SetBufferChanged(true);
+        delete buffer;
+
+        AfterGenerate(true);
+    }
+
+    void Geometry::AfterGenerate(bool successed)
+    {
+        if (successed)
+        {
+            m_MeshSource->GetBuffer()->Vertexs = m_TempBuffer.Vertexs;
+            m_MeshSource->GetBuffer()->Indexs = m_TempBuffer.Indexs;
+            m_MeshSource->GetBuffer()->IndexCount = m_TempBuffer.IndexCount;
+            m_MeshSource->GetBuffer()->IndicesCount = m_TempBuffer.IndicesCount;
+        }
+        else
+            Backtrace();
+
+        SetBufferChanged(false);
+
+        Invalidate();
+    }
 }

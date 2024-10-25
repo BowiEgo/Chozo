@@ -92,8 +92,10 @@ namespace Chozo {
         }
 
         // Geometry
-        s_Data.QuadMesh = Ref<DynamicMesh>::Create(Ref<QuadGeometry>::Create().As<MeshSource>());
-        s_Data.BoxMesh = Ref<DynamicMesh>::Create(Ref<BoxGeometry>::Create().As<MeshSource>());
+        s_Data.QuadMesh = Geometry::Create<QuadGeometry>();
+        s_Data.BoxMesh = Geometry::Create<BoxGeometry>();
+        // s_Data.QuadMesh = Ref<DynamicMesh>::Create(Ref<QuadGeometry>::Create().As<MeshSource>());
+        // s_Data.BoxMesh = Ref<DynamicMesh>::Create(Ref<BoxGeometry>::Create().As<MeshSource>());
 
         // Shaders
         std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
@@ -253,20 +255,20 @@ namespace Chozo {
 
     bool Renderer::SubmitStaticMesh(StaticMesh* mesh)
     {
-        UUID segmentID = s_Data.BatchManager.SubmitBuffers(
-            mesh->GetMeshSource()->GetTempBuffer()->Vertexs.data(),
-            mesh->GetMeshSource()->GetTempBuffer()->Vertexs.size(),
-            mesh->GetMeshSource()->GetTempBuffer()->Indexs.data(),
-            mesh->GetMeshSource()->GetTempBuffer()->Indexs.size(),
-            mesh->GetBufferSegmentID()
-        );
-        if (!segmentID.isValid())
-        {
-            mesh->OnSubmit(false);
-            return false;
-        }
-        mesh->SetBufferSegmentID(segmentID);
-        mesh->OnSubmit(true);
+        // UUID segmentID = s_Data.BatchManager.SubmitBuffers(
+        //     mesh->GetTempBuffer()->Vertexs.data(),
+        //     mesh->GetTempBuffer()->Vertexs.size(),
+        //     mesh->GetTempBuffer()->Indexs.data(),
+        //     mesh->GetTempBuffer()->Indexs.size(),
+        //     mesh->GetBufferSegmentID()
+        // );
+        // if (!segmentID.isValid())
+        // {
+        //     mesh->OnSubmit(false);
+        //     return false;
+        // }
+        // mesh->SetBufferSegmentID(segmentID);
+        // mesh->OnSubmit(true);
         return true;
     }
 

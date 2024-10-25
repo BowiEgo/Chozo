@@ -1,8 +1,21 @@
 #pragma once
 
+#include <regex>
+
 namespace Chozo {
 
     namespace Utils::File {
+
+        static const std::regex imagePattern(R"(\.(png|jpg|jpeg|hdr)$)", std::regex::icase);
+        static const std::regex hdrPattern(R"(\.(hdr)$)", std::regex::icase);
+        static const std::regex scenePattern(R"(\.(chozo)$)", std::regex::icase);
+
+        static const bool IsImage(std::string path)
+        {
+            fs::path filePath = fs::path(path);
+            std::string fileExtension = filePath.extension().string();
+            return std::regex_match(fileExtension, imagePattern);
+        }
 
         static const char* GetAssetDirectory()
         {

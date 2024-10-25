@@ -511,13 +511,24 @@ namespace Chozo {
     void ContentBrowserPanel::ImportAssets()
     {
         fs::path path = FileDialogs::OpenFile("Import (*.png)\0*.jpeg\0");
+        AssetType type = Utils::GetAssetTypeFromExtension(path.extension().string());
 
-        Texture2DSpecification spec;
-        spec.WrapR = ImageParameter::CLAMP_TO_EDGE;
-        spec.WrapS = ImageParameter::CLAMP_TO_EDGE;
-        spec.WrapT = ImageParameter::CLAMP_TO_EDGE;
+        Texture2DSpecification textureSpec;
+        textureSpec.WrapR = ImageParameter::CLAMP_TO_EDGE;
+        textureSpec.WrapS = ImageParameter::CLAMP_TO_EDGE;
+        textureSpec.WrapT = ImageParameter::CLAMP_TO_EDGE;
 
-        Ref<Asset> textureAsset = CreateAsset<Texture2D>(path.filename().stem().string(), m_CurrentDirectory, path.string(), spec);
+        switch (type)
+        {
+            case AssetType::Texture:
+                CreateAsset<Texture2D>(path.filename().stem().string(), m_CurrentDirectory, path.string(), textureSpec);
+                break;
+            case AssetType::MeshSource:
+                // CreateAsset<MeshSource>(path.filename().stem().string(), m_CurrentDirectory, path.string());
+                break;
+            default:
+                break;
+        }
 
         SaveAllAssets();
         OnBrowserRefresh();

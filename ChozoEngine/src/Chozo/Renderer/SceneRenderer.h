@@ -66,7 +66,7 @@ namespace Chozo
         bool SubmitPointLight(PointLightComponent* light, glm::vec3& position);
         bool SubmitSpotLight(SpotLightComponent* light, glm::vec3& position);
 
-        void SubmitMesh(Ref<DynamicMesh> mesh, Ref<Material> material, const glm::mat4& transform);
+        void SubmitMesh(Ref<DynamicMesh> mesh, Ref<Material> material, const glm::mat4& transform, uint64_t entityID);
 
         Ref<RenderPass> GetSkyboxPass() { return m_SkyboxPass; }
         Ref<RenderPass> GetGeometryPass() { return m_GeometryPass; }
@@ -106,6 +106,7 @@ namespace Chozo
             Ref<Mesh> Mesh;
             Ref<Material> Material;
             glm::mat4 Transform;
+            uint64_t ID;
         };
 
         std::vector<MeshData> m_MeshDatas;

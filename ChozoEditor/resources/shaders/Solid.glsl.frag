@@ -7,7 +7,6 @@ layout(location = 2) out int o_EntityID;
 layout(location = 0) in vec3 v_Normal;
 layout(location = 1) in vec2 v_TexCoord;
 layout(location = 2) in vec3 v_FragPosition;
-layout(location = 3) in flat int v_EntityID;
 
 struct DirectionalLight
 {
@@ -29,6 +28,11 @@ layout(std140, binding = 1) uniform SceneData
 	vec3 CameraPosition; // Offset = 32
 	float EnvironmentMapIntensity;
 } u_Scene;
+
+layout(push_constant) uniform FragUniforms
+{
+    int ID;
+} u_Material;
 
 float near = 0.1;
 float far  = 20.0;
@@ -56,5 +60,5 @@ void main()
 
     o_Color = vec4(baseColor * brightness, 1.0);
     o_Depth = vec4(vec3(depth), 1.0);
-    o_EntityID = v_EntityID;
+    o_EntityID = u_Material.ID;
 }

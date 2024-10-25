@@ -7,9 +7,6 @@
 
 namespace Chozo {
 
-    extern const fs::path g_AssetsPath;
-    extern const std::regex imagePattern;
-
     float s_LOD;
     glm::vec3 s_LightDirection;
     RendererID s_LightRadiance;

@@ -223,18 +223,18 @@ namespace Chozo {
             if (mesh.Type == MeshType::Dynamic)
             {
                 Ref<DynamicMesh> dynamicMesh = mesh.MeshInstance.As<DynamicMesh>();
-                if (dynamicMesh->GetMeshSource()->IsBufferChanged())
-                    dynamicMesh->Init();
+                // if (dynamicMesh->GetMeshSource()->IsBufferChanged())
+                //     dynamicMesh->Init();
                 // Renderer::DrawMesh(transform.GetTransform(), dynamicMesh.get(), mesh.MaterialInstance.get(), (uint32_t)entity);
                 auto material = Application::GetAssetManager()->GetAsset(mesh.MaterialHandle);
-                renderer->SubmitMesh(dynamicMesh, material, transform.GetTransform());
+                renderer->SubmitMesh(dynamicMesh, material, transform.GetTransform(), (uint64_t)entity);
             }
             else if (mesh.Type == MeshType::Static)
             {
-                StaticMesh* staticMesh = dynamic_cast<StaticMesh*>(mesh.MeshInstance.get());
-                staticMesh->GetMeshSource()->SetLocalTransform(transform.GetTransform());
-                if (staticMesh->GetMeshSource()->IsBufferChanged())
-                    Renderer::SubmitStaticMesh(staticMesh);
+                // StaticMesh* staticMesh = dynamic_cast<StaticMesh*>(mesh.MeshInstance.get());
+                // staticMesh->GetMeshSource()->SetLocalTransform(transform.GetTransform());
+                // if (staticMesh->GetMeshSource()->IsBufferChanged())
+                //     Renderer::SubmitStaticMesh(staticMesh);
             }
         }
     }

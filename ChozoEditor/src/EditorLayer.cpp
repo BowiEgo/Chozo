@@ -437,7 +437,7 @@ namespace Chozo {
 
         if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
         {
-            int pixelID = m_ViewportRenderer->GetIDPass()->GetTargetFramebuffer()->ReadPixel(1, mx, my) - 1;
+            int pixelID = m_ViewportRenderer->GetIDPass()->GetTargetFramebuffer()->ReadPixel(1, mx, my);
             entity = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
                 ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
         }
@@ -480,22 +480,6 @@ namespace Chozo {
             default:
                 break;
         }
-
-        // fs::path filePath = fs::path((char*)path);
-        // std::string fileExtension = filePath.extension().string();
-        // if (std::regex_match(fileExtension, imagePattern))
-        // {
-        //     auto [mx, my] = ImGui::GetMousePos();
-        //     Entity entity = PickEntity(mx, my);
-        //     CZ_CORE_INFO("{}", entity);
-        //     if (entity)
-        //     {
-        //         fs::path texturePath = g_AssetsPath / fs::path((char*)path);
-        //         // m_Entity_Selected.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
-        //     }
-        // }
-        // else
-        //     OpenScene(g_AssetsPath / fs::path((char*)path));
     }
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent &e)

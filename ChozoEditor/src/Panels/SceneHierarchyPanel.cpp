@@ -147,8 +147,7 @@ namespace Chozo {
                         entity = s_Instance->m_Context->CreateEntity("Box");
                     if (!entity.HasComponent<MeshComponent>())
                     {
-                        auto geom = Ref<BoxGeometry>::Create();
-                        geom->SetEntityID((uint64_t)entity);
+                        auto geom = Geometry::Create<BoxGeometry>();
                         entity.AddComponent<MeshComponent>(geom);
                     }
                     ImGui::CloseCurrentPopup();
@@ -159,8 +158,7 @@ namespace Chozo {
                         entity = s_Instance->m_Context->CreateEntity("Sphere");
                     if (!entity.HasComponent<MeshComponent>())
                     {
-                        auto geom = Ref<SphereGeometry>::Create();
-                        geom->SetEntityID((uint64_t)entity);
+                        auto geom = Geometry::Create<SphereGeometry>();
                         entity.AddComponent<MeshComponent>(geom);
                     }
                     ImGui::CloseCurrentPopup();
@@ -187,6 +185,7 @@ namespace Chozo {
                     entity = s_Instance->m_Context->CreateEntity("Directional Light");
                 if (!entity.HasComponent<DirectionalLightComponent>())
                     entity.AddComponent<DirectionalLightComponent>();
+                
                 ImGui::CloseCurrentPopup();
             }
             if (ImGui::MenuItem("Point"))
@@ -195,6 +194,7 @@ namespace Chozo {
                     entity = s_Instance->m_Context->CreateEntity("Point Light");
                 if (!entity.HasComponent<PointLightComponent>())
                     entity.AddComponent<PointLightComponent>();
+
                 ImGui::CloseCurrentPopup();
             }
             if (ImGui::MenuItem("Spot"))
@@ -216,6 +216,8 @@ namespace Chozo {
                 entity.AddComponent<SkyLightComponent>();
             ImGui::CloseCurrentPopup();
         }
+
+        s_Instance->SetSelectedEntity(entity);
 
         return entity;
     }

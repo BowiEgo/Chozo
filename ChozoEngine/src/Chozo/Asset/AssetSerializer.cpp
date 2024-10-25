@@ -325,12 +325,13 @@ namespace Chozo {
             out << YAML::Key << "MeshComponent";
             out << YAML::BeginMap;
 
-            auto& mc = entity.GetComponent<MeshComponent>();
+            MeshComponent& mc = entity.GetComponent<MeshComponent>();
             out << YAML::Key << "Type" << YAML::Value << (int)mc.Type;
 
-            auto& meshSrc = mc.MeshSrc;
+            auto mesh = mc.MeshInstance;
+            auto meshSrc = mc.MeshInstance->GetMeshSource();
             out << YAML::Key << "Geometry" << YAML::Value;
-            if (BoxGeometry* box = dynamic_cast<BoxGeometry*>(meshSrc.get()))
+            if (BoxGeometry* box = dynamic_cast<BoxGeometry*>(mesh.get()))
             {
                 out << YAML::BeginMap;
                 out << YAML::Key << "Type" << YAML::Value << int(GeometryType::Box);
@@ -342,7 +343,7 @@ namespace Chozo {
                 out << YAML::Key << "DepthSegments" << YAML::Value << box->GetDepthSegments();
                 out << YAML::EndMap;
             }
-            if (SphereGeometry* sphere = dynamic_cast<SphereGeometry*>(meshSrc.get()))
+            if (SphereGeometry* sphere = dynamic_cast<SphereGeometry*>(mesh.get()))
             {
                 out << YAML::BeginMap;
                 out << YAML::Key << "Type" << YAML::Value << int(GeometryType::Sphere);
@@ -561,7 +562,7 @@ namespace Chozo {
 
                     switch (geomType) {
                         case GeometryType::Box:
-                            geometry = Ref<BoxGeometry>::Create(
+                            geometry = Geometry::Create<BoxGeometry>(
                                 geometryNode["Width"].as<float>(),
                                 geometryNode["Height"].as<float>(),
                                 geometryNode["Depth"].as<float>(),
@@ -571,7 +572,7 @@ namespace Chozo {
                             );
                             break;
                         case GeometryType::Sphere:
-                            geometry = Ref<SphereGeometry>::Create(
+                            geometry = Geometry::Create<SphereGeometry>(
                                 geometryNode["Radius"].as<float>(),
                                 geometryNode["WidthSegments"].as<uint32_t>(),
                                 geometryNode["HeightSegments"].as<uint32_t>(),
@@ -585,9 +586,7 @@ namespace Chozo {
                             break;
                     }
 
-                    geometry->SetEntityID(deserializedEntity);
                     auto meshType = MeshType(meshComponent["Type"].as<int>());
-
                     auto materialNode = meshComponent["Material"];
                     auto materialHandle = materialNode["Handle"].as<uint64_t>();
 

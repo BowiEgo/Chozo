@@ -114,7 +114,7 @@ namespace Chozo {
         m_Camera = EditorCamera(12.0f, 1.0f, 0.1f, 1000.0f);
 
         auto sphere = m_Scene->CreateEntity("Sphere");
-        Ref<Geometry> geom = Ref<SphereGeometry>::Create();
+        Ref<Geometry> geom = Geometry::Create<SphereGeometry>();
         m_Material = Material::Create("PBR");
         Application::GetAssetManager()->AddMemoryOnlyAsset(m_Material);
         sphere.AddComponent<MeshComponent>(geom, MeshType::Dynamic, m_Material->Handle);

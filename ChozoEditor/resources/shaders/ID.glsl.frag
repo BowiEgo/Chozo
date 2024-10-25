@@ -43,6 +43,6 @@ void main()
         id = texture(u_PBRIdTex, v_TexCoord).r;
     }
 
-    o_Color = vec4(getRandomColor(id), 1.0);
+    o_Color = vec4(getRandomColor(id + 1), 1.0);
     o_EntityID = id;
 }

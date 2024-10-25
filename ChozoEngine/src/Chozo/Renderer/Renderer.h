@@ -68,8 +68,8 @@ namespace Chozo {
             Ref<Texture2D> CheckerboardTexture;
             Ref<TextureCube> BlackTextureCube;
 
-            Ref<DynamicMesh> QuadMesh;
-            Ref<DynamicMesh> BoxMesh;
+            Ref<Geometry> QuadMesh;
+            Ref<Geometry> BoxMesh;
 
             Renderer::Statistics Stats;
 

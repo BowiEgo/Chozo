@@ -5,7 +5,6 @@ layout(location = 1) in vec3 a_LocalPosition;
 layout(location = 2) in vec4 a_Color;
 layout(location = 3) in float a_Thickness;
 layout(location = 4) in float a_Fade;
-layout(location = 5) in int a_EntityID;
 
 layout(std140, binding = 0) uniform CameraData
 {
@@ -23,7 +22,6 @@ struct VertexOutput
 };
 
 layout(location = 0) out VertexOutput Vertex;
-layout(location = 4) out flat int v_EntityID;
 
 void main()
 {
@@ -31,6 +29,5 @@ void main()
     Vertex.Color = a_Color;
     Vertex.Thickness = a_Thickness;
     Vertex.Fade = a_Fade;
-    v_EntityID = a_EntityID;
     gl_Position = u_ProjectionMatrix * u_ViewMatrix * vec4(a_Position, 1.0);
 }

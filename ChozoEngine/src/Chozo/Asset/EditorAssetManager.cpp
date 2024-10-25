@@ -1,6 +1,5 @@
 #include "EditorAssetManager.h"
 
-#include "AssetExtensions.h"
 #include "AssetImporter.h"
 #include "AssetRegistrySerializer.h"
 
@@ -12,7 +11,6 @@
 
 namespace Chozo {
 
-    extern const fs::path g_AssetsPath;
 	static AssetMetadata s_NullMetadata;
 
     EditorAssetManager::EditorAssetManager()
@@ -175,7 +173,7 @@ namespace Chozo {
 
     fs::path EditorAssetManager::GetRelativePath(const fs::path &filepath)
     {
-        return fs::relative(filepath, g_AssetsPath);
+        return fs::relative(filepath, Utils::File::GetAssetDirectory());
     }
 
     void EditorAssetManager::LoadAssetRegistry()
@@ -187,7 +185,7 @@ namespace Chozo {
         for (auto& [handle, metadata] : m_AssetRegistry)
         {
             fs::path path(metadata.FilePath);
-            fs::path filepath = g_AssetsPath / path;
+            fs::path filepath = Utils::File::GetAssetDirectory() / path;
             
             // TODO: Remove
 		    Ref<Asset> asset = AssetImporter::Deserialize(metadata);
@@ -211,7 +209,7 @@ namespace Chozo {
 
     void EditorAssetManager::ReloadAssets()
     {
-		ProcessDirectory(g_AssetsPath);
+		ProcessDirectory(Utils::File::GetAssetDirectory());
     }
 
     void EditorAssetManager::WriteRegistryToFile()

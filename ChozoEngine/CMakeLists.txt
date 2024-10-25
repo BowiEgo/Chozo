@@ -51,6 +51,7 @@ find_package(imguizmo CONFIG REQUIRED)
 find_package(unofficial-shaderc CONFIG REQUIRED)
 find_package(spirv_cross_core CONFIG REQUIRED)
 find_package(spirv_cross_glsl CONFIG REQUIRED)
+find_package(assimp CONFIG REQUIRED)
 
 find_library(COCOA_LIBRARY Cocoa)
 
@@ -69,6 +70,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     unofficial::shaderc::shaderc
     spirv-cross-core
     spirv-cross-glsl
+    assimp::assimp
 )
 
 # Precompiled header

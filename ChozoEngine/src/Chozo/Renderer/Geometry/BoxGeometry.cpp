@@ -18,7 +18,6 @@ namespace Chozo
         : m_Width(width), m_Height(height), m_Depth(depth),
           m_WidthSegments(widthSegments), m_HeightSegments(heightSegments), m_DepthSegments(depthSegments)
     {
-        CallGenerate();
     }
 
     MeshBuffer* BoxGeometry::Generate()
@@ -95,8 +94,6 @@ namespace Chozo
 
                 vertice.TexCoord.x = ix / gridX;
                 vertice.TexCoord.y = 1 - ( iy / gridY );
-
-                vertice.EntityID = m_EntityID;
 
                 buffer->Vertexs.push_back(vertice);
                 vertexCounter += 1;
