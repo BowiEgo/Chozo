@@ -320,9 +320,9 @@ namespace Chozo {
 		s_RendererAPI->SubmitFullscreenBox(commandBuffer, pipeline, material);
     }
 
-    void Renderer::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material, glm::mat4 transform)
+    void Renderer::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform)
     {
-        s_RendererAPI->SubmitMeshWithMaterial(commandBuffer, pipeline, mesh, material, transform);
+        s_RendererAPI->SubmitMeshWithMaterial(commandBuffer, pipeline, mesh, submeshIndex, material, transform);
     }
 
     void Renderer::CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest)

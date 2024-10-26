@@ -41,4 +41,14 @@ namespace Chozo {
 		std::string SerializeToYAML(Ref<Material> material) const;
 		Ref<Material> DeserializeFromYAML(const std::string& yamlString) const;
 	};
+
+	class MeshSourceSerializer : public AssetSerializer
+	{
+	public:
+		virtual uint64_t Serialize(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		virtual Ref<Asset> Deserialize(const AssetMetadata& metadata) const override;
+	private:
+		std::string SerializeToYAML(Ref<MeshSource> meshSource) const;
+		Ref<MeshSource> DeserializeFromYAML(const std::string& yamlString) const;
+	};
 }

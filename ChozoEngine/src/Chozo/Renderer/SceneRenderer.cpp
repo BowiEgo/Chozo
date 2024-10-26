@@ -340,10 +340,11 @@ namespace Chozo
         return true;
     }
 
-    void SceneRenderer::SubmitMesh(Ref<DynamicMesh> mesh, Ref<Material> material, const glm::mat4& transform, uint64_t entityID)
+    void SceneRenderer::SubmitMesh(Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, const glm::mat4& transform, uint64_t entityID)
     {
         MeshData meshData;
         meshData.Mesh = mesh;
+        meshData.SubmeshIndex = submeshIndex;
         meshData.Material = material;
         meshData.Transform = transform;
         meshData.ID = entityID;
@@ -375,7 +376,7 @@ namespace Chozo
             meshData.Material->Set("u_Material.ID", (int)meshData.ID);
 
             if (meshData.Mesh.As<DynamicMesh>())
-                Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.Material, meshData.Transform);
+                Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.SubmeshIndex, meshData.Material, meshData.Transform);
         }
 		Renderer::EndRenderPass(m_CommandBuffer, m_GeometryPass);
     }
@@ -398,7 +399,7 @@ namespace Chozo
                 material->Set("u_Material.ID", (int)meshData.ID);
 
                 if (meshData.Mesh.As<DynamicMesh>())
-                    Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_SolidPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), material, meshData.Transform);
+                    Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_SolidPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.SubmeshIndex, material, meshData.Transform);
             }
         }
 		Renderer::EndRenderPass(m_CommandBuffer, m_SolidPass);

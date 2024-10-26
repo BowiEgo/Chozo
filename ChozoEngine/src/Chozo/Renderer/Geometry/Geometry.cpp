@@ -43,6 +43,12 @@ namespace Chozo {
 
         SetBufferChanged(false);
 
+        Submesh& submesh = m_MeshSource->m_Submeshes.emplace_back();
+        submesh.IndexCount = m_MeshSource->GetBuffer()->IndicesCount;
+        submesh.VertexCount = m_MeshSource->GetBuffer()->Vertexs.size();
+        submesh.BaseIndex = 0;
+        submesh.BaseVertex = 0;
+
         Invalidate();
     }
 }

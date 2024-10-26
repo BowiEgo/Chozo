@@ -477,6 +477,14 @@ namespace Chozo {
                 m_EditorCamera.Reset();
                 break;
             }
+            case AssetType::MeshSource:
+            {
+                auto meshSouce = asset.As<MeshSource>();
+                auto mesh = Ref<Mesh>::Create(meshSouce);
+                Entity rootEntity = m_ActiveScene->InstantiateMesh(mesh);
+                m_Entity_Selected = rootEntity;
+                break;
+            }
             default:
                 break;
         }

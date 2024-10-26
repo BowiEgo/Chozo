@@ -117,7 +117,7 @@ namespace Chozo {
         Ref<Geometry> geom = Geometry::Create<SphereGeometry>();
         m_Material = Material::Create("PBR");
         Application::GetAssetManager()->AddMemoryOnlyAsset(m_Material);
-        sphere.AddComponent<MeshComponent>(geom, MeshType::Dynamic, m_Material->Handle);
+        sphere.AddComponent<MeshComponent>(geom, 0, m_Material->Handle);
 
         auto dirLight = m_Scene->CreateEntity("Directional Light");
         dirLight.AddComponent<DirectionalLightComponent>();

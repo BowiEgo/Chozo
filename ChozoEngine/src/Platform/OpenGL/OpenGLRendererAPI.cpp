@@ -53,14 +53,14 @@ namespace Chozo {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); GCE;
     }
 
-    void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
+    void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount, uint32_t indexOffset, uint32_t vertexOffset)
     {
         uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
         vertexArray->Bind();
         vertexArray->GetIndexBuffer()->Bind();
         for(Ref<VertexBuffer> vertexBuffer : vertexArray->GetVertexBuffers())
             vertexBuffer->Bind();
-        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr); GCE;
+        glDrawElementsBaseVertex(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)(indexOffset * sizeof(GLuint)), vertexOffset); GCE;
     }
 
     void OpenGLRendererAPI::DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
@@ -295,9 +295,9 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRendererAPI::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material, glm::mat4 transform)
+    void OpenGLRendererAPI::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform)
     {
-        commandBuffer->AddCommand([pipeline, mesh, material, transform, this]()
+        commandBuffer->AddCommand([pipeline, mesh, submeshIndex, material, transform, this]()
         {
             auto shader = pipeline->GetShader();
 
@@ -310,12 +310,17 @@ namespace Chozo {
             shader->Bind();
             shader->SetUniform("u_VertUniforms.ModelMatrix", transform);
 
-            uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
-            uint32_t vertexCount = mesh->GetMeshSource()->GetVertexs().size();
+			const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
+			const auto& submesh = submeshes[submeshIndex];
+
+            uint32_t indexOffset = submesh.BaseIndex;
+            uint32_t vertexOffset = submesh.BaseVertex;
+            uint32_t indexCount = submesh.IndexCount;
+            uint32_t vertexCount = submesh.VertexCount;
 
             glDisable(GL_BLEND); GCE;
             glEnable(GL_CULL_FACE); GCE;
-            RenderCommand::DrawIndexed(mesh->GetVertexArray(), indexCount * 3);
+            RenderCommand::DrawIndexed(mesh->GetVertexArray(), indexCount, indexOffset, vertexOffset);
             glDisable(GL_CULL_FACE); GCE;
 
             auto rendererData = Renderer::GetRendererData();

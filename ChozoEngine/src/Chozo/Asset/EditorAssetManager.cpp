@@ -34,10 +34,12 @@ namespace Chozo {
         if (!metadata.IsDataLoaded)
         {
             auto asset = AssetImporter::TryLoadData(metadata);
-            asset->Handle = assetHandle;
             metadata.IsDataLoaded = !!asset;
             if (asset)
+            {
+                asset->Handle = assetHandle;
                 m_LoadedAssets[assetHandle] = asset;
+            }
             return asset;
         }
         else
@@ -189,9 +191,11 @@ namespace Chozo {
             
             // TODO: Remove
 		    Ref<Asset> asset = AssetImporter::Deserialize(metadata);
-
-			asset->Handle = handle;
-			m_LoadedAssets[handle] = asset;
+            if (asset)
+            {
+			    asset->Handle = handle;
+			    m_LoadedAssets[handle] = asset;
+            }
         }
         return;
     }

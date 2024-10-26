@@ -15,6 +15,8 @@ namespace Chozo {
     class Entity;
     class SceneRenderer;
 
+	using EntityMap = std::unordered_map<UUID, Entity>;
+
     class Scene : public Asset
     {
     public:
@@ -27,9 +29,17 @@ namespace Chozo {
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
         Entity CreateEntity(const std::string& name = std::string());
+    	Entity CreateChildEntity(Entity parent, const std::string& name);
         Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string());
+
+        Entity GetEntityWithUUID(UUID uuid);
+
+        void SortEntities();
         void DestroyEntity(Entity entity);
         bool EntityExists(entt::entity entity);
+
+        Entity InstantiateMesh(Ref<Mesh> mesh);
+	    void BuildMeshEntityHierarchy(Entity parent, Ref<Mesh> mesh, const MeshNode& node);
 
         entt::registry& Reg() { return m_Registry; }
 
@@ -46,20 +56,20 @@ namespace Chozo {
     private:
         template<typename T>
         void OnComponentAdded(Entity entity, T& component);
-    public:
-        entt::registry m_Registry;
-
-        friend class Entity;
-        friend class SceneSerializer;
-        friend class SceneHierarchyPanel;
-        friend class PropertiesPanel;
     private:
+        entt::registry m_Registry;
+		EntityMap m_EntityIDMap;
+
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 
 		Ref<Environment> m_Environment;
 		float m_EnvironmentIntensity = 0.0f;
 		float m_SkyboxLod = 1.0f;
 
+        friend class Entity;
+        friend class SceneSerializer;
+        friend class SceneHierarchyPanel;
+        friend class PropertiesPanel;
 		friend class SceneRenderer;
     };
 }

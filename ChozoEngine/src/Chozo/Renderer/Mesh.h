@@ -77,6 +77,12 @@ namespace Chozo
         inline uint32_t GetTriangleCount() { return m_Buffer.IndexCount; }
 
         inline MeshBuffer* GetBuffer() { return &m_Buffer; }
+
+        std::vector<Submesh>& GetSubmeshes() { return m_Submeshes; }
+		const std::vector<Submesh>& GetSubmeshes() const { return m_Submeshes; }
+        
+		const MeshNode& GetRootNode() const { return m_Nodes[0]; }
+		const std::vector<MeshNode>& GetNodes() const { return m_Nodes; }
     protected:
         MeshBuffer m_Buffer;
     private:
@@ -86,6 +92,7 @@ namespace Chozo
 		std::vector<MeshNode> m_Nodes;
 
         friend class MeshImporter;
+        friend class Geometry;
     };
 
     class Mesh : public RefCounted
@@ -93,7 +100,10 @@ namespace Chozo
     public:
         Mesh();
         Mesh(Ref<MeshSource>& meshSource)
-            : m_MeshSource(meshSource) {}
+            : m_MeshSource(meshSource)
+        {
+            Invalidate();
+        }
         virtual ~Mesh() = default;
 
         void Invalidate();

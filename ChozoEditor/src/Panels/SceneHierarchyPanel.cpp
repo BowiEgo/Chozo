@@ -34,7 +34,8 @@ namespace Chozo {
         ImGui::Begin("Scene Hierarchy");
         m_Context->m_Registry.view<TagComponent>().each([&](auto entity, TagComponent& tc) {
             Entity ent{ entity, m_Context.get() };
-            DrawEntityNode(ent);
+            if (ent.GetParentUUID() == 0)
+                DrawEntityNode(ent);
         });
 
         if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
@@ -57,8 +58,9 @@ namespace Chozo {
         auto& tag = entity.GetComponent<TagComponent>().Tag;
 
         ImGuiTreeNodeFlags flags = (m_SelectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0)
-            | ImGuiTreeNodeFlags_OpenOnArrow;
-        flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+            | (entity.Children().empty() ? ImGuiTreeNodeFlags_Leaf : 0)
+            | ImGuiTreeNodeFlags_OpenOnArrow
+            | ImGuiTreeNodeFlags_SpanAvailWidth;
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 2.0f, 0.0f });
         bool opened = ImGui::TreeNodeEx((void*)(uint64_t)entity, flags, "%s", tag.c_str());
@@ -77,16 +79,10 @@ namespace Chozo {
 
         if (opened)
         {
-            // if (entity.HasComponent<MeshComponent>())
-            // {
-            //     for (int i = 0; i < std::size(s_MeshLeafs); i++)
-            //     {
-            //         if (ImGui::Selectable(s_MeshLeafs[i].c_str(), m_SelectionContext == entity))
-            //         {
-            //             m_SelectionContext = entity;
-            //         }
-            //     }
-            // }
+            for (auto childID : entity.Children())
+            {
+                DrawEntityNode(m_Context->GetEntityWithUUID(childID));
+            }
             ImGui::TreePop();
         }
 

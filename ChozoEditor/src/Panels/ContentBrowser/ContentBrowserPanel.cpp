@@ -524,7 +524,7 @@ namespace Chozo {
                 CreateAsset<Texture2D>(path.filename().stem().string(), m_CurrentDirectory, path.string(), textureSpec);
                 break;
             case AssetType::MeshSource:
-                // CreateAsset<MeshSource>(path.filename().stem().string(), m_CurrentDirectory, path.string());
+                CreateAsset<MeshSource>(path.filename().stem().string(), m_CurrentDirectory, path.string());
                 break;
             default:
                 break;

@@ -15,7 +15,7 @@ namespace Chozo {
         virtual void SetClearColor(const glm::vec4& color) override;
         virtual void Clear() override;
 
-        virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount) override;
+        virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount = 0, uint32_t indexOffset = 0, uint32_t vertexOffset = 0) override;
         virtual void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount) override;
 
         virtual void RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, const Ref<Texture2D> texture) override;
@@ -33,7 +33,7 @@ namespace Chozo {
         virtual void RenderFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material = nullptr) override;
         virtual void SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material = nullptr) override;
         virtual void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material = nullptr) override;
-        virtual void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, Ref<Material> material, glm::mat4 transform) override;
+        virtual void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform) override;
 
         virtual void CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest) override;
     private:

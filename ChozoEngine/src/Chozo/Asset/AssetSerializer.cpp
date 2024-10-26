@@ -590,7 +590,7 @@ namespace Chozo {
                     auto materialNode = meshComponent["Material"];
                     auto materialHandle = materialNode["Handle"].as<uint64_t>();
 
-                    auto& mc = deserializedEntity.AddComponent<MeshComponent>(geometry, meshType, materialHandle);
+                    auto& mc = deserializedEntity.AddComponent<MeshComponent>(geometry, 0, materialHandle);
                 }
             
                 auto dirLightComponent = entity["DirectionalLightComponent"];
@@ -809,4 +809,25 @@ namespace Chozo {
         return material;
     }
 
+    //==============================================================================
+	/// MeshSourceSerializer
+    uint64_t MeshSourceSerializer::Serialize(const AssetMetadata &metadata, Ref<Asset> &asset) const
+    {
+        return 0;
+    }
+
+    Ref<Asset> MeshSourceSerializer::Deserialize(const AssetMetadata &metadata) const
+    {
+        return Ref<Asset>();
+    }
+
+    std::string MeshSourceSerializer::SerializeToYAML(Ref<MeshSource> meshSource) const
+    {
+        return std::string();
+    }
+
+    Ref<MeshSource> MeshSourceSerializer::DeserializeFromYAML(const std::string &yamlString) const
+    {
+        return Ref<MeshSource>();
+    }
 }

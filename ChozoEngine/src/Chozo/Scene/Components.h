@@ -6,7 +6,9 @@
 #include "Chozo/Renderer/Geometry/Geometry.h"
 #include "Chozo/Renderer/Environment.h"
 #include "Chozo/Core/UUID.h"
+#include "Chozo/Math/Math.h"
 #include "SceneCamera.h"
+
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -33,6 +35,17 @@ namespace Chozo {
             : Tag(tag) {}
     };
 
+    struct RelationshipComponent
+	{
+		UUID ParentHandle = 0;
+		std::vector<UUID> Children;
+
+		RelationshipComponent() = default;
+		RelationshipComponent(const RelationshipComponent& other) = default;
+		RelationshipComponent(UUID parent)
+			: ParentHandle(parent) {}
+	};
+
     struct TransformComponent
     {
         glm::vec3 Translation = { 0.0f, 0.0f, 0.0f };
@@ -52,6 +65,11 @@ namespace Chozo {
                 * rotation
                 * glm::scale(glm::mat4(1.0f), Scale);
         }
+
+		void SetTransform(const glm::mat4& transform)
+		{
+			Math::DecomposeTransform(transform, Translation, Rotation, Scale);
+		}
     };
     
     struct SpriteRendererComponent
@@ -78,7 +96,7 @@ namespace Chozo {
     struct MeshComponent
     {
         Ref<Mesh> MeshInstance;
-        // Ref<MeshSource> MeshSrc;
+		uint32_t SubmeshIndex = 0;
         AssetHandle MaterialHandle;
 
         MeshType Type = MeshType::Dynamic;
@@ -88,44 +106,10 @@ namespace Chozo {
         MeshComponent(MeshComponent&& other) noexcept
             : MeshInstance(std::move(other.MeshInstance)),
               Type(other.Type)
-        {
-            // other.MeshSrc.Reset();  // Prevent copying or using original object.
-        }
-        MeshComponent(Ref<Mesh> mesh, MeshType meshType = MeshType::Dynamic, AssetHandle materialHandle = 0)
-            : MeshInstance(mesh), Type(meshType), MaterialHandle(materialHandle)
-        {
-        }
-        // MeshComponent(Ref<MeshSource> meshSrc, MeshType meshType = MeshType::Dynamic, AssetHandle materialHandle = 0)
-        //     : MeshSrc(meshSrc), Type(meshType), MaterialHandle(materialHandle)
-        // {
-        //     // GenerateMeshInstance();
-        // }
-        ~MeshComponent() {}
-
-        // void GenerateMeshInstance()
-        // {
-        //     // if (MeshSrc.As<Geometry>())
-        //     //     MeshSrc.As<Geometry>()->CallGenerate();
-
-        //     MeshInstance.Reset();
-
-        //     switch (Type) {
-        //         case MeshType::Dynamic:
-        //             MeshInstance = Ref<DynamicMesh>::Create(MeshSrc);
-        //             break;
-        //         case MeshType::Instanced:
-        //             MeshInstance = Ref<InstancedMesh>::Create(MeshSrc);
-        //             break;
-        //         case MeshType::Static:
-        //             MeshInstance = Ref<StaticMesh>::Create(MeshSrc);
-        //             break;
-        //         default:
-        //             CZ_CORE_ERROR("Unknown mesh type!");
-        //             break;
-        //     }
-
-        //     // MeshSrc->SetBufferChanged(true);
-        // }
+        {}
+        MeshComponent(Ref<Mesh> mesh, uint32_t submeshIndex = 0, AssetHandle materialHandle = 0)
+            : MeshInstance(mesh), SubmeshIndex(submeshIndex), MaterialHandle(materialHandle)
+        {}
     };
 
     struct CameraComponent

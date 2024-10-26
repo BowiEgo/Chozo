@@ -20,7 +20,6 @@ namespace Chozo {
         }
     }
 
-
     static const uint32_t s_MeshImportFlags =
 		aiProcess_CalcTangentSpace |        // Create binormals/tangents just in case
 		aiProcess_Triangulate |             // Make sure we're triangles
@@ -36,103 +35,103 @@ namespace Chozo {
 
     Ref<MeshSource> MeshImporter::ToMeshSourceFromFile(const std::string &path)
     {
-		// Ref<MeshSource> meshSource = Ref<MeshSource>::Create();
+		Ref<MeshSource> meshSource = Ref<MeshSource>::Create();
 
-		// Assimp::Importer importer;
-		// importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
+		Assimp::Importer importer;
+		importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
 
-		// const aiScene* scene = importer.ReadFile(path, s_MeshImportFlags);
-        // if (!scene /* || !scene->HasMeshes()*/)  // note: scene can legit contain no meshes (e.g. it could contain an armature, an animation, and no skin (mesh)))
-		// {
-		// 	CZ_CORE_ERROR("Failed to load mesh file: {0}", path);
-		// 	return nullptr;
-		// }
+		const aiScene* scene = importer.ReadFile(path, s_MeshImportFlags);
+        if (!scene /* || !scene->HasMeshes()*/)  // note: scene can legit contain no meshes (e.g. it could contain an armature, an animation, and no skin (mesh)))
+		{
+			CZ_CORE_ERROR("Failed to load mesh file: {0}", path);
+			return nullptr;
+		}
 
-        // if (scene->HasMeshes())
-		// {
-        //     uint32_t vertexCount = 0;
-		// 	uint32_t indexCount = 0;
+        if (scene->HasMeshes())
+		{
+            uint32_t vertexCount = 0;
+			uint32_t indexCount = 0;
 
-        //     meshSource->m_BoundingBox.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
-		// 	meshSource->m_BoundingBox.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+            meshSource->m_BoundingBox.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
+			meshSource->m_BoundingBox.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 
-		// 	meshSource->m_Submeshes.reserve(scene->mNumMeshes);
-        //     for (unsigned m = 0; m < scene->mNumMeshes; m++)
-		// 	{
-        //         aiMesh* mesh = scene->mMeshes[m];
+			meshSource->m_Submeshes.reserve(scene->mNumMeshes);
+            for (unsigned m = 0; m < scene->mNumMeshes; m++)
+			{
+                aiMesh* mesh = scene->mMeshes[m];
 
-		// 		Submesh& submesh = meshSource->m_Submeshes.emplace_back();
-		// 		submesh.BaseVertex = vertexCount;
-		// 		submesh.BaseIndex = indexCount;
-		// 		submesh.MaterialIndex = mesh->mMaterialIndex;
-		// 		submesh.VertexCount = mesh->mNumVertices;
-		// 		submesh.IndexCount = mesh->mNumFaces * 3;
-		// 		submesh.MeshName = mesh->mName.C_Str();
+				Submesh& submesh = meshSource->m_Submeshes.emplace_back();
+				submesh.BaseVertex = vertexCount;
+				submesh.BaseIndex = indexCount;
+				submesh.MaterialIndex = mesh->mMaterialIndex;
+				submesh.VertexCount = mesh->mNumVertices;
+				submesh.IndexCount = mesh->mNumFaces * 3;
+				submesh.MeshName = mesh->mName.C_Str();
 
-		// 		vertexCount += mesh->mNumVertices;
-		// 		indexCount += submesh.IndexCount;
+				vertexCount += mesh->mNumVertices;
+				indexCount += submesh.IndexCount;
 
-		// 		CZ_CORE_ASSERT(mesh->HasPositions(), "Meshes require positions.");
-		// 		CZ_CORE_ASSERT(mesh->HasNormals(), "Meshes require normals.");
+				CZ_CORE_ASSERT(mesh->HasPositions(), "Meshes require positions.");
+				CZ_CORE_ASSERT(mesh->HasNormals(), "Meshes require normals.");
 
-        //         // Vertices
-		// 		auto& aabb = submesh.BoundingBox;
-		// 		aabb.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
-		// 		aabb.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
-		// 		for (size_t i = 0; i < mesh->mNumVertices; i++)
-		// 		{
-		// 			Vertex vertex;
-		// 			vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
-		// 			vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-		// 			aabb.Min.x = glm::min(vertex.Position.x, aabb.Min.x);
-		// 			aabb.Min.y = glm::min(vertex.Position.y, aabb.Min.y);
-		// 			aabb.Min.z = glm::min(vertex.Position.z, aabb.Min.z);
-		// 			aabb.Max.x = glm::max(vertex.Position.x, aabb.Max.x);
-		// 			aabb.Max.y = glm::max(vertex.Position.y, aabb.Max.y);
-		// 			aabb.Max.z = glm::max(vertex.Position.z, aabb.Max.z);
+                // Vertices
+				auto& aabb = submesh.BoundingBox;
+				aabb.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
+				aabb.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+				for (size_t i = 0; i < mesh->mNumVertices; i++)
+				{
+					Vertex vertex;
+					vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+					vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+					aabb.Min.x = glm::min(vertex.Position.x, aabb.Min.x);
+					aabb.Min.y = glm::min(vertex.Position.y, aabb.Min.y);
+					aabb.Min.z = glm::min(vertex.Position.z, aabb.Min.z);
+					aabb.Max.x = glm::max(vertex.Position.x, aabb.Max.x);
+					aabb.Max.y = glm::max(vertex.Position.y, aabb.Max.y);
+					aabb.Max.z = glm::max(vertex.Position.z, aabb.Max.z);
 
-		// 			if (mesh->HasTangentsAndBitangents())
-		// 			{
-		// 				vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
-		// 				vertex.Binormal = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
-		// 			}
+					if (mesh->HasTangentsAndBitangents())
+					{
+						vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+						vertex.Binormal = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
+					}
 
-		// 			if (mesh->HasTextureCoords(0))
-		// 				vertex.TexCoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+					if (mesh->HasTextureCoords(0))
+						vertex.TexCoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
 
-		// 			meshSource->m_Buffer.Vertexs.push_back(vertex);
-		// 		}
+					meshSource->m_Buffer.Vertexs.push_back(vertex);
+				}
 
-        //         // Indices
-		// 		for (size_t i = 0; i < mesh->mNumFaces; i++)
-		// 		{
-		// 			CZ_CORE_ASSERT(mesh->mFaces[i].mNumIndices == 3, "Must have 3 indices.");
-		// 			Index index = { mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] };
-		// 			meshSource->m_Buffer.Indexs.push_back(index);
+                // Indices
+				for (size_t i = 0; i < mesh->mNumFaces; i++)
+				{
+					CZ_CORE_ASSERT(mesh->mFaces[i].mNumIndices == 3, "Must have 3 indices.");
+					Index index = { mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] };
+					meshSource->m_Buffer.Indexs.push_back(index);
 
-		// 			meshSource->m_TriangleCache[m].emplace_back(meshSource->m_Buffer.Vertexs[index.V1 + submesh.BaseVertex], meshSource->m_Buffer.Vertexs[index.V2 + submesh.BaseVertex], meshSource->m_Buffer.Vertexs[index.V3 + submesh.BaseVertex]);
-		// 		}
-        //     }
+					meshSource->m_TriangleCache[m].emplace_back(meshSource->m_Buffer.Vertexs[index.V1 + submesh.BaseVertex], meshSource->m_Buffer.Vertexs[index.V2 + submesh.BaseVertex], meshSource->m_Buffer.Vertexs[index.V3 + submesh.BaseVertex]);
+				}
+            }
 
-        //     MeshNode& rootNode = meshSource->m_Nodes.emplace_back();
-		// 	TraverseNodes(meshSource, scene->mRootNode, 0);
+            MeshNode& rootNode = meshSource->m_Nodes.emplace_back();
+			TraverseNodes(meshSource, scene->mRootNode, 0);
 
-		// 	for (const auto& submesh : meshSource->m_Submeshes)
-		// 	{
-		// 		AABB transformedSubmeshAABB = submesh.BoundingBox;
-		// 		glm::vec3 min = glm::vec3(submesh.Transform * glm::vec4(transformedSubmeshAABB.Min, 1.0f));
-		// 		glm::vec3 max = glm::vec3(submesh.Transform * glm::vec4(transformedSubmeshAABB.Max, 1.0f));
+			for (const auto& submesh : meshSource->m_Submeshes)
+			{
+				AABB transformedSubmeshAABB = submesh.BoundingBox;
+				glm::vec3 min = glm::vec3(submesh.Transform * glm::vec4(transformedSubmeshAABB.Min, 1.0f));
+				glm::vec3 max = glm::vec3(submesh.Transform * glm::vec4(transformedSubmeshAABB.Max, 1.0f));
 
-		// 		meshSource->m_BoundingBox.Min.x = glm::min(meshSource->m_BoundingBox.Min.x, min.x);
-		// 		meshSource->m_BoundingBox.Min.y = glm::min(meshSource->m_BoundingBox.Min.y, min.y);
-		// 		meshSource->m_BoundingBox.Min.z = glm::min(meshSource->m_BoundingBox.Min.z, min.z);
-		// 		meshSource->m_BoundingBox.Max.x = glm::max(meshSource->m_BoundingBox.Max.x, max.x);
-		// 		meshSource->m_BoundingBox.Max.y = glm::max(meshSource->m_BoundingBox.Max.y, max.y);
-		// 		meshSource->m_BoundingBox.Max.z = glm::max(meshSource->m_BoundingBox.Max.z, max.z);
-		// 	}
-        // }
+				meshSource->m_BoundingBox.Min.x = glm::min(meshSource->m_BoundingBox.Min.x, min.x);
+				meshSource->m_BoundingBox.Min.y = glm::min(meshSource->m_BoundingBox.Min.y, min.y);
+				meshSource->m_BoundingBox.Min.z = glm::min(meshSource->m_BoundingBox.Min.z, min.z);
+				meshSource->m_BoundingBox.Max.x = glm::max(meshSource->m_BoundingBox.Max.x, max.x);
+				meshSource->m_BoundingBox.Max.y = glm::max(meshSource->m_BoundingBox.Max.y, max.y);
+				meshSource->m_BoundingBox.Max.z = glm::max(meshSource->m_BoundingBox.Max.z, max.z);
+			}
+        }
 
-        return Ref<MeshSource>();
+        return meshSource;
     }
 
     void MeshImporter::TraverseNodes(Ref<MeshSource> meshSource, void* assimpNode, uint32_t nodeIndex, const glm::mat4& parentTransform, uint32_t level)

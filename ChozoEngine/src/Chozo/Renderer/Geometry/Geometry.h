@@ -45,7 +45,11 @@ namespace Chozo
     {
         Ref<T> geom = Ref<T>::Create(std::forward<Args>(args)...);
         geom->m_MeshSource = Ref<MeshSource>::Create();
+        MeshNode& rootNode = geom->m_MeshSource->m_Nodes.emplace_back();
+        rootNode.Name = "root";
+
         geom->CallGenerate();
+
 
         return geom;
     }

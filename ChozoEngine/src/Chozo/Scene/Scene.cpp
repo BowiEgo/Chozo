@@ -24,7 +24,28 @@ namespace Chozo {
 
     Entity Scene::CreateEntity(const std::string& name)
     {
-        return CreateEntityWithUUID(UUID(), name);
+		return CreateChildEntity({}, name);
+    }
+
+    Entity Scene::CreateChildEntity(Entity parent, const std::string &name)
+    {
+        Entity entity = { m_Registry.create(), this };
+        auto& idComponent = entity.AddComponent<IDComponent>(UUID());
+		entity.AddComponent<TransformComponent>();
+        auto& tag  = entity.AddComponent<TagComponent>();
+
+        tag.Tag = name.empty() ? "Entity" : name;
+
+		entity.AddComponent<RelationshipComponent>();
+
+        if (parent)
+            entity.SetParent(parent);
+
+		m_EntityIDMap[idComponent.ID] = entity;
+
+		SortEntities();
+        
+        return entity;
     }
 
     Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
@@ -36,12 +57,77 @@ namespace Chozo {
 
         tag.Tag = name.empty() ? "Entity" : name;
 
+		entity.AddComponent<RelationshipComponent>();
+
         return entity;
+    }
+
+    Entity Scene::GetEntityWithUUID(UUID uuid)
+    {
+        if (const auto iter = m_EntityIDMap.find(uuid); iter != m_EntityIDMap.end())
+			return iter->second;
+		return Entity{};
     }
 
     bool Scene::EntityExists(entt::entity entity)
     {
         return m_Registry.valid(entity);
+    }
+
+    Entity Scene::InstantiateMesh(Ref<Mesh> mesh)
+    {
+		auto& assetData = Application::GetAssetManager()->GetMetadata(mesh->GetMeshSource()->Handle);
+		Entity rootEntity = CreateEntity(assetData.FilePath.stem().string());
+		BuildMeshEntityHierarchy(rootEntity, mesh, mesh->GetMeshSource()->GetRootNode());
+
+        return rootEntity;
+    }
+
+    void Scene::BuildMeshEntityHierarchy(Entity parent, Ref<Mesh> mesh, const MeshNode &node)
+    {
+		Ref<MeshSource> meshSource = mesh->GetMeshSource();
+		const auto& nodes = meshSource->GetNodes();
+
+		if (node.IsRoot() && node.Submeshes.size() == 0)
+        {
+            for (uint32_t child : node.Children)
+				BuildMeshEntityHierarchy(parent, mesh, nodes[child]);
+
+			return;
+        }
+
+		Entity nodeEntity = CreateChildEntity(parent, node.Name);
+		nodeEntity.Transform().SetTransform(node.LocalTransform);
+
+        auto size = node.Submeshes.size();
+
+        if (node.Submeshes.size() == 1)
+        {
+            uint32_t submeshIndex = node.Submeshes[0];
+            nodeEntity.AddComponent<MeshComponent>(mesh, submeshIndex);
+        }
+        else if (node.Submeshes.size() > 1)
+        {
+            for (uint32_t i = 0; i < size; i++)
+            {
+				uint32_t submeshIndex = node.Submeshes[i];
+				Entity childEntity = CreateChildEntity(nodeEntity, node.Name);
+				childEntity.AddComponent<MeshComponent>(mesh, submeshIndex);
+            }
+        }
+
+        for (uint32_t child : node.Children)
+            BuildMeshEntityHierarchy(nodeEntity, mesh, nodes[child]);
+    }
+
+    void Scene::SortEntities()
+    {
+        m_Registry.sort<IDComponent>([&](const auto lhs, const auto rhs)
+		{
+			auto lhsEntity = m_EntityIDMap.find(lhs.ID);
+			auto rhsEntity = m_EntityIDMap.find(rhs.ID);
+			return static_cast<uint32_t>(lhsEntity->second) < static_cast<uint32_t>(rhsEntity->second);
+		});
     }
 
     void Scene::DestroyEntity(Entity entity)
@@ -227,7 +313,7 @@ namespace Chozo {
                 //     dynamicMesh->Init();
                 // Renderer::DrawMesh(transform.GetTransform(), dynamicMesh.get(), mesh.MaterialInstance.get(), (uint32_t)entity);
                 auto material = Application::GetAssetManager()->GetAsset(mesh.MaterialHandle);
-                renderer->SubmitMesh(dynamicMesh, material, transform.GetTransform(), (uint64_t)entity);
+                renderer->SubmitMesh(dynamicMesh, mesh.SubmeshIndex, material, transform.GetTransform(), (uint64_t)entity);
             }
             else if (mesh.Type == MeshType::Static)
             {
@@ -267,6 +353,11 @@ namespace Chozo {
 
     template<>
     void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
     {
     }
 

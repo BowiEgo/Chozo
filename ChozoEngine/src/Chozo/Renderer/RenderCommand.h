@@ -27,9 +27,9 @@ namespace Chozo {
             s_RendererAPI->Clear();
         }
 
-        inline static void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount = 0)
+        inline static void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount = 0, uint32_t indexOffset = 0, uint32_t vertexOffset = 0)
         {
-            s_RendererAPI->DrawIndexed(vertexArray, indexCount);
+            s_RendererAPI->DrawIndexed(vertexArray, indexCount, indexOffset, vertexOffset);
         }
 
         inline static void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount = 0)
