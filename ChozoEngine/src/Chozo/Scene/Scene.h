@@ -34,6 +34,8 @@ namespace Chozo {
 
         Entity GetEntityWithUUID(UUID uuid);
 
+        glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
+
         void SortEntities();
         void DestroyEntity(Entity entity);
         bool EntityExists(entt::entity entity);

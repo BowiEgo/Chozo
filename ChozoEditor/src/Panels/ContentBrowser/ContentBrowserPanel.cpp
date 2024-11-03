@@ -231,8 +231,7 @@ namespace Chozo {
         auto filename = s_Instance->CreateItemName(AssetType::Material);
 
         auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, "PBR");
-        material->Set("u_Material.Albedo", glm::vec3(0.5f, 0.5f, 0.5f));
-        // material->Set("u_AlbedoTex", "");
+        material->Set("u_Material.Albedo", glm::vec3(0.5f));
         material->Set("u_Material.Metalness", 0.5f);
         material->Set("u_Material.Roughness", 0.5f);
         material->Set("u_Material.Ambient", 1.0f);

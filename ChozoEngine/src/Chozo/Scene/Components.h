@@ -108,8 +108,29 @@ namespace Chozo {
               Type(other.Type)
         {}
         MeshComponent(Ref<Mesh> mesh, uint32_t submeshIndex = 0, AssetHandle materialHandle = 0)
-            : MeshInstance(mesh), SubmeshIndex(submeshIndex), MaterialHandle(materialHandle)
-        {}
+            : MeshInstance(mesh), SubmeshIndex(submeshIndex)
+        {
+            if (materialHandle != 0)
+            {
+                SetMaterial(materialHandle);
+            }
+            else
+            {
+                auto meshSource = MeshInstance->GetMeshSource();
+                auto materialIndex = meshSource->GetSubmeshes()[SubmeshIndex].MaterialIndex;
+                auto materials = meshSource->GetMaterials();
+                if (!materials.empty())
+                    MaterialHandle = materials[materialIndex];
+                else
+                    MaterialHandle = 0;
+            }
+        }
+
+        void SetMaterial(AssetHandle materialHandle)
+        {
+            MaterialHandle = materialHandle;
+            MeshInstance->SetMaterial(SubmeshIndex, materialHandle);
+        }
     };
 
     struct CameraComponent

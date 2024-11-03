@@ -1,8 +1,9 @@
 #include "MeshImporter.h"
 
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <assimp/Importer.hpp>
+#include "TextureImporter.h"
+
+#include "Chozo/Core/Application.h"
+#include "Chozo/Renderer/Renderer.h"
 
 namespace Chozo {
 
@@ -20,33 +21,36 @@ namespace Chozo {
         }
     }
 
-    static const uint32_t s_MeshImportFlags =
-		aiProcess_CalcTangentSpace |        // Create binormals/tangents just in case
-		aiProcess_Triangulate |             // Make sure we're triangles
-		aiProcess_SortByPType |             // Split meshes by primitive type
-		aiProcess_GenNormals |              // Make sure we have legit normals
-		aiProcess_GenUVCoords |             // Convert UVs if required 
-//		aiProcess_OptimizeGraph |
-		aiProcess_OptimizeMeshes |          // Batch draws where possible
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_LimitBoneWeights |        // If more than N (=4) bone weights, discard least influencing bones and renormalise sum to 1
-		aiProcess_ValidateDataStructure |   // Validation
-		aiProcess_GlobalScale;              // e.g. convert cm to m for fbx import (and other formats where cm is native)
-
     Ref<MeshSource> MeshImporter::ToMeshSourceFromFile(const std::string &path)
     {
-		Ref<MeshSource> meshSource = Ref<MeshSource>::Create();
+		auto filePath = fs::path(path);
+
+    	uint32_t importFlag =
+			aiProcess_CalcTangentSpace |        // Create binormals/tangents just in case
+			aiProcess_Triangulate |             // Make sure we're triangles
+			aiProcess_SortByPType |             // Split meshes by primitive type
+			aiProcess_GenNormals |              // Make sure we have legit normals
+			aiProcess_GenUVCoords |             // Convert UVs if required 
+	//		aiProcess_OptimizeGraph |
+			aiProcess_OptimizeMeshes |          // Batch draws where possible
+			aiProcess_JoinIdenticalVertices |
+			aiProcess_LimitBoneWeights |        // If more than N (=4) bone weights, discard least influencing bones and renormalise sum to 1
+			aiProcess_ValidateDataStructure |   // Validation
+			aiProcess_GlobalScale;              // e.g. convert cm to m for fbx import (and other formats where cm is native)
 
 		Assimp::Importer importer;
 		importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
 
-		const aiScene* scene = importer.ReadFile(path, s_MeshImportFlags);
+		// importFlag |= aiProcess_FlipUVs;
+		const aiScene* scene = importer.ReadFile(path, importFlag);
         if (!scene /* || !scene->HasMeshes()*/)  // note: scene can legit contain no meshes (e.g. it could contain an armature, an animation, and no skin (mesh)))
 		{
 			CZ_CORE_ERROR("Failed to load mesh file: {0}", path);
 			return nullptr;
 		}
 
+		Ref<MeshSource> meshSource = Ref<MeshSource>::Create();
+		// Meshes
         if (scene->HasMeshes())
 		{
             uint32_t vertexCount = 0;
@@ -131,6 +135,67 @@ namespace Chozo {
 			}
         }
 
+		// Materials
+		if (scene->HasMaterials())
+		{
+			meshSource->m_Materials.resize(scene->mNumMaterials);
+
+			for (uint32_t i = 0; i < scene->mNumMaterials; i++)
+			{
+				auto aiMaterial = scene->mMaterials[i];
+				auto aiMaterialName = aiMaterial->GetName();
+
+				auto mi = Material::Create(Renderer::GetRendererData().m_ShaderLibrary->Get("Geometry"), aiMaterialName.data);
+
+				aiString aiTexPath;
+				uint32_t textureCount = aiMaterial->GetTextureCount(aiTextureType_DIFFUSE);
+
+				glm::vec3 albedoColor(0.8f);
+				float emission = 0.0f;
+				aiColor3D aiColor, aiEmission;
+				if (aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor) == AI_SUCCESS)
+					albedoColor = { aiColor.r, aiColor.g, aiColor.b };
+
+				if (aiMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, aiEmission) == AI_SUCCESS)
+					emission = aiEmission.r;
+
+				mi->Set("u_Material.Albedo", albedoColor);
+				// mi->Set("u_Material.Emission", emission);
+
+				float metalness, roughness;
+				if (aiMaterial->Get(AI_MATKEY_REFLECTIVITY, metalness) != aiReturn_SUCCESS)
+					metalness = 0.0f;
+
+				if (aiMaterial->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) != aiReturn_SUCCESS)
+					roughness = 0.5f;
+
+				mi->Set("u_Material.Metalness", metalness);
+				mi->Set("u_Material.Roughness", roughness);
+
+				ApplyTextureByType(mi, aiMaterial, scene, MaterialPropType::Albedo, filePath);
+				ApplyTextureByType(mi, aiMaterial, scene, MaterialPropType::Metalness, filePath);
+				ApplyTextureByType(mi, aiMaterial, scene, MaterialPropType::Roughness, filePath);
+				ApplyTextureByType(mi, aiMaterial, scene, MaterialPropType::Normal, filePath);
+
+				Application::GetAssetManager()->AddMemoryOnlyAsset(mi);
+				meshSource->m_Materials[i] = mi->Handle;
+			}
+		}
+		// else
+		// {
+		// 	auto mi = Material::Create(Renderer::GetRendererData().m_ShaderLibrary->Get("Geometry"), "Chozo-Default");
+		// 	mi->Set("u_Material.Albedo", glm::vec3(0.5f));
+		// 	mi->Set("u_Material.Metalness", 0.5f);
+		// 	mi->Set("u_Material.Roughness", 0.5f);
+		// 	mi->Set("u_Material.Ambient", 1.0f);
+		// 	mi->Set("u_Material.AmbientStrength", 0.1f);
+		// 	mi->Set("u_Material.Specular", 0.5f);
+		// 	mi->Set("u_Material.enableAlbedoTex", false);
+		// 	mi->Set("u_Material.enableMetalnessTex", false);
+		// 	mi->Set("u_Material.enableRoughnessTex", false);
+		// 	mi->Set("u_Material.enableNormalTex", false);
+		// 	meshSource->m_Materials.push_back(mi);
+		// }
         return meshSource;
     }
 
@@ -165,5 +230,88 @@ namespace Chozo {
 			TraverseNodes(meshSource, aNode->mChildren[i], uint32_t(childIndex), transform, level + 1);
 		}
 	}
+
+    void MeshImporter::ApplyTextureByType(Ref<Material> target, aiMaterial* aiMaterial, const aiScene* scene, MaterialPropType propType, fs::path filePath)
+    {
+		aiString aiTexPath;
+		aiTextureType aiTexType;
+		std::string propTypeName;
+
+		switch (propType)
+		{
+		case MaterialPropType::Albedo:
+			aiTexType = aiTextureType_DIFFUSE;
+			propTypeName = "Albedo";
+			break;
+		case MaterialPropType::Metalness:
+			aiTexType = aiTextureType_METALNESS;
+			propTypeName = "Metalness";
+			break;
+		case MaterialPropType::Roughness:
+			aiTexType = aiTextureType_SHININESS;
+			propTypeName = "Roughness";
+			break;
+		case MaterialPropType::Normal:
+			aiTexType = aiTextureType_NORMALS;
+			propTypeName = "Normal";
+			break;
+		default:
+			break;
+		}
+
+		target->Set("u_Material.enable" + propTypeName + "Tex", false);
+
+		bool hasMap = false;
+		if (propType == MaterialPropType::Albedo) {
+			hasMap = aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == AI_SUCCESS;
+			if (!hasMap) {
+				hasMap = aiMaterial->GetTexture(aiTextureType_BASE_COLOR, 0, &aiTexPath) == AI_SUCCESS;
+			}
+		}
+		else if (propType == MaterialPropType::Normal)
+		{
+			hasMap = aiMaterial->GetTexture(aiTextureType_NORMALS, 0, &aiTexPath) == AI_SUCCESS;
+			if (!hasMap) {
+				hasMap = aiMaterial->GetTexture(aiTextureType_HEIGHT, 0, &aiTexPath) == AI_SUCCESS;
+			}
+		}
+		else
+		{
+			hasMap = aiMaterial->GetTexture(aiTexType, 0, &aiTexPath) == AI_SUCCESS;
+		}
+
+		if (hasMap)
+		{
+			Ref<Texture2D> texture;
+			Texture2DSpecification spec;
+			spec.WrapS = ImageParameter::REPEAT;
+			spec.WrapT = ImageParameter::REPEAT;
+			spec.MinFilter = ImageParameter::LINEAR;
+			spec.MagFilter = ImageParameter::LINEAR;
+
+			if (auto aiTexEmbedded = scene->GetEmbeddedTexture(aiTexPath.C_Str()))
+			{
+				spec.Format = ImageFormat::RGBA;
+				spec.Width = aiTexEmbedded->mWidth;
+				spec.Height = aiTexEmbedded->mHeight;
+				Buffer imageBuffer = TextureImporter::ToBufferFromMemory(Buffer(aiTexEmbedded->pcData, spec.Width), spec.Format, spec.Width, spec.Height);
+				texture = Texture2D::Create(imageBuffer, spec);
+			}
+			else
+			{
+				// spec.FlipY = false;
+				auto parentPath = filePath.parent_path();
+				parentPath /= std::string(aiTexPath.data);
+				std::string texturePath = parentPath.string();
+				texture = Texture2D::Create(texturePath, spec);
+			}
+
+			if (texture)
+			{
+				target->Set("u_" + propTypeName + "Tex", texture);
+				target->Set("u_Material.enable" + propTypeName + "Tex", true);
+			}
+		}
+    }
 
 } // namespace Chozo

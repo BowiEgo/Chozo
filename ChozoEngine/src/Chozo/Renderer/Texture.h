@@ -20,6 +20,8 @@ namespace Chozo {
     {
 		ImageFormat Format = ImageFormat::RGBA;
 
+        bool FlipY = true;
+
         uint32_t Samples = 1;
         uint32_t Width = 1, Height = 1;
         bool Mipmap = false;

@@ -10,6 +10,8 @@
 #include "Batch.h"
 #include "DataStructs.h"
 
+#include "Material.h"
+
 #include "Chozo/Math/AABB.h"
 
 #include <glm/glm.hpp>
@@ -80,6 +82,8 @@ namespace Chozo
 
         std::vector<Submesh>& GetSubmeshes() { return m_Submeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return m_Submeshes; }
+
+        const std::vector<AssetHandle>& GetMaterials() { return m_Materials; }
         
 		const MeshNode& GetRootNode() const { return m_Nodes[0]; }
 		const std::vector<MeshNode>& GetNodes() const { return m_Nodes; }
@@ -90,6 +94,8 @@ namespace Chozo
 		std::vector<Submesh> m_Submeshes;
 		std::unordered_map<uint32_t, std::vector<Triangle>> m_TriangleCache;
 		std::vector<MeshNode> m_Nodes;
+
+		std::vector<AssetHandle> m_Materials;
 
         friend class MeshImporter;
         friend class Geometry;
@@ -112,12 +118,19 @@ namespace Chozo
         inline Ref<VertexBuffer> GetVertexBuffer() const { return m_RenderSource->VBO; }
         inline Ref<IndexBuffer> GetIndexBuffer() const { return m_RenderSource->IBO; }
 
-        Ref<MeshSource> GetMeshSource() const { return m_MeshSource; }
+        inline Ref<MeshSource> GetMeshSource() const { return m_MeshSource; }
+
+        inline void SetMaterial(uint32_t submeshIndex, AssetHandle handle)
+        {
+            m_MeshSource->GetSubmeshes()[submeshIndex].MaterialIndex = m_Materials->SetMaterial(handle);
+        }
+        inline Ref<MaterialTable> GetMaterials() { return m_Materials; }
 
         operator bool() { return m_MeshSource->GetBuffer()->IndexCount != 0; }
     protected:
         Ref<MeshSource> m_MeshSource;
         Ref<RenderSource> m_RenderSource;
+        Ref<MaterialTable> m_Materials;
     };
 
     class DynamicMesh : public Mesh

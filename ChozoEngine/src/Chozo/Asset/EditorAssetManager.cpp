@@ -46,7 +46,7 @@ namespace Chozo {
             return m_LoadedAssets[assetHandle];
     }
 
-    void EditorAssetManager::AddMemoryOnlyAsset(Ref<Asset> asset)
+    AssetHandle EditorAssetManager::AddMemoryOnlyAsset(Ref<Asset> asset)
     {
         asset->Handle = AssetHandle();
         AssetMetadata metadata;
@@ -56,6 +56,8 @@ namespace Chozo {
         m_AssetRegistry[metadata.Handle] = metadata;
 
         m_MemoryAssets[asset->Handle] = asset;
+
+        return asset->Handle;
     }
 
     bool EditorAssetManager::ReloadData(AssetHandle handle)

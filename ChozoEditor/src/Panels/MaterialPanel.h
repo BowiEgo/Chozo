@@ -42,8 +42,6 @@ namespace Chozo {
         static void Init();
 
         static void SetMaterial(Ref<Material> material);
-        inline static Ref<Scene> GetContext() { return s_Instance->m_Context; }
-        inline static void SetContext(const Ref<Scene> context) { s_Instance->m_Context = context; }
 
         inline static void Open() { s_Show = true; }
         inline static void Close() { s_Show = false; }
@@ -62,7 +60,6 @@ namespace Chozo {
 		static MaterialPanel* s_Instance;
         static bool s_Show;
 
-        Ref<Scene> m_Context;
         Ref<Material> m_Material;
         Ref<Texture2D> m_AlbedoTexture, m_MetalnessTexture, m_RoughnessTexture, m_NormalTexture;
         bool m_PreviewUpdated;

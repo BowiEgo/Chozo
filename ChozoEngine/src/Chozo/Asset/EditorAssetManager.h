@@ -12,7 +12,7 @@ namespace Chozo {
         virtual ~EditorAssetManager();
 
         virtual Ref<Asset> GetAsset(AssetHandle assetHandle) override;
-		virtual void AddMemoryOnlyAsset(Ref<Asset> asset) override;
+		virtual AssetHandle AddMemoryOnlyAsset(Ref<Asset> asset) override;
 		virtual bool ReloadData(AssetHandle assetHandle) override;
 		virtual bool IsAssetHandleValid(AssetHandle assetHandle) override;
 		virtual bool IsMemoryAsset(AssetHandle handle) override { return m_MemoryAssets.find(handle) != m_MemoryAssets.end(); }

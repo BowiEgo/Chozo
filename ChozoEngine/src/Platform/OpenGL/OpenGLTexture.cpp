@@ -26,8 +26,7 @@ namespace Chozo
     OpenGLTexture2D::OpenGLTexture2D(const std::string &path, const Texture2DSpecification &spec)
         : m_Spec(spec), m_Path(path)
     {
-        m_Buffer = TextureImporter::ToBufferFromFile(path, m_Spec.Format, m_Width, m_Height);
-
+        m_Buffer = TextureImporter::ToBufferFromFile(path, m_Spec.Format, m_Width, m_Height, spec.FlipY);
         Invalidate();
     }
 

@@ -459,7 +459,7 @@ namespace Chozo {
                 {
                     auto tag = entity.GetComponent<TagComponent>().Tag;
                     CZ_CORE_INFO("EditorLayer::OnDragAndDrop-> tag: {}", tag);
-                    entity.GetComponent<MeshComponent>().MaterialHandle = handle;
+                    entity.GetComponent<MeshComponent>().SetMaterial(handle);
                 }
                 break;
             }

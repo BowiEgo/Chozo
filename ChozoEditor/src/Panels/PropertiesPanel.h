@@ -58,7 +58,6 @@ namespace Chozo {
         void DrawGeometryProperties(Entity entity);
         void DrawMaterialProperties(Entity entity);
 
-        void OpenMaterialPanel(Entity entity);
         void OnSelectedChange(Entity entity);
     private:
 		static PropertiesPanel* s_Instance;

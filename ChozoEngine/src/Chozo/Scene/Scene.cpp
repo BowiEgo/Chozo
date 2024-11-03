@@ -69,6 +69,17 @@ namespace Chozo {
 		return Entity{};
     }
 
+    glm::mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
+    {
+		glm::mat4 transform(1.0f);
+
+		Entity parent = GetEntityWithUUID(entity.GetParentUUID());
+		if (parent)
+            transform = GetWorldSpaceTransformMatrix(parent);
+
+		return transform * entity.Transform().GetTransform();
+    }
+
     bool Scene::EntityExists(entt::entity entity)
     {
         return m_Registry.valid(entity);
@@ -308,12 +319,12 @@ namespace Chozo {
 
             if (mesh.Type == MeshType::Dynamic)
             {
+                Entity e = Entity(entity, this);
                 Ref<DynamicMesh> dynamicMesh = mesh.MeshInstance.As<DynamicMesh>();
-                // if (dynamicMesh->GetMeshSource()->IsBufferChanged())
-                //     dynamicMesh->Init();
-                // Renderer::DrawMesh(transform.GetTransform(), dynamicMesh.get(), mesh.MaterialInstance.get(), (uint32_t)entity);
                 auto material = Application::GetAssetManager()->GetAsset(mesh.MaterialHandle);
-                renderer->SubmitMesh(dynamicMesh, mesh.SubmeshIndex, material, transform.GetTransform(), (uint64_t)entity);
+                auto transform = GetWorldSpaceTransformMatrix(e);
+                
+                renderer->SubmitMesh(dynamicMesh, mesh.SubmeshIndex, material, transform, (uint64_t)entity);
             }
             else if (mesh.Type == MeshType::Static)
             {

@@ -561,56 +561,49 @@ namespace Chozo {
 
     void PropertiesPanel::DrawMaterialProperties(Entity entity)
     {
-        DrawComponent<MeshComponent>("Material", entity, [entity, this](auto& component)
+        DrawComponent<MeshComponent>("Material", entity, [entity, this](MeshComponent& component)
         {
+            Ref<MaterialTable> materialTalbe = component.MeshInstance->GetMaterials();
             AssetHandle handle = component.MaterialHandle;
+
             Ref<Material> material = Application::GetAssetManager()->GetAsset(handle);
-
             auto name = material ? material->GetName() : "Solid";
-
-            ImGui::Text("%s", name.c_str());
-            ImGui::SameLine();
-
-            ImGui::Text("%s", std::to_string(handle).c_str());
-            ImGui::SameLine();
-
-            if (material)
+            ImGui::Text("%s", name.c_str()); ImGui::SameLine();
+            ImGui::Text("%s", std::to_string(handle).c_str()); ImGui::SameLine();
+            if (ImGui::Button("Open Material"))
             {
-                if (ImGui::Button("Open Material"))
-                    OpenMaterialPanel(entity);
-            }
-            else
-            {
-                if (ImGui::Button("Create Material"))
-                {
-                    auto material = ContentBrowserPanel::CreateMaterial();
-                    component.MaterialHandle = material->Handle;
-                    OpenMaterialPanel(entity);
-                }
-            }
-        });
-    }
-
-    void PropertiesPanel::OpenMaterialPanel(Entity entity)
-    {
-        if (entity && entity.HasComponent<MeshComponent>())
-        {
-            AssetHandle handle = entity.GetComponent<MeshComponent>().MaterialHandle;
-            if (Application::GetAssetManager()->IsAssetHandleValid(handle))
-            {
-                Ref<Material> material;
-                material = Application::GetAssetManager()->GetAsset(handle).As<Material>();
-
-                MaterialPanel::SetContext(m_Context);
                 MaterialPanel::SetMaterial(material);
                 MaterialPanel::Open();
             }
-        }
+
+            // for (auto [index, handle] : materialTalbe->GetMaterials())
+            // {
+            //     Ref<Material> material = Application::GetAssetManager()->GetAsset(handle);
+            //     auto name = material ? material->GetName() : "Solid";
+
+            //     ImGui::Text("%s", name.c_str()); ImGui::SameLine();
+            //     ImGui::Text("%s", std::to_string(handle).c_str()); ImGui::SameLine();
+            //     if (ImGui::Button("Open Material"))
+            //     {
+            //         MaterialPanel::SetMaterial(material);
+            //         MaterialPanel::Open();
+            //     }
+            // }
+
+            // {
+            //     if (ImGui::Button("Create Material"))
+            //     {
+            //         auto material = ContentBrowserPanel::CreateMaterial();
+            //         component.MaterialHandle = material->Handle;
+            //         OpenMaterialPanel(entity);
+            //     }
+            // }
+        });
     }
 
     void PropertiesPanel::OnSelectedChange(Entity entity)
     {
-        OpenMaterialPanel(entity);        
+        // OpenMaterialPanel(entity);    
     }
 
 } // namespace Chozo

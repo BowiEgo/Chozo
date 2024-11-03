@@ -36,4 +36,28 @@ namespace Chozo
     protected:
         std::vector<std::tuple<std::string, AssetHandle>> m_TextureAssetHandles;
     };
+
+    class MaterialTable : public RefCounted
+    {
+    public:
+        MaterialTable(uint32_t materialCount = 0);
+        ~MaterialTable() = default;
+
+        bool HasMaterial(AssetHandle handle);
+        uint32_t SetMaterial(AssetHandle handle);
+        uint32_t SetMaterial(uint32_t index, AssetHandle handle);
+        inline AssetHandle GetMaterial(uint32_t index) const { return m_Materials.at(index); }
+        inline void RemoveMaterial(uint32_t index);
+
+        inline std::map<uint32_t, AssetHandle>& GetMaterials() { return m_Materials; }
+        inline const std::map<uint32_t, AssetHandle>& GetMaterials() const { return m_Materials; }
+
+		void SetMaterialCount(uint32_t materialCount) { m_MaterialCount = materialCount; }
+        inline uint32_t GetMaterialCount() const { return m_MaterialCount; }
+
+		inline void Clear() { m_Materials.clear(); }
+	private:
+		std::map<uint32_t, AssetHandle> m_Materials;
+		uint32_t m_MaterialCount;
+    };
 }

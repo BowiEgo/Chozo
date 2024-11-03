@@ -5,8 +5,6 @@
 
 namespace Chozo {
 
-    static std::string s_MeshLeafs[] = {"Geometry", "Material"};
-
     class SceneHierarchyPanel
     {
     public:

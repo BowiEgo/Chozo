@@ -4,12 +4,12 @@
 
 namespace Chozo {
 
-    Buffer TextureImporter::ToBufferFromFile(const std::string &path, ImageFormat &outFormat, uint32_t &outWidth, uint32_t &outHeight)
+    Buffer TextureImporter::ToBufferFromFile(const std::string &path, ImageFormat &outFormat, uint32_t &outWidth, uint32_t &outHeight, bool flipY)
     {
 		Buffer imageBuffer;
 
 		int width, height, channels;
-        stbi_set_flip_vertically_on_load(1);
+        stbi_set_flip_vertically_on_load(flipY);
 
         if (stbi_is_hdr(path.c_str()))
 		{

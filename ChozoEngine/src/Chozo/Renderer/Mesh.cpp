@@ -3,6 +3,8 @@
 #include "Renderer.h"
 #include "Chozo/FileSystem/MeshImporter.h"
 
+#include "Chozo/Core/Application.h"
+
 namespace Chozo
 {
 
@@ -37,6 +39,11 @@ namespace Chozo
         
         m_RenderSource->VBO->SetData(0, m_MeshSource->GetVertexs().size() * sizeof(Vertex), m_MeshSource->GetVertexs().data());
         m_RenderSource->IBO->SetData(0, m_MeshSource->GetIndexs().size() * 3, m_MeshSource->GetIndexs().data());
+
+		const auto& meshMaterials = m_MeshSource->GetMaterials();
+        m_Materials = Ref<MaterialTable>::Create((uint32_t)meshMaterials.size());
+        for (size_t i = 0; i < meshMaterials.size(); i++)
+            m_Materials->SetMaterial((uint32_t)i, meshMaterials[i]);
     }
 
     //////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +57,6 @@ namespace Chozo
     //////////////////////////////////////////////////////////////////////////////////
 	// InstancedMesh
 	//////////////////////////////////////////////////////////////////////////////////
-
     InstancedMesh::InstancedMesh(Ref<MeshSource> meshSource)
     {
     }
