@@ -2,12 +2,12 @@
 
 #include "Chozo/Core/Application.h"
 #include "Chozo/Project/Project.h"
+#include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Texture.h"
 #include "Chozo/Renderer/Material.h"
 #include "Chozo/Renderer/Geometry/BoxGeometry.h"
 #include "Chozo/Renderer/Geometry/SphereGeometry.h"
 
-#include "Chozo/FileSystem/FileStream.h"
 #include "Chozo/Utilities/SerializationUtils.h"
 
 #include "Chozo/Scene/Entity.h"
@@ -641,9 +641,17 @@ namespace Chozo {
         texture->CopyToHostBuffer(buffer);
         
 		Texture2DMetadata texture2DMetadata;
+        texture2DMetadata.Format = (uint16_t)texture->GetSpecification().Format;
+        texture2DMetadata.Samples = texture->GetSpecification().Samples;
+        texture2DMetadata.Mipmap = (uint8_t)texture->GetSpecification().Mipmap;
         texture2DMetadata.Width = texture->GetWidth();
         texture2DMetadata.Height = texture->GetHeight();
-        texture2DMetadata.Format = (uint16_t)texture->GetSpecification().Format;
+        texture2DMetadata.MinFilter = (uint16_t)texture->GetSpecification().MinFilter;
+        texture2DMetadata.MagFilter = (uint16_t)texture->GetSpecification().MagFilter;
+        texture2DMetadata.WrapR = (uint16_t)texture->GetSpecification().WrapR;
+        texture2DMetadata.WrapS = (uint16_t)texture->GetSpecification().WrapS;
+        texture2DMetadata.WrapT = (uint16_t)texture->GetSpecification().WrapT;
+
 		stream.WriteRaw(texture2DMetadata);
 		stream.WriteBuffer(buffer);
         uint64_t size = buffer.GetSize() + sizeof(texture2DMetadata);
@@ -667,10 +675,17 @@ namespace Chozo {
         stream.ReadBuffer(buffer);
 
         Texture2DSpecification spec;
+		spec.Format = (ImageFormat)texture2DMetadata.Format;
+		spec.Samples = texture2DMetadata.Samples;
 		spec.Width = texture2DMetadata.Width;
 		spec.Height = texture2DMetadata.Height;
-		spec.Format = (ImageFormat)texture2DMetadata.Format;
-		spec.Mipmap = false;
+		spec.Mipmap = (bool)texture2DMetadata.Mipmap;
+		spec.MinFilter = (ImageParameter)texture2DMetadata.MinFilter;
+		spec.MagFilter = (ImageParameter)texture2DMetadata.MagFilter;
+		spec.WrapR = (ImageParameter)texture2DMetadata.WrapR;
+		spec.WrapS = (ImageParameter)texture2DMetadata.WrapS;
+		spec.WrapT = (ImageParameter)texture2DMetadata.WrapT;
+
         Ref<Texture2D> texture = Texture2D::Create(buffer, spec);
 
         buffer.Release();
@@ -813,12 +828,207 @@ namespace Chozo {
 	/// MeshSourceSerializer
     uint64_t MeshSourceSerializer::Serialize(const AssetMetadata &metadata, Ref<Asset> &asset) const
     {
-        return 0;
+        fs::path path(metadata.FilePath);
+        fs::path filepath = Utils::File::GetAssetDirectory() / path;
+        fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+
+        FileStreamWriter stream(dest);
+		uint64_t start = stream.GetStreamPosition();
+
+        Ref<MeshSource> meshSource = asset.As<MeshSource>();
+		bool hasMaterials = !meshSource->GetMaterials().empty();
+
+        MeshSourceFile file;
+
+        file.Data.Flags = 0;
+		if (hasMaterials)
+			file.Data.Flags |= (uint32_t)MeshSourceFile::MeshFlags::HasMaterials;
+
+        // Write header
+		stream.WriteRaw<MeshSourceFile::FileHeader>(file.Header);
+
+        // Leave space for Metadata
+		uint64_t metadataAbsolutePosition = stream.GetStreamPosition();
+		stream.WriteZero(sizeof(MeshSourceFile::Metadata));
+
+        // Write boudingBox
+        file.Data.BoudingBox = meshSource->GetBoundingBox();
+
+        // Write nodes
+        file.Data.NodeArrayOffset = stream.GetStreamPosition() - start;
+        stream.WriteArray(meshSource->m_Nodes);
+        file.Data.NodeArraySize = (stream.GetStreamPosition() - start) - file.Data.NodeArrayOffset;
+
+        // Write submeshes
+        file.Data.SubmeshArrayOffset = stream.GetStreamPosition() - start;
+        stream.WriteArray(meshSource->m_Submeshes);
+        file.Data.SubmeshArraySize = (stream.GetStreamPosition() - start) - file.Data.SubmeshArrayOffset;
+
+        // Write vertex buffer
+        file.Data.VertexBufferOffset = stream.GetStreamPosition() - start;
+        stream.WriteArray(meshSource->m_Buffer.Vertexs);
+        file.Data.VertexBufferSize = (stream.GetStreamPosition() - start) - file.Data.VertexBufferOffset;
+
+        // Write index buffer
+        file.Data.IndexBufferOffset = stream.GetStreamPosition() - start;
+        stream.WriteArray(meshSource->m_Buffer.Indexs);
+        file.Data.IndexBufferSize = (stream.GetStreamPosition() - start) - file.Data.IndexBufferOffset;
+
+        // Write materail buffer
+        if (!meshSource->m_Materials.empty())
+        {
+            std::vector<MeshMaterial> meshMaterials(meshSource->m_Materials.size());
+            for (size_t i = 0; i < meshSource->m_Materials.size(); i++)
+            {
+                MeshMaterial& material = meshMaterials[i];
+                Ref<Material> meshSourceMaterial = Application::GetAssetManager()->GetAsset(meshSource->m_Materials[i]);
+
+                material.Name = meshSourceMaterial->GetName();
+                material.ShaderName = meshSourceMaterial->GetShader()->GetName();
+
+                material.Albedo             = Utils::GetVec3(meshSourceMaterial->GetUniforms()["u_Material.Albedo"]);
+                material.Metalness          = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Metalness"]);
+                material.Roughness          = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Roughness"]);
+                material.Ambient            = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Ambient"]);
+                material.AmbientStrength    = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.AmbientStrength"]);
+                material.Specular           = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Specular"]);
+
+                material.EnableAlbedoTex    = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableAlbedoTex"]);
+                material.EnableNormalTex    = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableNormalTex"]);
+                material.EnableMetalnessTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableMetalnessTex"]);
+                material.EnableRoughnessTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableRoughnessTex"]);
+
+                auto albedoTex              = meshSourceMaterial->GetTexture("u_AlbedoTex");
+                auto normalTex              = meshSourceMaterial->GetTexture("u_NormalTex");
+                auto metalnessTex           = meshSourceMaterial->GetTexture("u_MetalnessTex");
+                auto roughnessTex           = meshSourceMaterial->GetTexture("u_RoughnessTex");
+
+                if (albedoTex)
+                {
+                    Application::GetAssetManager()->SaveAsset(albedoTex, filepath.parent_path() / albedoTex->GetSpecification().DebugName);
+                    material.AlbedoTexture = albedoTex->Handle;
+                }
+
+                if (normalTex)
+                {
+                    Application::GetAssetManager()->SaveAsset(normalTex, filepath.parent_path() / normalTex->GetSpecification().DebugName);
+                    material.NormalTexture = normalTex->Handle;
+                }
+
+                if (metalnessTex)
+                {
+                    Application::GetAssetManager()->SaveAsset(metalnessTex, filepath.parent_path() / metalnessTex->GetSpecification().DebugName);
+                    material.MetalnessTexture = metalnessTex->Handle;
+                }
+
+                if (roughnessTex)
+                {
+                    Application::GetAssetManager()->SaveAsset(roughnessTex, filepath.parent_path() / roughnessTex->GetSpecification().DebugName);
+                    material.RoughnessTexture = roughnessTex->Handle;
+                }
+            }
+
+            file.Data.MaterialArrayOffset = stream.GetStreamPosition() - start;
+            stream.WriteArray(meshMaterials);
+            file.Data.MaterialArraySize = (stream.GetStreamPosition() - start) - file.Data.SubmeshArrayOffset;
+        }
+        else
+        {
+            file.Data.MaterialArrayOffset = 0;
+            file.Data.MaterialArraySize = 0;
+        }
+
+        // Write metadata
+		uint64_t endOfStream = stream.GetStreamPosition();
+		stream.SetStreamPosition(metadataAbsolutePosition);
+        stream.WriteRaw(file.Data);
+		stream.SetStreamPosition(endOfStream);
+
+        uint64_t size = stream.GetStreamPosition() - start;
+
+        return size;
     }
 
     Ref<Asset> MeshSourceSerializer::Deserialize(const AssetMetadata &metadata) const
     {
-        return Ref<Asset>();
+        fs::path path(metadata.FilePath);
+        fs::path filepath = Utils::File::GetAssetDirectory() / path;
+        fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+
+		Ref<MeshSource> meshSource = Ref<MeshSource>::Create();
+
+        FileStreamReader stream(dest);
+		uint64_t streamOffset = stream.GetStreamPosition();
+
+		MeshSourceFile file;
+
+		stream.ReadRaw<MeshSourceFile::FileHeader>(file.Header);
+        stream.ReadRaw<MeshSourceFile::Metadata>(file.Data);
+
+        // Read boudingBox
+        meshSource->m_BoundingBox = file.Data.BoudingBox;
+
+        // Write nodes
+		stream.SetStreamPosition(file.Data.NodeArrayOffset + streamOffset);
+        stream.ReadArray(meshSource->m_Nodes);
+
+        // Write submeshes
+		stream.SetStreamPosition(file.Data.SubmeshArrayOffset + streamOffset);
+        stream.ReadArray(meshSource->m_Submeshes);
+
+        // Read vertex buffer
+		stream.SetStreamPosition(file.Data.VertexBufferOffset + streamOffset);
+		stream.ReadArray(meshSource->m_Buffer.Vertexs);
+
+        // Read index buffer
+        stream.SetStreamPosition(file.Data.IndexBufferOffset + streamOffset);
+		stream.ReadArray(meshSource->m_Buffer.Indexs);
+
+        // Read materials
+        std::vector<MeshMaterial> meshMaterials;
+        stream.SetStreamPosition(file.Data.MaterialArrayOffset + streamOffset);
+        stream.ReadArray(meshMaterials);
+
+        meshSource->m_Materials.resize(meshMaterials.size());
+        for (size_t i = 0; i < meshMaterials.size(); i++)
+        {
+            const auto& meshMaterial = meshMaterials[i];
+
+            Ref<Shader> shader = Renderer::GetShaderLibrary()->Get(meshMaterial.ShaderName);
+            CZ_CORE_ASSERT(shader, meshMaterial.ShaderName, meshMaterial.Name, "Shader called {} of Material {} doesn't exist.");
+            Ref<Material> material = Material::Create(shader, meshMaterial.Name);
+
+            material->Set("u_Material.Albedo", meshMaterial.Albedo);
+            material->Set("u_Material.Metalness", meshMaterial.Metalness);
+            material->Set("u_Material.Roughness", meshMaterial.Roughness);
+            material->Set("u_Material.Ambient", meshMaterial.Ambient);
+            material->Set("u_Material.AmbientStrength", meshMaterial.AmbientStrength);
+            material->Set("u_Material.Specular", meshMaterial.Specular);
+
+            material->Set("u_Material.EnableAlbedoTex", meshMaterial.EnableAlbedoTex);
+            material->Set("u_Material.EnableNormalTex", meshMaterial.EnableNormalTex);
+            material->Set("u_Material.EnableMetalnessTex", meshMaterial.EnableMetalnessTex);
+            material->Set("u_Material.EnableRoughnessTex", meshMaterial.EnableRoughnessTex);
+
+            auto albedoTex    = Application::GetAssetManager()->GetAsset(meshMaterial.AlbedoTexture);
+            auto normalTex    = Application::GetAssetManager()->GetAsset(meshMaterial.NormalTexture);
+            auto metalnessTex = Application::GetAssetManager()->GetAsset(meshMaterial.MetalnessTexture);
+            auto roughnessTex = Application::GetAssetManager()->GetAsset(meshMaterial.RoughnessTexture);
+
+            if (albedoTex)
+                material->Set("u_AlbedoTex", albedoTex.As<Texture2D>());
+            if (normalTex)
+                material->Set("u_NormalTex", normalTex.As<Texture2D>());
+            if (metalnessTex)
+                material->Set("u_MetalnessTex", metalnessTex.As<Texture2D>());
+            if (roughnessTex)
+                material->Set("u_RoughnessTex", roughnessTex.As<Texture2D>());
+
+            Application::GetAssetManager()->AddMemoryOnlyAsset(material);
+            meshSource->m_Materials[i] = material->Handle;
+        }
+
+        return meshSource;
     }
 
     std::string MeshSourceSerializer::SerializeToYAML(Ref<MeshSource> meshSource) const

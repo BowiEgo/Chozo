@@ -44,7 +44,15 @@ namespace Chozo {
 
 	struct Texture2DMetadata
 	{
-		uint32_t Width, Height;
 		uint16_t Format;
+
+		uint32_t Samples;
+		uint32_t Width, Height;
+        uint8_t Mipmap;
+		uint16_t WrapR;
+		uint16_t WrapS;
+		uint16_t WrapT;
+		uint16_t MinFilter;
+		uint16_t MagFilter;
 	};
 }

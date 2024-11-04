@@ -30,6 +30,8 @@ namespace Chozo {
         ImageParameter WrapR = ImageParameter::CLAMP_TO_BORDER;
         ImageParameter WrapS = ImageParameter::CLAMP_TO_BORDER;
         ImageParameter WrapT = ImageParameter::CLAMP_TO_BORDER;
+
+        std::string DebugName;
     };
 
     struct TextureCubeSpecification

@@ -147,9 +147,6 @@ namespace Chozo {
 
 				auto mi = Material::Create(Renderer::GetRendererData().m_ShaderLibrary->Get("Geometry"), aiMaterialName.data);
 
-				aiString aiTexPath;
-				uint32_t textureCount = aiMaterial->GetTextureCount(aiTextureType_DIFFUSE);
-
 				glm::vec3 albedoColor(0.8f);
 				float emission = 0.0f;
 				aiColor3D aiColor, aiEmission;
@@ -190,10 +187,10 @@ namespace Chozo {
 		// 	mi->Set("u_Material.Ambient", 1.0f);
 		// 	mi->Set("u_Material.AmbientStrength", 0.1f);
 		// 	mi->Set("u_Material.Specular", 0.5f);
-		// 	mi->Set("u_Material.enableAlbedoTex", false);
-		// 	mi->Set("u_Material.enableMetalnessTex", false);
-		// 	mi->Set("u_Material.enableRoughnessTex", false);
-		// 	mi->Set("u_Material.enableNormalTex", false);
+		// 	mi->Set("u_Material.EnableAlbedoTex", false);
+		// 	mi->Set("u_Material.EnableMetalnessTex", false);
+		// 	mi->Set("u_Material.EnableRoughnessTex", false);
+		// 	mi->Set("u_Material.EnableNormalTex", false);
 		// 	meshSource->m_Materials.push_back(mi);
 		// }
         return meshSource;
@@ -259,7 +256,7 @@ namespace Chozo {
 			break;
 		}
 
-		target->Set("u_Material.enable" + propTypeName + "Tex", false);
+		target->Set("u_Material.Enable" + propTypeName + "Tex", false);
 
 		bool hasMap = false;
 		if (propType == MaterialPropType::Albedo) {
@@ -280,6 +277,8 @@ namespace Chozo {
 			hasMap = aiMaterial->GetTexture(aiTexType, 0, &aiTexPath) == AI_SUCCESS;
 		}
 
+		auto fileName = fs::path(aiTexPath.data).stem().string();
+
 		if (hasMap)
 		{
 			Ref<Texture2D> texture;
@@ -288,6 +287,7 @@ namespace Chozo {
 			spec.WrapT = ImageParameter::REPEAT;
 			spec.MinFilter = ImageParameter::LINEAR;
 			spec.MagFilter = ImageParameter::LINEAR;
+			spec.DebugName = fileName;
 
 			if (auto aiTexEmbedded = scene->GetEmbeddedTexture(aiTexPath.C_Str()))
 			{
@@ -309,7 +309,8 @@ namespace Chozo {
 			if (texture)
 			{
 				target->Set("u_" + propTypeName + "Tex", texture);
-				target->Set("u_Material.enable" + propTypeName + "Tex", true);
+				target->Set("u_Material.Enable" + propTypeName + "Tex", true);
+				Application::GetAssetManager()->AddMemoryOnlyAsset(texture);
 			}
 		}
     }

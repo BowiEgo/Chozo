@@ -18,10 +18,10 @@ namespace Chozo {
         "Ambient",
         "AmbientStrength",
         "Specular",
-        "enableAlbedoTex",
-        "enableMetalnessTex",
-        "enableRoughnessTex",
-        "enableNormalTex",
+        "EnableAlbedoTex",
+        "EnableMetalnessTex",
+        "EnableRoughnessTex",
+        "EnableNormalTex",
     };
 
     Ref<Texture2D>& MaterialPanel::GetPreviewTextureByType(PreviewType type)
@@ -42,15 +42,15 @@ namespace Chozo {
                 if (m_##ENUM##Texture && m_##ENUM##Texture != checkerboard) \
                 { \
                     m_Material->Set("u_" #ENUM "Tex", m_##ENUM##Texture); \
-                    m_Material->Set("u_Material.enable" #ENUM "Tex", true); \
+                    m_Material->Set("u_Material.Enable" #ENUM "Tex", true); \
                     OnMaterialChange(m_Material, "u_" #ENUM "Tex", m_##ENUM##Texture); \
-                    OnMaterialChange(m_Material, "u_Material.enable" #ENUM "Tex", true); \
+                    OnMaterialChange(m_Material, "u_Material.Enable" #ENUM "Tex", true); \
                 } \
                 else \
                 { \
                     m_##ENUM##Texture = checkerboard; \
-                    m_Material->Set("u_Material.enable" #ENUM "Tex", false); \
-                    OnMaterialChange(m_Material, "u_Material.enable" #ENUM "Tex", false); \
+                    m_Material->Set("u_Material.Enable" #ENUM "Tex", false); \
+                    OnMaterialChange(m_Material, "u_Material.Enable" #ENUM "Tex", false); \
                 } \
                 break; \
             };
@@ -66,7 +66,7 @@ namespace Chozo {
             return;
 
         std::string typeString = PreviewTypeToString(type);
-        std::string uniformName = "u_Material.enable" + typeString + "Tex";
+        std::string uniformName = "u_Material.Enable" + typeString + "Tex";
         bool enabled = std::get<bool>(m_Material->GetUniforms()[uniformName]);
         bool changed = false;
 

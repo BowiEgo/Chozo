@@ -49,12 +49,13 @@ namespace Chozo {
     AssetHandle EditorAssetManager::AddMemoryOnlyAsset(Ref<Asset> asset)
     {
         asset->Handle = AssetHandle();
+
         AssetMetadata metadata;
         metadata.Handle = asset->Handle;
         metadata.Type = asset->GetAssetType();
         metadata.IsMemoryAsset = true;
-        m_AssetRegistry[metadata.Handle] = metadata;
 
+        m_AssetRegistry[metadata.Handle] = metadata;
         m_MemoryAssets[asset->Handle] = asset;
 
         return asset->Handle;
@@ -82,6 +83,9 @@ namespace Chozo {
         if (metadata.IsValid())
         {
             m_AssetRegistry.Remove(handle);
+            m_LoadedAssets.erase(handle);
+            m_MemoryAssets.erase(handle);
+
             SaveAssets();
 
             fs::path filePath = Utils::File::GetAssetDirectory() / metadata.FilePath;
@@ -147,6 +151,36 @@ namespace Chozo {
 
     void EditorAssetManager::SaveAssets()
     {
+        for (auto [handle, metadata] : m_AssetRegistry)
+        {
+            auto asset = GetAsset(handle);
+            AssetImporter::Serialize(metadata, asset);
+        }
+        WriteRegistryToFile();
+    }
+
+    void EditorAssetManager::SaveAsset(Ref<Asset> asset, const fs::path &filepath)
+    {
+        AssetMetadata metadata;
+
+        if (asset->Handle != 0)
+        {
+            metadata = GetMetadata(asset->Handle);
+            m_MemoryAssets.erase(asset->Handle);
+        }
+        else
+        {
+			metadata.Handle = AssetHandle();
+			metadata.Type = asset->GetAssetType();
+        }
+
+        metadata.FilePath = filepath;
+        metadata.IsDataLoaded = true;
+        metadata.IsMemoryAsset = false;
+        m_LoadedAssets[asset->Handle] = asset;
+        m_AssetRegistry[metadata.Handle] = metadata;
+        metadata.FileSize = AssetImporter::Serialize(metadata, asset);
+
         WriteRegistryToFile();
     }
 
@@ -221,13 +255,6 @@ namespace Chozo {
     void EditorAssetManager::WriteRegistryToFile()
     {
         AssetRegistrySerializer serializer(m_AssetRegistry);
-
-        for (auto [handle, metadata] : m_AssetRegistry)
-        {
-            auto asset = GetAsset(handle);
-            AssetImporter::Serialize(metadata, asset);
-        }
-
         serializer.Serialize("../assets/AssetRegistry.czar");
     }
 

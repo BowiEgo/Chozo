@@ -2,8 +2,6 @@
 
 #include "czpch.h"
 
-#include "Chozo/Asset/Asset.h"
-
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -13,6 +11,9 @@
 #include "Material.h"
 
 #include "Chozo/Math/AABB.h"
+#include "Chozo/Asset/Asset.h"
+#include "Chozo/FileSystem/StreamWriter.h"
+#include "Chozo/FileSystem/StreamReader.h"
 
 #include <glm/glm.hpp>
 
@@ -47,6 +48,36 @@ namespace Chozo
 
 		std::string NodeName, MeshName;
 		bool IsRigged = false;
+
+        static void Serialize(StreamWriter* serializer, const Submesh& instance)
+		{
+			serializer->WriteRaw(instance.BaseVertex);
+			serializer->WriteRaw(instance.BaseIndex);
+			serializer->WriteRaw(instance.MaterialIndex);
+			serializer->WriteRaw(instance.IndexCount);
+			serializer->WriteRaw(instance.VertexCount);
+			serializer->WriteRaw(instance.Transform);
+			serializer->WriteRaw(instance.LocalTransform);
+			serializer->WriteRaw(instance.BoundingBox);
+			serializer->WriteString(instance.NodeName);
+			serializer->WriteString(instance.MeshName);
+			serializer->WriteRaw(instance.IsRigged);
+		}
+
+		static void Deserialize(StreamReader* deserializer, Submesh& instance)
+		{
+			deserializer->ReadRaw(instance.BaseVertex);
+			deserializer->ReadRaw(instance.BaseIndex);
+			deserializer->ReadRaw(instance.MaterialIndex);
+			deserializer->ReadRaw(instance.IndexCount);
+			deserializer->ReadRaw(instance.VertexCount);
+			deserializer->ReadRaw(instance.Transform);
+			deserializer->ReadRaw(instance.LocalTransform);
+			deserializer->ReadRaw(instance.BoundingBox);
+			deserializer->ReadString(instance.NodeName);
+			deserializer->ReadString(instance.MeshName);
+			deserializer->ReadRaw(instance.IsRigged);
+		}
 	};
 
     struct MeshNode
@@ -59,6 +90,24 @@ namespace Chozo
 		glm::mat4 LocalTransform;
 
 		inline bool IsRoot() const { return Parent == 0xffffffff; }
+
+        static void Serialize(StreamWriter* serializer, const MeshNode& instance)
+		{
+			serializer->WriteRaw(instance.Parent);
+			serializer->WriteArray(instance.Children);
+			serializer->WriteArray(instance.Submeshes);
+			serializer->WriteString(instance.Name);
+			serializer->WriteRaw(instance.LocalTransform);
+		}
+
+		static void Deserialize(StreamReader* deserializer, MeshNode& instance)
+		{
+			deserializer->ReadRaw(instance.Parent);
+			deserializer->ReadArray(instance.Children);
+			deserializer->ReadArray(instance.Submeshes);
+			deserializer->ReadString(instance.Name);
+			deserializer->ReadRaw(instance.LocalTransform);
+		}
 	};
 
     class MeshSource : public Asset
@@ -73,6 +122,8 @@ namespace Chozo
 
         static AssetType GetStaticType() { return AssetType::MeshSource; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
+
+        const inline AABB& GetBoundingBox() const { return m_BoundingBox; }
 
         inline std::vector<Vertex> GetVertexs() { return m_Buffer.Vertexs; }
         inline std::vector<Index> GetIndexs() { return m_Buffer.Indexs; }
@@ -98,6 +149,7 @@ namespace Chozo
 		std::vector<AssetHandle> m_Materials;
 
         friend class MeshImporter;
+        friend class MeshSourceSerializer;
         friend class Geometry;
     };
 

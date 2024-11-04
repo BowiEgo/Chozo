@@ -237,10 +237,10 @@ namespace Chozo {
         material->Set("u_Material.Ambient", 1.0f);
         material->Set("u_Material.AmbientStrength", 0.1f);
         material->Set("u_Material.Specular", 0.5f);
-        material->Set("u_Material.enableAlbedoTex", false);
-        material->Set("u_Material.enableMetalnessTex", false);
-        material->Set("u_Material.enableRoughnessTex", false);
-        material->Set("u_Material.enableNormalTex", false);
+        material->Set("u_Material.EnableAlbedoTex", false);
+        material->Set("u_Material.EnableMetalnessTex", false);
+        material->Set("u_Material.EnableRoughnessTex", false);
+        material->Set("u_Material.EnableNormalTex", false);
 
         auto task = Ref<ThumbnailPoolTask>::Create(material, PoolTaskFlags_Export);
         Pool::AddTask(task);

@@ -29,6 +29,7 @@ namespace Chozo {
 
 		AssetHandle ImportAsset(const fs::path& filepath);
 		void SaveAssets();
+		void SaveAsset(Ref<Asset> asset, const fs::path &filepath);
 
 		AssetType GetAssetTypeFromExtension(const std::string& extension);
 		AssetType GetAssetTypeFromPath(const fs::path& path);

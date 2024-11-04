@@ -20,10 +20,10 @@ layout(push_constant) uniform FragUniforms
     float AmbientStrength;
     float Specular;
 
-    int enableAlbedoTex;
-    int enableMetalnessTex;
-    int enableRoughnessTex;
-    int enableNormalTex;
+    int EnableAlbedoTex;
+    int EnableMetalnessTex;
+    int EnableRoughnessTex;
+    int EnableNormalTex;
 
     int ID;
 } u_Material;
@@ -49,11 +49,11 @@ void main()
     float depth = LinearizeDepth(pow(gl_FragCoord.z, 0.3)) / far;
 
     o_Position = vec4(v_FragPosition, 1.0);
-    o_Normal = (u_Material.enableNormalTex == 1) ? texture(u_NormalTex, v_TexCoord) * 2.0 - vec4(1.0) : vec4(normalize(v_Normal), 1.0);
+    o_Normal = (u_Material.EnableNormalTex == 1) ? texture(u_NormalTex, v_TexCoord) * 2.0 - vec4(1.0) : vec4(normalize(v_Normal), 1.0);
     o_Depth = vec4(vec3(depth), 1.0);
-    o_Albedo = (u_Material.enableAlbedoTex == 1) ? texture(u_AlbedoTex, v_TexCoord) : vec4(u_Material.Albedo, 1.0);
-    o_MaterialProperties.r = (u_Material.enableMetalnessTex == 1) ? texture(u_MetalnessTex, v_TexCoord).g : u_Material.Metalness;
-    o_MaterialProperties.g = (u_Material.enableRoughnessTex == 1) ? texture(u_RoughnessTex, v_TexCoord).r : u_Material.Roughness;
+    o_Albedo = (u_Material.EnableAlbedoTex == 1) ? texture(u_AlbedoTex, v_TexCoord) : vec4(u_Material.Albedo, 1.0);
+    o_MaterialProperties.r = (u_Material.EnableMetalnessTex == 1) ? texture(u_MetalnessTex, v_TexCoord).g : u_Material.Metalness;
+    o_MaterialProperties.g = (u_Material.EnableRoughnessTex == 1) ? texture(u_RoughnessTex, v_TexCoord).r : u_Material.Roughness;
     o_MaterialProperties.b = u_Material.Ambient * u_Material.AmbientStrength;
     o_MaterialProperties.a = u_Material.Specular;
     o_EntityID = u_Material.ID;
