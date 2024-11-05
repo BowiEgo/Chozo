@@ -15,6 +15,7 @@ namespace Chozo {
 
         static void ImportThumbnail(AssetHandle handle);
         static void DeleteThumbnail(AssetHandle handle);
+        static void ClearUselessCaches();
         inline static void SetThumbnail(AssetHandle assetHandle, Ref<Texture2D> texture) { s_Instance->m_Thumbnails[assetHandle] = texture; }
         static Ref<Texture2D> GetThumbnail(AssetHandle assetHandle);
     private:

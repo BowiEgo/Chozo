@@ -1,5 +1,7 @@
 #include "ThumbnailManager.h"
 
+#include "Chozo/Core/Application.h"
+
 namespace Chozo {
 
     Ref<ThumbnailManager> ThumbnailManager::s_Instance;
@@ -7,6 +9,7 @@ namespace Chozo {
     void ThumbnailManager::Init()
     {
         s_Instance = Ref<ThumbnailManager>::Create();
+        ClearUselessCaches();
     }
 
     void ThumbnailManager::ImportThumbnail(AssetHandle handle)
@@ -32,6 +35,27 @@ namespace Chozo {
             fs::path filePath = Utils::File::GetThumbnailCacheDirectory() / fs::path(filename);
             Utils::File::DeleteFile(filePath);
             thumbnails.erase(assetHandle);
+        }
+    }
+
+    void ThumbnailManager::ClearUselessCaches()
+    {
+        fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
+
+		for (auto entry : fs::directory_iterator(cacheDir))
+        {
+            if (!entry.is_directory())
+            {
+                std::string fileName = entry.path().stem().string();
+                AssetHandle handle = Utils::String::ToUint64(fileName);
+
+                if (handle != 0)
+                {
+                    bool exist = Application::GetAssetManager()->IsAssetHandleValid(handle);
+                    if (!exist)
+                        Utils::File::DeleteFile(entry.path());
+                }
+            }
         }
     }
 
