@@ -178,9 +178,10 @@ namespace Chozo {
         metadata.FilePath = filepath;
         metadata.IsDataLoaded = true;
         metadata.IsMemoryAsset = false;
+        metadata.FileSize = AssetImporter::Serialize(metadata, asset);
+
         m_LoadedAssets[asset->Handle] = asset;
         m_AssetRegistry[metadata.Handle] = metadata;
-        metadata.FileSize = AssetImporter::Serialize(metadata, asset);
 
         WriteRegistryToFile();
     }

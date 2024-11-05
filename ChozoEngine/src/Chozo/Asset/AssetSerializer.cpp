@@ -430,6 +430,7 @@ namespace Chozo {
         fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
 
         FileStreamWriter stream(dest);
+        uint64_t start = stream.GetStreamPosition();
         SceneFile file;
 
         // Write header
@@ -441,7 +442,6 @@ namespace Chozo {
         Ref<Scene> scene = asset.As<Scene>();
 		std::string yamlString = SerializeToYAML(scene);
 
-        uint64_t start = stream.GetStreamPosition();
 		stream.WriteString(yamlString);
         uint64_t size = stream.GetStreamPosition() - start;
 
@@ -703,7 +703,7 @@ namespace Chozo {
         stream.WriteRaw(file.Data);
 		stream.SetStreamPosition(endOfStream);
 
-        uint64_t size = stream.GetStreamPosition() - start;
+        uint64_t size = endOfStream - start;
 
         return size;
     }
@@ -759,6 +759,7 @@ namespace Chozo {
         fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
 
         FileStreamWriter stream(dest);
+        uint64_t start = stream.GetStreamPosition();
         MaterialFile file;
 
         // Write header
@@ -770,7 +771,6 @@ namespace Chozo {
         Ref<Material> material = asset.As<Material>();
 		std::string yamlString = SerializeToYAML(material);
 
-        uint64_t start = stream.GetStreamPosition();
 		stream.WriteString(yamlString);
         uint64_t size = stream.GetStreamPosition() - start;
 
@@ -1018,7 +1018,7 @@ namespace Chozo {
         stream.WriteRaw(file.Data);
 		stream.SetStreamPosition(endOfStream);
 
-        uint64_t size = stream.GetStreamPosition() - start;
+        uint64_t size = endOfStream - start;
 
         return size;
     }
