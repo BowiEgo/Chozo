@@ -30,20 +30,21 @@ namespace Chozo {
         inline static std::vector<Ref<ContentItem>> GetItems() { return s_Instance->m_CurrentItems; }
         inline static Ref<ContentItem> GetHoveredItem() { return s_Instance->m_HoveredItem; }
 
-        inline static void Select(Ref<ContentItem> item) { s_Instance->m_ContentSelection.Select(item); }
+        inline static void Select(Ref<ContentItem> item) { item->Select(); }
         inline static void Select(AssetHandle handle) {
             if (s_Instance->m_CurrentItems[handle])
-                s_Instance->m_ContentSelection.Select(s_Instance->m_CurrentItems[handle]);
+                s_Instance->m_CurrentItems[handle]->Select();
         }
-        inline static void Deselect(Ref<ContentItem> item) {s_Instance->m_ContentSelection.Deselect(item); }
+        inline static void Deselect(Ref<ContentItem> item) { item->Deselect(); }
         inline static void Deselect(AssetHandle handle) {
             if (s_Instance->m_CurrentItems[handle])
-                s_Instance->m_ContentSelection.Deselect(s_Instance->m_CurrentItems[handle]);
+                s_Instance->m_CurrentItems[handle]->Deselect();
         }
         static Ref<Scene> CreateScene();
         static Ref<Material> CreateMaterial();
     private:
         void RenderAddNewContextMenu();
+        void RenderItems();
         void RenderItemContextMenu();
 		void RenderAssetMenu(float height);
 		void RenderDirectoryHierarchy(Ref<DirectoryInfo> directory);
@@ -62,6 +63,7 @@ namespace Chozo {
         void SortSubDirs(Ref<DirectoryInfo> directory);
 
 		AssetHandle ProcessDirectory(const fs::path& directoryPath, const Ref<DirectoryInfo>& parent);
+        void DeleteItem(Ref<ContentItem> item);
         void DeleteItems(std::vector<Ref<ContentItem>> items);
 
         std::string CreateItemName(AssetType type);
@@ -77,6 +79,8 @@ namespace Chozo {
         Ref<DirectoryInfo> m_PreviousDirectory, m_CurrentDirectory, m_NextDirectory;
 
         std::vector<Ref<ContentItem>> m_CurrentItems;
+        std::vector<Ref<ContentItem>> m_ItemsShouldDelete;
+        std::vector<Ref<ContentItem>> m_ItemsSelected;
         Ref<ContentItem> m_HoveredItem;
 
         ContentSelection m_ContentSelection;

@@ -27,6 +27,40 @@ namespace Chozo {
         Directory,
         Asset,
     };
+
+    enum class ContentBrowserAction
+	{
+		None                = 0,
+		Selected			= BIT(0),
+		Deselected			= BIT(1),
+		Hovered             = BIT(2),
+		Deleted             = BIT(3),
+		Activated			= BIT(4)
+	};
+
+    struct ContentBrowserItemActionResult
+	{
+		uint16_t Field = 0;
+
+		void Set(ContentBrowserAction flag, bool value)
+		{
+			if (value)
+				Field |= (uint16_t)flag;
+			else
+				Field &= ~(uint16_t)flag;
+		}
+
+		bool IsSet(ContentBrowserAction flag) const { return (uint16_t)flag & Field; }
+	};
+
+    // struct ImRect
+    // {
+    //     ImVec2 Min, Max;
+
+    //     bool operator==(const ImRect& other) const {
+    //         return Min.x == other.Min.x && Min.y == other.Min.y && Max.x == other.Max.x && Max.y == other.Max.y;
+    //     }
+    // };
     
     class ContentItem : public RefCounted
     {
@@ -35,16 +69,15 @@ namespace Chozo {
         ContentItem(AssetMetadata metadata);
         ~ContentItem() = default;
 
-        void OnImGuiRender();
+        ContentBrowserItemActionResult OnImGuiRender();
 
         inline bool ShouldDelete() { return m_Delete; }
-        inline bool IsHovered() { return m_Hovered; }
         inline AssetHandle GetHandle() const { return m_Handle; }
-        inline std::pair<ImVec2, ImVec2> GetRect() const { return m_Rect; }
+        inline ImRect GetRect() const { return m_Rect; }
         inline std::string GetFilename() const { return m_Filename; }
         inline void Delete() { m_Delete = true; }
-        inline void Select() { m_Select = true; }
-        inline void Deselect() { m_Select = false; }
+        inline void Select() { m_Selected = true; }
+        inline void Deselect() { m_Selected = false; }
     private:
         void UpdateThumbnail();
         void RenderThumbnail();
@@ -62,12 +95,13 @@ namespace Chozo {
         uint64_t m_CreateAt;
         Ref<Texture2D> m_Thumbnail;
 
-        std::pair<ImVec2, ImVec2> m_Rect;
+        ImRect m_Rect;
 
         bool m_Delete = false;
-        bool m_Select = false;
-        bool m_Hovered = false;
+        bool m_Selected = false;
         bool m_Empty = false;
+
+        friend class ContentBrowserPanel;
     };
 
 } // namespace Chozo

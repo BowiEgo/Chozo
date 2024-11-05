@@ -41,16 +41,11 @@ namespace Chozo {
 
     void ContentBrowserPanel::OnImGuiRender()
     {
-        std::vector<Ref<ContentItem>> itemsDeleted;
-        for (auto item : m_CurrentItems)
-        {
-            if (item && item->ShouldDelete())
-                itemsDeleted.push_back(item);
-        }
-        DeleteItems(itemsDeleted);
+        m_ItemsShouldDelete.clear();
+        m_ItemsSelected.clear();
 
         ImGui::Begin("Content Browser");
-        
+
         ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable
             | ImGuiTableFlags_SizingFixedFit
             | ImGuiTableFlags_BordersInnerV;
@@ -83,49 +78,28 @@ namespace Chozo {
                 UI::ScopedStyle frameBorderSize(ImGuiStyleVar_FrameBorderSize, 0.0f);
                 RenderTopBar(topBarHeight);
 
-                float cellSize = s_ThumbnailSize + s_Padding;
-
-                float panelWidth = ImGui::GetContentRegionAvail().x;
-                int columnCount = (int)(panelWidth / cellSize);
-                columnCount = columnCount < 1 ? 1 : columnCount;
-
-                ImGui::Columns(columnCount, 0, false);
-
-                if (m_CurrentDirectory)
-                {
-                    m_HoveredItem = nullptr;
-                    for (auto item : m_CurrentItems)
-                    {
-                        if (!item->ShouldDelete())
-                        {
-                            item->OnImGuiRender();
-
-                            if (item->IsHovered())
-                                m_HoveredItem = item;
-                                
-                            ImGui::NextColumn();
-                        }
-                    }
-                }
-
-                ImGui::Columns(1);
-
-                m_ContentSelection.OnImGuiRender();
-
+                RenderItems();
                 RenderItemContextMenu();
+                m_ContentSelection.OnImGuiRender();
                 if (m_HoveredItem)
                 {
                     if (ImGui::IsMouseClicked(0))
                     {
                         ImGui::CloseCurrentPopup();
-                        m_ContentSelection.Select(m_HoveredItem);
+                        for (auto item : m_ItemsSelected)
+                            item->Deselect();
+    
+                        m_HoveredItem->Select();
                     }
 
                     if (ImGui::IsMouseClicked(1))
                     {
-                        if (m_ContentSelection.Size() <= 1)
+                        if (std::find(m_ItemsSelected.begin(), m_ItemsSelected.end(), m_HoveredItem) == m_ItemsSelected.end())
                         {
-                            m_ContentSelection.Select(m_HoveredItem);
+                            for (auto item : m_ItemsSelected)
+                                item->Deselect();
+
+                            m_HoveredItem->Select();
                         }
                         ImGui::OpenPopup("ItemContextMenu");
                     }
@@ -135,7 +109,10 @@ namespace Chozo {
                     if (ImGui::IsMouseClicked(0))
                     {
                         if (!ImGui::IsPopupOpen("ItemContextMenu"))
-                            m_ContentSelection.Clear();
+                        {
+                            for (auto item : m_ItemsSelected)
+                                item->Deselect();
+                        }
 
                         ImGui::CloseCurrentPopup();
                     }
@@ -151,6 +128,9 @@ namespace Chozo {
         }
 
         ImGui::End();
+
+        // Delete items
+        DeleteItems(m_ItemsShouldDelete);
     }
 
     void ContentBrowserPanel::ChangeDirectory(Ref<DirectoryInfo> directory)
@@ -282,6 +262,56 @@ namespace Chozo {
         }
     }
 
+    void ContentBrowserPanel::RenderItems()
+    {
+        float cellSize = s_ThumbnailSize + s_Padding;
+
+        float panelWidth = ImGui::GetContentRegionAvail().x;
+        int columnCount = (int)(panelWidth / cellSize);
+        columnCount = columnCount < 1 ? 1 : columnCount;
+
+        ImGui::Columns(columnCount, 0, false);
+
+        if (m_CurrentDirectory)
+        {
+            m_HoveredItem = nullptr;
+            for (auto item : m_CurrentItems)
+            {
+                auto actionResult = item->OnImGuiRender();
+
+                if (actionResult.IsSet(ContentBrowserAction::Deleted))
+                {
+                    m_ItemsShouldDelete.push_back(item);
+                    break;
+                }
+
+                if (actionResult.IsSet(ContentBrowserAction::Activated))
+                {
+                    if (item->m_Type == ContentItemType::Directory)
+                    {
+                        ChangeDirectory(item->m_Handle);
+                        break;
+                    }
+                }
+
+                if (actionResult.IsSet(ContentBrowserAction::Hovered))
+                {
+                    m_HoveredItem = item;
+                }
+
+                if (actionResult.IsSet(ContentBrowserAction::Selected))
+                {
+                    m_ItemsSelected.push_back(item);
+                }
+
+                
+                ImGui::NextColumn();
+            }
+        }
+
+        ImGui::Columns(1);
+    }
+
     void ContentBrowserPanel::RenderItemContextMenu()
     {
         if (ImGui::BeginPopup("ItemContextMenu"))
@@ -292,11 +322,8 @@ namespace Chozo {
             }
             if (ImGui::MenuItem("Delete"))
             {
-                auto items = m_ContentSelection.GetSelection();
-                for (auto [handle, item] : items)
-                {
+                for (auto item : m_ItemsSelected)
                     item->Delete();
-                }
                 ImGui::CloseCurrentPopup();
             }
             if (ImGui::MenuItem("Properties"))
@@ -634,9 +661,24 @@ namespace Chozo {
         return directoryInfo->Handle;
     }
 
+    void ContentBrowserPanel::DeleteItem(Ref<ContentItem> item)
+    {
+        auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [item](const Ref<ContentItem> i) {
+            return i == item;
+        });
+
+        if (it != m_CurrentItems.end())
+        {
+            m_CurrentItems.erase(it);
+
+            RemoveAssetFromDir(m_CurrentDirectory, item->GetHandle());
+            Application::GetAssetManager()->RemoveAsset(item->GetHandle());
+            ThumbnailManager::DeleteThumbnail(item->GetHandle());
+        }
+    }
+
     void ContentBrowserPanel::DeleteItems(std::vector<Ref<ContentItem>> items)
     {
-        bool shouldRefresh = items.size() > 0;
         for (auto item : items)
         {
             auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [item](const Ref<ContentItem> i) {
@@ -652,9 +694,6 @@ namespace Chozo {
                 ThumbnailManager::DeleteThumbnail(item->GetHandle());
             }
         }
-
-        if (shouldRefresh)
-            OnBrowserRefresh();
     }
 
     std::string ContentBrowserPanel::CreateItemName(AssetType type)

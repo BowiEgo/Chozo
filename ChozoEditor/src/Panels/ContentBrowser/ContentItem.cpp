@@ -23,19 +23,21 @@ namespace Chozo {
         m_CreateAt = metadata.CreateAt;
     }
 
-    void ContentItem::OnImGuiRender()
+    ContentBrowserItemActionResult ContentItem::OnImGuiRender()
     {
+        ContentBrowserItemActionResult result;
+
         ImVec2 textSize = ImGui::CalcTextSize(m_Filename.c_str());
         ImVec2 thumbnailSize = ImVec2(ContentBrowserPanel::s_ThumbnailSize, ContentBrowserPanel::s_ThumbnailSize);
         ImVec2 itemSize = ImVec2(thumbnailSize.x, thumbnailSize.y + textSize.y + ImGui::GetStyle().ItemSpacing.y);
 
-        m_Rect.first = ImGui::GetCursorScreenPos();
-        m_Rect.second = m_Rect.first + itemSize;
+        m_Rect.Min = ImGui::GetCursorScreenPos();
+        m_Rect.Max = m_Rect.Min + itemSize;
 
         auto [rectMin, rectMax] = m_Rect;
 
         UI::ScopedID id(m_Handle);
-        if (ImGui::Selectable("##Selectable", m_Select, ImGuiSelectableFlags_None, itemSize))
+        if (ImGui::Selectable("##Selectable", m_Selected, ImGuiSelectableFlags_None, itemSize))
         {
             if (m_AssetType == AssetType::Material)
             {
@@ -45,13 +47,17 @@ namespace Chozo {
             }
         }
 
-        RenderDragDrop(m_Handle);
+        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+        {
+            result.Set(ContentBrowserAction::Activated, true);
+        }
 
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
-            m_Hovered = true;
-        else
-            m_Hovered = false;
+        {
+            result.Set(ContentBrowserAction::Hovered, true);
+        }
 
+        RenderDragDrop(m_Handle);
         ImVec2 cursorPos = ImGui::GetCursorScreenPos();
         cursorPos.y = cursorPos.y - itemSize.y - 6.0f;
         ImGui::SetCursorScreenPos(cursorPos);
@@ -59,11 +65,17 @@ namespace Chozo {
         RenderTooltip();
         RenderCenteredText(m_Filename);
 
-        // if (!m_Select)
-        // {
-        //     // ImGui::GetWindowDrawList()->AddRect(rectMin, rectMax, IM_COL32(150, 150, 150, 255));
-        //     PropertiesPanel::Get().SetSelectedEntity({});
-        // }
+        if (m_Selected)
+        {
+            // ImGui::GetWindowDrawList()->AddRect(rectMin, rectMax, IM_COL32(150, 150, 150, 255));
+            // PropertiesPanel::Get().SetSelectedEntity({});
+            result.Set(ContentBrowserAction::Selected, true);
+        }
+
+        if (m_Delete)
+            result.Set(ContentBrowserAction::Deleted, true);
+
+        return result;
     }
 
     void ContentItem::UpdateThumbnail()
@@ -80,7 +92,6 @@ namespace Chozo {
                 m_Thumbnail = ThumbnailManager::GetThumbnail(m_Handle);
             else
                 m_Thumbnail = ContentBrowserPanel::GetIcon("TextFile");
-
         }
     }
 
@@ -124,7 +135,7 @@ namespace Chozo {
         }
     }
 
-    void ContentItem::RenderDragDrop(const AssetHandle& handle)
+    void ContentItem::RenderDragDrop(const UUID& handle)
     {
         if (ImGui::BeginDragDropSource())
         {

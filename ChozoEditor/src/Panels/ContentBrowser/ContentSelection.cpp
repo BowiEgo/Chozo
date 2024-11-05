@@ -22,7 +22,7 @@ namespace Chozo {
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         {
             m_Disabled = false;
-            m_Selecting = false;
+            m_Dragging = false;
             m_StartPos = io.MousePos;
             m_EndPos = m_StartPos;
 
@@ -39,17 +39,18 @@ namespace Chozo {
 
             if (distance > selectionThreshold && !m_Disabled)
             {
-                m_Selecting = true;
+                m_Dragging = true;
             }
         }
         else if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
         {
-            m_Selecting = false;
+            m_Dragging = false;
         }
 
         ImVec2 rectMin, rectMax;
-        // Step 2: Draw the selection box if dragging
-        if (m_Selecting)
+
+        // Draw the selection box if dragging
+        if (m_Dragging)
         {
             rectMin = ImVec2(fminf(m_StartPos.x, m_EndPos.x), fminf(m_StartPos.y, m_EndPos.y));
             rectMax = ImVec2(fmaxf(m_StartPos.x, m_EndPos.x), fmaxf(m_StartPos.y, m_EndPos.y));
@@ -59,56 +60,17 @@ namespace Chozo {
         auto items = ContentBrowserPanel::GetItems();
         for (size_t i = 0; i < items.size(); i++)
         {
-            auto [itemMin, itemMax] = items[i]->GetRect();
+            auto itemRect = items[i]->GetRect();
+            
+            if (itemRect.Min.x == 0 && itemRect.Min.y == 0 && itemRect.Max.x == 0 && itemRect.Max.y == 0)
+                break;
 
-            bool intersecting = !(itemMin.x > rectMax.x || itemMax.x < rectMin.x || itemMin.y > rectMax.y || itemMax.y < rectMin.y);
+            bool intersecting = !(itemRect.Min.x > rectMax.x || itemRect.Max.x < rectMin.x || itemRect.Min.y > rectMax.y || itemRect.Max.y < rectMin.y);
 
             if (intersecting)
-                Push(items[i]);
-            else if (m_Selecting)
-                Deselect(items[i]);
+                items[i]->Select();
+            else if (m_Dragging)
+                items[i]->Deselect();
         }
     }
-
-    void ContentSelection::Clear()
-    {
-        for (auto [handle, item] : m_Selection)
-        {
-            m_Selection[handle]->Deselect();
-        }
-
-        m_Selection.clear();
-    }
-
-    void ContentSelection::Push(Ref<ContentItem> item)
-    {
-        auto handle = item->GetHandle();
-        if (m_Selection.find(handle) == m_Selection.end())
-        {
-            m_Selection[handle] = item;
-            item->Select();
-        }
-    }
-
-    void ContentSelection::Select(Ref<ContentItem> item)
-    {
-        Clear();
-        Push(item);
-    }
-
-    void ContentSelection::Deselect(Ref<ContentItem> item)
-    {
-        auto handle = item->GetHandle();
-        Deselect(handle);
-    }
-
-    void ContentSelection::Deselect(AssetHandle handle)
-    {
-        if (m_Selection.find(handle) != m_Selection.end())
-        {
-            m_Selection[handle]->Deselect();
-            m_Selection.erase(handle);
-        }
-    }
-
 } // namespace Chozo
