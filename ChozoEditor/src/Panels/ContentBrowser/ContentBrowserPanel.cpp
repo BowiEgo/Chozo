@@ -647,26 +647,35 @@ namespace Chozo {
 
     std::string ContentBrowserPanel::CreateItemName(AssetType type)
     {
-        auto itemType = Utils::AssetTypeToString(type);
+        std::string result;
+        std::string defaultName = std::string(Utils::AssetTypeToString(type));
 
         int maxIndex = -1;
-        std::regex pattern(R"(material_(\d+))");
+        std::regex pattern(defaultName + R"(_(\d+))");
         std::smatch match;
+        std::vector<int> indices;
 
-        for (const auto& item : s_Instance->m_CurrentItems) {
+        for (const auto& item : s_Instance->m_CurrentItems)
+        {
             auto name = item->GetFilename();
-            if (name == itemType) {
-                maxIndex = std::max(maxIndex, 0);
-            } else if (std::regex_search(name, match, pattern)) {
-                int index = std::stoi(match[1]);
-                maxIndex = std::max(maxIndex, index);
-            }
+            if (name == defaultName)
+                indices.push_back(0);
+            if (std::regex_search(name, match, pattern))
+                indices.push_back(std::stoi(match[1].str()));
         }
 
-        std::string itemName = itemType;
-        if (maxIndex > -1)
-            itemName += ("_" + std::to_string(maxIndex + 1));
+        std::sort(indices.begin(), indices.end());
+        int newIndex = 0;
+        for (int index: indices)
+        {
+            if (index == newIndex)
+                newIndex++;
+            else if (index > newIndex)
+                break;
+        }
 
-        return itemName;
+        result = newIndex == 0 ? defaultName : defaultName + "_" + std::to_string(newIndex);
+
+        return result;
     }
 }
