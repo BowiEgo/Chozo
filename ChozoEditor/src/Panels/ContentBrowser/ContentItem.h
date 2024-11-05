@@ -59,6 +59,7 @@ namespace Chozo {
         AssetHandle m_Handle;
         std::string m_Filename;
         uint64_t m_Size;
+        uint64_t m_CreateAt;
         Ref<Texture2D> m_Thumbnail;
 
         std::pair<ImVec2, ImVec2> m_Rect;

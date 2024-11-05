@@ -1,9 +1,8 @@
 #pragma once
 
 #include "Chozo/Core/UUID.h"
+#include "Chozo/Utilities/TimeUtils.h"
 #include "AssetType.h"
-
-#include "czpch.h"
 
 namespace Chozo {
 
@@ -39,20 +38,9 @@ namespace Chozo {
 		bool IsDataLoaded = false;
 		bool IsMemoryAsset = false;
 
+		uint64_t CreateAt = Utils::Time::CreateTimestamp();
+		uint64_t ModifiedAt = Utils::Time::CreateTimestamp();
+
 		bool IsValid() const { return Handle != 0 && !IsMemoryAsset; }
-	};
-
-	struct Texture2DMetadata
-	{
-		uint16_t Format;
-
-		uint32_t Samples;
-		uint32_t Width, Height;
-        uint8_t Mipmap;
-		uint16_t WrapR;
-		uint16_t WrapS;
-		uint16_t WrapT;
-		uint16_t MinFilter;
-		uint16_t MagFilter;
 	};
 }

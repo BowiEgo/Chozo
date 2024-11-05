@@ -176,7 +176,7 @@ namespace Chozo {
 
         for (auto& [subdirHandle, subDir] : directory->SubDirectories)
             m_CurrentItems.push_back(Ref<ContentItem>::Create(subDir));
-        
+
         for (auto& [AssetHandle, metadata] : directory->Assets)
             m_CurrentItems.push_back(Ref<ContentItem>::Create(metadata));
     }
@@ -242,10 +242,12 @@ namespace Chozo {
         material->Set("u_Material.EnableRoughnessTex", false);
         material->Set("u_Material.EnableNormalTex", false);
 
+        s_Instance->OnBrowserRefresh();
+
         auto task = Ref<ThumbnailPoolTask>::Create(material, PoolTaskFlags_Export);
+
         Pool::AddTask(task);
         Pool::Start();
-        s_Instance->OnBrowserRefresh();
 
         return material;
     }
@@ -529,14 +531,15 @@ namespace Chozo {
                 break;
         }
 
-        SaveAllAssets();
         OnBrowserRefresh();
+        RenderItemThumbnails(m_CurrentItems);
     }
 
     void ContentBrowserPanel::SaveAllAssets()
     {
         auto assetManager = Application::GetAssetManager();
         assetManager->SaveAssets();
+        OnBrowserRefresh();
         RenderItemThumbnails(m_CurrentItems);
     }
 
@@ -553,7 +556,6 @@ namespace Chozo {
                 auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
                 Pool::AddTask(task);
             }
-
         }
 
         // Cache the renderer ouput for MaterialPanel because it will change after thumbnails rendered.
@@ -561,10 +563,19 @@ namespace Chozo {
         Pool::Start();
     }
 
-    void ContentBrowserPanel::AddAssetsToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata)
+    void ContentBrowserPanel::AddAssetToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata)
     {
-        directory->Assets[metadata.Handle] = Application::GetAssetManager()->GetMetadata(metadata.Handle);
+        directory->Assets[metadata.Handle] = metadata;
         directory->AssetsSorted.push_back(metadata.Handle);
+    }
+
+    void ContentBrowserPanel::RemoveAssetFromDir(Ref<DirectoryInfo> directory, AssetHandle handle)
+    {
+        directory->Assets.erase(handle);
+
+        auto it = std::find(directory->AssetsSorted.begin(), directory->AssetsSorted.end(), handle);
+        if (it != directory->AssetsSorted.end())
+            directory->AssetsSorted.erase(it);
     }
 
     void ContentBrowserPanel::SortAssets(Ref<DirectoryInfo> directory)
@@ -611,7 +622,7 @@ namespace Chozo {
 			auto metadata = Application::GetAssetManager()->GetMetadata(entry.path());
             if (metadata.IsValid())
             {
-                AddAssetsToDir(directoryInfo, metadata);
+                AddAssetToDir(directoryInfo, metadata);
             }
         }
 
@@ -635,7 +646,8 @@ namespace Chozo {
             if (it != m_CurrentItems.end())
             {
                 m_CurrentItems.erase(it);
-                m_CurrentDirectory->Assets.erase(item->GetHandle());
+
+                RemoveAssetFromDir(m_CurrentDirectory, item->GetHandle());
                 Application::GetAssetManager()->RemoveAsset(item->GetHandle());
                 ThumbnailManager::DeleteThumbnail(item->GetHandle());
             }

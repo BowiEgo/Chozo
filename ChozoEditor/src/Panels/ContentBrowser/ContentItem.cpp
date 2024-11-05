@@ -20,6 +20,7 @@ namespace Chozo {
         m_Handle = metadata.Handle;
         m_Filename = metadata.FilePath.filename().string();
         m_Size = metadata.FileSize;
+        m_CreateAt = metadata.CreateAt;
     }
 
     void ContentItem::OnImGuiRender()
@@ -118,6 +119,7 @@ namespace Chozo {
         {
             ImGui::Text("ID: %s", std::to_string(m_Handle).c_str());
             ImGui::Text("Size: %s", Utils::File::BytesToHumanReadable(m_Size).c_str());
+            ImGui::Text("CreatAt: %s", Utils::Time::FormatTimestamp(m_CreateAt).c_str());
             ImGui::EndTooltip();
         }
     }

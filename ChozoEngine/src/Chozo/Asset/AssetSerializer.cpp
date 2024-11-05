@@ -224,6 +224,21 @@ namespace Chozo {
         return out;
     }
 
+    static bool PrepareDeserialize(AssetMetadata &metadata, fs::path& dest)
+    {
+        fs::path path(metadata.FilePath);
+        fs::path filepath = Utils::File::GetAssetDirectory() / path;
+        dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+
+        if (!fs::exists(dest))
+        {
+            CZ_CORE_ERROR("Asset file doesn't exist at {}", dest.string());
+            return false;
+        }
+
+        return true;
+    }
+
     //==============================================================================
 	/// SceneSerializer
     static void SerializeEntity(YAML::Emitter& out, Entity entity)
@@ -415,10 +430,17 @@ namespace Chozo {
         fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
 
         FileStreamWriter stream(dest);
+        SceneFile file;
 
+        // Write header
+        file.Header.CreateAt = metadata.CreateAt;
+        file.Header.ModifiedAt = metadata.ModifiedAt;
+		stream.WriteRaw<SceneFile::FileHeader>(file.Header);
+
+        // Write YAML
         Ref<Scene> scene = asset.As<Scene>();
 		std::string yamlString = SerializeToYAML(scene);
-        
+
         uint64_t start = stream.GetStreamPosition();
 		stream.WriteString(yamlString);
         uint64_t size = stream.GetStreamPosition() - start;
@@ -435,13 +457,21 @@ namespace Chozo {
         return size;
     }
 
-    Ref<Asset> SceneSerializer::Deserialize(const AssetMetadata &metadata) const
+    Ref<Asset> SceneSerializer::Deserialize(AssetMetadata &metadata) const
     {
-        fs::path path(metadata.FilePath);
-        fs::path filepath = Utils::File::GetAssetDirectory() / path;
-        fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+        fs::path dest;
+        if (!PrepareDeserialize(metadata, dest))
+            return nullptr;
 
         FileStreamReader stream(dest);
+		SceneFile file;
+
+        // Read header
+		stream.ReadRaw<SceneFile::FileHeader>(file.Header);
+        metadata.CreateAt = file.Header.CreateAt;
+        metadata.ModifiedAt = file.Header.ModifiedAt;
+
+        // Read YAML
 		std::string yamlString;
 		stream.ReadString(yamlString);
 
@@ -635,56 +665,83 @@ namespace Chozo {
         fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
 
         FileStreamWriter stream(dest);
+		uint64_t start = stream.GetStreamPosition();
 
-		Buffer buffer;
+        TextureFile file;
         Ref<Texture2D> texture = asset.As<Texture2D>();
-        texture->CopyToHostBuffer(buffer);
-        
-		Texture2DMetadata texture2DMetadata;
-        texture2DMetadata.Format = (uint16_t)texture->GetSpecification().Format;
-        texture2DMetadata.Samples = texture->GetSpecification().Samples;
-        texture2DMetadata.Mipmap = (uint8_t)texture->GetSpecification().Mipmap;
-        texture2DMetadata.Width = texture->GetWidth();
-        texture2DMetadata.Height = texture->GetHeight();
-        texture2DMetadata.MinFilter = (uint16_t)texture->GetSpecification().MinFilter;
-        texture2DMetadata.MagFilter = (uint16_t)texture->GetSpecification().MagFilter;
-        texture2DMetadata.WrapR = (uint16_t)texture->GetSpecification().WrapR;
-        texture2DMetadata.WrapS = (uint16_t)texture->GetSpecification().WrapS;
-        texture2DMetadata.WrapT = (uint16_t)texture->GetSpecification().WrapT;
 
-		stream.WriteRaw(texture2DMetadata);
+        // Write header
+        file.Header.CreateAt = metadata.CreateAt;
+        file.Header.ModifiedAt = metadata.ModifiedAt;
+		stream.WriteRaw<TextureFile::FileHeader>(file.Header);
+
+        // Leave space for Metadata
+		uint64_t metadataAbsolutePosition = stream.GetStreamPosition();
+		stream.WriteZero(sizeof(TextureFile::Metadata));
+        
+        file.Data.Format = (uint16_t)texture->GetSpecification().Format;
+        file.Data.Samples = texture->GetSpecification().Samples;
+        file.Data.Mipmap = (uint8_t)texture->GetSpecification().Mipmap;
+        file.Data.Width = texture->GetWidth();
+        file.Data.Height = texture->GetHeight();
+        file.Data.MinFilter = (uint16_t)texture->GetSpecification().MinFilter;
+        file.Data.MagFilter = (uint16_t)texture->GetSpecification().MagFilter;
+        file.Data.WrapR = (uint16_t)texture->GetSpecification().WrapR;
+        file.Data.WrapS = (uint16_t)texture->GetSpecification().WrapS;
+        file.Data.WrapT = (uint16_t)texture->GetSpecification().WrapT;
+
+        // Write buffer
+		Buffer buffer;
+        texture->CopyToHostBuffer(buffer);
 		stream.WriteBuffer(buffer);
-        uint64_t size = buffer.GetSize() + sizeof(texture2DMetadata);
 
         buffer.Release();
+
+        // Write metadata
+		uint64_t endOfStream = stream.GetStreamPosition();
+		stream.SetStreamPosition(metadataAbsolutePosition);
+        stream.WriteRaw(file.Data);
+		stream.SetStreamPosition(endOfStream);
+
+        uint64_t size = stream.GetStreamPosition() - start;
 
         return size;
     }
 
-    Ref<Asset> TextureSerializer::Deserialize(const AssetMetadata& metadata) const
+    Ref<Asset> TextureSerializer::Deserialize(AssetMetadata& metadata) const
     {
-        fs::path path(metadata.FilePath);
-        fs::path filepath = Utils::File::GetAssetDirectory() / path;
-        fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+        fs::path dest;
+        if (!PrepareDeserialize(metadata, dest))
+            return nullptr;
 
         FileStreamReader stream(dest);
-		Texture2DMetadata texture2DMetadata;
-		stream.ReadRaw<Texture2DMetadata>(texture2DMetadata);
+		uint64_t streamOffset = stream.GetStreamPosition();
 
-        Buffer buffer;
-        stream.ReadBuffer(buffer);
+        TextureFile file;
+
+        // Read header
+        stream.ReadRaw<TextureFile::FileHeader>(file.Header);
+        metadata.CreateAt = file.Header.CreateAt;
+        metadata.ModifiedAt = file.Header.ModifiedAt;
+
+        // Read textureFile metadata
+        stream.ReadRaw<TextureFile::Metadata>(file.Data);
 
         Texture2DSpecification spec;
-		spec.Format = (ImageFormat)texture2DMetadata.Format;
-		spec.Samples = texture2DMetadata.Samples;
-		spec.Width = texture2DMetadata.Width;
-		spec.Height = texture2DMetadata.Height;
-		spec.Mipmap = (bool)texture2DMetadata.Mipmap;
-		spec.MinFilter = (ImageParameter)texture2DMetadata.MinFilter;
-		spec.MagFilter = (ImageParameter)texture2DMetadata.MagFilter;
-		spec.WrapR = (ImageParameter)texture2DMetadata.WrapR;
-		spec.WrapS = (ImageParameter)texture2DMetadata.WrapS;
-		spec.WrapT = (ImageParameter)texture2DMetadata.WrapT;
+		spec.Format = (ImageFormat)file.Data.Format;
+		spec.Samples = file.Data.Samples;
+		spec.Width = file.Data.Width;
+		spec.Height = file.Data.Height;
+		spec.Mipmap = (bool)file.Data.Mipmap;
+		spec.MinFilter = (ImageParameter)file.Data.MinFilter;
+		spec.MagFilter = (ImageParameter)file.Data.MagFilter;
+		spec.WrapR = (ImageParameter)file.Data.WrapR;
+		spec.WrapS = (ImageParameter)file.Data.WrapS;
+		spec.WrapT = (ImageParameter)file.Data.WrapT;
+
+        // Read buffer
+        Buffer buffer;
+        stream.ReadBuffer(buffer);
 
         Ref<Texture2D> texture = Texture2D::Create(buffer, spec);
 
@@ -702,10 +759,17 @@ namespace Chozo {
         fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
 
         FileStreamWriter stream(dest);
+        MaterialFile file;
 
+        // Write header
+        file.Header.CreateAt = metadata.CreateAt;
+        file.Header.ModifiedAt = metadata.ModifiedAt;
+		stream.WriteRaw<MaterialFile::FileHeader>(file.Header);
+
+        // Write YAML
         Ref<Material> material = asset.As<Material>();
 		std::string yamlString = SerializeToYAML(material);
-        
+
         uint64_t start = stream.GetStreamPosition();
 		stream.WriteString(yamlString);
         uint64_t size = stream.GetStreamPosition() - start;
@@ -722,13 +786,21 @@ namespace Chozo {
         return size;
     }
 
-    Ref<Asset> MaterialSerializer::Deserialize(const AssetMetadata &metadata) const
+    Ref<Asset> MaterialSerializer::Deserialize(AssetMetadata &metadata) const
     {
-        fs::path path(metadata.FilePath);
-        fs::path filepath = Utils::File::GetAssetDirectory() / path;
-        fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+        fs::path dest;
+        if (!PrepareDeserialize(metadata, dest))
+            return nullptr;
 
         FileStreamReader stream(dest);
+        MaterialFile file;
+
+        // Read header
+		stream.ReadRaw<MaterialFile::FileHeader>(file.Header);
+        metadata.CreateAt = file.Header.CreateAt;
+        metadata.ModifiedAt = file.Header.ModifiedAt;
+
+        // Read YAML
 		std::string yamlString;
 		stream.ReadString(yamlString);
 
@@ -845,6 +917,8 @@ namespace Chozo {
 			file.Data.Flags |= (uint32_t)MeshSourceFile::MeshFlags::HasMaterials;
 
         // Write header
+        file.Header.CreateAt = metadata.CreateAt;
+        file.Header.ModifiedAt = metadata.ModifiedAt;
 		stream.WriteRaw<MeshSourceFile::FileHeader>(file.Header);
 
         // Leave space for Metadata
@@ -949,7 +1023,7 @@ namespace Chozo {
         return size;
     }
 
-    Ref<Asset> MeshSourceSerializer::Deserialize(const AssetMetadata &metadata) const
+    Ref<Asset> MeshSourceSerializer::Deserialize(AssetMetadata &metadata) const
     {
         fs::path path(metadata.FilePath);
         fs::path filepath = Utils::File::GetAssetDirectory() / path;
@@ -962,17 +1036,22 @@ namespace Chozo {
 
 		MeshSourceFile file;
 
+        // Read header
 		stream.ReadRaw<MeshSourceFile::FileHeader>(file.Header);
+        metadata.CreateAt = file.Header.CreateAt;
+        metadata.ModifiedAt = file.Header.ModifiedAt;
+
+        // Read meshSourceFile metadata
         stream.ReadRaw<MeshSourceFile::Metadata>(file.Data);
 
         // Read boudingBox
         meshSource->m_BoundingBox = file.Data.BoudingBox;
 
-        // Write nodes
+        // Read nodes
 		stream.SetStreamPosition(file.Data.NodeArrayOffset + streamOffset);
         stream.ReadArray(meshSource->m_Nodes);
 
-        // Write submeshes
+        // Read submeshes
 		stream.SetStreamPosition(file.Data.SubmeshArrayOffset + streamOffset);
         stream.ReadArray(meshSource->m_Submeshes);
 

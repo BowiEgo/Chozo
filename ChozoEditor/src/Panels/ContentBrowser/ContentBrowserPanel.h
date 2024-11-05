@@ -56,7 +56,8 @@ namespace Chozo {
         void SaveAllAssets();
         void RenderItemThumbnails(std::vector<Ref<ContentItem>> items);
 
-        void AddAssetsToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata);
+        void AddAssetToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata);
+        void RemoveAssetFromDir(Ref<DirectoryInfo> directory, AssetHandle handle);
         void SortAssets(Ref<DirectoryInfo> directory);
         void SortSubDirs(Ref<DirectoryInfo> directory);
 
@@ -91,7 +92,7 @@ namespace Chozo {
         Ref<T> asset = Application::GetAssetManager()->CreateNewAsset<T>(filename, directory->FilePath.string(), std::forward<Args>(args)...);
         auto metadata = Application::GetAssetManager()->GetMetadata(asset->Handle);
 
-        AddAssetsToDir(directory, metadata);
+        AddAssetToDir(directory, metadata);
         SortAssets(directory);
 
         return asset;

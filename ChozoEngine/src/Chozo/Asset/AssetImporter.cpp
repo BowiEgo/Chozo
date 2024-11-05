@@ -27,17 +27,12 @@ namespace Chozo
         }
     }
 
-    Ref<Asset> AssetImporter::TryLoadData(const AssetMetadata &metadata)
-    {
-		return s_Serializers[metadata.Type]->Deserialize(metadata);
-    }
-
     uint64_t AssetImporter::Serialize(const AssetMetadata& metadata, Ref<Asset>& asset)
     {
 		return s_Serializers[metadata.Type]->Serialize(metadata, asset);
     }
 
-    Ref<Asset> AssetImporter::Deserialize(const AssetMetadata &metadata)
+    Ref<Asset> AssetImporter::Deserialize(AssetMetadata &metadata)
     {
 		return s_Serializers[metadata.Type]->Deserialize(metadata);
     }

@@ -7,42 +7,89 @@
 
 namespace Chozo {
 
+	struct AssetFile
+	{
+		struct FileHeader
+		{
+			uint32_t Version = 1;
+			uint64_t CreateAt;
+			uint64_t ModifiedAt;
+		};
+
+		FileHeader Header;
+	};
+
     class AssetSerializer
     {
     public:
 		virtual ~AssetSerializer() = default;
 
 		virtual uint64_t Serialize(const AssetMetadata& metadata, Ref<Asset>& asset) const = 0;
-		virtual Ref<Asset> Deserialize(const AssetMetadata& metadata) const = 0;
+		virtual Ref<Asset> Deserialize(AssetMetadata& metadata) const = 0;
     };
+
+	//==============================================================================
+	/// SceneSerializer
+	struct SceneFile : public AssetFile
+	{
+	};
 
 	class SceneSerializer : public AssetSerializer
 	{
 	public:
 		virtual uint64_t Serialize(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(const AssetMetadata& metadata) const override;
+		virtual Ref<Asset> Deserialize(AssetMetadata& metadata) const override;
 	private:
 		std::string SerializeToYAML(Ref<Scene> scene) const;
 		Ref<Scene> DeserializeFromYAML(const std::string& yamlString) const;
+	};
+
+	//==============================================================================
+	/// TextureSerializer
+	struct TextureFile : public AssetFile
+	{
+		struct Metadata
+		{
+			uint16_t Format;
+
+			uint32_t Samples;
+			uint32_t Width, Height;
+			uint8_t Mipmap;
+			uint16_t WrapR;
+			uint16_t WrapS;
+			uint16_t WrapT;
+			uint16_t MinFilter;
+			uint16_t MagFilter;
+		};
+
+		Metadata Data;
 	};
 
     class TextureSerializer : public AssetSerializer
 	{
 	public:
 		virtual uint64_t Serialize(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(const AssetMetadata& metadata) const override;
+		virtual Ref<Asset> Deserialize(AssetMetadata& metadata) const override;
+	};
+
+	//==============================================================================
+	/// MaterialSerializer
+	struct MaterialFile : public AssetFile
+	{
 	};
 
 	class MaterialSerializer : public AssetSerializer
 	{
 	public:
 		virtual uint64_t Serialize(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(const AssetMetadata& metadata) const override;
+		virtual Ref<Asset> Deserialize(AssetMetadata& metadata) const override;
 	private:
 		std::string SerializeToYAML(Ref<Material> material) const;
 		Ref<Material> DeserializeFromYAML(const std::string& yamlString) const;
 	};
 
+	//==============================================================================
+	/// MeshSourceSerializer
 	struct MeshMaterial
 	{
 		std::string Name;
@@ -113,7 +160,7 @@ namespace Chozo {
 	};
 	
 
-	struct MeshSourceFile
+	struct MeshSourceFile : public AssetFile
 	{
 		enum class MeshFlags : uint32_t
 		{
@@ -143,20 +190,14 @@ namespace Chozo {
 			uint64_t MaterialArraySize;
 		};
 
-		struct FileHeader
-		{
-			uint32_t Version = 1;
-		};
-
 		Metadata Data;
-		FileHeader Header;
 	};
 
 	class MeshSourceSerializer : public AssetSerializer
 	{
 	public:
 		virtual uint64_t Serialize(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(const AssetMetadata& metadata) const override;
+		virtual Ref<Asset> Deserialize(AssetMetadata& metadata) const override;
 	private:
 		std::string SerializeToYAML(Ref<MeshSource> meshSource) const;
 		Ref<MeshSource> DeserializeFromYAML(const std::string& yamlString) const;

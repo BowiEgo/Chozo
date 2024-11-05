@@ -33,7 +33,7 @@ namespace Chozo {
 
         if (!metadata.IsDataLoaded)
         {
-            auto asset = AssetImporter::TryLoadData(metadata);
+            auto asset = AssetImporter::Deserialize(metadata);
             metadata.IsDataLoaded = !!asset;
             if (asset)
             {
@@ -86,7 +86,7 @@ namespace Chozo {
             m_LoadedAssets.erase(handle);
             m_MemoryAssets.erase(handle);
 
-            SaveAssets();
+            WriteRegistryToFile();
 
             fs::path filePath = Utils::File::GetAssetDirectory() / metadata.FilePath;
             Utils::File::DeleteFile(filePath.string() + ".asset");
@@ -172,6 +172,7 @@ namespace Chozo {
         {
 			metadata.Handle = AssetHandle();
 			metadata.Type = asset->GetAssetType();
+            asset->Handle = metadata.Handle;
         }
 
         metadata.FilePath = filepath;
@@ -227,10 +228,15 @@ namespace Chozo {
             
             // TODO: Remove
 		    Ref<Asset> asset = AssetImporter::Deserialize(metadata);
+            metadata.IsDataLoaded = !!asset;
             if (asset)
             {
 			    asset->Handle = handle;
 			    m_LoadedAssets[handle] = asset;
+            }
+            else
+            {
+                RemoveAsset(handle);
             }
         }
         return;

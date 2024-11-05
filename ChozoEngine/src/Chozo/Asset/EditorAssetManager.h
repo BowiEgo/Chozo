@@ -41,21 +41,15 @@ namespace Chozo {
 		template<typename T, typename... Args>
 		Ref<T> CreateNewAsset(const std::string& filename, const std::string& directoryPath, Args&&... args)
 		{
-			AssetMetadata metadata;
-			metadata.Handle = AssetHandle();
+			fs::path filePath;
+
 			if (directoryPath.empty() || directoryPath == ".")
-				metadata.FilePath = filename;
+				filePath = filename;
 			else
-				metadata.FilePath = directoryPath + "/" + filename;
-			metadata.IsDataLoaded = true;
-			metadata.Type = T::GetStaticType();
+				filePath = directoryPath + "/" + filename;
 
 			Ref<Asset> asset = T::Create(std::forward<Args>(args)...);
-			asset->Handle = metadata.Handle;
-			m_LoadedAssets[asset->Handle] = asset;
-			metadata.FileSize = AssetImporter::Serialize(metadata, asset);
-
-			m_AssetRegistry[metadata.Handle] = metadata;
+			SaveAsset(asset, filePath);
 
 			return asset;
 		}

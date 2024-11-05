@@ -129,6 +129,8 @@ namespace Chozo {
         pointLight.GetComponent<TransformComponent>().Translation.x = 2.0f;
         pointLight.GetComponent<TransformComponent>().Translation.y = 2.0f;
         pointLight.GetComponent<TransformComponent>().Translation.z = 2.0f;
+
+        Update();
     }
 
     void MaterialThumbnailRenderer::Render(Ref<ThumbnailPoolTask> task)
