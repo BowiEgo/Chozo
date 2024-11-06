@@ -99,6 +99,21 @@ namespace Chozo {
     {
         UpdateThumbnail();
 
+        if (!m_Thumbnail)
+        {
+            auto asset = Application::GetAssetManager()->GetAsset(m_Handle);
+            if (asset)
+            {
+                auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
+                Pool::AddTask(task);
+
+                // Cache the renderer ouput for MaterialPanel because it will change after thumbnails rendered.
+                ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->CreateCache();
+                Pool::Start();
+            }
+            return;
+        }
+
         float thumbnailSize = ContentBrowserPanel::s_ThumbnailSize;
         float imageAspectRatio = static_cast<float>(m_Thumbnail->GetHeight()) / static_cast<float>(m_Thumbnail->GetWidth());
         ImVec2 uv0(0.0f, 1.0f);

@@ -161,6 +161,8 @@ namespace Chozo {
 
     void EditorAssetManager::SaveAsset(Ref<Asset> asset, const fs::path &filepath)
     {
+		fs::path path = GetRelativePath(filepath);
+
         AssetMetadata metadata;
 
         if (asset->Handle != 0)
@@ -175,7 +177,7 @@ namespace Chozo {
             asset->Handle = metadata.Handle;
         }
 
-        metadata.FilePath = filepath;
+        metadata.FilePath = path;
         metadata.IsDataLoaded = true;
         metadata.IsMemoryAsset = false;
         metadata.FileSize = AssetImporter::Serialize(metadata, asset);

@@ -27,6 +27,8 @@ namespace Chozo {
                     s_Renderers[type] = CreateScope<TextureThumbnailRenderer>(); break;
                 case AssetType::Material:
                     s_Renderers[type] = CreateScope<MaterialThumbnailRenderer>(); break;
+                case AssetType::MeshSource:
+                    s_Renderers[type] = CreateScope<MeshSourceThumbnailRenderer>(); break;
                 default:
                     break;
             }
@@ -190,6 +192,22 @@ namespace Chozo {
             return Entity{ entity, m_Scene.get() };
 
         return Entity();
+    }
+
+    //==============================================================================
+    /// MeshSourceThumbnailRenderer
+    MeshSourceThumbnailRenderer::MeshSourceThumbnailRenderer()
+    {
+        m_SceneRenderer = SceneRenderer::Create(m_Scene);
+        m_SceneRenderer->SetActive(true);
+        m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_Camera = EditorCamera(6.0f, 1.0f, 0.1f, 1000.0f);
+    }
+
+    void MeshSourceThumbnailRenderer::Render(Ref<ThumbnailPoolTask> task)
+    {
+        Renderer::GetRendererData().WhiteTexture->CopyToHostBuffer(task->ImageData);
+        task->SetStatus(TaskStatus::Finished);
     }
 
 } // namespace Chozo

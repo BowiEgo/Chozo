@@ -52,6 +52,8 @@ namespace Chozo {
         static uint32_t s_ThumbnailSize;
     };
 
+    //==============================================================================
+    /// SceneThumbnailRenderer
     class SceneThumbnailRenderer : public ThumbnailRenderer
     {
     public:
@@ -64,12 +66,16 @@ namespace Chozo {
 		Ref<SceneRenderer> m_SceneRenderer;
     };
 
+    //==============================================================================
+    /// TextureThumbnailRenderer
     class TextureThumbnailRenderer : public ThumbnailRenderer
     {
     public:
         virtual void Render(Ref<ThumbnailPoolTask> task) override;
     };
 
+    //==============================================================================
+    /// MaterialThumbnailRenderer
     class MaterialThumbnailRenderer : public ThumbnailRenderer
     {
     public:
@@ -98,6 +104,20 @@ namespace Chozo {
 		Ref<SceneRenderer> m_SceneRenderer;
         Ref<Material> m_Material;
         Ref<Texture2D> m_Cache;
+    };
+
+    //==============================================================================
+    /// MeshSourceThumbnailRenderer
+    class MeshSourceThumbnailRenderer : public ThumbnailRenderer
+    {
+    public:
+        MeshSourceThumbnailRenderer();
+        virtual void Render(Ref<ThumbnailPoolTask> task) override;
+    private:
+        glm::vec2 m_ViewportSize{200, 200};
+        EditorCamera m_Camera;
+        Ref<Scene> m_Scene;
+		Ref<SceneRenderer> m_SceneRenderer;
     };
     
 } // namespace Chozo

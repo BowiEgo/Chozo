@@ -816,7 +816,8 @@ namespace Chozo {
 		{
 			out << YAML::BeginMap;
             out << YAML::Key << "Name" << YAML::Value << material->GetName();
-            for (auto [name, value] : material->GetUniforms())
+            out << YAML::Key << "ShaderName" << YAML::Value << material->GetShader()->GetName();
+            for (const auto& [name, value] : material->GetUniforms())
             {
                 if (name.find("u_Material") != std::string::npos)
                     Utils::Serialization::SerializeProperty(name, value, out);
@@ -827,7 +828,7 @@ namespace Chozo {
         {
             out << YAML::Key << "Textures" << YAML::Value;
 			out << YAML::BeginMap;
-            for (auto [name, handle] : material->GetTextureAssetHandles())
+            for (const auto& [name, handle] : material->GetTextureAssetHandles())
             {
                 if (name.find("Tex") != std::string::npos)
                     out << YAML::Key << name << YAML::Value << handle;
@@ -846,7 +847,9 @@ namespace Chozo {
 		YAML::Node materialNode = root["Material"];
 		YAML::Node texturesNode = root["Textures"];
 
-        Ref<Material> material = Material::Create(materialNode["Name"].as<std::string>());
+        std::string shaderName = materialNode["ShaderName"].as<std::string>();
+        Ref<Shader> shader = Renderer::GetShaderLibrary()->Get(shaderName);
+        Ref<Material> material = Material::Create(shader, materialNode["Name"].as<std::string>());
         for (const auto& pair : materialNode)
         {
             std::string key = pair.first.as<std::string>();
@@ -979,25 +982,29 @@ namespace Chozo {
 
                 if (albedoTex)
                 {
-                    Application::GetAssetManager()->SaveAsset(albedoTex, filepath.parent_path() / albedoTex->GetSpecification().DebugName);
+                    auto path = filepath.parent_path() / albedoTex->GetSpecification().DebugName;
+                    Application::GetAssetManager()->SaveAsset(albedoTex, path);
                     material.AlbedoTexture = albedoTex->Handle;
                 }
 
                 if (normalTex)
                 {
-                    Application::GetAssetManager()->SaveAsset(normalTex, filepath.parent_path() / normalTex->GetSpecification().DebugName);
+                    auto path = filepath.parent_path() / normalTex->GetSpecification().DebugName;
+                    Application::GetAssetManager()->SaveAsset(normalTex, path);
                     material.NormalTexture = normalTex->Handle;
                 }
 
                 if (metalnessTex)
                 {
-                    Application::GetAssetManager()->SaveAsset(metalnessTex, filepath.parent_path() / metalnessTex->GetSpecification().DebugName);
+                    auto path = filepath.parent_path() / metalnessTex->GetSpecification().DebugName;
+                    Application::GetAssetManager()->SaveAsset(metalnessTex, path);
                     material.MetalnessTexture = metalnessTex->Handle;
                 }
 
                 if (roughnessTex)
                 {
-                    Application::GetAssetManager()->SaveAsset(roughnessTex, filepath.parent_path() / roughnessTex->GetSpecification().DebugName);
+                    auto path = filepath.parent_path() / roughnessTex->GetSpecification().DebugName;
+                    Application::GetAssetManager()->SaveAsset(roughnessTex, path);
                     material.RoughnessTexture = roughnessTex->Handle;
                 }
             }

@@ -17,6 +17,8 @@ namespace Chozo {
         std::string filename = std::to_string(handle) + ".png";
         fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
         fs::path filepath = cacheDir / filename;
+        if (filepath.empty())
+            return;
 
         Texture2DSpecification spec;
         spec.Format = ImageFormat::RGBA;
@@ -69,7 +71,7 @@ namespace Chozo {
         if (thumbnails[assetHandle])
             return thumbnails[assetHandle];
         else
-            return Texture2D::Create(); // TODO: return errorTexture
+            return nullptr; // TODO: return errorTexture
     }
 
 } // namespace Chozo

@@ -133,13 +133,13 @@ namespace Chozo {
         DeleteItems(m_ItemsShouldDelete);
     }
 
-    void ContentBrowserPanel::ChangeDirectory(Ref<DirectoryInfo> directory)
+    void ContentBrowserPanel::ChangeDirectory(Ref<DirectoryInfo>& directory)
     {
         m_NextDirectory = nullptr;
         m_PreviousDirectory = m_CurrentDirectory;
         m_CurrentDirectory = directory;
 
-        OnDirectoryChange(directory);
+        OnDirectoryChange();
     }
 
     void ContentBrowserPanel::ChangeDirectory(AssetHandle directoryHandle)
@@ -147,17 +147,17 @@ namespace Chozo {
         ChangeDirectory(m_Directories[directoryHandle]);
     }
 
-    void ContentBrowserPanel::OnDirectoryChange(Ref<DirectoryInfo> directory)
+    void ContentBrowserPanel::OnDirectoryChange()
     {
         if (!m_CurrentDirectory)
             return;
 
         m_CurrentItems.clear();
 
-        for (auto& [subdirHandle, subDir] : directory->SubDirectories)
+        for (auto& [subdirHandle, subDir] : m_CurrentDirectory->SubDirectories)
             m_CurrentItems.push_back(Ref<ContentItem>::Create(subDir));
 
-        for (auto& [AssetHandle, metadata] : directory->Assets)
+        for (auto& [AssetHandle, metadata] : m_CurrentDirectory->Assets)
             m_CurrentItems.push_back(Ref<ContentItem>::Create(metadata));
     }
 
@@ -168,21 +168,21 @@ namespace Chozo {
 		    m_NextDirectory = m_CurrentDirectory;
     		m_PreviousDirectory = m_CurrentDirectory->Parent;
             m_CurrentDirectory = m_PreviousDirectory;
-            OnDirectoryChange(m_CurrentDirectory);
+            OnDirectoryChange();
         }
     }
 
     void ContentBrowserPanel::OnBrowserForward()
     {
         m_CurrentDirectory = m_NextDirectory;
-        OnDirectoryChange(m_CurrentDirectory);
+        OnDirectoryChange();
     }
 
     void ContentBrowserPanel::OnBrowserRefresh()
     {
 		AssetHandle baseDirectoryHandle = ProcessDirectory(Utils::File::GetAssetDirectory(), nullptr);
 		m_BaseDirectory = m_Directories[baseDirectoryHandle];
-        OnDirectoryChange(m_CurrentDirectory);
+        OnDirectoryChange();
     }
 
     Ref<Scene> ContentBrowserPanel::CreateScene()
@@ -559,7 +559,6 @@ namespace Chozo {
         }
 
         OnBrowserRefresh();
-        RenderItemThumbnails(m_CurrentItems);
     }
 
     void ContentBrowserPanel::SaveAllAssets()
@@ -657,6 +656,12 @@ namespace Chozo {
         SortAssets(directoryInfo);
 
 		m_Directories[directoryInfo->Handle] = directoryInfo;
+
+        if (m_CurrentDirectory)
+        {
+            if (directoryInfo->FilePath == m_CurrentDirectory->FilePath)
+                m_CurrentDirectory = directoryInfo;
+        }
 
         return directoryInfo->Handle;
     }
