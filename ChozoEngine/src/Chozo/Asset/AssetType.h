@@ -20,7 +20,7 @@ namespace Chozo {
 
 	inline static std::unordered_map<std::string, AssetType> s_AssetExtensionMap =
 	{
-		// Hazel types
+		// Chozo types
 		{ ".scene", AssetType::Scene },
 		{ ".material", AssetType::Material },
 

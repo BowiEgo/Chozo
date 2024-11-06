@@ -20,7 +20,7 @@ namespace Chozo::Utils {
             if (!tm) return "";
 
             std::ostringstream oss;
-            oss << std::put_time(tm, "%Y-%m-%d/%H::%M");
+            oss << std::put_time(tm, "%Y-%m-%d %H:%M");
             return oss.str();
         }
     }

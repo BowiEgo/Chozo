@@ -29,11 +29,45 @@ namespace Chozo
 
     uint64_t AssetImporter::Serialize(const AssetMetadata& metadata, Ref<Asset>& asset)
     {
-		return s_Serializers[metadata.Type]->Serialize(metadata, asset);
+		fs::path path(metadata.FilePath);
+        fs::path filepath = Utils::File::GetAssetDirectory() / path;
+        fs::path dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+
+        FileStreamWriter stream(dest);
+        // uint64_t start = stream.GetStreamPosition();
+        AssetFileHeader header;
+
+        // Write header
+        header.Type = (uint16_t)metadata.Type;
+        header.CreateAt = metadata.CreateAt;
+        header.ModifiedAt = metadata.ModifiedAt;
+		stream.WriteRaw<AssetFileHeader>(header);
+
+		return s_Serializers[metadata.Type]->Serialize(stream, metadata, asset);
     }
 
     Ref<Asset> AssetImporter::Deserialize(AssetMetadata &metadata)
     {
-		return s_Serializers[metadata.Type]->Deserialize(metadata);
+		fs::path dest;
+		fs::path path(metadata.FilePath);
+        fs::path filepath = Utils::File::GetAssetDirectory() / path;
+        dest = filepath.parent_path() / (filepath.filename().string() + ".asset");
+
+        if (!fs::exists(dest))
+        {
+            CZ_CORE_ERROR("Asset file doesn't exist at {}", dest.string());
+            return nullptr;
+        }
+
+        FileStreamReader stream(dest);
+		AssetFileHeader header;
+
+		// Read header
+		stream.ReadRaw<AssetFileHeader>(header);
+        metadata.CreateAt = header.CreateAt;
+        metadata.ModifiedAt = header.ModifiedAt;
+		metadata.Type = AssetType(header.Type);
+		
+		return s_Serializers[metadata.Type]->Deserialize(stream, metadata);
     }
 }

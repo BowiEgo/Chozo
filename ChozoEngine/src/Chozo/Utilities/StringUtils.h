@@ -2,7 +2,6 @@
 
 namespace Chozo::Utils {
 
-
     namespace String {
 
 		inline bool isNumeric(const std::string& str)
@@ -31,6 +30,15 @@ namespace Chozo::Utils {
 			return result;
 		}
     }
+
+	namespace Numeric {
+		inline std::string FormatWithCommas(uint64_t value) {
+			std::stringstream ss;
+			ss.imbue(std::locale("en_US.UTF-8")); // Locale adds comma grouping
+			ss << std::fixed << value;
+			return ss.str();
+		}
+	}
 
 	namespace WChar {
 

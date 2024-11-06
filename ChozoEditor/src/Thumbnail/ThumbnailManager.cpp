@@ -14,15 +14,20 @@ namespace Chozo {
 
     void ThumbnailManager::ImportThumbnail(AssetHandle handle)
     {
+        Ref<Texture2D> thumbnail;
+
         std::string filename = std::to_string(handle) + ".png";
         fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
         fs::path filepath = cacheDir / filename;
-        if (filepath.empty())
-            return;
-
-        Texture2DSpecification spec;
-        spec.Format = ImageFormat::RGBA;
-        Ref<Texture2D> thumbnail = Texture2D::Create(filepath.string(), spec);
+        auto exist = fs::exists(filepath);
+        if (exist)
+        {
+            Texture2DSpecification spec;
+            spec.Format = ImageFormat::RGBA;
+            thumbnail = Texture2D::Create(filepath.string(), spec);
+        }
+        else
+            thumbnail = Renderer::GetCheckerboardTexture();
 
         SetThumbnail(handle, thumbnail);
     }

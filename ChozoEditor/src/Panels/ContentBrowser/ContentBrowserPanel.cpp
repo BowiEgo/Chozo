@@ -650,6 +650,13 @@ namespace Chozo {
             {
                 AddAssetToDir(directoryInfo, metadata);
             }
+            else
+            {
+                auto handle = Application::GetAssetManager()->LoadAsset(entry.path());
+                metadata = Application::GetAssetManager()->GetMetadata(handle);
+                if (metadata.IsValid())
+                    AddAssetToDir(directoryInfo, metadata);
+            }
         }
 
         SortSubDirs(directoryInfo);

@@ -48,36 +48,37 @@ namespace Chozo {
                 if (fs::exists(filepath))
                 {
                     fs::remove(filepath);
-                    CZ_CORE_TRACE("File deleted successfully");
+                    CZ_CORE_TRACE("File at {} deleted successfully", filepath);
                 }
                 else
                 {
-                    CZ_CORE_WARN("File not found");
+                    CZ_CORE_WARN("File at {} not found", filepath);
                 }
             }
             catch (const fs::filesystem_error& err)
             {
-                CZ_CORE_ERROR("Error: {}", err.what());
+                CZ_CORE_ERROR("Error: {}  {}", err.what(), filepath);
             }
         }
 
-        static std::string BytesToHumanReadable(uint64_t bytes) {
+        static std::string BytesToHumanReadable(uint64_t bytes)
+        {
             const uint64_t KB = 1024;
             const uint64_t MB = KB * 1024;
             const uint64_t GB = MB * 1024;
 
             std::ostringstream oss;
+            oss << std::fixed << std::setprecision(1);
 
             if (bytes >= GB) {
-                oss << std::fixed << std::setprecision(2) << static_cast<double>(bytes) / GB << " GB";
+                oss << static_cast<double>(bytes) / GB << " GB";
             } else if (bytes >= MB) {
-                oss << std::fixed << std::setprecision(2) << static_cast<double>(bytes) / MB << " MB";
+                oss << static_cast<double>(bytes) / MB << " MB";
             } else if (bytes >= KB) {
-                oss << std::fixed << std::setprecision(2) << static_cast<double>(bytes) / KB << " KB";
+                oss << static_cast<double>(bytes) / KB << " KB";
             } else {
                 oss << bytes << " Bytes";
             }
-
             return oss.str();
         }
     }

@@ -102,7 +102,7 @@ namespace Chozo {
         s_Data.m_ShaderLibrary = ShaderLibrary::Create();
         s_Data.m_ShaderLibrary->Load("Basic", "../resources/shaders/Basic.glsl.vert", "../resources/shaders/Basic.glsl.frag");
         s_Data.m_ShaderLibrary->Get("Basic")->Bind();
-        s_Data.m_ShaderLibrary->Get("Basic")->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
+        // s_Data.m_ShaderLibrary->Get("Basic")->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
 
         s_Data.m_ShaderLibrary->Load("Solid", "../resources/shaders/Basic.glsl.vert", "../resources/shaders/Solid.glsl.frag");
 

@@ -28,6 +28,8 @@ namespace Chozo {
 		const AssetMetadata& GetMetadata(const fs::path& filepath);
 
 		AssetHandle ImportAsset(const fs::path& filepath);
+		AssetHandle LoadAsset(const fs::path& filepath);
+		AssetHandle LoadAsset(AssetMetadata metadata);
 		void SaveAssets();
 		void SaveAsset(Ref<Asset> asset, const fs::path &filepath);
 

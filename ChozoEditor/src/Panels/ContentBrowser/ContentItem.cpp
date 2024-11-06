@@ -111,11 +111,12 @@ namespace Chozo {
                 ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->CreateCache();
                 Pool::Start();
             }
-            return;
         }
 
+        auto thumbnail = m_Thumbnail ? m_Thumbnail : Renderer::GetCheckerboardTexture();
+
         float thumbnailSize = ContentBrowserPanel::s_ThumbnailSize;
-        float imageAspectRatio = static_cast<float>(m_Thumbnail->GetHeight()) / static_cast<float>(m_Thumbnail->GetWidth());
+        float imageAspectRatio = static_cast<float>(thumbnail->GetHeight()) / static_cast<float>(thumbnail->GetWidth());
         ImVec2 uv0(0.0f, 1.0f);
         ImVec2 uv1(1.0f, 0.0f);
         ImVec2 size(thumbnailSize, thumbnailSize);
@@ -132,7 +133,7 @@ namespace Chozo {
 
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
         ImGui::InvisibleButton("##thumbnailButton", size);
-        UI::DrawButtonImage(m_Thumbnail, IM_COL32(255, 255, 255, 225), UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f), uv0, uv1);
+        UI::DrawButtonImage(thumbnail, IM_COL32(255, 255, 255, 225), UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f), uv0, uv1);
 
         ImGui::PopStyleColor();
 
@@ -143,8 +144,12 @@ namespace Chozo {
     {
         if (ImGui::BeginItemTooltip())
         {
+            auto size = Utils::File::BytesToHumanReadable(m_Size);
+            if (size.find("Bytes") == std::string::npos)
+                size += (" (" + Utils::Numeric::FormatWithCommas(m_Size) + "Bytes)");
+
             ImGui::Text("ID: %s", std::to_string(m_Handle).c_str());
-            ImGui::Text("Size: %s", Utils::File::BytesToHumanReadable(m_Size).c_str());
+            ImGui::Text("Disk Space: %s", size.c_str());
             ImGui::Text("CreatAt: %s", Utils::Time::FormatTimestamp(m_CreateAt).c_str());
             ImGui::EndTooltip();
         }

@@ -20,7 +20,6 @@ namespace Chozo {
         static Ref<Texture2D> GetThumbnail(AssetHandle assetHandle);
     private:
         static Ref<ThumbnailManager> s_Instance;
-        static std::unordered_map<AssetType, Scope<ThumbnailRenderer>> s_Renderers;
 
 		std::unordered_map<AssetHandle, Ref<Texture2D>> m_Thumbnails;
     };
