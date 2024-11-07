@@ -146,13 +146,32 @@ namespace Chozo {
         m_Registry.destroy(entity);
     }
 
-    void Scene::OnUpdateEditor(Timestep ts, EditorCamera& camera)
+    void Scene::OnUpdateEditor(Timestep ts)
     {
-        Ref<SceneRenderer> renderer = SceneRenderer::Find(this);
-        if (!renderer)
-            return;
+    }
 
+    void Scene::OnUpdateRuntime(Timestep ts)
+    {
+        // Update scripts
+        {
+            m_Registry.view<NativeScriptComponent>().each([=](auto entity, NativeScriptComponent& nsc)
+            {
+                // TODO: Move to Scene::OnScenePlay
+                if (!nsc.Instance)
+                {
+                    nsc.Instance = nsc.InstantiateScript();
+                    nsc.Instance->m_Entity = Entity{ entity, this };
 
+                    nsc.Instance->OnCreate();
+                }
+
+                nsc.Instance->OnUpdate(ts);
+            });
+        }
+    }
+
+    void Scene::OnRenderEditor(Ref<SceneRenderer> renderer, Timestep ts, EditorCamera &camera)
+    {
         // 3D Renderer
         renderer->BeginScene(camera);
         PrepareRender(renderer);
@@ -192,24 +211,8 @@ namespace Chozo {
         Renderer2D::EndScene();
     }
 
-    void Scene::OnUpdateRuntime(Timestep ts)
+    void Scene::OnRenderRuntime(Ref<SceneRenderer> renderer, Timestep ts)
     {
-        // Update scripts
-        {
-            m_Registry.view<NativeScriptComponent>().each([=](auto entity, NativeScriptComponent& nsc)
-            {
-                // TODO: Move to Scene::OnScenePlay
-                if (!nsc.Instance)
-                {
-                    nsc.Instance = nsc.InstantiateScript();
-                    nsc.Instance->m_Entity = Entity{ entity, this };
-
-                    nsc.Instance->OnCreate();
-                }
-
-                nsc.Instance->OnUpdate(ts);
-            });
-        }
     }
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)

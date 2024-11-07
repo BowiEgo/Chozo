@@ -11,31 +11,31 @@
 #include "Chozo/Core/Pool.h"
 
 #include "Thumbnail/ThumbnailManager.h"
+#include "Thumbnail/ThumbnailRenderer.h"
+#include "Thumbnail/ThumbnailPoolTask.h"
 #include <imgui_internal.h>
 
 namespace Chozo {
 
 	float ContentBrowserPanel::s_Padding = 16.0f;
 	float ContentBrowserPanel::s_ThumbnailSize = 100.0f;
-	ContentBrowserPanel* ContentBrowserPanel::s_Instance;
-    std::unordered_map<std::string, Ref<Texture2D>> ContentBrowserPanel::s_Icons;
+    ContentBrowserPanel* ContentBrowserPanel::s_Instance = nullptr;
 
     ContentBrowserPanel::ContentBrowserPanel()
     {
-		s_Instance = this;
+        s_Instance = this;
 
-        s_Icons["HierachyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-open-1.png"));
-        s_Icons["Directory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder.png"));
-        s_Icons["EmptyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-empty.png"));
-        s_Icons["TextFile"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/file.png"));
+        m_Icons["HierachyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-open-1.png"));
+        m_Icons["Directory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder.png"));
+        m_Icons["EmptyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-empty.png"));
+        m_Icons["TextFile"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/file.png"));
         // Toolbar
-        s_Icons["Back"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/left-arrow.png"));
-        s_Icons["Refresh"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/refresh.png"));
-        s_Icons["Search"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/search.png"));
-        s_Icons["Clear"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/clear.png"));
+        m_Icons["Back"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/left-arrow.png"));
+        m_Icons["Refresh"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/refresh.png"));
+        m_Icons["Search"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/search.png"));
+        m_Icons["Clear"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/clear.png"));
 
         m_ContentSelection = ContentSelection();
-
         OnBrowserRefresh();
     }
 
@@ -226,8 +226,8 @@ namespace Chozo {
 
         auto task = Ref<ThumbnailPoolTask>::Create(material, PoolTaskFlags_Export);
 
-        Pool::AddTask(task);
-        Pool::Start();
+        Application::Get().GetPool()->AddTask(task);
+        Application::Get().GetPool()->Start();
 
         return material;
     }
@@ -399,7 +399,7 @@ namespace Chozo {
         if (directory->SubDirectories.empty())
             flags |= ImGuiTreeNodeFlags_Leaf;
 
-        bool opened = ImGui::TreeNodeWithIcon(s_Icons["HierachyDirectory"], window->GetID(id.c_str()), flags, name.c_str(), NULL);
+        bool opened = ImGui::TreeNodeWithIcon(m_Icons["HierachyDirectory"], window->GetID(id.c_str()), flags, name.c_str(), NULL);
 
         if (ImGui::IsItemClicked())
             ChangeDirectory(directory);
@@ -447,13 +447,13 @@ namespace Chozo {
                 m_BackIcon_Disabled = (m_CurrentDirectory == m_BaseDirectory);
                 m_ForwardIcon_Disabled = (m_NextDirectory == nullptr);
 
-                if (contentBrowserButton("##back", s_Icons["Back"], m_BackIcon_Disabled))
+                if (contentBrowserButton("##back", m_Icons["Back"], m_BackIcon_Disabled))
                     OnBrowserBack();
 
-                if (contentBrowserButton("##forward", s_Icons["Back"], m_ForwardIcon_Disabled, true))
+                if (contentBrowserButton("##forward", m_Icons["Back"], m_ForwardIcon_Disabled, true))
                     OnBrowserForward();
 
-                if (contentBrowserButton("##refresh", s_Icons["Refresh"]))
+                if (contentBrowserButton("##refresh", m_Icons["Refresh"]))
                     OnBrowserRefresh();
             }
         }
@@ -481,7 +481,7 @@ namespace Chozo {
             {
                 const float iconYOffset = framePaddingY;
 				UI::ShiftCursorY(iconYOffset);
-                ImGui::Image((ImTextureID)(uintptr_t)s_Icons["Search"]->GetRendererID(), iconSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
+                ImGui::Image((ImTextureID)(uintptr_t)m_Icons["Search"]->GetRendererID(), iconSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
 				UI::ShiftCursorY(-iconYOffset);
                 ImGui::SameLine();
 
@@ -505,7 +505,7 @@ namespace Chozo {
                     {
                     }
 
-                    UI::DrawButtonImage(s_Icons["Clear"], IM_COL32(160, 160, 160, 200),
+                    UI::DrawButtonImage(m_Icons["Clear"], IM_COL32(160, 160, 160, 200),
                         IM_COL32(170, 170, 170, 255),
                         IM_COL32(160, 160, 160, 150),
                         UI::RectExpanded(UI::GetItemRect(), -2.0f, -2.0f));
@@ -580,13 +580,13 @@ namespace Chozo {
             if (asset)
             {
                 auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
-                Pool::AddTask(task);
+                Application::Get().GetPool()->AddTask(task);
             }
         }
 
         // Cache the renderer ouput for MaterialPanel because it will change after thumbnails rendered.
         ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->CreateCache();
-        Pool::Start();
+        Application::Get().GetPool()->Start();
     }
 
     void ContentBrowserPanel::AddAssetToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata)

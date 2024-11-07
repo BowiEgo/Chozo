@@ -13,14 +13,12 @@ namespace Chozo
         ~OpenGLPipeline() = default;
 
         virtual PipelineSpecification GetSpec() const override { return m_Spec; }
-        virtual inline Ref<Shader> GetShader() const override { return m_Shader; }
-        virtual inline Ref<Framebuffer> GetTargetFramebuffer() const override { return m_TargetFramebuffer; }
+        virtual inline Ref<Shader> GetShader() const override { return m_Spec.Shader; }
+        virtual inline Ref<Framebuffer> GetTargetFramebuffer() const override { return m_Spec.TargetFramebuffer; }
 
         void BindUniformBlock();
     private:
         PipelineSpecification m_Spec;
-        Ref<Shader> m_Shader;
-        Ref<Framebuffer> m_TargetFramebuffer;
         std::unordered_map<std::string, Ref<OpenGLUniformBuffer>> m_UBs;
 
         friend class OpenGLRenderPass;

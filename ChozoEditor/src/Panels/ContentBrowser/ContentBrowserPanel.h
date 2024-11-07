@@ -26,7 +26,7 @@ namespace Chozo {
         void OnBrowserRefresh();
     public:
 		inline static ContentBrowserPanel& Get() { return *s_Instance; }
-        inline static Ref<Texture2D> GetIcon(std::string name) { return s_Icons[name]; }
+        inline static Ref<Texture2D> GetIcon(std::string name) { return s_Instance->m_Icons[name]; }
         inline static std::vector<Ref<ContentItem>> GetItems() { return s_Instance->m_CurrentItems; }
         inline static Ref<ContentItem> GetHoveredItem() { return s_Instance->m_HoveredItem; }
 
@@ -72,8 +72,8 @@ namespace Chozo {
         static float s_ThumbnailSize;
     private:
 		static ContentBrowserPanel* s_Instance;
-        static std::unordered_map<std::string, Ref<Texture2D>> s_Icons;
 
+        std::unordered_map<std::string, Ref<Texture2D>> m_Icons;
 		std::unordered_map<AssetHandle, Ref<DirectoryInfo>> m_Directories;
 		Ref<DirectoryInfo> m_BaseDirectory;
         Ref<DirectoryInfo> m_PreviousDirectory, m_CurrentDirectory, m_NextDirectory;

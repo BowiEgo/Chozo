@@ -35,6 +35,11 @@ namespace Chozo {
         }
     }
 
+    void ThumbnailRenderer::Shutdown()
+    {
+        s_Renderers.clear();
+    }
+
     void ThumbnailRenderer::RenderTask(Ref<ThumbnailPoolTask> task)
     {
         Ref<Asset> asset = task->Source;
@@ -65,7 +70,7 @@ namespace Chozo {
     /// SceneThumbnailRenderer
     SceneThumbnailRenderer::SceneThumbnailRenderer()
     {
-		m_SceneRenderer = SceneRenderer::Create(m_Scene);
+		m_SceneRenderer = Ref<SceneRenderer>::Create(m_Scene);
         m_SceneRenderer->SetActive(true);
         m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_Camera = EditorCamera(6.0f, 1.0f, 0.1f, 1000.0f);
@@ -110,7 +115,7 @@ namespace Chozo {
     MaterialThumbnailRenderer::MaterialThumbnailRenderer()
     {
         m_Scene = Ref<Scene>::Create();
-		m_SceneRenderer = SceneRenderer::Create(m_Scene);
+		m_SceneRenderer = Ref<SceneRenderer>::Create(m_Scene);
         m_SceneRenderer->SetActive(true);
         m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_Camera = EditorCamera(12.0f, 1.0f, 0.1f, 1000.0f);
@@ -154,7 +159,7 @@ namespace Chozo {
 
     void MaterialThumbnailRenderer::Update()
     {
-        m_Scene->OnUpdateEditor(0, m_Camera);
+        m_Scene->OnRenderEditor(m_SceneRenderer, 0, m_Camera);
     }
 
     void MaterialThumbnailRenderer::SetMaterial(Ref<Material> material)
@@ -198,7 +203,7 @@ namespace Chozo {
     /// MeshSourceThumbnailRenderer
     MeshSourceThumbnailRenderer::MeshSourceThumbnailRenderer()
     {
-        m_SceneRenderer = SceneRenderer::Create(m_Scene);
+        m_SceneRenderer = Ref<SceneRenderer>::Create(m_Scene);
         m_SceneRenderer->SetActive(true);
         m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
         m_Camera = EditorCamera(6.0f, 1.0f, 0.1f, 1000.0f);

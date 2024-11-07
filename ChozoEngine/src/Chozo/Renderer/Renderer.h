@@ -89,6 +89,7 @@ namespace Chozo {
         };
 
         static void Init();
+        static void Shutdown();
         
         static void RenderStaticBatches();
         static bool SubmitStaticMesh(StaticMesh* mesh);

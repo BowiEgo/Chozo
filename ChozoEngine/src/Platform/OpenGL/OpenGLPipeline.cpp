@@ -6,16 +6,16 @@ namespace Chozo
 {
 
     OpenGLPipeline::OpenGLPipeline(PipelineSpecification &spec)
-        : m_Shader(spec.Shader), m_TargetFramebuffer(spec.TargetFramebuffer), m_Spec(spec)
+        : m_Spec(spec)
     {
     }
 
     void OpenGLPipeline::BindUniformBlock()
     {
-        if (!m_Shader)
+        if (!m_Spec.Shader)
             return;
 
         for (auto [name, uniformBuffer] : m_UBs)
-            m_Shader.As<OpenGLShader>()->SetUniformBlockBinding(std::string(name), uniformBuffer.As<OpenGLUniformBuffer>()->GetBindingPoint());
+            m_Spec.Shader.As<OpenGLShader>()->SetUniformBlockBinding(std::string(name), uniformBuffer.As<OpenGLUniformBuffer>()->GetBindingPoint());
     }
 }

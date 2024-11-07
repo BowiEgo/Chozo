@@ -105,11 +105,11 @@ namespace Chozo {
             if (asset)
             {
                 auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
-                Pool::AddTask(task);
+                Application::Get().GetPool()->AddTask(task);
 
                 // Cache the renderer ouput for MaterialPanel because it will change after thumbnails rendered.
                 ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->CreateCache();
-                Pool::Start();
+                Application::Get().GetPool()->Start();
             }
         }
 

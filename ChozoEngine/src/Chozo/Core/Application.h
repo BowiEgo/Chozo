@@ -4,6 +4,7 @@
 #include "Chozo/Core/Timestep.h"
 #include "Chozo/Core/Window.h"
 #include "Chozo/Core/LayerStack.h"
+#include "Chozo/Core/Pool.h"
 
 #include "Chozo/Events/Event.h"
 #include "Chozo/Events/ApplicationEvent.h"
@@ -29,6 +30,7 @@ namespace Chozo
         void PushOverlay(Layer* overlay);
 
         inline Window& GetWindow() { return *m_Window; }
+        inline Ref<Pool>& GetPool() { return m_Pool; }
         inline ImGuiLayer& GetImGuiLayer() { return *m_ImGuiLayer; }
         inline static Application& Get() { return *s_Instance; }
 
@@ -37,6 +39,7 @@ namespace Chozo
         bool OnWindowClose(WindowCloseEvent& e);
     private:
         std::unique_ptr<Window> m_Window;
+        Ref<Pool> m_Pool;
         ImGuiLayer* m_ImGuiLayer;
         bool m_Running = true;
         LayerStack m_LayerStack;

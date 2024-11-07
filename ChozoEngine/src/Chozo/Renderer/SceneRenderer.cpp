@@ -6,12 +6,15 @@
 namespace Chozo
 {
 
-    static std::vector<Ref<SceneRenderer>> s_SceneRenderers;
-
-    SceneRenderer::SceneRenderer(Ref<Scene>& scene)
+    SceneRenderer::SceneRenderer(Ref<Scene> scene)
         : m_Scene(scene)
     {
         Init();
+    }
+
+    SceneRenderer::~SceneRenderer()
+    {
+        Shutdown();
     }
 
     void SceneRenderer::Init()
@@ -32,7 +35,6 @@ namespace Chozo
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 			fbSpec.Attachments = { ImageFormat::RGBA16F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
-			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
             
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "Skybox";
@@ -42,7 +44,7 @@ namespace Chozo
             // pipelineSpec.Layout = {
 			// 	{ ShaderDataType::Float3, "a_Position" },
 			// };
-			pipelineSpec.TargetFramebuffer = framebuffer;
+			pipelineSpec.TargetFramebuffer = Framebuffer::Create(fbSpec);
 			m_SkyboxMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 
 			RenderPassSpecification renderPassSpec;
@@ -67,14 +69,13 @@ namespace Chozo
                 ImageFormat::Depth
             };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
-			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "Geometry";
 			// pipelineSpec.DepthOperator = DepthCompareOperator::Equal;
             pipelineSpec.DepthWrite = false;
             pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Geometry");
-			pipelineSpec.TargetFramebuffer = framebuffer;
+			pipelineSpec.TargetFramebuffer = Framebuffer::Create(fbSpec);
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.DebugName = "Geometry";
@@ -88,13 +89,12 @@ namespace Chozo
             FramebufferSpecification fbSpec;
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGB16F, ImageFormat::RED32I, ImageFormat::Depth };
-			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "Solid";
             pipelineSpec.DepthWrite = false;
             pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Solid");
-			pipelineSpec.TargetFramebuffer = framebuffer;
+			pipelineSpec.TargetFramebuffer = Framebuffer::Create(fbSpec);
 			m_SolidMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 
 			RenderPassSpecification renderPassSpec;
@@ -113,13 +113,12 @@ namespace Chozo
                 ImageFormat::RED32I,
             };
 
-            Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
-
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "ID";
             pipelineSpec.DepthWrite = false;
             pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("ID");
-			pipelineSpec.TargetFramebuffer = framebuffer;
+			pipelineSpec.TargetFramebuffer = Framebuffer::Create(fbSpec);
+
 			m_IDMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
             Ref<Texture2D> solidIdTex = m_SolidPass->GetOutput(2);
             Ref<Texture2D> solidDepthTex = m_SolidPass->GetOutput(1);
@@ -141,12 +140,11 @@ namespace Chozo
             FramebufferSpecification fbSpec;
 			fbSpec.Attachments = { ImageFormat::RGBA32F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
-			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "PhongLight";
             pipelineSpec.DepthWrite = false;
-			pipelineSpec.TargetFramebuffer = framebuffer;
+			pipelineSpec.TargetFramebuffer = Framebuffer::Create(fbSpec);
             pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PhongLight");
 			m_PhongLightMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
             Ref<Texture2D> positionTex = m_GeometryPass->GetOutput(0);
@@ -173,12 +171,11 @@ namespace Chozo
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			fbSpec.Attachments = { ImageFormat::RGBA16F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
-			Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "PBR";
             pipelineSpec.DepthWrite = false;
-			pipelineSpec.TargetFramebuffer = framebuffer;
+			pipelineSpec.TargetFramebuffer = Framebuffer::Create(fbSpec);
             pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PBR");
 			m_PBRMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 
@@ -205,7 +202,6 @@ namespace Chozo
             FramebufferSpecification fbSpec;
             fbSpec.ClearColor = Renderer::GetConfig().ClearColor;
             fbSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
-            Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
             PipelineSpecification pipelineSpec;
             pipelineSpec.Layout = {
@@ -214,10 +210,11 @@ namespace Chozo
             };
             pipelineSpec.BackfaceCulling = false;
             pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("SceneComposite");
-            pipelineSpec.TargetFramebuffer = framebuffer;
+            pipelineSpec.TargetFramebuffer = Framebuffer::Create(fbSpec);
             pipelineSpec.DebugName = "SceneComposite";
             pipelineSpec.DepthWrite = false;
             pipelineSpec.DepthTest = false;
+
 			m_CompositeMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
             Ref<Texture2D> skyboxTex = m_SkyboxPass->GetOutput(0);
             Ref<Texture2D> solidTex = m_SolidPass->GetOutput(0);
@@ -242,7 +239,7 @@ namespace Chozo
     {
     }
 
-    void SceneRenderer::SetScene(Ref<Scene>& scene)
+    void SceneRenderer::SetScene(Ref<Scene> scene)
     {
         m_Scene = scene;
     }
@@ -479,22 +476,5 @@ namespace Chozo
     void SceneRenderer::CopyImage(Ref<Texture2D> source, SharedBuffer &dest)
     {
         Renderer::CopyImage(m_CommandBuffer, source, dest);
-    }
-
-    Ref<SceneRenderer> SceneRenderer::Create(Ref<Scene> &scene)
-    {
-        Ref<SceneRenderer> sceneRenderer = Ref<SceneRenderer>(new SceneRenderer(scene));
-        s_SceneRenderers.push_back(sceneRenderer);
-
-        return sceneRenderer;
-    }
-
-    Ref<SceneRenderer> SceneRenderer::Find(Scene* scene)
-    {
-        for (const auto& sceneRenderer : s_SceneRenderers) {
-            if (sceneRenderer->GetScene().get() == scene && sceneRenderer->IsActive())
-                return sceneRenderer;
-        }
-        return nullptr;
     }
 }

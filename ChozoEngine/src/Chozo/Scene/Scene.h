@@ -45,8 +45,10 @@ namespace Chozo {
 
         entt::registry& Reg() { return m_Registry; }
 
-        void OnUpdateEditor(Timestep ts, EditorCamera& camera);
+        void OnUpdateEditor(Timestep ts);
         void OnUpdateRuntime(Timestep ts);
+        void OnRenderEditor(Ref<SceneRenderer> renderer, Timestep ts, EditorCamera& camera);
+        void OnRenderRuntime(Ref<SceneRenderer> renderer, Timestep ts);
         void OnViewportResize(uint32_t width, uint32_t height);
 
         void PrepareRender(Ref<SceneRenderer> renderer);

@@ -37,6 +37,7 @@ namespace Chozo {
         virtual void Render(Ref<ThumbnailPoolTask> task) = 0;
 
         static void Init();
+        static void Shutdown();
         static void RenderTask(Ref<ThumbnailPoolTask> task);
 
         template <typename T>

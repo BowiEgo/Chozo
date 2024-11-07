@@ -45,13 +45,14 @@ namespace Chozo
     class SceneRenderer : public RefCounted
     {
     public:
-        ~SceneRenderer() = default;
+        SceneRenderer(Ref<Scene> scene);
+        ~SceneRenderer();
 
 		void Init();
-        static void Shutdown();
+        void Shutdown();
         
 		Ref<Scene> GetScene() const { return m_Scene; }
-		void SetScene(Ref<Scene>& scene);
+		void SetScene(Ref<Scene> scene);
         void BeginScene(EditorCamera& camera); // TODO: Remove
         void EndScene(); // TODO: Remove
 
@@ -88,12 +89,7 @@ namespace Chozo
 
         void Flush();
         void CopyImage(Ref<Texture2D> source, SharedBuffer& dest);
-
-        static Ref<SceneRenderer> Create(Ref<Scene>& scene);
-        static Ref<SceneRenderer> Find(Scene* scene);
     private:
-        SceneRenderer(Ref<Scene>& scene);
-
 		Ref<Scene> m_Scene;
 		bool m_Active = false;
 

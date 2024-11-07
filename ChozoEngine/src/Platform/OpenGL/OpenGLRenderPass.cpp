@@ -24,8 +24,7 @@ namespace Chozo {
 
     Ref<Texture2D> OpenGLRenderPass::GetOutput(uint32_t index)
     {
-        Ref<Framebuffer> framebuffer = GetTargetFramebuffer();
-        return framebuffer->GetImage(index);
+        return GetTargetFramebuffer()->GetImage(index);
     }
 
     Ref<Pipeline> OpenGLRenderPass::GetPipeline() const
