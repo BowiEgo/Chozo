@@ -4,10 +4,8 @@
 
 #include "Input.h"
 
-#include "Pool.h"
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
-#include "Chozo/Renderer/SceneRenderer.h"
 
 #include <GLFW/glfw3.h>
 
@@ -25,7 +23,8 @@ namespace Chozo {
         m_Window = Window::Create(WindowProps(name));
         m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 
-        Pool::Init();
+        m_Pool = Ref<Pool>::Create();
+
         Renderer2D::Init();
         Renderer::Init();
         // TODO: Move to Project
@@ -38,6 +37,7 @@ namespace Chozo {
     
     Application::~Application()
     {
+		Renderer::Shutdown();
     }
 
     void Application::PushLayer(Layer* layer)
@@ -75,7 +75,7 @@ namespace Chozo {
 
             Renderer::Begin();
 
-            Pool::Update();
+            m_Pool->Update();
 
             for (Layer* layer : m_LayerStack)
                 layer->OnUpdate(timestep);
@@ -95,7 +95,6 @@ namespace Chozo {
     void Application::Close()
     {
         m_Running = false;
-        SceneRenderer::Shutdown();
     }
 
     bool Application::OnWindowClose(WindowCloseEvent &e)

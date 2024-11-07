@@ -2,19 +2,16 @@
 
 namespace Chozo {
 
-	Ref<Pool> Pool::s_Instance;
-	bool Pool::s_Pause = true;
-
     void Pool::Update()
     {
-        if (!s_Instance || s_Pause)
+        if (m_Pause)
             return;
 
-        auto& tasks = s_Instance->m_Tasks;
+        auto& tasks = m_Tasks;
 
         if (tasks.empty())
         {
-            s_Pause = true;
+            m_Pause = true;
         }
         else
         {
@@ -34,7 +31,7 @@ namespace Chozo {
 
     bool Pool::TaskExists(Ref<PoolTask> task)
     {
-        auto& tasks = s_Instance->m_Tasks;
+        auto& tasks = m_Tasks;
         auto it = std::find_if(tasks.begin(), tasks.end(), [&task](const Ref<PoolTask>& t) {
             return t->GetHandle() == task->GetHandle();
         });
@@ -44,12 +41,12 @@ namespace Chozo {
 
     void Pool::AddTask(Ref<PoolTask> task)
     {
-        s_Instance->m_Tasks.emplace_back(task);
+        m_Tasks.emplace_back(task);
     }
 
     void Pool::RemoveTask(Ref<PoolTask> task)
     {
-        auto& tasks = s_Instance->m_Tasks;
+        auto& tasks = m_Tasks;
         auto it = std::find_if(tasks.begin(), tasks.end(), [&task](const Ref<PoolTask>& t) {
             return t->GetHandle() == task->GetHandle();
         });

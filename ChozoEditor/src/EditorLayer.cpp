@@ -11,6 +11,7 @@
 #include "Chozo/Math/Math.h"
 
 // TODO: Remove
+#include "Thumbnail/ThumbnailRenderer.h"
 #include "Thumbnail/ThumbnailManager.h"
 
 namespace Chozo {
@@ -48,7 +49,7 @@ namespace Chozo {
         // Scene
         // --------------------
         m_ActiveScene = Ref<Scene>::Create();
-		m_ViewportRenderer = SceneRenderer::Create(m_ActiveScene);
+		m_ViewportRenderer = Ref<SceneRenderer>::Create(m_ActiveScene);
         m_ViewportRenderer->SetActive(true);
         // --------------------
         // Editor Camera
@@ -67,6 +68,8 @@ namespace Chozo {
 
     void EditorLayer::OnDetach()
     {
+        ThumbnailRenderer::Shutdown();
+        ThumbnailManager::Shutdown();
     }
 
     void EditorLayer::OnUpdate(Timestep ts)
@@ -83,7 +86,9 @@ namespace Chozo {
             {
                 if (m_AllowViewportCameraEvents)
                     m_EditorCamera.OnUpdate(ts);
-                m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+
+                m_ActiveScene->OnUpdateEditor(ts);
+                m_ActiveScene->OnRenderEditor(m_ViewportRenderer, ts, m_EditorCamera);
                 break;
             }
             case SceneState::Play:

@@ -12,6 +12,7 @@ namespace Chozo {
         ~ThumbnailManager() {};
 
         static void Init();
+        static void Shutdown();
 
         static void ImportThumbnail(AssetHandle handle);
         static void DeleteThumbnail(AssetHandle handle);
@@ -19,7 +20,7 @@ namespace Chozo {
         inline static void SetThumbnail(AssetHandle assetHandle, Ref<Texture2D> texture) { s_Instance->m_Thumbnails[assetHandle] = texture; }
         static Ref<Texture2D> GetThumbnail(AssetHandle assetHandle);
     private:
-        static Ref<ThumbnailManager> s_Instance;
+        static ThumbnailManager* s_Instance;
 
 		std::unordered_map<AssetHandle, Ref<Texture2D>> m_Thumbnails;
     };

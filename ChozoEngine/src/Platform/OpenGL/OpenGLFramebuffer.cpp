@@ -86,8 +86,8 @@ namespace Chozo {
         {
             glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data()); GCE;
             m_ColorAttachments.clear();
-            m_ColorAttachmentImages.clear();
         }
+        m_ColorAttachmentImages.clear();
         
         if (m_DepthAttachment)
         {

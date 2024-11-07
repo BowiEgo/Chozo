@@ -4,12 +4,18 @@
 
 namespace Chozo {
 
-    Ref<ThumbnailManager> ThumbnailManager::s_Instance;
+    ThumbnailManager* ThumbnailManager::s_Instance;
 
     void ThumbnailManager::Init()
     {
-        s_Instance = Ref<ThumbnailManager>::Create();
+        s_Instance = new ThumbnailManager();
         ClearUselessCaches();
+    }
+
+    void ThumbnailManager::Shutdown()
+    {
+        delete s_Instance;
+        s_Instance = nullptr;
     }
 
     void ThumbnailManager::ImportThumbnail(AssetHandle handle)
