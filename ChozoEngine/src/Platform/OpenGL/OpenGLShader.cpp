@@ -608,6 +608,36 @@ namespace Chozo {
             CZ_CORE_WARN("Uniform Block '{}' not found in shader!", name);
     }
 
+    void OpenGLShader::ClearCache()
+    {
+        fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
+
+        for (auto&& [stage, filepath] : m_Filepaths)
+        {
+            fs::path shaderFilepath(filepath);
+            fs::path cachePath = cacheDirectory / (shaderFilepath.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
+
+            Utils::File::DeleteFile(cachePath);
+        }
+    }
+
+    void OpenGLShader::Recompile()
+    {
+        Timer timer;
+
+        std::unordered_map<GLenum, std::string> shaderSources;
+        std::string vertexSrc = ReadFile(m_Filepaths[GL_VERTEX_SHADER]);
+        std::string fragmentSrc = ReadFile(m_Filepaths[GL_FRAGMENT_SHADER]);
+        fragmentSrc = PreProcess(fragmentSrc);
+        shaderSources[GL_VERTEX_SHADER] = vertexSrc;
+        shaderSources[GL_FRAGMENT_SHADER] = fragmentSrc;
+
+        CompileOrGetVulkanBinaries(shaderSources);
+        ConvertVulkanBinariesToOpenGL();
+        Compile(m_OpenGLSourceCode);
+        CZ_CORE_WARN("Shader recompile took {0} ms", timer.ElapsedMillis());
+    }
+
     void OpenGLShader::SetUniformBool(const std::string &name, const bool value) const
     {
         glUniform1i(GetUniformLoaction(name), value ? 1 : 0);

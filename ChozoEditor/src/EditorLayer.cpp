@@ -133,13 +133,21 @@ namespace Chozo {
             if (ImGui::BeginMenu("File"))
             {
                 if (ImGui::MenuItem("New", "Ctrl+N"))
-                    // NewProject();
+                    NewProject();
                 if (ImGui::MenuItem("Open...", "Ctrl+O"))
-                    // OpenProject();
+                    OpenProject();
                 if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S", nullptr))
-                    // SaveProjectAs();
+                    SaveProjectAs();
 
                 if (ImGui::MenuItem("Quit")) Application::Get().Close();
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Renderer"))
+            {
+                if (ImGui::MenuItem("Recompile Shaders"))
+                    Renderer::GetShaderLibrary()->Recompile();
+
                 ImGui::EndMenu();
             }
 

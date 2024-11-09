@@ -35,6 +35,18 @@ namespace Chozo {
         m_Shaders.emplace(name, shader);
     }
 
+    void ShaderLibrary::Recompile()
+    {
+        for (auto& [name, shader] : m_Shaders)
+        {
+            // Clear caches
+            shader->ClearCache();
+
+            // Compile shaders
+            shader->Recompile();
+        }
+    }
+
     const Ref<Shader>& ShaderLibrary::Get(const std::string &name) const
     {
 		CZ_CORE_ASSERT(m_Shaders.find(name) != m_Shaders.end(), "");

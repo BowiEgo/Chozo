@@ -92,6 +92,8 @@ namespace Chozo {
         virtual const RendererID& GetRendererID() const = 0;
 
         virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) const = 0;
+        virtual void ClearCache() = 0;
+        virtual void Recompile() = 0;
 
         static Ref<Shader> Create(const ShaderSpecification& spec = ShaderSpecification());
         static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
@@ -104,6 +106,7 @@ namespace Chozo {
         ~ShaderLibrary() {};
 
 		void Load(std::string_view name, const std::string& vertexSrc, const std::string& fragmentSrc);
+		void Recompile();
 
 		const Ref<Shader>& Get(const std::string& name) const;
 
