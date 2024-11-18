@@ -190,22 +190,12 @@ namespace Chozo {
 
         // Shader
         std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
-        ShaderSpecification textureShaderSpec;
-        textureShaderSpec.VertexFilepath = "../resources/shaders/Texture.glsl.vert";
-        textureShaderSpec.FragmentFilepath = "../resources/shaders/Texture.glsl.frag";
-        s_Data.TextureShader = Shader::Create(textureShaderSpec);
+        s_Data.TextureShader = Shader::Create("Texture", {"../resources/shaders/Texture.glsl.vert", "../resources/shaders/Texture.glsl.frag"});
         s_Data.TextureShader->Bind();
         s_Data.TextureShader->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
 
-        ShaderSpecification circleShaderSpec;
-        circleShaderSpec.VertexFilepath = "../resources/shaders/Circle.glsl.vert";
-        circleShaderSpec.FragmentFilepath = "../resources/shaders/Circle.glsl.frag";
-        s_Data.CircleShader = Shader::Create(circleShaderSpec);
-
-        ShaderSpecification lineShaderSpec;
-        lineShaderSpec.VertexFilepath = "../resources/shaders/Line.glsl.vert";
-        lineShaderSpec.FragmentFilepath = "../resources/shaders/Line.glsl.frag";
-        s_Data.LineShader = Shader::Create(lineShaderSpec);
+        s_Data.CircleShader = Shader::Create("Circle", {"../resources/shaders/Circle.glsl.vert", "../resources/shaders/Circle.glsl.frag"});
+        s_Data.LineShader = Shader::Create("Line", {"../resources/shaders/Line.glsl.vert", "../resources/shaders/Line.glsl.frag"});
 
         // Uniform buffer
         // s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData));

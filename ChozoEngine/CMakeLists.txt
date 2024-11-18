@@ -36,6 +36,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}/src"
   "${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image"
   "${CMAKE_CURRENT_SOURCE_DIR}/vendor/entt/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/vendor/libshaderc_util/include"
 )
 
 # message(${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/spdlog)

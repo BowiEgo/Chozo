@@ -74,11 +74,6 @@ namespace Chozo {
             return glm::vec3(0.0f);
         }
     }
-
-    struct ShaderSpecification
-    {
-        std::string VertexFilepath, FragmentFilepath;
-    };
     
     class Shader : public RefCounted
     {
@@ -95,8 +90,7 @@ namespace Chozo {
         virtual void ClearCache() = 0;
         virtual void Recompile() = 0;
 
-        static Ref<Shader> Create(const ShaderSpecification& spec = ShaderSpecification());
-        static Ref<Shader> Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
+        static Ref<Shader> Create(const std::string& name, const std::vector<std::string> filePaths);
     };
 
     class ShaderLibrary : public RefCounted
@@ -105,7 +99,7 @@ namespace Chozo {
         ShaderLibrary() = default;
         ~ShaderLibrary() {};
 
-		void Load(std::string_view name, const std::string& vertexSrc, const std::string& fragmentSrc);
+		void Load(std::string_view name, const std::vector<std::string> filePaths);
 		void Recompile();
 
 		const Ref<Shader>& Get(const std::string& name) const;

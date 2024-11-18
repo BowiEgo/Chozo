@@ -12,8 +12,7 @@ namespace Chozo {
     class OpenGLShader : public Shader
     {
     public:
-        OpenGLShader(const ShaderSpecification& spec);
-        OpenGLShader(const std::string& name, const std::string& vertexFilePath, const std::string& fragmentFilePath);
+        OpenGLShader(const std::string& name, const std::vector<std::string> filePaths);
         virtual ~OpenGLShader();
 
         virtual void Bind() const override;
@@ -44,23 +43,11 @@ namespace Chozo {
         void SetUniformMat4(const std::string& name, const glm::mat4& matrix) const;
         void SetUniformMat4V(const std::string& name, const std::vector<glm::mat4>& array, const uint32_t count) const;
         int GetUniformLoaction(const std::string& name) const;
-        std::string ReadFile(const std::string& filepath);
-        std::string PreProcess(const std::string& source);
-        void Compile(const std::unordered_map<GLenum, std::string>& shaderSources);
-        void CompileOrGetVulkanBinaries(const std::unordered_map<GLenum, std::string>& shaderSources);
-        void ConvertVulkanBinariesToOpenGL();
-        void CreateProgram();
-        void Reflect(GLenum stage, const std::vector<uint32_t>& shaderData);
     private:
         uint32_t m_RendererID;
-        std::unordered_map<GLenum, std::string> m_Filepaths;
+        std::vector<std::string> m_Filepaths;
         std::string m_Name;
         mutable std::unordered_map<std::string, int> m_UniformLocationCache;
-
-        std::unordered_map<GLenum, std::vector<u_int32_t>> m_VulkanSPIRV;
-        std::unordered_map<GLenum, std::vector<u_int32_t>> m_OpenGLSPIRV;
-        std::unordered_map<GLenum, std::string> m_OpenGLSourceCode;
-
         UniformTable m_UniformTable;
     };
 }

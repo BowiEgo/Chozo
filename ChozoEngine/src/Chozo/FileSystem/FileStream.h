@@ -40,7 +40,9 @@ namespace Chozo
 		bool IsStreamGood() const final { return m_Stream.good(); }
 		uint64_t GetStreamPosition() override { return m_Stream.tellg(); }
 		void SetStreamPosition(uint64_t position) override { m_Stream.seekg(position); }
+		uint64_t GetFileSize() override;
 		bool ReadData(char* destination, size_t size) override;
+		bool ReadBinary(std::vector<u_int32_t>& destination) override;
 
 	private:
 		fs::path m_Path;

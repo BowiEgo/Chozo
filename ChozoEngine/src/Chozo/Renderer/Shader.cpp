@@ -5,33 +5,21 @@
 
 namespace Chozo {
 
-    Ref<Shader> Shader::Create(const ShaderSpecification &spec)
+    Ref<Shader> Shader::Create(const std::string& name, const std::vector<std::string> filePaths)
     {
         switch (RendererAPI::GetAPI())
         {
             case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLShader>::Create(spec);
+            case RendererAPI::API::OpenGL:   return Ref<OpenGLShader>::Create(name, filePaths);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
         return nullptr;
     }
 
-    Ref<Shader> Shader::Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
+    void ShaderLibrary::Load(const std::string_view name, const std::vector<std::string> filePaths)
     {
-        switch (RendererAPI::GetAPI())
-        {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLShader>::Create(name, vertexSrc, fragmentSrc);
-        }
-
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
-        return nullptr;
-    }
-
-    void ShaderLibrary::Load(std::string_view name, const std::string& vertexSrc, const std::string& fragmentSrc)
-    {
-        Ref<Shader> shader = Shader::Create(std::string(name), vertexSrc, fragmentSrc);
+        Ref<Shader> shader = Shader::Create(std::string(name), filePaths);
         m_Shaders.emplace(name, shader);
     }
 

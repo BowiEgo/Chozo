@@ -35,10 +35,28 @@ namespace Chozo
 		m_Stream.close();
 	}
 
-	bool FileStreamReader::ReadData(char* destination, size_t size)
-	{
+    uint64_t FileStreamReader::GetFileSize()
+    {
+        m_Stream.seekg(0, std::ios::end);
+		auto size = m_Stream.tellg();
+		m_Stream.seekg(0, std::ios::beg);
+
+		return size;
+    }
+
+    bool FileStreamReader::ReadData(char *destination, size_t size)
+    {
 		m_Stream.read(destination, size);
 		return true;
 	}
+
+    bool FileStreamReader::ReadBinary(std::vector<u_int32_t>& destination)
+    {
+		auto size = GetFileSize();
+
+		destination.resize(size / sizeof(uint32_t));
+		m_Stream.read((char*)destination.data(), size);
+        return true;
+    }
 
 } // namespace Chozo
