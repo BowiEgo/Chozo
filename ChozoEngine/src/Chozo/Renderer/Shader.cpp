@@ -31,7 +31,7 @@ namespace Chozo {
             shader->ClearCache();
 
             // Compile shaders
-            shader->Recompile();
+            shader->Compile();
         }
     }
 

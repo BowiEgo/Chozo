@@ -118,14 +118,11 @@ namespace Chozo {
             options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
         fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
-        Utils::File::CreateDirectoryIfNeeded(cacheDirectory);
 
         for (auto&& [stage, source] : shaderSources)
         {
             fs::path shaderFilepath = shaderPaths.at(stage);
-            std::string cacheFileName = (shaderFilepath.filename().stem().string() + ShaderUtils::ShaderStageToVulkanCacheFileExtension(stage));
-            CZ_CORE_INFO(cacheFileName);
-            fs::path cachePath = cacheDirectory / cacheFileName;
+            fs::path cachePath = ShaderUtils::GetCachePathByNameAndStage(shaderFilepath.filename().stem().string(), stage);
 
             auto& data = m_VulkanSPIRV[stage];
 

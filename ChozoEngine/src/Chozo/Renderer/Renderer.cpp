@@ -103,28 +103,28 @@ namespace Chozo {
         std::vector<int> samplersVec(samplers, samplers + s_Data->MaxTextureSlots);
         s_Data->m_ShaderLibrary = ShaderLibrary::Create();
         s_Data->m_ShaderLibrary->Load("Basic", {"../resources/shaders/Basic.glsl.vert", "../resources/shaders/Basic.glsl.frag"});
-        s_Data->m_ShaderLibrary->Get("Basic")->Bind();
+        // s_Data->m_ShaderLibrary->Get("Basic")->Bind();
         // s_Data->m_ShaderLibrary->Get("Basic")->SetUniform("u_Textures", samplersVec, s_Data->MaxTextureSlots);
 
         s_Data->m_ShaderLibrary->Load("Solid", {"../resources/shaders/Solid.glsl.vert", "../resources/shaders/Solid.glsl.frag"});
 
-        s_Data->m_ShaderLibrary->Load("ID", {"../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/ID.glsl.frag"});
+        s_Data->m_ShaderLibrary->Load("ID", {"../resources/shaders/ID.glsl.vert", "../resources/shaders/ID.glsl.frag"});
         s_Data->m_ShaderLibrary->Load("Geometry", {"../resources/shaders/GBuffer.glsl.vert", "../resources/shaders/GBuffer.glsl.frag"});
 
-        s_Data->m_ShaderLibrary->Load("Depth", {"../resources/shaders/Basic.glsl.vert", "../resources/shaders/Depth.glsl.frag"});
+        s_Data->m_ShaderLibrary->Load("Depth", {"../resources/shaders/Depth.glsl.vert", "../resources/shaders/Depth.glsl.frag"});
         
-        s_Data->m_ShaderLibrary->Load("PhongLight", {"../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/PhongLight.glsl.frag"});
-        s_Data->m_ShaderLibrary->Load("IrradianceConvolution", {"../resources/shaders/CubemapSampler.glsl.vert", "../resources/shaders/IrradianceConvolution.glsl.frag"});
-        s_Data->m_ShaderLibrary->Load("Prefiltered", {"../resources/shaders/CubemapSampler.glsl.vert", "../resources/shaders/Prefiltered.glsl.frag"});
-        s_Data->m_ShaderLibrary->Load("BRDF", {"../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/BRDF.glsl.frag"});
+        s_Data->m_ShaderLibrary->Load("PhongLight", {"../resources/shaders/PhongLight.glsl.vert", "../resources/shaders/PhongLight.glsl.frag"});
+        s_Data->m_ShaderLibrary->Load("IrradianceConvolution", {"../resources/shaders/IrradianceConvolution.glsl.vert", "../resources/shaders/IrradianceConvolution.glsl.frag"});
+        s_Data->m_ShaderLibrary->Load("Prefiltered", {"../resources/shaders/Prefiltered.glsl.vert", "../resources/shaders/Prefiltered.glsl.frag"});
+        s_Data->m_ShaderLibrary->Load("BRDF", {"../resources/shaders/BRDF.glsl.vert", "../resources/shaders/BRDF.glsl.frag"});
         s_Data->m_ShaderLibrary->Load("PBR", {"../resources/shaders/PBR.glsl.vert", "../resources/shaders/PBR.glsl.frag"});
 
         s_Data->m_ShaderLibrary->Load("CubemapSampler", {"../resources/shaders/CubemapSampler.glsl.vert", "../resources/shaders/CubemapSampler.glsl.frag"});
         s_Data->m_ShaderLibrary->Load("PreethamSky", {"../resources/shaders/PreethamSky.glsl.vert", "../resources/shaders/PreethamSky.glsl.frag"});
         s_Data->m_ShaderLibrary->Load("Skybox", {"../resources/shaders/Skybox.glsl.vert", "../resources/shaders/Skybox.glsl.frag"});
 
-        s_Data->m_ShaderLibrary->Load("CubemapPreview", {"../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/CubemapPreview.glsl.frag"});
-        s_Data->m_ShaderLibrary->Load("SceneComposite", {"../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/SceneComposite.glsl.frag"});
+        s_Data->m_ShaderLibrary->Load("CubemapPreview", {"../resources/shaders/CubemapPreview.glsl.vert", "../resources/shaders/CubemapPreview.glsl.frag"});
+        s_Data->m_ShaderLibrary->Load("SceneComposite", {"../resources/shaders/SceneComposite.glsl.vert", "../resources/shaders/SceneComposite.glsl.frag"});
 
         // PreethamSky
         {

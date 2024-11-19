@@ -75,6 +75,14 @@ namespace Chozo {
 				default: return "";
 			}
         }
+
+        inline fs::path GetCachePathByNameAndStage(std::string name, const ShaderStage& stage)
+        {
+            fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
+            Utils::File::CreateDirectoryIfNeeded(cacheDirectory);
+
+            return cacheDirectory / (name + ShaderUtils::ShaderStageToVulkanCacheFileExtension(stage));
+        }
 	}
 
     using ShaderSources = std::unordered_map<ShaderStage, std::string>;
@@ -85,6 +93,8 @@ namespace Chozo {
     {
     public:
         virtual RendererID Compile(const std::vector<std::string> filePaths) = 0;
+        virtual void Release() = 0;
+
         void CompileToOrGetVulkanBinaries(ShaderSources& shaderSources, const ShaderPaths& shaderPaths);
         void PreProcess(const std::string& shaderSourcePath, const ShaderStage& stage, std::string& shaderSource);
         void Reflect(const ShaderStage& stage, const std::vector<uint32_t>& shaderData);

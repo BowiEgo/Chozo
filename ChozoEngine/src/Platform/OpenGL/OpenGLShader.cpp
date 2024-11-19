@@ -20,7 +20,7 @@ namespace Chozo {
     OpenGLShader::OpenGLShader(const std::string& name, const std::vector<std::string> filePaths)
         : m_Name(name), m_Filepaths(filePaths)
     {
-        Recompile();
+        Compile();
     }
 
     OpenGLShader::~OpenGLShader()
@@ -128,16 +128,17 @@ namespace Chozo {
     {
         fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
 
-        // for (auto&& [stage, filepath] : m_Filepaths)
-        // {
-        //     fs::path shaderFilepath(filepath);
-        //     fs::path cachePath = cacheDirectory / (shaderFilepath.filename().string() + Utils::GLShaderStageCachedVulkanFileExtension(stage));
+        for (auto&& filepath : m_Filepaths)
+        {
+            fs::path shaderFilepath(filepath);
+            auto stage = ShaderUtils::GetShaderStageFromExtension(shaderFilepath.extension().string());
+            fs::path cachePath = ShaderUtils::GetCachePathByNameAndStage(shaderFilepath.filename().stem().string(), stage);
 
-        //     Utils::File::DeleteFile(cachePath);
-        // }
+            Utils::File::DeleteFile(cachePath);
+        }
     }
 
-    void OpenGLShader::Recompile()
+    void OpenGLShader::Compile()
     {
         auto compiler = ShaderCompiler::Create();
         {

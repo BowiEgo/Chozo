@@ -5,48 +5,12 @@ layout(location = 0) out vec4 o_Color;
 layout(location = 0) in vec2 v_TexCoord;
 layout(location = 1) in vec3 v_FragPosition;
 
-struct DirectionalLight
-{
-	vec3 Direction;
-	float Intensity;
-    vec3 Color;
-};
+layout(binding = 0) uniform sampler2D u_PositionTex;
+layout(binding = 1) uniform sampler2D u_NormalTex;
+layout(binding = 2) uniform sampler2D u_AlbedoTex;
+layout(binding = 3) uniform sampler2D u_MaterialPropTex;
 
-layout(std140, binding = 1) uniform SceneData
-{
-	DirectionalLight DirectionalLights;
-	vec3 CameraPosition; // Offset = 32
-	float EnvironmentMapIntensity;
-} u_Scene;
-
-struct PointLight
-{
-	vec3 Position;
-	float Intensity;
-	vec3 Color;
-};
-
-layout(std140, binding = 2) uniform PointLightData
-{
-	uint LightCount;
-	PointLight Lights[1000];
-} u_PointLights;
-
-struct SpotLight
-{
-    vec3 Position;
-    float Intensity;
-    vec3 Direction;
-    float AngleAttenuation;
-    vec3 Color;
-    float Angle;
-};
-
-layout(std140, binding = 3) uniform SpotLightData
-{
-	uint LightCount;
-	SpotLight Lights[1000];
-} u_SpotLights;
+#include "includes/Scene.glsl"
 
 struct Material {
     vec3 Diffuse;
@@ -55,11 +19,6 @@ struct Material {
     float Ambient;
     float Specular;
 };
-
-layout(binding = 0) uniform sampler2D u_PositionTex;
-layout(binding = 1) uniform sampler2D u_NormalTex;
-layout(binding = 2) uniform sampler2D u_AlbedoTex;
-layout(binding = 3) uniform sampler2D u_MaterialPropTex;
 
 float Constant = 1.0;
 float Linear = 0.09f;

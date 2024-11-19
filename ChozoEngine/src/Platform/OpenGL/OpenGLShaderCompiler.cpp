@@ -11,7 +11,7 @@
 
 namespace Chozo {
 
-    namespace Utils {
+    namespace ShaderUtils {
 
         static GLenum ShaderStageToGLEnum(ShaderStage shaderStage)
         {
@@ -21,39 +21,6 @@ namespace Chozo {
 				#undef GENERATE_CASE
 				default: return (GLenum)0;
 			}
-        }
-
-        static const char* GLShaderStageToString(GLenum stage)
-        {
-            switch (stage)
-            {
-                case GL_VERTEX_SHADER:   return "GL_VERTEX_SHADER";
-                case GL_FRAGMENT_SHADER: return "GL_FRAGMENT_SHADER";
-            }
-            CZ_CORE_ASSERT(false, "");
-            return nullptr;
-        }
-
-        static const char* GLShaderStageCachedVulkanFileExtension(uint32_t stage)
-        {
-            switch (stage)
-            {
-                case GL_VERTEX_SHADER:   return ".cached_vulkan.vert";
-                case GL_FRAGMENT_SHADER: return ".cahced_vulkan.frag";
-            }
-            CZ_CORE_ASSERT(false, "");
-            return "";
-        }
-
-        static const char* GLShaderStageCachedOpenGLFileExtension(uint32_t stage)
-        {
-            switch (stage)
-            {
-                case GL_VERTEX_SHADER:   return ".cached_opengl.vert";
-                case GL_FRAGMENT_SHADER: return ".cahced_opengl.frag";
-            }
-            CZ_CORE_ASSERT(false, "");
-            return "";
         }
     }
 
@@ -65,13 +32,11 @@ namespace Chozo {
         for (auto pathString : filePaths)
         {
             fs::path path(pathString);
-            auto type = ShaderUtils::GetShaderStageFromExtension(path.extension().string());
+            auto stage = ShaderUtils::GetShaderStageFromExtension(path.extension().string());
             std::string source = Utils::File::ReadTextFile(pathString);
 
-            shaderSources[type] = source;
-            shaderPaths[type] = path;
-            // CZ_CORE_INFO(pathString);
-            // CZ_CORE_INFO(source);
+            shaderSources[stage] = source;
+            shaderPaths[stage] = path;
         }
 
         CompileToOrGetVulkanBinaries(shaderSources, shaderPaths);
@@ -79,6 +44,12 @@ namespace Chozo {
         RendererID program = CompileToProgram();
 
         return program;
+    }
+
+    void OpenGLShaderCompiler::Release()
+    {
+        m_OpenGLSPIRV.clear();
+        m_OpenGLSourceCode.clear();
     }
 
     void OpenGLShaderCompiler::DecompileVulkanBinaries()
@@ -116,7 +87,7 @@ namespace Chozo {
         for (auto&& [stage, source] : m_OpenGLSourceCode)
         {
             // CZ_CORE_WARN("Compile Source: {0}", kv.second);
-            GLenum type = Utils::ShaderStageToGLEnum(stage);
+            GLenum type = ShaderUtils::ShaderStageToGLEnum(stage);
 
             GLuint shader = glCreateShader(type);
 

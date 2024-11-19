@@ -3,6 +3,7 @@
 
 namespace Chozo
 {
+	
 	void StreamWriter::WriteBuffer(Buffer buffer, bool writeSize)
 	{
 		if (writeSize)
@@ -24,5 +25,4 @@ namespace Chozo
 		WriteData((char*)&size, sizeof(size_t));
 		WriteData((char*)string.data(), sizeof(char) * string.size());
 	}
-
 } // namespace Chozo

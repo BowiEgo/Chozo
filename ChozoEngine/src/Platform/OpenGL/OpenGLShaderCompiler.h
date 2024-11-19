@@ -9,7 +9,9 @@ namespace Chozo {
     {
     public:
         OpenGLShaderCompiler() = default;
+
         virtual RendererID Compile(const std::vector<std::string> filePaths) override;
+        virtual void Release() override;
     private:
         void DecompileVulkanBinaries();
         RendererID CompileToProgram();

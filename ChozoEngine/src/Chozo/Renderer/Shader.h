@@ -88,7 +88,7 @@ namespace Chozo {
 
         virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) const = 0;
         virtual void ClearCache() = 0;
-        virtual void Recompile() = 0;
+        virtual void Compile() = 0;
 
         static Ref<Shader> Create(const std::string& name, const std::vector<std::string> filePaths);
     };
