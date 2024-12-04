@@ -1,19 +1,19 @@
 #include "Shader.h"
 
-#include "RendererAPI.h"
-#include "Backend/OpenGL/OpenGLShader.h"
+#include "RenderCommand.h"
+#include "Chozo/Renderer/Backend/OpenGL/OpenGLShader.h"
 
 namespace Chozo {
 
     Ref<Shader> Shader::Create(const std::string& name, const std::vector<std::string> filePaths)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLShader>::Create(name, filePaths);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLShader>::Create(name, filePaths);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 

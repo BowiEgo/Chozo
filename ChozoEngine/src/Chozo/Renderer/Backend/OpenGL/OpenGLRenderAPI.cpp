@@ -1,4 +1,4 @@
-#include "OpenGLRendererAPI.h"
+#include "OpenGLRenderAPI.h"
 
 #include "OpenGLUtils.h"
 
@@ -26,7 +26,7 @@ namespace Chozo {
 
     static const glm::mat4 CubeTextureCaptureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 
-    void OpenGLRendererAPI::Init()
+    void OpenGLRenderAPI::Init()
     {
         glEnable(GL_BLEND); GCE;
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); GCE;
@@ -36,24 +36,24 @@ namespace Chozo {
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); GCE;
     }
 
-    uint32_t OpenGLRendererAPI::GetMaxTextureSlots()
+    uint32_t OpenGLRenderAPI::GetMaxTextureSlots()
     {
         int maxTextureImageUnits;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits); GCE;
         return maxTextureImageUnits;
     }
 
-    void Chozo::OpenGLRendererAPI::SetClearColor(const glm::vec4& color)
+    void Chozo::OpenGLRenderAPI::SetClearColor(const glm::vec4& color)
     {
         glClearColor(color.r, color.g, color.b, color.a); GCE;
     }
 
-    void OpenGLRendererAPI::Clear()
+    void OpenGLRenderAPI::Clear()
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); GCE;
     }
 
-    void OpenGLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount, uint32_t indexOffset, uint32_t vertexOffset)
+    void OpenGLRenderAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount, uint32_t indexOffset, uint32_t vertexOffset)
     {
         uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
         vertexArray->Bind();
@@ -63,14 +63,14 @@ namespace Chozo {
         glDrawElementsBaseVertex(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*)(indexOffset * sizeof(GLuint)), vertexOffset); GCE;
     }
 
-    void OpenGLRendererAPI::DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
+    void OpenGLRenderAPI::DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
     {
         vertexArray->Bind();
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, vertexCount); GCE;
     }
 
-    void OpenGLRendererAPI::DrawEnvMap(const Ref<Shader> &shader, const Ref<TextureCube> &textureCube, const Ref<VertexArray> &VAO)
+    void OpenGLRenderAPI::DrawEnvMap(const Ref<Shader> &shader, const Ref<TextureCube> &textureCube, const Ref<VertexArray> &VAO)
     {
         textureCube.As<OpenGLTextureCube>()->Bind();
         for (uint32_t i = 0; i < 6; i++)
@@ -87,7 +87,7 @@ namespace Chozo {
         }
     }
 
-    void OpenGLRendererAPI::DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera)
+    void OpenGLRenderAPI::DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera)
     {
         environment->IrradianceMap.As<OpenGLTextureCube>()->Bind();
         Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Skybox");
@@ -103,7 +103,7 @@ namespace Chozo {
         ResetGLContext();
     }
 
-    void OpenGLRendererAPI::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
+    void OpenGLRenderAPI::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
     {
         commandBuffer->AddCommand([renderPass, this]()
         {
@@ -114,7 +114,7 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRendererAPI::EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
+    void OpenGLRenderAPI::EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
     {
         commandBuffer->AddCommand([renderPass]()
         {
@@ -122,7 +122,7 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRendererAPI::CreatePreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)
+    void OpenGLRenderAPI::CreatePreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)
     {
         Renderer::Submit([pipeline, turbidity, azimuth, inclination, this]()
         {
@@ -132,7 +132,7 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRendererAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, const Ref<Texture2D> texture)
+    void OpenGLRenderAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, const Ref<Texture2D> texture)
     {
         auto fbo = pipeline->GetTargetFramebuffer();
         auto shader = pipeline->GetShader();
@@ -156,7 +156,7 @@ namespace Chozo {
         fbo->Unbind();
     }
 
-    void OpenGLRendererAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
+    void OpenGLRenderAPI::RenderCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
     {
         auto fbo = pipeline->GetTargetFramebuffer();
         auto shader = pipeline->GetShader();
@@ -179,7 +179,7 @@ namespace Chozo {
         fbo->Unbind();
     }
 
-    void OpenGLRendererAPI::RenderPrefilteredCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
+    void OpenGLRenderAPI::RenderPrefilteredCubemap(Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
     {
         auto fbo = pipeline->GetTargetFramebuffer();
         auto shader = pipeline->GetShader();
@@ -212,7 +212,7 @@ namespace Chozo {
         fbo->Unbind();
     }
 
-    void OpenGLRendererAPI::DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)
+    void OpenGLRenderAPI::DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination)
     {
         auto fbo = pipeline->GetTargetFramebuffer();
         auto textureCube = Renderer::GetPreethamSkyTextureCube();
@@ -238,7 +238,7 @@ namespace Chozo {
         fbo->Unbind();
     }
 
-    void OpenGLRendererAPI::SubmitCubeMap(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
+    void OpenGLRenderAPI::SubmitCubeMap(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
     {
         commandBuffer->AddCommand([pipeline, cubemap, material, this]()
         {
@@ -261,7 +261,7 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRendererAPI::RenderFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material)
+    void OpenGLRenderAPI::RenderFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material)
     {
         auto shader = pipeline->GetShader();
 
@@ -273,7 +273,7 @@ namespace Chozo {
         ResetGLContext();
     }
 
-    void OpenGLRendererAPI::SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
+    void OpenGLRenderAPI::SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
     {
         commandBuffer->AddCommand([pipeline, material, this]()
         {
@@ -281,7 +281,7 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRendererAPI::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
+    void OpenGLRenderAPI::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
     {
         commandBuffer->AddCommand([pipeline, material, this]()
         {
@@ -290,12 +290,12 @@ namespace Chozo {
             if (material) { material.As<OpenGLMaterial>()->Bind(); }
 
             PrepareGLContext(pipeline);
-            RenderCommand::DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
+            DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
             ResetGLContext();
         });
     }
 
-    void OpenGLRendererAPI::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform)
+    void OpenGLRenderAPI::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform)
     {
         commandBuffer->AddCommand([pipeline, mesh, submeshIndex, material, transform, this]()
         {
@@ -320,7 +320,7 @@ namespace Chozo {
 
             glDisable(GL_BLEND); GCE;
             glEnable(GL_CULL_FACE); GCE;
-            RenderCommand::DrawIndexed(mesh->GetVertexArray(), indexCount, indexOffset, vertexOffset);
+            DrawIndexed(mesh->GetVertexArray(), indexCount, indexOffset, vertexOffset);
             glDisable(GL_CULL_FACE); GCE;
 
             auto rendererData = Renderer::GetRendererData();
@@ -331,7 +331,7 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRendererAPI::CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest)
+    void OpenGLRenderAPI::CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest)
     {
         commandBuffer->AddCommand([source, &dest]() mutable
         {
@@ -340,13 +340,13 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRendererAPI::PrepareGLContext(Ref<Pipeline> pipeline)
+    void OpenGLRenderAPI::PrepareGLContext(Ref<Pipeline> pipeline)
     {
         if (pipeline->GetSpec().DepthWrite)
             glDepthFunc(GL_LEQUAL); GCE;
     }
 
-    void OpenGLRendererAPI::ResetGLContext()
+    void OpenGLRenderAPI::ResetGLContext()
     {
         glDepthFunc(GL_LESS); GCE;
     }

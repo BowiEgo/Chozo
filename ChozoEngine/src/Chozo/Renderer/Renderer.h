@@ -96,18 +96,6 @@ namespace Chozo {
         static bool RemoveStaticMesh(StaticMesh* mesh);
         static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, Material* material, uint32_t entityID = -1); // TODO: Remove
 
-        static void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
-        static void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
-
-        static void SubmitCubeMap(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material = nullptr);
-        static void SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
-        static void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
-        static void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform);
-
-        static void CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest);
-
-        inline static RendererAPI* GetAPI() { return s_RendererAPI; }
-
         static Ref<ShaderLibrary> GetShaderLibrary() { return GetRendererData().m_ShaderLibrary; }
         static RendererData GetRendererData();
         static Ref<Texture2D> GetBRDFLutTexture();
@@ -133,7 +121,5 @@ namespace Chozo {
 		static void End();
         static void Submit(std::function<void()>&& func);
         static void DebouncedSubmit(std::function<void()>&& func, uint32_t delay = 100);
-    private:
-        static RendererAPI* s_RendererAPI;
     };
 }

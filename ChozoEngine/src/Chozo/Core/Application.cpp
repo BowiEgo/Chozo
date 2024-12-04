@@ -27,6 +27,8 @@ namespace Chozo {
         CZ_CORE_ASSERT(!s_Instance, "Application already exists!");
         s_Instance = this;
 
+        RenderCommand::SwitchAPI(RenderAPI::Type::OpenGL);
+
         m_Window = Window::Create(WindowProps(name));
         m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 

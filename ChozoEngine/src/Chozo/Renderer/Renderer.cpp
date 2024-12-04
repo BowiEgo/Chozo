@@ -1,13 +1,12 @@
 #include "Renderer.h"
 
-#include "RendererAPI.h"
+#include "RenderCommand.h"
+#include "Backend/OpenGL/OpenGLRenderAPI.h"
 #include "Geometry/BoxGeometry.h"
 #include "Geometry/QuadGeometry.h"
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
-
-#include "Backend/OpenGL/OpenGLRendererAPI.h"
 
 namespace Chozo {
 
@@ -16,8 +15,6 @@ namespace Chozo {
     static std::vector<std::function<void()>> s_RenderCommandQueue;
     static std::atomic<std::chrono::steady_clock::time_point> s_LastSubmitTime = std::chrono::steady_clock::now();
     static std::future<void> s_DebounceTask;
-
-    RendererAPI* Renderer::s_RendererAPI;
 
     template<typename T>
     static void SetMaxSize(T*& target, T*& ptr, uint32_t newSize)
@@ -41,14 +38,6 @@ namespace Chozo {
 
     void Renderer::Init()
     {
-        RenderCommand::Init();
-
-        switch (RendererAPI::GetAPI())
-        {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!");
-            case RendererAPI::API::OpenGL:   Renderer::s_RendererAPI = new OpenGLRendererAPI;
-        }
-
         s_Data = new RendererData();
 
         // Textures
@@ -222,7 +211,7 @@ namespace Chozo {
             s_Data->m_BRDFLutPipeline = Pipeline::Create(pipelineSpec);
 
             framebuffer->Bind();
-            s_RendererAPI->RenderFullscreenQuad(s_Data->m_BRDFLutPipeline);
+            RenderCommand::RenderFullscreenQuad(s_Data->m_BRDFLutPipeline);
             framebuffer->Unbind();
         }
         
@@ -300,41 +289,6 @@ namespace Chozo {
         s_Data->IndexCount += indexCount;
         s_Data->Stats.VerticesCount += vertexCount;
         s_Data->Stats.TriangleCount += indexCount;
-    }
-
-    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
-    {
-		s_RendererAPI->BeginRenderPass(commandBuffer, renderPass);
-    }
-
-    void Renderer::EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
-    {
-		s_RendererAPI->EndRenderPass(commandBuffer, renderPass);
-    }
-
-    void Renderer::SubmitCubeMap(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
-    {
-		s_RendererAPI->SubmitCubeMap(commandBuffer, pipeline, cubemap, material);
-    }
-
-    void Renderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
-    {
-		s_RendererAPI->SubmitFullscreenQuad(commandBuffer, pipeline, material);
-    }
-
-    void Renderer::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
-    {
-		s_RendererAPI->SubmitFullscreenBox(commandBuffer, pipeline, material);
-    }
-
-    void Renderer::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform)
-    {
-        s_RendererAPI->SubmitMeshWithMaterial(commandBuffer, pipeline, mesh, submeshIndex, material, transform);
-    }
-
-    void Renderer::CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest)
-    {
-        s_RendererAPI->CopyImage(commandBuffer, source, dest);
     }
 
     void Renderer::Begin()
@@ -443,45 +397,45 @@ namespace Chozo {
 
     uint32_t Renderer::GetMaxTextureSlots()
     {
-        return s_RendererAPI->GetMaxTextureSlots();
+        return RenderCommand::GetMaxTextureSlots();
     }
 
     void Renderer::CreateStaticSky(const Ref<Texture2D> texture)
     {
         Submit([texture](){
-            s_RendererAPI->RenderCubemap(s_Data->m_CubemapSamplerPipeline, s_Data->StaticSkyTextureCube, texture);
+            RenderCommand::RenderCubemap(s_Data->m_CubemapSamplerPipeline, s_Data->StaticSkyTextureCube, texture);
 
             s_Data->m_IrradianceMaterial->Set("u_Texture", s_Data->StaticSkyTextureCube);
-            s_RendererAPI->RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
+            RenderCommand::RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
 
             s_Data->m_PrefilteredMaterial->Set("u_Texture", s_Data->StaticSkyTextureCube);
-            s_RendererAPI->RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
+            RenderCommand::RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
         });
     }
 
     void Renderer::CreatePreethamSky(const float turbidity, const float azimuth, const float inclination)
     {
-        s_RendererAPI->CreatePreethamSky(s_Data->m_PreethamSkyPipeline, turbidity, azimuth, inclination);
+        RenderCommand::CreatePreethamSky(s_Data->m_PreethamSkyPipeline, turbidity, azimuth, inclination);
 
         Submit([](){
             s_Data->m_IrradianceMaterial->Set("u_Texture", s_Data->PreethamSkyTextureCube);
-            s_RendererAPI->RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
+            RenderCommand::RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
 
             s_Data->m_PrefilteredMaterial->Set("u_Texture", s_Data->PreethamSkyTextureCube);
-            s_RendererAPI->RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
+            RenderCommand::RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
         });
     }
 
     void Renderer::UpdatePreethamSky(const float turbidity, const float azimuth, const float inclination)
     {
-        s_RendererAPI->DrawPreethamSky(s_Data->m_PreethamSkyPipeline, turbidity, azimuth, inclination);
+        RenderCommand::DrawPreethamSky(s_Data->m_PreethamSkyPipeline, turbidity, azimuth, inclination);
 
         Submit([](){
             s_Data->m_IrradianceMaterial->Set("u_Texture", s_Data->PreethamSkyTextureCube);
-            s_RendererAPI->RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
+            RenderCommand::RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
 
             s_Data->m_PrefilteredMaterial->Set("u_Texture", s_Data->PreethamSkyTextureCube);
-            s_RendererAPI->RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
+            RenderCommand::RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
         });
     }
 }

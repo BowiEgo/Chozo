@@ -77,7 +77,7 @@ namespace Chozo {
                 // TODO: Change to Async Commandbuffer
                 m_Viewport_FBO->Bind();
                 m_Material->Set("u_Texture", m_Texture);
-                Renderer::GetAPI()->RenderFullscreenQuad(m_Pipeline, m_Material);
+                RenderCommand::RenderFullscreenQuad(m_Pipeline, m_Material);
                 m_Viewport_FBO->Unbind();
 
                 DrawImage(m_FBOTexture);

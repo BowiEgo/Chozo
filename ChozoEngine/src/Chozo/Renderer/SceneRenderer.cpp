@@ -350,7 +350,7 @@ namespace Chozo
 
     void SceneRenderer::SkyboxPass()
     {
-		Renderer::BeginRenderPass(m_CommandBuffer, m_SkyboxPass);
+		RenderCommand::BeginRenderPass(m_CommandBuffer, m_SkyboxPass);
 
         m_SkyboxMaterial->Set("u_FragUniforms.TextureLod", m_SceneData.SkyboxLod);
 		m_SkyboxMaterial->Set("u_FragUniforms.Intensity", m_SceneData.SceneEnvironmentIntensity);
@@ -358,13 +358,13 @@ namespace Chozo
 		const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackTextureCube();
 		m_SkyboxMaterial->Set("u_Texture", radianceMap);
 
-		Renderer::SubmitFullscreenBox(m_CommandBuffer, m_SkyboxPass->GetPipeline(), m_SkyboxMaterial);
-		Renderer::EndRenderPass(m_CommandBuffer, m_SkyboxPass);
+		RenderCommand::SubmitFullscreenBox(m_CommandBuffer, m_SkyboxPass->GetPipeline(), m_SkyboxMaterial);
+		RenderCommand::EndRenderPass(m_CommandBuffer, m_SkyboxPass);
     }
 
     void SceneRenderer::GeometryPass()
     {
-		Renderer::BeginRenderPass(m_CommandBuffer, m_GeometryPass);
+		RenderCommand::BeginRenderPass(m_CommandBuffer, m_GeometryPass);
         for (auto meshData : m_MeshDatas)
         {
             if (!meshData.Material)
@@ -373,21 +373,21 @@ namespace Chozo
             meshData.Material->Set("u_Material.ID", (int)meshData.ID);
 
             if (meshData.Mesh.As<DynamicMesh>())
-                Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.SubmeshIndex, meshData.Material, meshData.Transform);
+                RenderCommand::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.SubmeshIndex, meshData.Material, meshData.Transform);
         }
-		Renderer::EndRenderPass(m_CommandBuffer, m_GeometryPass);
+		RenderCommand::EndRenderPass(m_CommandBuffer, m_GeometryPass);
     }
 
     void SceneRenderer::IDPass()
     {
-		Renderer::BeginRenderPass(m_CommandBuffer, m_IDPass);
-		Renderer::SubmitFullscreenQuad(m_CommandBuffer, m_IDPass->GetPipeline(), m_IDMaterial);
-		Renderer::EndRenderPass(m_CommandBuffer, m_IDPass);
+		RenderCommand::BeginRenderPass(m_CommandBuffer, m_IDPass);
+		RenderCommand::SubmitFullscreenQuad(m_CommandBuffer, m_IDPass->GetPipeline(), m_IDMaterial);
+		RenderCommand::EndRenderPass(m_CommandBuffer, m_IDPass);
     }
 
     void SceneRenderer::SolidPass()
     {
-		Renderer::BeginRenderPass(m_CommandBuffer, m_SolidPass);
+		RenderCommand::BeginRenderPass(m_CommandBuffer, m_SolidPass);
         for (auto meshData : m_MeshDatas)
         {
             if (!meshData.Material)
@@ -396,17 +396,17 @@ namespace Chozo
                 material->Set("u_Material.ID", (int)meshData.ID);
 
                 if (meshData.Mesh.As<DynamicMesh>())
-                    Renderer::SubmitMeshWithMaterial(m_CommandBuffer, m_SolidPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.SubmeshIndex, material, meshData.Transform);
+                    RenderCommand::SubmitMeshWithMaterial(m_CommandBuffer, m_SolidPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.SubmeshIndex, material, meshData.Transform);
             }
         }
-		Renderer::EndRenderPass(m_CommandBuffer, m_SolidPass);
+		RenderCommand::EndRenderPass(m_CommandBuffer, m_SolidPass);
     }
 
     void SceneRenderer::PhongLightPass()
     {
-        Renderer::BeginRenderPass(m_CommandBuffer, m_PhongLightPass);
-		Renderer::SubmitFullscreenQuad(m_CommandBuffer, m_PhongLightPass->GetPipeline(), m_PhongLightMaterial);
-		Renderer::EndRenderPass(m_CommandBuffer, m_PhongLightPass);
+        RenderCommand::BeginRenderPass(m_CommandBuffer, m_PhongLightPass);
+		RenderCommand::SubmitFullscreenQuad(m_CommandBuffer, m_PhongLightPass->GetPipeline(), m_PhongLightMaterial);
+		RenderCommand::EndRenderPass(m_CommandBuffer, m_PhongLightPass);
     }
 
     void SceneRenderer::PBRPrePass()
@@ -423,7 +423,7 @@ namespace Chozo
 
     void SceneRenderer::PBRPass()
     {
-        Renderer::BeginRenderPass(m_CommandBuffer, m_PBRPass);
+        RenderCommand::BeginRenderPass(m_CommandBuffer, m_PBRPass);
        
         Ref<Texture2D> positionTex = m_GeometryPass->GetOutput(0);
         Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
@@ -440,17 +440,17 @@ namespace Chozo
         m_PBRMaterial->Set("u_PrefilterMap", prefilterMap);
         m_PBRMaterial->Set("u_BRDFLutTex", brdfLUTTexture);
 
-		Renderer::SubmitFullscreenQuad(m_CommandBuffer, m_PBRPass->GetPipeline(), m_PBRMaterial);
-		Renderer::EndRenderPass(m_CommandBuffer, m_PBRPass);
+		RenderCommand::SubmitFullscreenQuad(m_CommandBuffer, m_PBRPass->GetPipeline(), m_PBRMaterial);
+		RenderCommand::EndRenderPass(m_CommandBuffer, m_PBRPass);
     }
 
     void SceneRenderer::CompositePass()
     {
         m_CompositePass->GetTargetFramebuffer()->GetSpecification().ClearColor = Renderer::GetConfig().ClearColor;
 
-		Renderer::BeginRenderPass(m_CommandBuffer, m_CompositePass);
-		Renderer::SubmitFullscreenQuad(m_CommandBuffer, m_CompositePass->GetPipeline(), m_CompositeMaterial);
-		Renderer::EndRenderPass(m_CommandBuffer, m_CompositePass);
+		RenderCommand::BeginRenderPass(m_CommandBuffer, m_CompositePass);
+		RenderCommand::SubmitFullscreenQuad(m_CommandBuffer, m_CompositePass->GetPipeline(), m_CompositeMaterial);
+		RenderCommand::EndRenderPass(m_CommandBuffer, m_CompositePass);
     }
 
     void SceneRenderer::Flush()
@@ -475,6 +475,6 @@ namespace Chozo
 
     void SceneRenderer::CopyImage(Ref<Texture2D> source, SharedBuffer &dest)
     {
-        Renderer::CopyImage(m_CommandBuffer, source, dest);
+        RenderCommand::CopyImage(m_CommandBuffer, source, dest);
     }
 }

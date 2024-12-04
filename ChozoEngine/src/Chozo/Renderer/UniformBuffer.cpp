@@ -1,19 +1,19 @@
 #include "UniformBuffer.h"
 
-#include "RendererAPI.h"
-#include "Backend/OpenGL/OpenGLUniformBuffer.h"
+#include "RenderCommand.h"
+#include "Chozo/Renderer/Backend/OpenGL/OpenGLUniformBuffer.h"
 
 namespace Chozo {
 
     Ref<UniformBuffer> UniformBuffer::Create(uint32_t size)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLUniformBuffer>::Create(size);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLUniformBuffer>::Create(size);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 }

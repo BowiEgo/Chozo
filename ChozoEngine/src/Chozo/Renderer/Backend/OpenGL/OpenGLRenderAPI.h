@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Chozo/Renderer/RendererAPI.h"
+#include "Chozo/Renderer/RenderCommand.h"
 #include "Chozo/Renderer/Texture.h"
 
 namespace Chozo {
     
-    class OpenGLRendererAPI : public RendererAPI
+    class OpenGLRenderAPI : public RenderAPI
     {
     public:
         virtual void Init() override;

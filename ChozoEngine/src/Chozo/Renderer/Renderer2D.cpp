@@ -1,7 +1,6 @@
 #include "Renderer2D.h"
 #include "Renderer.h"
 
-#include "Backend/OpenGL/OpenGLShader.h"
 #include "UniformBuffer.h"
 
 #include <glad/glad.h>
@@ -111,8 +110,6 @@ namespace Chozo {
 
     void Renderer2D::Init()
     {
-        RenderCommand::Init();
-
         // Quad
         s_Data.QuadVertexArray = VertexArray::Create();
         s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertexs * sizeof(QuadVertex));
@@ -279,6 +276,13 @@ namespace Chozo {
         // }
     }
 
+    void Renderer2D::FlushQuadBuffer()
+    {
+        RenderCommand::DrawIndexed(s_Data.QuadVertexArray, 0);
+
+        s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+    }
+
     void Renderer2D::DrawFullScreenQuad()
     {
         glm::mat4 transform = glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 1.0f });
@@ -295,13 +299,6 @@ namespace Chozo {
         s_Data.QuadVertexBuffer->SetData(0, size, (float*)s_Data.QuadVertexBufferBase);
 
         FlushQuadBuffer();
-    }
-
-    void Renderer2D::FlushQuadBuffer()
-    {
-        RenderCommand::DrawIndexed(s_Data.QuadVertexArray, 0);
-
-        s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
     }
 
     void Renderer2D::DrawQuad(const glm::mat4 &transform, const glm::vec4 &color, uint32_t entityID)

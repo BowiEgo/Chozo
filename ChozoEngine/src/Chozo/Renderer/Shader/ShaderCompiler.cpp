@@ -1,7 +1,7 @@
 #include "ShaderCompiler.h"
 
-#include "../RendererAPI.h"
-#include "Backend/OpenGL/OpenGLShaderCompiler.h"
+#include "../RenderCommand.h"
+#include "Chozo/Renderer/Backend/OpenGL/OpenGLShaderCompiler.h"
 #include "Chozo/FileSystem/FileStream.h"
 #include "Chozo/Renderer/Shader/GlslIncluder.h"
 
@@ -12,13 +12,13 @@ namespace Chozo {
     
     Ref<ShaderCompiler> ShaderCompiler::Create()
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLShaderCompiler>::Create();
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLShaderCompiler>::Create();
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 
