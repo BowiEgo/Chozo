@@ -1,7 +1,7 @@
 #include "VertexBuffer.h"
 
 #include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLVertexBuffer.h"
+#include "Backend/OpenGL/OpenGLVertexBuffer.h"
 
 namespace Chozo {
 

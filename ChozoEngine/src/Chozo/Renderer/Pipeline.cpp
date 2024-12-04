@@ -1,7 +1,7 @@
 #include "Pipeline.h"
 
 #include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLPipeline.h"
+#include "Backend/OpenGL/OpenGLPipeline.h"
 
 namespace Chozo {
 

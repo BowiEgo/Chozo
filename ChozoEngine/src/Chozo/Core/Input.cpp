@@ -1,13 +1,13 @@
-#include "MacInput.h"
+#include "Chozo/Core/Input.h"
 
 #include "Chozo/Core/Application.h"
 #include <GLFW/glfw3.h>
 
 namespace Chozo {
 
-    Input* Input::s_Instance = new MacInput();
+    Input* Input::s_Instance = new Input();
 
-    // bool Chozo::MacInput::IsKeyPressedImpl(int keycode)
+    // bool Chozo::Input::IsKeyPressedImpl(int keycode)
     // {
     //     auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
     //     auto state = glfwGetKey(window, keycode);
@@ -15,7 +15,7 @@ namespace Chozo {
     //     return state == GLFW_PRESS || state == GLFW_REPEAT;
     // }
 
-    bool Chozo::MacInput::IsKeyPressedImpl(KeyCode keycode)
+    bool Chozo::Input::IsKeyPressedImpl(KeyCode keycode)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         auto state = glfwGetKey(window, static_cast<int32_t>(keycode));
@@ -23,7 +23,7 @@ namespace Chozo {
         return state == GLFW_PRESS || state == GLFW_REPEAT;
     }
 
-    // bool Chozo::MacInput::IsMouseButtonPressedImpl(int button)
+    // bool Chozo::Input::IsMouseButtonPressedImpl(int button)
     // {
     //     auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
     //     auto state = glfwGetKey(window, button);
@@ -31,7 +31,7 @@ namespace Chozo {
     //     return state == GLFW_PRESS;
     // }
 
-    bool Chozo::MacInput::IsMouseButtonPressedImpl(MouseButton button)
+    bool Chozo::Input::IsMouseButtonPressedImpl(MouseButton button)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         auto state = glfwGetMouseButton(window, static_cast<int32_t>(button));
@@ -39,7 +39,7 @@ namespace Chozo {
         return state == GLFW_PRESS;
     }
 
-    std::pair<float, float> MacInput::GetMousePositionImpl()
+    std::pair<float, float> Input::GetMousePositionImpl()
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         double xpos, ypos;
@@ -48,14 +48,14 @@ namespace Chozo {
         return { (float)xpos, (float)ypos };
     }
 
-    float Chozo::MacInput::GetMouseXImpl()
+    float Chozo::Input::GetMouseXImpl()
     {
         auto [x, y] = GetMousePositionImpl();
 
         return x;
     }
 
-    float Chozo::MacInput::GetMouseYImpl()
+    float Chozo::Input::GetMouseYImpl()
     {
         auto [x, y] = GetMousePositionImpl();
 

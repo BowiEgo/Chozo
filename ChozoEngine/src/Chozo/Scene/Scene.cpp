@@ -7,10 +7,7 @@
 #include "Chozo/Renderer/Renderer2D.h"
 #include "Chozo/Renderer/SceneRenderer.h"
 #include "Chozo/Asset/AssetManager.h"
-
 #include "Chozo/Core/Application.h"
-
-#include <glad/glad.h>
 
 namespace Chozo {
 

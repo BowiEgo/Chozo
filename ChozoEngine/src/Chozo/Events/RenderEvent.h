@@ -4,7 +4,7 @@
 
 namespace Chozo {
 
-    class CHOZO_API SceneRenderEvent : public Event
+    class SceneRenderEvent : public Event
     {
     public:
         SceneRenderEvent() {}

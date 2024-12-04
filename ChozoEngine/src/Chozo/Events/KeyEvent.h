@@ -4,7 +4,7 @@
 #include "Chozo/Core/KeyCodes.h"
 
 namespace Chozo {
-    class CHOZO_API KeyEvent : public Event
+    class KeyEvent : public Event
     {
     public:
         inline KeyCode GetKeyCode() const { return m_KeyCode; }
@@ -17,7 +17,7 @@ namespace Chozo {
         KeyCode m_KeyCode;
     };
 
-    class CHOZO_API KeyPressedEvent : public KeyEvent
+    class KeyPressedEvent : public KeyEvent
     {
     public:
         KeyPressedEvent(KeyCode keycode, int repeatCount)
@@ -37,7 +37,7 @@ namespace Chozo {
         int m_RepeatCount;
     };
 
-    class CHOZO_API KeyReleasedEvent : public KeyEvent
+    class KeyReleasedEvent : public KeyEvent
     {
     public:
         KeyReleasedEvent(KeyCode keycode)
@@ -53,7 +53,7 @@ namespace Chozo {
         EVENT_CLASS_TYPE(KeyReleased)
     };
 
-    class CHOZO_API KeyTypedEvent : public KeyEvent
+    class KeyTypedEvent : public KeyEvent
     {
     public:
         KeyTypedEvent(KeyCode keycode)

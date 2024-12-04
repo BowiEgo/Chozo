@@ -4,7 +4,7 @@
 #include "Chozo/Core/KeyCodes.h"
 
 namespace Chozo {
-    class CHOZO_API MouseMovedEvent : public Event
+    class MouseMovedEvent : public Event
     {
     public:
         MouseMovedEvent(float x, float y)
@@ -26,7 +26,7 @@ namespace Chozo {
         float m_MouseX, m_MouseY;
     };
 
-    class CHOZO_API MouseScrolledEvent : public Event
+    class MouseScrolledEvent : public Event
     {
     public:
         MouseScrolledEvent(float xOffset, float yOffset)
@@ -48,7 +48,7 @@ namespace Chozo {
         float m_XOffset, m_YOffset;
     };
 
-    class CHOZO_API MouseButtonEvent : public Event
+    class MouseButtonEvent : public Event
     {
     public:
         inline MouseButton GetMouseButton() const { return m_Button; }
@@ -61,7 +61,7 @@ namespace Chozo {
         MouseButton m_Button;
     };
 
-    class CHOZO_API MouseButtonPressedEvent : public MouseButtonEvent
+    class MouseButtonPressedEvent : public MouseButtonEvent
     {
     public:
         MouseButtonPressedEvent(MouseButton button)
@@ -77,7 +77,7 @@ namespace Chozo {
         EVENT_CLASS_TYPE(MouseButtonPressed)
     };
 
-    class CHOZO_API MouseButtonReleasedEvent : public MouseButtonEvent
+    class MouseButtonReleasedEvent : public MouseButtonEvent
     {
     public:
         MouseButtonReleasedEvent(MouseButton button)

@@ -2,7 +2,7 @@
 
 #include "Renderer.h"
 #include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLMaterial.h"
+#include "Backend/OpenGL/OpenGLMaterial.h"
 
 namespace Chozo {
 

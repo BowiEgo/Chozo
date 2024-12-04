@@ -3,7 +3,8 @@
 #include "Event.h"
 
 namespace Chozo {
-    class CHOZO_API WindowResizedEvent : public Event
+    
+    class WindowResizedEvent : public Event
     {
     public:
         WindowResizedEvent(unsigned int width, unsigned int height)
@@ -25,7 +26,7 @@ namespace Chozo {
         unsigned int m_Width, m_Height;
     };
 
-    class CHOZO_API WindowCloseEvent : public Event
+    class WindowCloseEvent : public Event
     {
     public:
         WindowCloseEvent() {}
@@ -34,7 +35,7 @@ namespace Chozo {
         EVENT_CLASS_CATEGORY(EventCategory_Application)
     };
 
-    class CHOZO_API AppTickEvent : public Event
+    class AppTickEvent : public Event
     {
     public:
         AppTickEvent() {}
@@ -43,7 +44,7 @@ namespace Chozo {
         EVENT_CLASS_CATEGORY(EventCategory_Application)
     };
 
-    class CHOZO_API AppUpdateEvent : public Event
+    class AppUpdateEvent : public Event
     {
     public:
         AppUpdateEvent() {}
@@ -52,7 +53,7 @@ namespace Chozo {
         EVENT_CLASS_CATEGORY(EventCategory_Application)
     };
 
-    class CHOZO_API AppRenderEvent : public Event
+    class AppRenderEvent : public Event
     {
     public:
         AppRenderEvent() {}

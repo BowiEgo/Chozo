@@ -10,7 +10,7 @@
 
 namespace Chozo
 {
-    class CHOZO_API Log
+    class Log
     {
     public:
         enum class Type : uint8_t

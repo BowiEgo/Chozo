@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace Chozo {
-    class CHOZO_API LayerStack
+    class LayerStack
     {
     public:
         LayerStack();

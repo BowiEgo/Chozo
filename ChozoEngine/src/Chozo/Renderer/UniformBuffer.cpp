@@ -1,7 +1,7 @@
 #include "UniformBuffer.h"
 
 #include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLUniformBuffer.h"
+#include "Backend/OpenGL/OpenGLUniformBuffer.h"
 
 namespace Chozo {
 

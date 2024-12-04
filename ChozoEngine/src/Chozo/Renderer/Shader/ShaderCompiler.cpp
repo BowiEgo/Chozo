@@ -1,7 +1,7 @@
 #include "ShaderCompiler.h"
 
 #include "../RendererAPI.h"
-#include "Platform/OpenGL/OpenGLShaderCompiler.h"
+#include "Backend/OpenGL/OpenGLShaderCompiler.h"
 #include "Chozo/FileSystem/FileStream.h"
 #include "Chozo/Renderer/Shader/GlslIncluder.h"
 

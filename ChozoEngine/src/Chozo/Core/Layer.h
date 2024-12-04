@@ -5,7 +5,7 @@
 #include "Chozo/Core/Timestep.h"
 
 namespace Chozo {
-    class CHOZO_API Layer
+    class Layer
     {
     public:
         Layer(const std::string& name = "Layer");

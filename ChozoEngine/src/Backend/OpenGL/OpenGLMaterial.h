@@ -2,6 +2,7 @@
 
 #include "Chozo/Renderer/Material.h"
 #include "OpenGLShader.h"
+#include "OpenGLTexture.h"
 
 namespace Chozo {
 

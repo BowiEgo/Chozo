@@ -2,7 +2,6 @@
 
 #include "Chozo/Core/Application.h"
 #include "Chozo/Renderer/Renderer.h"
-#include "OpenGLTexture.h"
 
 namespace Chozo {
 

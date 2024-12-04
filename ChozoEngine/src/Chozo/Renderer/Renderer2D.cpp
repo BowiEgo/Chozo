@@ -1,7 +1,7 @@
 #include "Renderer2D.h"
 #include "Renderer.h"
 
-#include "Platform/OpenGL/OpenGLShader.h"
+#include "Backend/OpenGL/OpenGLShader.h"
 #include "UniformBuffer.h"
 
 #include <glad/glad.h>

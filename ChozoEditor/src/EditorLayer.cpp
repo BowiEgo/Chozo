@@ -2,7 +2,6 @@
 #include "CameraController.h"
 
 #include <regex>
-#include <glad/glad.h>
 
 #include "Panels/TextureViewerPanel.h"
 

@@ -6,30 +6,35 @@ project(ChozoEngine VERSION 1.0.0)
 #
 # ChozoEngine static library
 #
-file(GLOB_RECURSE chozo_engine_sources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
-file(GLOB_RECURSE chozo_engine_vendor RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} vendor/*.cpp)
-
-add_library(${PROJECT_NAME} STATIC ${chozo_engine_sources} ${chozo_engine_vendor})
-set(LIBRARY_OUTPUT_PATH ${LIB_PATH})
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_PIPELINE)
-target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_DEBUG)
-target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOW_WIDTH=1920 WINDOW_HEIGHT=1080)
-
 if(WIN32)
     message("//----------------- Platform: Windows -----------------//")
-    target_compile_definitions(${PROJECT_NAME} PRIVATE ENGINE_PLATFORM_WIN32)
+    file(GLOB_RECURSE platform_sources "Platform/Windows/*.cpp")
+    set(platform_definitions ENGINE_PLATFORM_WIN32)
 elseif(UNIX)
     if(APPLE)
         message("//----------------- Platform: MacOS -----------------//")
-        target_compile_definitions(${PROJECT_NAME} PRIVATE ENGINE_PLATFORM_MACOS)
+        file(GLOB_RECURSE platform_sources "Platform/Mac/*.cpp")
+        set(platform_definitions ENGINE_PLATFORM_MACOS)
     else()
         message("//----------------- Platform: Linux -----------------//")
-        target_compile_definitions(${PROJECT_NAME} PRIVATE ENGINE_PLATFORM_LINUX)
+        file(GLOB_RECURSE platform_sources "Platform/Linux/*.cpp")
+        set(platform_definitions ENGINE_PLATFORM_LINUX)
     endif()
 else()
     message("//----------------- Platform: Unsupported -----------------//")
+    set(platform_sources "")
+    set(platform_definitions ENGINE_PLATFORM_UNSUPPORTED)
 endif()
+
+file(GLOB_RECURSE chozo_engine_sources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
+file(GLOB_RECURSE chozo_engine_vendor RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} vendor/*.cpp)
+
+add_library(${PROJECT_NAME} STATIC ${chozo_engine_sources} ${chozo_engine_vendor} ${platform_sources})
+set(LIBRARY_OUTPUT_PATH ${LIB_PATH})
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_DEBUG)
+target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOW_WIDTH=1920 WINDOW_HEIGHT=1080)
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${platform_definitions})
 
 # Include directories for chozo
 target_include_directories(${PROJECT_NAME} PUBLIC

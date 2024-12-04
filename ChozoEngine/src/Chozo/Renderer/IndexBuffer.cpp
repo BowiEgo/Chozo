@@ -1,7 +1,7 @@
 #include "IndexBuffer.h"
 
 #include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLIndexBuffer.h"
+#include "Backend/OpenGL/OpenGLIndexBuffer.h"
 
 namespace Chozo {
 

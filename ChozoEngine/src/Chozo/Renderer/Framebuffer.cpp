@@ -1,7 +1,7 @@
 #include "Framebuffer.h"
 
 #include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLFramebuffer.h"
+#include "Backend/OpenGL/OpenGLFramebuffer.h"
 
 namespace Chozo {
     Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& spec)

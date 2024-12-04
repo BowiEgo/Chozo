@@ -1,7 +1,7 @@
 #include "Shader.h"
 
 #include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLShader.h"
+#include "Backend/OpenGL/OpenGLShader.h"
 
 namespace Chozo {
 

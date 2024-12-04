@@ -3,6 +3,9 @@
 #include "czpch.h"
 #include "Chozo/Core/Base.h"
 #include "Chozo/Events/Event.h"
+#include "Chozo/Renderer/GraphicsContext.h"
+
+#include <GLFW/glfw3.h>
 
 namespace Chozo {
 
@@ -20,25 +23,42 @@ namespace Chozo {
         }
     };
     
-    class CHOZO_API Window
+    class Window
     {
     public:
         using EventCallbackFn = std::function<void(Event&)>;
 
-        virtual ~Window() {}
+        Window(const WindowProps& props);
+        ~Window();
 
-        virtual void OnUpdate() = 0;
+        void Init(const WindowProps& props);
+        void Shutdown();
+        void OnUpdate();
 
-        virtual unsigned int GetWidth() const = 0;
-        virtual unsigned int GetHeight() const = 0;
+        unsigned int GetWidth() const { return m_Data.Width; }
+        unsigned int GetHeight() const { return m_Data.Height; }
 
         // Window attributes
-        virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
-        virtual void SetVSync(bool enabled) = 0;
-        virtual bool IsVSync() const = 0;
+        void SetEventCallback(const EventCallbackFn& callback) { m_Data.EventCallback = callback; }
+        void SetVSync(bool enabled);
+        bool IsVSync() const;
 
-        virtual void* GetNativeWindow() const = 0;
+        void* GetNativeWindow() const { return m_Window; }
 
         static Scope<Window> Create(const WindowProps& props = WindowProps());
+    private:
+        GLFWwindow* m_Window;
+        GraphicsContext* m_Context;
+
+        struct WindowData
+        {
+            std::string Title;
+            unsigned int Width, Height;
+            bool VSync;
+
+            EventCallbackFn EventCallback;
+        };
+
+        WindowData m_Data;
     };
 }

@@ -1,7 +1,7 @@
 #include "RenderPass.h"
 
 #include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLRenderPass.h"
+#include "Backend/OpenGL/OpenGLRenderPass.h"
 
 namespace Chozo {
 

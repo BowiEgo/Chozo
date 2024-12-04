@@ -1,7 +1,7 @@
 #include "Texture.h"
 
 #include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLTexture.h"
+#include "Backend/OpenGL/OpenGLTexture.h"
 
 namespace Chozo
 {

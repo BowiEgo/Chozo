@@ -13,8 +13,6 @@
 
 #include "Chozo/Events/RenderEvent.h"
 
-#include <glad/glad.h>
-
 namespace Chozo
 {
 

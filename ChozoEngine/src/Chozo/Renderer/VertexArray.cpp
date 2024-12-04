@@ -1,7 +1,7 @@
 #include "VertexArray.h"
 
 #include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLVertexArray.h"
+#include "Backend/OpenGL/OpenGLVertexArray.h"
 
 namespace Chozo {
     Ref<VertexArray> VertexArray::Create()

@@ -5,15 +5,15 @@
 #include <functional>
 #include "Ref.h"
 
-#ifdef ENGINE_PLATFORM_WIN32
-    #ifdef CHOZO_BUILD_DLL
-        #define CHOZO_API __declspec(dllexport)
-    #else
-        #define CHOZO_API __declspec(dllimport)
-    #endif
-#else
-    #define CHOZO_API
-#endif
+// #ifdef ENGINE_PLATFORM_WIN32
+//     #ifdef CHOZO_BUILD_DLL
+//         #define CHOZO_API __declspec(dllexport)
+//     #else
+//         #define CHOZO_API __declspec(dllimport)
+//     #endif
+// #else
+//     #define CHOZO_API
+// #endif
 
 ////////////////////////////////////////////////////////////////////////////
 //============================ Debug =====================================//

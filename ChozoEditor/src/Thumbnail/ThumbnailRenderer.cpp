@@ -6,8 +6,6 @@
 #include "Chozo/FileSystem/TextureExporter.h"
 #include "Chozo/Utilities/FileUtils.h"
 
-#include <glad/glad.h>
-
 namespace Chozo {
 
 	std::unordered_map<AssetType, Scope<ThumbnailRenderer>> ThumbnailRenderer::s_Renderers;

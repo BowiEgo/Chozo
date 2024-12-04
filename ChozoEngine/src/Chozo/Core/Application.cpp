@@ -2,14 +2,21 @@
 
 #include <regex>
 
-#include "Input.h"
-
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
+
+#include "Chozo/Core/Thread.h"
 
 #include <GLFW/glfw3.h>
 
 #define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
+
+void PrintThreadName()
+{
+    char name[16];
+    pthread_getname_np(pthread_self(), name, sizeof(name));
+    std::cout << "Thread name: " << name << std::endl;
+}
 
 namespace Chozo {
 
@@ -33,6 +40,14 @@ namespace Chozo {
 
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
+
+        std::thread t([] {
+            Thread thread("MyLongThreadName"); // 名字会被截断为 "MyLongThreadNa"
+            thread.SetName("MyLongThreadName");
+            PrintThreadName();
+        });
+
+        t.join();
     }
     
     Application::~Application()
