@@ -9,18 +9,20 @@
 #include <spirv_cross/spirv_cross.hpp>
 #include <spirv_cross/spirv_glsl.hpp>
 
-#include "Chozo/Core/Timer.h"
 #include "Chozo/Renderer/RenderCommand.h"
 #include "Chozo/FileSystem/FileStream.h"
 
 #include "Chozo/Renderer/Shader/ShaderCompiler.h"
 
+#include "Chozo/Core/Application.h"
+#include <GLFW/glfw3.h>
+
 namespace Chozo {
 
     OpenGLShader::OpenGLShader(const std::string& name, const std::vector<std::string> filePaths)
-        : m_Name(name), m_Filepaths(filePaths)
+        : m_FilePaths(filePaths), m_Name(name)
     {
-        Compile();
+        OpenGLShader::Compile();
     }
 
     OpenGLShader::~OpenGLShader()
@@ -128,7 +130,7 @@ namespace Chozo {
     {
         fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
 
-        for (auto&& filepath : m_Filepaths)
+        for (auto&& filepath : m_FilePaths)
         {
             fs::path shaderFilepath(filepath);
             auto stage = ShaderUtils::GetShaderStageFromExtension(shaderFilepath.extension().string());
@@ -141,84 +143,89 @@ namespace Chozo {
     void OpenGLShader::Compile()
     {
         auto compiler = ShaderCompiler::Create();
-        {
-            Timer timer;
-            m_RendererID = compiler->Compile(m_Filepaths);
-            CZ_CORE_WARN("Shader creation took {0} ms", timer.ElapsedMillis());
-        }
+        m_RendererID = compiler->Compile(m_FilePaths);
+    }
+
+    void OpenGLShader::AsyncCompile()
+    {
+        auto sharedContext = Application::Get().GetWindow().GetSharedWindow();
+
+        glfwMakeContextCurrent(sharedContext);
+        Compile();
+        glfwMakeContextCurrent(nullptr);
     }
 
     void OpenGLShader::SetUniformBool(const std::string &name, const bool value) const
     {
-        glUniform1i(GetUniformLoaction(name), value ? 1 : 0);
+        glUniform1i(GetUniformLocation(name), value ? 1 : 0);
     }
 
     void OpenGLShader::SetUniform1i(const std::string &name, const int value) const
     {
-        glUniform1i(GetUniformLoaction(name), value);
+        glUniform1i(GetUniformLocation(name), value);
     }
 
     void OpenGLShader::SetUniform1iV(const std::string &name, const int *values, const uint32_t count) const
     {
-        glUniform1iv(GetUniformLoaction(name), count, values);
+        glUniform1iv(GetUniformLocation(name), count, values);
     }
 
     void OpenGLShader::SetUniform1f(const std::string& name, const float value) const
     {
-        glUniform1f(GetUniformLoaction(name), value);
+        glUniform1f(GetUniformLocation(name), value);
     }
 
     void OpenGLShader::SetUniform2f(const std::string& name, const float v0, const float v1) const
     {
-        glUniform2f(GetUniformLoaction(name), v0, v1);
+        glUniform2f(GetUniformLocation(name), v0, v1);
     }
 
     void OpenGLShader::SetUniform3f(const std::string& name, const float v0, const float v1, const float v2) const
     {
-        glUniform3f(GetUniformLoaction(name), v0, v1, v2);
+        glUniform3f(GetUniformLocation(name), v0, v1, v2);
     }
 
     void OpenGLShader::SetUniform4f(const std::string& name, const float v0, const float v1, const float v2, const float v3) const
     {
-        glUniform4f(GetUniformLoaction(name), v0, v1, v2, v3);
+        glUniform4f(GetUniformLocation(name), v0, v1, v2, v3);
     }
 
     void OpenGLShader::SetUniformVec2(const std::string &name, const glm::vec2 &vector) const
     {
-        glUniform2f(GetUniformLoaction(name), vector.x, vector.y);
+        glUniform2f(GetUniformLocation(name), vector.x, vector.y);
     }
 
     void OpenGLShader::SetUniformVec3(const std::string &name, const glm::vec3 &vector) const
     {
-        glUniform3f(GetUniformLoaction(name), vector.x, vector.y, vector.z);
+        glUniform3f(GetUniformLocation(name), vector.x, vector.y, vector.z);
     }
 
     void OpenGLShader::SetUniformVec3(const std::string &name, const float vector[3]) const
     {
-        glUniform3f(GetUniformLoaction(name), vector[0], vector[1], vector[2]);
+        glUniform3f(GetUniformLocation(name), vector[0], vector[1], vector[2]);
     }
 
     void OpenGLShader::SetUniformVec4(const std::string &name, const glm::vec4 &vector) const
     {
-        glUniform4f(GetUniformLoaction(name), vector.x, vector.y, vector.z, vector.w);
+        glUniform4f(GetUniformLocation(name), vector.x, vector.y, vector.z, vector.w);
     }
 
     void OpenGLShader::SetUniformMat3(const std::string& name, const glm::mat3& matrix) const
     {
-        glUniformMatrix3fv(GetUniformLoaction(name), 1, GL_FALSE, &matrix[0][0]);
+        glUniformMatrix3fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
     }
 
     void OpenGLShader::SetUniformMat4(const std::string& name, const glm::mat4& matrix) const
     {
-        glUniformMatrix4fv(GetUniformLoaction(name), 1, GL_FALSE, &matrix[0][0]);
+        glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
     }
 
     void OpenGLShader::SetUniformMat4V(const std::string& name, const std::vector<glm::mat4>& value, const uint32_t count) const
     {
-        glUniformMatrix4fv(GetUniformLoaction(name), count, GL_FALSE, &value[0][0][0]);
+        glUniformMatrix4fv(GetUniformLocation(name), count, GL_FALSE, &value[0][0][0]);
     }
 
-    int OpenGLShader::GetUniformLoaction(const std::string& name) const
+    int OpenGLShader::GetUniformLocation(const std::string& name) const
     {
         if (m_UniformLocationCache.find(name) != m_UniformLocationCache.end())
             return m_UniformLocationCache[name];

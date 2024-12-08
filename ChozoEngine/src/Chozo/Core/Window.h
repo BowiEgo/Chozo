@@ -43,11 +43,13 @@ namespace Chozo {
         void SetVSync(bool enabled);
         bool IsVSync() const;
 
-        void* GetNativeWindow() const { return m_Window; }
+        GLFWwindow* GetNativeWindow() const { return m_Window; }
+        GLFWwindow* GetSharedWindow() const { return m_SharedWindow; }
 
         static Scope<Window> Create(const WindowProps& props = WindowProps());
     private:
         GLFWwindow* m_Window;
+        GLFWwindow* m_SharedWindow;
         GraphicsContext* m_Context;
 
         struct WindowData

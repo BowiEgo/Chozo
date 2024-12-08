@@ -34,10 +34,10 @@ namespace Chozo {
         data->content = (*container)[1].data();
         data->content_length = (*container)[1].size();
 
-    	std::cout << "GetInclude: " << std::endl;
-    	std::cout << requestedFullPath << std::endl;
-    	std::cout << data->source_name << std::endl;
-    	std::cout << data->content << std::endl;
+    	// std::cout << "GetInclude: " << std::endl;
+    	// std::cout << requestedFullPath << std::endl;
+    	// std::cout << data->source_name << std::endl;
+    	// std::cout << data->content << std::endl;
 
         return data;
     }

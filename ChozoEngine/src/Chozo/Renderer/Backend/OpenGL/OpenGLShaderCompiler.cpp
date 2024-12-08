@@ -2,6 +2,7 @@
 
 #include "Chozo/Renderer/Shader/GlslIncluder.h"
 
+#include "Chozo/Core/Timer.h"
 #include "Chozo/Utilities/FileUtils.h"
 #include "Chozo/FileSystem/FileStream.h"
 
@@ -26,6 +27,8 @@ namespace Chozo {
 
     RendererID OpenGLShaderCompiler::Compile(const std::vector<std::string> filePaths)
     {
+        Timer timer;
+
         ShaderSources shaderSources;
         ShaderPaths shaderPaths;
 
@@ -42,6 +45,8 @@ namespace Chozo {
         CompileToOrGetVulkanBinaries(shaderSources, shaderPaths);
         DecompileVulkanBinaries();
         RendererID program = CompileToProgram();
+
+        CZ_CORE_WARN("Shader compiler took {0} ms", timer.ElapsedMillis());
 
         return program;
     }

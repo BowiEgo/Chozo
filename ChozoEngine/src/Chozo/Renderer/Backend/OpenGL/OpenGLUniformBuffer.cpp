@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 
 namespace Chozo {
+    
     unsigned int OpenGLUniformBuffer::s_UniformBindingPoint = -1;
 
     OpenGLUniformBuffer::OpenGLUniformBuffer(uint32_t size)

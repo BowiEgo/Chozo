@@ -1,7 +1,10 @@
 #include "Shader.h"
 
 #include "RenderCommand.h"
+#include "Chozo/Core/Application.h"
 #include "Chozo/Renderer/Backend/OpenGL/OpenGLShader.h"
+
+#include <GLFW/glfw3.h>
 
 namespace Chozo {
 
@@ -25,14 +28,23 @@ namespace Chozo {
 
     void ShaderLibrary::Recompile()
     {
-        for (auto& [name, shader] : m_Shaders)
-        {
-            // Clear caches
-            shader->ClearCache();
-
-            // Compile shaders
-            shader->Compile();
+        if (m_IsCompiling) {
+            CZ_CORE_ERROR("Shaders are already compiling. Skipping new request.");
+            return;
         }
+
+        m_IsCompiling = true;
+        m_Thread.Join();
+        m_Thread.Dispatch([this]() {
+            for (auto& [name, shader] : m_Shaders)
+            {
+                // Clear caches
+                shader->ClearCache();
+                // Compile shaders
+                shader->AsyncCompile();
+            }
+            m_IsCompiling = false;
+        });
     }
 
     const Ref<Shader>& ShaderLibrary::Get(const std::string &name) const

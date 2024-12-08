@@ -13,7 +13,7 @@ namespace Chozo {
     {
     public:
         OpenGLShader(const std::string& name, const std::vector<std::string> filePaths);
-        virtual ~OpenGLShader();
+        ~OpenGLShader() override;
 
         virtual void Bind() const override;
         virtual void Unbind() const override;
@@ -27,6 +27,7 @@ namespace Chozo {
         void SetUniformBlockBinding(const std::string& name, const uint32_t bindingPoint) const;
         virtual void ClearCache() override;
         virtual void Compile() override;
+        virtual void AsyncCompile() override;
     private:
         void SetUniformBool(const std::string& name, const bool value) const;
         void SetUniform1i(const std::string& name, const int value) const;
@@ -42,10 +43,10 @@ namespace Chozo {
         void SetUniformMat3(const std::string& name, const glm::mat3& matrix) const;
         void SetUniformMat4(const std::string& name, const glm::mat4& matrix) const;
         void SetUniformMat4V(const std::string& name, const std::vector<glm::mat4>& array, const uint32_t count) const;
-        int GetUniformLoaction(const std::string& name) const;
+        int GetUniformLocation(const std::string& name) const;
     private:
         uint32_t m_RendererID;
-        std::vector<std::string> m_Filepaths;
+        std::vector<std::string> m_FilePaths;
         std::string m_Name;
         mutable std::unordered_map<std::string, int> m_UniformLocationCache;
         UniformTable m_UniformTable;

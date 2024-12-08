@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RendererTypes.h"
+#include "Chozo/Core/Thread.h"
 
 #include "czpch.h"
 #include <glm/glm.hpp>
@@ -89,6 +90,7 @@ namespace Chozo {
         virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) const = 0;
         virtual void ClearCache() = 0;
         virtual void Compile() = 0;
+        virtual void AsyncCompile() = 0;
 
         static Ref<Shader> Create(const std::string& name, const std::vector<std::string> filePaths);
     };
@@ -97,7 +99,7 @@ namespace Chozo {
     {
     public:
         ShaderLibrary() = default;
-        ~ShaderLibrary() {};
+        ~ShaderLibrary() override = default;
 
 		void Load(std::string_view name, const std::vector<std::string> filePaths);
 		void Recompile();
@@ -106,6 +108,8 @@ namespace Chozo {
 
         static Ref<ShaderLibrary> Create();
     private:
+        Thread m_Thread = Thread("ShaderLibrary");
+        bool m_IsCompiling = false;
 		std::unordered_map<std::string, Ref<Shader>> m_Shaders;
     };
 }

@@ -9,15 +9,20 @@ namespace Chozo {
     {
     public:
         Thread(const std::string& name);
+        ~Thread();
 
         template<typename Fn, typename ...Args>
         void Dispatch(Fn&& func, Args&&... args)
         {
-            m_Thread = std::thread(func, std::forward<Args>(args)...);
-            SetName(m_Name);
+            auto threadFunc = [this, func = std::forward<Fn>(func)](Args&&... args) {
+                SetName(m_Name);
+                func(std::forward<Args>(args)...);
+            };
+            m_Thread = std::thread(threadFunc, std::forward<Args>(args)...);
         }
 
         void SetName(const std::string& name);
+        std::string GetName();
 
         void Join();
     private:

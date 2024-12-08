@@ -152,7 +152,6 @@ namespace Chozo {
                 data = std::vector<uint32_t>(module.cbegin(), module.cend());
 
                 FileStreamWriter writer(cachePath);
-                CZ_CORE_INFO("{}, {}", cachePath.string(), data.size());
                 if (writer.IsStreamGood())
                 {
 		            writer.WriteData((char*)data.data(), data.size() * sizeof(uint32_t));

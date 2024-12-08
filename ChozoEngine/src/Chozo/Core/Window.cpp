@@ -24,6 +24,9 @@ namespace Chozo {
 
     Window::~Window()
     {
+        glfwDestroyWindow(m_SharedWindow);
+        glfwDestroyWindow(m_Window);
+        glfwTerminate();
     }
 
     void Window::Init(const WindowProps& props)
@@ -53,6 +56,7 @@ namespace Chozo {
 
         // Create a GLFW window
         m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
+        m_SharedWindow = glfwCreateWindow(1, 1, "Shared Window", nullptr, m_Window);
 
         switch (RenderCommand::GetType())
         {
@@ -163,6 +167,8 @@ namespace Chozo {
 
     void Window::OnUpdate()
     {
+        glfwMakeContextCurrent(m_Window);
+
         /* Swap front and back buffers */
         m_Context->SwapBuffers();
 
