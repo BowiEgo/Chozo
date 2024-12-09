@@ -1,6 +1,5 @@
 #pragma once
 
-#include <chrono>
 #include <unordered_map>
 
 #include "Chozo/Debug/Log.h"
@@ -12,8 +11,14 @@ namespace Chozo {
 	public:
 		CZ_FORCE_INLINE Timer() { Reset(); }
 		CZ_FORCE_INLINE void Reset() { m_Start = std::chrono::high_resolution_clock::now(); }
-		CZ_FORCE_INLINE float Elapsed() { return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - m_Start).count() * 0.001f * 0.001f; }
-		CZ_FORCE_INLINE float ElapsedMillis() { return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - m_Start).count() * 0.001f; }
+		CZ_FORCE_INLINE float Elapsed() const {
+			return std::chrono::duration_cast<std::chrono::microseconds>( // NOLINT
+				       std::chrono::high_resolution_clock::now() - m_Start).count() * 0.001f * 0.001f;
+		}
+		CZ_FORCE_INLINE float ElapsedMillis() const {
+			return std::chrono::duration_cast<std::chrono::microseconds>( // NOLINT
+				       std::chrono::high_resolution_clock::now() - m_Start).count() * 0.001f;
+		}
 	private:
 		std::chrono::time_point<std::chrono::high_resolution_clock> m_Start;
 	};
@@ -21,8 +26,8 @@ namespace Chozo {
 	class ScopedTimer
 	{
 	public:
-		ScopedTimer(const std::string& name)
-			: m_Name(name) {}
+		explicit ScopedTimer(std::string  name)
+			: m_Name(std::move(name)) {}
 		~ScopedTimer()
 		{
 			float time = m_Timer.ElapsedMillis();
@@ -42,17 +47,18 @@ namespace Chozo {
 			uint32_t Samples = 0;
 
 			PerFrameData() = default;
-			PerFrameData(float time) : Time(time) {}
 
-			operator float() const { return Time; }
-			inline PerFrameData& operator+=(float time)
+			PerFrameData(const float time) : Time(time) {} // NOLINT
+
+			explicit operator float() const { return Time; }
+			inline PerFrameData& operator+=(const float time)
 			{
 				Time += time;
                 return *this;
 			}
 		};
 	public:
-		void SetPerFrameTiming(const char* name, float time)
+		void SetPerFrameTiming(const char* name, const float time)
 		{
 			std::scoped_lock<std::mutex> lock(m_PerFrameDataMutex);
 
@@ -70,7 +76,7 @@ namespace Chozo {
 			m_PerFrameData.clear();
 		}
 
-		const std::unordered_map<const char*, PerFrameData>& GetPerFrameData() const { return m_PerFrameData; }
+		[[nodiscard]] const std::unordered_map<const char*, PerFrameData>& GetPerFrameData() const { return m_PerFrameData; }
 	private:
 		std::unordered_map<const char*, PerFrameData> m_PerFrameData;
 		inline static std::mutex m_PerFrameDataMutex;

@@ -59,7 +59,7 @@ namespace Chozo
 
         inline void AddEventListener(const EventType type, const EventCallback& cb, bool destroy = true) { m_EventBus.AddListener(type, cb, destroy); }
 
-		void SetViewportSize(uint32_t width, uint32_t height);
+		void SetViewportSize(float width, float height);
 
         bool SubmitDirectionalLight(DirectionalLightComponent* light);
         bool SubmitPointLight(PointLightComponent* light, glm::vec3& position);
@@ -170,6 +170,6 @@ namespace Chozo
 		Ref<Material> m_CompositeMaterial;
         Ref<RenderPass> m_CompositePass;
 
-		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+		float m_ViewportWidth = 0, m_ViewportHeight = 0;
     };
 }

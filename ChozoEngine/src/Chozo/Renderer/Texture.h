@@ -74,14 +74,14 @@ namespace Chozo {
 
         virtual Texture2DSpecification GetSpecification() const = 0;
 
-		virtual void SetData(const void* data, const uint32_t size) = 0;
+		virtual void SetData(const void* data, uint32_t size) = 0;
         virtual void Resize(uint32_t width, uint32_t height) = 0;
 
         static Ref<Texture2D> Create(const Texture2DSpecification& spec = Texture2DSpecification());
-        static Ref<Texture2D> Create(const Ref<Texture2D> other);
+        static Ref<Texture2D> Create(Ref<Texture2D> other);
         static Ref<Texture2D> Create(const std::string& path, const Texture2DSpecification& spec = Texture2DSpecification());
         static Ref<Texture2D> Create(const RendererID& id, const Texture2DSpecification& spec = Texture2DSpecification());
-        static Ref<Texture2D> Create(Buffer imageBuffer, const Texture2DSpecification& spec = Texture2DSpecification());
+        static Ref<Texture2D> Create(const Buffer& imageBuffer, const Texture2DSpecification& spec = Texture2DSpecification());
     private:
         static TextureType s_Type;
     };

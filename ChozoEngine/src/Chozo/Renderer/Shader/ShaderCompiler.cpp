@@ -10,12 +10,12 @@
 
 namespace Chozo {
     
-    Ref<ShaderCompiler> ShaderCompiler::Create()
+    Ref<ShaderCompiler> ShaderCompiler::Create(std::string& name)
     {
         switch (RenderCommand::GetType())
         {
             case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RenderAPI::Type::OpenGL:   return Ref<OpenGLShaderCompiler>::Create();
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLShaderCompiler>::Create(name);
         }
 
         CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
@@ -113,6 +113,8 @@ namespace Chozo {
         shaderc::Compiler compiler;
         shaderc::CompileOptions options;
         options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+        options.AddMacroDefinition("MAX_TEXTURE_SLOTS", std::to_string(RenderCommand::GetMaxTextureSlots()));
+
         const bool optimize = false;
         if (optimize)
             options.SetOptimizationLevel(shaderc_optimization_level_performance);
@@ -124,7 +126,7 @@ namespace Chozo {
             fs::path shaderFilepath = shaderPaths.at(stage);
             fs::path cachePath = ShaderUtils::GetCachePathByNameAndStage(shaderFilepath.filename().stem().string(), stage);
 
-            auto& data = m_VulkanSPIRV[stage];
+            auto& data = m_VulkanSpirV[stage];
 
             FileStreamReader stream(cachePath);
             if (stream.IsStreamGood())
@@ -159,7 +161,7 @@ namespace Chozo {
             }
         }
 
-        for (auto&& [stage, data] : m_VulkanSPIRV)
+        for (auto&& [stage, data] : m_VulkanSpirV)
             Reflect(stage, data);
     }
 

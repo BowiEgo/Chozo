@@ -73,7 +73,7 @@
 
 #define BIT(x) (1 << x)
 
-#define CZ_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+#define CZ_BIND_EVENT_FN(fn) [this](auto && PH1) { return fn(std::forward<decltype(PH1)>(PH1)); }
 
 namespace Chozo {
 	namespace fs = std::filesystem;

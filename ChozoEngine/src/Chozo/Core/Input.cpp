@@ -7,7 +7,7 @@ namespace Chozo {
 
     Input* Input::s_Instance = new Input();
 
-    // bool Chozo::Input::IsKeyPressedImpl(int keycode)
+    // bool Input::IsKeyPressedImpl(int keycode)
     // {
     //     auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
     //     auto state = glfwGetKey(window, keycode);
@@ -15,15 +15,15 @@ namespace Chozo {
     //     return state == GLFW_PRESS || state == GLFW_REPEAT;
     // }
 
-    bool Chozo::Input::IsKeyPressedImpl(KeyCode keycode)
+    bool Input::IsKeyPressedImpl(KeyCode keycode)
     {
-        auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        auto state = glfwGetKey(window, static_cast<int32_t>(keycode));
+        const auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        const auto state = glfwGetKey(window, static_cast<int32_t>(keycode));
 
         return state == GLFW_PRESS || state == GLFW_REPEAT;
     }
 
-    // bool Chozo::Input::IsMouseButtonPressedImpl(int button)
+    // bool Input::IsMouseButtonPressedImpl(int button)
     // {
     //     auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
     //     auto state = glfwGetKey(window, button);
@@ -31,31 +31,31 @@ namespace Chozo {
     //     return state == GLFW_PRESS;
     // }
 
-    bool Chozo::Input::IsMouseButtonPressedImpl(MouseButton button)
+    bool Input::IsMouseButtonPressedImpl(MouseButton button)
     {
-        auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        auto state = glfwGetMouseButton(window, static_cast<int32_t>(button));
+        const auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        const auto state = glfwGetMouseButton(window, static_cast<int32_t>(button));
 
         return state == GLFW_PRESS;
     }
 
     std::pair<float, float> Input::GetMousePositionImpl()
     {
-        auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        double xpos, ypos;
-        glfwGetCursorPos(window, &xpos, &ypos);
+        const auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        double xPos, yPos;
+        glfwGetCursorPos(window, &xPos, &yPos);
 
-        return { (float)xpos, (float)ypos };
+        return { (float)xPos, (float)yPos };
     }
 
-    float Chozo::Input::GetMouseXImpl()
+    float Input::GetMouseXImpl()
     {
         auto [x, y] = GetMousePositionImpl();
 
         return x;
     }
 
-    float Chozo::Input::GetMouseYImpl()
+    float Input::GetMouseYImpl()
     {
         auto [x, y] = GetMousePositionImpl();
 

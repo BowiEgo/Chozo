@@ -1,4 +1,4 @@
-// #pragma once
+#pragma once
 
 // // From glfw3.h
 // #define CZ_MOUSE_BUTTON_1         0

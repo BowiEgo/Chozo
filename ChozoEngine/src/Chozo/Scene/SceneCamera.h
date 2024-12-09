@@ -17,7 +17,7 @@ namespace Chozo
 
         inline void SetProjectionType(ProjectionType type) { m_ProjectionType = type; RecaculateProjection(); }
         inline ProjectionType GetProjectionType() const { return m_ProjectionType; }
-        void SetViewportSize(uint32_t width, uint32_t height);
+        void SetViewportSize(float width, float height);
 
         void SetPerspective(float verticalFOV, float nearClip, float farClip);
         inline void SetPerspectiveVerticalFOV(float fov) { m_PerspectiveFOV = fov; RecaculateProjection(); };

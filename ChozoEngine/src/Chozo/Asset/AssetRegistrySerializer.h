@@ -7,7 +7,7 @@ namespace Chozo {
     class AssetRegistrySerializer
     {
     public:
-        AssetRegistrySerializer(const AssetRegistry& context);
+        explicit AssetRegistrySerializer(AssetRegistry  context);
 
         void Serialize(const std::string& filepath);
         void SerializeRuntime(const std::string& filepath);

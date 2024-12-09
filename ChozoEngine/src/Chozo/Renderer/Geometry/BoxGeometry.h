@@ -5,51 +5,51 @@
 namespace Chozo
 {
 
-    class BoxGeometry : public Geometry
+    class BoxGeometry final : public Geometry
     {
     public:
-        BoxGeometry(const float& width = 1.0f, const float& height = 1.0f, const float& depth = 1.0f, const uint32_t& widthSegments = 1, const uint32_t& heightSegments = 1, const uint32_t& depthSegments = 1);
-        ~BoxGeometry() = default;
+        explicit BoxGeometry(const float& width = 1.0f, const float& height = 1.0f, const float& depth = 1.0f, const uint32_t& widthSegments = 1, const uint32_t& heightSegments = 1, const uint32_t& depthSegments = 1);
+        ~BoxGeometry() override = default;
 
-        inline float GetWidth() { return m_Width; }
-        inline void SetWidth(float& width) {
+        inline float GetWidth() const { return m_Width; }
+        inline void SetWidth(const float& width) {
             Backup();
             m_Width = width; CallGenerate();
         }
 
-        inline float GetHeight() { return m_Height; }
-        inline void SetHeight(float& height) {
+        inline float GetHeight() const { return m_Height; }
+        inline void SetHeight(const float& height) {
             Backup();
             m_Height = height; CallGenerate();
         }
 
-        inline float GetDepth() { return m_Depth; }
+        inline float GetDepth() const { return m_Depth; }
         inline void SetDepth(float& depth) {
             Backup();
             m_Depth = depth; CallGenerate();
         }
 
-        inline uint32_t GetWidthSegments() { return m_WidthSegments; }
-        inline void SetWidthSegments(uint32_t& widthSegments) {
+        inline uint32_t GetWidthSegments() const { return m_WidthSegments; }
+        inline void SetWidthSegments(const uint32_t& widthSegments) {
             Backup();
             m_WidthSegments = widthSegments; CallGenerate();
         }
 
-        inline uint32_t GetHeightSegments() { return m_HeightSegments; }
-        inline void SetHeightSegments(uint32_t& heightSegments) {
+        inline uint32_t GetHeightSegments() const { return m_HeightSegments; }
+        inline void SetHeightSegments(const uint32_t& heightSegments) {
             Backup();
             m_HeightSegments = heightSegments; CallGenerate();
         }
 
-        inline uint32_t GetDepthSegments() { return m_DepthSegments; }
-        inline void SetDepthSegments(uint32_t& depthSegments) {
+        inline uint32_t GetDepthSegments() const { return m_DepthSegments; }
+        inline void SetDepthSegments(const uint32_t& depthSegments) {
             Backup();
             m_DepthSegments = depthSegments; CallGenerate();
         }
     protected:
-        virtual void Backup() override;
-        virtual void Backtrace() override;
-        virtual MeshBuffer* Generate() override;
+        void Backup() override;
+        void Backtrace() override;
+        MeshBuffer* Generate() override;
     private:
         void BuildPlane(std::string u, std::string v, std::string w, int uDir, int vDir, float width, float height, float depth, uint32_t gridX, uint32_t gridY, MeshBuffer* buffer);
     private:

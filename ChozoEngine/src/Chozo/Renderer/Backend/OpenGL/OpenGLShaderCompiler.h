@@ -8,7 +8,7 @@ namespace Chozo {
     class OpenGLShaderCompiler : public ShaderCompiler
     {
     public:
-        OpenGLShaderCompiler() = default;
+        OpenGLShaderCompiler(std::string& name);
 
         virtual RendererID Compile(const std::vector<std::string> filePaths) override;
         virtual void Release() override;

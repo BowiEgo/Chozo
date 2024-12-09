@@ -1,6 +1,5 @@
 #pragma once
 
-#include "czpch.h"
 #include "Chozo/Core/Base.h"
 
 namespace Chozo {
@@ -35,14 +34,16 @@ namespace Chozo {
     {
         friend class EventDispatcher;
     public:
-        virtual EventType GetEventType() const = 0;
-        virtual const char* GetName() const = 0;
-        virtual int GetCategoryFlags() const = 0;
-        virtual std::string ToString() const { return GetName(); }
+        virtual ~Event() = default;
 
-        inline bool isInCategory(EventCategory category) { return GetCategoryFlags() & category; }
-        inline bool isHandled() const { return m_Handled; }
-        inline void SetHandled(bool handled) { m_Handled = handled; }
+        [[nodiscard]] virtual EventType GetEventType() const = 0;
+        [[nodiscard]] virtual const char* GetName() const = 0;
+        [[nodiscard]] virtual int GetCategoryFlags() const = 0;
+        [[nodiscard]] virtual std::string ToString() const { return GetName(); }
+
+        [[nodiscard]] bool isInCategory(const EventCategory category) const { return GetCategoryFlags() & category; }
+        [[nodiscard]] bool isHandled() const { return m_Handled; }
+        void SetHandled(const bool handled) { m_Handled = handled; }
     public:
         bool m_Handled = false;
     };
@@ -57,7 +58,7 @@ namespace Chozo {
         template<typename T>
         using EventFn = std::function<bool(T&)>;
     public:
-        EventDispatcher(Event& event)
+        explicit EventDispatcher(Event& event)
             : m_Event(event)
         {
         }
@@ -83,13 +84,11 @@ namespace Chozo {
     {
         using EventListener = std::pair<bool, EventCallback>;
     public:
-        EventBus()
-        {
-        }
+        EventBus() = default;
 
         void AddListener(const EventType type, const EventCallback& callback, bool destroy = false)
         {
-            m_Listeners[type].push_back({destroy, std::move(callback)});
+            m_Listeners[type].emplace_back(destroy, callback);
         }
 
         void Dispatch(Event& event)

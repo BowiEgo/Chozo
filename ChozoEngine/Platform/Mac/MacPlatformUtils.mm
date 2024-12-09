@@ -10,10 +10,10 @@ std::string OpenFileDialog() {
 
         if ([panel runModal] == NSModalResponseOK) {
             NSURL* fileUrl = [panel URL];
-            return std::string([[fileUrl path] UTF8String]);
+            return {[[fileUrl path] UTF8String]};
         }
     }
-    return std::string();
+    return {};
 }
 
 std::string SaveFileDialog(const std::string& defaultFileName) {
@@ -33,7 +33,7 @@ std::string SaveFileDialog(const std::string& defaultFileName) {
         if ([savePanel runModal] == NSModalResponseOK) {
             NSURL* result = [savePanel URL];
             if (result) {
-                return std::string([[result path] UTF8String]);
+                return {[[result path] UTF8String]};
             }
         }
     }

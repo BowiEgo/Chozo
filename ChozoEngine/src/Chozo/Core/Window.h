@@ -15,10 +15,10 @@ namespace Chozo {
         unsigned int Width;
         unsigned int Height;
 
-        WindowProps(const std::string& title = "Chozo Engine",
-                    unsigned int width = WINDOW_WIDTH,
-                    unsigned int height = WINDOW_HEIGHT)
-            : Title(title), Width(width), Height(height)
+        explicit WindowProps(std::string  title = "Chozo Engine",
+                    const unsigned int width = WINDOW_WIDTH,
+                    const unsigned int height = WINDOW_HEIGHT)
+            : Title(std::move(title)), Width(width), Height(height)
         {
         }
     };
@@ -35,22 +35,22 @@ namespace Chozo {
         void Shutdown();
         void OnUpdate();
 
-        unsigned int GetWidth() const { return m_Data.Width; }
-        unsigned int GetHeight() const { return m_Data.Height; }
+        [[nodiscard]] unsigned int GetWidth() const { return m_Data.Width; }
+        [[nodiscard]] unsigned int GetHeight() const { return m_Data.Height; }
 
         // Window attributes
         void SetEventCallback(const EventCallbackFn& callback) { m_Data.EventCallback = callback; }
         void SetVSync(bool enabled);
-        bool IsVSync() const;
+        [[nodiscard]] bool IsVSync() const;
 
-        GLFWwindow* GetNativeWindow() const { return m_Window; }
-        GLFWwindow* GetSharedWindow() const { return m_SharedWindow; }
+        [[nodiscard]] GLFWwindow* GetNativeWindow() const { return m_Window; }
+        [[nodiscard]] GLFWwindow* GetSharedWindow() const { return m_SharedWindow; }
 
         static Scope<Window> Create(const WindowProps& props = WindowProps());
     private:
-        GLFWwindow* m_Window;
-        GLFWwindow* m_SharedWindow;
-        GraphicsContext* m_Context;
+        GLFWwindow* m_Window{};
+        GLFWwindow* m_SharedWindow{};
+        GraphicsContext* m_Context{};
 
         struct WindowData
         {

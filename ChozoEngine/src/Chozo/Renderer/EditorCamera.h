@@ -14,7 +14,7 @@ namespace Chozo {
 
         virtual void Reset() override;
 
-        void OnUpdate(Timestep ts);
+        void OnUpdate(TimeStep ts);
         void OnEvent(Event& e);
 
         inline float GetDistance() {  return m_Distance; };

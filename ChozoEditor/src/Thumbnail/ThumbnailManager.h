@@ -5,11 +5,11 @@
 
 namespace Chozo {
     
-    class ThumbnailManager : public RefCounted
+    class ThumbnailManager final : public RefCounted
     {
     public:
-        ThumbnailManager() {};
-        ~ThumbnailManager() {};
+        ThumbnailManager() = default;
+        ~ThumbnailManager() override = default;
 
         static void Init();
         static void Shutdown();

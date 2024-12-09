@@ -4,7 +4,7 @@
 namespace Chozo
 {
 	//==============================================================================
-	/// FileStreamWriter
+	// FileStreamWriter
 	FileStreamWriter::FileStreamWriter(const fs::path& path)
 		: m_Path(path)
 	{
@@ -16,14 +16,14 @@ namespace Chozo
 		m_Stream.close();
 	}
 
-	bool FileStreamWriter::WriteData(const char* data, size_t size)
+	bool FileStreamWriter::WriteData(const char* data, const size_t size)
 	{
 		m_Stream.write(data, size);
 		return true;
 	}
 
 	//==============================================================================
-	/// FileStreamReader
+	// FileStreamReader
 	FileStreamReader::FileStreamReader(const fs::path& path)
 		: m_Path(path)
 	{
@@ -44,7 +44,7 @@ namespace Chozo
 		return size;
     }
 
-    bool FileStreamReader::ReadData(char *destination, size_t size)
+    bool FileStreamReader::ReadData(char *destination, const size_t size)
     {
 		m_Stream.read(destination, size);
 		return true;
@@ -52,7 +52,7 @@ namespace Chozo
 
     bool FileStreamReader::ReadBinary(std::vector<u_int32_t>& destination)
     {
-		auto size = GetFileSize();
+		const auto size = GetFileSize();
 
 		destination.resize(size / sizeof(uint32_t));
 		m_Stream.read((char*)destination.data(), size);

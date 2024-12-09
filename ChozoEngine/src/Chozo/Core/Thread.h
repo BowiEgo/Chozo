@@ -8,7 +8,7 @@ namespace Chozo {
     class Thread
     {
     public:
-        Thread(const std::string& name);
+        explicit Thread(std::string  name);
         ~Thread();
 
         template<typename Fn, typename ...Args>
@@ -33,7 +33,7 @@ namespace Chozo {
     class ThreadSignal
     {
     public:
-        ThreadSignal(const std::string& name, bool manualReset = false);
+        explicit ThreadSignal(const std::string& name, bool manualReset = false);
 
         void Wait();
         void Signal();

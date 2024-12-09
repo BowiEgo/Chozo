@@ -7,14 +7,16 @@ namespace Chozo {
     class EnvironmentPanel
     {
     public:
-        EnvironmentPanel() = default;
-        EnvironmentPanel(const Ref<Scene> context);
+        EnvironmentPanel();
+        explicit EnvironmentPanel(const Ref<Scene>& context);
 
-        void SetContext(const Ref<Scene> scene);
+        static void SetContext(const Ref<Scene>& scene);
 
         void OnImGuiRender();
     private:
+        static EnvironmentPanel* s_Instance;
+
         Ref<Scene> m_Context;
-        bool m_ShowPreview;
+        bool m_ShowPreview{};
     };
 }

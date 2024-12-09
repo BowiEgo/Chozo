@@ -1,15 +1,11 @@
 #include "Application.h"
 
-#include <regex>
-
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
 
 #include "Chozo/Core/Thread.h"
 
 #include <GLFW/glfw3.h>
-
-#define BIND_EVENT_FN(x) std::bind(&Application::x, this, std::placeholders::_1)
 
 namespace Chozo {
 
@@ -23,7 +19,7 @@ namespace Chozo {
         RenderCommand::SwitchAPI(RenderAPI::Type::OpenGL);
 
         m_Window = Window::Create(WindowProps(name));
-        m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+        m_Window->SetEventCallback(CZ_BIND_EVENT_FN(OnEvent));
 
         m_Pool = Ref<Pool>::Create();
 
@@ -57,7 +53,7 @@ namespace Chozo {
     void Application::OnEvent(Event& e)
     {
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
+        dispatcher.Dispatch<WindowCloseEvent>(CZ_BIND_EVENT_FN(OnWindowClose));
 
         for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
         {
@@ -71,8 +67,8 @@ namespace Chozo {
     {
         while (m_Running)
         {
-            float time = (float)glfwGetTime(); // Platform::GetTime()
-            Timestep timestep = time - m_LastFrameTime;
+            const auto time = (float)glfwGetTime(); // Platform::GetTime()
+            const TimeStep timeStep = time - m_LastFrameTime;
             m_LastFrameTime = time;
 
             Renderer::Begin();
@@ -80,9 +76,9 @@ namespace Chozo {
             m_Pool->Update();
 
             for (Layer* layer : m_LayerStack)
-                layer->OnUpdate(timestep);
+                layer->OnUpdate(timeStep);
 
-            // TODO: excute this stuff on render thread.
+            // TODO: execute this stuff on render thread.
             m_ImGuiLayer->Begin();
             for (Layer* layer : m_LayerStack)
                 layer->OnImGuiRender();

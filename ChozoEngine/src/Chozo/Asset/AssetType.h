@@ -34,6 +34,7 @@ namespace Chozo {
 		{ ".png", AssetType::Texture },
 		{ ".jpg", AssetType::Texture },
 		{ ".jpeg", AssetType::Texture },
+		{ ".hdr", AssetType::Texture },
 		// { ".hdr", AssetType::EnvMap },
 	};
 
@@ -61,7 +62,7 @@ namespace Chozo {
 			if (s_AssetExtensionMap.find(ext) == s_AssetExtensionMap.end())
 				return AssetType::None;
 
-			return s_AssetExtensionMap.at(ext.c_str());
+			return s_AssetExtensionMap.at(ext);
 		}
 	}
 }

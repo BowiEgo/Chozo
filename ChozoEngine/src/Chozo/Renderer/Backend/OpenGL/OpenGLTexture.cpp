@@ -9,7 +9,7 @@ namespace Chozo
 {
 
     //==============================================================================
-	///  OpenGLTexture2D
+	// OpenGLTexture2D
     OpenGLTexture2D::OpenGLTexture2D(const Texture2DSpecification &spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
@@ -38,13 +38,13 @@ namespace Chozo
         m_DataType = GetGLDataType(m_Spec.Format);
     }
 
-    OpenGLTexture2D::OpenGLTexture2D(Buffer buffer, const Texture2DSpecification &spec)
+    OpenGLTexture2D::OpenGLTexture2D(const Buffer& imageBuffer, const Texture2DSpecification &spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {
         if (m_Buffer.Size != 0)
             m_Buffer.Release();
 
-        m_Buffer = Buffer::Copy(buffer);
+        m_Buffer = Buffer::Copy(imageBuffer);
         Invalidate();
     }
 
@@ -137,7 +137,7 @@ namespace Chozo
     }
 
     //==============================================================================
-	/// OpenGLTextureCube
+	// OpenGLTextureCube
     OpenGLTextureCube::OpenGLTextureCube(const TextureCubeSpecification& spec)
         : m_Spec(spec), m_Width(spec.Width), m_Height(spec.Height)
     {

@@ -18,13 +18,12 @@ namespace Chozo {
     std::string ReadFile(const std::string &filepath)
     {
         std::string result;
-        std::ifstream in(filepath, std::ios::in | std::ios::binary);
-        if (in)
+        if (std::ifstream in(filepath, std::ios::in | std::ios::binary); in)
         {
             in.seekg(0, std::ios::end);
             result.resize(in.tellg());
             in.seekg(0, std::ios::beg);
-            in.read(&result[0], result.size());
+            in.read(&result[0], static_cast<std::streamsize>(result.size()));
             in.close();
         }
         else
@@ -57,9 +56,9 @@ namespace Chozo {
         // --------------------
         // Panels
         // --------------------
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        SceneHierarchyPanel::SetContext(m_ActiveScene);
         PropertiesPanel::SetContext(m_ActiveScene);
-        m_EnvironmentPanel.SetContext(m_ActiveScene);
+        EnvironmentPanel::SetContext(m_ActiveScene);
 
         ThumbnailRenderer::Init();
         ThumbnailManager::Init();
@@ -71,7 +70,7 @@ namespace Chozo {
         ThumbnailManager::Shutdown();
     }
 
-    void EditorLayer::OnUpdate(Timestep ts)
+    void EditorLayer::OnUpdate(TimeStep ts)
     {
         // Resize
         m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
@@ -437,21 +436,21 @@ namespace Chozo {
         dispatcher.Dispatch<MouseButtonReleasedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnMouseButtonReleased));
     }
 
-    Entity EditorLayer::PickEntity(uint32_t mx, uint32_t my)
+    Entity EditorLayer::PickEntity(float mx, float my)
     {
         Entity entity;
 
         mx -= m_ViewportBounds[0].x;
         my -= m_ViewportBounds[0].y;
-        auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
-        auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
+        const auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
+        const auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
         my = viewportHeight - my;
 
-        if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
+        if (mx > 0 && my > 0 && mx < viewportWidth && my < viewportHeight)
         {
-            int pixelID = m_ViewportRenderer->GetIDPass()->GetTargetFramebuffer()->ReadPixel(1, mx, my);
-            entity = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
-                ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
+            int pixelID = m_ViewportRenderer->GetIDPass()->GetTargetFramebuffer()->ReadPixel(1, static_cast<int>(mx), static_cast<int>(my));
+            entity = pixelID == -1 || !m_ActiveScene->EntityExists(static_cast<entt::entity>(pixelID))
+                ? Entity() : Entity(static_cast<entt::entity>(pixelID), m_ActiveScene.get());
         }
 
         return entity;
@@ -459,9 +458,7 @@ namespace Chozo {
 
     void EditorLayer::OnDragAndDrop(AssetHandle handle)
     {
-        Ref<Asset> asset =  Application::GetAssetManager()->GetAsset(handle);
-
-        switch (asset->GetAssetType())
+        switch (Ref<Asset> asset =  Application::GetAssetManager()->GetAsset(handle); asset->GetAssetType())
         {
             case AssetType::Material:
             {
@@ -482,18 +479,18 @@ namespace Chozo {
                 m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
                 m_ViewportRenderer->SetScene(m_ActiveScene);
                 m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-                m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-                PropertiesPanel::SetContext(m_ActiveScene);
-                m_EnvironmentPanel.SetContext(m_ActiveScene);
                 m_SceneFileName = "path.filename()";
                 m_EditorCamera.Reset();
+                SceneHierarchyPanel::SetContext(m_ActiveScene);
+                PropertiesPanel::SetContext(m_ActiveScene);
+                EnvironmentPanel::SetContext(m_ActiveScene);
                 break;
             }
             case AssetType::MeshSource:
             {
                 auto meshSouce = asset.As<MeshSource>();
-                auto mesh = Ref<Mesh>::Create(meshSouce);
-                Entity rootEntity = m_ActiveScene->InstantiateMesh(mesh);
+                const auto mesh = Ref<Mesh>::Create(meshSouce);
+                const Entity rootEntity = m_ActiveScene->InstantiateMesh(mesh);
                 m_Entity_Selected = rootEntity;
                 break;
             }
@@ -515,19 +512,19 @@ namespace Chozo {
             case Key::N:
             {
                 if (control)
-                    // NewProject();
+                    NewProject();
                 break;
             }
             case Key::O:
             {
                 if (control)
-                    // OpenProject();
+                    OpenProject();
                 break;
             }
             case Key::S:
             {
                 if (control && shift)
-                    // SaveProjectAs();
+                    SaveProjectAs();
                 break;
             }
 
@@ -568,13 +565,13 @@ namespace Chozo {
         return false;
     }
 
-    std::pair<float, float> EditorLayer::GetMouseViewportSpace()
+    std::pair<float, float> EditorLayer::GetMouseViewportSpace() const
     {
         auto [mx, my] = ImGui::GetMousePos();
         mx -= m_ViewportBounds[0].x;
         my -= m_ViewportBounds[0].y;
-        auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
-		auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
+        const auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
+		const auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
 
 		return { (mx / viewportWidth) * 2.0f - 1.0f, ((my / viewportHeight) * 2.0f - 1.0f) * -1.0f };
     }
@@ -586,7 +583,7 @@ namespace Chozo {
 
     void EditorLayer::OpenProject()
     {
-        std::string filepath = FileDialogs::OpenFile("Chozo Project (*.chozo)\0*.chozo\0");
+        const std::string filepath = FileDialogs::OpenFile("Chozo Project (*.chozo)\0*.chozo\0");
         OpenProject(filepath);
     }
 

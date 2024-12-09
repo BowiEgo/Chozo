@@ -1,7 +1,6 @@
 #include "TextureViewerPanel.h"
 
 #include <regex>
-// #include <imgui_internal.h>
 #include "Chozo/ImGui/ImGuiUI.h"
 #include "Chozo/Utilities/StringUtils.h"
 
@@ -19,8 +18,8 @@ namespace Chozo {
         m_Viewport_FBO = Framebuffer::Create(fbSpec);
 
         Texture2DSpecification texSpec;
-        texSpec.Width = m_ViewportSize.x;
-        texSpec.Height = m_ViewportSize.y;
+        texSpec.Width = static_cast<int>(m_ViewportSize.x);
+        texSpec.Height = static_cast<int>(m_ViewportSize.y);
         m_FBOTexture = Texture2D::Create(m_Viewport_FBO->GetColorAttachmentRendererID(0), texSpec);
 
         PipelineSpecification pipelineSpec;
@@ -37,12 +36,12 @@ namespace Chozo {
         m_Pipeline = Pipeline::Create(pipelineSpec);
     }
 
-    void TextureViewerPanel::SetTexture(Ref<Texture2D> &texture)
+    void TextureViewerPanel::SetTexture(const Ref<Texture2D> &texture)
     {
         s_Instance->m_Texture = texture;
     }
 
-    void TextureViewerPanel::SetTexture(Ref<TextureCube> &texture)
+    void TextureViewerPanel::SetTexture(const Ref<TextureCube> &texture)
     {
         s_Instance->m_Texture = texture;
     }
@@ -52,7 +51,7 @@ namespace Chozo {
         if (s_Show)
         {
             // Resize
-            m_Viewport_FBO->Resize(m_ViewportSize.x, m_ViewportSize.y);
+            m_Viewport_FBO->Resize(static_cast<int>(m_ViewportSize.x), static_cast<int>(m_ViewportSize.y));
 
             ImGui::SetNextWindowSize(ImVec2(800, 600));
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
@@ -96,7 +95,7 @@ namespace Chozo {
         {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
             {
-                const wchar_t* handle_wchar = (const wchar_t*)payload->Data;
+                const auto* handle_wchar = static_cast<const wchar_t *>(payload->Data);
                 AssetHandle handle = Utils::WChar::WCharToUint64(handle_wchar);
                 CZ_INFO("Drop target: {0}", std::to_string(handle));
 
@@ -109,10 +108,10 @@ namespace Chozo {
         }
     }
 
-    void TextureViewerPanel::DrawImage(Ref<Texture2D> texture)
+    void TextureViewerPanel::DrawImage(Ref<Texture2D> texture) const
     {
-        float viewportAspectRatio = m_ViewportSize.y / m_ViewportSize.x;
-        float imageAspectRatio = static_cast<float>(texture->GetHeight()) / static_cast<float>(texture->GetWidth());
+        const float viewportAspectRatio = m_ViewportSize.y / m_ViewportSize.x;
+        const float imageAspectRatio = static_cast<float>(texture->GetHeight()) / static_cast<float>(texture->GetWidth());
         ImVec2 uv0(0.0f, 1.0f);
         ImVec2 uv1(1.0f, 0.0f);
 

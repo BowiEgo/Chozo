@@ -1,7 +1,6 @@
 #pragma once
 
-#include <stdint.h>
-#include <atomic>
+#include <cstdint>
 
 namespace Chozo {
 
@@ -27,7 +26,7 @@ namespace Chozo {
     namespace RefUtils {
 		void AddToLiveReferences(void* instance);
 		void RemoveFromLiveReferences(void* instance);
-		bool IsLive(void* instance);
+		bool IsLive(const void* instance);
 	}
 
     template<typename T>
@@ -39,34 +38,34 @@ namespace Chozo {
 		{
 		}
 		
-		Ref(std::nullptr_t n)
+		Ref(std::nullptr_t n) // NOLINT
 			: m_Instance(nullptr)
 		{
 		}
 
-		Ref(T* instance)
+		Ref(T* instance) // NOLINT
 			: m_Instance(instance)
 		{
-			static_assert(std::is_base_of<RefCounted, T>::value, "Class is not RefCounted!");
+			static_assert(std::is_base_of_v<RefCounted, T>, "Class is not RefCounted!");
 
 			IncRef();
 		}
 
 		template<typename T2>
-		Ref(const Ref<T2>& other)
+		Ref(const Ref<T2>& other) // NOLINT
 		{
 			m_Instance = (T*)other.m_Instance;
 			IncRef();
 		}
 
 		template<typename T2>
-		Ref(Ref<T2>&& other)
+		Ref(Ref<T2>&& other) // NOLINT
 		{
 			m_Instance = (T*)other.m_Instance;
 			other.m_Instance = nullptr;
 		}
 
-		static Ref<T> CopyWithoutIncrement(const Ref<T>& other)
+		static Ref<T> CopyWithoutIncrement(const Ref<T>& other) // NOLINT
 		{
 			Ref<T> result = nullptr;
 			result->m_Instance = other.m_Instance;
@@ -123,8 +122,8 @@ namespace Chozo {
 			return *this;
 		}
 
-		operator bool() { return m_Instance != nullptr; }
-		operator bool() const { return m_Instance != nullptr; }
+		explicit operator bool() { return m_Instance != nullptr; }
+		explicit operator bool() const { return m_Instance != nullptr; }
 
 		T* operator->() { return m_Instance; }
 		const T* operator->() const { return m_Instance; }
@@ -213,12 +212,12 @@ namespace Chozo {
 	public:
 		WeakRef() = default;
 
-		WeakRef(Ref<T> ref)
+		WeakRef(Ref<T> ref) // NOLINT
 		{
 			m_Instance = ref.Raw();
 		}
 
-		WeakRef(T* instance)
+		WeakRef(T* instance) // NOLINT
 		{
 			m_Instance = instance;
 		}
@@ -229,8 +228,8 @@ namespace Chozo {
 		T& operator*() { return *m_Instance; }
 		const T& operator*() const { return *m_Instance; }
 
-		bool IsValid() const { return m_Instance ? RefUtils::IsLive(m_Instance) : false; }
-		operator bool() const { return IsValid(); }
+		[[nodiscard]] bool IsValid() const { return m_Instance ? RefUtils::IsLive(m_Instance) : false; }
+		explicit operator bool() const { return IsValid(); }
 
 		template<typename T2>
 		WeakRef<T2> As() const

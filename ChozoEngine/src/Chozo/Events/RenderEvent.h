@@ -4,10 +4,10 @@
 
 namespace Chozo {
 
-    class SceneRenderEvent : public Event
+    class SceneRenderEvent final : public Event
     {
     public:
-        SceneRenderEvent() {}
+        SceneRenderEvent() = default;
 
         EVENT_CLASS_TYPE(SceneRender)
         EVENT_CLASS_CATEGORY(EventCategory_Render)

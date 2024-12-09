@@ -30,6 +30,4 @@ namespace Chozo {
 			return s_LiveReferences.find(instance) != s_LiveReferences.end();
 		}
 	}
-
-
 }

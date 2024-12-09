@@ -35,13 +35,13 @@ namespace Chozo {
         m_Data.Width = props.Width;
         m_Data.Height = props.Height;
 
-        CZ_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
+        CZ_CORE_TRACE("Creating window({1}, {2}) for {0}", props.Title, props.Width, props.Height);
 
         // Initialize GLFW
         if (!s_GLFWInitialized)
         {
-            int sucess = glfwInit();
-            CZ_CORE_ASSERT(sucess, "Could not initialize GLFW!");
+            const int success = glfwInit();
+            CZ_CORE_ASSERT(success, "Could not initialize GLFW!");
             glfwSetErrorCallback(GLFWErrorCallback);
             s_GLFWInitialized = true;
         }
@@ -61,10 +61,9 @@ namespace Chozo {
         switch (RenderCommand::GetType())
         {
             case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!");
-            case RenderAPI::Type::OpenGL:   m_Context = new OpenGLContext(m_Window);
+            case RenderAPI::Type::OpenGL:   m_Context = new OpenGLContext(m_Window); m_Context->Init();
         }
-        m_Context->Init();
-        
+
         glfwSetWindowUserPointer(m_Window, &m_Data);
         SetVSync(false);
 
@@ -111,6 +110,7 @@ namespace Chozo {
                     data.EventCallback(event);
                     break;
                 }
+                default: break;;
             }
         });
 
@@ -139,6 +139,7 @@ namespace Chozo {
                     data.EventCallback(event);
                     break;
                 }
+                default: break;;
             }
         });
 

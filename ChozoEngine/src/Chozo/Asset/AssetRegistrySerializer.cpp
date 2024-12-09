@@ -2,10 +2,12 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <utility>
+
 namespace Chozo {
 
-    AssetRegistrySerializer::AssetRegistrySerializer(const AssetRegistry& context)
-        : m_AssetRegistry(context)
+    AssetRegistrySerializer::AssetRegistrySerializer(AssetRegistry  context)
+        : m_AssetRegistry(std::move(context))
     {
     }
 

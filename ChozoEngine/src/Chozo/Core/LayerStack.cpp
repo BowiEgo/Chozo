@@ -2,8 +2,7 @@
 
 namespace Chozo {
     LayerStack::LayerStack()
-    {
-    }
+    = default;
 
     LayerStack::~LayerStack()
     {
@@ -25,20 +24,18 @@ namespace Chozo {
         m_Layers.emplace_back(overlay);
     }
 
-    void LayerStack::PopLayer(Layer* layer)
+    void LayerStack::PopLayer(const Layer* layer)
     {
-        auto it = std::find(m_Layers.begin(), m_Layers.end(), layer);
-        if (it != m_Layers.end())
+        if (const auto it = std::find(m_Layers.begin(), m_Layers.end(), layer); it != m_Layers.end())
         {
             m_Layers.erase(it);
             m_LayerInsertIndex--;
         }
     }
 
-    void LayerStack::PopOverlay(Layer* overlay)
+    void LayerStack::PopOverlay(const Layer* overlay)
     {
-        auto it = std::find(m_Layers.begin(), m_Layers.end(), overlay);
-        if (it != m_Layers.end())
+        if (const auto it = std::find(m_Layers.begin(), m_Layers.end(), overlay); it != m_Layers.end())
         {
             m_Layers.erase(it);
         }

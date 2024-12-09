@@ -7,8 +7,6 @@
 #include "Chozo/Utilities/StringUtils.h"
 #include "Chozo/Project/Project.h"
 
-#include "Chozo/Renderer/Texture.h"
-
 namespace Chozo {
 
 	static AssetMetadata s_NullMetadata;
@@ -18,9 +16,7 @@ namespace Chozo {
         AssetImporter::Init();
     }
 
-    EditorAssetManager::~EditorAssetManager()
-    {
-    }
+    EditorAssetManager::~EditorAssetManager() = default;
 
     Ref<Asset> EditorAssetManager::GetAsset(AssetHandle assetHandle)
     {
@@ -34,8 +30,7 @@ namespace Chozo {
         if (metadata.IsDataLoaded)
             return m_LoadedAssets[assetHandle];
 
-        auto handle = LoadAsset(metadata);
-        if (handle.isValid())
+        if (const auto handle = LoadAsset(metadata); handle.isValid())
             return GetAsset(handle);
         else
             return nullptr;
@@ -56,14 +51,14 @@ namespace Chozo {
         return asset->Handle;
     }
 
-    bool EditorAssetManager::ReloadData(AssetHandle handle)
+    bool EditorAssetManager::ReloadData(AssetHandle assetHandle)
     {
         return false;
     }
 
-    bool EditorAssetManager::IsAssetHandleValid(AssetHandle handle)
+    bool EditorAssetManager::IsAssetHandleValid(const AssetHandle assetHandle)
     {
-        AssetMetadata metadata = GetMetadata(handle);
+        AssetMetadata metadata = GetMetadata(assetHandle);
         return metadata.IsValid();
     }
 
@@ -219,7 +214,7 @@ namespace Chozo {
 
     AssetType EditorAssetManager::GetAssetTypeFromExtension(const std::string &extension)
     {
-		std::string ext = Utils::String::ToLowerCopy(extension);
+		const std::string ext = Utils::String::ToLowerCopy(extension);
 
         if (s_AssetExtensionMap.find(ext) == s_AssetExtensionMap.end())
 			return AssetType::None;
@@ -282,13 +277,13 @@ namespace Chozo {
 		ProcessDirectory(Utils::File::GetAssetDirectory());
     }
 
-    void EditorAssetManager::WriteRegistryToFile()
+    void EditorAssetManager::WriteRegistryToFile() const
     {
         AssetRegistrySerializer serializer(m_AssetRegistry);
         serializer.Serialize("../assets/AssetRegistry.czar");
     }
 
-    AssetMetadata &EditorAssetManager::GetMetadataInternal(AssetHandle handle)
+    AssetMetadata &EditorAssetManager::GetMetadataInternal(const AssetHandle handle)
     {
         if (m_AssetRegistry.Contains(handle))
 			return m_AssetRegistry[handle];

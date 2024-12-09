@@ -53,7 +53,7 @@ namespace Chozo {
 			if (s_ShaderExtensionMap.find(ext) == s_ShaderExtensionMap.end())
 				return ShaderStage::None;
 
-			return s_ShaderExtensionMap.at(ext.c_str());
+			return s_ShaderExtensionMap.at(ext);
 		}
 
         inline shaderc_shader_kind ShaderStageToShaderC(ShaderStage shaderStage)
@@ -62,11 +62,11 @@ namespace Chozo {
 				#define GENERATE_CASE(ENUM, LOWER_ENUM, UPPER_ENUM, SHORT_ENUM) case ShaderStage::ENUM: return shaderc_glsl_##LOWER_ENUM##_shader;
 				FOREACH_SHADER_STAGE(GENERATE_CASE)
 				#undef GENERATE_CASE
-				default: return (shaderc_shader_kind)0;
+				default: return static_cast<shaderc_shader_kind>(0);
 			}
         }
 
-        inline const std::string ShaderStageToVulkanCacheFileExtension(ShaderStage shaderStage)
+        inline std::string ShaderStageToVulkanCacheFileExtension(const ShaderStage shaderStage)
         {
             switch (shaderStage) {
                 #define GENERATE_CASE(ENUM, LOWER_ENUM, UPPER_ENUM, SHORT_ENUM) case ShaderStage::ENUM: return ".cache_vulkan." + std::string(#SHORT_ENUM);
@@ -76,7 +76,7 @@ namespace Chozo {
 			}
         }
 
-        inline fs::path GetCachePathByNameAndStage(std::string name, const ShaderStage& stage)
+        inline fs::path GetCachePathByNameAndStage(const std::string& name, const ShaderStage& stage)
         {
             fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
             Utils::File::CreateDirectoryIfNeeded(cacheDirectory);
@@ -92,15 +92,16 @@ namespace Chozo {
     class ShaderCompiler : public RefCounted
     {
     public:
-        virtual RendererID Compile(const std::vector<std::string> filePaths) = 0;
+        virtual RendererID Compile(std::vector<std::string> filePaths) = 0;
         virtual void Release() = 0;
 
         void CompileToOrGetVulkanBinaries(ShaderSources& shaderSources, const ShaderPaths& shaderPaths);
-        void PreProcess(const std::string& shaderSourcePath, const ShaderStage& stage, std::string& shaderSource);
+        static void PreProcess(const std::string& shaderSourcePath, const ShaderStage& stage, std::string& shaderSource);
         void Reflect(const ShaderStage& stage, const std::vector<uint32_t>& shaderData);
 
-        static Ref<ShaderCompiler> Create();
+        static Ref<ShaderCompiler> Create(std::string& name);
     protected:
-        ShaderBinaries m_VulkanSPIRV;
+        std::string m_Name;
+        ShaderBinaries m_VulkanSpirV;
     };
 } // namespace Chozo

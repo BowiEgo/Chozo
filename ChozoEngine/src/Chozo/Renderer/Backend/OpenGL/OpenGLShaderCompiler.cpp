@@ -25,6 +25,11 @@ namespace Chozo {
         }
     }
 
+    OpenGLShaderCompiler::OpenGLShaderCompiler(std::string &name)
+    {
+        m_Name = name;
+    }
+
     RendererID OpenGLShaderCompiler::Compile(const std::vector<std::string> filePaths)
     {
         Timer timer;
@@ -46,7 +51,7 @@ namespace Chozo {
         DecompileVulkanBinaries();
         RendererID program = CompileToProgram();
 
-        CZ_CORE_WARN("Shader compiler took {0} ms", timer.ElapsedMillis());
+        CZ_CORE_TRACE("Shader compiler took {0} ms", timer.ElapsedMillis());
 
         return program;
     }
@@ -63,11 +68,12 @@ namespace Chozo {
         shaderc::Compiler compiler;
         shaderc::CompileOptions options;
         options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
+
         const bool optimize = false;
         if (optimize)
             options.SetOptimizationLevel(shaderc_optimization_level_performance);
         
-        for (auto&& [stage, spirv] : m_VulkanSPIRV)
+        for (auto&& [stage, spirv] : m_VulkanSpirV)
         {
             spirv_cross::CompilerGLSL glslCompiler(spirv);
             spirv_cross::CompilerGLSL::Options glslOptions;
@@ -91,7 +97,9 @@ namespace Chozo {
 
         for (auto&& [stage, source] : m_OpenGLSourceCode)
         {
-            // CZ_CORE_WARN("Compile Source: {0}", kv.second);
+            // if (m_Name == "Texture")
+            //     CZ_CORE_WARN("Compile Source: {0}", source);
+
             GLenum type = ShaderUtils::ShaderStageToGLEnum(stage);
 
             GLuint shader = glCreateShader(type);

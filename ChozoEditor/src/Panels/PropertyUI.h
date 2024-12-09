@@ -83,7 +83,7 @@ namespace Chozo {
     template<typename targetValueType, typename UIFunc>
     static void DrawColumnValue(const std::string& name, targetValueType& target, UIFunc uiFunc)
     {
-        const ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
+        constexpr ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
         if (ImGui::BeginTable("table", 2, flags))
         {
             ImGui::SetNextItemWidth(25.0f);
@@ -110,7 +110,7 @@ namespace Chozo {
     template<typename UIFunc>
     static void DrawColumnValue(const std::string& name, UIFunc uiFunc)
     {
-        const ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
+        constexpr ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
         if (ImGui::BeginTable("table", 2, flags))
         {
             ImGui::SetNextItemWidth(25.0f);
@@ -135,9 +135,9 @@ namespace Chozo {
     }
 
     template<typename Callback>
-    static void DrawColumnPath(const std::string& name, AssetMetadata metadata, Callback callback)
+    static void DrawColumnPath(const std::string& name, const AssetMetadata& metadata, Callback callback)
     {
-        const ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
+        constexpr ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
         if (ImGui::BeginTable("table", 2, flags))
         {
             ImGui::SetNextItemWidth(25.0f);
@@ -180,7 +180,7 @@ namespace Chozo {
     template<typename ImageFunc>
     static void DrawColumnImage(const std::string& name, bool& target, bool& changed, ImageFunc imageFunc)
     {
-        const ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
+        constexpr ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
         if (ImGui::BeginTable("table", 2, flags))
         {
             ImGui::SetNextItemWidth(25.0f);

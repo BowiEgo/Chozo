@@ -7,8 +7,6 @@
 
 #include "PropertyUI.h"
 
-#include <glm/gtc/type_ptr.hpp>
-
 namespace Chozo {
 
 	SceneHierarchyPanel* SceneHierarchyPanel::s_Instance;
@@ -18,12 +16,12 @@ namespace Chozo {
         s_Instance = this;
     }
 
-    SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene> context)
+    SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
     {
         SetContext(context);
     }
 
-    void SceneHierarchyPanel::SetContext(const Ref<Scene> context)
+    void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
     {
         s_Instance->m_Context = context;
         s_Instance->SetSelectedEntity({});
@@ -42,7 +40,7 @@ namespace Chozo {
             SetSelectedEntity({});
 
         // Right-click on blank space
-        if (ImGui::BeginPopupContextWindow(0, 1 | ImGuiPopupFlags_NoOpenOverItems))
+        if (ImGui::BeginPopupContextWindow(nullptr, 1 | ImGuiPopupFlags_NoOpenOverItems))
         {
             // ImGui::OpenPopup("AddComponent");
             m_SelectionContext = DrawAddComponent();
@@ -57,13 +55,13 @@ namespace Chozo {
 
         auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-        ImGuiTreeNodeFlags flags = (m_SelectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0)
+        const ImGuiTreeNodeFlags flags = (m_SelectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0)
             | (entity.Children().empty() ? ImGuiTreeNodeFlags_Leaf : 0)
             | ImGuiTreeNodeFlags_OpenOnArrow
             | ImGuiTreeNodeFlags_SpanAvailWidth;
 
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 2.0f, 0.0f });
-        bool opened = ImGui::TreeNodeEx((void*)(uint64_t)entity, flags, "%s", tag.c_str());
+        bool opened = ImGui::TreeNodeEx(reinterpret_cast<void *>(static_cast<uint64_t>(entity)), flags, "%s", tag.c_str());
         ImGui::PopStyleVar();
 
         if (ImGui::IsItemClicked())

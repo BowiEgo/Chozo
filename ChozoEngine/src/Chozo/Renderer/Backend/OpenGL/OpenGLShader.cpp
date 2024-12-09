@@ -142,7 +142,7 @@ namespace Chozo {
 
     void OpenGLShader::Compile()
     {
-        auto compiler = ShaderCompiler::Create();
+        auto compiler = ShaderCompiler::Create(m_Name);
         m_RendererID = compiler->Compile(m_FilePaths);
     }
 
@@ -232,7 +232,7 @@ namespace Chozo {
 
         int location = glGetUniformLocation(m_RendererID, name.c_str());
         if (location == -1)
-            std::cout << "Warning: uniform '" << name << "' doesn't exist!" << std::endl;
+            CZ_CORE_ERROR("Uniform '{}' doesn't exist!", name);
 
         m_UniformLocationCache[name] = location;
         return location;

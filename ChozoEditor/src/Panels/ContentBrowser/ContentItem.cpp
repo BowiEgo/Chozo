@@ -13,7 +13,7 @@ namespace Chozo {
         m_Empty = directory->SubDirectories.empty() && directory->Assets.empty();
     }
 
-    ContentItem::ContentItem(AssetMetadata metadata)
+    ContentItem::ContentItem(const AssetMetadata& metadata)
     {
         m_Type = ContentItemType::Asset;
         m_AssetType = metadata.Type;
@@ -33,8 +33,6 @@ namespace Chozo {
 
         m_Rect.Min = ImGui::GetCursorScreenPos();
         m_Rect.Max = m_Rect.Min + itemSize;
-
-        auto [rectMin, rectMax] = m_Rect;
 
         UI::ScopedID id(m_Handle);
         if (ImGui::Selectable("##Selectable", m_Selected, ImGuiSelectableFlags_None, itemSize))
@@ -84,14 +82,17 @@ namespace Chozo {
             m_Thumbnail = m_Empty ? ContentBrowserPanel::GetIcon("EmptyDirectory") : ContentBrowserPanel::GetIcon("Directory");
         else
         {
-            if (m_AssetType == AssetType::Scene)
-                m_Thumbnail = ThumbnailManager::GetThumbnail(m_Handle);
-            else if (m_AssetType == AssetType::Texture)
-                m_Thumbnail = ThumbnailManager::GetThumbnail(m_Handle);
-            else if (m_AssetType == AssetType::Material)
-                m_Thumbnail = ThumbnailManager::GetThumbnail(m_Handle);
-            else
-                m_Thumbnail = ContentBrowserPanel::GetIcon("TextFile");
+            switch (m_AssetType)
+            {
+                case AssetType::Scene:
+                case AssetType::Texture:
+                case AssetType::Material:
+                    m_Thumbnail = ThumbnailManager::GetThumbnail(m_Handle);
+                    break;
+                default:
+                    m_Thumbnail = ContentBrowserPanel::GetIcon("TextFile");
+                    break;
+            }
         }
     }
 
@@ -180,8 +181,7 @@ namespace Chozo {
         ImGui::TextWrapped("%s", text.c_str());
     }
 
-    void ContentItem::OnDoubleClick()
-    {
+    void ContentItem::OnDoubleClick() const {
         if (m_Type == ContentItemType::Directory && ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
             ContentBrowserPanel::Get().ChangeDirectory(m_Handle);
     }

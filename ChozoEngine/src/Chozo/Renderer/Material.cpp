@@ -7,7 +7,7 @@
 namespace Chozo {
 
     //==============================================================================
-	///  Material
+	// Material
     Ref<Material> Material::Create(const std::string &name)
     {
         Ref<Shader> shader;
@@ -55,8 +55,7 @@ namespace Chozo {
     }
 
     //==============================================================================
-    ///  MaterialTable
-
+    // MaterialTable
     MaterialTable::MaterialTable(uint32_t materialCount)
         : m_MaterialCount(materialCount)
     {

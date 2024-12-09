@@ -8,8 +8,8 @@ namespace Chozo {
     class ContentSelection
     {
     public:
-        ContentSelection();
-        ~ContentSelection();
+        ContentSelection() = default;
+        ~ContentSelection() = default;
 
         void OnImGuiRender();
     private:

@@ -3,8 +3,6 @@
 #include "Chozo/Core/Application.h"
 #include "Chozo/Renderer/Geometry/SphereGeometry.h"
 #include "Chozo/Scene/Entity.h"
-#include "Chozo/FileSystem/TextureExporter.h"
-#include "Chozo/Utilities/FileUtils.h"
 
 namespace Chozo {
 
@@ -16,8 +14,7 @@ namespace Chozo {
         s_Renderers.clear();
         for (int i = 0; i < static_cast<int>(AssetType::None); i++)
         {
-            AssetType type = static_cast<AssetType>(i);
-            switch (type)
+            switch (auto type = static_cast<AssetType>(i))
             {
                 case AssetType::Scene:
                     s_Renderers[type] = CreateScope<SceneThumbnailRenderer>(); break;
@@ -49,7 +46,7 @@ namespace Chozo {
     TextureThumbnailRenderer* ThumbnailRenderer::GetRenderer<TextureThumbnailRenderer>()
     {
         if (s_Renderers[AssetType::Texture])
-            return static_cast<TextureThumbnailRenderer*>(s_Renderers[AssetType::Texture].get());
+            return dynamic_cast<TextureThumbnailRenderer*>(s_Renderers[AssetType::Texture].get());
         else
             return nullptr;
     }
@@ -58,19 +55,19 @@ namespace Chozo {
     MaterialThumbnailRenderer* ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()
     {
         if (s_Renderers[AssetType::Material])
-            return static_cast<MaterialThumbnailRenderer*>(s_Renderers[AssetType::Material].get());
+            return dynamic_cast<MaterialThumbnailRenderer*>(s_Renderers[AssetType::Material].get());
         else
             return nullptr;
     }
 
 
     //==============================================================================
-    /// SceneThumbnailRenderer
+    // SceneThumbnailRenderer
     SceneThumbnailRenderer::SceneThumbnailRenderer()
     {
 		m_SceneRenderer = Ref<SceneRenderer>::Create(m_Scene);
         m_SceneRenderer->SetActive(true);
-        m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_SceneRenderer->SetViewportSize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
         m_Camera = EditorCamera(6.0f, 1.0f, 0.1f, 1000.0f);
     }
 
@@ -100,7 +97,7 @@ namespace Chozo {
     }
 
     //==============================================================================
-    /// TextureThumbnailRenderer
+    // TextureThumbnailRenderer
     void TextureThumbnailRenderer::Render(Ref<ThumbnailPoolTask> task)
     {
         Ref<Texture2D> src = task->Source.As<Texture2D>();
@@ -109,13 +106,13 @@ namespace Chozo {
     }
 
     //==============================================================================
-    /// MaterialThumbnailRenderer
+    // MaterialThumbnailRenderer
     MaterialThumbnailRenderer::MaterialThumbnailRenderer()
     {
         m_Scene = Ref<Scene>::Create();
 		m_SceneRenderer = Ref<SceneRenderer>::Create(m_Scene);
         m_SceneRenderer->SetActive(true);
-        m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_SceneRenderer->SetViewportSize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
         m_Camera = EditorCamera(12.0f, 1.0f, 0.1f, 1000.0f);
 
         auto sphere = m_Scene->CreateEntity("Sphere");
@@ -160,13 +157,13 @@ namespace Chozo {
         m_Scene->OnRenderEditor(m_SceneRenderer, 0, m_Camera);
     }
 
-    void MaterialThumbnailRenderer::SetMaterial(Ref<Material> material)
+    void MaterialThumbnailRenderer::SetMaterial(const Ref<Material>& material)
     {
         auto sphere = GetSphere();
         m_Material->CopyProperties(material);
     }
 
-    void MaterialThumbnailRenderer::SetMaterialValue(Ref<Material> material, std::string name, UniformValue value)
+    void MaterialThumbnailRenderer::SetMaterialValue(const Ref<Material>& material, const std::string& name, const UniformValue& value)
     {
         // auto sphere = GetSphere();
         // if (m_Material->GetShader() != material->GetShader())
@@ -175,7 +172,7 @@ namespace Chozo {
         m_Cache = nullptr;
     }
 
-    void MaterialThumbnailRenderer::SetMaterialValue(Ref<Material> material, std::string name, Ref<Texture2D> texture)
+    void MaterialThumbnailRenderer::SetMaterialValue(const Ref<Material>& material, const std::string& name, const Ref<Texture2D>& texture)
     {
         m_Material->Set(name, texture);
         m_Cache = nullptr;
@@ -190,20 +187,20 @@ namespace Chozo {
 
     Entity MaterialThumbnailRenderer::GetSphere()
     {
-        auto view = m_Scene->Reg().view<TransformComponent, MeshComponent>();
-        for (auto entity : view)
+        const auto view = m_Scene->Reg().view<TransformComponent, MeshComponent>();
+        for (const auto entity : view)
             return Entity{ entity, m_Scene.get() };
 
-        return Entity();
+        return {};
     }
 
     //==============================================================================
-    /// MeshSourceThumbnailRenderer
+    // MeshSourceThumbnailRenderer
     MeshSourceThumbnailRenderer::MeshSourceThumbnailRenderer()
     {
         m_SceneRenderer = Ref<SceneRenderer>::Create(m_Scene);
         m_SceneRenderer->SetActive(true);
-        m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_SceneRenderer->SetViewportSize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
         m_Camera = EditorCamera(6.0f, 1.0f, 0.1f, 1000.0f);
     }
 

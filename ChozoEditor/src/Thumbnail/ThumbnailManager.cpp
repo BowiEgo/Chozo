@@ -23,10 +23,9 @@ namespace Chozo {
         Ref<Texture2D> thumbnail;
 
         std::string filename = std::to_string(handle) + ".png";
-        fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
-        fs::path filepath = cacheDir / filename;
-        auto exist = fs::exists(filepath);
-        if (exist)
+        const fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
+        const fs::path filepath = cacheDir / filename;
+        if (fs::exists(filepath))
         {
             Texture2DSpecification spec;
             spec.Format = ImageFormat::RGBA;
@@ -40,12 +39,10 @@ namespace Chozo {
 
     void ThumbnailManager::DeleteThumbnail(AssetHandle assetHandle)
     {
-        auto thumbnails = s_Instance->m_Thumbnails;
-
-        if (thumbnails.find(assetHandle) != thumbnails.end())
+        if (auto thumbnails = s_Instance->m_Thumbnails; thumbnails.find(assetHandle) != thumbnails.end())
         {
-            std::string filename = std::to_string(assetHandle) + ".png";
-            fs::path filePath = Utils::File::GetThumbnailCacheDirectory() / fs::path(filename);
+            const std::string filename = std::to_string(assetHandle) + ".png";
+            const fs::path filePath = Utils::File::GetThumbnailCacheDirectory() / fs::path(filename);
             Utils::File::DeleteFile(filePath);
             thumbnails.erase(assetHandle);
         }
@@ -53,28 +50,26 @@ namespace Chozo {
 
     void ThumbnailManager::ClearUselessCaches()
     {
-        fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
+        const fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
 
-		for (auto entry : fs::directory_iterator(cacheDir))
+		for (const auto& entry : fs::directory_iterator(cacheDir))
         {
             if (!entry.is_directory())
             {
-                std::string fileName = entry.path().stem().string();
-                AssetHandle handle = Utils::String::ToUint64(fileName);
+                const std::string fileName = entry.path().stem().string();
 
-                if (handle != 0)
+                if (AssetHandle handle = Utils::String::ToUint64(fileName); handle != 0)
                 {
-                    bool exist = Application::GetAssetManager()->IsAssetHandleValid(handle);
-                    if (!exist)
+                    if (const bool exist = Application::GetAssetManager()->IsAssetHandleValid(handle); !exist)
                         Utils::File::DeleteFile(entry.path());
                 }
             }
         }
     }
 
-    Ref<Texture2D> ThumbnailManager::GetThumbnail(AssetHandle assetHandle)
+    Ref<Texture2D> ThumbnailManager::GetThumbnail(const AssetHandle assetHandle)
     {
-        auto thumbnails = s_Instance->m_Thumbnails;
+        auto& thumbnails = s_Instance->m_Thumbnails;
 
         if (thumbnails.find(assetHandle) == thumbnails.end())
             ImportThumbnail(assetHandle);

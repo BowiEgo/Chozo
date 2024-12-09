@@ -10,8 +10,7 @@ namespace Chozo
 		s_Serializers.clear();
         for (int i = 0; i < static_cast<int>(AssetType::None); i++)
         {
-            AssetType type = static_cast<AssetType>(i);
-            switch (type)
+	        switch (auto type = static_cast<AssetType>(i))
             {
 				case AssetType::Texture:
 					s_Serializers[type] = CreateScope<TextureSerializer>(); break;
@@ -38,7 +37,7 @@ namespace Chozo
         AssetFileHeader header;
 
         // Write header
-        header.Type = (uint16_t)metadata.Type;
+        header.Type = static_cast<uint16_t>(metadata.Type);
         header.CreateAt = metadata.CreateAt;
         header.ModifiedAt = metadata.ModifiedAt;
 		stream.WriteRaw<AssetFileHeader>(header);
@@ -66,7 +65,7 @@ namespace Chozo
 		stream.ReadRaw<AssetFileHeader>(header);
         metadata.CreateAt = header.CreateAt;
         metadata.ModifiedAt = header.ModifiedAt;
-		metadata.Type = AssetType(header.Type);
+		metadata.Type = static_cast<AssetType>(header.Type);
 		
 		return s_Serializers[metadata.Type]->Deserialize(stream, metadata);
     }

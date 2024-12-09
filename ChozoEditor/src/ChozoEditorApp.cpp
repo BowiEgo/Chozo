@@ -1,4 +1,4 @@
-#define CHZO_ENTRY_POINT
+#define CHOZO_ENTRY_POINT
 #include "EditorLayer.h"
 
 namespace Chozo {
@@ -7,15 +7,13 @@ namespace Chozo {
     {
     public:
         ChozoEditor()
-            : Application("Chozo Engine")
+            : Application("Chozo Editor")
         {
             CZ_INFO("Welcome to Chozo Editor!");
             PushLayer(new EditorLayer());
         }
 
-        ~ChozoEditor()
-        {
-        }
+        ~ChozoEditor() override = default;
     };
 
     Application *CreateApplication()

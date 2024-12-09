@@ -84,7 +84,7 @@ namespace Chozo {
 				aabb.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 				for (size_t i = 0; i < mesh->mNumVertices; i++)
 				{
-					Vertex vertex;
+					Vertex vertex{};
 					vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
 					vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
 					aabb.Min.x = glm::min(vertex.Position.x, aabb.Min.x);

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Chozo/Core/Base.h"
 #include "KeyCodes.h"
 
 namespace Chozo {
@@ -8,23 +7,19 @@ namespace Chozo {
     class Input
     {
     public:
-        // inline static bool IsKeyPressed(int keycode) { return s_Instance->IsKeyPressedImpl(keycode); }
-        inline static bool IsKeyPressed(KeyCode keycode) { return s_Instance->IsKeyPressedImpl(keycode); }
+        static bool IsKeyPressed(const KeyCode keycode) { return IsKeyPressedImpl(keycode); }
 
-        // inline static bool IsMouseButtonPressed(int button) { return s_Instance->IsMouseButtonPressedImpl(button); }
-        inline static bool IsMouseButtonPressed(MouseButton button) { return s_Instance->IsMouseButtonPressedImpl(button); }
-        inline static std::pair<float, float> GetMousePosition() { return s_Instance->GetMousePositionImpl(); }
-        inline static float GetMouseX() { return s_Instance->GetMouseXImpl(); }
-        inline static float GetMouseY() { return s_Instance->GetMouseYImpl(); }
+        static bool IsMouseButtonPressed(const MouseButton button) { return IsMouseButtonPressedImpl(button); }
+        static std::pair<float, float> GetMousePosition() { return GetMousePositionImpl(); }
+        static float GetMouseX() { return GetMouseXImpl(); }
+        static float GetMouseY() { return GetMouseYImpl(); }
     protected:
-        // bool IsKeyPressedImpl(int keycode);
-        bool IsKeyPressedImpl(KeyCode keycode);
+        static bool IsKeyPressedImpl(KeyCode keycode);
 
-        // bool IsMouseButtonPressedImpl(int button);
-        bool IsMouseButtonPressedImpl(MouseButton button);
-        std::pair<float, float> GetMousePositionImpl();
-        float GetMouseXImpl();
-        float GetMouseYImpl();
+        static bool IsMouseButtonPressedImpl(MouseButton button);
+        static std::pair<float, float> GetMousePositionImpl();
+        static float GetMouseXImpl();
+        static float GetMouseYImpl();
     private:
         static Input* s_Instance;
     };

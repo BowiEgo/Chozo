@@ -13,7 +13,7 @@ namespace Chozo {
 	public:
 		AssetHandle Handle = 0;
 
-		virtual ~Asset() {}
+		~Asset() override = default;
 
 		virtual AssetType GetAssetType() const { return AssetType::None; }
 
@@ -34,13 +34,13 @@ namespace Chozo {
 		AssetType Type;
 
 		fs::path FilePath;
-		uint64_t FileSize;
+		uint64_t FileSize = 0;
 		bool IsDataLoaded = false;
 		bool IsMemoryAsset = false;
 
 		uint64_t CreateAt = Utils::Time::CreateTimestamp();
 		uint64_t ModifiedAt = Utils::Time::CreateTimestamp();
 
-		bool IsValid() const { return Handle != 0 && !IsMemoryAsset; }
+		bool IsValid() const { return Handle != 0 && !IsMemoryAsset; } // NOLINT
 	};
 }

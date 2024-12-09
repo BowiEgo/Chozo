@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Chozo/Asset/Asset.h"
-#include "Chozo/Renderer/Texture.h"
 
 #include "czpch.h"
 

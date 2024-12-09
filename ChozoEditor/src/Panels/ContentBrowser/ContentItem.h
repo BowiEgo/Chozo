@@ -66,7 +66,7 @@ namespace Chozo {
     {
     public:
         ContentItem(Ref<DirectoryInfo> directory);
-        ContentItem(AssetMetadata metadata);
+        ContentItem(const AssetMetadata& metadata);
         ~ContentItem() = default;
 
         ContentBrowserItemActionResult OnImGuiRender();
@@ -82,17 +82,17 @@ namespace Chozo {
         void UpdateThumbnail();
         void RenderThumbnail();
         void RenderTooltip();
-        void RenderDragDrop(const AssetHandle& handle);
-        void RenderCenteredText(const std::string& text);
+        static void RenderDragDrop(const AssetHandle& handle);
+        static void RenderCenteredText(const std::string& text);
 
-        void OnDoubleClick();
+        void OnDoubleClick() const;
     private:
         ContentItemType m_Type;
-        AssetType m_AssetType;
+        AssetType m_AssetType = AssetType::None;
         AssetHandle m_Handle;
         std::string m_Filename;
-        uint64_t m_Size;
-        uint64_t m_CreateAt;
+        uint64_t m_Size{};
+        uint64_t m_CreateAt{};
         Ref<Texture2D> m_Thumbnail;
 
         ImRect m_Rect;

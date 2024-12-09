@@ -36,7 +36,7 @@
 // --------------------------------
 
 // ---Entry Point------------------
-#ifdef CHZO_ENTRY_POINT
+#ifdef CHOZO_ENTRY_POINT
 #include "Chozo/EntryPoint.h"
 #endif
 // --------------------------------

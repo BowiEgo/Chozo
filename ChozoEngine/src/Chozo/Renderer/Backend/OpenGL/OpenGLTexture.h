@@ -11,10 +11,10 @@ namespace Chozo {
     {
     public:
         OpenGLTexture2D(const Texture2DSpecification& spec);
-        OpenGLTexture2D(const Ref<OpenGLTexture2D> other);
+        OpenGLTexture2D(Ref<OpenGLTexture2D> other);
         OpenGLTexture2D(const std::string& path, const Texture2DSpecification& spec);
         OpenGLTexture2D(const RendererID& id, const Texture2DSpecification& spec);
-        OpenGLTexture2D(Buffer imageBuffer, const Texture2DSpecification& spec);
+        OpenGLTexture2D(const Buffer& imageBuffer, const Texture2DSpecification& spec);
 
         virtual ~OpenGLTexture2D();
 
@@ -37,7 +37,7 @@ namespace Chozo {
         Texture2DSpecification m_Spec;
         std::string m_Path;
         uint32_t m_Width, m_Height;
-        RendererID m_RendererID;
+        RendererID m_RendererID{};
         GLenum m_InternalFormat = GL_RGBA8, m_DataFormat = GL_RGBA, m_DataType = GL_UNSIGNED_BYTE;
         Buffer m_Buffer;
     };
@@ -63,7 +63,7 @@ namespace Chozo {
     private:
         TextureCubeSpecification m_Spec;
         uint32_t m_Width, m_Height;
-        RendererID m_RendererID;
+        RendererID m_RendererID{};
         void* m_LocalBuffer;
     };
 }

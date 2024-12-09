@@ -26,7 +26,7 @@ namespace Chozo {
         void OnBrowserRefresh();
     public:
 		inline static ContentBrowserPanel& Get() { return *s_Instance; }
-        inline static Ref<Texture2D> GetIcon(std::string name) { return s_Instance->m_Icons[name]; }
+        inline static Ref<Texture2D> GetIcon(const std::string& name) { return s_Instance->m_Icons[name]; }
         inline static std::vector<Ref<ContentItem>> GetItems() { return s_Instance->m_CurrentItems; }
         inline static Ref<ContentItem> GetHoveredItem() { return s_Instance->m_HoveredItem; }
 
@@ -43,30 +43,30 @@ namespace Chozo {
         static Ref<Scene> CreateScene();
         static Ref<Material> CreateMaterial();
     private:
-        void RenderAddNewContextMenu();
+        static void RenderAddNewContextMenu();
         void RenderItems();
         void RenderItemContextMenu();
 		void RenderAssetMenu(float height);
 		void RenderDirectoryHierarchy(Ref<DirectoryInfo> directory);
 		void RenderTopBar(float height);
-		void RenderBottomBar(float height);
+		static void RenderBottomBar(float height);
 
         void ImportAssets();
 		template<typename T, typename... Args>
         Ref<T> CreateAsset(const std::string& filename, Ref<DirectoryInfo>& directory, Args&&... args);
         void SaveAllAssets();
-        void RenderItemThumbnails(std::vector<Ref<ContentItem>> items);
+        static void RenderItemThumbnails(const std::vector<Ref<ContentItem>>& items);
 
-        void AddAssetToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata);
-        void RemoveAssetFromDir(Ref<DirectoryInfo> directory, AssetHandle handle);
-        void SortAssets(Ref<DirectoryInfo> directory);
-        void SortSubDirs(Ref<DirectoryInfo> directory);
+        static void AddAssetToDir(Ref<DirectoryInfo> directory, const AssetMetadata& metadata);
+        static void RemoveAssetFromDir(Ref<DirectoryInfo> directory, AssetHandle handle);
+        static void SortAssets(Ref<DirectoryInfo> directory);
+        static void SortSubDirs(Ref<DirectoryInfo> directory);
 
 		AssetHandle ProcessDirectory(const fs::path& directoryPath, const Ref<DirectoryInfo>& parent);
         void DeleteItem(Ref<ContentItem> item);
-        void DeleteItems(std::vector<Ref<ContentItem>> items);
+        void DeleteItems(const std::vector<Ref<ContentItem>>& items);
 
-        std::string CreateItemName(AssetType type);
+        static std::string CreateItemName(AssetType type);
     public:
         static float s_Padding;
         static float s_ThumbnailSize;
@@ -85,9 +85,9 @@ namespace Chozo {
 
         ContentSelection m_ContentSelection;
 
-        bool m_BackIcon_Disabled, m_ForwardIcon_Disabled, m_RefreshIcon_Disabled;
+        bool m_BackIcon_Disabled{}, m_ForwardIcon_Disabled{}, m_RefreshIcon_Disabled{};
 
-		char m_SearchBuffer[MAX_SEARCH_BUFFER_LENGTH];
+		char m_SearchBuffer[MAX_SEARCH_BUFFER_LENGTH]{};
     };
     
     template <typename T, typename... Args>

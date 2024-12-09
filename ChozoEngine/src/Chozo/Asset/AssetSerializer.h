@@ -10,9 +10,9 @@ namespace Chozo {
 	struct AssetFileHeader
 	{
 		uint32_t Version = 1;
-		uint16_t Type;
-		uint64_t CreateAt;
-		uint64_t ModifiedAt;
+		uint16_t Type{};
+		uint64_t CreateAt{};
+		uint64_t ModifiedAt{};
 	};
 
     class AssetSerializer
@@ -25,20 +25,20 @@ namespace Chozo {
     };
 
 	//==============================================================================
-	/// SceneSerializer
+	// SceneSerializer
 
-	class SceneSerializer : public AssetSerializer
+	class SceneSerializer final : public AssetSerializer
 	{
 	public:
-		virtual uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
+		uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
 	private:
-		std::string SerializeToYAML(Ref<Scene> scene) const;
-		Ref<Scene> DeserializeFromYAML(const std::string& yamlString) const;
+		static std::string SerializeToYAML(Ref<Scene> scene) ;
+		static Ref<Scene> DeserializeFromYAML(const std::string& yamlString) ;
 	};
 
 	//==============================================================================
-	/// TextureSerializer
+	// TextureSerializer
 	struct TextureFileMetadata
 	{
 		uint16_t Format;
@@ -53,27 +53,27 @@ namespace Chozo {
 		uint16_t MagFilter;
 	};
 
-    class TextureSerializer : public AssetSerializer
+    class TextureSerializer final : public AssetSerializer
 	{
 	public:
-		virtual uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
+		uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
 	};
 
 	//==============================================================================
-	/// MaterialSerializer
-	class MaterialSerializer : public AssetSerializer
+	// MaterialSerializer
+	class MaterialSerializer final : public AssetSerializer
 	{
 	public:
-		virtual uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
+		uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
 	private:
-		std::string SerializeToYAML(Ref<Material> material) const;
-		Ref<Material> DeserializeFromYAML(const std::string& yamlString) const;
+		static std::string SerializeToYAML(Ref<Material> material) ;
+		static Ref<Material> DeserializeFromYAML(const std::string& yamlString) ;
 	};
 
 	//==============================================================================
-	/// MeshSourceSerializer
+	// MeshSourceSerializer
 	struct MeshMaterial
 	{
 		std::string Name;
@@ -152,32 +152,32 @@ namespace Chozo {
 			HasSkeleton = BIT(2)
 		};
 
-		uint32_t Flags;
-		AABB BoudingBox;
+		uint32_t Flags{};
+		AABB BoundingBox;
 
-		uint64_t NodeArrayOffset;
-		uint64_t NodeArraySize;
+		uint64_t NodeArrayOffset{};
+		uint64_t NodeArraySize{};
 
-		uint64_t SubmeshArrayOffset;
-		uint64_t SubmeshArraySize;
+		uint64_t SubMeshArrayOffset{};
+		uint64_t SubMeshArraySize{};
 
-		uint64_t VertexBufferOffset;
-		uint64_t VertexBufferSize;
+		uint64_t VertexBufferOffset{};
+		uint64_t VertexBufferSize{};
 
-		uint64_t IndexBufferOffset;
-		uint64_t IndexBufferSize;
+		uint64_t IndexBufferOffset{};
+		uint64_t IndexBufferSize{};
 
-		uint64_t MaterialArrayOffset;
-		uint64_t MaterialArraySize;
+		uint64_t MaterialArrayOffset{};
+		uint64_t MaterialArraySize{};
 	};
 
-	class MeshSourceSerializer : public AssetSerializer
+	class MeshSourceSerializer final : public AssetSerializer
 	{
 	public:
-		virtual uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
+		uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
 	private:
-		std::string SerializeToYAML(Ref<MeshSource> meshSource) const;
-		Ref<MeshSource> DeserializeFromYAML(const std::string& yamlString) const;
+		static std::string SerializeToYAML(const Ref<MeshSource>& meshSource) ;
+		static Ref<MeshSource> DeserializeFromYAML(const std::string& yamlString) ;
 	};
 }

@@ -20,13 +20,13 @@ namespace Chozo {
     public:
         EditorLayer();
 
-        virtual void OnAttach() override;
-        virtual void OnDetach() override;
-        virtual void OnUpdate(Timestep ts) override;
-        virtual void OnImGuiRender() override;
-        virtual void OnEvent(Event& e) override;
+        void OnAttach() override;
+        void OnDetach() override;
+        void OnUpdate(TimeStep ts) override;
+        void OnImGuiRender() override;
+        void OnEvent(Event& e) override;
     private:
-        Entity PickEntity(uint32_t mx, uint32_t my);
+        Entity PickEntity(float mx, float my);
 
         void OnDragAndDrop(AssetHandle handle);
 
@@ -34,7 +34,7 @@ namespace Chozo {
         bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
         bool OnMouseButtonReleased(MouseButtonReleasedEvent& e);
 
-        std::pair<float, float> GetMouseViewportSpace();
+        std::pair<float, float> GetMouseViewportSpace() const;
         
         void NewProject();
         void OpenProject();
@@ -50,12 +50,12 @@ namespace Chozo {
         std::string m_SceneFileName;
 		Ref<SceneRenderer> m_ViewportRenderer;
         ImVec2 m_ViewportSize;
-		glm::vec2 m_ViewportBounds[2];
-        bool m_ViewportFocused, m_ViewportHovered;
+		glm::vec2 m_ViewportBounds[2]{};
+        bool m_ViewportFocused{}, m_ViewportHovered{};
 
-        EditorCamera m_EditorCamera;
+        EditorCamera m_EditorCamera{};
 
-        bool m_AllowViewportCameraEvents;
+        bool m_AllowViewportCameraEvents{};
 
         // Panels
         SceneHierarchyPanel m_SceneHierarchyPanel;
@@ -79,7 +79,6 @@ namespace Chozo {
         SceneState m_SceneState = SceneState::Edit;
 
         Ref<Texture2D> m_IconPlay, m_IconStop;
-
     };
 }
 

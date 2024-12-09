@@ -279,7 +279,7 @@ namespace Chozo
         Flush();
     }
 
-    void SceneRenderer::SetViewportSize(uint32_t width, uint32_t height)
+    void SceneRenderer::SetViewportSize(const float width, const float height)
     {
         bool inValid = width <= 0.0f || height <= 0.0f;
         if (inValid || (m_ViewportWidth == width && m_ViewportHeight == height))

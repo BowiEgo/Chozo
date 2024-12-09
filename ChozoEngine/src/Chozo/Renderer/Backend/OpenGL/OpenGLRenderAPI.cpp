@@ -310,13 +310,13 @@ namespace Chozo {
             shader->Bind();
             shader->SetUniform("u_VertUniforms.ModelMatrix", transform);
 
-			const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
-			const auto& submesh = submeshes[submeshIndex];
+			const auto& subMeshes = mesh->GetMeshSource()->GetSubmeshes();
+			const auto& subMesh = subMeshes[submeshIndex];
 
-            uint32_t indexOffset = submesh.BaseIndex;
-            uint32_t vertexOffset = submesh.BaseVertex;
-            uint32_t indexCount = submesh.IndexCount;
-            uint32_t vertexCount = submesh.VertexCount;
+            uint32_t indexOffset = subMesh.BaseIndex;
+            uint32_t vertexOffset = subMesh.BaseVertex;
+            uint32_t indexCount = subMesh.IndexCount;
+            uint32_t vertexCount = subMesh.VertexCount;
 
             glDisable(GL_BLEND); GCE;
             glEnable(GL_CULL_FACE); GCE;
