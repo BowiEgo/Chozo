@@ -22,5 +22,6 @@ namespace Chozo {
         void ReleaseInclude(shaderc_include_result* data) override;
     private:
 		const shaderc_util::FileFinder& m_FileFinder;
+        std::unordered_set<std::string> m_IncludedFiles;
     };
 } // namespace Chozo

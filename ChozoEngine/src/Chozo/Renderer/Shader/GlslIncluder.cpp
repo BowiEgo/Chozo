@@ -11,27 +11,32 @@ namespace Chozo {
     {
     }
 
-    shaderc_include_result* GlslIncluder::GetInclude(const char *requestedPath, shaderc_include_type type, const char *requestingPath, size_t include_depth)
+    shaderc_include_result* GlslIncluder::GetInclude(const char *requestedPath, const shaderc_include_type type, const char *requestingPath, size_t include_depth)
     {
-        const fs::path requestedFullPath = (type == shaderc_include_type_relative)
+        const fs::path rawPath = (type == shaderc_include_type_relative)
 			? m_FileFinder.FindRelativeReadableFilepath(requestingPath, requestedPath)
 			: m_FileFinder.FindReadableFilepath(requestedPath);
+    	const fs::path requestedFullPath = rawPath.lexically_normal();
 
-        const std::string name = std::string(requestedFullPath);
+    	const bool included = m_IncludedFiles.find(requestedFullPath) != m_IncludedFiles.end();
+    	if (!included)
+    		m_IncludedFiles.insert(requestedFullPath);
+
+        const auto name = std::string(requestedFullPath);
         const std::string contents = Utils::File::ReadTextFile(name);
 
-        auto container = new std::array<std::string, 2>;
+        const auto container = new std::array<std::string, 2>;
         (*container)[0] = name;
         (*container)[1] = contents;
 
-        auto data = new shaderc_include_result;
+        const auto data = new shaderc_include_result;
 
         data->user_data = container;
 
         data->source_name = (*container)[0].data();
         data->source_name_length = (*container)[0].size();
 
-        data->content = (*container)[1].data();
+    	data->content = included ? nullptr : (*container)[1].data();
         data->content_length = (*container)[1].size();
 
     	// std::cout << "GetInclude: " << std::endl;

@@ -49,7 +49,7 @@ namespace Chozo {
 
 		inline ShaderStage GetShaderStageFromExtension(const std::string& extension)
 		{
-			std::string ext = Utils::String::ToLowerCopy(extension);
+			const std::string ext = Utils::String::ToLowerCopy(extension);
 			if (s_ShaderExtensionMap.find(ext) == s_ShaderExtensionMap.end())
 				return ShaderStage::None;
 
@@ -78,7 +78,7 @@ namespace Chozo {
 
         inline fs::path GetCachePathByNameAndStage(const std::string& name, const ShaderStage& stage)
         {
-            fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
+            const fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
             Utils::File::CreateDirectoryIfNeeded(cacheDirectory);
 
             return cacheDirectory / (name + ShaderUtils::ShaderStageToVulkanCacheFileExtension(stage));
