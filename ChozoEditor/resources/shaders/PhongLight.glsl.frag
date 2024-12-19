@@ -7,14 +7,14 @@ layout(location = 1) in vec3 v_FragPosition;
 
 layout(binding = 0) uniform sampler2D u_PositionTex;
 layout(binding = 1) uniform sampler2D u_NormalTex;
-layout(binding = 2) uniform sampler2D u_AlbedoTex;
+layout(binding = 2) uniform sampler2D u_BaseColorTex;
 layout(binding = 3) uniform sampler2D u_MaterialPropTex;
 
 #include "includes/Scene.glsl"
 
 struct Material {
     vec3 Diffuse;
-    float Metalness;
+    float Metallic;
     float Roughness;
     float Ambient;
     float Specular;
@@ -38,8 +38,8 @@ vec3 calcDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, Material ma
     float fresnelFactor = pow(1.0 - max(dot(viewDir, normal), 0.0), 5.0);
     vec3 specular = mix(vec3(material.Specular), vec3(1.0), fresnelFactor);
 
-    vec3 result = mix(diffuse, specular, material.Metalness) * light.Color * light.Intensity;
-    result += specular * spec * (1.0 - material.Metalness);
+    vec3 result = mix(diffuse, specular, material.Metallic) * light.Color * light.Intensity;
+    result += specular * spec * (1.0 - material.Metallic);
 
     return result;
 }
@@ -59,8 +59,8 @@ vec3 calcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, M
     float attenuation = 1.0 / (Constant + Linear * distance + 
                         Quadratic * (distance * distance));
 
-    vec3 result = mix(diffuse, specular, material.Metalness) * attenuation;
-    result += specular * spec * (1.0 - material.Metalness);
+    vec3 result = mix(diffuse, specular, material.Metallic) * attenuation;
+    result += specular * spec * (1.0 - material.Metallic);
     result *= light.Color * light.Intensity;
 
     return result;
@@ -88,8 +88,8 @@ vec3 calcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, Mat
                         Quadratic * (distance * distance));
     attenuation *= intensity;
     
-    vec3 result = mix(diffuse, specular, material.Metalness) * attenuation;
-    result += specular * spec * (1.0 - material.Metalness);
+    vec3 result = mix(diffuse, specular, material.Metallic) * attenuation;
+    result += specular * spec * (1.0 - material.Metallic);
     result *= light.Color * light.Intensity;
     return result;
 }
@@ -103,10 +103,10 @@ void main()
 
     vec3 gPosition = texture(u_PositionTex, v_TexCoord).rgb;
     vec3 gNormal = texture(u_NormalTex, v_TexCoord).rgb;
-    vec3 gDiffuse = texture(u_AlbedoTex, v_TexCoord).rgb;
+    vec3 gDiffuse = texture(u_BaseColorTex, v_TexCoord).rgb;
     vec4 gMaterialProps = texture(u_MaterialPropTex, v_TexCoord);
 
-    float gMetalness = gMaterialProps.r;
+    float gMetallic = gMaterialProps.r;
     float gRoughness = gMaterialProps.g;
     float gAmbient = gMaterialProps.b;
     float gSpecular = gMaterialProps.a;
@@ -114,13 +114,13 @@ void main()
     Material material;
     material.Diffuse = gDiffuse;
     material.Specular = gSpecular;
-    material.Metalness = gMetalness;
+    material.Metallic = gMetallic;
     material.Roughness = gRoughness;
 
     vec3 viewDirection = normalize(u_Scene.CameraPosition - gPosition);
     vec3 normal = normalize(gNormal);
 
-    directionalLight += calcDirLight(u_Scene.DirectionalLights, normal, viewDirection, material);
+    directionalLight += calcDirLight(u_DirectionalLights.Lights[0], normal, viewDirection, material);
 
     for(int i = 0; i < u_PointLights.LightCount; i++)
         pointLights += calcPointLight(u_PointLights.Lights[i], normal, gPosition, viewDirection, material);

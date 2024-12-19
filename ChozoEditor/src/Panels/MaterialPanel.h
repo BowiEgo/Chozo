@@ -5,8 +5,8 @@
 namespace Chozo {
 
     #define FOREACH_PREVIEW_TYPE(TYPE) \
-        	TYPE(Albedo) \
-        	TYPE(Metalness) \
+        	TYPE(BaseColor) \
+        	TYPE(Metallic) \
         	TYPE(Roughness) \
         	TYPE(Normal) \
 
@@ -59,7 +59,7 @@ namespace Chozo {
         static bool s_Show;
 
         Ref<Material> m_Material;
-        Ref<Texture2D> m_AlbedoTexture, m_MetalnessTexture, m_RoughnessTexture, m_NormalTexture;
+        Ref<Texture2D> m_BaseColorTexture, m_MetallicTexture, m_RoughnessTexture, m_NormalTexture;
         bool m_PreviewUpdated{};
     };
 }

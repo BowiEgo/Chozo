@@ -18,9 +18,7 @@ layout(push_constant) uniform VertexUniforms
     mat4 ModelMatrix;
 } u_VertUniforms;
 
-layout(location = 0) out vec3 v_Normal;
-layout(location = 1) out vec2 v_TexCoord;
-layout(location = 2) out vec3 v_FragPosition;
+//#include "Common/Varyings.glsl"
 
 void main()
 {
@@ -29,9 +27,8 @@ void main()
     vec4 projectionPosition = u_ProjectionMatrix * viewPosition;
 
     gl_Position = projectionPosition;
-
-    mat3 normalMatrix = transpose(inverse(mat3(u_VertUniforms.ModelMatrix)));
-    v_Normal = normalMatrix * a_Normal;
-    v_TexCoord = a_TexCoord;
-    v_FragPosition = vec3(modelPosition);
+//
+//    v_Normal = a_Normal;
+//    v_TexCoord = a_TexCoord;
+//    v_FragPosition = vec3(modelPosition);
 }

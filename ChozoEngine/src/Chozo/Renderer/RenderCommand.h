@@ -55,6 +55,7 @@ namespace Chozo {
         class RenderCommand
     {
     public:
+        static void Init() { s_API->Init(); }
         static void SwitchAPI(RenderAPI::Type api);
         inline static RenderAPI::Type GetType() { return s_Type; }
 

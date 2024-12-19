@@ -147,30 +147,30 @@ namespace Chozo {
 
 				auto mi = Material::Create(Renderer::GetRendererData().m_ShaderLibrary->Get("Geometry"), aiMaterialName.data);
 
-				glm::vec3 albedoColor(0.8f);
+				glm::vec3 baseColorColor(0.8f);
 				float emission = 0.0f;
 				aiColor3D aiColor, aiEmission;
 				if (aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor) == AI_SUCCESS)
-					albedoColor = { aiColor.r, aiColor.g, aiColor.b };
+					baseColorColor = { aiColor.r, aiColor.g, aiColor.b };
 
 				if (aiMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, aiEmission) == AI_SUCCESS)
 					emission = aiEmission.r;
 
-				mi->Set("u_Material.Albedo", albedoColor);
+				mi->Set("u_Material.BaseColor", baseColorColor);
 				// mi->Set("u_Material.Emission", emission);
 
-				float metalness, roughness;
-				if (aiMaterial->Get(AI_MATKEY_REFLECTIVITY, metalness) != aiReturn_SUCCESS)
-					metalness = 0.0f;
+				float metallic, roughness;
+				if (aiMaterial->Get(AI_MATKEY_REFLECTIVITY, metallic) != aiReturn_SUCCESS)
+					metallic = 0.0f;
 
 				if (aiMaterial->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) != aiReturn_SUCCESS)
 					roughness = 0.5f;
 
-				mi->Set("u_Material.Metalness", metalness);
+				mi->Set("u_Material.Metallic", metallic);
 				mi->Set("u_Material.Roughness", roughness);
 
-				ApplyTextureByType(mi, aiMaterial, scene, MaterialPropType::Albedo, filePath);
-				ApplyTextureByType(mi, aiMaterial, scene, MaterialPropType::Metalness, filePath);
+				ApplyTextureByType(mi, aiMaterial, scene, MaterialPropType::BaseColor, filePath);
+				ApplyTextureByType(mi, aiMaterial, scene, MaterialPropType::Metallic, filePath);
 				ApplyTextureByType(mi, aiMaterial, scene, MaterialPropType::Roughness, filePath);
 				ApplyTextureByType(mi, aiMaterial, scene, MaterialPropType::Normal, filePath);
 
@@ -181,14 +181,14 @@ namespace Chozo {
 		// else
 		// {
 		// 	auto mi = Material::Create(Renderer::GetRendererData().m_ShaderLibrary->Get("Geometry"), "Chozo-Default");
-		// 	mi->Set("u_Material.Albedo", glm::vec3(0.5f));
-		// 	mi->Set("u_Material.Metalness", 0.5f);
+		// 	mi->Set("u_Material.BaseColor", glm::vec3(0.5f));
+		// 	mi->Set("u_Material.Metallic", 0.5f);
 		// 	mi->Set("u_Material.Roughness", 0.5f);
 		// 	mi->Set("u_Material.Ambient", 1.0f);
 		// 	mi->Set("u_Material.AmbientStrength", 0.1f);
 		// 	mi->Set("u_Material.Specular", 0.5f);
-		// 	mi->Set("u_Material.EnableAlbedoTex", false);
-		// 	mi->Set("u_Material.EnableMetalnessTex", false);
+		// 	mi->Set("u_Material.EnableBaseColorTex", false);
+		// 	mi->Set("u_Material.EnableMetallicTex", false);
 		// 	mi->Set("u_Material.EnableRoughnessTex", false);
 		// 	mi->Set("u_Material.EnableNormalTex", false);
 		// 	meshSource->m_Materials.push_back(mi);
@@ -236,13 +236,13 @@ namespace Chozo {
 
 		switch (propType)
 		{
-		case MaterialPropType::Albedo:
+		case MaterialPropType::BaseColor:
 			aiTexType = aiTextureType_DIFFUSE;
-			propTypeName = "Albedo";
+			propTypeName = "BaseColor";
 			break;
-		case MaterialPropType::Metalness:
+		case MaterialPropType::Metallic:
 			aiTexType = aiTextureType_METALNESS;
-			propTypeName = "Metalness";
+			propTypeName = "Metallic";
 			break;
 		case MaterialPropType::Roughness:
 			aiTexType = aiTextureType_SHININESS;
@@ -259,7 +259,7 @@ namespace Chozo {
 		target->Set("u_Material.Enable" + propTypeName + "Tex", false);
 
 		bool hasMap = false;
-		if (propType == MaterialPropType::Albedo) {
+		if (propType == MaterialPropType::BaseColor) {
 			hasMap = aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == AI_SUCCESS;
 			if (!hasMap) {
 				hasMap = aiMaterial->GetTexture(aiTextureType_BASE_COLOR, 0, &aiTexPath) == AI_SUCCESS;

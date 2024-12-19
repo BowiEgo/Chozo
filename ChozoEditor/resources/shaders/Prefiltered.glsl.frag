@@ -11,7 +11,7 @@ layout(push_constant) uniform Uniforms
 } u_FragUniforms;
 
 const uint NumSamples = 1024;
-const float InvNumSamples = 1.0 / float(NumSamples);
+const float InvNumSamples = float(NumSamples);
 
 #include "includes/PBRAlgorithms.glsl"
 

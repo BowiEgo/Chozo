@@ -38,6 +38,7 @@ namespace Chozo {
 
     void Renderer::Init()
     {
+        RenderCommand::Init();
         s_Data = new RendererData();
 
         // Textures
@@ -74,6 +75,7 @@ namespace Chozo {
             cubemapSpec.MinFilter = ImageParameter::LINEAR_MIPMAP_LINEAR;
             s_Data->PrefilteredTextureCube = TextureCube::Create(cubemapSpec);
         }
+        s_Data->BrdfLUTTexture = Texture2D::Create(std::string("../resources/textures/brdfLUT.png"));
 
         int32_t samplers[s_Data->MaxTextureSlots];
         for (uint32_t i = 0; i < s_Data->MaxTextureSlots; i++)
@@ -91,6 +93,8 @@ namespace Chozo {
         // Shaders
         std::vector<int> samplersVec(samplers, samplers + s_Data->MaxTextureSlots);
         s_Data->m_ShaderLibrary = ShaderLibrary::Create();
+        s_Data->m_ShaderLibrary->Load("Default", {"../resources/shaders/Default.glsl.vert", "../resources/shaders/Default.glsl.frag"});
+
         s_Data->m_ShaderLibrary->Load("Basic", {"../resources/shaders/Basic.glsl.vert", "../resources/shaders/Basic.glsl.frag"});
         // s_Data->m_ShaderLibrary->Get("Basic")->Bind();
         // s_Data->m_ShaderLibrary->Get("Basic")->SetUniform("u_Textures", samplersVec, s_Data->MaxTextureSlots);
@@ -336,6 +340,7 @@ namespace Chozo {
 
     Ref<Texture2D> Renderer::GetBRDFLutTexture()
     {
+        // return s_Data->BrdfLUTTexture;
         return s_Data->m_BRDFLutPipeline->GetTargetFramebuffer()->GetImage(0);
     }
 

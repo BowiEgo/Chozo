@@ -66,6 +66,7 @@ namespace Chozo {
             std::vector<Ref<Texture2D>> TextureSlots;
             Ref<Texture2D> WhiteTexture;
             Ref<Texture2D> CheckerboardTexture;
+            Ref<Texture2D> BrdfLUTTexture;
             Ref<TextureCube> BlackTextureCube;
 
             Ref<Geometry> QuadMesh;
