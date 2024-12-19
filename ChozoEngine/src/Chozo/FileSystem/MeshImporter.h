@@ -12,8 +12,8 @@ namespace Chozo {
     {
     public:
 		enum class MaterialPropType {
-			Albedo,
-			Metalness,
+			BaseColor,
+			Metallic,
 			Roughness,
 			Normal,
 			Ambient,

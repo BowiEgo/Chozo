@@ -24,8 +24,9 @@ namespace Chozo
         // Uniform buffers
         m_CameraUB = UniformBuffer::Create(sizeof(CameraData));
         m_SceneUB = UniformBuffer::Create(sizeof(SceneData));
-        m_PointLightUB = UniformBuffer::Create(sizeof(PointLightsData));
-        m_SpotLightUB = UniformBuffer::Create(sizeof(SpotLightsData));
+        m_DirectionalLightsUB = UniformBuffer::Create(sizeof(DirectionalLightsData));
+        m_PointLightsUB = UniformBuffer::Create(sizeof(PointLightsData));
+        m_SpotLightsUB = UniformBuffer::Create(sizeof(SpotLightsData));
 
         // Skybox
         {
@@ -149,11 +150,11 @@ namespace Chozo
 			m_PhongLightMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
             Ref<Texture2D> positionTex = m_GeometryPass->GetOutput(0);
             Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
-            Ref<Texture2D> albedoTex = m_GeometryPass->GetOutput(3);
+            Ref<Texture2D> baseColorTex = m_GeometryPass->GetOutput(3);
             Ref<Texture2D> materialPropTex = m_GeometryPass->GetOutput(4);
             m_PhongLightMaterial->Set("u_PositionTex", positionTex);
             m_PhongLightMaterial->Set("u_NormalTex", normalTex);
-            m_PhongLightMaterial->Set("u_AlbedoTex", albedoTex);
+            m_PhongLightMaterial->Set("u_BaseColorTex", baseColorTex);
             m_PhongLightMaterial->Set("u_MaterialPropTex", materialPropTex);
 
 			RenderPassSpecification renderPassSpec;
@@ -161,8 +162,9 @@ namespace Chozo
 			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
 			m_PhongLightPass = RenderPass::Create(renderPassSpec);
 			m_PhongLightPass->SetInput("SceneData", m_SceneUB);
-			m_PhongLightPass->SetInput("PointLightData", m_PointLightUB);
-			m_PhongLightPass->SetInput("SpotLightData", m_SpotLightUB);
+			m_PhongLightPass->SetInput("DirectionalLightsData", m_DirectionalLightsUB);
+			m_PhongLightPass->SetInput("PointLightsData", m_PointLightsUB);
+			m_PhongLightPass->SetInput("SpotLightsData", m_SpotLightsUB);
         }
 
         // PBR
@@ -184,8 +186,9 @@ namespace Chozo
 			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
 			m_PBRPass = RenderPass::Create(renderPassSpec);
 			m_PBRPass->SetInput("SceneData", m_SceneUB);
-			m_PBRPass->SetInput("PointLightData", m_PointLightUB);
-			// m_PBRPass->SetInput("SpotLightData", m_SpotLightUB);
+        	m_PBRPass->SetInput("DirectionalLightsData", m_DirectionalLightsUB);
+			m_PBRPass->SetInput("PointLightsData", m_PointLightsUB);
+			// m_PBRPass->SetInput("SpotLightData", m_SpotLightsUB);
 
             TextureCubeSpecification irrandianceMapSpec;
             irrandianceMapSpec.Width = 32;
@@ -267,8 +270,10 @@ namespace Chozo
 
         m_CameraUB->SetData(&CameraDataUB, sizeof(CameraData));
         m_SceneUB->SetData(&SceneDataUB, sizeof(SceneData));
-        m_PointLightUB->SetData(&PointLightsDataUB, sizeof(PointLightsData));
-        m_SpotLightUB->SetData(&SpotLightsDataUB, sizeof(SpotLightsData));
+        m_DirectionalLightsUB->SetData(&DirectionalLightsDataUB, sizeof(DirectionalLightsData));
+        m_PointLightsUB->SetData(&PointLightsDataUB, sizeof(PointLightsData));
+        m_SpotLightsUB->SetData(&SpotLightsDataUB, sizeof(SpotLightsData));
+        DirectionalLightsDataUB.LightCount = 0;
         PointLightsDataUB.LightCount = 0;
         SpotLightsDataUB.LightCount = 0;
     }
@@ -291,11 +296,20 @@ namespace Chozo
 
     bool SceneRenderer::SubmitDirectionalLight(DirectionalLightComponent *light)
     {
-        SceneDataUB.Lights.Direction = light->Direction;
-        SceneDataUB.Lights.Color = light->Color;
-        SceneDataUB.Lights.Intensity = light->Intensity;
+    	uint index = DirectionalLightsDataUB.LightCount;
+    	if (index >= 1000)
+    	{
+    		CZ_CORE_WARN("DirectionalLightBuffer is full, cannot submit more point lights.");
+    		return false;
+    	}
 
-        return true;
+    	DirectionalLightsDataUB.Lights[index].Direction = light->Direction;
+    	DirectionalLightsDataUB.Lights[index].Intensity = light->Intensity;
+    	DirectionalLightsDataUB.Lights[index].Color = light->Color;
+
+    	DirectionalLightsDataUB.LightCount++;
+
+    	return true;
     }
 
     bool SceneRenderer::SubmitPointLight(PointLightComponent *light, glm::vec3 &position)
@@ -427,14 +441,14 @@ namespace Chozo
        
         Ref<Texture2D> positionTex = m_GeometryPass->GetOutput(0);
         Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
-        Ref<Texture2D> albedoTex = m_GeometryPass->GetOutput(3);
+        Ref<Texture2D> baseColorTex = m_GeometryPass->GetOutput(3);
         Ref<Texture2D> materialPropTex = m_GeometryPass->GetOutput(4);
         Ref<TextureCube> irradianceMap = Renderer::GetIrradianceTextureCube();
         Ref<TextureCube> prefilterMap = Renderer::GetPrefilteredTextureCube();
         Ref<Texture2D> brdfLUTTexture = Renderer::GetBRDFLutTexture();
         m_PBRMaterial->Set("u_PositionTex", positionTex);
         m_PBRMaterial->Set("u_NormalTex", normalTex);
-        m_PBRMaterial->Set("u_AlbedoTex", albedoTex);
+        m_PBRMaterial->Set("u_BaseColorTex", baseColorTex);
         m_PBRMaterial->Set("u_MaterialPropTex", materialPropTex);
         m_PBRMaterial->Set("u_IrradianceMap", irradianceMap);
         m_PBRMaterial->Set("u_PrefilterMap", prefilterMap);

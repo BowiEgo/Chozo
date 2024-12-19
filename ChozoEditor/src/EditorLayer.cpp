@@ -181,7 +181,7 @@ namespace Chozo {
         std::string entityName = "Null";
         if (m_Entity_Selected)
             entityName = m_Entity_Selected.GetComponent<TagComponent>().Tag;
-        ImGui::Text("EntityHoverd: %s", entityName.c_str());
+        ImGui::Text("EntityHovered: %s", entityName.c_str());
         ImGui::Separator();
 
         if(ImGui::Button("ShowSkyboxTexture"))
@@ -192,9 +192,9 @@ namespace Chozo {
         }
 
         std::string buttons[4] = {
-            "Position", "Normal", "Depth", "Albedo"
+            "Position", "Normal", "Depth", "BaseColor"
         };
-        for (int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
+        for (int i = 0; i < std::size(buttons); i++)
         {
             std::string buttonLabel = buttons[i];
             if(ImGui::Button(buttonLabel.c_str()))
@@ -206,7 +206,7 @@ namespace Chozo {
         }
 
         std::string materialButtons[4] = {
-             "Ambient", "Specular", "Metalness", "Roughness"
+             "Ambient", "Specular", "Metallic", "Roughness"
         };
 
         {
@@ -245,6 +245,16 @@ namespace Chozo {
             {
                 TextureViewerPanel::Open();
                 Ref<Texture2D> texture = Renderer::GetBRDFLutTexture();
+                TextureViewerPanel::SetTexture(texture);
+            }
+        }
+
+        {
+            std::string buttonLabel = "PBR";
+            if(ImGui::Button(buttonLabel.c_str()))
+            {
+                TextureViewerPanel::Open();
+                Ref<Texture2D> texture = m_ViewportRenderer->GetPBRPass()->GetOutput(0);;
                 TextureViewerPanel::SetTexture(texture);
             }
         }

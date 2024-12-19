@@ -72,6 +72,7 @@ namespace Chozo
         Ref<RenderPass> GetIDPass() { return m_IDPass; }
         Ref<RenderPass> GetSolidPass() { return m_SolidPass; }
         Ref<RenderPass> GetPhongLightPass() { return m_PhongLightPass; }
+        Ref<RenderPass> GetPBRPass() { return m_PBRPass; }
         Ref<RenderPass> GetCompositePass() { return m_CompositePass; }
 
         Ref<TextureCube> GetPBRIrradiance() { return m_PBRIrradiance; }
@@ -118,7 +119,6 @@ namespace Chozo
 
         struct SceneData
 		{
-			DirLight Lights;
 			glm::vec3 CameraPosition;
 			float EnvironmentMapIntensity = 1.0f;
 		} SceneDataUB;
@@ -129,6 +129,13 @@ namespace Chozo
             glm::mat4 ViewMatrix;
             glm::mat4 InverseViewProjectionMatrix;
         } CameraDataUB;
+
+    	struct DirectionalLightsData
+    	{
+    		uint LightCount;
+    		float Padding[3];
+    		DirLight Lights[1000];
+    	} DirectionalLightsDataUB;
 
         struct PointLightsData
         {
@@ -146,8 +153,9 @@ namespace Chozo
 
         Ref<UniformBuffer> m_CameraUB;
         Ref<UniformBuffer> m_SceneUB;
-        Ref<UniformBuffer> m_PointLightUB;
-        Ref<UniformBuffer> m_SpotLightUB;
+        Ref<UniformBuffer> m_PointLightsUB;
+        Ref<UniformBuffer> m_DirectionalLightsUB;
+        Ref<UniformBuffer> m_SpotLightsUB;
 
 		Ref<Material> m_SkyboxMaterial;
 		Ref<RenderPass> m_SkyboxPass;

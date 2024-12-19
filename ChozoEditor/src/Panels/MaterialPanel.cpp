@@ -11,15 +11,15 @@ namespace Chozo {
     bool MaterialPanel::s_Show = false;
 
     std::vector<std::string> MaterialPropTypes = {
-        "Albedo",
-        "Metalness",
+        "BaseColor",
+        "Metallic",
         "Roughness",
         "Normal",
         "Ambient",
         "AmbientStrength",
         "Specular",
-        "EnableAlbedoTex",
-        "EnableMetalnessTex",
+        "EnableBaseColorTex",
+        "EnableMetallicTex",
         "EnableRoughnessTex",
         "EnableNormalTex",
     };
@@ -33,8 +33,8 @@ namespace Chozo {
     void MaterialPanel::Init()
     {
         auto checkerboard = Renderer::GetCheckerboardTexture();
-        s_Instance->m_AlbedoTexture = s_Instance->m_AlbedoTexture ? s_Instance->m_AlbedoTexture : checkerboard;
-        s_Instance->m_MetalnessTexture = checkerboard;
+        s_Instance->m_BaseColorTexture = s_Instance->m_BaseColorTexture ? s_Instance->m_BaseColorTexture : checkerboard;
+        s_Instance->m_MetallicTexture = checkerboard;
         s_Instance->m_RoughnessTexture = checkerboard;
         s_Instance->m_NormalTexture = checkerboard;
     }
@@ -53,12 +53,12 @@ namespace Chozo {
         renderer->ClearCache();
 
         auto checkerboard = Renderer::GetCheckerboardTexture();
-        auto albedoTex = material->GetTexture("u_AlbedoTex");
-        auto metalnessTex = material->GetTexture("u_MetalnessTex");
+        auto baseColorTex = material->GetTexture("u_BaseColorTex");
+        auto metallicTex = material->GetTexture("u_MetallicTex");
         auto roughnessTex = material->GetTexture("u_RoughnessTex");
         auto normalTex = material->GetTexture("u_NormalTex");
-        s_Instance->m_AlbedoTexture = albedoTex ? albedoTex : checkerboard;
-        s_Instance->m_MetalnessTexture = metalnessTex ? metalnessTex : checkerboard;
+        s_Instance->m_BaseColorTexture = baseColorTex ? baseColorTex : checkerboard;
+        s_Instance->m_MetallicTexture = metallicTex ? metallicTex : checkerboard;
         s_Instance->m_RoughnessTexture = roughnessTex ? roughnessTex : checkerboard;
         s_Instance->m_NormalTexture = normalTex ? normalTex : checkerboard;
     }
@@ -167,7 +167,7 @@ namespace Chozo {
             #define GENERATE_CASE(ENUM) case PreviewType::ENUM: return m_##ENUM##Texture;
             FOREACH_PREVIEW_TYPE(GENERATE_CASE)
             #undef GENERATE_CASE
-            default: return m_AlbedoTexture;
+            default: return m_BaseColorTexture;
         }
     }
 
