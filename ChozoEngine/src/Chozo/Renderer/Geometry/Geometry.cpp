@@ -43,7 +43,8 @@ namespace Chozo {
 
         SetBufferChanged(false);
 
-        Submesh& submesh = m_MeshSource->m_Submeshes.emplace_back();
+        bool created = m_MeshSource->m_Submeshes.size() > 0;
+        Submesh& submesh = created ? m_MeshSource->m_Submeshes[0] : m_MeshSource->m_Submeshes.emplace_back();
         submesh.IndexCount = m_MeshSource->GetBuffer()->IndicesCount;
         submesh.VertexCount = m_MeshSource->GetBuffer()->Vertexs.size();
         submesh.BaseIndex = 0;
