@@ -1,7 +1,7 @@
 layout(location = 0) out vec4 o_Color;
 
-#include "Common/SceneData.glsl"
-#include "Common/Lighting.glsl"
+#include "Includes/SceneData.glsl"
+#include "Includes/Lighting.glsl"
 
 layout(binding = 5) uniform samplerCube s_IBLSpecularMap;
 

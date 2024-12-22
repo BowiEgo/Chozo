@@ -13,7 +13,7 @@ layout(push_constant) uniform Uniforms
 const uint NumSamples = 1024;
 const float InvNumSamples = float(NumSamples);
 
-#include "includes/PBRAlgorithms.glsl"
+#include "Includes/PBRAlgorithms.glsl"
 
 void main()
 {

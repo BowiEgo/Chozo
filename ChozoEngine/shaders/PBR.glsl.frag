@@ -2,10 +2,9 @@
 
 layout(location = 0) out vec4 o_Color;
 
-#include "Common/GBuffer.glsl"
-#include "Common/BRDF.glsl"
-#include "Common/SceneData.glsl"
-#include "Common/Lighting.glsl"
+#include "Includes/GBuffer.glsl"
+#include "Includes/BRDF.glsl"
+#include "Includes/PBRLighting.glsl"
 
 void main()
 {

@@ -1,7 +1,7 @@
 #define PI            3.14159265359
 #define HALF_PI       1.570796327
-#define TWO_PI        2 * PI;
-#define Epsilon       0.00001;
+#define TWO_PI        2 * PI
+#define Epsilon       0.00001
 
 #define MEDIUMP_FLT_MAX    65504.0
 #define MEDIUMP_FLT_MIN    0.00006103515625

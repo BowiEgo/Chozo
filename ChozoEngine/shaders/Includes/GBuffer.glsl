@@ -1,5 +1,5 @@
-#include "./Varyings.glsl"
-#include "./SceneData.glsl"
+#include "../Snippets/Fragment/Varyings.glsl"
+#include "../Snippets/Fragment/Scene.glsl"
 
 layout(binding = 0) uniform sampler2D u_PositionTex;
 layout(binding = 1) uniform sampler2D u_NormalTex;

@@ -10,7 +10,7 @@ layout(binding = 0) uniform samplerCube u_Texture;
 // 	uint Samples;
 // } u_FragUniforms;
 
-#include "includes/PBRAlgorithms.glsl"
+#include "Includes/PBRAlgorithms.glsl"
 
 void main()
 {

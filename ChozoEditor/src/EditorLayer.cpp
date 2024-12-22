@@ -244,7 +244,7 @@ namespace Chozo {
             if(ImGui::Button(buttonLabel.c_str()))
             {
                 TextureViewerPanel::Open();
-                Ref<Texture2D> texture = Renderer::GetBRDFLutTexture();
+                Ref<Texture2D> texture = Renderer::GetBrdfLUT();
                 TextureViewerPanel::SetTexture(texture);
             }
         }

@@ -10,7 +10,8 @@ layout(binding = 1) uniform sampler2D u_NormalTex;
 layout(binding = 2) uniform sampler2D u_BaseColorTex;
 layout(binding = 3) uniform sampler2D u_MaterialPropTex;
 
-#include "includes/Scene.glsl"
+#include "Snippets/Fragment/Scene.glsl"
+#include "Snippets/Fragment/Light.glsl"
 
 struct Material {
     vec3 Diffuse;

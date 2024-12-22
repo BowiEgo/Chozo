@@ -1,6 +1,4 @@
-const float PI = 3.14159265359;
-const float TwoPI = 2 * PI;
-const float Epsilon = 0.00001;
+#include "./Math.glsl"
 
 // --------------------------------------------------------------------------------------------
 // Compute orthonormal basis for converting from tanget/shading space to world space.
@@ -46,7 +44,7 @@ vec2 SampleHammersley(uint i, float samples)
 vec3 SampleHemisphere(float u1, float u2)
 {
 	const float u1p = sqrt(max(0.0, 1.0 - u1*u1));
-	return vec3(cos(TwoPI*u2) * u1p, sin(TwoPI*u2) * u1p, u1);
+	return vec3(cos(TWO_PI*u2) * u1p, sin(TWO_PI*u2) * u1p, u1);
 }
 
 // ----------------------------------------------------------------------------
@@ -66,7 +64,7 @@ vec3 SampleGGX(float u1, float u2, float roughness)
 
 	float cosTheta = sqrt((1.0 - u2) / (1.0 + (alpha*alpha - 1.0) * u2));
 	float sinTheta = sqrt(1.0 - cosTheta*cosTheta); // Trig. identity
-	float phi = TwoPI * u1;
+	float phi = TWO_PI * u1;
 
 	// Convert to Cartesian upon return.
 	return vec3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
@@ -101,15 +99,16 @@ float GaSchlickGGX(float cosLi, float NdotV, float roughness)
 }
 
 // ----------------------------------------------------------------------------
-float GeometrySchlickGGX(float NdotV, float roughness)
+float GeometrySchlickGGX(float NoV, float roughness)
 {
-	float r = (roughness + 1.0);
-	float k = (r * r) / 8.0;
+    // note that we use a different k for IBL
+    float a = roughness;
+    float k = (a * a) / 2.0;
 
-	float nom = NdotV;
-	float denom = NdotV * (1.0 - k) + k;
+    float nom   = NoV;
+    float denom = NoV * (1.0 - k) + k;
 
-	return nom / denom;
+    return nom / denom;
 }
 
 // ----------------------------------------------------------------------------

@@ -80,14 +80,14 @@ namespace Chozo {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
             shader->Bind();
-            shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
-            shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+            shader->SetUniform("u_View.ViewMatrix", CubeTextureCaptureViews[i]);
+            shader->SetUniform("u_View.ProjectionMatrix", CubeTextureCaptureProjection);
 
             DrawIndexed(VAO, 0);
         }
     }
 
-    void OpenGLRenderAPI::DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera)
+    void OpenGLRenderAPI::DrawSkyBox(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera)
     {
         environment->IrradianceMap.As<OpenGLTextureCube>()->Bind();
         Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Skybox");
@@ -148,8 +148,8 @@ namespace Chozo {
             GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
-            shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
-            shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+            shader->SetUniform("u_View.ViewMatrix", CubeTextureCaptureViews[i]);
+            shader->SetUniform("u_View.ProjectionMatrix", CubeTextureCaptureProjection);
 
             DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
         }
@@ -171,8 +171,8 @@ namespace Chozo {
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
-            shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
-            shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+            shader->SetUniform("u_View.ViewMatrix", CubeTextureCaptureViews[i]);
+            shader->SetUniform("u_View.ProjectionMatrix", CubeTextureCaptureProjection);
 
             DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
         }
@@ -204,8 +204,8 @@ namespace Chozo {
                     GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), mip); GCE;
 
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
-                shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
-                shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+                shader->SetUniform("u_View.ViewMatrix", CubeTextureCaptureViews[i]);
+                shader->SetUniform("u_View.ProjectionMatrix", CubeTextureCaptureProjection);
                 DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
             }
         }
@@ -230,8 +230,8 @@ namespace Chozo {
                 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, textureCube->GetRendererID(), 0); GCE;
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
-            shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
-            shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+            shader->SetUniform("u_View.ViewMatrix", CubeTextureCaptureViews[i]);
+            shader->SetUniform("u_View.ProjectionMatrix", CubeTextureCaptureProjection);
 
             DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
         }
@@ -253,8 +253,8 @@ namespace Chozo {
                     GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetRendererID(), 0); GCE;
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GCE;
 
-                shader->SetUniform("u_Camera.ViewMatrix", CubeTextureCaptureViews[i]);
-                shader->SetUniform("u_Camera.ProjectionMatrix", CubeTextureCaptureProjection);
+                shader->SetUniform("u_View.ViewMatrix", CubeTextureCaptureViews[i]);
+                shader->SetUniform("u_View.ProjectionMatrix", CubeTextureCaptureProjection);
 
                 DrawIndexed(Renderer::GetRendererData().BoxMesh->GetVertexArray(), 0);
             }

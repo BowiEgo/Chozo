@@ -38,7 +38,7 @@ namespace Chozo {
         virtual void CreatePreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination) = 0;
         virtual void DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination) = 0;
         virtual void DrawEnvMap(const Ref<Shader>& shader, const Ref<TextureCube>& textureCube, const Ref<VertexArray>& VAO) = 0;
-        virtual void DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera) = 0;
+        virtual void DrawSkyBox(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera) = 0;
 
         virtual void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass) = 0;
         virtual void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass) = 0;
@@ -73,7 +73,7 @@ namespace Chozo {
         inline static void CreatePreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination) { s_API->CreatePreethamSky(pipeline, turbidity, azimuth, inclination); }
         inline static void DrawPreethamSky(Ref<Pipeline> pipeline, const float turbidity, const float azimuth, const float inclination) { s_API->DrawPreethamSky(pipeline, turbidity, azimuth, inclination); }
         inline static void DrawEnvMap(const Ref<Shader>& shader, const Ref<TextureCube>& textureCube, const Ref<VertexArray>& VAO) { s_API->DrawEnvMap(shader, textureCube, VAO); }
-        inline static void DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera)  { s_API->DrawSkyLight(environment, environmentIntensity, skyboxLod, camera); }
+        inline static void DrawSkyLight(const Ref<Environment>& environment, const float& environmentIntensity, const float& skyboxLod, const EditorCamera& camera)  { s_API->DrawSkyBox(environment, environmentIntensity, skyboxLod, camera); }
 
         inline static void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass) { s_API->BeginRenderPass(commandBuffer, renderPass); }
         inline static void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass) { s_API->EndRenderPass(commandBuffer, renderPass); }

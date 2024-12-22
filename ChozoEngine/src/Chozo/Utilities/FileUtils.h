@@ -25,7 +25,7 @@ namespace Chozo {
 
         static const char* GetShaderSoureceDirectory()
         {
-            return "../resources/shaders";
+            return "../../ChozoEngine/shaders";
         }
 
         static const char* GetShaderCacheDirectory()

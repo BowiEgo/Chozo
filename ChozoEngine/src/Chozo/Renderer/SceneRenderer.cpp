@@ -143,28 +143,28 @@ namespace Chozo
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
 
 			PipelineSpecification pipelineSpec;
-			pipelineSpec.DebugName = "PhongLight";
+			pipelineSpec.DebugName = "Phong";
             pipelineSpec.DepthWrite = false;
 			pipelineSpec.TargetFramebuffer = Framebuffer::Create(fbSpec);
-            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PhongLight");
-			m_PhongLightMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
+            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Phong");
+			m_PhongMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
             Ref<Texture2D> positionTex = m_GeometryPass->GetOutput(0);
             Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
             Ref<Texture2D> baseColorTex = m_GeometryPass->GetOutput(3);
             Ref<Texture2D> materialPropTex = m_GeometryPass->GetOutput(4);
-            m_PhongLightMaterial->Set("u_PositionTex", positionTex);
-            m_PhongLightMaterial->Set("u_NormalTex", normalTex);
-            m_PhongLightMaterial->Set("u_BaseColorTex", baseColorTex);
-            m_PhongLightMaterial->Set("u_MaterialPropTex", materialPropTex);
+            m_PhongMaterial->Set("u_PositionTex", positionTex);
+            m_PhongMaterial->Set("u_NormalTex", normalTex);
+            m_PhongMaterial->Set("u_BaseColorTex", baseColorTex);
+            m_PhongMaterial->Set("u_MaterialPropTex", materialPropTex);
 
 			RenderPassSpecification renderPassSpec;
-			renderPassSpec.DebugName = "PhongLight";
+			renderPassSpec.DebugName = "Phong";
 			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
-			m_PhongLightPass = RenderPass::Create(renderPassSpec);
-			m_PhongLightPass->SetInput("SceneData", m_SceneUB);
-			m_PhongLightPass->SetInput("DirectionalLightsData", m_DirectionalLightsUB);
-			m_PhongLightPass->SetInput("PointLightsData", m_PointLightsUB);
-			m_PhongLightPass->SetInput("SpotLightsData", m_SpotLightsUB);
+			m_PhongPass = RenderPass::Create(renderPassSpec);
+			m_PhongPass->SetInput("SceneData", m_SceneUB);
+			m_PhongPass->SetInput("DirectionalLightsData", m_DirectionalLightsUB);
+			m_PhongPass->SetInput("PointLightsData", m_PointLightsUB);
+			m_PhongPass->SetInput("SpotLightsData", m_SpotLightsUB);
         }
 
         // PBR
@@ -222,7 +222,7 @@ namespace Chozo
             Ref<Texture2D> skyboxTex = m_SkyboxPass->GetOutput(0);
             Ref<Texture2D> solidTex = m_SolidPass->GetOutput(0);
             Ref<Texture2D> solidDepthTex = m_SolidPass->GetOutput(1);
-            Ref<Texture2D> phongLightTex = m_PhongLightPass->GetOutput(0);
+            Ref<Texture2D> PhongTex = m_PhongPass->GetOutput(0);
             Ref<Texture2D> PBRTex = m_PBRPass->GetOutput(0);
             Ref<Texture2D> PBRDepthTex = m_GeometryPass->GetOutput(2);
             m_CompositeMaterial->Set("u_SkyboxTex", skyboxTex);
@@ -254,7 +254,7 @@ namespace Chozo
         m_GeometryPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
         m_IDPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
         m_SolidPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
-        m_PhongLightPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
+        m_PhongPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
         m_PBRPass->GetTargetFramebuffer()->Resize(m_ViewportWidth, m_ViewportHeight);
 
         m_SceneData.SceneCamera = camera;
@@ -280,7 +280,6 @@ namespace Chozo
 
     void SceneRenderer::EndScene()
     {
-        Renderer::RenderStaticBatches();
         Flush();
     }
 
@@ -416,11 +415,11 @@ namespace Chozo
 		RenderCommand::EndRenderPass(m_CommandBuffer, m_SolidPass);
     }
 
-    void SceneRenderer::PhongLightPass()
+    void SceneRenderer::PhongPass()
     {
-        RenderCommand::BeginRenderPass(m_CommandBuffer, m_PhongLightPass);
-		RenderCommand::SubmitFullscreenQuad(m_CommandBuffer, m_PhongLightPass->GetPipeline(), m_PhongLightMaterial);
-		RenderCommand::EndRenderPass(m_CommandBuffer, m_PhongLightPass);
+        RenderCommand::BeginRenderPass(m_CommandBuffer, m_PhongPass);
+		RenderCommand::SubmitFullscreenQuad(m_CommandBuffer, m_PhongPass->GetPipeline(), m_PhongMaterial);
+		RenderCommand::EndRenderPass(m_CommandBuffer, m_PhongPass);
     }
 
     void SceneRenderer::PBRPrePass()
@@ -445,7 +444,7 @@ namespace Chozo
         Ref<Texture2D> materialPropTex = m_GeometryPass->GetOutput(4);
         Ref<TextureCube> irradianceMap = Renderer::GetIrradianceTextureCube();
         Ref<TextureCube> prefilterMap = Renderer::GetPrefilteredTextureCube();
-        Ref<Texture2D> brdfLUTTexture = Renderer::GetBRDFLutTexture();
+        Ref<Texture2D> brdfLUTTexture = Renderer::GetBrdfLUT();
         m_PBRMaterial->Set("u_PositionTex", positionTex);
         m_PBRMaterial->Set("u_NormalTex", normalTex);
         m_PBRMaterial->Set("u_BaseColorTex", baseColorTex);
@@ -475,7 +474,7 @@ namespace Chozo
         GeometryPass();
         SolidPass();
         IDPass();
-        // PhongLightPass();
+        // PhongPass();
         PBRPass();
         CompositePass();
 

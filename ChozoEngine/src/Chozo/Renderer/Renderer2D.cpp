@@ -186,13 +186,15 @@ namespace Chozo {
         }
 
         // Shader
+        auto shaderDir = std::string(Utils::File::GetShaderSoureceDirectory());
+
         std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
-        s_Data.TextureShader = Shader::Create("Texture", {"../resources/shaders/Texture.glsl.vert", "../resources/shaders/Texture.glsl.frag"});
+        s_Data.TextureShader = Shader::Create("Texture", { shaderDir + "/Texture.glsl.vert",  shaderDir + "/Texture.glsl.frag" });
         s_Data.TextureShader->Bind();
         s_Data.TextureShader->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
 
-        s_Data.CircleShader = Shader::Create("Circle", {"../resources/shaders/Circle.glsl.vert", "../resources/shaders/Circle.glsl.frag"});
-        s_Data.LineShader = Shader::Create("Line", {"../resources/shaders/Line.glsl.vert", "../resources/shaders/Line.glsl.frag"});
+        s_Data.CircleShader = Shader::Create("Circle", { shaderDir + "/Circle.glsl.vert",  shaderDir + "/Circle.glsl.frag" });
+        s_Data.LineShader = Shader::Create("Line", { shaderDir + "/Line.glsl.vert",  shaderDir + "/Line.glsl.frag" });
 
         // Uniform buffer
         // s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData));
