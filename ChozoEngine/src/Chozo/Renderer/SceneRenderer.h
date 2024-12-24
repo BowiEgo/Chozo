@@ -132,21 +132,21 @@ namespace Chozo
 
     	struct DirectionalLightsData
     	{
-    		uint LightCount;
+    		uint LightCount = 0;
     		float Padding[3];
     		DirLight Lights[1000];
     	} DirectionalLightsDataUB;
 
         struct PointLightsData
         {
-            uint LightCount;
+            uint LightCount = 0;
             float Padding[3];
             PointLight Lights[1000];
         } PointLightsDataUB;
 
         struct SpotLightsData
         {
-            uint LightCount;
+            uint LightCount = 0;
             float Padding[3];
             SpotLight Lights[1000];
         } SpotLightsDataUB;
