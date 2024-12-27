@@ -378,15 +378,21 @@ namespace Chozo
     void SceneRenderer::GeometryPass()
     {
 		RenderCommand::BeginRenderPass(m_CommandBuffer, m_GeometryPass);
-        for (auto meshData : m_MeshDatas)
+        for (auto [Mesh, SubmeshIndex, Material, Transform, ID] : m_MeshDatas)
         {
-            if (!meshData.Material)
+            if (!Material)
                 continue;
 
-            meshData.Material->Set("u_Material.ID", (int)meshData.ID);
-
-            if (meshData.Mesh.As<DynamicMesh>())
-                RenderCommand::SubmitMeshWithMaterial(m_CommandBuffer, m_GeometryPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.SubmeshIndex, meshData.Material, meshData.Transform);
+            if (Mesh.As<DynamicMesh>())
+                RenderCommand::SubmitMeshWithMaterial(
+                	m_CommandBuffer,
+                	m_GeometryPass->GetPipeline(),
+                	Mesh.As<DynamicMesh>(),
+                	SubmeshIndex,
+                	Material,
+                	Transform,
+                	(int)ID
+                );
         }
 		RenderCommand::EndRenderPass(m_CommandBuffer, m_GeometryPass);
     }
@@ -401,15 +407,19 @@ namespace Chozo
     void SceneRenderer::SolidPass()
     {
 		RenderCommand::BeginRenderPass(m_CommandBuffer, m_SolidPass);
-        for (auto meshData : m_MeshDatas)
+        for (auto [Mesh, SubmeshIndex, Material, Transform, ID] : m_MeshDatas)
         {
-            if (!meshData.Material)
+            if (!Material)
             {
-                auto material = Material::Copy(m_SolidMaterial);
-                material->Set("u_Material.ID", (int)meshData.ID);
-
-                if (meshData.Mesh.As<DynamicMesh>())
-                    RenderCommand::SubmitMeshWithMaterial(m_CommandBuffer, m_SolidPass->GetPipeline(), meshData.Mesh.As<DynamicMesh>(), meshData.SubmeshIndex, material, meshData.Transform);
+                if (Mesh.As<DynamicMesh>())
+                    RenderCommand::SubmitMeshWithMaterial(m_CommandBuffer,
+	                    m_SolidPass->GetPipeline(),
+	                    Mesh.As<DynamicMesh>(),
+	                    SubmeshIndex,
+	                    m_SolidMaterial,
+	                    Transform,
+	                    (int)ID
+                    );
             }
         }
 		RenderCommand::EndRenderPass(m_CommandBuffer, m_SolidPass);

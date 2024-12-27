@@ -8,6 +8,7 @@
 #include <shaderc/shaderc.hpp>
 #include <spirv_cross/spirv_cross.hpp>
 #include <spirv_cross/spirv_glsl.hpp>
+#include <utility>
 
 #include "Chozo/Renderer/RenderCommand.h"
 #include "Chozo/FileSystem/FileStream.h"
@@ -19,8 +20,8 @@
 
 namespace Chozo {
 
-    OpenGLShader::OpenGLShader(const std::string& name, const std::vector<std::string> filePaths)
-        : m_FilePaths(filePaths), m_Name(name)
+    OpenGLShader::OpenGLShader(std::string name, const std::vector<std::string>& filePaths)
+        : m_FilePaths(filePaths), m_Name(std::move(name))
     {
         OpenGLShader::Compile();
     }
@@ -144,6 +145,7 @@ namespace Chozo {
     {
         auto compiler = ShaderCompiler::Create(m_Name);
         m_RendererID = compiler->Compile(m_FilePaths);
+        m_Reflection = compiler->Reflect();
     }
 
     void OpenGLShader::AsyncCompile()

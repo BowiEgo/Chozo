@@ -29,7 +29,7 @@ void InitGBuffer(out GBufferData GBuffer)
     GBuffer.Metallic            = materialProps.r;
     GBuffer.PerceptualRoughness = max(materialProps.g, 0.001);
     GBuffer.Roughness           = GBuffer.PerceptualRoughness * GBuffer.PerceptualRoughness;
-    GBuffer.Reflectance         = 0.5;
+    GBuffer.Reflectance         = materialProps.b;
 
 //    GBuffer.EnergyCompensation = vec3(1.0);
     //    GBuffer.EnergyCompensation = 1.0 + f0 * (1.0 / dfg.y - 1.0);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RendererTypes.h"
+#include "Chozo/Renderer/Shader/ShaderReflection.h"
 #include "Chozo/Core/Thread.h"
 
 #include "czpch.h"
@@ -86,13 +87,17 @@ namespace Chozo {
 
         virtual const std::string& GetName() const = 0;
         virtual const RendererID& GetRendererID() const = 0;
+        virtual ShaderReflection GetReflection() const = 0;
 
-        virtual void SetUniform(const std::string& name, const UniformValue& value, const uint32_t count = 0) const = 0;
+        virtual void SetUniform(const std::string& name, const UniformValue& value, uint32_t count) const = 0;
+        void SetUniform(const std::string& name, const UniformValue& value) const { SetUniform(name, value, 0); }
         virtual void ClearCache() = 0;
         virtual void Compile() = 0;
         virtual void AsyncCompile() = 0;
 
-        static Ref<Shader> Create(const std::string& name, const std::vector<std::string> filePaths);
+        static Ref<Shader> Create(const std::string& name, std::vector<std::string> filePaths);
+    protected:
+        ShaderReflection m_Reflection;
     };
 
     class ShaderLibrary : public RefCounted
@@ -101,7 +106,7 @@ namespace Chozo {
         ShaderLibrary() = default;
         ~ShaderLibrary() override = default;
 
-		void Load(std::string_view name, const std::vector<std::string> filePaths);
+		void Load(std::string_view name, std::vector<std::string> filePaths);
 		void Recompile();
 
 		const Ref<Shader>& Get(const std::string& name) const;

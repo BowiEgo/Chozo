@@ -11,14 +11,14 @@ layout(location = 0) in vec3 v_Normal;
 layout(location = 1) in vec2 v_TexCoord;
 layout(location = 2) in vec3 v_FragPosition;
 
-layout(push_constant) uniform FragUniforms
+layout(push_constant) uniform PushConstants
 {
     vec3 BaseColor;
     float Metallic;
     float Roughness;
+    float Reflectance;
     float Ambient;
     float AmbientStrength;
-    float Specular;
 
     int EnableBaseColorTex;
     int EnableMetallicTex;
@@ -33,7 +33,6 @@ layout(binding = 1) uniform sampler2D u_BaseColorTex;
 layout(binding = 2) uniform sampler2D u_MetallicTex;
 layout(binding = 3) uniform sampler2D u_RoughnessTex;
 layout(binding = 4) uniform sampler2D u_AmbientTex;
-layout(binding = 5) uniform sampler2D u_SpecularTex;
 
 float near = 0.1;
 float far  = 20.0;
@@ -54,7 +53,7 @@ void main()
     o_BaseColor = (u_Material.EnableBaseColorTex == 1) ? texture(u_BaseColorTex, v_TexCoord).rgb : u_Material.BaseColor;
     o_MaterialProperties.r = (u_Material.EnableMetallicTex == 1) ? texture(u_MetallicTex, v_TexCoord).g : u_Material.Metallic;
     o_MaterialProperties.g = (u_Material.EnableRoughnessTex == 1) ? texture(u_RoughnessTex, v_TexCoord).r : u_Material.Roughness;
-    o_MaterialProperties.b = u_Material.Ambient * u_Material.AmbientStrength;
-//    o_MaterialProperties.a = u_Material.Specular;
+    o_MaterialProperties.b = u_Material.Reflectance;
+    o_MaterialProperties.a = u_Material.Ambient * u_Material.AmbientStrength;
     o_EntityID = u_Material.ID;
 }

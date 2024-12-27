@@ -32,24 +32,21 @@ namespace Chozo {
 
     RendererID OpenGLShaderCompiler::Compile(const std::vector<std::string> filePaths)
     {
-        Timer timer;
+        const Timer timer;
 
-        ShaderSources shaderSources;
-        ShaderPaths shaderPaths;
-
-        for (auto pathString : filePaths)
+        for (const auto& pathString : filePaths)
         {
             fs::path path(pathString);
             auto stage = ShaderUtils::GetShaderStageFromExtension(path.extension().string());
-            std::string source = Utils::File::ReadTextFile(pathString);
+            const std::string source = Utils::File::ReadTextFile(pathString);
 
-            shaderSources[stage] = source;
-            shaderPaths[stage] = path;
+            m_Sources[stage] = source;
+            m_Paths[stage] = path;
         }
 
-        CompileToOrGetVulkanBinaries(shaderSources, shaderPaths);
+        CompileToOrGetVulkanBinaries(m_Sources, m_Paths);
         DecompileVulkanBinaries();
-        RendererID program = CompileToProgram();
+        const RendererID program = CompileToProgram();
 
         CZ_CORE_TRACE("Shader compiler took {0} ms", timer.ElapsedMillis());
 

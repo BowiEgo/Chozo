@@ -211,16 +211,16 @@ namespace Chozo {
         const auto filename = CreateItemName(AssetType::Material);
 
         auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, "PBR");
-        material->Set("u_Material.BaseColor", glm::vec3(0.5f));
-        material->Set("u_Material.Metallic", 0.5f);
-        material->Set("u_Material.Roughness", 0.5f);
-        material->Set("u_Material.Ambient", 1.0f);
-        material->Set("u_Material.AmbientStrength", 0.1f);
-        material->Set("u_Material.Specular", 0.5f);
-        material->Set("u_Material.EnableBaseColorTex", false);
-        material->Set("u_Material.EnableMetallicTex", false);
-        material->Set("u_Material.EnableRoughnessTex", false);
-        material->Set("u_Material.EnableNormalTex", false);
+        // material->Set("u_Material.BaseColor", glm::vec3(0.5f));
+        // material->Set("u_Material.Metallic", 0.5f);
+        // material->Set("u_Material.Roughness", 0.5f);
+        // material->Set("u_Material.Ambient", 1.0f);
+        // material->Set("u_Material.AmbientStrength", 0.1f);
+        // material->Set("u_Material.Specular", 0.5f);
+        // material->Set("u_Material.EnableBaseColorTex", false);
+        // material->Set("u_Material.EnableMetallicTex", false);
+        // material->Set("u_Material.EnableRoughnessTex", false);
+        // material->Set("u_Material.EnableNormalTex", false);
 
         s_Instance->OnBrowserRefresh();
 

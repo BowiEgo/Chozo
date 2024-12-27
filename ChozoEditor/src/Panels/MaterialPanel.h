@@ -52,8 +52,8 @@ namespace Chozo {
         Ref<Texture2D>& GetPreviewTextureByType(PreviewType type);
         void UpdatePreviewTextureByType(PreviewType type);
 
-        static void OnMaterialChange(const Ref<Material>& material, std::string name, const Ref<Texture2D>& texture);
-        static void OnMaterialChange(const Ref<Material>& material, std::string name, UniformValue value);
+        static void OnMaterialChange(const Ref<Material>& material, const std::string& name, const Ref<Texture2D>& texture);
+        static void OnMaterialChange(const Ref<Material>& material, const std::string& name, const UniformValue &value);
     private:
 		static MaterialPanel* s_Instance;
         static bool s_Show;

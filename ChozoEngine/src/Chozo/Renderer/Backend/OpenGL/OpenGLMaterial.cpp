@@ -1,47 +1,43 @@
 #include "OpenGLMaterial.h"
 
+#include <utility>
+
 #include "Chozo/Core/Application.h"
 #include "Chozo/Renderer/Renderer.h"
 
 namespace Chozo {
 
-    static UniformValue GetUniformDefaultValue(std::string uniformType)
+    static UniformValue GetUniformDefaultValue(const std::string& uniformType)
     {
-        if (uniformType == "bool")
+        if (uniformType == "bool" || uniformType == "int" || uniformType == "uint")
             return false;
-        else if (uniformType == "int" || uniformType == "uint")
-            return 0;
-        else if (uniformType == "float" || uniformType == "double")
+        if (uniformType == "float" || uniformType == "double")
             return 0.0f;
-        else if (uniformType == "Vec3")
+        if (uniformType == "Vec3")
             return glm::vec3(1.0f);
-        else if (uniformType == "Vec4")
+        if (uniformType == "Vec4")
             return glm::vec4(1.0f);
-        else if (uniformType == "Mat4")
+        if (uniformType == "Mat4")
             return glm::mat4(1.0f);
-        else if (uniformType == "Array")
+        if (uniformType == "Array")
             return std::vector<int>();
 
         CZ_CORE_ASSERT(false, "UniformType not supported!");
         return false;
     }
 
-    OpenGLMaterial::OpenGLMaterial(const Ref<Shader> &shader, const std::string &name)
-        : m_Shader(shader.As<OpenGLShader>()), m_Name(name)
+    OpenGLMaterial::OpenGLMaterial(const Ref<Shader> &shader, std::string name)
+        : m_Shader(shader.As<OpenGLShader>()), m_Name(std::move(name))
     {
         m_TextureSlots.resize(Renderer::GetMaxTextureSlots());
         m_TextureAssetHandles.resize(Renderer::GetMaxTextureSlots());
         PopulateUniforms(m_Shader);
     }
 
-    OpenGLMaterial::OpenGLMaterial(const Ref<Material> &material, const std::string &name)
-        : m_Shader(material->GetShader().As<OpenGLShader>()), m_Name(name)
+    OpenGLMaterial::OpenGLMaterial(const Ref<Material> &material, std::string name)
+        : m_Shader(material->GetShader().As<OpenGLShader>()), m_Name(std::move(name))
     {
-        CopyProperties(material);
-    }
-
-    OpenGLMaterial::~OpenGLMaterial()
-    {
+        OpenGLMaterial::CopyProperties(material);
     }
 
     void OpenGLMaterial::CopyProperties(const Ref<Material> other)
@@ -51,8 +47,9 @@ namespace Chozo {
         m_TextureSlots = other->GetAllTextures();
         m_TextureSlotIndex = other->GetLastTextureSlotIndex();
         m_TextureAssetHandles = other->GetTextureAssetHandles();
+
         auto uniforms = other.As<OpenGLMaterial>()->GetUniforms();
-        for (auto [uniformName, uniformValue] : uniforms)
+        for (const auto& [uniformName, uniformValue] : uniforms)
             Set(uniformName, uniformValue);
     }
 
@@ -68,7 +65,7 @@ namespace Chozo {
 
         int textureIndex = -1;
 
-        for (uint32_t i = 0; i < m_TextureSlots.size(); i++)
+        for (int i = 0; i < m_TextureSlots.size(); i++)
         {
             if (m_TextureSlots[i] == texture)
             {
@@ -79,7 +76,7 @@ namespace Chozo {
 
         if (textureIndex == -1)
         {
-            textureIndex = m_TextureSlotIndex;
+            textureIndex = (int)m_TextureSlotIndex;
             m_TextureSlots[m_TextureSlotIndex] = texture;
             if (texture->GetType() == TextureType::Texture2D && Application::GetAssetManager()->IsAssetHandleValid(texture->Handle))
             {
@@ -96,7 +93,7 @@ namespace Chozo {
         if (Application::GetAssetManager()->IsAssetHandleValid(handle))
         {
             int textureIndex = -1;
-            for (uint32_t i = 0; i < m_TextureSlots.size(); i++)
+            for (int i = 0; i < m_TextureSlots.size(); i++)
             {
                 if (m_TextureSlots[i] && m_TextureSlots[i]->Handle == handle)
                 {
@@ -107,7 +104,7 @@ namespace Chozo {
 
             if (textureIndex == -1)
             {
-                textureIndex = m_TextureSlotIndex;
+                textureIndex = (int)m_TextureSlotIndex;
                 m_TextureSlots[m_TextureSlotIndex] = nullptr;
                 m_TextureAssetHandles[m_TextureSlotIndex] = { name, handle };
                 m_TextureSlotIndex++;
@@ -129,8 +126,8 @@ namespace Chozo {
 
     Ref<Texture2D> OpenGLMaterial::GetTexture(std::string name)
     {
-        UniformValue value = m_Uniforms[name];
-        uint32_t slotIndex;
+        const UniformValue value = m_Uniforms[name];
+        uint32_t slotIndex = 0;
 
         if (std::holds_alternative<bool>(value))
         {
@@ -151,7 +148,7 @@ namespace Chozo {
         auto texture = m_TextureSlots[slotIndex];
         if (!texture)
         {
-            auto handle = std::get<1>(m_TextureAssetHandles[slotIndex]);
+            const auto handle = std::get<1>(m_TextureAssetHandles[slotIndex]);
             texture = Application::GetAssetManager()->GetAsset(handle).As<Texture2D>();
             if (texture)
                 m_TextureSlots[slotIndex] = texture;
@@ -164,8 +161,8 @@ namespace Chozo {
     {
         BindTextures();
         m_Shader->Bind();
-        for (auto uniform : m_Uniforms)
-            m_Shader->SetUniform(uniform.first, uniform.second);
+        for (const auto&[name, value] : m_Uniforms)
+            m_Shader->Shader::SetUniform(name, value);
     }
 
     void OpenGLMaterial::BindTextures()
@@ -198,8 +195,8 @@ namespace Chozo {
 
     void OpenGLMaterial::PopulateUniforms(const Ref<OpenGLShader> &shader)
     {
-        UniformTable uniformTable = shader->GetUniformTable();
-        for (const auto& pair : uniformTable)
-            Set(pair.first, GetUniformDefaultValue(pair.second));
+        const ShaderReflection reflection = shader->GetReflection();
+        for (const auto& uniform : reflection.uniforms)
+            Set(uniform.fullName(), GetUniformDefaultValue(uniform.type));
     }
 }

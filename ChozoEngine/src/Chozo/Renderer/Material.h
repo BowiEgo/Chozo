@@ -11,7 +11,7 @@ namespace Chozo
     {
     public:
         static Ref<Material> Create(const std::string& name = "");
-        static Ref<Material> Create(Ref<Shader> shader, const std::string& name = "");
+        static Ref<Material> Create(const Ref<Shader>& shader, const std::string& name = "");
 		static Ref<Material> Copy(const Ref<Material>& other, const std::string& name = "");
         virtual ~Material() = default;
 

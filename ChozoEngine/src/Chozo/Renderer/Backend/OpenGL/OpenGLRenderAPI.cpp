@@ -295,9 +295,9 @@ namespace Chozo {
         });
     }
 
-    void OpenGLRenderAPI::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform)
+    void OpenGLRenderAPI::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform, int id)
     {
-        commandBuffer->AddCommand([pipeline, mesh, submeshIndex, material, transform, this]()
+        commandBuffer->AddCommand([pipeline, mesh, submeshIndex, material, transform, id, this]()
         {
             auto shader = pipeline->GetShader();
 
@@ -309,6 +309,7 @@ namespace Chozo {
             }
             shader->Bind();
             shader->SetUniform("u_VertUniforms.ModelMatrix", transform);
+            shader->SetUniform("u_Material.ID", id);
 
 			const auto& subMeshes = mesh->GetMeshSource()->GetSubmeshes();
 			const auto& subMesh = subMeshes[submeshIndex];

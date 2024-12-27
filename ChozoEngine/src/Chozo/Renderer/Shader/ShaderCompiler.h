@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ShaderReflection.h"
 #include "Chozo/Renderer/RendererTypes.h"
 #include "Chozo/Utilities/StringUtils.h"
 
@@ -97,11 +98,13 @@ namespace Chozo {
 
         void CompileToOrGetVulkanBinaries(ShaderSources& shaderSources, const ShaderPaths& shaderPaths);
         static void PreProcess(const std::string& shaderSourcePath, const ShaderStage& stage, std::string& shaderSource);
-        void Reflect(const ShaderStage& stage, const std::vector<uint32_t>& shaderData);
+        ShaderReflection Reflect();
 
         static Ref<ShaderCompiler> Create(std::string& name);
     protected:
         std::string m_Name;
+    	ShaderSources m_Sources;
+    	ShaderPaths m_Paths;
         ShaderBinaries m_VulkanSpirV;
     };
 } // namespace Chozo

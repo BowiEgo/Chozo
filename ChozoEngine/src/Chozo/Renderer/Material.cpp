@@ -8,6 +8,7 @@ namespace Chozo {
 
     //==============================================================================
 	// Material
+
     Ref<Material> Material::Create(const std::string &name)
     {
         Ref<Shader> shader;
@@ -30,7 +31,7 @@ namespace Chozo {
         return nullptr;
     }
 
-    Ref<Material> Material::Create(Ref<Shader> shader, const std::string &name)
+    Ref<Material> Material::Create(const Ref<Shader>& shader, const std::string &name)
     {
         switch (RenderCommand::GetType())
         {
@@ -81,7 +82,7 @@ namespace Chozo {
         return SetMaterial(m_MaterialCount, handle);
     }
 
-    uint32_t MaterialTable::SetMaterial(uint32_t index, AssetHandle handle)
+    uint32_t MaterialTable::SetMaterial(const uint32_t index, const AssetHandle handle)
     {
         m_Materials[index] = handle;
         if (index >= m_MaterialCount)
@@ -90,7 +91,7 @@ namespace Chozo {
         return index;
     }
 
-    inline void MaterialTable::RemoveMaterial(uint32_t index)
+    inline void MaterialTable::RemoveMaterial(const uint32_t index)
     {
         m_Materials.erase(index);
         if (!m_Materials.empty())

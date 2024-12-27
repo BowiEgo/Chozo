@@ -10,20 +10,6 @@ namespace Chozo {
 	MaterialPanel* MaterialPanel::s_Instance;
     bool MaterialPanel::s_Show = false;
 
-    std::vector<std::string> MaterialPropTypes = {
-        "BaseColor",
-        "Metallic",
-        "Roughness",
-        "Normal",
-        "Ambient",
-        "AmbientStrength",
-        "Specular",
-        "EnableBaseColorTex",
-        "EnableMetallicTex",
-        "EnableRoughnessTex",
-        "EnableNormalTex",
-    };
-
     MaterialPanel::MaterialPanel()
     {
         s_Instance = this;
@@ -32,7 +18,7 @@ namespace Chozo {
 
     void MaterialPanel::Init()
     {
-        auto checkerboard = Renderer::GetCheckerboardTexture();
+        const auto checkerboard = Renderer::GetCheckerboardTexture();
         s_Instance->m_BaseColorTexture = s_Instance->m_BaseColorTexture ? s_Instance->m_BaseColorTexture : checkerboard;
         s_Instance->m_MetallicTexture = checkerboard;
         s_Instance->m_RoughnessTexture = checkerboard;
@@ -47,12 +33,12 @@ namespace Chozo {
         if (!material)
             return;
 
-        auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
+        const auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
         renderer->SetMaterial(material);
         renderer->Update();
         renderer->ClearCache();
 
-        auto checkerboard = Renderer::GetCheckerboardTexture();
+        const auto checkerboard = Renderer::GetCheckerboardTexture();
         auto baseColorTex = material->GetTexture("u_BaseColorTex");
         auto metallicTex = material->GetTexture("u_MetallicTex");
         auto roughnessTex = material->GetTexture("u_RoughnessTex");
@@ -94,27 +80,31 @@ namespace Chozo {
             if (!m_Material)
                 m_Material = renderer->GetMaterial();
 
-            for (auto propName : MaterialPropTypes)
+            for (const auto& uniform : m_Material->GetShader()->GetReflection().uniforms)
             {
-                std::string uniformName = "u_Material." + propName;
-                auto value = m_Material->GetUniforms()[uniformName];
-                auto previewType = StringToPreviewType(propName);
+                if (uniform.resourceName != "u_Material")
+                    continue;
+
+                auto uniformName = uniform.name;
+                auto fullName = uniform.fullName();
+                auto value = m_Material->GetUniforms()[fullName];
+                auto previewType = StringToPreviewType(uniformName);
 
                 if (std::holds_alternative<glm::vec3>(value))
                 {
                     auto& target = std::get<glm::vec3>(value);
-                    DrawColumnValue<glm::vec3>(propName, target, [&](auto& targetVal) {
-                        if (ImGui::ColorEdit3(("##" + propName).c_str(), glm::value_ptr(targetVal)))
+                    DrawColumnValue<glm::vec3>(uniformName, target, [&](auto& targetVal) {
+                        if (ImGui::ColorEdit3(("##" + uniformName).c_str(), glm::value_ptr(targetVal)))
                         {
-                            m_Material->Set(uniformName, targetVal);
-                            OnMaterialChange(m_Material, uniformName, targetVal);
+                            m_Material->Set(fullName, targetVal);
+                            OnMaterialChange(m_Material, fullName, targetVal);
                         }
                     });
 
                     RenderTextureProp(previewType);
                 }
 
-                if (propName == "Normal")
+                if (uniformName == "Normal")
                 {
                     DrawColumnValue("Normal", [&]() {
                     });
@@ -124,11 +114,11 @@ namespace Chozo {
                 if (std::holds_alternative<float>(value))
                 {
                     auto& target = std::get<float>(value);
-                    DrawColumnValue<float>(propName, target, [&](auto& targetVal) {
-                        if (ImGui::DragFloat(("##" + propName).c_str(), &targetVal, 0.0025f, 0.0f, 1.0f))
+                    DrawColumnValue<float>(uniformName, target, [&](auto& targetVal) {
+                        if (ImGui::DragFloat(("##" + uniformName).c_str(), &targetVal, 0.0025f, 0.0f, 1.0f))
                         {
-                            m_Material->Set(uniformName, targetVal);
-                            OnMaterialChange(m_Material, uniformName, targetVal);
+                            m_Material->Set(fullName, targetVal);
+                            OnMaterialChange(m_Material, fullName, targetVal);
                         }
                     });
 
@@ -231,17 +221,17 @@ namespace Chozo {
         }
     }
 
-    void MaterialPanel::OnMaterialChange(const Ref<Material>& material, std::string name, UniformValue value)
+    void MaterialPanel::OnMaterialChange(const Ref<Material>& material, const std::string& name, const UniformValue &value)
     {
         auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
-        renderer->SetMaterialValue(material, std::move(name), std::move(value));
+        renderer->SetMaterialValue(material, name, value);
         renderer->Update();
     }
 
-    void MaterialPanel::OnMaterialChange(const Ref<Material>& material, std::string name, const Ref<Texture2D>& texture)
+    void MaterialPanel::OnMaterialChange(const Ref<Material>& material, const std::string& name, const Ref<Texture2D>& texture)
     {
         auto renderer = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>();
-        renderer->SetMaterialValue(material, std::move(name), texture);
+        renderer->SetMaterialValue(material, name, texture);
         renderer->Update();
     }
 }

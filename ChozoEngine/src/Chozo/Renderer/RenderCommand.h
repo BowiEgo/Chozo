@@ -47,7 +47,7 @@ namespace Chozo {
         virtual void RenderFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material = nullptr) = 0;
         virtual void SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material = nullptr) = 0;
         virtual void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material = nullptr) = 0;
-        virtual void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform) = 0;
+        virtual void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform, int id) = 0;
 
         virtual void CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest) = 0;
     };
@@ -82,7 +82,7 @@ namespace Chozo {
         inline static void RenderFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material = nullptr) { s_API->RenderFullscreenQuad(pipeline, material); }
         inline static void SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material = nullptr) { s_API->SubmitFullscreenQuad(commandBuffer, pipeline, material); }
         inline static void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material = nullptr) { s_API->SubmitFullscreenBox(commandBuffer, pipeline, material); }
-        inline static void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform) { s_API->SubmitMeshWithMaterial(commandBuffer, pipeline, mesh, submeshIndex, material, transform); }
+        inline static void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform, int id) { s_API->SubmitMeshWithMaterial(commandBuffer, pipeline, mesh, submeshIndex, material, transform, id); }
 
         inline static void CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest){ s_API->CopyImage(commandBuffer, source, dest); }
     private:
