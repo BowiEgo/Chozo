@@ -62,22 +62,23 @@ namespace Chozo {
     //     }
     // };
     
-    class ContentItem : public RefCounted
+    class ContentItem final : public RefCounted
     {
     public:
-        ContentItem(Ref<DirectoryInfo> directory);
-        ContentItem(const AssetMetadata& metadata);
-        ~ContentItem() = default;
+	    explicit ContentItem(Ref<DirectoryInfo> directory);
+	    explicit ContentItem(const AssetMetadata& metadata);
+        ~ContentItem() override = default;
 
         ContentBrowserItemActionResult OnImGuiRender();
 
-        inline bool ShouldDelete() { return m_Delete; }
-        inline AssetHandle GetHandle() const { return m_Handle; }
-        inline ImRect GetRect() const { return m_Rect; }
-        inline std::string GetFilename() const { return m_Filename; }
-        inline void Delete() { m_Delete = true; }
-        inline void Select() { m_Selected = true; }
-        inline void Deselect() { m_Selected = false; }
+        bool ShouldDelete() const { return m_Delete; }
+        AssetHandle GetHandle() const { return m_Handle; }
+        ImRect GetRect() const { return m_Rect; }
+        std::string GetFilename() const { return m_Filename; }
+        AssetType GetType() const { return m_AssetType; }
+        void Delete() { m_Delete = true; }
+        void Select() { m_Selected = true; }
+        void Deselect() { m_Selected = false; }
     private:
         void UpdateThumbnail();
         void RenderThumbnail();
@@ -86,13 +87,16 @@ namespace Chozo {
         static void RenderCenteredText(const std::string& text);
 
         void OnDoubleClick() const;
+
+    	void OpenMaterialPanel() const;
     private:
         ContentItemType m_Type;
         AssetType m_AssetType = AssetType::None;
         AssetHandle m_Handle;
         std::string m_Filename;
         uint64_t m_Size{};
-        uint64_t m_CreateAt{};
+        uint64_t m_CreatedAt{};
+        uint64_t m_ModifiedAt{};
         Ref<Texture2D> m_Thumbnail;
 
         ImRect m_Rect;

@@ -24,6 +24,7 @@ namespace Chozo
             CZ_CORE_ASSERT(!HasComponent<T>(), "Entity already has this component!");
             T& component = m_Scene->m_Registry.emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
             m_Scene->OnComponentAdded(*this, component);
+
             return component;
         }
 
@@ -64,22 +65,23 @@ namespace Chozo
             return m_EntityHandle == other.m_EntityHandle && m_Scene == other.m_Scene;
         }
 
-        bool operator!=(const Entity& other) const {
+        bool operator!=(const Entity& other) const
+        {
             return !(*this == other);
         }
 
         TransformComponent& Transform() { return GetComponent<TransformComponent>(); }
-		const glm::mat4 Transform() const { return GetComponent<TransformComponent>().GetTransform(); }
+        glm::mat4 Transform() const { return GetComponent<TransformComponent>().GetTransform(); }
 
 		void SetParent(Entity parent);
-		inline Entity GetParent() { return m_Scene->GetEntityWithUUID(GetParentUUID()); }
-		inline UUID GetParentUUID() { return GetComponent<RelationshipComponent>().ParentHandle; }
-		inline void SetParentUUID(UUID uuid) { GetComponent<RelationshipComponent>().ParentHandle = uuid; }
+		Entity GetParent() { return m_Scene->GetEntityWithUUID(GetParentUUID()); }
+		UUID GetParentUUID() { return GetComponent<RelationshipComponent>().ParentHandle; }
+		void SetParentUUID(const UUID uuid) { GetComponent<RelationshipComponent>().ParentHandle = uuid; }
 
-		inline std::vector<UUID>& Children() { return GetComponent<RelationshipComponent>().Children; }
+		std::vector<UUID>& Children() { return GetComponent<RelationshipComponent>().Children; }
 		bool RemoveChild(Entity child);
     public:
-        friend class MeshComponent;
+        friend struct MeshComponent;
     private:
         entt::entity m_EntityHandle{ entt::null };
         Scene* m_Scene = nullptr;
@@ -94,18 +96,16 @@ namespace Chozo
 }
 
 #if FMT_VERSION >= 90000
-namespace fmt {
-    template <>
-    struct formatter<Chozo::Entity> {
-        // This parses the format specifications (if any) for Entity, which we don't use in this case
-        constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+template <>
+struct fmt::formatter<Chozo::Entity> {
+    // This parses the format specifications (if any) for Entity, which we don't use in this case
+    constexpr auto parse(const format_parse_context& ctx) { return ctx.begin(); }
 
-        // This formats the Entity for output
-        template <typename FormatContext>
-        auto format(const Chozo::Entity& entity, FormatContext& ctx) {
-            // Use the Entity's conversion operator to uint64_t, and then format it
-            return format_to(ctx.out(), "{}", (uint64_t)entity);
-        }
-    };
-}
+    // This formats the Entity for output
+    template <typename FormatContext>
+    auto format(const Chozo::Entity& entity, FormatContext& ctx) {
+        // Use the Entity's conversion operator to uint64_t, and then format it
+        return format_to(ctx.out(), "{}", (uint64_t)entity);
+    }
+};
 #endif

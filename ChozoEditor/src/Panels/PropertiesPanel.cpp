@@ -136,15 +136,14 @@ namespace Chozo {
     {
         if (entity.HasComponent<TagComponent>())
         {
-            auto& tag = entity.GetComponent<TagComponent>().Tag;
+            auto& tc = entity.GetComponent<TagComponent>();
 
-            char buffer[256];
-            memset(buffer, 0, sizeof(buffer));
-            strcpy(buffer, tag.c_str());
+            char buffer[256] = {};
+            strcpy(buffer, tc.Tag.c_str());
 
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
             {
-                tag = std::string(buffer);
+                tc.SetTag(std::string(buffer));
             }
 
             ImGui::SameLine();
@@ -165,17 +164,19 @@ namespace Chozo {
         DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
         {
             DrawColumnValue<glm::vec3>("Translation", component.Translation, [&](auto& target) {
-                DrawVec3Control("Translation", component.Translation);
+                if (auto translation = component.Translation; DrawVec3Control("Translation", translation))
+                    component.SetTranslation(translation);
             });
 
-            glm::vec3 rotation = glm::degrees(component.Rotation);
+            auto rotation = glm::degrees(component.Rotation);
             DrawColumnValue<glm::vec3>("Rotation", rotation, [&](auto& target) {
-                DrawVec3Control("Rotation", rotation, 0.0f, 1.0f);
+                if (DrawVec3Control("Rotation", rotation, 0.0f, 1.0f))
+                    component.SetRotation(glm::radians(rotation));
             });
-            component.Rotation = glm::radians(rotation);
 
             DrawColumnValue<glm::vec3>("Scale", component.Scale, [&](auto& target) {
-                DrawVec3Control("Scale", component.Scale, 1.0f);
+                if (auto scale = component.Scale; DrawVec3Control("Scale", scale, 1.0f))
+                    component.SetScale(scale);
             });
         });
     }
@@ -428,15 +429,17 @@ namespace Chozo {
         DrawComponent<DirectionalLightComponent>("Light", entity, [](auto& component)
         {
             DrawColumnValue<glm::vec3>("Direction", component.Direction, [&](auto& target) {
-                if (DrawVec3Control("Direction", target, 0.0f, 1.0f))
-                    component.Direction = target;
+                if (auto direction = component.Direction; DrawVec3Control("Direction", direction, 0.0f, 1.0f))
+                    component.SetDirection(direction);
             });
             DrawColumnValue<glm::vec3>("Color", component.Color, [&](auto& target) {
-                ImGui::ColorEdit3("##Color", glm::value_ptr(target));
+                if (auto color = component.Color; ImGui::ColorEdit3("##Color", glm::value_ptr(color)))
+                    component.SetColor(color);
             });
             DrawColumnValue<float>("Intensity", component.Intensity, [&](auto& target) {
-                if (ImGui::SliderFloat("##Intensity", &target, 0.0f, 10.0f))
-                    component.Intensity = target;
+                auto intensity = component.Intensity;
+                if (ImGui::SliderFloat("##Intensity", &intensity, 0.0f, 10.0f))
+                    component.SetIntensity(intensity);
             });
         });
 
@@ -572,7 +575,7 @@ namespace Chozo {
             ImGui::Text("%s", std::to_string(handle).c_str()); ImGui::SameLine();
             if (ImGui::Button("Open Material"))
             {
-                MaterialPanel::SetMaterial(material);
+                MaterialPanel::SetMaterial(handle);
                 MaterialPanel::Open();
             }
 

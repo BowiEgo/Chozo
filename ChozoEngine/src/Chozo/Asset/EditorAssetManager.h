@@ -5,13 +5,14 @@
 
 namespace Chozo {
 
-    class EditorAssetManager final : public AssetManager
+    class EditorAssetManager : public AssetManager
     {
     public:
         EditorAssetManager();
         ~EditorAssetManager() override;
 
         Ref<Asset> GetAsset(AssetHandle assetHandle) override;
+    	std::vector<AssetMetadata> GetAssetsModified() override;
 		AssetHandle AddMemoryOnlyAsset(Ref<Asset> asset) override;
 		bool ReloadData(AssetHandle assetHandle) override;
 		bool IsAssetHandleValid(AssetHandle assetHandle) override;
@@ -29,9 +30,11 @@ namespace Chozo {
 
 		AssetHandle ImportAsset(const fs::path& filepath);
 		AssetHandle LoadAsset(const fs::path& filepath);
-		AssetHandle LoadAsset(AssetMetadata metadata);
+		AssetHandle LoadAsset(AssetMetadata& metadata);
 		void SaveAssets();
-		void SaveAsset(Ref<Asset> asset, const fs::path &filepath);
+		uint64_t SaveAsset(Ref<Asset>& asset, AssetMetadata &metadata);
+		void ExportAsset(Ref<Asset>& asset, const fs::path &filepath);
+    	void RegisterAssetCallback(Ref<Asset>& asset);
 
 		static AssetType GetAssetTypeFromExtension(const std::string& extension);
 		static AssetType GetAssetTypeFromPath(const fs::path& path);
@@ -51,7 +54,8 @@ namespace Chozo {
 				filePath = directoryPath + "/" + filename;
 
 			Ref<Asset> asset = T::Create(std::forward<Args>(args)...);
-			SaveAsset(asset, filePath);
+			ExportAsset(asset, filePath);
+			RegisterAssetCallback(asset);
 
 			return asset;
 		}

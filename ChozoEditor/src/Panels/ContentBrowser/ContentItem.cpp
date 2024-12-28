@@ -20,13 +20,15 @@ namespace Chozo {
         m_Handle = metadata.Handle;
         m_Filename = metadata.FilePath.filename().string();
         m_Size = metadata.FileSize;
-        m_CreateAt = metadata.CreateAt;
+        m_CreatedAt = metadata.CreatedAt;
+        m_ModifiedAt = metadata.ModifiedAt;
     }
 
     ContentBrowserItemActionResult ContentItem::OnImGuiRender()
     {
         ContentBrowserItemActionResult result;
 
+        std::string filename = m_Filename;
         ImVec2 textSize = ImGui::CalcTextSize(m_Filename.c_str());
         ImVec2 thumbnailSize = ImVec2(ContentBrowserPanel::s_ThumbnailSize, ContentBrowserPanel::s_ThumbnailSize);
         ImVec2 itemSize = ImVec2(thumbnailSize.x, thumbnailSize.y + textSize.y + ImGui::GetStyle().ItemSpacing.y);
@@ -38,11 +40,7 @@ namespace Chozo {
         if (ImGui::Selectable("##Selectable", m_Selected, ImGuiSelectableFlags_None, itemSize))
         {
             if (m_AssetType == AssetType::Material)
-            {
-                auto material = Application::GetAssetManager()->GetAsset(m_Handle);
-                MaterialPanel::SetMaterial(material);
-                MaterialPanel::Open();
-            }
+                OpenMaterialPanel();
         }
 
         if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
@@ -61,12 +59,13 @@ namespace Chozo {
         ImGui::SetCursorScreenPos(cursorPos);
         RenderThumbnail();
         RenderTooltip();
-        RenderCenteredText(m_Filename);
+
+        if (m_Type == ContentItemType::Asset)
+            filename += Application::GetAssetManager()->GetMetadata(m_Handle).IsModified() ? "*" : "";
+        RenderCenteredText(filename);
 
         if (m_Selected)
         {
-            // ImGui::GetWindowDrawList()->AddRect(rectMin, rectMax, IM_COL32(150, 150, 150, 255));
-            // PropertiesPanel::Get().SetSelectedEntity({});
             result.Set(ContentBrowserAction::Selected, true);
         }
 
@@ -94,40 +93,35 @@ namespace Chozo {
                     break;
             }
         }
+
+        if (!m_Thumbnail)
+        {
+            if (auto asset = Application::GetAssetManager()->GetAsset(m_Handle))
+            {
+                const auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
+                Application::Get().GetPool()->AddTask(task);
+                Application::Get().GetPool()->Start();
+            }
+        }
     }
 
     void ContentItem::RenderThumbnail()
     {
         UpdateThumbnail();
-
-        if (!m_Thumbnail)
-        {
-            auto asset = Application::GetAssetManager()->GetAsset(m_Handle);
-            if (asset)
-            {
-                auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
-                Application::Get().GetPool()->AddTask(task);
-
-                // Cache the renderer ouput for MaterialPanel because it will change after thumbnails rendered.
-                ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->CreateCache();
-                Application::Get().GetPool()->Start();
-            }
-        }
-
         auto thumbnail = m_Thumbnail ? m_Thumbnail : Renderer::GetCheckerboardTexture();
 
-        float thumbnailSize = ContentBrowserPanel::s_ThumbnailSize;
-        float imageAspectRatio = static_cast<float>(thumbnail->GetHeight()) / static_cast<float>(thumbnail->GetWidth());
+        const float thumbnailSize = ContentBrowserPanel::s_ThumbnailSize;
+        const float imageAspectRatio = static_cast<float>(thumbnail->GetHeight()) / static_cast<float>(thumbnail->GetWidth());
         ImVec2 uv0(0.0f, 1.0f);
         ImVec2 uv1(1.0f, 0.0f);
-        ImVec2 size(thumbnailSize, thumbnailSize);
+        const ImVec2 size(thumbnailSize, thumbnailSize);
 
         if (imageAspectRatio <= 1.0f) {
-            float offsetY = (1.0f - 1.0f / imageAspectRatio) / 2.0f;
+            const float offsetY = (1.0f - 1.0f / imageAspectRatio) / 2.0f;
             uv0.y = 1.0f - offsetY;
             uv1.y = offsetY;
         } else {
-            float offsetX = (1.0f - imageAspectRatio) / 2.0f;
+            const float offsetX = (1.0f - imageAspectRatio) / 2.0f;
             uv0.x = offsetX;
             uv1.x = 1.0f - offsetX;
         }
@@ -151,7 +145,8 @@ namespace Chozo {
 
             ImGui::Text("ID: %s", std::to_string(m_Handle).c_str());
             ImGui::Text("Disk Space: %s", size.c_str());
-            ImGui::Text("CreatAt: %s", Utils::Time::FormatTimestamp(m_CreateAt).c_str());
+            ImGui::Text("CreatAt: %s", Utils::Time::FormatTimestamp(m_CreatedAt).c_str());
+            ImGui::Text("ModifiedAt: %s", Utils::Time::FormatTimestamp(m_ModifiedAt).c_str());
             ImGui::EndTooltip();
         }
     }
@@ -181,8 +176,15 @@ namespace Chozo {
         ImGui::TextWrapped("%s", text.c_str());
     }
 
-    void ContentItem::OnDoubleClick() const {
+    void ContentItem::OnDoubleClick() const
+    {
         if (m_Type == ContentItemType::Directory && ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
             ContentBrowserPanel::Get().ChangeDirectory(m_Handle);
+    }
+
+    void ContentItem::OpenMaterialPanel() const
+    {
+        MaterialPanel::SetMaterial(m_Handle);
+        MaterialPanel::Open();
     }
 }

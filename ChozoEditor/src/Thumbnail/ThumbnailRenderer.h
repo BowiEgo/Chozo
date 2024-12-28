@@ -77,6 +77,8 @@ namespace Chozo {
 
     //==============================================================================
     // MaterialThumbnailRenderer
+    using MaterialProp = std::variant<UniformValue, Ref<Texture2D>>;
+
     class MaterialThumbnailRenderer : public ThumbnailRenderer
     {
     public:
@@ -87,16 +89,14 @@ namespace Chozo {
     
         Ref<Material> GetMaterial() { return m_Material; }
         void SetMaterial(const Ref<Material>& material);
-        void SetMaterialValue(const Ref<Material>& material, const std::string& name, const UniformValue& value);
-        void SetMaterialValue(const Ref<Material>& material, const std::string& name, const Ref<Texture2D>& texture);
+        void SetMaterialProp(const std::string& name, const MaterialProp& value);
         glm::vec2 GetViewportSize() const { return m_ViewportSize; }
         Ref<Scene> GetScene() const { return m_Scene; }
         Ref<SceneRenderer> GetSceneRenderer() { return m_SceneRenderer; }
         Ref<Texture2D> GetOutput() { return m_Cache ? m_Cache : m_SceneRenderer->GetCompositePass()->GetOutput(0); }
-        void CreateCache();
-        void ClearCache() { m_Cache = nullptr; }
         Ref<Texture2D> GetCache() const { return m_Cache; }
     private:
+        void UpdateCache();
         Entity GetSphere();
     private:
         glm::vec2 m_ViewportSize{200, 200};
@@ -105,6 +105,7 @@ namespace Chozo {
 		Ref<SceneRenderer> m_SceneRenderer;
         Ref<Material> m_Material;
         Ref<Texture2D> m_Cache;
+        bool m_Updated = false;
     };
 
     //==============================================================================

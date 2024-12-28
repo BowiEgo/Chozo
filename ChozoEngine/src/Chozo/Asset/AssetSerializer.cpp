@@ -370,10 +370,10 @@ namespace Chozo {
             out << YAML::Key << "DirectionalLightComponent";
             out << YAML::BeginMap;
 
-            auto&[Direction, Color, Intensity] = entity.GetComponent<DirectionalLightComponent>();
-            out << YAML::Key << "Direction" << YAML::Value << Direction;
-            out << YAML::Key << "Color" << YAML::Value << Color;
-            out << YAML::Key << "Intensity" << YAML::Value << Intensity;
+            const auto& dc = entity.GetComponent<DirectionalLightComponent>();
+            out << YAML::Key << "Direction" << YAML::Value << dc.Direction;
+            out << YAML::Key << "Color" << YAML::Value << dc.Color;
+            out << YAML::Key << "Intensity" << YAML::Value << dc.Intensity;
 
             out << YAML::EndMap;
         }
@@ -859,35 +859,36 @@ namespace Chozo {
             std::vector<MeshMaterial> meshMaterials(meshSource->m_Materials.size());
             for (size_t i = 0; i < meshSource->m_Materials.size(); i++)
             {
-                auto&[Name, ShaderName, BaseColor, Metallic, Roughness, Ambient, AmbientStrength, Specular, EnableBaseColorTex, EnableNormalTex, EnableMetallicTex, EnableRoughnessTex, BaseColorTexture, NormalTexture, MetallicTexture, RoughnessTexture] = meshMaterials[i];
+                auto& [Name, ShaderName, BaseColor, Metallic, Roughness, Reflectance, Ambient, AmbientStrength, EnableBaseColorTex, EnableNormalTex, EnableMetallicTex, EnableRoughnessTex, BaseColorTexture, NormalTexture, MetallicTexture, RoughnessTexture] = meshMaterials[i];
                 Ref<Material> meshSourceMaterial = Application::GetAssetManager()->GetAsset(meshSource->m_Materials[i]);
 
                 Name = meshSourceMaterial->GetName();
                 ShaderName = meshSourceMaterial->GetShader()->GetName();
 
-                BaseColor             = Utils::GetVec3(meshSourceMaterial->GetUniforms()["u_Material.BaseColor"]);
-                Metallic          = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Metallic"]);
-                Roughness          = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Roughness"]);
-                Ambient            = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Ambient"]);
-                AmbientStrength    = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.AmbientStrength"]);
-                Specular           = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Specular"]);
+                BaseColor       = Utils::GetVec3(meshSourceMaterial->GetUniforms()["u_Material.BaseColor"]);
+                Metallic        = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Metallic"]);
+                Roughness       = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Roughness"]);
+                Ambient         = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Ambient"]);
+                AmbientStrength = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.AmbientStrength"]);
+                Reflectance     = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Reflectance"]);
 
-                EnableBaseColorTex    = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableBaseColorTex"]);
+                EnableBaseColorTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableBaseColorTex"]);
                 EnableNormalTex    = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableNormalTex"]);
-                EnableMetallicTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableMetallicTex"]);
+                EnableMetallicTex  = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableMetallicTex"]);
                 EnableRoughnessTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableRoughnessTex"]);
 
-                auto baseColorTex              = meshSourceMaterial->GetTexture("u_BaseColorTex");
-                auto normalTex              = meshSourceMaterial->GetTexture("u_NormalTex");
-                auto metallicTex           = meshSourceMaterial->GetTexture("u_MetallicTex");
-                auto roughnessTex           = meshSourceMaterial->GetTexture("u_RoughnessTex");
+                auto baseColorTex = meshSourceMaterial->GetTexture("u_BaseColorTex");
+                auto normalTex    = meshSourceMaterial->GetTexture("u_NormalTex");
+                auto metallicTex  = meshSourceMaterial->GetTexture("u_MetallicTex");
+                auto roughnessTex = meshSourceMaterial->GetTexture("u_RoughnessTex");
 
                 if (baseColorTex)
                 {
                     if (Application::GetAssetManager()->IsMemoryAsset(baseColorTex->Handle))
                     {
+                        auto texAsset = baseColorTex.As<Asset>();
                         auto texPath = filepath.parent_path() / baseColorTex->GetSpecification().DebugName;
-                        Application::GetAssetManager()->SaveAsset(baseColorTex, path);
+                        Application::GetAssetManager()->ExportAsset(texAsset, path);
                     }
                     BaseColorTexture = baseColorTex->Handle;
 
@@ -897,8 +898,9 @@ namespace Chozo {
                 {
                     if (Application::GetAssetManager()->IsMemoryAsset(normalTex->Handle))
                     {
+                        auto texAsset = normalTex.As<Asset>();
                         auto texPath = filepath.parent_path() / normalTex->GetSpecification().DebugName;
-                        Application::GetAssetManager()->SaveAsset(normalTex, path);
+                        Application::GetAssetManager()->ExportAsset(texAsset, path);
                     }
                     NormalTexture = normalTex->Handle;
                 }
@@ -907,8 +909,9 @@ namespace Chozo {
                 {
                     if (Application::GetAssetManager()->IsMemoryAsset(metallicTex->Handle))
                     {
+                        auto texAsset = metallicTex.As<Asset>();
                         auto texPath = filepath.parent_path() / metallicTex->GetSpecification().DebugName;
-                        Application::GetAssetManager()->SaveAsset(metallicTex, path);
+                        Application::GetAssetManager()->ExportAsset(texAsset, path);
                     }
                     MetallicTexture = metallicTex->Handle;
                 }
@@ -917,8 +920,9 @@ namespace Chozo {
                 {
                     if (Application::GetAssetManager()->IsMemoryAsset(roughnessTex->Handle))
                     {
+                        auto texAsset = roughnessTex.As<Asset>();
                         auto texPath = filepath.parent_path() / roughnessTex->GetSpecification().DebugName;
-                        Application::GetAssetManager()->SaveAsset(roughnessTex, path);
+                        Application::GetAssetManager()->ExportAsset(texAsset, path);
                     }
                     RoughnessTexture = roughnessTex->Handle;
                 }
@@ -996,9 +1000,9 @@ namespace Chozo {
             material->Set("u_Material.BaseColor", meshMaterial.BaseColor);
             material->Set("u_Material.Metallic", meshMaterial.Metallic);
             material->Set("u_Material.Roughness", meshMaterial.Roughness);
+            material->Set("u_Material.Reflectance", meshMaterial.Reflectance);
             material->Set("u_Material.Ambient", meshMaterial.Ambient);
             material->Set("u_Material.AmbientStrength", meshMaterial.AmbientStrength);
-            material->Set("u_Material.Specular", meshMaterial.Specular);
 
             material->Set("u_Material.EnableBaseColorTex", meshMaterial.EnableBaseColorTex);
             material->Set("u_Material.EnableNormalTex", meshMaterial.EnableNormalTex);

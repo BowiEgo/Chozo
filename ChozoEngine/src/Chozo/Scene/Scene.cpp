@@ -21,6 +21,7 @@ namespace Chozo {
 
     Entity Scene::CreateEntity(const std::string& name)
     {
+        HandleModified();
 		return CreateChildEntity({}, name);
     }
 
@@ -131,11 +132,18 @@ namespace Chozo {
     void Scene::SortEntities()
     {
         m_Registry.sort<IDComponent>([&](const auto lhs, const auto rhs)
-		{
-			auto lhsEntity = m_EntityIDMap.find(lhs.ID);
-			auto rhsEntity = m_EntityIDMap.find(rhs.ID);
-			return static_cast<uint32_t>(lhsEntity->second) < static_cast<uint32_t>(rhsEntity->second);
-		});
+        {
+            auto lhsEntity = m_EntityIDMap.find(lhs.ID);
+            auto rhsEntity = m_EntityIDMap.find(rhs.ID);
+
+            if (lhsEntity == m_EntityIDMap.end() || rhsEntity == m_EntityIDMap.end())
+            {
+                // 如果 ID 不存在，可以根据需求处理，例如将其放到最后
+                return lhsEntity != m_EntityIDMap.end();
+            }
+
+            return static_cast<uint32_t>(lhsEntity->second) < static_cast<uint32_t>(rhsEntity->second);
+        });
     }
 
     void Scene::DestroyEntity(Entity entity)
@@ -365,61 +373,98 @@ namespace Chozo {
     template<>
     void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<MeshComponent>(Entity entity, MeshComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
     {
         component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<DirectionalLightComponent>(Entity entity, DirectionalLightComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<PointLightComponent>(Entity entity, PointLightComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<SpotLightComponent>(Entity entity, SpotLightComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 }

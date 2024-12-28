@@ -122,7 +122,7 @@ namespace Chozo {
         }
     }
 
-    GLenum GetGLParameter(const ImageParameter& param)
+    GLenum GetGLParameter(const ImageParameter &param)
     {
         switch (param)
         {

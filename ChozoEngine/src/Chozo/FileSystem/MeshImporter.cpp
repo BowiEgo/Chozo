@@ -178,27 +178,13 @@ namespace Chozo {
 				meshSource->m_Materials[i] = mi->Handle;
 			}
 		}
-		// else
-		// {
-		// 	auto mi = Material::Create(Renderer::GetRendererData().m_ShaderLibrary->Get("Geometry"), "Chozo-Default");
-		// 	mi->Set("u_Material.BaseColor", glm::vec3(0.5f));
-		// 	mi->Set("u_Material.Metallic", 0.5f);
-		// 	mi->Set("u_Material.Roughness", 0.5f);
-		// 	mi->Set("u_Material.Ambient", 1.0f);
-		// 	mi->Set("u_Material.AmbientStrength", 0.1f);
-		// 	mi->Set("u_Material.Specular", 0.5f);
-		// 	mi->Set("u_Material.EnableBaseColorTex", false);
-		// 	mi->Set("u_Material.EnableMetallicTex", false);
-		// 	mi->Set("u_Material.EnableRoughnessTex", false);
-		// 	mi->Set("u_Material.EnableNormalTex", false);
-		// 	meshSource->m_Materials.push_back(mi);
-		// }
+
         return meshSource;
     }
 
     void MeshImporter::TraverseNodes(Ref<MeshSource> meshSource, void* assimpNode, uint32_t nodeIndex, const glm::mat4& parentTransform, uint32_t level)
 	{
-		aiNode* aNode = (aiNode*)assimpNode;
+		auto* aNode = (aiNode*)assimpNode;
 
 		MeshNode& node = meshSource->m_Nodes[nodeIndex];
 		node.Name = aNode->mName.C_Str();

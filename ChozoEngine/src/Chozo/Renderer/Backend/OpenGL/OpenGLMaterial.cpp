@@ -56,6 +56,8 @@ namespace Chozo {
     void OpenGLMaterial::Set(const std::string &name, const UniformValue &value)
     {
         m_Uniforms[name] = value;
+
+        HandleModified();
     }
 
     void OpenGLMaterial::Set(const std::string &name, const Ref<Texture> &texture)
@@ -86,6 +88,8 @@ namespace Chozo {
         }
 
         m_Uniforms[name] = textureIndex;
+
+        HandleModified();
     }
 
     void OpenGLMaterial::SetTextureHandle(const std::string &name, const AssetHandle handle)
@@ -111,6 +115,8 @@ namespace Chozo {
             }
 
             m_Uniforms[name] = textureIndex;
+
+            HandleModified();
         }
     }
 

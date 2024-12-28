@@ -81,10 +81,10 @@ namespace Chozo {
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             uint32_t memberCount = bufferType.member_types.size();
 
-            CZ_CORE_TRACE("  Name = {0}", bufferName);
-            CZ_CORE_TRACE("  Size = {0}", bufferSize);
-            CZ_CORE_TRACE("  Binding = {0}", binding);
-            CZ_CORE_TRACE("  Members = {0}", memberCount);
+            // CZ_CORE_TRACE("  Name = {0}", bufferName);
+            // CZ_CORE_TRACE("  Size = {0}", bufferSize);
+            // CZ_CORE_TRACE("  Binding = {0}", binding);
+            // CZ_CORE_TRACE("  Members = {0}", memberCount);
 
             // Iterate over each member of the struct
             for (uint32_t i = 0; i < memberCount; i++)
@@ -96,11 +96,11 @@ namespace Chozo {
                 size_t memberSize = compiler.get_declared_struct_member_size(bufferType, i);
                 size_t memberOffset = compiler.type_struct_member_offset(bufferType, i);
                 std::string SPIRType = GetSPIRType(memberType);
-
-                CZ_CORE_TRACE("    Member: {0}", memberName);
-                CZ_CORE_TRACE("    Type: {0}", SPIRType);
-                CZ_CORE_TRACE("    Size: {0}", memberSize);
-                CZ_CORE_TRACE("    Offset: {0}", memberOffset);
+                //
+                // CZ_CORE_TRACE("    Member: {0}", memberName);
+                // CZ_CORE_TRACE("    Type: {0}", SPIRType);
+                // CZ_CORE_TRACE("    Size: {0}", memberSize);
+                // CZ_CORE_TRACE("    Offset: {0}", memberOffset);
 
                 UniformInfo info;
                 info.name = memberName;
@@ -200,14 +200,14 @@ namespace Chozo {
             spirv_cross::Compiler compiler(source);
             spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
-            CZ_CORE_TRACE("{0} {1}", ShaderUtils::ShaderStageToString(stage), m_Paths[stage].string());
-            CZ_CORE_TRACE("   {0} plain uniforms", resources.gl_plain_uniforms.size());
-            CZ_CORE_TRACE("   {0} push constant", resources.push_constant_buffers.size());
-            CZ_CORE_TRACE("   {0} uniform buffers", resources.uniform_buffers.size());
-            CZ_CORE_TRACE("   {0} sampled images", resources.sampled_images.size());
-            CZ_CORE_TRACE("   {0} storage buffers", resources.storage_buffers.size());
-            CZ_CORE_TRACE("   {0} separate samplers", resources.separate_samplers.size());
-            CZ_CORE_TRACE("   {0} separate images", resources.separate_images.size());
+            // CZ_CORE_TRACE("{0} {1}", ShaderUtils::ShaderStageToString(stage), m_Paths[stage].string());
+            // CZ_CORE_TRACE("   {0} plain uniforms", resources.gl_plain_uniforms.size());
+            // CZ_CORE_TRACE("   {0} push constant", resources.push_constant_buffers.size());
+            // CZ_CORE_TRACE("   {0} uniform buffers", resources.uniform_buffers.size());
+            // CZ_CORE_TRACE("   {0} sampled images", resources.sampled_images.size());
+            // CZ_CORE_TRACE("   {0} storage buffers", resources.storage_buffers.size());
+            // CZ_CORE_TRACE("   {0} separate samplers", resources.separate_samplers.size());
+            // CZ_CORE_TRACE("   {0} separate images", resources.separate_images.size());
 
             // Push Constants
             // CZ_CORE_TRACE("Push contants:");

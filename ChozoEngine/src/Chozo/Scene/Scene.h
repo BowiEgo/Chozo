@@ -17,16 +17,16 @@ namespace Chozo {
 
 	using EntityMap = std::unordered_map<UUID, Entity>;
 
-    class Scene : public Asset
+    class Scene final : public Asset
     {
     public:
         Scene();
-        ~Scene();
+        ~Scene() override;
 
         static Ref<Scene> Create() { return Ref<Scene>::Create(); }
 
         static AssetType GetStaticType() { return AssetType::Scene; }
-		virtual AssetType GetAssetType() const override { return GetStaticType(); }
+		AssetType GetAssetType() const override { return GetStaticType(); }
 
         Entity CreateEntity(const std::string& name = std::string());
     	Entity CreateChildEntity(Entity parent, const std::string& name);

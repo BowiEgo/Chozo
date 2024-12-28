@@ -16,9 +16,9 @@ namespace Chozo {
 			Metallic,
 			Roughness,
 			Normal,
+			Reflectance,
 			Ambient,
 			AmbientStrength,
-			Specular
 		};
 
         static Ref<MeshSource> ToMeshSourceFromFile(const std::string &path);

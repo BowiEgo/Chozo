@@ -17,7 +17,7 @@ namespace Chozo {
 		size_t Count() const { return m_AssetRegistry.size(); } // NOLINT
 		bool Contains(AssetHandle handle) const; // NOLINT
 		size_t Remove(AssetHandle handle);
-		// void Clear();
+    	void Clear();
 
 		auto begin() { return m_AssetRegistry.begin(); }
 		auto end() { return m_AssetRegistry.end(); }

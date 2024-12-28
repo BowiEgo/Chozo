@@ -393,6 +393,8 @@ namespace Chozo {
                     tc.Translation = translation;
                     tc.Rotation += deltaRotation;
                     tc.Scale = scale;
+
+                    m_ActiveScene->HandleModified();
                 }
             }
         }

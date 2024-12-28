@@ -11,8 +11,6 @@ namespace Chozo {
 	{
 		uint32_t Version = 1;
 		uint16_t Type{};
-		uint64_t CreateAt{};
-		uint64_t ModifiedAt{};
 	};
 
     class AssetSerializer
@@ -82,9 +80,9 @@ namespace Chozo {
 		glm::vec3 BaseColor;
 		float Metallic;
 		float Roughness;
+		float Reflectance;
 		float Ambient;
 		float AmbientStrength;
-		float Specular;
 
 		bool EnableBaseColorTex;
 		bool EnableNormalTex;
@@ -104,9 +102,9 @@ namespace Chozo {
 			serializer->WriteRaw(instance.BaseColor);
 			serializer->WriteRaw(instance.Metallic);
 			serializer->WriteRaw(instance.Roughness);
+			serializer->WriteRaw(instance.Reflectance);
 			serializer->WriteRaw(instance.Ambient);
 			serializer->WriteRaw(instance.AmbientStrength);
-			serializer->WriteRaw(instance.Specular);
 
 			serializer->WriteRaw(instance.EnableBaseColorTex);
 			serializer->WriteRaw(instance.EnableNormalTex);
@@ -127,9 +125,9 @@ namespace Chozo {
 			deserializer->ReadRaw(instance.BaseColor);
 			deserializer->ReadRaw(instance.Metallic);
 			deserializer->ReadRaw(instance.Roughness);
+			deserializer->ReadRaw(instance.Reflectance);
 			deserializer->ReadRaw(instance.Ambient);
 			deserializer->ReadRaw(instance.AmbientStrength);
-			deserializer->ReadRaw(instance.Specular);
 
 			deserializer->ReadRaw(instance.EnableBaseColorTex);
 			deserializer->ReadRaw(instance.EnableNormalTex);

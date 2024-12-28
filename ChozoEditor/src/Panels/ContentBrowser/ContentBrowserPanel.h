@@ -55,7 +55,7 @@ namespace Chozo {
 		template<typename T, typename... Args>
         Ref<T> CreateAsset(const std::string& filename, Ref<DirectoryInfo>& directory, Args&&... args);
         void SaveAllAssets();
-        static void RenderItemThumbnails(const std::vector<Ref<ContentItem>>& items);
+        static void RenderAssetThumbnails(const std::vector<AssetMetadata>& metadatas);
 
         static void AddAssetToDir(Ref<DirectoryInfo> directory, const AssetMetadata& metadata);
         static void RemoveAssetFromDir(Ref<DirectoryInfo> directory, AssetHandle handle);
@@ -63,6 +63,7 @@ namespace Chozo {
         static void SortSubDirs(Ref<DirectoryInfo> directory);
 
 		AssetHandle ProcessDirectory(const fs::path& directoryPath, const Ref<DirectoryInfo>& parent);
+        Ref<ContentItem> GetItem(AssetHandle handle);
         void DeleteItem(Ref<ContentItem> item);
         void DeleteItems(const std::vector<Ref<ContentItem>>& items);
 

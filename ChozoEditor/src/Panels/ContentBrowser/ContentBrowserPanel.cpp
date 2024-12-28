@@ -106,7 +106,7 @@ namespace Chozo {
                 }
                 else
                 {
-                    if (ImGui::IsMouseClicked(0))
+                    if (ImGui::IsMouseClicked(0) && !ImGui::IsAnyItemHovered())
                     {
                         if (!ImGui::IsPopupOpen("ItemContextMenu"))
                         {
@@ -210,19 +210,13 @@ namespace Chozo {
 
         const auto filename = CreateItemName(AssetType::Material);
 
-        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, "PBR");
-        // material->Set("u_Material.BaseColor", glm::vec3(0.5f));
-        // material->Set("u_Material.Metallic", 0.5f);
-        // material->Set("u_Material.Roughness", 0.5f);
-        // material->Set("u_Material.Ambient", 1.0f);
-        // material->Set("u_Material.AmbientStrength", 0.1f);
-        // material->Set("u_Material.Specular", 0.5f);
-        // material->Set("u_Material.EnableBaseColorTex", false);
-        // material->Set("u_Material.EnableMetallicTex", false);
-        // material->Set("u_Material.EnableRoughnessTex", false);
-        // material->Set("u_Material.EnableNormalTex", false);
+        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, "Lit");
 
         s_Instance->OnBrowserRefresh();
+
+        auto item = s_Instance->GetItem(material->Handle);
+        item->Select();
+        item->OpenMaterialPanel();
 
         const auto task = Ref<ThumbnailPoolTask>::Create(material, PoolTaskFlags_Export);
 
@@ -564,28 +558,20 @@ namespace Chozo {
     void ContentBrowserPanel::SaveAllAssets()
     {
         auto assetManager = Application::GetAssetManager();
+        const auto assetsModified = assetManager->GetAssetsModified();
         assetManager->SaveAssets();
         OnBrowserRefresh();
-        RenderItemThumbnails(m_CurrentItems);
+        RenderAssetThumbnails(assetsModified);
     }
 
-    void ContentBrowserPanel::RenderItemThumbnails(const std::vector<Ref<ContentItem>>& items)
+    void ContentBrowserPanel::RenderAssetThumbnails(const std::vector<AssetMetadata>& metadatas)
     {
-        auto assetManager = Application::GetAssetManager();
-        for (auto item : items)
+        for (const auto& metadata : metadatas)
         {
-            auto metadata = assetManager->GetMetadata(item->GetHandle());
-            auto asset = assetManager->GetAsset(metadata.Handle);
-
-            if (asset)
-            {
-                auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
-                Application::Get().GetPool()->AddTask(task);
-            }
+            auto asset = Application::GetAssetManager()->GetAsset(metadata.Handle);
+            auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
+            Application::Get().GetPool()->AddTask(task);
         }
-
-        // Cache the renderer ouput for MaterialPanel because it will change after thumbnails rendered.
-        ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->CreateCache();
         Application::Get().GetPool()->Start();
     }
 
@@ -671,6 +657,18 @@ namespace Chozo {
         }
 
         return directoryInfo->Handle;
+    }
+
+    Ref<ContentItem> ContentBrowserPanel::GetItem(AssetHandle handle)
+    {
+        const auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [handle](const Ref<ContentItem>& i) {
+            return i->GetHandle() == handle;
+        });
+
+        if (it != m_CurrentItems.end())
+            return *it;
+
+        return nullptr;
     }
 
     void ContentBrowserPanel::DeleteItem(Ref<ContentItem> item)

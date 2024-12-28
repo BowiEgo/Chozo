@@ -37,6 +37,8 @@ namespace Chozo {
             m_MeshSource->GetBuffer()->Indexs = m_TempBuffer.Indexs;
             m_MeshSource->GetBuffer()->IndexCount = m_TempBuffer.IndexCount;
             m_MeshSource->GetBuffer()->IndicesCount = m_TempBuffer.IndicesCount;
+
+            NotifyChange();
         }
         else
             Backtrace();

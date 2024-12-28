@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chozo.h"
+#include "Thumbnail/ThumbnailRenderer.h"
 
 namespace Chozo {
 
@@ -33,13 +34,14 @@ namespace Chozo {
         }
     }
 
+
     class MaterialPanel
     {
     public:
         MaterialPanel();
 
         static void Init();
-        static void SetMaterial(Ref<Material> material);
+        static void SetMaterial(AssetHandle handle);
         inline static void Open() { s_Show = true; }
         inline static void Close() { s_Show = false; }
 
@@ -47,19 +49,18 @@ namespace Chozo {
     private:
         void RenderTextureProp(PreviewType type);
         void RenderPreviewImageByType(PreviewType type) const;
+
         void RenderPreviewImage(PreviewType type = PreviewType::None, const Ref<Texture2D>& texture = nullptr);
 
         Ref<Texture2D>& GetPreviewTextureByType(PreviewType type);
         void UpdatePreviewTextureByType(PreviewType type);
 
-        static void OnMaterialChange(const Ref<Material>& material, const std::string& name, const Ref<Texture2D>& texture);
-        static void OnMaterialChange(const Ref<Material>& material, const std::string& name, const UniformValue &value);
+        static void OnMaterialChange(const std::string& name, const MaterialProp& value);
     private:
 		static MaterialPanel* s_Instance;
         static bool s_Show;
 
-        Ref<Material> m_Material;
+        AssetHandle m_Material;
         Ref<Texture2D> m_BaseColorTexture, m_MetallicTexture, m_RoughnessTexture, m_NormalTexture;
-        bool m_PreviewUpdated{};
     };
 }

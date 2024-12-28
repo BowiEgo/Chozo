@@ -16,7 +16,7 @@ namespace Chozo {
             shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Basic");
         if (name == "Solid")
             shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Solid");
-        else if (name == "PBR")
+        else if (name == "Lit")
             shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Geometry");
         else
             CZ_CORE_ASSERT(false, "Unknown Material!");

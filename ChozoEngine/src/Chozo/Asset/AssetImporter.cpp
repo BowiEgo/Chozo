@@ -38,8 +38,6 @@ namespace Chozo
 
         // Write header
         header.Type = static_cast<uint16_t>(metadata.Type);
-        header.CreateAt = metadata.CreateAt;
-        header.ModifiedAt = metadata.ModifiedAt;
 		stream.WriteRaw<AssetFileHeader>(header);
 
 		return s_Serializers[metadata.Type]->Serialize(stream, metadata, asset);
@@ -63,8 +61,6 @@ namespace Chozo
 
 		// Read header
 		stream.ReadRaw<AssetFileHeader>(header);
-        metadata.CreateAt = header.CreateAt;
-        metadata.ModifiedAt = header.ModifiedAt;
 		metadata.Type = static_cast<AssetType>(header.Type);
 		
 		return s_Serializers[metadata.Type]->Deserialize(stream, metadata);
