@@ -7,6 +7,23 @@ namespace Chozo {
     {
     }
 
+    glm::mat4 Entity::GetAbsoluteTransform() const
+    {
+        auto result = Transform();
+        if (const auto parent = GetParent())
+            result = parent.GetAbsoluteTransform() * result;
+
+        return result;
+    }
+
+    glm::mat4 Entity::GetParentTransform() const
+    {
+        if (const auto parent = GetParent())
+            return parent.GetAbsoluteTransform();
+
+        return {1.0};
+    }
+
     void Entity::SetParent(Entity parent)
     {
         Entity currrentParent = GetParent();

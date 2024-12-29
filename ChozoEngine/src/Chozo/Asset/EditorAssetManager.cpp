@@ -176,12 +176,9 @@ namespace Chozo {
     AssetHandle EditorAssetManager::LoadAsset(AssetMetadata& metadata)
     {
         // Deserialize and store asset if successful
-        auto asset = AssetImporter::Deserialize(metadata);
-
-
-        metadata.IsDataLoaded = static_cast<bool>(asset);
-        if (asset)
+        if (auto asset = AssetImporter::Deserialize(metadata); static_cast<bool>(asset))
         {
+            metadata.IsDataLoaded = true;
             asset->Handle = metadata.Handle;
             m_LoadedAssets[metadata.Handle] = asset;
             m_AssetRegistry[metadata.Handle] = metadata;
@@ -189,7 +186,10 @@ namespace Chozo {
             RegisterAssetCallback(asset);
             return metadata.Handle;
         }
-        return 0;
+
+        CZ_CORE_WARN("Loading asset {0} from {1} failed.", std::to_string(metadata.Handle), metadata.FilePath.string());
+        metadata.IsFileMissing = true;
+        return metadata.Handle;
     }
 
     void EditorAssetManager::SaveAssets()

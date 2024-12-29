@@ -72,10 +72,12 @@ namespace Chozo
 
         TransformComponent& Transform() { return GetComponent<TransformComponent>(); }
         glm::mat4 Transform() const { return GetComponent<TransformComponent>().GetTransform(); }
+        glm::mat4 GetAbsoluteTransform() const;
+        glm::mat4 GetParentTransform() const;
 
 		void SetParent(Entity parent);
-		Entity GetParent() { return m_Scene->GetEntityWithUUID(GetParentUUID()); }
-		UUID GetParentUUID() { return GetComponent<RelationshipComponent>().ParentHandle; }
+		Entity GetParent() const { return m_Scene->GetEntityWithUUID(GetParentUUID()); }
+		UUID GetParentUUID() const { return GetComponent<RelationshipComponent>().ParentHandle; }
 		void SetParentUUID(const UUID uuid) { GetComponent<RelationshipComponent>().ParentHandle = uuid; }
 
 		std::vector<UUID>& Children() { return GetComponent<RelationshipComponent>().Children; }

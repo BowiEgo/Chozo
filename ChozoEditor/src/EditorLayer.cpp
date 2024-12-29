@@ -373,7 +373,8 @@ namespace Chozo {
 
                 // Entity transform
                 auto& tc = selectedEntity.GetComponent<TransformComponent>();
-                glm::mat4 transform = tc.GetTransform();
+                glm::mat4 parentTransform = selectedEntity.GetParentTransform();
+                glm::mat4 absTransform = selectedEntity.GetAbsoluteTransform();
 
                 // Snapping
                 bool snap = Input::IsKeyPressed(CZ_KEY_LEFT_CONTROL);
@@ -385,18 +386,18 @@ namespace Chozo {
                 float snapValues[3] = { snapValue, snapValue, snapValue };
 
                 ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                    ImGuizmo::OPERATION(m_GizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform),
+                    ImGuizmo::OPERATION(m_GizmoType), ImGuizmo::WORLD, glm::value_ptr(absTransform),
                     nullptr, snap ? snapValues : nullptr);
 
                 bool disabled = Input::IsKeyPressed(CZ_KEY_LEFT_ALT);
                 if (ImGuizmo::IsUsing() && !disabled)
                 {
+                    glm::mat4 localTransform = glm::inverse(parentTransform) * absTransform;
                     glm::vec3 translation, rotation, scale;
-                    Math::DecomposeTransform(transform, translation, rotation, scale);
+                    Math::DecomposeTransform(localTransform, translation, rotation, scale);
                     
-                    glm::vec3 deltaRotation = rotation - tc.Rotation;
                     tc.Translation = translation;
-                    tc.Rotation += deltaRotation;
+                    tc.Rotation = rotation;
                     tc.Scale = scale;
 
                     m_ActiveScene->HandleModified();
