@@ -54,12 +54,13 @@ namespace Chozo
         void BeginScene(EditorCamera& camera); // TODO: Remove
         void EndScene(); // TODO: Remove
 
-        inline void SetActive(bool active) { m_Active = active; }
-        inline bool IsActive() const { return m_Active; }
+        void SetActive(bool active) { m_Active = active; }
+        bool IsActive() const { return m_Active; }
 
-        inline void AddEventListener(const EventType type, const EventCallback& cb, bool destroy = true) { m_EventBus.AddListener(type, cb, destroy); }
+        void AddEventListener(const EventType type, const EventCallback& cb, bool destroy = true) { m_EventBus.AddListener(type, cb, destroy); }
 
 		void SetViewportSize(float width, float height);
+    	void SetClearColor(glm::vec4 color);
 
         bool SubmitDirectionalLight(DirectionalLightComponent* light);
         bool SubmitPointLight(PointLightComponent* light, glm::vec3& position);

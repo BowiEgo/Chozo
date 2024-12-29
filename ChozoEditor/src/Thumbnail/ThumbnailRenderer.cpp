@@ -119,6 +119,7 @@ namespace Chozo {
 		m_SceneRenderer = Ref<SceneRenderer>::Create(m_Scene);
         m_SceneRenderer->SetActive(true);
         m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+        m_SceneRenderer->SetClearColor({ 0.0f, 0.0f, 0.0f, 0.0f });
         m_Camera = EditorCamera(12.0f, 1.0f, 0.1f, 1000.0f);
 
         auto sphere = m_Scene->CreateEntity("Sphere");
@@ -129,7 +130,7 @@ namespace Chozo {
 
         auto dirLight = m_Scene->CreateEntity("Directional Light");
         dirLight.AddComponent<DirectionalLightComponent>();
-        dirLight.GetComponent<DirectionalLightComponent>().Direction = glm::vec3(-45.0f, 45.0f, 45.0f);
+        dirLight.GetComponent<DirectionalLightComponent>().Direction = { -45.0f, 45.0f, 45.0f };
         dirLight.GetComponent<DirectionalLightComponent>().Intensity = 2.0f;
 
         auto pointLight = m_Scene->CreateEntity("Point Light");

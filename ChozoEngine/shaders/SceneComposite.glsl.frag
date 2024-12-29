@@ -18,31 +18,29 @@ void main()
     float solidDepth = texture(u_SolidDepthTex, v_TexCoord).r;
     float PBRDepth = texture(u_PBRDepthTex, v_TexCoord).r;
 
-    if (solidDepth > 0.0 && PBRDepth > 0.0)
+    vec4 envLayer = texture(u_SkyboxTex, v_TexCoord);
+    vec4 solidLayer = texture(u_SolidTex, v_TexCoord);
+    vec4 PBRLayer = texture(u_PBRTex, v_TexCoord);
+
+    if (solidDepth > 0.0 || PBRDepth > 0.0)
     {
-        if (solidDepth < PBRDepth)
+        if (solidDepth > 0.0 && PBRDepth > 0.0)
         {
-            color = texture(u_SolidTex, v_TexCoord).rgb;
+            color = (solidDepth < PBRDepth) ? solidLayer.rgb : PBRLayer.rgb;
+        }
+        else if (solidDepth > 0.0)
+        {
+            color = solidLayer.rgb;
         }
         else
         {
-            color = texture(u_PBRTex, v_TexCoord).rgb;
+            color = PBRLayer.rgb;
         }
-    }
-    else if (solidDepth > 0.0)
-    {
-        color = texture(u_SolidTex, v_TexCoord).rgb;
-    }
-    else if (PBRDepth > 0.0)
-    {
-        color = texture(u_PBRTex, v_TexCoord).rgb;
     }
     else
     {
-        vec4 env = texture(u_SkyboxTex, v_TexCoord);
-        color = env.rgb;
-        if (env.a == 0)
-            alpha = 0.0;
+//        color = envLayer.rgb;
+        discard;
     }
 
     o_Color = vec4(color, alpha);

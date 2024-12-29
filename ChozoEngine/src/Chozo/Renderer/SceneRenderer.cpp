@@ -293,6 +293,11 @@ namespace Chozo
         m_ViewportHeight = height;
     }
 
+    void SceneRenderer::SetClearColor(const glm::vec4 color)
+	{
+    	m_CompositePass->GetTargetFramebuffer()->GetSpecification().ClearColor = color;
+    }
+
     bool SceneRenderer::SubmitDirectionalLight(DirectionalLightComponent *light)
     {
     	uint index = DirectionalLightsDataUB.LightCount;
@@ -469,7 +474,7 @@ namespace Chozo
 
     void SceneRenderer::CompositePass()
     {
-        m_CompositePass->GetTargetFramebuffer()->GetSpecification().ClearColor = Renderer::GetConfig().ClearColor;
+        // m_CompositePass->GetTargetFramebuffer()->GetSpecification().ClearColor = Renderer::GetConfig().ClearColor;
 
 		RenderCommand::BeginRenderPass(m_CommandBuffer, m_CompositePass);
 		RenderCommand::SubmitFullscreenQuad(m_CommandBuffer, m_CompositePass->GetPipeline(), m_CompositeMaterial);

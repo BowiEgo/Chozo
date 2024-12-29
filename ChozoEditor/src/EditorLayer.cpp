@@ -170,6 +170,8 @@ namespace Chozo {
         // --------------------
         // Settings panel
         // --------------------
+        glm::vec4 &clearColor = Renderer::GetConfig().ClearColor;
+
         ImGui::Begin("Settings");
         ImGui::Text("Renderer stats:");
         ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -181,7 +183,9 @@ namespace Chozo {
         ImGui::Text("Triangles: %d", Renderer::GetStats().GetTotalTrianglesCount());
         ImGui::Text("Vertices: %d", Renderer::GetStats().GetTotalVerticesCount());
         ImGui::Text("ClearColor:"); ImGui::SameLine();
-        ImGui::ColorEdit4("##ClearColor", glm::value_ptr(Renderer::GetConfig().ClearColor));
+        ImGui::ColorEdit4("##ClearColor", glm::value_ptr(clearColor));
+
+        m_ViewportRenderer->SetClearColor(clearColor);
 
         std::string entityName = "Null";
         if (m_Entity_Selected)
@@ -189,6 +193,9 @@ namespace Chozo {
         ImGui::Text("EntitySelected: %s", entityName.c_str());
         ImGui::Separator();
 
+        // --------------------
+        // Preview output
+        // --------------------
         if(ImGui::Button("ShowSkyboxTexture"))
         {
             TextureViewerPanel::Open();

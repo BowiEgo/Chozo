@@ -20,8 +20,6 @@ void main()
     color += light;
 
     float alpha = 1.0;
-    if (GBuffer.Normal == vec3(0.0))
-        discard;
 
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
