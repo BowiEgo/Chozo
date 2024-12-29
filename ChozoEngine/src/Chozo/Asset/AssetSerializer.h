@@ -10,9 +10,7 @@ namespace Chozo {
 	struct AssetFileHeader
 	{
 		uint32_t Version = 1;
-		uint16_t Type;
-		uint64_t CreateAt;
-		uint64_t ModifiedAt;
+		uint16_t Type{};
 	};
 
     class AssetSerializer
@@ -25,20 +23,20 @@ namespace Chozo {
     };
 
 	//==============================================================================
-	/// SceneSerializer
+	// SceneSerializer
 
-	class SceneSerializer : public AssetSerializer
+	class SceneSerializer final : public AssetSerializer
 	{
 	public:
-		virtual uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
+		uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
 	private:
-		std::string SerializeToYAML(Ref<Scene> scene) const;
-		Ref<Scene> DeserializeFromYAML(const std::string& yamlString) const;
+		static std::string SerializeToYAML(Ref<Scene> scene) ;
+		static Ref<Scene> DeserializeFromYAML(const std::string& yamlString) ;
 	};
 
 	//==============================================================================
-	/// TextureSerializer
+	// TextureSerializer
 	struct TextureFileMetadata
 	{
 		uint16_t Format;
@@ -53,47 +51,47 @@ namespace Chozo {
 		uint16_t MagFilter;
 	};
 
-    class TextureSerializer : public AssetSerializer
+    class TextureSerializer final : public AssetSerializer
 	{
 	public:
-		virtual uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
+		uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
 	};
 
 	//==============================================================================
-	/// MaterialSerializer
-	class MaterialSerializer : public AssetSerializer
+	// MaterialSerializer
+	class MaterialSerializer final : public AssetSerializer
 	{
 	public:
-		virtual uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
+		uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
 	private:
-		std::string SerializeToYAML(Ref<Material> material) const;
-		Ref<Material> DeserializeFromYAML(const std::string& yamlString) const;
+		static std::string SerializeToYAML(Ref<Material> material) ;
+		static Ref<Material> DeserializeFromYAML(const std::string& yamlString) ;
 	};
 
 	//==============================================================================
-	/// MeshSourceSerializer
+	// MeshSourceSerializer
 	struct MeshMaterial
 	{
 		std::string Name;
 		std::string ShaderName;
 
-		glm::vec3 Albedo;
-		float Metalness;
+		glm::vec3 BaseColor;
+		float Metallic;
 		float Roughness;
+		float Reflectance;
 		float Ambient;
 		float AmbientStrength;
-		float Specular;
 
-		bool EnableAlbedoTex;
+		bool EnableBaseColorTex;
 		bool EnableNormalTex;
-		bool EnableMetalnessTex;
+		bool EnableMetallicTex;
 		bool EnableRoughnessTex;
 
-		AssetHandle AlbedoTexture;
+		AssetHandle BaseColorTexture;
 		AssetHandle NormalTexture;
-		AssetHandle MetalnessTexture;
+		AssetHandle MetallicTexture;
 		AssetHandle RoughnessTexture;
 
 		static void Serialize(StreamWriter* serializer, const MeshMaterial& instance)
@@ -101,21 +99,21 @@ namespace Chozo {
 			serializer->WriteString(instance.Name);
 			serializer->WriteString(instance.ShaderName);
 
-			serializer->WriteRaw(instance.Albedo);
-			serializer->WriteRaw(instance.Metalness);
+			serializer->WriteRaw(instance.BaseColor);
+			serializer->WriteRaw(instance.Metallic);
 			serializer->WriteRaw(instance.Roughness);
+			serializer->WriteRaw(instance.Reflectance);
 			serializer->WriteRaw(instance.Ambient);
 			serializer->WriteRaw(instance.AmbientStrength);
-			serializer->WriteRaw(instance.Specular);
 
-			serializer->WriteRaw(instance.EnableAlbedoTex);
+			serializer->WriteRaw(instance.EnableBaseColorTex);
 			serializer->WriteRaw(instance.EnableNormalTex);
-			serializer->WriteRaw(instance.EnableMetalnessTex);
+			serializer->WriteRaw(instance.EnableMetallicTex);
 			serializer->WriteRaw(instance.EnableRoughnessTex);
 			
-			serializer->WriteRaw(instance.AlbedoTexture);
+			serializer->WriteRaw(instance.BaseColorTexture);
 			serializer->WriteRaw(instance.NormalTexture);
-			serializer->WriteRaw(instance.MetalnessTexture);
+			serializer->WriteRaw(instance.MetallicTexture);
 			serializer->WriteRaw(instance.RoughnessTexture);
 		}
 
@@ -124,21 +122,21 @@ namespace Chozo {
 			deserializer->ReadString(instance.Name);
 			deserializer->ReadString(instance.ShaderName);
 
-			deserializer->ReadRaw(instance.Albedo);
-			deserializer->ReadRaw(instance.Metalness);
+			deserializer->ReadRaw(instance.BaseColor);
+			deserializer->ReadRaw(instance.Metallic);
 			deserializer->ReadRaw(instance.Roughness);
+			deserializer->ReadRaw(instance.Reflectance);
 			deserializer->ReadRaw(instance.Ambient);
 			deserializer->ReadRaw(instance.AmbientStrength);
-			deserializer->ReadRaw(instance.Specular);
 
-			deserializer->ReadRaw(instance.EnableAlbedoTex);
+			deserializer->ReadRaw(instance.EnableBaseColorTex);
 			deserializer->ReadRaw(instance.EnableNormalTex);
-			deserializer->ReadRaw(instance.EnableMetalnessTex);
+			deserializer->ReadRaw(instance.EnableMetallicTex);
 			deserializer->ReadRaw(instance.EnableRoughnessTex);
 			
-			deserializer->ReadRaw(instance.AlbedoTexture);
+			deserializer->ReadRaw(instance.BaseColorTexture);
 			deserializer->ReadRaw(instance.NormalTexture);
-			deserializer->ReadRaw(instance.MetalnessTexture);
+			deserializer->ReadRaw(instance.MetallicTexture);
 			deserializer->ReadRaw(instance.RoughnessTexture);
 		}
 	};
@@ -152,32 +150,32 @@ namespace Chozo {
 			HasSkeleton = BIT(2)
 		};
 
-		uint32_t Flags;
-		AABB BoudingBox;
+		uint32_t Flags{};
+		AABB BoundingBox;
 
-		uint64_t NodeArrayOffset;
-		uint64_t NodeArraySize;
+		uint64_t NodeArrayOffset{};
+		uint64_t NodeArraySize{};
 
-		uint64_t SubmeshArrayOffset;
-		uint64_t SubmeshArraySize;
+		uint64_t SubMeshArrayOffset{};
+		uint64_t SubMeshArraySize{};
 
-		uint64_t VertexBufferOffset;
-		uint64_t VertexBufferSize;
+		uint64_t VertexBufferOffset{};
+		uint64_t VertexBufferSize{};
 
-		uint64_t IndexBufferOffset;
-		uint64_t IndexBufferSize;
+		uint64_t IndexBufferOffset{};
+		uint64_t IndexBufferSize{};
 
-		uint64_t MaterialArrayOffset;
-		uint64_t MaterialArraySize;
+		uint64_t MaterialArrayOffset{};
+		uint64_t MaterialArraySize{};
 	};
 
-	class MeshSourceSerializer : public AssetSerializer
+	class MeshSourceSerializer final : public AssetSerializer
 	{
 	public:
-		virtual uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
-		virtual Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
+		uint64_t Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+		Ref<Asset> Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const override;
 	private:
-		std::string SerializeToYAML(Ref<MeshSource> meshSource) const;
-		Ref<MeshSource> DeserializeFromYAML(const std::string& yamlString) const;
+		static std::string SerializeToYAML(const Ref<MeshSource>& meshSource) ;
+		static Ref<MeshSource> DeserializeFromYAML(const std::string& yamlString) ;
 	};
 }

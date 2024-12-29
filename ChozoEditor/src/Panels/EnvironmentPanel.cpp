@@ -3,9 +3,9 @@
 #include "PropertyUI.h"
 #include "TextureViewerPanel.h"
 
-#include <regex>
-
 namespace Chozo {
+
+    EnvironmentPanel* EnvironmentPanel::s_Instance;
 
     float s_LOD;
     glm::vec3 s_LightDirection;
@@ -15,15 +15,20 @@ namespace Chozo {
     bool s_RadiancePrefiltering;
     float s_EnvMapRotation;
     bool s_ShowBoundingBoxes;
-    
-    EnvironmentPanel::EnvironmentPanel(const Ref<Scene> context)
+
+    EnvironmentPanel::EnvironmentPanel()
+    {
+        s_Instance = this;
+    }
+
+    EnvironmentPanel::EnvironmentPanel(const Ref<Scene>& context)
     {
         SetContext(context);
     }
 
-    void EnvironmentPanel::SetContext(const Ref<Scene> context)
+    void EnvironmentPanel::SetContext(const Ref<Scene>& context)
     {
-        m_Context = context;
+        s_Instance->m_Context = context;
     }
 
     void EnvironmentPanel::OnImGuiRender()

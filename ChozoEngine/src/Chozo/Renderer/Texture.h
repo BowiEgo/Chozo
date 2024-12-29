@@ -52,7 +52,7 @@ namespace Chozo {
     class Texture : public Asset
     {
     public:
-        virtual ~Texture() = default;
+        ~Texture() override = default;
 
         virtual uint32_t GetWidth() const = 0;
         virtual uint32_t GetHeight() const = 0;
@@ -60,7 +60,7 @@ namespace Chozo {
         virtual TextureType GetType() const = 0;
 
         static AssetType GetStaticType() { return AssetType::Texture; }
-		virtual AssetType GetAssetType() const override { return GetStaticType(); }
+		AssetType GetAssetType() const override { return GetStaticType(); }
 
         virtual void ExtractBuffer() = 0;
         virtual void CopyToHostBuffer(Buffer& buffer) const = 0;
@@ -70,18 +70,18 @@ namespace Chozo {
     class Texture2D : public Texture
     {
     public:
-        virtual inline TextureType GetType() const override { return s_Type; }
+        TextureType GetType() const override { return s_Type; }
 
         virtual Texture2DSpecification GetSpecification() const = 0;
 
-		virtual void SetData(const void* data, const uint32_t size) = 0;
+		virtual void SetData(const void* data, uint32_t size) = 0;
         virtual void Resize(uint32_t width, uint32_t height) = 0;
 
         static Ref<Texture2D> Create(const Texture2DSpecification& spec = Texture2DSpecification());
-        static Ref<Texture2D> Create(const Ref<Texture2D> other);
+        static Ref<Texture2D> Create(Ref<Texture2D> other);
         static Ref<Texture2D> Create(const std::string& path, const Texture2DSpecification& spec = Texture2DSpecification());
         static Ref<Texture2D> Create(const RendererID& id, const Texture2DSpecification& spec = Texture2DSpecification());
-        static Ref<Texture2D> Create(Buffer imageBuffer, const Texture2DSpecification& spec = Texture2DSpecification());
+        static Ref<Texture2D> Create(const Buffer& imageBuffer, const Texture2DSpecification& spec = Texture2DSpecification());
     private:
         static TextureType s_Type;
     };
@@ -89,7 +89,7 @@ namespace Chozo {
     class TextureCube : public Texture
     {
     public:
-        virtual inline TextureType GetType() const override { return s_Type; }
+        TextureType GetType() const override { return s_Type; }
 
         virtual void SetData(void* data, uint32_t size) = 0;
 

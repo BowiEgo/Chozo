@@ -12,13 +12,13 @@ namespace Chozo {
     {
     public:
 		enum class MaterialPropType {
-			Albedo,
-			Metalness,
+			BaseColor,
+			Metallic,
 			Roughness,
 			Normal,
+			Reflectance,
 			Ambient,
 			AmbientStrength,
-			Specular
 		};
 
         static Ref<MeshSource> ToMeshSourceFromFile(const std::string &path);

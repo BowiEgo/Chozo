@@ -25,7 +25,7 @@ namespace Chozo {
     {
         s_Instance = this;
 
-        m_Icons["HierachyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-open-1.png"));
+        m_Icons["HierarchyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-open-1.png"));
         m_Icons["Directory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder.png"));
         m_Icons["EmptyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-empty.png"));
         m_Icons["TextFile"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/file.png"));
@@ -106,7 +106,7 @@ namespace Chozo {
                 }
                 else
                 {
-                    if (ImGui::IsMouseClicked(0))
+                    if (ImGui::IsMouseClicked(0) && !ImGui::IsAnyItemHovered())
                     {
                         if (!ImGui::IsPopupOpen("ItemContextMenu"))
                         {
@@ -180,8 +180,8 @@ namespace Chozo {
 
     void ContentBrowserPanel::OnBrowserRefresh()
     {
-		AssetHandle baseDirectoryHandle = ProcessDirectory(Utils::File::GetAssetDirectory(), nullptr);
-		m_BaseDirectory = m_Directories[baseDirectoryHandle];
+        AssetHandle baseDirectoryHandle = ProcessDirectory(Utils::File::GetAssetDirectory(), nullptr);
+        m_BaseDirectory = m_Directories[baseDirectoryHandle];
         OnDirectoryChange();
     }
 
@@ -193,7 +193,7 @@ namespace Chozo {
             return nullptr;
         }
 
-        auto filename = s_Instance->CreateItemName(AssetType::Scene);
+        const auto filename = CreateItemName(AssetType::Scene);
 
         auto scene = s_Instance->CreateAsset<Scene>(filename, s_Instance->m_CurrentDirectory);
         s_Instance->OnBrowserRefresh();
@@ -208,23 +208,17 @@ namespace Chozo {
             return nullptr;
         }
 
-        auto filename = s_Instance->CreateItemName(AssetType::Material);
+        const auto filename = CreateItemName(AssetType::Material);
 
-        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, "PBR");
-        material->Set("u_Material.Albedo", glm::vec3(0.5f));
-        material->Set("u_Material.Metalness", 0.5f);
-        material->Set("u_Material.Roughness", 0.5f);
-        material->Set("u_Material.Ambient", 1.0f);
-        material->Set("u_Material.AmbientStrength", 0.1f);
-        material->Set("u_Material.Specular", 0.5f);
-        material->Set("u_Material.EnableAlbedoTex", false);
-        material->Set("u_Material.EnableMetalnessTex", false);
-        material->Set("u_Material.EnableRoughnessTex", false);
-        material->Set("u_Material.EnableNormalTex", false);
+        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, "Lit");
 
         s_Instance->OnBrowserRefresh();
 
-        auto task = Ref<ThumbnailPoolTask>::Create(material, PoolTaskFlags_Export);
+        auto item = s_Instance->GetItem(material->Handle);
+        item->Select();
+        item->OpenMaterialPanel();
+
+        const auto task = Ref<ThumbnailPoolTask>::Create(material, PoolTaskFlags_Export);
 
         Application::Get().GetPool()->AddTask(task);
         Application::Get().GetPool()->Start();
@@ -264,13 +258,13 @@ namespace Chozo {
 
     void ContentBrowserPanel::RenderItems()
     {
-        float cellSize = s_ThumbnailSize + s_Padding;
+        const float cellSize = s_ThumbnailSize + s_Padding;
 
         float panelWidth = ImGui::GetContentRegionAvail().x;
-        int columnCount = (int)(panelWidth / cellSize);
+        int columnCount = static_cast<int>(panelWidth / cellSize);
         columnCount = columnCount < 1 ? 1 : columnCount;
 
-        ImGui::Columns(columnCount, 0, false);
+        ImGui::Columns(columnCount, nullptr, false);
 
         if (m_CurrentDirectory)
         {
@@ -399,7 +393,7 @@ namespace Chozo {
         if (directory->SubDirectories.empty())
             flags |= ImGuiTreeNodeFlags_Leaf;
 
-        bool opened = ImGui::TreeNodeWithIcon(m_Icons["HierachyDirectory"], window->GetID(id.c_str()), flags, name.c_str(), NULL);
+        const bool opened = ImGui::TreeNodeWithIcon(m_Icons["HierarchyDirectory"], window->GetID(id.c_str()), flags, name.c_str(), nullptr);
 
         if (ImGui::IsItemClicked())
             ChangeDirectory(directory);
@@ -419,18 +413,18 @@ namespace Chozo {
         ImGui::BeginChild("##top_bar", ImVec2(0, height));
 		ImGui::BeginGroup();
         {
-			const float edgeOffset = 4.0f;
+			// const float edgeOffset = 4.0f;
             // Navigation buttons
             {
                 UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 0.0f));
 
                 auto contentBrowserButton = [height](const char* labelId, const Ref<Texture2D>& icon, bool isDisabled = false, bool isFlipped = false)
                 {
-					const ImU32 buttonCol = Colors::Theme::backgroundDark;
-                    const ImU32 buttonColP = UI::ColourWithMultipliedValue(Colors::Theme::backgroundDark, 0.8f);
+					// const ImU32 buttonCol = Colors::Theme::backgroundDark;
+                    // const ImU32 buttonColP = UI::ColourWithMultipliedValue(Colors::Theme::backgroundDark, 0.8f);
                     
                     const float iconSize = std::min(24.0f, height);
-                    const float iconPadding = 2.0f;
+                    constexpr float iconPadding = 2.0f;
                     ImGui::BeginDisabled(isDisabled);
                     const bool clicked = ImGui::Button(labelId, ImVec2(iconSize, iconSize));
                     ImGui::EndDisabled();
@@ -477,11 +471,11 @@ namespace Chozo {
             ImGui::BeginGroup();
             
             // Search icon
-			const ImVec2 iconSize(ImGui::GetTextLineHeight() - 2.0f, ImGui::GetTextLineHeight() - 2.0f);
             {
+                const ImVec2 iconSize(ImGui::GetTextLineHeight() - 2.0f, ImGui::GetTextLineHeight() - 2.0f);
                 const float iconYOffset = framePaddingY;
 				UI::ShiftCursorY(iconYOffset);
-                ImGui::Image((ImTextureID)(uintptr_t)m_Icons["Search"]->GetRendererID(), iconSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
+                ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(m_Icons["Search"]->GetRendererID())), iconSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
 				UI::ShiftCursorY(-iconYOffset);
                 ImGui::SameLine();
 
@@ -489,7 +483,7 @@ namespace Chozo {
                 if (!focused)
                 {
                     UI::ShiftCursorY(-framePaddingY + 1.0f);
-                    UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, framePaddingY));
+                    // UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, framePaddingY));
                     ImGui::TextUnformatted("Search...");
                     UI::ShiftCursorY(-1.0f);
                     ImGui::SameLine();
@@ -564,32 +558,24 @@ namespace Chozo {
     void ContentBrowserPanel::SaveAllAssets()
     {
         auto assetManager = Application::GetAssetManager();
+        const auto assetsModified = assetManager->GetAssetsModified();
         assetManager->SaveAssets();
         OnBrowserRefresh();
-        RenderItemThumbnails(m_CurrentItems);
+        RenderAssetThumbnails(assetsModified);
     }
 
-    void ContentBrowserPanel::RenderItemThumbnails(std::vector<Ref<ContentItem>> items)
+    void ContentBrowserPanel::RenderAssetThumbnails(const std::vector<AssetMetadata>& metadatas)
     {
-        auto assetManager = Application::GetAssetManager();
-        for (auto item : items)
+        for (const auto& metadata : metadatas)
         {
-            auto metadata = assetManager->GetMetadata(item->GetHandle());
-            auto asset = assetManager->GetAsset(metadata.Handle);
-
-            if (asset)
-            {
-                auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
-                Application::Get().GetPool()->AddTask(task);
-            }
+            auto asset = Application::GetAssetManager()->GetAsset(metadata.Handle);
+            auto task = Ref<ThumbnailPoolTask>::Create(asset, PoolTaskFlags_Export);
+            Application::Get().GetPool()->AddTask(task);
         }
-
-        // Cache the renderer ouput for MaterialPanel because it will change after thumbnails rendered.
-        ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->CreateCache();
         Application::Get().GetPool()->Start();
     }
 
-    void ContentBrowserPanel::AddAssetToDir(Ref<DirectoryInfo> directory, AssetMetadata& metadata)
+    void ContentBrowserPanel::AddAssetToDir(Ref<DirectoryInfo> directory, const AssetMetadata& metadata)
     {
         directory->Assets[metadata.Handle] = metadata;
         directory->AssetsSorted.push_back(metadata.Handle);
@@ -630,12 +616,12 @@ namespace Chozo {
         directoryInfo->Handle = AssetHandle();
         directoryInfo->Parent = parent;
 
-		if (directoryPath == Utils::File::GetAssetDirectory())
+        if (directoryPath == Utils::File::GetAssetDirectory())
             directoryInfo->FilePath = "";
         else
-			directoryInfo->FilePath = fs::relative(directoryPath, Utils::File::GetAssetDirectory());
+            directoryInfo->FilePath = fs::relative(directoryPath, Utils::File::GetAssetDirectory());
 
-		for (auto entry : fs::directory_iterator(directoryPath))
+		for (const auto& entry : fs::directory_iterator(directoryPath))
         {
             if (entry.is_directory())
 			{
@@ -673,9 +659,21 @@ namespace Chozo {
         return directoryInfo->Handle;
     }
 
+    Ref<ContentItem> ContentBrowserPanel::GetItem(AssetHandle handle)
+    {
+        const auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [handle](const Ref<ContentItem>& i) {
+            return i->GetHandle() == handle;
+        });
+
+        if (it != m_CurrentItems.end())
+            return *it;
+
+        return nullptr;
+    }
+
     void ContentBrowserPanel::DeleteItem(Ref<ContentItem> item)
     {
-        auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [item](const Ref<ContentItem> i) {
+        auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [item](const Ref<ContentItem>& i) {
             return i == item;
         });
 
@@ -689,11 +687,11 @@ namespace Chozo {
         }
     }
 
-    void ContentBrowserPanel::DeleteItems(std::vector<Ref<ContentItem>> items)
+    void ContentBrowserPanel::DeleteItems(const std::vector<Ref<ContentItem>>& items)
     {
         for (auto item : items)
         {
-            auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [item](const Ref<ContentItem> i) {
+            auto it = std::find_if(m_CurrentItems.begin(), m_CurrentItems.end(), [item](const Ref<ContentItem>& i) {
                 return i == item;
             });
 
@@ -713,7 +711,6 @@ namespace Chozo {
         std::string result;
         std::string defaultName = std::string(Utils::AssetTypeToString(type));
 
-        int maxIndex = -1;
         std::regex pattern(defaultName + R"(_(\d+))");
         std::smatch match;
         std::vector<int> indices;

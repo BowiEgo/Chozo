@@ -7,10 +7,7 @@
 #include "Chozo/Renderer/Renderer2D.h"
 #include "Chozo/Renderer/SceneRenderer.h"
 #include "Chozo/Asset/AssetManager.h"
-
 #include "Chozo/Core/Application.h"
-
-#include <glad/glad.h>
 
 namespace Chozo {
 
@@ -24,6 +21,7 @@ namespace Chozo {
 
     Entity Scene::CreateEntity(const std::string& name)
     {
+        HandleModified();
 		return CreateChildEntity({}, name);
     }
 
@@ -134,23 +132,30 @@ namespace Chozo {
     void Scene::SortEntities()
     {
         m_Registry.sort<IDComponent>([&](const auto lhs, const auto rhs)
-		{
-			auto lhsEntity = m_EntityIDMap.find(lhs.ID);
-			auto rhsEntity = m_EntityIDMap.find(rhs.ID);
-			return static_cast<uint32_t>(lhsEntity->second) < static_cast<uint32_t>(rhsEntity->second);
-		});
+        {
+            auto lhsEntity = m_EntityIDMap.find(lhs.ID);
+            auto rhsEntity = m_EntityIDMap.find(rhs.ID);
+
+            if (lhsEntity == m_EntityIDMap.end() || rhsEntity == m_EntityIDMap.end())
+            {
+                return lhsEntity != m_EntityIDMap.end();
+            }
+
+            return static_cast<uint32_t>(lhsEntity->second) < static_cast<uint32_t>(rhsEntity->second);
+        });
     }
 
     void Scene::DestroyEntity(Entity entity)
     {
-        m_Registry.destroy(entity);
+        entity.Destroy();
+        HandleModified();
     }
 
-    void Scene::OnUpdateEditor(Timestep ts)
+    void Scene::OnUpdateEditor(TimeStep ts)
     {
     }
 
-    void Scene::OnUpdateRuntime(Timestep ts)
+    void Scene::OnUpdateRuntime(TimeStep ts)
     {
         // Update scripts
         {
@@ -170,7 +175,7 @@ namespace Chozo {
         }
     }
 
-    void Scene::OnRenderEditor(Ref<SceneRenderer> renderer, Timestep ts, EditorCamera &camera)
+    void Scene::OnRenderEditor(Ref<SceneRenderer> renderer, TimeStep ts, EditorCamera &camera)
     {
         // 3D Renderer
         renderer->BeginScene(camera);
@@ -211,11 +216,11 @@ namespace Chozo {
         Renderer2D::EndScene();
     }
 
-    void Scene::OnRenderRuntime(Ref<SceneRenderer> renderer, Timestep ts)
+    void Scene::OnRenderRuntime(Ref<SceneRenderer> renderer, TimeStep ts)
     {
     }
 
-    void Scene::OnViewportResize(uint32_t width, uint32_t height)
+    void Scene::OnViewportResize(float width, float height)
     {
         bool inValid = width <= 0.0f || height <= 0.0f;
         if (inValid || (m_ViewportWidth == width && m_ViewportHeight == height))
@@ -368,61 +373,98 @@ namespace Chozo {
     template<>
     void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<MeshComponent>(Entity entity, MeshComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
     {
         component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
+
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<DirectionalLightComponent>(Entity entity, DirectionalLightComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<PointLightComponent>(Entity entity, PointLightComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 
     template<>
     void Scene::OnComponentAdded<SpotLightComponent>(Entity entity, SpotLightComponent& component)
     {
+        component.RegisterGlobalCallback([this]() {
+            HandleModified();
+        });
     }
 }

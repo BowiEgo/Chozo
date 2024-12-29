@@ -23,10 +23,15 @@ namespace Chozo {
             return "../assets";
         }
 
+        static const char* GetShaderSoureceDirectory()
+        {
+            return "../../ChozoEngine/shaders";
+        }
+
         static const char* GetShaderCacheDirectory()
         {
             // TODO: make sure the assets directory is valid
-            return "../caches/shader/opengl";
+            return "../caches/shader";
         }
 
         static const char* GetThumbnailCacheDirectory()
@@ -39,6 +44,46 @@ namespace Chozo {
         {
             if (!fs::exists(directory))
                 fs::create_directories(directory);
+        }
+
+        static std::string ReadTextFile(const std::string& filepath)
+        {
+            std::string result;
+            std::ifstream in(filepath, std::ios::in | std::ios::binary);
+            if (in)
+            {
+                in.seekg(0, std::ios::end);
+                result.resize(in.tellg());
+                in.seekg(0, std::ios::beg);
+                in.read(&result[0], result.size());
+                in.close();
+            }
+            else
+            {
+                CZ_CORE_ERROR("Could not open file '{0}'", filepath);
+            }
+
+            return result;
+        }
+
+        static bool ReadBinaryFile(const std::string& filepath, std::vector<u_int32_t>& target)
+        {
+            std::ifstream in(filepath, std::ios::in | std::ios::binary);
+            if (in)
+            {
+                in.seekg(0, std::ios::end);
+                auto size = in.tellg();
+                in.seekg(0, std::ios::beg);
+
+                target.resize(size / sizeof(uint32_t));
+                in.read((char*)target.data(), size);
+                return true;
+            }
+            else
+            {
+                CZ_CORE_ERROR("Could not open file '{0}'", filepath);
+                return false;
+            }
         }
 
         static void DeleteFile(const std::string& filepath)

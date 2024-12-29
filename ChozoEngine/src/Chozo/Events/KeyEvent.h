@@ -4,28 +4,28 @@
 #include "Chozo/Core/KeyCodes.h"
 
 namespace Chozo {
-    class CHOZO_API KeyEvent : public Event
+    class KeyEvent : public Event
     {
     public:
-        inline KeyCode GetKeyCode() const { return m_KeyCode; }
+        [[nodiscard]] KeyCode GetKeyCode() const { return m_KeyCode; }
 
         EVENT_CLASS_CATEGORY(EventCategory_Keyboard | EventCategory_Input)
     protected:
-        KeyEvent(KeyCode keycode)
+        explicit KeyEvent(const KeyCode keycode)
             : m_KeyCode(keycode) {}
         
         KeyCode m_KeyCode;
     };
 
-    class CHOZO_API KeyPressedEvent : public KeyEvent
+    class KeyPressedEvent final : public KeyEvent
     {
     public:
         KeyPressedEvent(KeyCode keycode, int repeatCount)
             : KeyEvent(keycode), m_RepeatCount(repeatCount) {}
 
-        inline int GetRepeatCount() const { return m_RepeatCount; }
+        [[nodiscard]] int GetRepeatCount() const { return m_RepeatCount; }
 
-        std::string ToString() const override
+        [[nodiscard]] std::string ToString() const override
         {
             std::stringstream ss;
             ss << "KeyPressedEvent: " << m_KeyCode << " (" << m_RepeatCount << " repeats)";
@@ -37,13 +37,13 @@ namespace Chozo {
         int m_RepeatCount;
     };
 
-    class CHOZO_API KeyReleasedEvent : public KeyEvent
+    class KeyReleasedEvent final : public KeyEvent
     {
     public:
-        KeyReleasedEvent(KeyCode keycode)
+        explicit KeyReleasedEvent(const KeyCode keycode)
             : KeyEvent(keycode) {}
         
-        std::string ToString() const override
+        [[nodiscard]] std::string ToString() const override
         {
             std::stringstream ss;
             ss << "KeyReleasedEvent: " << m_KeyCode;
@@ -53,13 +53,13 @@ namespace Chozo {
         EVENT_CLASS_TYPE(KeyReleased)
     };
 
-    class CHOZO_API KeyTypedEvent : public KeyEvent
+    class KeyTypedEvent final : public KeyEvent
     {
     public:
-        KeyTypedEvent(KeyCode keycode)
+        explicit KeyTypedEvent(KeyCode keycode)
             : KeyEvent(keycode) {}
 
-        std::string ToString() const override
+        [[nodiscard]] std::string ToString() const override
         {
             std::stringstream ss;
             ss << "KeyTypedEvent: " << m_KeyCode;

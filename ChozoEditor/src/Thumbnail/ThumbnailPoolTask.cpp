@@ -20,13 +20,13 @@ namespace Chozo {
         {
             auto src = Source.As<Texture2D>();
             isHDR = src->GetSpecification().Format == ImageFormat::HDR;
-            srcSize.x = src->GetWidth();
-            srcSize.y = src->GetHeight();
+            srcSize.x = static_cast<float>(src->GetWidth());
+            srcSize.y = static_cast<float>(src->GetHeight());
 
             if (srcSize.x < srcSize.y)
-                outputSize.x = static_cast<int>(outputSize.y * (static_cast<float>(srcSize.x) / srcSize.y));
+                outputSize.x = outputSize.y * (srcSize.x / srcSize.y);
             else
-                outputSize.y = static_cast<int>(outputSize.x * (static_cast<float>(srcSize.y) / srcSize.x));
+                outputSize.y = outputSize.x * (srcSize.y / srcSize.x);
         }
         else
         {
@@ -37,7 +37,7 @@ namespace Chozo {
 
         if (Flags & PoolTaskFlags_Export)
         {
-            std::string filename = std::to_string(Source->Handle);
+            const std::string filename = std::to_string(Source->Handle);
             Utils::ExportPNG(filename, ImageData.Data,
                 srcSize,
                 outputSize,
@@ -45,10 +45,10 @@ namespace Chozo {
         }
 
         Texture2DSpecification spec;
-        spec.Width = srcSize.x;
-        spec.Height = srcSize.y;
+        spec.Width = static_cast<uint32_t>(srcSize.x);
+        spec.Height = static_cast<uint32_t>(srcSize.y);
         spec.Format = ImageFormat::RGBA;
-        auto thumbnail = Texture2D::Create(ImageData, spec);
+        const auto thumbnail = Texture2D::Create(ImageData, spec); // NOLINT
         ThumbnailManager::SetThumbnail(Source->Handle, thumbnail);
 
         ImageData.Release();

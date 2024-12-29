@@ -1,7 +1,7 @@
 #pragma once
 
+#include "AssetRegistry.h"
 #include "AssetManager.h"
-#include "AssetImporter.h"
 
 namespace Chozo {
 
@@ -9,19 +9,20 @@ namespace Chozo {
     {
     public:
         EditorAssetManager();
-        virtual ~EditorAssetManager();
+        ~EditorAssetManager() override;
 
-        virtual Ref<Asset> GetAsset(AssetHandle assetHandle) override;
-		virtual AssetHandle AddMemoryOnlyAsset(Ref<Asset> asset) override;
-		virtual bool ReloadData(AssetHandle assetHandle) override;
-		virtual bool IsAssetHandleValid(AssetHandle assetHandle) override;
-		virtual bool IsMemoryAsset(AssetHandle handle) override { return m_MemoryAssets.find(handle) != m_MemoryAssets.end(); }
-		virtual bool IsAssetLoaded(AssetHandle handle) override;
-		virtual void RemoveAsset(AssetHandle handle) override;
+        Ref<Asset> GetAsset(AssetHandle assetHandle) override;
+    	std::vector<AssetMetadata> GetAssetsModified() override;
+		AssetHandle AddMemoryOnlyAsset(Ref<Asset> asset) override;
+		bool ReloadData(AssetHandle assetHandle) override;
+		bool IsAssetHandleValid(AssetHandle assetHandle) override;
+		bool IsMemoryAsset(AssetHandle handle) override { return m_MemoryAssets.find(handle) != m_MemoryAssets.end(); }
+		bool IsAssetLoaded(AssetHandle handle) override;
+		void RemoveAsset(AssetHandle handle) override;
 
-		virtual std::unordered_set<AssetHandle> GetAllAssetsWithType(AssetType type) override;
-		virtual const std::unordered_map<AssetHandle, Ref<Asset>>& GetLoadedAssets() override;
-		virtual const std::unordered_map<AssetHandle, Ref<Asset>>& GetMemoryOnlyAssets() override;
+		std::unordered_set<AssetHandle> GetAllAssetsWithType(AssetType type) override;
+		const std::unordered_map<AssetHandle, Ref<Asset>>& GetLoadedAssets() override;
+		const std::unordered_map<AssetHandle, Ref<Asset>>& GetMemoryOnlyAssets() override;
 
 		// Editor-only
 		const AssetMetadata& GetMetadata(AssetHandle handle);
@@ -29,16 +30,18 @@ namespace Chozo {
 
 		AssetHandle ImportAsset(const fs::path& filepath);
 		AssetHandle LoadAsset(const fs::path& filepath);
-		AssetHandle LoadAsset(AssetMetadata metadata);
+		AssetHandle LoadAsset(AssetMetadata& metadata);
 		void SaveAssets();
-		void SaveAsset(Ref<Asset> asset, const fs::path &filepath);
+		uint64_t SaveAsset(Ref<Asset>& asset, AssetMetadata &metadata);
+		void ExportAsset(Ref<Asset>& asset, const fs::path &filepath);
+    	void RegisterAssetCallback(Ref<Asset>& asset);
 
-		AssetType GetAssetTypeFromExtension(const std::string& extension);
-		AssetType GetAssetTypeFromPath(const fs::path& path);
+		static AssetType GetAssetTypeFromExtension(const std::string& extension);
+		static AssetType GetAssetTypeFromPath(const fs::path& path);
 
-		fs::path GetFileSystemPath(const AssetMetadata& metadata);
-		std::string GetFileSystemPathString(const AssetMetadata& metadata);
-		fs::path GetRelativePath(const fs::path& filepath);
+		static fs::path GetFileSystemPath(const AssetMetadata& metadata);
+		static std::string GetFileSystemPathString(const AssetMetadata& metadata);
+		static fs::path GetRelativePath(const fs::path& filepath);
 
 		template<typename T, typename... Args>
 		Ref<T> CreateNewAsset(const std::string& filename, const std::string& directoryPath, Args&&... args)
@@ -51,7 +54,8 @@ namespace Chozo {
 				filePath = directoryPath + "/" + filename;
 
 			Ref<Asset> asset = T::Create(std::forward<Args>(args)...);
-			SaveAsset(asset, filePath);
+			ExportAsset(asset, filePath);
+			RegisterAssetCallback(asset);
 
 			return asset;
 		}
@@ -60,7 +64,7 @@ namespace Chozo {
     private:
 		void ProcessDirectory(const fs::path& directoryPath);
 		void ReloadAssets();
-		void WriteRegistryToFile();
+		void WriteRegistryToFile() const;
 
 		AssetMetadata& GetMetadataInternal(AssetHandle handle);
     private:

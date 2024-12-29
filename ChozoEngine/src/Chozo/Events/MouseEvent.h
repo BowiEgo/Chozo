@@ -4,16 +4,16 @@
 #include "Chozo/Core/KeyCodes.h"
 
 namespace Chozo {
-    class CHOZO_API MouseMovedEvent : public Event
+    class MouseMovedEvent final : public Event
     {
     public:
         MouseMovedEvent(float x, float y)
             : m_MouseX(x), m_MouseY(y) {}
 
-        inline float GetX() const { return m_MouseX; }
-        inline float GetY() const { return m_MouseY; }
+        [[nodiscard]] float GetX() const { return m_MouseX; }
+        [[nodiscard]] float GetY() const { return m_MouseY; }
 
-        std::string ToString() const override
+        [[nodiscard]] std::string ToString() const override
         {
             std::stringstream ss;
             ss << "MouseMovedEvent: " << m_MouseX << ", " << m_MouseY;
@@ -26,16 +26,16 @@ namespace Chozo {
         float m_MouseX, m_MouseY;
     };
 
-    class CHOZO_API MouseScrolledEvent : public Event
+    class MouseScrolledEvent final : public Event
     {
     public:
-        MouseScrolledEvent(float xOffset, float yOffset)
+        MouseScrolledEvent(const float xOffset, const float yOffset)
             : m_XOffset(xOffset), m_YOffset(yOffset) {}
 
-        inline float GetXOffset() const { return m_XOffset; }
-        inline float GetYOffset() const { return m_YOffset; }
+        [[nodiscard]] float GetXOffset() const { return m_XOffset; }
+        [[nodiscard]] float GetYOffset() const { return m_YOffset; }
 
-        std::string ToString() const override
+        [[nodiscard]] std::string ToString() const override
         {
             std::stringstream ss;
             ss << "MouseScrolledEvent: " << m_XOffset << ", " << m_YOffset;
@@ -48,26 +48,26 @@ namespace Chozo {
         float m_XOffset, m_YOffset;
     };
 
-    class CHOZO_API MouseButtonEvent : public Event
+    class MouseButtonEvent : public Event
     {
     public:
-        inline MouseButton GetMouseButton() const { return m_Button; }
+        [[nodiscard]] MouseButton GetMouseButton() const { return m_Button; }
 
         EVENT_CLASS_CATEGORY(EventCategory_Mouse | EventCategory_Input)
     protected:
-        MouseButtonEvent(MouseButton button)
+        explicit MouseButtonEvent(const MouseButton button)
             : m_Button(button) {}
         
         MouseButton m_Button;
     };
 
-    class CHOZO_API MouseButtonPressedEvent : public MouseButtonEvent
+    class MouseButtonPressedEvent final : public MouseButtonEvent
     {
     public:
-        MouseButtonPressedEvent(MouseButton button)
+        explicit MouseButtonPressedEvent(const MouseButton button)
             : MouseButtonEvent(button) {}
         
-        std::string ToString() const override
+        [[nodiscard]] std::string ToString() const override
         {
             std::stringstream ss;
             ss << "MouseButtonPressedEvent: " << m_Button;
@@ -77,13 +77,13 @@ namespace Chozo {
         EVENT_CLASS_TYPE(MouseButtonPressed)
     };
 
-    class CHOZO_API MouseButtonReleasedEvent : public MouseButtonEvent
+    class MouseButtonReleasedEvent final : public MouseButtonEvent
     {
     public:
-        MouseButtonReleasedEvent(MouseButton button)
+        explicit MouseButtonReleasedEvent(MouseButton button)
             : MouseButtonEvent(button) {}
         
-        std::string ToString() const override
+        [[nodiscard]] std::string ToString() const override
         {
             std::stringstream ss;
             ss << "MouseButtonReleasedEvent: " << m_Button;

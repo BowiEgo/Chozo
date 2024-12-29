@@ -1,88 +1,88 @@
 #include "Texture.h"
 
-#include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLTexture.h"
+#include "RenderCommand.h"
+#include "Chozo/Renderer/Backend/OpenGL/OpenGLTexture.h"
 
 namespace Chozo
 {
 
 	//==============================================================================
-	/// Texture2D
+	// Texture2D
     TextureType Texture2D::s_Type = TextureType::Texture2D;
 
     Ref<Texture2D> Texture2D::Create(const Texture2DSpecification &spec)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLTexture2D>::Create(spec);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLTexture2D>::Create(spec);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 
     Ref<Texture2D> Texture2D::Create(const Ref<Texture2D> other)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLTexture2D>::Create(other);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLTexture2D>::Create(other);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 
     Ref<Texture2D> Texture2D::Create(const std::string &path, const Texture2DSpecification& spec)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLTexture2D>::Create(path, spec);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLTexture2D>::Create(path, spec);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 
     Ref<Texture2D> Texture2D::Create(const RendererID &id, const Texture2DSpecification &spec)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLTexture2D>::Create(id, spec);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLTexture2D>::Create(id, spec);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 
-    Ref<Texture2D> Texture2D::Create(Buffer imageBuffer, const Texture2DSpecification &spec)
+    Ref<Texture2D> Texture2D::Create(const Buffer& imageBuffer, const Texture2DSpecification &spec)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLTexture2D>::Create(imageBuffer, spec);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLTexture2D>::Create(imageBuffer, spec);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 
 	//==============================================================================
-	/// TextureCube
+	// TextureCube
     TextureType TextureCube::s_Type = TextureType::TextureCube;
 
     Ref<TextureCube> TextureCube::Create(const TextureCubeSpecification& spec)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLTextureCube>::Create(spec);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLTextureCube>::Create(spec);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 }

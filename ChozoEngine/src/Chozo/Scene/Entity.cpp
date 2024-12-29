@@ -7,6 +7,23 @@ namespace Chozo {
     {
     }
 
+    glm::mat4 Entity::GetAbsoluteTransform() const
+    {
+        auto result = Transform();
+        if (const auto parent = GetParent())
+            result = parent.GetAbsoluteTransform() * result;
+
+        return result;
+    }
+
+    glm::mat4 Entity::GetParentTransform() const
+    {
+        if (const auto parent = GetParent())
+            return parent.GetAbsoluteTransform();
+
+        return {1.0};
+    }
+
     void Entity::SetParent(Entity parent)
     {
         Entity currrentParent = GetParent();
@@ -29,15 +46,34 @@ namespace Chozo {
     
     bool Entity::RemoveChild(Entity child)
     {
-        UUID childID = child.GetUUID();
+        const UUID childID = child.GetUUID();
         auto& children = Children();
-        auto it = std::find(children.begin(), children.end(), childID);
-        if (it != children.end())
+        if (const auto it = std::find(children.begin(), children.end(), childID); it != children.end())
         {
             children.erase(it);
             return true;
         }
 
         return false;
+    }
+
+    void Entity::Destroy()
+    {
+        if (m_EntityHandle == entt::null)
+            return;
+
+        auto& children = Children();
+        for (const auto& childID : children)
+        {
+            auto child = m_Scene->GetEntityWithUUID(childID);
+            child.Destroy();
+        }
+
+        if (Entity currentParent = GetParent())
+            currentParent.RemoveChild(*this);
+
+        m_Scene->m_EntityIDMap.erase(GetUUID());
+        m_Scene->m_Registry.destroy(*this);
+        m_EntityHandle = entt::null;
     }
 }

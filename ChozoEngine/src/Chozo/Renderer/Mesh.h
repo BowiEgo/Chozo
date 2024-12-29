@@ -156,6 +156,8 @@ namespace Chozo
     class Mesh : public RefCounted
     {
     public:
+    	using OnChangeFunc = std::function<void()>;
+
         Mesh();
         Mesh(Ref<MeshSource>& meshSource)
             : m_MeshSource(meshSource)
@@ -166,23 +168,33 @@ namespace Chozo
 
         void Invalidate();
 
-        inline Ref<VertexArray> GetVertexArray() const { return m_RenderSource->VAO; }
-        inline Ref<VertexBuffer> GetVertexBuffer() const { return m_RenderSource->VBO; }
-        inline Ref<IndexBuffer> GetIndexBuffer() const { return m_RenderSource->IBO; }
+        Ref<VertexArray> GetVertexArray() const { return m_RenderSource->VAO; }
+        Ref<VertexBuffer> GetVertexBuffer() const { return m_RenderSource->VBO; }
+        Ref<IndexBuffer> GetIndexBuffer() const { return m_RenderSource->IBO; }
 
-        inline Ref<MeshSource> GetMeshSource() const { return m_MeshSource; }
+        Ref<MeshSource> GetMeshSource() const { return m_MeshSource; }
 
-        inline void SetMaterial(uint32_t submeshIndex, AssetHandle handle)
+        void SetMaterial(uint32_t submeshIndex, const AssetHandle handle)
         {
             m_MeshSource->GetSubmeshes()[submeshIndex].MaterialIndex = m_Materials->SetMaterial(handle);
         }
-        inline Ref<MaterialTable> GetMaterials() { return m_Materials; }
+        Ref<MaterialTable> GetMaterials() { return m_Materials; }
 
         operator bool() { return m_MeshSource->GetBuffer()->IndexCount != 0; }
+
+    	void RegisterOnChange(const OnChangeFunc &callback) { m_OnChangeCbs.push_back(callback); }
+    	void NotifyChange() const {
+        	for (const auto& callback : m_OnChangeCbs)
+        	{
+        		if (callback)
+        			callback();
+        	}
+        }
     protected:
         Ref<MeshSource> m_MeshSource;
         Ref<RenderSource> m_RenderSource;
         Ref<MaterialTable> m_Materials;
+    	std::vector<OnChangeFunc> m_OnChangeCbs;
     };
 
     class DynamicMesh : public Mesh

@@ -2,10 +2,12 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <utility>
+
 namespace Chozo {
 
-    AssetRegistrySerializer::AssetRegistrySerializer(const AssetRegistry& context)
-        : m_AssetRegistry(context)
+    AssetRegistrySerializer::AssetRegistrySerializer(AssetRegistry context)
+        : m_AssetRegistry(std::move(context))
     {
     }
 
@@ -26,6 +28,8 @@ namespace Chozo {
                     out << YAML::Key << "FilePath" << YAML::Value << metadata.FilePath;
                     out << YAML::Key << "FileSize" << YAML::Value << metadata.FileSize;
                     out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(metadata.Type);
+                    out << YAML::Key << "CreatedAt" << YAML::Value << metadata.CreatedAt;
+                    out << YAML::Key << "ModifiedAt" << YAML::Value << metadata.ModifiedAt;
                     out << YAML::EndMap;
                 }
             }
@@ -98,6 +102,9 @@ namespace Chozo {
                 metadata.Type = Utils::StringToAssetType(asset["Type"].as<std::string>());
                 metadata.FilePath = asset["FilePath"].as<std::string>();
                 metadata.FileSize = asset["FileSize"].as<uint64_t>();
+                metadata.CreatedAt = asset["CreatedAt"].as<uint64_t>();
+                metadata.ModifiedAt = asset["ModifiedAt"].as<uint64_t>();
+                metadata.LastModifiedAt = metadata.ModifiedAt;
                 m_AssetRegistry[metadata.Handle] = metadata;
             }
         }

@@ -392,7 +392,7 @@ namespace Chozo::UI {
 	}
 
 	//=========================================================================================
-	/// Cursor
+	// Cursor
 	static void ShiftCursorX(float distance)
 	{
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + distance);
@@ -410,7 +410,7 @@ namespace Chozo::UI {
 	}
 
     //=========================================================================================
-	/// Rectangle
+	// Rectangle
 	inline ImRect GetItemRect()
 	{
 		return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
@@ -442,7 +442,7 @@ namespace Chozo::UI {
 	}
 
     //=========================================================================================
-	/// Button Image
+	// Button Image
 	inline void DrawButtonImage(const Ref<Texture2D>& image, ImU32 tint, ImVec2 rectMin, ImVec2 rectMax, ImVec2 uv0, ImVec2 uv1)
 	{
 		auto* drawList = ImGui::GetWindowDrawList();
@@ -520,7 +520,7 @@ namespace Chozo::UI {
 	}
 
 	//=========================================================================================
-	/// IconButton
+	// IconButton
 	static bool IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32 bgPressed)
 	{
 		UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 0.0f));
@@ -534,7 +534,7 @@ namespace Chozo::UI {
 	}
 
 	//=========================================================================================
-	/// FileButton
+	// FileButton
 	static void FileButton(std::string* filePath)
 	{
 		ImGui::Button("...", ImVec2(40.0f, 0.0f));
@@ -553,7 +553,7 @@ namespace Chozo::UI {
 		}
 	}
 	//=========================================================================================
-	/// DragAndDrop
+	// DragAndDrop
 	static void BeginDragAndDrop(std::function<void(AssetHandle handle)>&& func)
 	{
 		if (ImGui::BeginDragDropTarget())

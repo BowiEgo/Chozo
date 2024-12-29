@@ -24,7 +24,7 @@ namespace Chozo {
         UpdateView();
     }
 
-    void EditorCamera::OnUpdate(Timestep ts)
+    void EditorCamera::OnUpdate(TimeStep ts)
     {
         if (Input::IsKeyPressed(Key::LeftAlt))
         {
@@ -49,10 +49,9 @@ namespace Chozo {
         dispatcher.Dispatch<MouseScrolledEvent>(CZ_BIND_EVENT_FN(EditorCamera::OnMouseScroll));
     }
 
-    void EditorCamera::SetViewportSize(float width, float height)
+    void EditorCamera::SetViewportSize(const float width, const float height)
     {
-        bool inValid = width <= 0.0f || height <= 0.0f;
-        if (inValid || (m_ViewportWidth == width && m_ViewportHeight == height))
+        if (bool inValid = width == 0 || height == 0; inValid || (m_ViewportWidth == width && m_ViewportHeight == height))
             return;
 
         m_ViewportWidth = width;

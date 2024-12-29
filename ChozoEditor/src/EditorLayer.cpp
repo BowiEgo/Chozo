@@ -2,7 +2,6 @@
 #include "CameraController.h"
 
 #include <regex>
-#include <glad/glad.h>
 
 #include "Panels/TextureViewerPanel.h"
 
@@ -19,13 +18,12 @@ namespace Chozo {
     std::string ReadFile(const std::string &filepath)
     {
         std::string result;
-        std::ifstream in(filepath, std::ios::in | std::ios::binary);
-        if (in)
+        if (std::ifstream in(filepath, std::ios::in | std::ios::binary); in)
         {
             in.seekg(0, std::ios::end);
             result.resize(in.tellg());
             in.seekg(0, std::ios::beg);
-            in.read(&result[0], result.size());
+            in.read(&result[0], static_cast<std::streamsize>(result.size()));
             in.close();
         }
         else
@@ -58,9 +56,14 @@ namespace Chozo {
         // --------------------
         // Panels
         // --------------------
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        SceneHierarchyPanel::SetContext(m_ActiveScene);
         PropertiesPanel::SetContext(m_ActiveScene);
-        m_EnvironmentPanel.SetContext(m_ActiveScene);
+        EnvironmentPanel::SetContext(m_ActiveScene);
+
+        SceneHierarchyPanel::RegisterOnSelectedChange([this](const Entity& selectedEntity) {
+            if (m_Entity_Selected != selectedEntity)
+                m_Entity_Selected = selectedEntity;
+        });
 
         ThumbnailRenderer::Init();
         ThumbnailManager::Init();
@@ -72,7 +75,7 @@ namespace Chozo {
         ThumbnailManager::Shutdown();
     }
 
-    void EditorLayer::OnUpdate(Timestep ts)
+    void EditorLayer::OnUpdate(TimeStep ts)
     {
         // Resize
         m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
@@ -133,13 +136,21 @@ namespace Chozo {
             if (ImGui::BeginMenu("File"))
             {
                 if (ImGui::MenuItem("New", "Ctrl+N"))
-                    // NewProject();
+                    NewProject();
                 if (ImGui::MenuItem("Open...", "Ctrl+O"))
-                    // OpenProject();
+                    OpenProject();
                 if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S", nullptr))
-                    // SaveProjectAs();
+                    SaveProjectAs();
 
                 if (ImGui::MenuItem("Quit")) Application::Get().Close();
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Renderer"))
+            {
+                if (ImGui::MenuItem("Recompile Shaders"))
+                    Renderer::GetShaderLibrary()->Recompile();
+
                 ImGui::EndMenu();
             }
 
@@ -159,6 +170,8 @@ namespace Chozo {
         // --------------------
         // Settings panel
         // --------------------
+        glm::vec4 &clearColor = Renderer::GetConfig().ClearColor;
+
         ImGui::Begin("Settings");
         ImGui::Text("Renderer stats:");
         ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -170,14 +183,19 @@ namespace Chozo {
         ImGui::Text("Triangles: %d", Renderer::GetStats().GetTotalTrianglesCount());
         ImGui::Text("Vertices: %d", Renderer::GetStats().GetTotalVerticesCount());
         ImGui::Text("ClearColor:"); ImGui::SameLine();
-        ImGui::ColorEdit4("##ClearColor", glm::value_ptr(Renderer::GetConfig().ClearColor));
+        ImGui::ColorEdit4("##ClearColor", glm::value_ptr(clearColor));
+
+        m_ViewportRenderer->SetClearColor(clearColor);
 
         std::string entityName = "Null";
         if (m_Entity_Selected)
             entityName = m_Entity_Selected.GetComponent<TagComponent>().Tag;
-        ImGui::Text("EntityHoverd: %s", entityName.c_str());
+        ImGui::Text("EntitySelected: %s", entityName.c_str());
         ImGui::Separator();
 
+        // --------------------
+        // Preview output
+        // --------------------
         if(ImGui::Button("ShowSkyboxTexture"))
         {
             TextureViewerPanel::Open();
@@ -186,9 +204,9 @@ namespace Chozo {
         }
 
         std::string buttons[4] = {
-            "Position", "Normal", "Depth", "Albedo"
+            "Position", "Normal", "Depth", "BaseColor"
         };
-        for (int i = 0; i < sizeof(buttons) / sizeof(buttons[0]); i++)
+        for (int i = 0; i < std::size(buttons); i++)
         {
             std::string buttonLabel = buttons[i];
             if(ImGui::Button(buttonLabel.c_str()))
@@ -200,7 +218,7 @@ namespace Chozo {
         }
 
         std::string materialButtons[4] = {
-             "Ambient", "Specular", "Metalness", "Roughness"
+             "Ambient", "Specular", "Metallic", "Roughness"
         };
 
         {
@@ -238,7 +256,17 @@ namespace Chozo {
             if(ImGui::Button(buttonLabel.c_str()))
             {
                 TextureViewerPanel::Open();
-                Ref<Texture2D> texture = Renderer::GetBRDFLutTexture();
+                Ref<Texture2D> texture = Renderer::GetBrdfLUT();
+                TextureViewerPanel::SetTexture(texture);
+            }
+        }
+
+        {
+            std::string buttonLabel = "PBR";
+            if(ImGui::Button(buttonLabel.c_str()))
+            {
+                TextureViewerPanel::Open();
+                Ref<Texture2D> texture = m_ViewportRenderer->GetPBRPass()->GetOutput(0);;
                 TextureViewerPanel::SetTexture(texture);
             }
         }
@@ -352,7 +380,8 @@ namespace Chozo {
 
                 // Entity transform
                 auto& tc = selectedEntity.GetComponent<TransformComponent>();
-                glm::mat4 transform = tc.GetTransform();
+                glm::mat4 parentTransform = selectedEntity.GetParentTransform();
+                glm::mat4 absTransform = selectedEntity.GetAbsoluteTransform();
 
                 // Snapping
                 bool snap = Input::IsKeyPressed(CZ_KEY_LEFT_CONTROL);
@@ -364,19 +393,21 @@ namespace Chozo {
                 float snapValues[3] = { snapValue, snapValue, snapValue };
 
                 ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                    ImGuizmo::OPERATION(m_GizmoType), ImGuizmo::LOCAL, glm::value_ptr(transform),
+                    ImGuizmo::OPERATION(m_GizmoType), ImGuizmo::WORLD, glm::value_ptr(absTransform),
                     nullptr, snap ? snapValues : nullptr);
 
                 bool disabled = Input::IsKeyPressed(CZ_KEY_LEFT_ALT);
                 if (ImGuizmo::IsUsing() && !disabled)
                 {
+                    glm::mat4 localTransform = glm::inverse(parentTransform) * absTransform;
                     glm::vec3 translation, rotation, scale;
-                    Math::DecomposeTransform(transform, translation, rotation, scale);
+                    Math::DecomposeTransform(localTransform, translation, rotation, scale);
                     
-                    glm::vec3 deltaRotation = rotation - tc.Rotation;
                     tc.Translation = translation;
-                    tc.Rotation += deltaRotation;
+                    tc.Rotation = rotation;
                     tc.Scale = scale;
+
+                    m_ActiveScene->HandleModified();
                 }
             }
         }
@@ -430,21 +461,21 @@ namespace Chozo {
         dispatcher.Dispatch<MouseButtonReleasedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnMouseButtonReleased));
     }
 
-    Entity EditorLayer::PickEntity(uint32_t mx, uint32_t my)
+    Entity EditorLayer::PickEntity(float mx, float my)
     {
         Entity entity;
 
         mx -= m_ViewportBounds[0].x;
         my -= m_ViewportBounds[0].y;
-        auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
-        auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
+        const auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
+        const auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
         my = viewportHeight - my;
 
-        if (mx >= 0 && my >= 0 && mx < viewportWidth && my < viewportHeight)
+        if (mx > 0 && my > 0 && mx < viewportWidth && my < viewportHeight)
         {
-            int pixelID = m_ViewportRenderer->GetIDPass()->GetTargetFramebuffer()->ReadPixel(1, mx, my);
-            entity = pixelID == -1 || !m_ActiveScene->EntityExists((entt::entity)pixelID)
-                ? Entity() : Entity((entt::entity)pixelID, m_ActiveScene.get());
+            int pixelID = m_ViewportRenderer->GetIDPass()->GetTargetFramebuffer()->ReadPixel(1, static_cast<int>(mx), static_cast<int>(my));
+            entity = pixelID == -1 || !m_ActiveScene->EntityExists(static_cast<entt::entity>(pixelID))
+                ? Entity() : Entity(static_cast<entt::entity>(pixelID), m_ActiveScene.get());
         }
 
         return entity;
@@ -452,9 +483,7 @@ namespace Chozo {
 
     void EditorLayer::OnDragAndDrop(AssetHandle handle)
     {
-        Ref<Asset> asset =  Application::GetAssetManager()->GetAsset(handle);
-
-        switch (asset->GetAssetType())
+        switch (Ref<Asset> asset =  Application::GetAssetManager()->GetAsset(handle); asset->GetAssetType())
         {
             case AssetType::Material:
             {
@@ -475,19 +504,19 @@ namespace Chozo {
                 m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
                 m_ViewportRenderer->SetScene(m_ActiveScene);
                 m_ViewportRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-                m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-                PropertiesPanel::SetContext(m_ActiveScene);
-                m_EnvironmentPanel.SetContext(m_ActiveScene);
                 m_SceneFileName = "path.filename()";
                 m_EditorCamera.Reset();
+                SceneHierarchyPanel::SetContext(m_ActiveScene);
+                PropertiesPanel::SetContext(m_ActiveScene);
+                EnvironmentPanel::SetContext(m_ActiveScene);
                 break;
             }
             case AssetType::MeshSource:
             {
                 auto meshSouce = asset.As<MeshSource>();
-                auto mesh = Ref<Mesh>::Create(meshSouce);
-                Entity rootEntity = m_ActiveScene->InstantiateMesh(mesh);
-                m_Entity_Selected = rootEntity;
+                const auto mesh = Ref<Mesh>::Create(meshSouce);
+                const Entity rootEntity = m_ActiveScene->InstantiateMesh(mesh);
+                m_SceneHierarchyPanel.SetSelectedEntity(rootEntity);
                 break;
             }
             default:
@@ -508,19 +537,19 @@ namespace Chozo {
             case Key::N:
             {
                 if (control)
-                    // NewProject();
+                    NewProject();
                 break;
             }
             case Key::O:
             {
                 if (control)
-                    // OpenProject();
+                    OpenProject();
                 break;
             }
             case Key::S:
             {
                 if (control && shift)
-                    // SaveProjectAs();
+                    SaveProjectAs();
                 break;
             }
 
@@ -553,21 +582,21 @@ namespace Chozo {
         if (e.GetMouseButton() == MouseButton::Left && !Input::IsKeyPressed(Key::LeftAlt) && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && m_ViewportHovered && m_AllowViewportCameraEvents)
         {
             auto [mx, my] = ImGui::GetMousePos();
-            m_Entity_Selected = PickEntity(mx, my);
-            m_SceneHierarchyPanel.SetSelectedEntity(m_Entity_Selected);
+            const auto entity = PickEntity(mx, my);
+            m_SceneHierarchyPanel.SetSelectedEntity(entity);
             return true;
         }
 
         return false;
     }
 
-    std::pair<float, float> EditorLayer::GetMouseViewportSpace()
+    std::pair<float, float> EditorLayer::GetMouseViewportSpace() const
     {
         auto [mx, my] = ImGui::GetMousePos();
         mx -= m_ViewportBounds[0].x;
         my -= m_ViewportBounds[0].y;
-        auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
-		auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
+        const auto viewportWidth = m_ViewportBounds[1].x - m_ViewportBounds[0].x;
+		const auto viewportHeight = m_ViewportBounds[1].y - m_ViewportBounds[0].y;
 
 		return { (mx / viewportWidth) * 2.0f - 1.0f, ((my / viewportHeight) * 2.0f - 1.0f) * -1.0f };
     }
@@ -579,7 +608,7 @@ namespace Chozo {
 
     void EditorLayer::OpenProject()
     {
-        std::string filepath = FileDialogs::OpenFile("Chozo Project (*.chozo)\0*.chozo\0");
+        const std::string filepath = FileDialogs::OpenFile("Chozo Project (*.chozo)\0*.chozo\0");
         OpenProject(filepath);
     }
 

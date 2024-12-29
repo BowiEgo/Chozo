@@ -18,7 +18,7 @@ void ExampleLayer::OnDetach()
 {
 }
 
-void ExampleLayer::OnUpdate(Chozo::Timestep ts)
+void ExampleLayer::OnUpdate(Chozo::TimeStep ts)
 {
 }
 

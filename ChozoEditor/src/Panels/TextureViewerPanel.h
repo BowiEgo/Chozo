@@ -9,15 +9,15 @@ namespace Chozo {
     public:
         TextureViewerPanel();
 
-        static void SetTexture(Ref<Texture2D>& texture);
-        static void SetTexture(Ref<TextureCube>& texture);
+        static void SetTexture(const Ref<Texture2D>& texture);
+        static void SetTexture(const Ref<TextureCube>& texture);
         static inline void Open() { s_Show = true; }
         static inline void Close() { s_Show = false; }
 
         void OnImGuiRender();
     private:
         void OnDragAndDrop();
-        void DrawImage(Ref<Texture2D> texture);
+        void DrawImage(Ref<Texture2D> texture) const;
     private:
         Ref<Pipeline> m_Pipeline;
         Ref<Material> m_Material;

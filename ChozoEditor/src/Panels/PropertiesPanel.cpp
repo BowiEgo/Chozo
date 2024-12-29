@@ -22,7 +22,7 @@ namespace Chozo {
         s_Instance = this;
     }
 
-    PropertiesPanel::PropertiesPanel(const Ref<Scene> context)
+    PropertiesPanel::PropertiesPanel(const Ref<Scene>& context)
     {
         SetContext(context);
     }
@@ -33,10 +33,10 @@ namespace Chozo {
         return it != m_Filter.end();
     }
 
-    void PropertiesPanel::SetContext(const Ref<Scene> context)
+    void PropertiesPanel::SetContext(const Ref<Scene>& context)
     {
         s_Instance->m_Context = context;
-        s_Instance->SetSelectedEntity({});
+        SetSelectedEntity({});
     }
 
     void PropertiesPanel::OnImGuiRender()
@@ -47,7 +47,7 @@ namespace Chozo {
         ImGui::End();
     }
 
-    void PropertiesPanel::SetSelectedEntity(Entity entity, std::vector<PropertyType> filter)
+    void PropertiesPanel::SetSelectedEntity(const Entity& entity, const std::vector<PropertyType> &filter)
     {
         s_Instance->m_SelectionContext = entity;
         s_Instance->m_Filter = filter;
@@ -55,7 +55,7 @@ namespace Chozo {
     }
 
     template<typename T, typename UIFunction>
-    static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
+    static void DrawComponent(const std::string& name, Entity entity, const UIFunction& uiFunction)
     {
         ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_SpanAvailWidth
             | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_FramePadding;
@@ -99,7 +99,7 @@ namespace Chozo {
         }
     }
 
-    void PropertiesPanel::DrawComponents(Entity entity)
+    void PropertiesPanel::DrawComponents(const Entity& entity)
     {
         if (Filtered(PropertyType::Tag))
             DrawTagProperties(m_SelectionContext);
@@ -132,19 +132,18 @@ namespace Chozo {
             DrawMaterialProperties(m_SelectionContext);
     }
 
-    void PropertiesPanel::DrawTagProperties(Entity entity)
+    void PropertiesPanel::DrawTagProperties(Entity entity) const
     {
         if (entity.HasComponent<TagComponent>())
         {
-            auto& tag = entity.GetComponent<TagComponent>().Tag;
+            auto& tc = entity.GetComponent<TagComponent>();
 
-            char buffer[256];
-            memset(buffer, 0, sizeof(buffer));
-            strcpy(buffer, tag.c_str());
+            char buffer[256] = {};
+            strcpy(buffer, tc.Tag.c_str());
 
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
             {
-                tag = std::string(buffer);
+                tc.SetTag(std::string(buffer));
             }
 
             ImGui::SameLine();
@@ -160,27 +159,29 @@ namespace Chozo {
         }
     }
 
-    void PropertiesPanel::DrawTransformProperties(Entity entity)
+    void PropertiesPanel::DrawTransformProperties(const Entity& entity) const
     {
-        DrawComponent<TransformComponent>("Transform", entity, [](auto& compoent)
+        DrawComponent<TransformComponent>("Transform", entity, [](auto& component)
         {
-            DrawColumnValue<glm::vec3>("Translation", compoent.Translation, [&](auto& target) {
-                DrawVec3Control("Translation", compoent.Translation);
+            DrawColumnValue<glm::vec3>("Translation", component.Translation, [&](auto& target) {
+                if (auto translation = component.Translation; DrawVec3Control("Translation", translation))
+                    component.SetTranslation(translation);
             });
 
-            glm::vec3 rotation = glm::degrees(compoent.Rotation);
+            auto rotation = glm::degrees(component.Rotation);
             DrawColumnValue<glm::vec3>("Rotation", rotation, [&](auto& target) {
-                DrawVec3Control("Rotation", rotation, 0.0f, 1.0f);
+                if (DrawVec3Control("Rotation", rotation, 0.0f, 1.0f))
+                    component.SetRotation(glm::radians(rotation));
             });
-            compoent.Rotation = glm::radians(rotation);
 
-            DrawColumnValue<glm::vec3>("Scale", compoent.Scale, [&](auto& target) {
-                DrawVec3Control("Scale", compoent.Scale, 1.0f);
+            DrawColumnValue<glm::vec3>("Scale", component.Scale, [&](auto& target) {
+                if (auto scale = component.Scale; DrawVec3Control("Scale", scale, 1.0f))
+                    component.SetScale(scale);
             });
         });
     }
 
-    void PropertiesPanel::DrawCameraProperties(Entity entity)
+    void PropertiesPanel::DrawCameraProperties(const Entity& entity)
     {
         DrawComponent<CameraComponent>("Camera", entity, [&](auto& compoent)
         {
@@ -262,7 +263,7 @@ namespace Chozo {
         });
     }
 
-    void PropertiesPanel::DrawSpriteProperties(Entity entity)
+    void PropertiesPanel::DrawSpriteProperties(const Entity& entity) const
     {
         DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto& component)
         {
@@ -280,7 +281,7 @@ namespace Chozo {
         });
     }
 
-    void PropertiesPanel::DrawCircleProperties(Entity entity)
+    void PropertiesPanel::DrawCircleProperties(const Entity& entity)
     {
         DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto& component)
         {
@@ -296,13 +297,13 @@ namespace Chozo {
         });
     }
 
-    void PropertiesPanel::DrawMeshProperties(Entity entity)
+    void PropertiesPanel::DrawMeshProperties(const Entity& entity)
     {
-        DrawComponent<MeshComponent>("Mesh", entity, [entity](auto& component)
+        DrawComponent<MeshComponent>("Mesh", entity, [](auto& component)
         {
             // Mesh types
             const char* meshTypeStrings[] = { "Dynamic", "Instanced", "Static" };
-            const char* currentMeshType = meshTypeStrings[(int)component.Type];
+            const char* currentMeshType = meshTypeStrings[static_cast<int>(component.Type)];
             DrawColumnValue<const char*>("Type", currentMeshType, [&](auto& target) {
                 if (ImGui::BeginCombo("##Type", target))
                 {
@@ -326,7 +327,7 @@ namespace Chozo {
         });
     }
 
-    void PropertiesPanel::DrawSkyLightProperties(Entity entity)
+    void PropertiesPanel::DrawSkyLightProperties(const Entity& entity)
     {
         DrawComponent<SkyLightComponent>("SkyLight", entity, [](SkyLightComponent& component)
         {
@@ -336,12 +337,12 @@ namespace Chozo {
             DrawColumnValue<const char*>("SkyLight", currentSkyLightType, [&](auto& target) {
                 if (ImGui::BeginCombo("##SkyLightType", target))
                 {
-                    for (int i = 0; i < 2; i++)
+                    for (auto & skyLightTypeString : skyLightTypeStrings)
                     {
-                        bool isSelected = target == skyLightTypeStrings[i];
-                        if (ImGui::Selectable(skyLightTypeStrings[i], isSelected))
+                        bool isSelected = target == skyLightTypeString;
+                        if (ImGui::Selectable(skyLightTypeString, isSelected))
                         {
-                            target = skyLightTypeStrings[i];
+                            target = skyLightTypeString;
                             bool val = target == "Dynamic";
                             if (component.Dynamic != val)
                             {
@@ -362,7 +363,7 @@ namespace Chozo {
             {
                 const AssetMetadata metadata = Application::GetAssetManager()->GetMetadata(component.Source);
 
-                DrawColumnPath("File", metadata, [&](AssetMetadata sourceMetadata) {
+                DrawColumnPath("File", metadata, [&](const AssetMetadata& sourceMetadata) {
                     if (sourceMetadata.Type == AssetType::Texture)
                     {
                         component.Source = sourceMetadata.Handle;
@@ -423,20 +424,22 @@ namespace Chozo {
         });
     }
 
-    void PropertiesPanel::DrawLightProperties(Entity entity)
+    void PropertiesPanel::DrawLightProperties(const Entity& entity)
     {
         DrawComponent<DirectionalLightComponent>("Light", entity, [](auto& component)
         {
             DrawColumnValue<glm::vec3>("Direction", component.Direction, [&](auto& target) {
-                if (DrawVec3Control("Direction", target, 0.0f, 1.0f))
-                    component.Direction = target;
+                if (auto direction = component.Direction; DrawVec3Control("Direction", direction, 0.0f, 1.0f))
+                    component.SetDirection(direction);
             });
             DrawColumnValue<glm::vec3>("Color", component.Color, [&](auto& target) {
-                ImGui::ColorEdit3("##Color", glm::value_ptr(target));
+                if (auto color = component.Color; ImGui::ColorEdit3("##Color", glm::value_ptr(color)))
+                    component.SetColor(color);
             });
             DrawColumnValue<float>("Intensity", component.Intensity, [&](auto& target) {
-                if (ImGui::SliderFloat("##Intensity", &target, 0.0f, 10.0f))
-                    component.Intensity = target;
+                auto intensity = component.Intensity;
+                if (ImGui::SliderFloat("##Intensity", &intensity, 0.0f, 10.0f))
+                    component.SetIntensity(intensity);
             });
         });
 
@@ -475,13 +478,13 @@ namespace Chozo {
         });
     }
 
-    void PropertiesPanel::DrawGeometryProperties(Entity entity)
+    void PropertiesPanel::DrawGeometryProperties(const Entity& entity)
     {
-        DrawComponent<MeshComponent>("Geometry", entity, [entity](auto& component)
+        DrawComponent<MeshComponent>("Geometry", entity, [](auto& component)
         {
-            if (Geometry* geom = dynamic_cast<Geometry*>(component.MeshInstance.get()))
+            if (auto* geom = dynamic_cast<Geometry*>(component.MeshInstance.get()))
             {
-                if (BoxGeometry* box = dynamic_cast<BoxGeometry*>(geom))
+                if (auto* box = dynamic_cast<BoxGeometry*>(geom))
                 {
                     float width = box->GetWidth();
                     DrawColumnValue<float>("Width", width, [&](auto& target) {
@@ -498,41 +501,41 @@ namespace Chozo {
                         if (ImGui::DragFloat("##Depth", &target, 0.1f, 0.0f, 10.0f))
                             box->SetDepth(target);
                     });
-                    int widthSegments = box->GetWidthSegments();
+                    int widthSegments = static_cast<int>(box->GetWidthSegments());
                     DrawColumnValue<int>("WidthSegments", widthSegments, [&](auto& target) {
                         if (ImGui::DragInt("##WidthSegments", &target, 1, 1, 10))
-                            box->SetWidthSegments((uint32_t&)target);
+                            box->SetWidthSegments(static_cast<uint32_t>(target));
                     });
-                    int heightSegments = box->GetHeightSegments();
+                    int heightSegments = static_cast<int>(box->GetHeightSegments());
                     DrawColumnValue<int>("HeightSegments", heightSegments, [&](auto& target) {
                         if (ImGui::DragInt("##HeightSegments", &target, 1, 1, 10))
-                            box->SetHeightSegments((uint32_t&)target);
+                            box->SetHeightSegments(static_cast<uint32_t>(target));
                     });
-                    int depthSegments = box->GetDepthSegments();
+                    int depthSegments = static_cast<int>(box->GetDepthSegments());
                     DrawColumnValue<int>("DepthSegments", depthSegments, [&](auto& target) {
                         if (ImGui::DragInt("##DepthSegments", &target, 1, 1, 10))
-                            box->SetDepthSegments((uint32_t&)target);
+                            box->SetDepthSegments(static_cast<uint32_t>(target));
                     });
                 }
-                if (SphereGeometry* sphere = dynamic_cast<SphereGeometry*>(geom))
+                if (auto* sphere = dynamic_cast<SphereGeometry*>(geom))
                 {
-                    float m_Radius, m_PhiStart, m_PhiLength, m_ThetaStart, m_ThetaLength;
-                    uint32_t m_WidthSegments, m_HeightSegments;
+                    // float m_Radius, m_PhiStart, m_PhiLength, m_ThetaStart, m_ThetaLength;
+                    // uint32_t m_WidthSegments, m_HeightSegments;
 
                     float radius = sphere->GetRadius();
                     DrawColumnValue<float>("Radius", radius, [&](auto& target) {
                         if (ImGui::DragFloat("##Radius", &target, 0.1f, 0.0f, 10.0f))
                             sphere->SetRadius(target);
                     });
-                    int widthSegments = sphere->GetWidthSegments();
+                    int widthSegments = static_cast<int>(sphere->GetWidthSegments());
                     DrawColumnValue<int>("WidthSegments", widthSegments, [&](auto& target) {
                         if (ImGui::DragInt("##WidthSegments", &target, 1, 1, 64))
-                            sphere->SetWidthSegments((uint32_t&)target);
+                            sphere->SetWidthSegments(static_cast<uint32_t>(target));
                     });
-                    int heightSegments = sphere->GetHeightSegments();
+                    int heightSegments = static_cast<int>(sphere->GetHeightSegments());
                     DrawColumnValue<int>("HeightSegments", heightSegments, [&](auto& target) {
                         if (ImGui::DragInt("##HeightSegments", &target, 1, 1, 32))
-                            sphere->SetHeightSegments((uint32_t&)target);
+                            sphere->SetHeightSegments(static_cast<uint32_t>(target));
                     });
                     float phiStart = sphere->GetPhiStart();
                     DrawColumnValue<float>("PhiStart", phiStart, [&](auto& target) {
@@ -559,11 +562,11 @@ namespace Chozo {
         });
     }
 
-    void PropertiesPanel::DrawMaterialProperties(Entity entity)
+    void PropertiesPanel::DrawMaterialProperties(const Entity& entity)
     {
-        DrawComponent<MeshComponent>("Material", entity, [entity, this](MeshComponent& component)
+        DrawComponent<MeshComponent>("Material", entity, [this](MeshComponent& component)
         {
-            Ref<MaterialTable> materialTalbe = component.MeshInstance->GetMaterials();
+            Ref<MaterialTable> materialTable = component.MeshInstance->GetMaterials();
             AssetHandle handle = component.MaterialHandle;
 
             Ref<Material> material = Application::GetAssetManager()->GetAsset(handle);
@@ -572,11 +575,11 @@ namespace Chozo {
             ImGui::Text("%s", std::to_string(handle).c_str()); ImGui::SameLine();
             if (ImGui::Button("Open Material"))
             {
-                MaterialPanel::SetMaterial(material);
+                MaterialPanel::SetMaterial(handle);
                 MaterialPanel::Open();
             }
 
-            // for (auto [index, handle] : materialTalbe->GetMaterials())
+            // for (auto [index, handle] : materialTable->GetMaterials())
             // {
             //     Ref<Material> material = Application::GetAssetManager()->GetAsset(handle);
             //     auto name = material ? material->GetName() : "Solid";
@@ -601,7 +604,7 @@ namespace Chozo {
         });
     }
 
-    void PropertiesPanel::OnSelectedChange(Entity entity)
+    void PropertiesPanel::OnSelectedChange(const Entity& entity)
     {
         // OpenMaterialPanel(entity);    
     }

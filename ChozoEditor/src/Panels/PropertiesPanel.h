@@ -23,11 +23,11 @@ namespace Chozo {
     {
     public:
         PropertiesPanel();
-        PropertiesPanel(const Ref<Scene> context);
+        explicit PropertiesPanel(const Ref<Scene>& context);
 
         void OnImGuiRender();
 
-        static void SetSelectedEntity(Entity entity, std::vector<PropertyType> filter = {
+        static void SetSelectedEntity(const Entity& entity, const std::vector<PropertyType> &filter = {
             PropertyType::Tag,
             PropertyType::Transform,
             PropertyType::Camera,
@@ -39,32 +39,31 @@ namespace Chozo {
             PropertyType::Geometry,
             PropertyType::Material,
         });
-        inline static Entity GetSelectedEntity() { return s_Instance->m_SelectionContext; }
-		inline static PropertiesPanel& Get() { return *s_Instance; }
-        inline static Ref<Scene> GetContext() { return s_Instance->m_Context; }
-        static void SetContext(const Ref<Scene> context);
+        static Entity GetSelectedEntity() { return s_Instance->m_SelectionContext; }
+		static PropertiesPanel& Get() { return *s_Instance; }
+        static Ref<Scene> GetContext() { return s_Instance->m_Context; }
+        static void SetContext(const Ref<Scene>& context);
     private:
         bool Filtered(PropertyType type);
-        void DrawEntityNode(Entity entity);
-        void DrawComponents(Entity entity);
-        void DrawTagProperties(Entity entity);
-        void DrawTransformProperties(Entity entity);
-        void DrawCameraProperties(Entity entity);
-        void DrawSpriteProperties(Entity entity);
-        void DrawCircleProperties(Entity entity);
-        void DrawMeshProperties(Entity entity);
-        void DrawSkyLightProperties(Entity entity);
-        void DrawLightProperties(Entity entity);
-        void DrawGeometryProperties(Entity entity);
-        void DrawMaterialProperties(Entity entity);
+        void DrawComponents(const Entity& entity);
+        void DrawTagProperties(Entity entity) const;
+        void DrawTransformProperties(const Entity& entity) const;
+        void DrawCameraProperties(const Entity& entity);
+        void DrawSpriteProperties(const Entity& entity) const;
+        void DrawCircleProperties(const Entity& entity);
+        void DrawMeshProperties(const Entity& entity);
+        void DrawSkyLightProperties(const Entity& entity);
+        void DrawLightProperties(const Entity& entity);
+        void DrawGeometryProperties(const Entity& entity);
+        void DrawMaterialProperties(const Entity& entity);
 
-        void OnSelectedChange(Entity entity);
+        void OnSelectedChange(const Entity& entity);
     private:
 		static PropertiesPanel* s_Instance;
 
         Ref<Scene> m_Context;
         Entity m_SelectionContext;
         std::vector<PropertyType> m_Filter;
-        bool m_CreatingEntity;
+        bool m_CreatingEntity{};
     };
 }

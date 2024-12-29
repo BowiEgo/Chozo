@@ -1,13 +1,14 @@
 #include "Material.h"
 
 #include "Renderer.h"
-#include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLMaterial.h"
+#include "RenderCommand.h"
+#include "Chozo/Renderer/Backend/OpenGL/OpenGLMaterial.h"
 
 namespace Chozo {
 
     //==============================================================================
-	///  Material
+	// Material
+
     Ref<Material> Material::Create(const std::string &name)
     {
         Ref<Shader> shader;
@@ -15,48 +16,47 @@ namespace Chozo {
             shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Basic");
         if (name == "Solid")
             shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Solid");
-        else if (name == "PBR")
+        else if (name == "Lit")
             shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Geometry");
         else
             CZ_CORE_ASSERT(false, "Unknown Material!");
 
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLMaterial>::Create(shader, name);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLMaterial>::Create(shader, name);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 
-    Ref<Material> Material::Create(Ref<Shader> shader, const std::string &name)
+    Ref<Material> Material::Create(const Ref<Shader>& shader, const std::string &name)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLMaterial>::Create(shader, name);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLMaterial>::Create(shader, name);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 
     Ref<Material> Material::Copy(const Ref<Material> &other, const std::string &name)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLMaterial>::Create(other, name);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLMaterial>::Create(other, name);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 
     //==============================================================================
-    ///  MaterialTable
-
+    // MaterialTable
     MaterialTable::MaterialTable(uint32_t materialCount)
         : m_MaterialCount(materialCount)
     {
@@ -82,7 +82,7 @@ namespace Chozo {
         return SetMaterial(m_MaterialCount, handle);
     }
 
-    uint32_t MaterialTable::SetMaterial(uint32_t index, AssetHandle handle)
+    uint32_t MaterialTable::SetMaterial(const uint32_t index, const AssetHandle handle)
     {
         m_Materials[index] = handle;
         if (index >= m_MaterialCount)
@@ -91,7 +91,7 @@ namespace Chozo {
         return index;
     }
 
-    inline void MaterialTable::RemoveMaterial(uint32_t index)
+    inline void MaterialTable::RemoveMaterial(const uint32_t index)
     {
         m_Materials.erase(index);
         if (!m_Materials.empty())

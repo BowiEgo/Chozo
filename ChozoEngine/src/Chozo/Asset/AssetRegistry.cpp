@@ -26,4 +26,11 @@ namespace Chozo {
 
         return Count();
     }
+
+    void AssetRegistry::Clear()
+	{
+    	std::scoped_lock<std::mutex> lock(s_AssetRegistryMutex);
+    	
+		m_AssetRegistry.clear();
+    }
 }

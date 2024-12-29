@@ -3,14 +3,11 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
 
-#include "Chozo/Events/ApplicationEvent.h"
-#include "Chozo/Events/MouseEvent.h"
-#include "Chozo/Events/KeyEvent.h"
-#include "FmtFormatter.h"
+#include "FmtFormatter.h" // NOLINT
 
 namespace Chozo
 {
-    class CHOZO_API Log
+    class Log
     {
     public:
         enum class Type : uint8_t
@@ -32,8 +29,8 @@ namespace Chozo
         template<typename... Args>
 		static void PrintMessage(Log::Type type, Log::Level level, std::string_view tag, Args&&... args);
 
-        inline static std::shared_ptr<spdlog::logger> &GetCoreLogger() { return s_CoreLogger; }
-        inline static std::shared_ptr<spdlog::logger> &GetClientLogger() { return s_ClientLogger; }
+        static std::shared_ptr<spdlog::logger> &GetCoreLogger() { return s_CoreLogger; }
+        static std::shared_ptr<spdlog::logger> &GetClientLogger() { return s_ClientLogger; }
     private:
         static std::shared_ptr<spdlog::logger> s_CoreLogger;
         static std::shared_ptr<spdlog::logger> s_ClientLogger;

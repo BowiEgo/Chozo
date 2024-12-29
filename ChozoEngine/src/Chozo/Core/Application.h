@@ -15,10 +15,10 @@
 
 namespace Chozo
 {
-    class CHOZO_API Application
+    class Application
     {
     public:
-        Application(const std::string& name);
+        explicit Application(const std::string& name);
         virtual ~Application();
 
         void Run();
@@ -29,12 +29,12 @@ namespace Chozo
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* overlay);
 
-        inline Window& GetWindow() { return *m_Window; }
-        inline Ref<Pool>& GetPool() { return m_Pool; }
-        inline ImGuiLayer& GetImGuiLayer() { return *m_ImGuiLayer; }
-        inline static Application& Get() { return *s_Instance; }
+        Window& GetWindow() const { return *m_Window; }
+        Ref<Pool>& GetPool() { return m_Pool; }
+        ImGuiLayer& GetImGuiLayer() const { return *m_ImGuiLayer; }
+        static Application& Get() { return *s_Instance; }
 
-        static inline Ref<EditorAssetManager> GetAssetManager() { return s_Instance->m_AssetManager; }
+        static Ref<EditorAssetManager> GetAssetManager() { return s_Instance->m_AssetManager; }
     private:
         bool OnWindowClose(WindowCloseEvent& e);
     private:
@@ -43,7 +43,7 @@ namespace Chozo
         ImGuiLayer* m_ImGuiLayer;
         bool m_Running = true;
         LayerStack m_LayerStack;
-        Timestep m_Timestep;
+        TimeStep m_TimeStep;
         float m_LastFrameTime = 0.0f;
     private:
         static Application* s_Instance;

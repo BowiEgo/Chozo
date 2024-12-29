@@ -225,7 +225,7 @@ namespace Chozo {
     }
 
     //==============================================================================
-	/// SceneSerializer
+	// SceneSerializer
     static void SerializeEntity(YAML::Emitter& out, Entity entity)
     {
         CZ_CORE_ASSERT(entity.HasComponent<IDComponent>(), "");
@@ -325,16 +325,16 @@ namespace Chozo {
             out << YAML::Key << "MeshComponent";
             out << YAML::BeginMap;
 
-            MeshComponent& mc = entity.GetComponent<MeshComponent>();
-            out << YAML::Key << "Type" << YAML::Value << (int)mc.Type;
+            auto& mc = entity.GetComponent<MeshComponent>();
+            out << YAML::Key << "Type" << YAML::Value << static_cast<int>(mc.Type);
 
             auto mesh = mc.MeshInstance;
             auto meshSrc = mc.MeshInstance->GetMeshSource();
             out << YAML::Key << "Geometry" << YAML::Value;
-            if (BoxGeometry* box = dynamic_cast<BoxGeometry*>(mesh.get()))
+            if (const auto* box = dynamic_cast<BoxGeometry*>(mesh.get()))
             {
                 out << YAML::BeginMap;
-                out << YAML::Key << "Type" << YAML::Value << int(GeometryType::Box);
+                out << YAML::Key << "Type" << YAML::Value << static_cast<int>(GeometryType::Box);
                 out << YAML::Key << "Width" << YAML::Value << box->GetWidth();
                 out << YAML::Key << "Height" << YAML::Value << box->GetHeight();
                 out << YAML::Key << "Depth" << YAML::Value << box->GetDepth();
@@ -343,10 +343,10 @@ namespace Chozo {
                 out << YAML::Key << "DepthSegments" << YAML::Value << box->GetDepthSegments();
                 out << YAML::EndMap;
             }
-            if (SphereGeometry* sphere = dynamic_cast<SphereGeometry*>(mesh.get()))
+            if (const auto* sphere = dynamic_cast<SphereGeometry*>(mesh.get()))
             {
                 out << YAML::BeginMap;
-                out << YAML::Key << "Type" << YAML::Value << int(GeometryType::Sphere);
+                out << YAML::Key << "Type" << YAML::Value << static_cast<int>(GeometryType::Sphere);
                 out << YAML::Key << "Radius" << YAML::Value << sphere->GetRadius();
                 out << YAML::Key << "PhiLength" << YAML::Value << sphere->GetPhiLength();
                 out << YAML::Key << "PhiStart" << YAML::Value << sphere->GetPhiStart();
@@ -370,10 +370,10 @@ namespace Chozo {
             out << YAML::Key << "DirectionalLightComponent";
             out << YAML::BeginMap;
 
-            auto& lc = entity.GetComponent<DirectionalLightComponent>();
-            out << YAML::Key << "Direction" << YAML::Value << lc.Direction;
-            out << YAML::Key << "Color" << YAML::Value << lc.Color;
-            out << YAML::Key << "Intensity" << YAML::Value << lc.Intensity;
+            const auto& dc = entity.GetComponent<DirectionalLightComponent>();
+            out << YAML::Key << "Direction" << YAML::Value << dc.Direction;
+            out << YAML::Key << "Color" << YAML::Value << dc.Color;
+            out << YAML::Key << "Intensity" << YAML::Value << dc.Intensity;
 
             out << YAML::EndMap;
         }
@@ -441,7 +441,7 @@ namespace Chozo {
         return scene;
     }
 
-    std::string SceneSerializer::SerializeToYAML(Ref<Scene> scene) const
+    std::string SceneSerializer::SerializeToYAML(Ref<Scene> scene)
     {
         YAML::Emitter out;
         out << YAML::BeginMap;
@@ -458,16 +458,16 @@ namespace Chozo {
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
-		return std::string(out.c_str());
+		return {out.c_str()};
     }
 
-    Ref<Scene> SceneSerializer::DeserializeFromYAML(const std::string &yamlString) const
+    Ref<Scene> SceneSerializer::DeserializeFromYAML(const std::string &yamlString)
     {
         YAML::Node root = YAML::Load(yamlString);
 		YAML::Node sceneNode = root["Scene"];
         YAML::Node entitiesNode = root["Entities"];
 
-        std::string sceneName = sceneNode.as<std::string>();
+        auto sceneName = sceneNode.as<std::string>();
         CZ_CORE_TRACE("Deserializing scene {0}", sceneName);
 
         auto scene = Ref<Scene>::Create();
@@ -476,7 +476,7 @@ namespace Chozo {
         {
             for (auto entity : entitiesNode)
             {
-                uint64_t uuid = entity["Entity"].as<uint64_t>();
+                auto uuid = entity["Entity"].as<uint64_t>();
 
                 std::string name;
                 auto tagComponent = entity["TagComponent"];
@@ -544,15 +544,13 @@ namespace Chozo {
                     comp.Fade = circleRendererComponent["Fade"].as<float>();
                 }
 
-                auto meshComponent = entity["MeshComponent"];
-                Ref<Geometry> geometry;
-                if (meshComponent)
+                if (auto meshComponent = entity["MeshComponent"])
                 {
+                    Ref<Geometry> geometry;
                     auto geometryNode = meshComponent["Geometry"];
-                    auto type = geometryNode["Type"].as<int>();
-                    auto geomType = GeometryType(geometryNode["Type"].as<int>());
+                    // auto type = geometryNode["Type"].as<int>();
 
-                    switch (geomType) {
+                    switch (GeometryType(geometryNode["Type"].as<int>())) {
                         case GeometryType::Box:
                             geometry = Geometry::Create<BoxGeometry>(
                                 geometryNode["Width"].as<float>(),
@@ -578,15 +576,14 @@ namespace Chozo {
                             break;
                     }
 
-                    auto meshType = MeshType(meshComponent["Type"].as<int>());
+                    // auto meshType = MeshType(meshComponent["Type"].as<int>());
                     auto materialNode = meshComponent["Material"];
                     auto materialHandle = materialNode["Handle"].as<uint64_t>();
 
-                    auto& mc = deserializedEntity.AddComponent<MeshComponent>(geometry, 0, materialHandle);
+                    deserializedEntity.AddComponent<MeshComponent>(geometry, 0, materialHandle);
                 }
-            
-                auto dirLightComponent = entity["DirectionalLightComponent"];
-                if (dirLightComponent)
+
+                if (auto dirLightComponent = entity["DirectionalLightComponent"])
                 {
                     auto& comp = deserializedEntity.AddComponent<DirectionalLightComponent>();
                     comp.Direction = dirLightComponent["Direction"].as<glm::vec3>();
@@ -594,16 +591,14 @@ namespace Chozo {
                     comp.Intensity = dirLightComponent["Intensity"].as<float>();
                 }
 
-                auto pointLightComponent = entity["PointLightComponent"];
-                if (pointLightComponent)
+                if (auto pointLightComponent = entity["PointLightComponent"])
                 {
                     auto& comp = deserializedEntity.AddComponent<PointLightComponent>();
                     comp.Color = pointLightComponent["Color"].as<glm::vec3>();
                     comp.Intensity = pointLightComponent["Intensity"].as<float>();
                 }
 
-                auto spotLightComponent = entity["SpotLightComponent"];
-                if (spotLightComponent)
+                if (auto spotLightComponent = entity["SpotLightComponent"])
                 {
                     auto& comp = deserializedEntity.AddComponent<SpotLightComponent>();
                     comp.Intensity = spotLightComponent["Intensity"].as<float>();
@@ -619,16 +614,16 @@ namespace Chozo {
     }
 
     //==============================================================================
-	/// TextureSerializer
+	// TextureSerializer
     uint64_t TextureSerializer::Serialize(FileStreamWriter& stream, const AssetMetadata& metadata, Ref<Asset>& asset) const
     {
 		uint64_t start = 0;
 
-        TextureFileMetadata textureMetada;
+        TextureFileMetadata textureMetada{};
         Ref<Texture2D> texture = asset.As<Texture2D>();
 
         // Leave space for Metadata
-		uint64_t metadataAbsolutePosition = stream.GetStreamPosition();
+		const uint64_t metadataAbsolutePosition = stream.GetStreamPosition();
 		stream.WriteZero(sizeof(TextureFileMetadata));
 
         // Write buffer
@@ -649,19 +644,19 @@ namespace Chozo {
         textureMetada.WrapS = (uint16_t)texture->GetSpecification().WrapS;
         textureMetada.WrapT = (uint16_t)texture->GetSpecification().WrapT;
 
-		uint64_t endOfStream = stream.GetStreamPosition();
+		const uint64_t endOfStream = stream.GetStreamPosition();
 		stream.SetStreamPosition(metadataAbsolutePosition);
         stream.WriteRaw(textureMetada);
 		stream.SetStreamPosition(endOfStream);
 
-        uint64_t size = endOfStream - start;
+        const uint64_t size = endOfStream - start;
 
         return size;
     }
 
     Ref<Asset> TextureSerializer::Deserialize(FileStreamReader& stream, AssetMetadata& metadata) const
     {
-        TextureFileMetadata textureMetada;
+        TextureFileMetadata textureMetada{};
 
         // Read textureFile metadata
         stream.ReadRaw<TextureFileMetadata>(textureMetada);
@@ -688,7 +683,7 @@ namespace Chozo {
     }
 
     //==============================================================================
-	/// MaterialSerializer
+	// MaterialSerializer
     uint64_t MaterialSerializer::Serialize(FileStreamWriter& stream, const AssetMetadata &metadata, Ref<Asset> &asset) const
     {
         uint64_t start = 0;
@@ -722,7 +717,7 @@ namespace Chozo {
         return material;
     }
 
-    std::string MaterialSerializer::SerializeToYAML(Ref<Material> material) const
+    std::string MaterialSerializer::SerializeToYAML(Ref<Material> material)
     {
         YAML::Emitter out;
 		out << YAML::BeginMap; // Material
@@ -752,21 +747,21 @@ namespace Chozo {
         }
 
 		out << YAML::EndMap; // Material
-		return std::string(out.c_str());
+		return {out.c_str()};
     }
 
-    Ref<Material> MaterialSerializer::DeserializeFromYAML(const std::string &yamlString) const
+    Ref<Material> MaterialSerializer::DeserializeFromYAML(const std::string &yamlString)
     {
         YAML::Node root = YAML::Load(yamlString);
 		YAML::Node materialNode = root["Material"];
 		YAML::Node texturesNode = root["Textures"];
 
-        std::string shaderName = materialNode["ShaderName"].as<std::string>();
+        auto shaderName = materialNode["ShaderName"].as<std::string>();
         Ref<Shader> shader = Renderer::GetShaderLibrary()->Get(shaderName);
         Ref<Material> material = Material::Create(shader, materialNode["Name"].as<std::string>());
         for (const auto& pair : materialNode)
         {
-            std::string key = pair.first.as<std::string>();
+            auto key = pair.first.as<std::string>();
             if (key == "Name" || key == "ShaderName")
                 continue;
 
@@ -805,7 +800,7 @@ namespace Chozo {
 
         for (const auto& pair : texturesNode)
         {
-            std::string key = pair.first.as<std::string>();
+            auto key = pair.first.as<std::string>();
             AssetHandle handle = pair.second.as<std::uint64_t>();
             material->SetTextureHandle(key, handle);
         }
@@ -814,7 +809,7 @@ namespace Chozo {
     }
 
     //==============================================================================
-	/// MeshSourceSerializer
+	// MeshSourceSerializer
     uint64_t MeshSourceSerializer::Serialize(FileStreamWriter& stream, const AssetMetadata &metadata, Ref<Asset> &asset) const
     {
 		uint64_t start = 0;
@@ -832,18 +827,18 @@ namespace Chozo {
 		uint64_t metadataAbsolutePosition = stream.GetStreamPosition();
 		stream.WriteZero(sizeof(MeshSourceFileMetadata));
 
-        // Write boudingBox
-        meshSourceMetadata.BoudingBox = meshSource->GetBoundingBox();
+        // Write boundingBox
+        meshSourceMetadata.BoundingBox = meshSource->GetBoundingBox();
 
         // Write nodes
         meshSourceMetadata.NodeArrayOffset = stream.GetStreamPosition() - start;
         stream.WriteArray(meshSource->m_Nodes);
         meshSourceMetadata.NodeArraySize = (stream.GetStreamPosition() - start) - meshSourceMetadata.NodeArrayOffset;
 
-        // Write submeshes
-        meshSourceMetadata.SubmeshArrayOffset = stream.GetStreamPosition() - start;
+        // Write subMeshes
+        meshSourceMetadata.SubMeshArrayOffset = stream.GetStreamPosition() - start;
         stream.WriteArray(meshSource->m_Submeshes);
-        meshSourceMetadata.SubmeshArraySize = (stream.GetStreamPosition() - start) - meshSourceMetadata.SubmeshArrayOffset;
+        meshSourceMetadata.SubMeshArraySize = (stream.GetStreamPosition() - start) - meshSourceMetadata.SubMeshArrayOffset;
 
         // Write vertex buffer
         meshSourceMetadata.VertexBufferOffset = stream.GetStreamPosition() - start;
@@ -855,7 +850,7 @@ namespace Chozo {
         stream.WriteArray(meshSource->m_Buffer.Indexs);
         meshSourceMetadata.IndexBufferSize = (stream.GetStreamPosition() - start) - meshSourceMetadata.IndexBufferOffset;
 
-        // Write materail buffer
+        // Write material buffer
         if (!meshSource->m_Materials.empty())
         {
             fs::path path(metadata.FilePath);
@@ -864,78 +859,78 @@ namespace Chozo {
             std::vector<MeshMaterial> meshMaterials(meshSource->m_Materials.size());
             for (size_t i = 0; i < meshSource->m_Materials.size(); i++)
             {
-                MeshMaterial& material = meshMaterials[i];
+                auto& [Name, ShaderName, BaseColor, Metallic, Roughness, Reflectance, Ambient, AmbientStrength, EnableBaseColorTex, EnableNormalTex, EnableMetallicTex, EnableRoughnessTex, BaseColorTexture, NormalTexture, MetallicTexture, RoughnessTexture] = meshMaterials[i];
                 Ref<Material> meshSourceMaterial = Application::GetAssetManager()->GetAsset(meshSource->m_Materials[i]);
 
-                material.Name = meshSourceMaterial->GetName();
-                material.ShaderName = meshSourceMaterial->GetShader()->GetName();
+                Name = meshSourceMaterial->GetName();
+                ShaderName = meshSourceMaterial->GetShader()->GetName();
 
-                material.Albedo             = Utils::GetVec3(meshSourceMaterial->GetUniforms()["u_Material.Albedo"]);
-                material.Metalness          = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Metalness"]);
-                material.Roughness          = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Roughness"]);
-                material.Ambient            = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Ambient"]);
-                material.AmbientStrength    = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.AmbientStrength"]);
-                material.Specular           = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Specular"]);
+                BaseColor       = Utils::GetVec3(meshSourceMaterial->GetUniforms()["u_Material.BaseColor"]);
+                Metallic        = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Metallic"]);
+                Roughness       = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Roughness"]);
+                Ambient         = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Ambient"]);
+                AmbientStrength = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.AmbientStrength"]);
+                Reflectance     = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Reflectance"]);
 
-                material.EnableAlbedoTex    = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableAlbedoTex"]);
-                material.EnableNormalTex    = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableNormalTex"]);
-                material.EnableMetalnessTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableMetalnessTex"]);
-                material.EnableRoughnessTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableRoughnessTex"]);
+                EnableBaseColorTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableBaseColorTex"]);
+                EnableNormalTex    = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableNormalTex"]);
+                EnableMetallicTex  = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableMetallicTex"]);
+                EnableRoughnessTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableRoughnessTex"]);
 
-                auto albedoTex              = meshSourceMaterial->GetTexture("u_AlbedoTex");
-                auto normalTex              = meshSourceMaterial->GetTexture("u_NormalTex");
-                auto metalnessTex           = meshSourceMaterial->GetTexture("u_MetalnessTex");
-                auto roughnessTex           = meshSourceMaterial->GetTexture("u_RoughnessTex");
+                auto baseColorTex = meshSourceMaterial->GetTexture("u_BaseColorTex");
+                auto normalTex    = meshSourceMaterial->GetTexture("u_NormalTex");
+                auto metallicTex  = meshSourceMaterial->GetTexture("u_MetallicTex");
+                auto roughnessTex = meshSourceMaterial->GetTexture("u_RoughnessTex");
 
-                if (albedoTex)
+                if (baseColorTex)
                 {
-                    bool isMemoryAsset = Application::GetAssetManager()->IsMemoryAsset(albedoTex->Handle);
-                    if (isMemoryAsset)
+                    if (Application::GetAssetManager()->IsMemoryAsset(baseColorTex->Handle))
                     {
-                        auto path = filepath.parent_path() / albedoTex->GetSpecification().DebugName;
-                        Application::GetAssetManager()->SaveAsset(albedoTex, path);
+                        auto texAsset = baseColorTex.As<Asset>();
+                        auto texPath = filepath.parent_path() / baseColorTex->GetSpecification().DebugName;
+                        Application::GetAssetManager()->ExportAsset(texAsset, path);
                     }
-                    material.AlbedoTexture = albedoTex->Handle;
+                    BaseColorTexture = baseColorTex->Handle;
 
                 }
 
                 if (normalTex)
                 {
-                    bool isMemoryAsset = Application::GetAssetManager()->IsMemoryAsset(normalTex->Handle);
-                    if (isMemoryAsset)
+                    if (Application::GetAssetManager()->IsMemoryAsset(normalTex->Handle))
                     {
-                        auto path = filepath.parent_path() / normalTex->GetSpecification().DebugName;
-                        Application::GetAssetManager()->SaveAsset(normalTex, path);
+                        auto texAsset = normalTex.As<Asset>();
+                        auto texPath = filepath.parent_path() / normalTex->GetSpecification().DebugName;
+                        Application::GetAssetManager()->ExportAsset(texAsset, path);
                     }
-                    material.NormalTexture = normalTex->Handle;
+                    NormalTexture = normalTex->Handle;
                 }
 
-                if (metalnessTex)
+                if (metallicTex)
                 {
-                    bool isMemoryAsset = Application::GetAssetManager()->IsMemoryAsset(metalnessTex->Handle);
-                    if (isMemoryAsset)
+                    if (Application::GetAssetManager()->IsMemoryAsset(metallicTex->Handle))
                     {
-                        auto path = filepath.parent_path() / metalnessTex->GetSpecification().DebugName;
-                        Application::GetAssetManager()->SaveAsset(metalnessTex, path);
+                        auto texAsset = metallicTex.As<Asset>();
+                        auto texPath = filepath.parent_path() / metallicTex->GetSpecification().DebugName;
+                        Application::GetAssetManager()->ExportAsset(texAsset, path);
                     }
-                    material.MetalnessTexture = metalnessTex->Handle;
+                    MetallicTexture = metallicTex->Handle;
                 }
 
                 if (roughnessTex)
                 {
-                    bool isMemoryAsset = Application::GetAssetManager()->IsMemoryAsset(roughnessTex->Handle);
-                    if (isMemoryAsset)
+                    if (Application::GetAssetManager()->IsMemoryAsset(roughnessTex->Handle))
                     {
-                        auto path = filepath.parent_path() / roughnessTex->GetSpecification().DebugName;
-                        Application::GetAssetManager()->SaveAsset(roughnessTex, path);
+                        auto texAsset = roughnessTex.As<Asset>();
+                        auto texPath = filepath.parent_path() / roughnessTex->GetSpecification().DebugName;
+                        Application::GetAssetManager()->ExportAsset(texAsset, path);
                     }
-                    material.RoughnessTexture = roughnessTex->Handle;
+                    RoughnessTexture = roughnessTex->Handle;
                 }
             }
 
             meshSourceMetadata.MaterialArrayOffset = stream.GetStreamPosition() - start;
             stream.WriteArray(meshMaterials);
-            meshSourceMetadata.MaterialArraySize = (stream.GetStreamPosition() - start) - meshSourceMetadata.SubmeshArrayOffset;
+            meshSourceMetadata.MaterialArraySize = (stream.GetStreamPosition() - start) - meshSourceMetadata.SubMeshArrayOffset;
         }
         else
         {
@@ -970,14 +965,14 @@ namespace Chozo {
         stream.ReadRaw<MeshSourceFileMetadata>(meshSourceMetadata);
 
         // Read boudingBox
-        meshSource->m_BoundingBox = meshSourceMetadata.BoudingBox;
+        meshSource->m_BoundingBox = meshSourceMetadata.BoundingBox;
 
         // Read nodes
 		stream.SetStreamPosition(meshSourceMetadata.NodeArrayOffset + streamOffset);
         stream.ReadArray(meshSource->m_Nodes);
 
         // Read submeshes
-		stream.SetStreamPosition(meshSourceMetadata.SubmeshArrayOffset + streamOffset);
+		stream.SetStreamPosition(meshSourceMetadata.SubMeshArrayOffset + streamOffset);
         stream.ReadArray(meshSource->m_Submeshes);
 
         // Read vertex buffer
@@ -1002,29 +997,29 @@ namespace Chozo {
             CZ_CORE_ASSERT(shader, meshMaterial.ShaderName, meshMaterial.Name, "Shader called {} of Material {} doesn't exist.");
             Ref<Material> material = Material::Create(shader, meshMaterial.Name);
 
-            material->Set("u_Material.Albedo", meshMaterial.Albedo);
-            material->Set("u_Material.Metalness", meshMaterial.Metalness);
+            material->Set("u_Material.BaseColor", meshMaterial.BaseColor);
+            material->Set("u_Material.Metallic", meshMaterial.Metallic);
             material->Set("u_Material.Roughness", meshMaterial.Roughness);
+            material->Set("u_Material.Reflectance", meshMaterial.Reflectance);
             material->Set("u_Material.Ambient", meshMaterial.Ambient);
             material->Set("u_Material.AmbientStrength", meshMaterial.AmbientStrength);
-            material->Set("u_Material.Specular", meshMaterial.Specular);
 
-            material->Set("u_Material.EnableAlbedoTex", meshMaterial.EnableAlbedoTex);
+            material->Set("u_Material.EnableBaseColorTex", meshMaterial.EnableBaseColorTex);
             material->Set("u_Material.EnableNormalTex", meshMaterial.EnableNormalTex);
-            material->Set("u_Material.EnableMetalnessTex", meshMaterial.EnableMetalnessTex);
+            material->Set("u_Material.EnableMetallicTex", meshMaterial.EnableMetallicTex);
             material->Set("u_Material.EnableRoughnessTex", meshMaterial.EnableRoughnessTex);
 
-            auto albedoTex    = Application::GetAssetManager()->GetAsset(meshMaterial.AlbedoTexture);
+            auto baseColorTex    = Application::GetAssetManager()->GetAsset(meshMaterial.BaseColorTexture);
             auto normalTex    = Application::GetAssetManager()->GetAsset(meshMaterial.NormalTexture);
-            auto metalnessTex = Application::GetAssetManager()->GetAsset(meshMaterial.MetalnessTexture);
+            auto metallicTex = Application::GetAssetManager()->GetAsset(meshMaterial.MetallicTexture);
             auto roughnessTex = Application::GetAssetManager()->GetAsset(meshMaterial.RoughnessTexture);
 
-            if (albedoTex)
-                material->Set("u_AlbedoTex", albedoTex.As<Texture2D>());
+            if (baseColorTex)
+                material->Set("u_BaseColorTex", baseColorTex.As<Texture2D>());
             if (normalTex)
                 material->Set("u_NormalTex", normalTex.As<Texture2D>());
-            if (metalnessTex)
-                material->Set("u_MetalnessTex", metalnessTex.As<Texture2D>());
+            if (metallicTex)
+                material->Set("u_MetallicTex", metallicTex.As<Texture2D>());
             if (roughnessTex)
                 material->Set("u_RoughnessTex", roughnessTex.As<Texture2D>());
 
@@ -1035,13 +1030,13 @@ namespace Chozo {
         return meshSource;
     }
 
-    std::string MeshSourceSerializer::SerializeToYAML(Ref<MeshSource> meshSource) const
+    std::string MeshSourceSerializer::SerializeToYAML(const Ref<MeshSource>& meshSource)
     {
-        return std::string();
+        return {};
     }
 
-    Ref<MeshSource> MeshSourceSerializer::DeserializeFromYAML(const std::string &yamlString) const
+    Ref<MeshSource> MeshSourceSerializer::DeserializeFromYAML(const std::string &yamlString)
     {
-        return Ref<MeshSource>();
+        return {};
     }
 }

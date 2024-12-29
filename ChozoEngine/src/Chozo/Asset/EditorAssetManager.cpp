@@ -7,8 +7,6 @@
 #include "Chozo/Utilities/StringUtils.h"
 #include "Chozo/Project/Project.h"
 
-#include "Chozo/Renderer/Texture.h"
-
 namespace Chozo {
 
 	static AssetMetadata s_NullMetadata;
@@ -18,11 +16,9 @@ namespace Chozo {
         AssetImporter::Init();
     }
 
-    EditorAssetManager::~EditorAssetManager()
-    {
-    }
+    EditorAssetManager::~EditorAssetManager() = default;
 
-    Ref<Asset> EditorAssetManager::GetAsset(AssetHandle assetHandle)
+    Ref<Asset> EditorAssetManager::GetAsset(const AssetHandle assetHandle)
     {
         if (IsMemoryAsset(assetHandle))
 			return m_MemoryAssets[assetHandle];
@@ -34,11 +30,24 @@ namespace Chozo {
         if (metadata.IsDataLoaded)
             return m_LoadedAssets[assetHandle];
 
-        auto handle = LoadAsset(metadata);
-        if (handle.isValid())
+        if (const auto handle = LoadAsset(metadata); handle.isValid())
             return GetAsset(handle);
-        else
-            return nullptr;
+
+        return nullptr;
+    }
+
+    std::vector<AssetMetadata> EditorAssetManager::GetAssetsModified()
+    {
+        std::vector<AssetMetadata> result;
+        result.reserve(m_AssetRegistry.Count());
+
+        for (const auto& [assetHandle, metadata] : m_AssetRegistry)
+        {
+            if (metadata.IsValid() && !metadata.IsMemoryAsset && metadata.IsModified())
+                result.push_back(metadata);
+        }
+
+        return result;
     }
 
     AssetHandle EditorAssetManager::AddMemoryOnlyAsset(Ref<Asset> asset)
@@ -56,14 +65,14 @@ namespace Chozo {
         return asset->Handle;
     }
 
-    bool EditorAssetManager::ReloadData(AssetHandle handle)
+    bool EditorAssetManager::ReloadData(AssetHandle assetHandle)
     {
         return false;
     }
 
-    bool EditorAssetManager::IsAssetHandleValid(AssetHandle handle)
+    bool EditorAssetManager::IsAssetHandleValid(const AssetHandle assetHandle)
     {
-        AssetMetadata metadata = GetMetadata(handle);
+        AssetMetadata metadata = GetMetadata(assetHandle);
         return metadata.IsValid();
     }
 
@@ -75,6 +84,8 @@ namespace Chozo {
     void EditorAssetManager::RemoveAsset(AssetHandle handle)
     {
         AssetMetadata metadata = GetMetadata(handle);
+        auto asset = GetAsset(handle);
+        asset.Reset();
 
         m_AssetRegistry.Remove(handle);
         m_LoadedAssets.erase(handle);
@@ -88,7 +99,7 @@ namespace Chozo {
 
     std::unordered_set<AssetHandle> EditorAssetManager::GetAllAssetsWithType(AssetType type)
     {
-        return std::unordered_set<AssetHandle>();
+        return {};
     }
 
     const std::unordered_map<AssetHandle, Ref<Asset>> &EditorAssetManager::GetLoadedAssets()
@@ -137,8 +148,9 @@ namespace Chozo {
         metadata.Handle = AssetHandle();
         metadata.FilePath = path;
         metadata.Type = type;
+        metadata.LastModifiedAt = metadata.ModifiedAt;
         m_AssetRegistry[metadata.Handle] = metadata;
-
+        CZ_CORE_TRACE("Import asset {0} , {1}.", std::to_string(metadata.Handle), metadata.IsModified());
         return metadata.Handle;
     }
 
@@ -161,36 +173,62 @@ namespace Chozo {
         return LoadAsset(metadata);
     }
 
-    AssetHandle EditorAssetManager::LoadAsset(AssetMetadata metadata)
+    AssetHandle EditorAssetManager::LoadAsset(AssetMetadata& metadata)
     {
-        CZ_CORE_INFO("Loading asset {}", metadata.FilePath.string());
-
         // Deserialize and store asset if successful
-        auto asset = AssetImporter::Deserialize(metadata);
-        metadata.IsDataLoaded = static_cast<bool>(asset);
-        if (asset)
+        if (auto asset = AssetImporter::Deserialize(metadata); static_cast<bool>(asset))
         {
+            metadata.IsDataLoaded = true;
             asset->Handle = metadata.Handle;
             m_LoadedAssets[metadata.Handle] = asset;
             m_AssetRegistry[metadata.Handle] = metadata;
+            CZ_CORE_TRACE("Loading asset {0} from {1} finished.", std::to_string(metadata.Handle), metadata.FilePath.string());
+            RegisterAssetCallback(asset);
             return metadata.Handle;
         }
-        return 0;
+
+        CZ_CORE_WARN("Loading asset {0} from {1} failed.", std::to_string(metadata.Handle), metadata.FilePath.string());
+        metadata.IsFileMissing = true;
+        return metadata.Handle;
     }
 
     void EditorAssetManager::SaveAssets()
     {
-        for (auto [handle, metadata] : m_AssetRegistry)
+        for (auto& [handle, metadata] : m_AssetRegistry)
         {
-            auto asset = GetAsset(handle);
-            AssetImporter::Serialize(metadata, asset);
+            if (metadata.IsMemoryAsset)
+                continue;
+
+            if (!metadata.IsValid())
+            {
+                m_AssetRegistry.Remove(handle);
+                continue;
+            }
+
+            if (auto asset = GetAsset(metadata.Handle))
+                SaveAsset(asset, metadata);
         }
+
         WriteRegistryToFile();
     }
 
-    void EditorAssetManager::SaveAsset(Ref<Asset> asset, const fs::path &filepath)
+    uint64_t EditorAssetManager::SaveAsset(Ref<Asset>& asset, AssetMetadata &metadata)
     {
-		fs::path path = GetRelativePath(filepath);
+        uint64_t fileSize = 0;
+
+        if (metadata.IsModified())
+        {
+            fileSize = AssetImporter::Serialize(metadata, asset);
+            metadata.LastModifiedAt = metadata.ModifiedAt;
+            CZ_CORE_TRACE("Saving Asset {0} to {1} finished.", std::to_string(metadata.Handle), metadata.FilePath.string());
+        }
+
+        return fileSize;
+    }
+
+    void EditorAssetManager::ExportAsset(Ref<Asset>& asset, const fs::path &filepath)
+    {
+		const fs::path path = GetRelativePath(filepath);
 
         AssetMetadata metadata;
 
@@ -209,7 +247,8 @@ namespace Chozo {
         metadata.FilePath = path;
         metadata.IsDataLoaded = true;
         metadata.IsMemoryAsset = false;
-        metadata.FileSize = AssetImporter::Serialize(metadata, asset);
+        metadata.FileSize = SaveAsset(asset, metadata);
+        metadata.LastModifiedAt = 0;
 
         m_LoadedAssets[asset->Handle] = asset;
         m_AssetRegistry[metadata.Handle] = metadata;
@@ -217,9 +256,19 @@ namespace Chozo {
         WriteRegistryToFile();
     }
 
+    void EditorAssetManager::RegisterAssetCallback(Ref<Asset>& asset)
+    {
+        asset->RegisterOnModifyCallback([this, handle = asset->Handle]()
+        {
+            auto metadata = m_AssetRegistry[handle];
+            metadata.ModifiedAt = Utils::Time::CreateTimestamp();
+            m_AssetRegistry[metadata.Handle] = metadata;
+        });
+    }
+
     AssetType EditorAssetManager::GetAssetTypeFromExtension(const std::string &extension)
     {
-		std::string ext = Utils::String::ToLowerCopy(extension);
+		const std::string ext = Utils::String::ToLowerCopy(extension);
 
         if (s_AssetExtensionMap.find(ext) == s_AssetExtensionMap.end())
 			return AssetType::None;
@@ -250,20 +299,7 @@ namespace Chozo {
     void EditorAssetManager::LoadAssetRegistry()
     {
         AssetRegistrySerializer serializer(m_AssetRegistry);
-
         m_AssetRegistry = serializer.Deserialize("../assets/AssetRegistry.czar");
-
-        for (auto& [handle, metadata] : m_AssetRegistry)
-        {
-            fs::path path(metadata.FilePath.string() + ".asset");
-            fs::path filepath = Utils::File::GetAssetDirectory() / path;
-            // // TODO: Remove
-            // auto handleLoaded = LoadAsset(filepath);
-            // if (handle == 0 || handleLoaded == 0)
-            // {
-            //     RemoveAsset(handle);
-            // }
-        }
     }
 
     void EditorAssetManager::ProcessDirectory(const fs::path &directoryPath)
@@ -282,13 +318,13 @@ namespace Chozo {
 		ProcessDirectory(Utils::File::GetAssetDirectory());
     }
 
-    void EditorAssetManager::WriteRegistryToFile()
+    void EditorAssetManager::WriteRegistryToFile() const
     {
         AssetRegistrySerializer serializer(m_AssetRegistry);
         serializer.Serialize("../assets/AssetRegistry.czar");
     }
 
-    AssetMetadata &EditorAssetManager::GetMetadataInternal(AssetHandle handle)
+    AssetMetadata &EditorAssetManager::GetMetadataInternal(const AssetHandle handle)
     {
         if (m_AssetRegistry.Contains(handle))
 			return m_AssetRegistry[handle];

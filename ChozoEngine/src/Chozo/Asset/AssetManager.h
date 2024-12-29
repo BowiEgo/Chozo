@@ -3,7 +3,6 @@
 #include "czpch.h"
 
 #include "Asset.h"
-#include "AssetRegistry.h"
 
 namespace Chozo {
 
@@ -11,9 +10,10 @@ namespace Chozo {
 	{
 	public:
 		AssetManager() = default;
-		virtual ~AssetManager() = default;
+		~AssetManager() override = default;
 
 		virtual Ref<Asset> GetAsset(AssetHandle assetHandle) = 0;
+		virtual std::vector<AssetMetadata> GetAssetsModified() = 0;
 		virtual AssetHandle AddMemoryOnlyAsset(Ref<Asset> asset) = 0;
 		virtual bool ReloadData(AssetHandle assetHandle) = 0;
 		virtual bool IsAssetHandleValid(AssetHandle assetHandle) = 0;

@@ -17,7 +17,7 @@ namespace Chozo {
         return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y);
     }
 
-    class CHOZO_API ImGuiLayer : public Layer
+    class ImGuiLayer : public Layer
     {
     public:
         ImGuiLayer();

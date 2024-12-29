@@ -5,15 +5,15 @@
 #include <functional>
 #include "Ref.h"
 
-#ifdef ENGINE_PLATFORM_WIN32
-    #ifdef CHOZO_BUILD_DLL
-        #define CHOZO_API __declspec(dllexport)
-    #else
-        #define CHOZO_API __declspec(dllimport)
-    #endif
-#else
-    #define CHOZO_API
-#endif
+// #ifdef ENGINE_PLATFORM_WIN32
+//     #ifdef CHOZO_BUILD_DLL
+//         #define CHOZO_API __declspec(dllexport)
+//     #else
+//         #define CHOZO_API __declspec(dllimport)
+//     #endif
+// #else
+//     #define CHOZO_API
+// #endif
 
 ////////////////////////////////////////////////////////////////////////////
 //============================ Debug =====================================//
@@ -73,7 +73,7 @@
 
 #define BIT(x) (1 << x)
 
-#define CZ_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+#define CZ_BIND_EVENT_FN(fn) [this](auto && PH1) { return fn(std::forward<decltype(PH1)>(PH1)); }
 
 namespace Chozo {
 	namespace fs = std::filesystem;

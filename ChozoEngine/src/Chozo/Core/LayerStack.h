@@ -1,12 +1,11 @@
 #pragma once
 
-#include "Chozo/Core/Base.h"
 #include "Chozo/Core/Layer.h"
 
 #include <vector>
 
 namespace Chozo {
-    class CHOZO_API LayerStack
+    class LayerStack
     {
     public:
         LayerStack();
@@ -14,8 +13,8 @@ namespace Chozo {
 
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* overlay);
-        void PopLayer(Layer* layer);
-        void PopOverlay(Layer* overlay);
+        void PopLayer(const Layer* layer);
+        void PopOverlay(const Layer* overlay);
 
         std::vector<Layer*>::iterator begin() { return m_Layers.begin(); }
         std::vector<Layer*>::iterator end() { return m_Layers.end(); }

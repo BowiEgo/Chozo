@@ -1,5 +1,9 @@
 #pragma once
 
+#include "Chozo/Events/ApplicationEvent.h"
+#include "Chozo/Events/MouseEvent.h"
+#include "Chozo/Events/KeyEvent.h"
+
 #if FMT_VERSION >= 90000
     template <> struct fmt::formatter<Chozo::Event> : ostream_formatter{};
     template <> struct fmt::formatter<Chozo::WindowCloseEvent> : ostream_formatter{};

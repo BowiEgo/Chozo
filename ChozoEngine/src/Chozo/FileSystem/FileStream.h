@@ -10,17 +10,17 @@
 namespace Chozo
 {
 	//==============================================================================
-	/// FileStreamWriter
-	class FileStreamWriter : public StreamWriter
+	// FileStreamWriter
+	class FileStreamWriter : public StreamWriter // NOLINT
 	{
 	public:
-		FileStreamWriter(const fs::path& path);
+		explicit FileStreamWriter(const fs::path& path);
 		FileStreamWriter(const FileStreamWriter&) = delete;
-		virtual ~FileStreamWriter();
+		~FileStreamWriter() override;
 
 		bool IsStreamGood() const final { return m_Stream.good(); }
 		uint64_t GetStreamPosition() final { return m_Stream.tellp(); }
-		void SetStreamPosition(uint64_t position) final { m_Stream.seekp(position); }
+		void SetStreamPosition(const uint64_t position) final { m_Stream.seekp(position); }
 		bool WriteData(const char* data, size_t size) final;
 
 	private:
@@ -29,19 +29,20 @@ namespace Chozo
 	};
 
 	//==============================================================================
-	/// FileStreamReader
-	class FileStreamReader : public StreamReader
+	// FileStreamReader
+	class FileStreamReader : public StreamReader // NOLINT
 	{
 	public:
-		FileStreamReader(const fs::path& path);
+		explicit FileStreamReader(const fs::path& path);
 		FileStreamReader(const FileStreamReader&) = delete;
-		~FileStreamReader();
+		~FileStreamReader() override;
 
 		bool IsStreamGood() const final { return m_Stream.good(); }
 		uint64_t GetStreamPosition() override { return m_Stream.tellg(); }
-		void SetStreamPosition(uint64_t position) override { m_Stream.seekg(position); }
+		void SetStreamPosition(const uint64_t position) override { m_Stream.seekg(position); }
+		uint64_t GetFileSize() override;
 		bool ReadData(char* destination, size_t size) override;
-
+		bool ReadBinary(std::vector<u_int32_t>& destination) override;
 	private:
 		fs::path m_Path;
 		std::ifstream m_Stream;

@@ -1,12 +1,13 @@
 #pragma once
 
 #include "Chozo.h"
+#include "Thumbnail/ThumbnailRenderer.h"
 
 namespace Chozo {
 
     #define FOREACH_PREVIEW_TYPE(TYPE) \
-        	TYPE(Albedo) \
-        	TYPE(Metalness) \
+        	TYPE(BaseColor) \
+        	TYPE(Metallic) \
         	TYPE(Roughness) \
         	TYPE(Normal) \
 
@@ -33,35 +34,33 @@ namespace Chozo {
         }
     }
 
+
     class MaterialPanel
     {
     public:
         MaterialPanel();
-        MaterialPanel(const Ref<Scene> context);
 
         static void Init();
-
-        static void SetMaterial(Ref<Material> material);
-
+        static void SetMaterial(AssetHandle handle);
         inline static void Open() { s_Show = true; }
         inline static void Close() { s_Show = false; }
+
         void OnImGuiRender();
     private:
+        void RenderTextureProp(PreviewType type);
+        void RenderPreviewImageByType(PreviewType type) const;
+
+        void RenderPreviewImage(PreviewType type = PreviewType::None, const Ref<Texture2D>& texture = nullptr);
+
         Ref<Texture2D>& GetPreviewTextureByType(PreviewType type);
         void UpdatePreviewTextureByType(PreviewType type);
 
-        void RenderTextureProp(PreviewType type);
-        void RenderPreviewImageByType(PreviewType type);
-        void RenderPreviewImage(PreviewType type = PreviewType::None, Ref<Texture2D> texture = nullptr);
-
-        void OnMaterialChange(Ref<Material> material, std::string name, Ref<Texture2D> texture);
-        void OnMaterialChange(Ref<Material> material, std::string name, UniformValue value);
+        static void OnMaterialChange(const std::string& name, const MaterialProp& value);
     private:
 		static MaterialPanel* s_Instance;
         static bool s_Show;
 
-        Ref<Material> m_Material;
-        Ref<Texture2D> m_AlbedoTexture, m_MetalnessTexture, m_RoughnessTexture, m_NormalTexture;
-        bool m_PreviewUpdated;
+        AssetHandle m_Material;
+        Ref<Texture2D> m_BaseColorTexture, m_MetallicTexture, m_RoughnessTexture, m_NormalTexture;
     };
 }

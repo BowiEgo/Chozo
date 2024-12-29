@@ -5,7 +5,7 @@
 int main(int argc, char **argv)
 {
     Chozo::Log::Init();
-    CZ_CORE_WARN("Log system initialzed!");
+    CZ_CORE_INFO("Log system initialzed!");
 
     auto app = Chozo::CreateApplication();
     app->Run();

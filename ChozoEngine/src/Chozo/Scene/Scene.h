@@ -17,16 +17,16 @@ namespace Chozo {
 
 	using EntityMap = std::unordered_map<UUID, Entity>;
 
-    class Scene : public Asset
+    class Scene final : public Asset
     {
     public:
         Scene();
-        ~Scene();
+        ~Scene() override;
 
         static Ref<Scene> Create() { return Ref<Scene>::Create(); }
 
         static AssetType GetStaticType() { return AssetType::Scene; }
-		virtual AssetType GetAssetType() const override { return GetStaticType(); }
+		AssetType GetAssetType() const override { return GetStaticType(); }
 
         Entity CreateEntity(const std::string& name = std::string());
     	Entity CreateChildEntity(Entity parent, const std::string& name);
@@ -45,11 +45,11 @@ namespace Chozo {
 
         entt::registry& Reg() { return m_Registry; }
 
-        void OnUpdateEditor(Timestep ts);
-        void OnUpdateRuntime(Timestep ts);
-        void OnRenderEditor(Ref<SceneRenderer> renderer, Timestep ts, EditorCamera& camera);
-        void OnRenderRuntime(Ref<SceneRenderer> renderer, Timestep ts);
-        void OnViewportResize(uint32_t width, uint32_t height);
+        void OnUpdateEditor(TimeStep ts);
+        void OnUpdateRuntime(TimeStep ts);
+        void OnRenderEditor(Ref<SceneRenderer> renderer, TimeStep ts, EditorCamera& camera);
+        void OnRenderRuntime(Ref<SceneRenderer> renderer, TimeStep ts);
+        void OnViewportResize(float width, float height);
 
         void PrepareRender(Ref<SceneRenderer> renderer);
         void SubmitMeshes(Ref<SceneRenderer> renderer);
@@ -64,7 +64,7 @@ namespace Chozo {
         entt::registry m_Registry;
 		EntityMap m_EntityIDMap;
 
-        uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+        float m_ViewportWidth = 0, m_ViewportHeight = 0;
 
 		Ref<Environment> m_Environment;
 		float m_EnvironmentIntensity = 0.0f;

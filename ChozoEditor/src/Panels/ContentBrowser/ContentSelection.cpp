@@ -6,14 +6,6 @@
 
 namespace Chozo {
 
-    ContentSelection::ContentSelection()
-    {
-    }
-
-    ContentSelection::~ContentSelection()
-    {
-    }
-
     void ContentSelection::OnImGuiRender()
     {
         ImGuiIO& io = ImGui::GetIO();
@@ -58,19 +50,17 @@ namespace Chozo {
         }
 
         auto items = ContentBrowserPanel::GetItems();
-        for (size_t i = 0; i < items.size(); i++)
+        for (auto & item : items)
         {
-            auto itemRect = items[i]->GetRect();
+            auto itemRect = item->GetRect();
             
             if (itemRect.Min.x == 0 && itemRect.Min.y == 0 && itemRect.Max.x == 0 && itemRect.Max.y == 0)
                 break;
 
-            bool intersecting = !(itemRect.Min.x > rectMax.x || itemRect.Max.x < rectMin.x || itemRect.Min.y > rectMax.y || itemRect.Max.y < rectMin.y);
-
-            if (intersecting)
-                items[i]->Select();
+            if (bool intersecting = !(itemRect.Min.x > rectMax.x || itemRect.Max.x < rectMin.x || itemRect.Min.y > rectMax.y || itemRect.Max.y < rectMin.y))
+                item->Select();
             else if (m_Dragging)
-                items[i]->Deselect();
+                item->Deselect();
         }
     }
 } // namespace Chozo

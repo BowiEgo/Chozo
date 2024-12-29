@@ -1,13 +1,8 @@
 #include "Renderer.h"
 
-#include "RendererAPI.h"
+#include "RenderCommand.h"
 #include "Geometry/BoxGeometry.h"
 #include "Geometry/QuadGeometry.h"
-
-#include <glad/glad.h>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include "Platform/OpenGL/OpenGLRendererAPI.h"
 
 namespace Chozo {
 
@@ -17,38 +12,9 @@ namespace Chozo {
     static std::atomic<std::chrono::steady_clock::time_point> s_LastSubmitTime = std::chrono::steady_clock::now();
     static std::future<void> s_DebounceTask;
 
-    RendererAPI* Renderer::s_RendererAPI;
-
-    template<typename T>
-    static void SetMaxSize(T*& target, T*& ptr, uint32_t newSize)
-    {
-        T* newBuffer = new T[newSize];
-
-        if (target)
-        {
-            std::copy(target, target + newSize, newBuffer);
-            ptr = newBuffer + (ptr - target);
-            delete[] target;
-            target = nullptr;
-        }
-        else
-        {
-            ptr = newBuffer;
-        }
-
-        target = newBuffer;
-    }
-
     void Renderer::Init()
     {
         RenderCommand::Init();
-
-        switch (RendererAPI::GetAPI())
-        {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!");
-            case RendererAPI::API::OpenGL:   Renderer::s_RendererAPI = new OpenGLRendererAPI;
-        }
-
         s_Data = new RendererData();
 
         // Textures
@@ -85,8 +51,9 @@ namespace Chozo {
             cubemapSpec.MinFilter = ImageParameter::LINEAR_MIPMAP_LINEAR;
             s_Data->PrefilteredTextureCube = TextureCube::Create(cubemapSpec);
         }
+        s_Data->BrdfLUT = Texture2D::Create(std::string("../resources/textures/brdfLUT.png"));
 
-        int32_t samplers[s_Data->MaxTextureSlots];
+        uint32_t samplers[s_Data->MaxTextureSlots];
         for (uint32_t i = 0; i < s_Data->MaxTextureSlots; i++)
         {
             samplers[i] = i;
@@ -96,35 +63,26 @@ namespace Chozo {
         // Geometry
         s_Data->QuadMesh = Geometry::Create<QuadGeometry>();
         s_Data->BoxMesh = Geometry::Create<BoxGeometry>();
-        // s_Data->QuadMesh = Ref<DynamicMesh>::Create(Ref<QuadGeometry>::Create().As<MeshSource>());
-        // s_Data->BoxMesh = Ref<DynamicMesh>::Create(Ref<BoxGeometry>::Create().As<MeshSource>());
 
         // Shaders
         std::vector<int> samplersVec(samplers, samplers + s_Data->MaxTextureSlots);
         s_Data->m_ShaderLibrary = ShaderLibrary::Create();
-        s_Data->m_ShaderLibrary->Load("Basic", "../resources/shaders/Basic.glsl.vert", "../resources/shaders/Basic.glsl.frag");
-        s_Data->m_ShaderLibrary->Get("Basic")->Bind();
-        // s_Data->m_ShaderLibrary->Get("Basic")->SetUniform("u_Textures", samplersVec, s_Data->MaxTextureSlots);
 
-        s_Data->m_ShaderLibrary->Load("Solid", "../resources/shaders/Basic.glsl.vert", "../resources/shaders/Solid.glsl.frag");
-
-        s_Data->m_ShaderLibrary->Load("ID", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/ID.glsl.frag");
-        s_Data->m_ShaderLibrary->Load("Geometry", "../resources/shaders/GBuffer.glsl.vert", "../resources/shaders/GBuffer.glsl.frag");
-
-        s_Data->m_ShaderLibrary->Load("Depth", "../resources/shaders/Basic.glsl.vert", "../resources/shaders/Depth.glsl.frag");
-        
-        s_Data->m_ShaderLibrary->Load("PhongLight", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/PhongLight.glsl.frag");
-        s_Data->m_ShaderLibrary->Load("IrradianceConvolution", "../resources/shaders/CubemapSampler.glsl.vert", "../resources/shaders/IrradianceConvolution.glsl.frag");
-        s_Data->m_ShaderLibrary->Load("Prefiltered", "../resources/shaders/CubemapSampler.glsl.vert", "../resources/shaders/Prefiltered.glsl.frag");
-        s_Data->m_ShaderLibrary->Load("BRDF", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/BRDF.glsl.frag");
-        s_Data->m_ShaderLibrary->Load("PBR", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/PBR.glsl.frag");
-
-        s_Data->m_ShaderLibrary->Load("CubemapSampler", "../resources/shaders/CubemapSampler.glsl.vert", "../resources/shaders/CubemapSampler.glsl.frag");
-        s_Data->m_ShaderLibrary->Load("PreethamSky", "../resources/shaders/PreethamSky.glsl.vert", "../resources/shaders/PreethamSky.glsl.frag");
-        s_Data->m_ShaderLibrary->Load("Skybox", "../resources/shaders/Skybox.glsl.vert", "../resources/shaders/Skybox.glsl.frag");
-
-        s_Data->m_ShaderLibrary->Load("CubemapPreview", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/CubemapPreview.glsl.frag");
-        s_Data->m_ShaderLibrary->Load("SceneComposite", "../resources/shaders/FullScreenQuad.glsl.vert", "../resources/shaders/SceneComposite.glsl.frag");
+        auto shaderDir = std::string(Utils::File::GetShaderSoureceDirectory());
+        s_Data->m_ShaderLibrary->Load("Solid", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/Solid.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("ID", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/ID.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("Geometry", { shaderDir + "/GBuffer.glsl.vert",  shaderDir + "/GBuffer.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("Depth", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/Depth.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("Phong", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/Phong.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("IrradianceConvolution", { shaderDir + "/Common/CubemapSampler.glsl.vert",  shaderDir + "/IrradianceConvolution.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("Prefiltered", { shaderDir + "/Common/CubemapSampler.glsl.vert",  shaderDir + "/Prefiltered.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("BrdfLUT", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/BrdfLUT.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("PBR", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/PBR.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("CubemapSampler", { shaderDir + "/Common/CubemapSampler.glsl.vert",  shaderDir + "/CubemapSampler.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("PreethamSky", { shaderDir + "/Common/CubemapSampler.glsl.vert",  shaderDir + "/PreethamSky.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("Skybox", { shaderDir + "/Skybox.glsl.vert",  shaderDir + "/Skybox.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("CubemapPreview", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/CubemapPreview.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("SceneComposite", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/SceneComposite.glsl.frag" });
 
         // PreethamSky
         {
@@ -201,9 +159,9 @@ namespace Chozo {
 			s_Data->m_PrefilteredMaterial = Material::Create(prefilteredPipelineSpec.Shader, prefilteredPipelineSpec.DebugName);
 			s_Data->m_PrefilteredPipeline = Pipeline::Create(prefilteredPipelineSpec);
         }
-        // BRDF-Texture
+        // BrdfLUT-Texture
         {
-            Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("BRDF");
+            Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("BrdfLUT");
             FramebufferSpecification fbSpec;
             fbSpec.Width = Renderer::GetConfig().IrradianceMapComputeSamples;
             fbSpec.Height = Renderer::GetConfig().IrradianceMapComputeSamples;
@@ -211,7 +169,7 @@ namespace Chozo {
             Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
             PipelineSpecification pipelineSpec;
-			pipelineSpec.DebugName = "BRDF";
+			pipelineSpec.DebugName = "BrdfLUT";
 			pipelineSpec.Shader = shader;
             pipelineSpec.DepthWrite = false;
 			pipelineSpec.DepthTest = false;
@@ -219,10 +177,10 @@ namespace Chozo {
 				{ ShaderDataType::Float3, "a_Position" },
 			};
 			pipelineSpec.TargetFramebuffer = framebuffer;
-            s_Data->m_BRDFLutPipeline = Pipeline::Create(pipelineSpec);
+            s_Data->m_BrdfLUTPipeline = Pipeline::Create(pipelineSpec);
 
             framebuffer->Bind();
-            s_RendererAPI->RenderFullscreenQuad(s_Data->m_BRDFLutPipeline);
+            RenderCommand::RenderFullscreenQuad(s_Data->m_BrdfLUTPipeline);
             framebuffer->Unbind();
         }
         
@@ -233,58 +191,7 @@ namespace Chozo {
         delete s_Data;
     }
 
-    void Renderer::RenderStaticBatches()
-    {
-        s_Data->IndexCount = 0;
-        for (const auto& pair : s_Data->BatchManager.GetRenderSources())
-        {
-            Ref<Batch<Vertex>> vertexBatch = s_Data->BatchManager.GetBatches<Vertex>()[pair.first];
-            Ref<Batch<Index>> indexBatch = s_Data->BatchManager.GetBatches<Index>()[pair.first];
-
-            uint32_t vertexCount = vertexBatch->GetCount();
-            uint32_t indexCount = indexBatch->GetCount();
-
-            if (vertexCount == 0 || indexCount == 0)
-                continue;
-          
-            Ref<Shader> shader = s_Data->m_ShaderLibrary->Get("Basic");
-            shader->Bind();
-            shader->SetUniform("u_VertUniforms.ModelMatrix", glm::mat4(1.0));
-            shader->SetUniform("u_FragUniforms.Color", glm::vec4(0.1f, 0.5f, 1.0f, 1.0f));
-
-            RenderCommand::DrawIndexed(pair.second->VAO, indexCount * 3);
-            s_Data->Stats.DrawCalls++;
-            s_Data->IndexCount += indexCount;
-            s_Data->Stats.VerticesCount += vertexCount;
-            s_Data->Stats.TriangleCount += indexCount;
-        }
-    }
-
-    bool Renderer::SubmitStaticMesh(StaticMesh* mesh)
-    {
-        // UUID segmentID = s_Data->BatchManager.SubmitBuffers(
-        //     mesh->GetTempBuffer()->Vertexs.data(),
-        //     mesh->GetTempBuffer()->Vertexs.size(),
-        //     mesh->GetTempBuffer()->Indexs.data(),
-        //     mesh->GetTempBuffer()->Indexs.size(),
-        //     mesh->GetBufferSegmentID()
-        // );
-        // if (!segmentID.isValid())
-        // {
-        //     mesh->OnSubmit(false);
-        //     return false;
-        // }
-        // mesh->SetBufferSegmentID(segmentID);
-        // mesh->OnSubmit(true);
-        return true;
-    }
-
-    bool Renderer::RemoveStaticMesh(StaticMesh* mesh)
-    {
-        return s_Data->BatchManager.RemoveSegment(mesh->GetBufferSegmentID());
-    }
-
-    void Renderer::DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, Material* material, uint32_t entityID)
+    void Renderer::DrawMesh(const glm::mat4 &transform, const DynamicMesh* mesh, Material* material, uint32_t entityID)
     {
         Ref<Shader> shader = material->GetShader();
         shader->Bind();
@@ -302,41 +209,6 @@ namespace Chozo {
         s_Data->Stats.TriangleCount += indexCount;
     }
 
-    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
-    {
-		s_RendererAPI->BeginRenderPass(commandBuffer, renderPass);
-    }
-
-    void Renderer::EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass)
-    {
-		s_RendererAPI->EndRenderPass(commandBuffer, renderPass);
-    }
-
-    void Renderer::SubmitCubeMap(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material)
-    {
-		s_RendererAPI->SubmitCubeMap(commandBuffer, pipeline, cubemap, material);
-    }
-
-    void Renderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
-    {
-		s_RendererAPI->SubmitFullscreenQuad(commandBuffer, pipeline, material);
-    }
-
-    void Renderer::SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material)
-    {
-		s_RendererAPI->SubmitFullscreenBox(commandBuffer, pipeline, material);
-    }
-
-    void Renderer::SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform)
-    {
-        s_RendererAPI->SubmitMeshWithMaterial(commandBuffer, pipeline, mesh, submeshIndex, material, transform);
-    }
-
-    void Renderer::CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest)
-    {
-        s_RendererAPI->CopyImage(commandBuffer, source, dest);
-    }
-
     void Renderer::Begin()
     {
         s_RenderCommandQueue.clear();
@@ -350,7 +222,7 @@ namespace Chozo {
 
     void Renderer::Submit(std::function<void()> &&func)
     {
-        s_RenderCommandQueue.push_back([func = std::forward<std::function<void()>>(func)]() mutable { func(); });
+        s_RenderCommandQueue.emplace_back([func = std::forward<std::function<void()>>(func)]() mutable { func(); });
     }
 
     void Renderer::DebouncedSubmit(std::function<void()> &&func, uint32_t delay)
@@ -380,9 +252,10 @@ namespace Chozo {
         return *s_Data; 
     }
 
-    Ref<Texture2D> Renderer::GetBRDFLutTexture()
+    Ref<Texture2D> Renderer::GetBrdfLUT()
     {
-        return s_Data->m_BRDFLutPipeline->GetTargetFramebuffer()->GetImage(0);
+        // return s_Data->BrdfLUT;
+        return s_Data->m_BrdfLUTPipeline->GetTargetFramebuffer()->GetImage(0);
     }
 
     Ref<Texture2D> Renderer::GetCheckerboardTexture()
@@ -427,7 +300,7 @@ namespace Chozo {
         s_Data->Stats.DrawCalls = 0;
     }
 
-    void Renderer::UpdateMaxTriagles(uint32_t count)
+    void Renderer::UpdateMaxTriangles(uint32_t count)
     {
     }
 
@@ -443,45 +316,45 @@ namespace Chozo {
 
     uint32_t Renderer::GetMaxTextureSlots()
     {
-        return s_RendererAPI->GetMaxTextureSlots();
+        return RenderCommand::GetMaxTextureSlots();
     }
 
-    void Renderer::CreateStaticSky(const Ref<Texture2D> texture)
+    void Renderer::CreateStaticSky(const Ref<Texture2D>& texture)
     {
         Submit([texture](){
-            s_RendererAPI->RenderCubemap(s_Data->m_CubemapSamplerPipeline, s_Data->StaticSkyTextureCube, texture);
+            RenderCommand::RenderCubemap(s_Data->m_CubemapSamplerPipeline, s_Data->StaticSkyTextureCube, texture);
 
             s_Data->m_IrradianceMaterial->Set("u_Texture", s_Data->StaticSkyTextureCube);
-            s_RendererAPI->RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
+            RenderCommand::RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
 
             s_Data->m_PrefilteredMaterial->Set("u_Texture", s_Data->StaticSkyTextureCube);
-            s_RendererAPI->RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
+            RenderCommand::RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
         });
     }
 
     void Renderer::CreatePreethamSky(const float turbidity, const float azimuth, const float inclination)
     {
-        s_RendererAPI->CreatePreethamSky(s_Data->m_PreethamSkyPipeline, turbidity, azimuth, inclination);
+        RenderCommand::CreatePreethamSky(s_Data->m_PreethamSkyPipeline, turbidity, azimuth, inclination);
 
         Submit([](){
             s_Data->m_IrradianceMaterial->Set("u_Texture", s_Data->PreethamSkyTextureCube);
-            s_RendererAPI->RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
+            RenderCommand::RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
 
             s_Data->m_PrefilteredMaterial->Set("u_Texture", s_Data->PreethamSkyTextureCube);
-            s_RendererAPI->RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
+            RenderCommand::RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
         });
     }
 
     void Renderer::UpdatePreethamSky(const float turbidity, const float azimuth, const float inclination)
     {
-        s_RendererAPI->DrawPreethamSky(s_Data->m_PreethamSkyPipeline, turbidity, azimuth, inclination);
+        RenderCommand::DrawPreethamSky(s_Data->m_PreethamSkyPipeline, turbidity, azimuth, inclination);
 
         Submit([](){
             s_Data->m_IrradianceMaterial->Set("u_Texture", s_Data->PreethamSkyTextureCube);
-            s_RendererAPI->RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
+            RenderCommand::RenderCubemap(s_Data->m_IrradiancePipeline, s_Data->IrradianceTextureCube, s_Data->m_IrradianceMaterial);
 
             s_Data->m_PrefilteredMaterial->Set("u_Texture", s_Data->PreethamSkyTextureCube);
-            s_RendererAPI->RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
+            RenderCommand::RenderPrefilteredCubemap(s_Data->m_PrefilteredPipeline, s_Data->PrefilteredTextureCube, s_Data->m_PrefilteredMaterial);
         });
     }
 }

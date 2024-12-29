@@ -17,7 +17,7 @@ namespace Chozo {
     }
 
     template<typename... Args>
-	void Log::PrintMessage(Log::Type type, Log::Level level, std::string_view tag, Args&&... args)
+	void Log::PrintMessage(const Log::Type type, const Log::Level level, std::string_view tag, Args&&... args)
 	{
 		auto detail = s_EnabledTags[std::string(tag)];
 		if (detail.Enabled && detail.LevelFilter <= level)

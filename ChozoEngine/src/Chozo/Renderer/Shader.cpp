@@ -1,38 +1,50 @@
 #include "Shader.h"
 
-#include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLShader.h"
+#include "RenderCommand.h"
+#include "Chozo/Core/Application.h"
+#include "Chozo/Renderer/Backend/OpenGL/OpenGLShader.h"
+
+#include <GLFW/glfw3.h>
 
 namespace Chozo {
 
-    Ref<Shader> Shader::Create(const ShaderSpecification &spec)
+    Ref<Shader> Shader::Create(const std::string& name, const std::vector<std::string> filePaths)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLShader>::Create(spec);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLShader>::Create(name, filePaths);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 
-    Ref<Shader> Shader::Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
+    void ShaderLibrary::Load(const std::string_view name, const std::vector<std::string> filePaths)
     {
-        switch (RendererAPI::GetAPI())
-        {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLShader>::Create(name, vertexSrc, fragmentSrc);
-        }
-
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
-        return nullptr;
-    }
-
-    void ShaderLibrary::Load(std::string_view name, const std::string& vertexSrc, const std::string& fragmentSrc)
-    {
-        Ref<Shader> shader = Shader::Create(std::string(name), vertexSrc, fragmentSrc);
+        Ref<Shader> shader = Shader::Create(std::string(name), filePaths);
         m_Shaders.emplace(name, shader);
+    }
+
+    void ShaderLibrary::Recompile()
+    {
+        if (m_IsCompiling) {
+            CZ_CORE_ERROR("Shaders are already compiling. Skipping new request.");
+            return;
+        }
+
+        m_IsCompiling = true;
+        m_Thread.Join();
+        m_Thread.Dispatch([this]() {
+            for (auto& [name, shader] : m_Shaders)
+            {
+                // Clear caches
+                shader->ClearCache();
+                // Compile shaders
+                shader->AsyncCompile();
+            }
+            m_IsCompiling = false;
+        });
     }
 
     const Ref<Shader>& ShaderLibrary::Get(const std::string &name) const

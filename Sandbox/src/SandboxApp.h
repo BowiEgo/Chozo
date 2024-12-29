@@ -1,7 +1,5 @@
-#define CHZO_ENTRY_POINT
+#define CHOZO_ENTRY_POINT
 #include "Chozo.h"
-
-#include "Platform/OpenGL/OpenGLShader.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -13,7 +11,7 @@ public:
 
     virtual void OnAttach() override;
     virtual void OnDetach() override;
-    virtual void OnUpdate(Chozo::Timestep ts) override;
+    virtual void OnUpdate(Chozo::TimeStep ts) override;
     virtual void OnImGuiRender() override;
     virtual void OnEvent(Chozo::Event& event) override;
 private:

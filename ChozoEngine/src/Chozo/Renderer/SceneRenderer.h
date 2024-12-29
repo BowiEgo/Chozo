@@ -13,8 +13,6 @@
 
 #include "Chozo/Events/RenderEvent.h"
 
-#include <glad/glad.h>
-
 namespace Chozo
 {
 
@@ -56,12 +54,13 @@ namespace Chozo
         void BeginScene(EditorCamera& camera); // TODO: Remove
         void EndScene(); // TODO: Remove
 
-        inline void SetActive(bool active) { m_Active = active; }
-        inline bool IsActive() const { return m_Active; }
+        void SetActive(bool active) { m_Active = active; }
+        bool IsActive() const { return m_Active; }
 
-        inline void AddEventListener(const EventType type, const EventCallback& cb, bool destroy = true) { m_EventBus.AddListener(type, cb, destroy); }
+        void AddEventListener(const EventType type, const EventCallback& cb, bool destroy = true) { m_EventBus.AddListener(type, cb, destroy); }
 
-		void SetViewportSize(uint32_t width, uint32_t height);
+		void SetViewportSize(float width, float height);
+    	void SetClearColor(glm::vec4 color);
 
         bool SubmitDirectionalLight(DirectionalLightComponent* light);
         bool SubmitPointLight(PointLightComponent* light, glm::vec3& position);
@@ -73,7 +72,8 @@ namespace Chozo
         Ref<RenderPass> GetGeometryPass() { return m_GeometryPass; }
         Ref<RenderPass> GetIDPass() { return m_IDPass; }
         Ref<RenderPass> GetSolidPass() { return m_SolidPass; }
-        Ref<RenderPass> GetPhongLightPass() { return m_PhongLightPass; }
+        Ref<RenderPass> GetPhongPass() { return m_PhongPass; }
+        Ref<RenderPass> GetPBRPass() { return m_PBRPass; }
         Ref<RenderPass> GetCompositePass() { return m_CompositePass; }
 
         Ref<TextureCube> GetPBRIrradiance() { return m_PBRIrradiance; }
@@ -82,7 +82,7 @@ namespace Chozo
         void GeometryPass();
         void IDPass(); // TODO: Only supported in editor mode.
         void SolidPass();
-        void PhongLightPass();
+        void PhongPass();
         void PBRPrePass();
         void PBRPass();
         void CompositePass();
@@ -120,7 +120,6 @@ namespace Chozo
 
         struct SceneData
 		{
-			DirLight Lights;
 			glm::vec3 CameraPosition;
 			float EnvironmentMapIntensity = 1.0f;
 		} SceneDataUB;
@@ -132,24 +131,32 @@ namespace Chozo
             glm::mat4 InverseViewProjectionMatrix;
         } CameraDataUB;
 
+    	struct DirectionalLightsData
+    	{
+    		uint LightCount = 0;
+    		float Padding[3];
+    		DirLight Lights[1000];
+    	} DirectionalLightsDataUB;
+
         struct PointLightsData
         {
-            uint LightCount;
+            uint LightCount = 0;
             float Padding[3];
             PointLight Lights[1000];
         } PointLightsDataUB;
 
         struct SpotLightsData
         {
-            uint LightCount;
+            uint LightCount = 0;
             float Padding[3];
             SpotLight Lights[1000];
         } SpotLightsDataUB;
 
         Ref<UniformBuffer> m_CameraUB;
         Ref<UniformBuffer> m_SceneUB;
-        Ref<UniformBuffer> m_PointLightUB;
-        Ref<UniformBuffer> m_SpotLightUB;
+        Ref<UniformBuffer> m_PointLightsUB;
+        Ref<UniformBuffer> m_DirectionalLightsUB;
+        Ref<UniformBuffer> m_SpotLightsUB;
 
 		Ref<Material> m_SkyboxMaterial;
 		Ref<RenderPass> m_SkyboxPass;
@@ -162,8 +169,8 @@ namespace Chozo
 		Ref<Material> m_SolidMaterial;
 		Ref<RenderPass> m_SolidPass;
 
-		Ref<Material> m_PhongLightMaterial;
-		Ref<RenderPass> m_PhongLightPass;
+		Ref<Material> m_PhongMaterial;
+		Ref<RenderPass> m_PhongPass;
 
         Ref<TextureCube> m_PBRIrradiance;
         Ref<Material> m_PBRIrradianceMaterial, m_PBRMaterial;
@@ -172,6 +179,6 @@ namespace Chozo
 		Ref<Material> m_CompositeMaterial;
         Ref<RenderPass> m_CompositePass;
 
-		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+		float m_ViewportWidth = 0, m_ViewportHeight = 0;
     };
 }

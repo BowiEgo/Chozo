@@ -6,6 +6,8 @@ namespace Chozo {
 
 	struct Buffer
 	{
+		virtual ~Buffer() = default;
+
 		void* Data;
 		uint64_t Size;
 
@@ -14,7 +16,7 @@ namespace Chozo {
 		{
 		}
 
-		Buffer(const void* data, uint64_t size = 0)
+		Buffer(const void* data, uint64_t size = 0) // NOLINT
 			: Data((void*)data), Size(size)
 		{
 		}
@@ -49,25 +51,25 @@ namespace Chozo {
 			if (size == 0)
 				return;
 
-			Data = new byte[size];
+			Data = new byte[size]; // NOLINT
 			Size = size;
 		}
 
 		virtual void Release()
 		{
-			delete[] (byte*)Data;
+			delete[] (byte*)Data; // NOLINT
 			Data = nullptr;
 			Size = 0;
 		}
 
-		void ZeroInitialize()
+		void ZeroInitialize() const
 		{
 			if (Data)
 				memset(Data, 0, Size);
 		}
 
 		template<typename T>
-		T& Read(uint64_t offset = 0)
+		T& Read(const uint64_t offset = 0)
 		{
 			return *(T*)((byte*)Data + offset);
 		}
@@ -78,26 +80,26 @@ namespace Chozo {
 			return *(T*)((byte*)Data + offset);
 		}
 
-		byte* ReadBytes(uint64_t size, uint64_t offset) const
+		[[nodiscard]] byte* ReadBytes(const uint64_t size, const uint64_t offset) const
 		{
 			CZ_CORE_ASSERT(offset + size <= Size, "Buffer overflow!");
-			byte* buffer = new byte[size];
+			const auto buffer = new byte[size];
 			memcpy(buffer, (byte*)Data + offset, size);
 			return buffer;
 		}
 				
-		void Write(const void* data, uint64_t size, uint64_t offset = 0)
+		void Write(const void* data, const uint64_t size, const uint64_t offset = 0) const
 		{
 			CZ_CORE_ASSERT(offset + size <= Size, "Buffer overflow!");
 			memcpy((byte*)Data + offset, data, size);
 		}
 
-		operator bool() const
+		explicit operator bool() const
 		{
 			return Data;
 		}
 
-		byte& operator[](int index)
+		byte& operator[](const int index) // NOLINT
 		{
 			return ((byte*)Data)[index];
 		}
@@ -113,34 +115,34 @@ namespace Chozo {
 			return (T*)Data;
 		}
 
-		inline uint64_t GetSize() const { return Size; }
+		[[nodiscard]] uint64_t GetSize() const { return Size; }
 	};
 
-	struct SafeBuffer : public Buffer
+	struct SafeBuffer final : public Buffer
 	{
-		~SafeBuffer()
+		~SafeBuffer() override
 		{
-			Release();
+			Buffer::Release();
 		}
 
-		static SafeBuffer Copy(const void* data, uint64_t size)
+		static SafeBuffer Copy(const void* data, const uint64_t size)
 		{
 			SafeBuffer buffer;
 			buffer.Allocate(size);
 			memcpy(buffer.Data, data, size);
-			return buffer;
+			return buffer; // NOLINT
 		}
 	};
 
-	struct SharedBuffer : public Buffer
+	struct SharedBuffer final : public Buffer
 	{
 		std::shared_ptr<byte[]> SharedData;
 
 		SharedBuffer() : Buffer() {}
 
-		SharedBuffer(const void* data, uint64_t size = 0)
+		explicit SharedBuffer(const void* data, const uint64_t size = 0)
 		{
-			Allocate(size);
+			SharedBuffer::Allocate(size);
 			memcpy(SharedData.get(), data, size);
 		}
 
@@ -150,7 +152,7 @@ namespace Chozo {
 			memcpy(SharedData.get(), other.Data, other.Size);
 		}
 
-		void Allocate(uint64_t size) override
+		void Allocate(const uint64_t size) override
 		{
 			Release();
 
@@ -170,6 +172,7 @@ namespace Chozo {
 		}
 
 		SharedBuffer(const SharedBuffer& other)
+			: Buffer(other)
 		{
 			SharedData = other.SharedData;
 			Data = SharedData.get();

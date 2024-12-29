@@ -30,7 +30,7 @@ namespace Chozo {
             uint32_t EnvironmentMapResolution = 1024;
             uint32_t IrradianceMapComputeSamples = 512;
 
-            glm::vec4 ClearColor = { 0.15f, 0.155f, 0.16f, 1.0f };
+            glm::vec4 ClearColor = { 0.105f, 0.110f, 0.110f, 1.0f };
         };
 
         struct Statistics
@@ -61,11 +61,12 @@ namespace Chozo {
     		Ref<ShaderLibrary> m_ShaderLibrary;
     		// Ref<MaterialLibrary> m_MaterialLibrary;
 
-            int MaxTextureSlots = 0;
+            uint32_t MaxTextureSlots = 0;
             uint32_t TextureSlotIndex = 1; // 0 = white texture
             std::vector<Ref<Texture2D>> TextureSlots;
             Ref<Texture2D> WhiteTexture;
             Ref<Texture2D> CheckerboardTexture;
+            Ref<Texture2D> BrdfLUT;
             Ref<TextureCube> BlackTextureCube;
 
             Ref<Geometry> QuadMesh;
@@ -85,39 +86,24 @@ namespace Chozo {
             Ref<Pipeline> m_CubemapSamplerPipeline;
             Ref<Pipeline> m_IrradiancePipeline;
             Ref<Pipeline> m_PrefilteredPipeline;
-            Ref<Pipeline> m_BRDFLutPipeline;
+            Ref<Pipeline> m_BrdfLUTPipeline;
         };
 
         static void Init();
         static void Shutdown();
         
-        static void RenderStaticBatches();
-        static bool SubmitStaticMesh(StaticMesh* mesh);
-        static bool RemoveStaticMesh(StaticMesh* mesh);
-        static void DrawMesh(const glm::mat4 transform, DynamicMesh* mesh, Material* material, uint32_t entityID = -1); // TODO: Remove
-
-        static void BeginRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
-        static void EndRenderPass(Ref<RenderCommandBuffer> commandBuffer, Ref<RenderPass> renderPass);
-
-        static void SubmitCubeMap(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<TextureCube> cubemap, Ref<Material> material = nullptr);
-        static void SubmitFullscreenQuad(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
-        static void SubmitFullscreenBox(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<Material> material);
-        static void SubmitMeshWithMaterial(Ref<RenderCommandBuffer> commandBuffer, Ref<Pipeline> pipeline, Ref<DynamicMesh> mesh, uint32_t submeshIndex, Ref<Material> material, glm::mat4 transform);
-
-        static void CopyImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Texture2D> source, SharedBuffer& dest);
-
-        inline static RendererAPI* GetAPI() { return s_RendererAPI; }
+        static void DrawMesh(const glm::mat4 &transform, const DynamicMesh* mesh, Material* material, uint32_t entityID = -1); // TODO: Remove
 
         static Ref<ShaderLibrary> GetShaderLibrary() { return GetRendererData().m_ShaderLibrary; }
         static RendererData GetRendererData();
-        static Ref<Texture2D> GetBRDFLutTexture();
+        static Ref<Texture2D> GetBrdfLUT();
         static Ref<Texture2D> GetCheckerboardTexture();
         static Ref<TextureCube> GetBlackTextureCube();
         static Ref<TextureCube> GetStaticSkyTextureCube();
         static Ref<TextureCube> GetIrradianceTextureCube();
         static Ref<TextureCube> GetPrefilteredTextureCube();
         static Ref<TextureCube> GetPreethamSkyTextureCube();
-        static void UpdateMaxTriagles(uint32_t count);
+        static void UpdateMaxTriangles(uint32_t count);
 
         static RendererConfig& GetConfig();
 		static void SetConfig(const RendererConfig& config);
@@ -125,7 +111,7 @@ namespace Chozo {
         static uint32_t GetMaxTextureSlots();
 
         static Ref<TextureCube> CreateCubemap(const std::string& filePath);
-		static void CreateStaticSky( const Ref<Texture2D> texture);
+		static void CreateStaticSky( const Ref<Texture2D>& texture);
 		static void CreatePreethamSky(const float turbidity, const float azimuth, const float inclination);
 		static void UpdatePreethamSky(const float turbidity, const float azimuth, const float inclination);
 
@@ -133,7 +119,5 @@ namespace Chozo {
 		static void End();
         static void Submit(std::function<void()>&& func);
         static void DebouncedSubmit(std::function<void()>&& func, uint32_t delay = 100);
-    private:
-        static RendererAPI* s_RendererAPI;
     };
 }

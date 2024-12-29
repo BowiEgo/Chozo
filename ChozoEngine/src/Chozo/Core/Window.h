@@ -3,6 +3,9 @@
 #include "czpch.h"
 #include "Chozo/Core/Base.h"
 #include "Chozo/Events/Event.h"
+#include "Chozo/Renderer/GraphicsContext.h"
+
+#include <GLFW/glfw3.h>
 
 namespace Chozo {
 
@@ -12,33 +15,52 @@ namespace Chozo {
         unsigned int Width;
         unsigned int Height;
 
-        WindowProps(const std::string& title = "Chozo Engine",
-                    unsigned int width = WINDOW_WIDTH,
-                    unsigned int height = WINDOW_HEIGHT)
-            : Title(title), Width(width), Height(height)
+        explicit WindowProps(std::string  title = "Chozo Engine",
+                    const unsigned int width = WINDOW_WIDTH,
+                    const unsigned int height = WINDOW_HEIGHT)
+            : Title(std::move(title)), Width(width), Height(height)
         {
         }
     };
     
-    class CHOZO_API Window
+    class Window
     {
     public:
         using EventCallbackFn = std::function<void(Event&)>;
 
-        virtual ~Window() {}
+        Window(const WindowProps& props);
+        ~Window();
 
-        virtual void OnUpdate() = 0;
+        void Init(const WindowProps& props);
+        void Shutdown();
+        void OnUpdate();
 
-        virtual unsigned int GetWidth() const = 0;
-        virtual unsigned int GetHeight() const = 0;
+        [[nodiscard]] unsigned int GetWidth() const { return m_Data.Width; }
+        [[nodiscard]] unsigned int GetHeight() const { return m_Data.Height; }
 
         // Window attributes
-        virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
-        virtual void SetVSync(bool enabled) = 0;
-        virtual bool IsVSync() const = 0;
+        void SetEventCallback(const EventCallbackFn& callback) { m_Data.EventCallback = callback; }
+        void SetVSync(bool enabled);
+        [[nodiscard]] bool IsVSync() const;
 
-        virtual void* GetNativeWindow() const = 0;
+        [[nodiscard]] GLFWwindow* GetNativeWindow() const { return m_Window; }
+        [[nodiscard]] GLFWwindow* GetSharedWindow() const { return m_SharedWindow; }
 
         static Scope<Window> Create(const WindowProps& props = WindowProps());
+    private:
+        GLFWwindow* m_Window{};
+        GLFWwindow* m_SharedWindow{};
+        GraphicsContext* m_Context{};
+
+        struct WindowData
+        {
+            std::string Title;
+            unsigned int Width, Height;
+            bool VSync;
+
+            EventCallbackFn EventCallback;
+        };
+
+        WindowData m_Data;
     };
 }

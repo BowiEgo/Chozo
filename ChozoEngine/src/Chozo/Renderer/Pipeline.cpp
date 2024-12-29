@@ -1,19 +1,19 @@
 #include "Pipeline.h"
 
-#include "RendererAPI.h"
-#include "Platform/OpenGL/OpenGLPipeline.h"
+#include "RenderCommand.h"
+#include "Chozo/Renderer/Backend/OpenGL/OpenGLPipeline.h"
 
 namespace Chozo {
 
     Ref<Pipeline> Pipeline::Create(PipelineSpecification &spec)
     {
-        switch (RendererAPI::GetAPI())
+        switch (RenderCommand::GetType())
         {
-            case RendererAPI::API::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RendererAPI::API::OpenGL:   return Ref<OpenGLPipeline>::Create(spec);
+            case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
+            case RenderAPI::Type::OpenGL:   return Ref<OpenGLPipeline>::Create(spec);
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
+        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
         return nullptr;
     }
 }
