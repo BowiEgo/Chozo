@@ -138,7 +138,6 @@ namespace Chozo {
 
             if (lhsEntity == m_EntityIDMap.end() || rhsEntity == m_EntityIDMap.end())
             {
-                // 如果 ID 不存在，可以根据需求处理，例如将其放到最后
                 return lhsEntity != m_EntityIDMap.end();
             }
 
@@ -148,7 +147,8 @@ namespace Chozo {
 
     void Scene::DestroyEntity(Entity entity)
     {
-        m_Registry.destroy(entity);
+        entity.Destroy();
+        HandleModified();
     }
 
     void Scene::OnUpdateEditor(TimeStep ts)

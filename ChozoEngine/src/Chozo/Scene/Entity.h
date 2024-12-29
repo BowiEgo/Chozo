@@ -80,6 +80,7 @@ namespace Chozo
 
 		std::vector<UUID>& Children() { return GetComponent<RelationshipComponent>().Children; }
 		bool RemoveChild(Entity child);
+        void Destroy();
     public:
         friend struct MeshComponent;
     private:

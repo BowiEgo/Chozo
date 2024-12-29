@@ -43,7 +43,7 @@ namespace Chozo {
         if (ImGui::BeginPopupContextWindow(nullptr, 1 | ImGuiPopupFlags_NoOpenOverItems))
         {
             // ImGui::OpenPopup("AddComponent");
-            m_SelectionContext = DrawAddComponent();
+            m_SelectedEntity = DrawAddComponent();
             ImGui::EndPopup();
         }
         ImGui::End();
@@ -55,7 +55,7 @@ namespace Chozo {
 
         auto& tag = entity.GetComponent<TagComponent>().Tag;
 
-        const ImGuiTreeNodeFlags flags = (m_SelectionContext == entity ? ImGuiTreeNodeFlags_Selected : 0)
+        const ImGuiTreeNodeFlags flags = (m_SelectedEntity == entity ? ImGuiTreeNodeFlags_Selected : 0)
             | (entity.Children().empty() ? ImGuiTreeNodeFlags_Leaf : 0)
             | ImGuiTreeNodeFlags_OpenOnArrow
             | ImGuiTreeNodeFlags_SpanAvailWidth;
@@ -86,9 +86,9 @@ namespace Chozo {
 
         if (entityDeleted)
         {
-            m_Context->DestroyEntity(entity);
-            if (m_SelectionContext == entity)
+            if (m_SelectedEntity == entity)
                 SetSelectedEntity({});
+            m_Context->DestroyEntity(entity);
         }
     }
 

@@ -60,6 +60,11 @@ namespace Chozo {
         PropertiesPanel::SetContext(m_ActiveScene);
         EnvironmentPanel::SetContext(m_ActiveScene);
 
+        SceneHierarchyPanel::RegisterOnSelectedChange([this](const Entity& selectedEntity) {
+            if (m_Entity_Selected != selectedEntity)
+                m_Entity_Selected = selectedEntity;
+        });
+
         ThumbnailRenderer::Init();
         ThumbnailManager::Init();
     }
@@ -181,7 +186,7 @@ namespace Chozo {
         std::string entityName = "Null";
         if (m_Entity_Selected)
             entityName = m_Entity_Selected.GetComponent<TagComponent>().Tag;
-        ImGui::Text("EntityHovered: %s", entityName.c_str());
+        ImGui::Text("EntitySelected: %s", entityName.c_str());
         ImGui::Separator();
 
         if(ImGui::Button("ShowSkyboxTexture"))
@@ -503,7 +508,7 @@ namespace Chozo {
                 auto meshSouce = asset.As<MeshSource>();
                 const auto mesh = Ref<Mesh>::Create(meshSouce);
                 const Entity rootEntity = m_ActiveScene->InstantiateMesh(mesh);
-                m_Entity_Selected = rootEntity;
+                m_SceneHierarchyPanel.SetSelectedEntity(rootEntity);
                 break;
             }
             default:
@@ -569,8 +574,8 @@ namespace Chozo {
         if (e.GetMouseButton() == MouseButton::Left && !Input::IsKeyPressed(Key::LeftAlt) && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && m_ViewportHovered && m_AllowViewportCameraEvents)
         {
             auto [mx, my] = ImGui::GetMousePos();
-            m_Entity_Selected = PickEntity(mx, my);
-            m_SceneHierarchyPanel.SetSelectedEntity(m_Entity_Selected);
+            const auto entity = PickEntity(mx, my);
+            m_SceneHierarchyPanel.SetSelectedEntity(entity);
             return true;
         }
 
