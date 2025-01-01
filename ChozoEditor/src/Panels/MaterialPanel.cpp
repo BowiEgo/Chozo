@@ -20,8 +20,7 @@ namespace Chozo {
     {
         const auto checkerboard = Renderer::GetCheckerboardTexture();
         s_Instance->m_BaseColorTexture = s_Instance->m_BaseColorTexture ? s_Instance->m_BaseColorTexture : checkerboard;
-        s_Instance->m_MetallicTexture = checkerboard;
-        s_Instance->m_RoughnessTexture = checkerboard;
+        s_Instance->m_MetallicRoughnessTexture = checkerboard;
         s_Instance->m_NormalTexture = checkerboard;
     }
 
@@ -41,13 +40,15 @@ namespace Chozo {
         renderer->Update();
 
         const auto checkerboard = Renderer::GetCheckerboardTexture();
-        auto baseColorTex = material->GetTexture("u_BaseColorTex");
-        auto metallicTex = material->GetTexture("u_MetallicTex");
-        auto roughnessTex = material->GetTexture("u_RoughnessTex");
-        auto normalTex = material->GetTexture("u_NormalTex");
+        auto baseColorTex = material->GetTexture("u_BaseColorMap");
+        auto metallicRoughnessTex = material->GetTexture("u_MetallicRoughnessMap");
+        auto occlusionTex = material->GetTexture("u_OcclusionMap");
+        auto emissiveTex = material->GetTexture("u_EmissiveMap");
+        auto normalTex = material->GetTexture("u_NormalMap");
         s_Instance->m_BaseColorTexture = baseColorTex ? baseColorTex : checkerboard;
-        s_Instance->m_MetallicTexture = metallicTex ? metallicTex : checkerboard;
-        s_Instance->m_RoughnessTexture = roughnessTex ? roughnessTex : checkerboard;
+        s_Instance->m_MetallicRoughnessTexture = metallicRoughnessTex ? metallicRoughnessTex : checkerboard;
+        s_Instance->m_OcclusionTexture = occlusionTex ? occlusionTex : checkerboard;
+        s_Instance->m_EmissiveTexture = emissiveTex ? emissiveTex : checkerboard;
         s_Instance->m_NormalTexture = normalTex ? normalTex : checkerboard;
     }
 
@@ -87,7 +88,6 @@ namespace Chozo {
                 auto uniformName = uniform.name;
                 auto fullName = uniform.fullName();
                 auto value = material->GetUniforms()[fullName];
-                auto previewType = StringToPreviewType(uniformName);
 
                 if (std::holds_alternative<glm::vec3>(value))
                 {
@@ -99,15 +99,6 @@ namespace Chozo {
                             OnMaterialChange(fullName, targetVal);
                         }
                     });
-
-                    RenderTextureProp(previewType);
-                }
-
-                if (uniformName == "Normal")
-                {
-                    DrawColumnValue("Normal", [&]() {
-                    });
-                    RenderTextureProp(PreviewType::Normal);
                 }
 
                 if (std::holds_alternative<float>(value))
@@ -120,8 +111,24 @@ namespace Chozo {
                             OnMaterialChange(fullName, targetVal);
                         }
                     });
+                }
 
-                    RenderTextureProp(previewType);
+                if (uniformName == "BaseColor")
+                    RenderTextureProp(PreviewType::BaseColor);
+
+                if (uniformName == "Roughness")
+                    RenderTextureProp(PreviewType::MetallicRoughness);
+
+                if (uniformName == "OcclusionStrength")
+                    RenderTextureProp(PreviewType::Occlusion);
+
+                if (uniformName == "Emissive")
+                    RenderTextureProp(PreviewType::Emissive);
+
+                if (uniformName == "EnableNormalMap") {
+                    DrawColumnValue("Normal", [&]() {
+                    });
+                    RenderTextureProp(PreviewType::Normal);
                 }
             }
         }
@@ -171,16 +178,16 @@ namespace Chozo {
                 auto checkerboard = Renderer::GetCheckerboardTexture(); \
                 if (m_##ENUM##Texture && m_##ENUM##Texture != checkerboard) \
                 { \
-                    material->Set("u_" #ENUM "Tex", m_##ENUM##Texture); \
-                    material->Set("u_Material.Enable" #ENUM "Tex", true); \
-                    OnMaterialChange("u_" #ENUM "Tex", m_##ENUM##Texture); \
-                    OnMaterialChange("u_Material.Enable" #ENUM "Tex", true); \
+                    material->Set("u_" #ENUM "Map", m_##ENUM##Texture); \
+                    material->Set("u_Material.Enable" #ENUM "Map", true); \
+                    OnMaterialChange("u_" #ENUM "Map", m_##ENUM##Texture); \
+                    OnMaterialChange("u_Material.Enable" #ENUM "Map", true); \
                 } \
                 else \
                 { \
                     m_##ENUM##Texture = checkerboard; \
-                    material->Set("u_Material.Enable" #ENUM "Tex", false); \
-                    OnMaterialChange("u_Material.Enable" #ENUM "Tex", false); \
+                    material->Set("u_Material.Enable" #ENUM "Map", false); \
+                    OnMaterialChange("u_Material.Enable" #ENUM "Map", false); \
                 } \
                 break; \
             };
@@ -200,7 +207,7 @@ namespace Chozo {
             return;
 
         std::string typeString = PreviewTypeToString(type);
-        std::string uniformName = "u_Material.Enable" + typeString + "Tex";
+        std::string uniformName = "u_Material.Enable" + typeString + "Map";
         bool enabled = std::get<bool>(material->GetUniforms()[uniformName]);
         bool changed = false;
 

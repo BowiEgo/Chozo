@@ -46,7 +46,7 @@ namespace Chozo {
     struct AssetMetadata
 	{
 		AssetHandle Handle = 0;
-		AssetType Type;
+		AssetType Type = AssetType::None;
 
 		fs::path FilePath;
 		uint64_t FileSize = 0;

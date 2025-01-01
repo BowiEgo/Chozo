@@ -10,7 +10,7 @@ namespace Chozo {
     public:
         virtual void Init() override;
         
-        virtual uint32_t GetMaxTextureSlots() override;
+        virtual uint32_t GetMaxTextureSlotCount() override;
 
         virtual void SetClearColor(const glm::vec4& color) override;
         virtual void Clear() override;

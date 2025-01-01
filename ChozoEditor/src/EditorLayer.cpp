@@ -9,6 +9,7 @@
 #include "Chozo/ImGui/ImGuiUI.h"
 #include "Chozo/Math/Math.h"
 
+#include "Chozo/FileSystem/MeshImporter.h"
 // TODO: Remove
 #include "Thumbnail/ThumbnailRenderer.h"
 #include "Thumbnail/ThumbnailManager.h"
@@ -64,6 +65,8 @@ namespace Chozo {
             if (m_Entity_Selected != selectedEntity)
                 m_Entity_Selected = selectedEntity;
         });
+
+        MeshImporter::Init();
 
         ThumbnailRenderer::Init();
         ThumbnailManager::Init();
@@ -199,12 +202,12 @@ namespace Chozo {
         if(ImGui::Button("ShowSkyboxTexture"))
         {
             TextureViewerPanel::Open();
-            Ref<Texture2D> texture = m_ViewportRenderer->GetSkyboxPass()->GetOutput(0);
+            auto texture = m_ViewportRenderer->GetSkyboxPass()->GetOutput(0);
             TextureViewerPanel::SetTexture(texture);
         }
 
-        std::string buttons[4] = {
-            "Position", "Normal", "Depth", "BaseColor"
+        std::string buttons[6] = {
+            "Position", "Normal", "Depth", "BaseColor", "MetallicRoughnessOcclusion", "Emissive"
         };
         for (int i = 0; i < std::size(buttons); i++)
         {
@@ -212,21 +215,31 @@ namespace Chozo {
             if(ImGui::Button(buttonLabel.c_str()))
             {
                 TextureViewerPanel::Open();
-                Ref<Texture2D> texture = m_ViewportRenderer->GetGeometryPass()->GetOutput(i);
+                auto texture = m_ViewportRenderer->GetGeometryPass()->GetOutput(i);
                 TextureViewerPanel::SetTexture(texture);
             }
         }
 
-        std::string materialButtons[4] = {
-             "Ambient", "Specular", "Metallic", "Roughness"
-        };
+        // std::string debugButtons[1] = {
+        //      "Tangent",
+        // };
+        // for (int i = 0; i < std::size(debugButtons); i++)
+        // {
+        //     std::string buttonLabel = debugButtons[i];
+        //     if(ImGui::Button(buttonLabel.c_str()))
+        //     {
+        //         TextureViewerPanel::Open();
+        //         auto texture = m_ViewportRenderer->GetDebugPass()->GetOutput(i);
+        //         TextureViewerPanel::SetTexture(texture);
+        //     }
+        // }
 
         {
             std::string buttonLabel = "ID";
             if(ImGui::Button(buttonLabel.c_str()))
             {
                 TextureViewerPanel::Open();
-                Ref<Texture2D> texture = m_ViewportRenderer->GetIDPass()->GetOutput(0);
+                auto texture = m_ViewportRenderer->GetIDPass()->GetOutput(0);
                 TextureViewerPanel::SetTexture(texture);
             }
         }
@@ -256,7 +269,7 @@ namespace Chozo {
             if(ImGui::Button(buttonLabel.c_str()))
             {
                 TextureViewerPanel::Open();
-                Ref<Texture2D> texture = Renderer::GetBrdfLUT();
+                auto texture = Renderer::GetBrdfLUT();
                 TextureViewerPanel::SetTexture(texture);
             }
         }
@@ -266,7 +279,7 @@ namespace Chozo {
             if(ImGui::Button(buttonLabel.c_str()))
             {
                 TextureViewerPanel::Open();
-                Ref<Texture2D> texture = m_ViewportRenderer->GetPBRPass()->GetOutput(0);;
+                auto texture = m_ViewportRenderer->GetPBRPass()->GetOutput(0);;
                 TextureViewerPanel::SetTexture(texture);
             }
         }
@@ -278,7 +291,7 @@ namespace Chozo {
                 TextureViewerPanel::Open();
 
                 ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->Update();
-                Ref<Texture2D> texture = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->GetOutput();
+                auto texture = ThumbnailRenderer::GetRenderer<MaterialThumbnailRenderer>()->GetOutput();
                 TextureViewerPanel::SetTexture(texture);
             }
         }
@@ -289,7 +302,7 @@ namespace Chozo {
             {
                 TextureViewerPanel::Open();
 
-                Ref<Texture2D> texture = m_ViewportRenderer->GetSolidPass()->GetOutput(0);
+                auto texture = m_ViewportRenderer->GetSolidPass()->GetOutput(0);
                 TextureViewerPanel::SetTexture(texture);
             }
         }
@@ -300,7 +313,7 @@ namespace Chozo {
             {
                 TextureViewerPanel::Open();
 
-                Ref<Texture2D> texture = m_ViewportRenderer->GetSolidPass()->GetOutput(1);
+                auto texture = m_ViewportRenderer->GetSolidPass()->GetOutput(1);
                 TextureViewerPanel::SetTexture(texture);
             }
         }

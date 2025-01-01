@@ -5,10 +5,10 @@ layout(location = 0) out vec4 o_Color;
 layout(location = 0) in vec2 v_TexCoord;
 layout(location = 1) in vec3 v_FragPosition;
 
-layout(binding = 0) uniform sampler2D u_PositionTex;
-layout(binding = 1) uniform sampler2D u_NormalTex;
-layout(binding = 2) uniform sampler2D u_BaseColorTex;
-layout(binding = 3) uniform sampler2D u_MaterialPropTex;
+layout(binding = 0) uniform sampler2D u_PositionMap;
+layout(binding = 1) uniform sampler2D u_NormalMap;
+layout(binding = 2) uniform sampler2D u_BaseColorMap;
+layout(binding = 3) uniform sampler2D u_MaterialPropMap;
 
 #include "Snippets/Fragment/Scene.glsl"
 #include "Snippets/Fragment/Light.glsl"
@@ -102,10 +102,10 @@ void main()
     vec3 spotLights = vec3(0.0);
     vec3 finalLight = vec3(0.0);
 
-    vec3 gPosition = texture(u_PositionTex, v_TexCoord).rgb;
-    vec3 gNormal = texture(u_NormalTex, v_TexCoord).rgb;
-    vec3 gDiffuse = texture(u_BaseColorTex, v_TexCoord).rgb;
-    vec4 gMaterialProps = texture(u_MaterialPropTex, v_TexCoord);
+    vec3 gPosition = texture(u_PositionMap, v_TexCoord).rgb;
+    vec3 gNormal = texture(u_NormalMap, v_TexCoord).rgb;
+    vec3 gDiffuse = texture(u_BaseColorMap, v_TexCoord).rgb;
+    vec4 gMaterialProps = texture(u_MaterialPropMap, v_TexCoord);
 
     float gMetallic = gMaterialProps.r;
     float gRoughness = gMaterialProps.g;

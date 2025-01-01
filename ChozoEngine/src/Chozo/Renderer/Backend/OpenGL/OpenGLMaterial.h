@@ -37,7 +37,6 @@ namespace Chozo {
         Ref<OpenGLShader> m_Shader;
 		std::string m_Name;
         std::map<std::string, UniformValue> m_Uniforms;
-        std::vector<Ref<Texture>> m_TextureSlots;
         uint32_t m_TextureSlotIndex = 0;
     };
 }

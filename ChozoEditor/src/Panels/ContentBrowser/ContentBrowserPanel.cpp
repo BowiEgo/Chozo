@@ -210,7 +210,7 @@ namespace Chozo {
 
         const auto filename = CreateItemName(AssetType::Material);
 
-        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, "Lit");
+        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, filename);
 
         s_Instance->OnBrowserRefresh();
 

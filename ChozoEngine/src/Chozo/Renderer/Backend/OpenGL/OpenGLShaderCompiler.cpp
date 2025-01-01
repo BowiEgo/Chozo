@@ -34,6 +34,8 @@ namespace Chozo {
     {
         const Timer timer;
 
+        CZ_CORE_TRACE("Compiling shader {0}...", m_Name);
+
         for (const auto& pathString : filePaths)
         {
             fs::path path(pathString);

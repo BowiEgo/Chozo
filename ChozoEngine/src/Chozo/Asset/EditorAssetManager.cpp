@@ -123,7 +123,7 @@ namespace Chozo {
     const AssetMetadata &EditorAssetManager::GetMetadata(const fs::path &filepath)
     {
 		const auto relativePath = GetRelativePath(filepath).replace_extension().string();
-        
+
         for (auto& [handle, metadata] : m_AssetRegistry)
 		{
 			if (metadata.FilePath == relativePath)
@@ -205,14 +205,14 @@ namespace Chozo {
                 continue;
             }
 
-            if (auto asset = GetAsset(metadata.Handle))
+            if (const auto asset = GetAsset(metadata.Handle))
                 SaveAsset(asset, metadata);
         }
 
         WriteRegistryToFile();
     }
 
-    uint64_t EditorAssetManager::SaveAsset(Ref<Asset>& asset, AssetMetadata &metadata)
+    uint64_t EditorAssetManager::SaveAsset(Ref<Asset> asset, AssetMetadata &metadata)
     {
         uint64_t fileSize = 0;
 
@@ -226,9 +226,9 @@ namespace Chozo {
         return fileSize;
     }
 
-    void EditorAssetManager::ExportAsset(Ref<Asset>& asset, const fs::path &filepath)
+    void EditorAssetManager::ExportAsset(Ref<Asset> asset, const fs::path &filepath)
     {
-		const fs::path path = GetRelativePath(filepath);
+		const auto path = GetRelativePath(filepath);
 
         AssetMetadata metadata;
 

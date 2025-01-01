@@ -200,18 +200,18 @@ namespace Chozo {
 
     //==============================================================================
     // MeshSourceThumbnailRenderer
-    MeshSourceThumbnailRenderer::MeshSourceThumbnailRenderer()
-    {
-        m_SceneRenderer = Ref<SceneRenderer>::Create(m_Scene);
-        m_SceneRenderer->SetActive(true);
-        m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
-        m_Camera = EditorCamera(6.0f, 1.0f, 0.1f, 1000.0f);
-    }
+    // MeshSourceThumbnailRenderer::MeshSourceThumbnailRenderer()
+    // {
+    //     // m_SceneRenderer = Ref<SceneRenderer>::Create(m_Scene);
+    //     // m_SceneRenderer->SetActive(true);
+    //     // m_SceneRenderer->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+    //     // m_Camera = EditorCamera(6.0f, 1.0f, 0.1f, 1000.0f);
+    // }
 
     void MeshSourceThumbnailRenderer::Render(Ref<ThumbnailPoolTask> task)
     {
-        Renderer::GetRendererData().WhiteTexture->CopyToHostBuffer(task->ImageData);
-        task->SetStatus(TaskStatus::Finished);
+        // Renderer::GetRendererData().WhiteTexture->CopyToHostBuffer(task->ImageData);
+        // task->SetStatus(TaskStatus::Finished);
     }
 
 } // namespace Chozo

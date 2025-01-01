@@ -39,7 +39,7 @@ namespace Chozo {
     //     const std::string defineToken = "#define";
     //     const std::string typeToken = "MAX_TEXTURE_SLOTS";
     //     const std::string caseToken = "// case";
-    //     const int maxTextureSlots = RenderCommand::GetMaxTextureSlots();
+    //     const int maxTextureSlots = RenderCommand::GetMaxTextureSlotCount();
 
     //     size_t pos = modifiedSource.find(defineToken, 0);
     //     while (pos != std::string::npos)

@@ -10,7 +10,7 @@ namespace Chozo
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
 		glm::vec3 Tangent;
-		glm::vec3 Binormal;
+		glm::vec3 Bitangent;
 	};
 
     struct Index
@@ -20,9 +20,9 @@ namespace Chozo
 
     struct Triangle
 	{
-		Vertex V0, V1, V2;
+		Vertex& V0, V1, V2;
 
-		Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2)
+		Triangle(Vertex& v0, Vertex& v1, Vertex& v2)
 			: V0(v0), V1(v1), V2(v2) {}
 	};
 	
@@ -65,7 +65,7 @@ namespace Chozo
                 { ShaderDataType::Float3, "a_Normal"   },
                 { ShaderDataType::Float2, "a_TexCoord" },
                 { ShaderDataType::Float3, "a_Tangent"  },
-                { ShaderDataType::Float3, "a_Binormal" },
+                { ShaderDataType::Float3, "a_Bitangent" },
             });
             uint32_t maxIndicesCount = indexCount * 3;
             uint32_t indices[maxIndicesCount];

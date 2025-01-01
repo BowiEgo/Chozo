@@ -58,7 +58,7 @@ namespace Chozo {
 
 		inline AssetType GetAssetTypeFromExtension(const std::string& extension)
 		{
-			std::string ext = Utils::String::ToLowerCopy(extension);
+			const std::string ext = String::ToLowerCopy(extension);
 			if (s_AssetExtensionMap.find(ext) == s_AssetExtensionMap.end())
 				return AssetType::None;
 

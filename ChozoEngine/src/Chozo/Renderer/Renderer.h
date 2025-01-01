@@ -108,7 +108,7 @@ namespace Chozo {
         static RendererConfig& GetConfig();
 		static void SetConfig(const RendererConfig& config);
 
-        static uint32_t GetMaxTextureSlots();
+        static uint32_t GetMaxTextureSlotCount();
 
         static Ref<TextureCube> CreateCubemap(const std::string& filePath);
 		static void CreateStaticSky( const Ref<Texture2D>& texture);

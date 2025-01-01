@@ -143,6 +143,9 @@ namespace Chozo {
             if (size.find("Bytes") == std::string::npos)
                 size += (" (" + Utils::Numeric::FormatWithCommas(m_Size) + "Bytes)");
 
+            const std::string type = m_Type == ContentItemType::Directory ? "Directory" : Utils::AssetTypeToString(m_AssetType);
+
+            ImGui::Text("Type: %s", type.c_str());
             ImGui::Text("ID: %s", std::to_string(m_Handle).c_str());
             ImGui::Text("Disk Space: %s", size.c_str());
             ImGui::Text("CreatAt: %s", Utils::Time::FormatTimestamp(m_CreatedAt).c_str());

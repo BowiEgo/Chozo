@@ -72,75 +72,63 @@ namespace Chozo {
 
 	//==============================================================================
 	// MeshSourceSerializer
-	struct MeshMaterial
-	{
-		std::string Name;
-		std::string ShaderName;
-
-		glm::vec3 BaseColor;
-		float Metallic;
-		float Roughness;
-		float Reflectance;
-		float Ambient;
-		float AmbientStrength;
-
-		bool EnableBaseColorTex;
-		bool EnableNormalTex;
-		bool EnableMetallicTex;
-		bool EnableRoughnessTex;
-
-		AssetHandle BaseColorTexture;
-		AssetHandle NormalTexture;
-		AssetHandle MetallicTexture;
-		AssetHandle RoughnessTexture;
-
-		static void Serialize(StreamWriter* serializer, const MeshMaterial& instance)
-		{
-			serializer->WriteString(instance.Name);
-			serializer->WriteString(instance.ShaderName);
-
-			serializer->WriteRaw(instance.BaseColor);
-			serializer->WriteRaw(instance.Metallic);
-			serializer->WriteRaw(instance.Roughness);
-			serializer->WriteRaw(instance.Reflectance);
-			serializer->WriteRaw(instance.Ambient);
-			serializer->WriteRaw(instance.AmbientStrength);
-
-			serializer->WriteRaw(instance.EnableBaseColorTex);
-			serializer->WriteRaw(instance.EnableNormalTex);
-			serializer->WriteRaw(instance.EnableMetallicTex);
-			serializer->WriteRaw(instance.EnableRoughnessTex);
-			
-			serializer->WriteRaw(instance.BaseColorTexture);
-			serializer->WriteRaw(instance.NormalTexture);
-			serializer->WriteRaw(instance.MetallicTexture);
-			serializer->WriteRaw(instance.RoughnessTexture);
-		}
-
-		static void Deserialize(StreamReader* deserializer, MeshMaterial& instance)
-		{
-			deserializer->ReadString(instance.Name);
-			deserializer->ReadString(instance.ShaderName);
-
-			deserializer->ReadRaw(instance.BaseColor);
-			deserializer->ReadRaw(instance.Metallic);
-			deserializer->ReadRaw(instance.Roughness);
-			deserializer->ReadRaw(instance.Reflectance);
-			deserializer->ReadRaw(instance.Ambient);
-			deserializer->ReadRaw(instance.AmbientStrength);
-
-			deserializer->ReadRaw(instance.EnableBaseColorTex);
-			deserializer->ReadRaw(instance.EnableNormalTex);
-			deserializer->ReadRaw(instance.EnableMetallicTex);
-			deserializer->ReadRaw(instance.EnableRoughnessTex);
-			
-			deserializer->ReadRaw(instance.BaseColorTexture);
-			deserializer->ReadRaw(instance.NormalTexture);
-			deserializer->ReadRaw(instance.MetallicTexture);
-			deserializer->ReadRaw(instance.RoughnessTexture);
-		}
-	};
-	
+	// struct MeshMaterial
+	// {
+	// 	std::string Name;
+	// 	std::string ShaderName;
+	//
+	// 	glm::vec3 BaseColor;
+	// 	float OcclusionStrength;
+	// 	glm::vec3 Emissive;
+	// 	float EmissiveStrength;
+	// 	float Metallic;
+	// 	float Roughness;
+	//
+	// 	bool EnableBaseColorMap;
+	// 	bool EnableMetallicRoughnessMap;
+	// 	bool EnableNormalMap;
+	// 	bool EnableOcclusionMap;
+	// 	bool EnableEmissiveMap;
+	//
+	// 	static void Serialize(StreamWriter* serializer, const MeshMaterial& instance)
+	// 	{
+	// 		serializer->WriteString(instance.Name);
+	// 		serializer->WriteString(instance.ShaderName);
+	//
+	// 		serializer->WriteRaw(instance.BaseColor);
+	// 		serializer->WriteRaw(instance.OcclusionStrength);
+	// 		serializer->WriteRaw(instance.Emissive);
+	// 		serializer->WriteRaw(instance.EmissiveStrength);
+	// 		serializer->WriteRaw(instance.Metallic);
+	// 		serializer->WriteRaw(instance.Roughness);
+	//
+	// 		serializer->WriteRaw(instance.EnableBaseColorMap);
+	// 		serializer->WriteRaw(instance.EnableMetallicRoughnessMap);
+	// 		serializer->WriteRaw(instance.EnableNormalMap);
+	// 		serializer->WriteRaw(instance.EnableOcclusionMap);
+	// 		serializer->WriteRaw(instance.EnableEmissiveMap);
+	// 	}
+	//
+	// 	static void Deserialize(StreamReader* deserializer, MeshMaterial& instance)
+	// 	{
+	// 		deserializer->ReadString(instance.Name);
+	// 		deserializer->ReadString(instance.ShaderName);
+	//
+	// 		deserializer->ReadRaw(instance.BaseColor);
+	// 		deserializer->ReadRaw(instance.OcclusionStrength);
+	// 		deserializer->ReadRaw(instance.Emissive);
+	// 		deserializer->ReadRaw(instance.EmissiveStrength);
+	// 		deserializer->ReadRaw(instance.Metallic);
+	// 		deserializer->ReadRaw(instance.Roughness);
+	//
+	// 		deserializer->ReadRaw(instance.EnableBaseColorMap);
+	// 		deserializer->ReadRaw(instance.EnableMetallicRoughnessMap);
+	// 		deserializer->ReadRaw(instance.EnableNormalMap);
+	// 		deserializer->ReadRaw(instance.EnableOcclusionMap);
+	// 		deserializer->ReadRaw(instance.EnableEmissiveMap);
+	// 	}
+	// };
+	//
 	struct MeshSourceFileMetadata
 	{
 		enum class MeshFlags : uint32_t
@@ -165,8 +153,8 @@ namespace Chozo {
 		uint64_t IndexBufferOffset{};
 		uint64_t IndexBufferSize{};
 
-		uint64_t MaterialArrayOffset{};
-		uint64_t MaterialArraySize{};
+		// uint64_t MaterialArrayOffset{};
+		// uint64_t MaterialArraySize{};
 	};
 
 	class MeshSourceSerializer final : public AssetSerializer

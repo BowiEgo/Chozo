@@ -172,7 +172,7 @@ namespace Chozo {
         s_Data.LineVertexBufferPtr = s_Data.LineVertexBufferBase;
 
         // Textures
-        s_Data.MaxTextureSlots = RenderCommand::GetMaxTextureSlots();
+        s_Data.MaxTextureSlots = RenderCommand::GetMaxTextureSlotCount();
         s_Data.TextureSlots.resize(s_Data.MaxTextureSlots);
         s_Data.WhiteTexture = Texture2D::Create();
         uint32_t whiteTextureData = 0xffffffff;

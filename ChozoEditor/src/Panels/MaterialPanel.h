@@ -7,9 +7,10 @@ namespace Chozo {
 
     #define FOREACH_PREVIEW_TYPE(TYPE) \
         	TYPE(BaseColor) \
-        	TYPE(Metallic) \
-        	TYPE(Roughness) \
-        	TYPE(Normal) \
+        	TYPE(MetallicRoughness) \
+            TYPE(Occlusion) \
+            TYPE(Emissive) \
+            TYPE(Normal) \
 
 	enum class PreviewType : uint16_t {
 		#define GENERATE_ENUM(ENUM) ENUM,
@@ -61,6 +62,6 @@ namespace Chozo {
         static bool s_Show;
 
         AssetHandle m_Material;
-        Ref<Texture2D> m_BaseColorTexture, m_MetallicTexture, m_RoughnessTexture, m_NormalTexture;
+        Ref<Texture2D> m_BaseColorTexture, m_MetallicRoughnessTexture, m_OcclusionTexture, m_EmissiveTexture, m_NormalTexture;
     };
 }

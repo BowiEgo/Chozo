@@ -36,14 +36,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_DEBUG)
 target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOW_WIDTH=1920 WINDOW_HEIGHT=1080)
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${platform_definitions})
 
-# Include directories for chozo
-target_include_directories(${PROJECT_NAME} PUBLIC
-  "${CMAKE_CURRENT_SOURCE_DIR}/src"
-  "${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image"
-  "${CMAKE_CURRENT_SOURCE_DIR}/vendor/entt/include"
-  "${CMAKE_CURRENT_SOURCE_DIR}/vendor/libshaderc_util/include"
-)
-
 # message(${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/spdlog)
 
 find_package(spdlog CONFIG REQUIRED)
@@ -58,6 +50,7 @@ find_package(unofficial-shaderc CONFIG REQUIRED)
 find_package(spirv_cross_core CONFIG REQUIRED)
 find_package(spirv_cross_glsl CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
+find_path(TINYGLTF_INCLUDE_DIRS "tiny_gltf.h")
 
 find_library(COCOA_LIBRARY Cocoa)
 
@@ -78,6 +71,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     spirv-cross-glsl
     assimp::assimp
 )
+
+# Include directories for chozo
+target_include_directories(${PROJECT_NAME} PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}/src"
+        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb_image"
+        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/entt/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/libshaderc_util/include"
+)
+target_include_directories(${PROJECT_NAME} PUBLIC ${TINYGLTF_INCLUDE_DIRS})
 
 # Precompiled header
 target_precompile_headers(${PROJECT_NAME} PRIVATE

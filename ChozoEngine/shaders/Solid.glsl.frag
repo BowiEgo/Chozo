@@ -4,9 +4,7 @@ layout(location = 0) out vec4 o_Color;
 layout(location = 1) out vec4 o_Depth;
 layout(location = 2) out int o_EntityID;
 
-layout(location = 0) in vec3 v_Normal;
-layout(location = 1) in vec2 v_TexCoord;
-layout(location = 2) in vec3 v_FragPosition;
+layout(location = 0) in vec3 v_WorldNormal;
 
 struct DirectionalLight
 {
@@ -53,7 +51,7 @@ void main()
 
     vec3 topLeftDirection = normalize(-viewDir + up * 0.5 - right * 0.5);
 
-    vec3 normal = normalize(v_Normal);
+    vec3 normal = normalize(v_WorldNormal);
     vec3 baseColor = vec3(1.0);
 
     float brightness = clamp(dot(normal, topLeftDirection), 0.3, 1.0);

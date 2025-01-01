@@ -121,7 +121,7 @@ namespace Chozo {
         shaderc::Compiler compiler;
         shaderc::CompileOptions options;
         options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
-        options.AddMacroDefinition("MAX_TEXTURE_SLOTS", std::to_string(RenderCommand::GetMaxTextureSlots()));
+        options.AddMacroDefinition("MAX_TEXTURE_SLOTS", std::to_string(RenderCommand::GetMaxTextureSlotCount()));
 
         const bool optimize = false;
         if (optimize)

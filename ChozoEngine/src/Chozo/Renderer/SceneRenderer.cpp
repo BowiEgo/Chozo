@@ -66,14 +66,13 @@ namespace Chozo
                 ImageFormat::RGB16F,
                 ImageFormat::RGB16F,
                 ImageFormat::RGB16F,
+                ImageFormat::RGBA16F,
                 ImageFormat::RED32I,
                 ImageFormat::Depth
             };
-			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
 
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "Geometry";
-			// pipelineSpec.DepthOperator = DepthCompareOperator::Equal;
             pipelineSpec.DepthWrite = false;
             pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Geometry");
 			pipelineSpec.TargetFramebuffer = Framebuffer::Create(fbSpec);
@@ -85,11 +84,40 @@ namespace Chozo
 			m_GeometryPass->SetInput("CameraData", m_CameraUB);
         }
 
+    	// Debug
+	    {
+        	FramebufferSpecification fbSpec;
+        	fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+        	fbSpec.Attachments = {
+        		ImageFormat::RGB16F,
+				// ImageFormat::RGB16F,
+				// ImageFormat::RGB16F,
+				// ImageFormat::RGB16F,
+			};
+
+        	PipelineSpecification pipelineSpec;
+        	pipelineSpec.DebugName = "Debug";
+        	pipelineSpec.DepthWrite = false;
+        	pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Debug");
+        	pipelineSpec.TargetFramebuffer = Framebuffer::Create(fbSpec);
+
+        	RenderPassSpecification renderPassSpec;
+        	renderPassSpec.DebugName = "Debug";
+        	renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
+        	m_DebugPass = RenderPass::Create(renderPassSpec);
+        	m_DebugPass->SetInput("CameraData", m_CameraUB);
+	    }
+
         // Solid
         {
             FramebufferSpecification fbSpec;
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-			fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGB16F, ImageFormat::RED32I, ImageFormat::Depth };
+			fbSpec.Attachments = {
+				ImageFormat::RGBA32F,
+				ImageFormat::RGB16F,
+				ImageFormat::RED32I,
+				ImageFormat::Depth
+			};
 
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "Solid";
@@ -152,10 +180,10 @@ namespace Chozo
             Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
             Ref<Texture2D> baseColorTex = m_GeometryPass->GetOutput(3);
             Ref<Texture2D> materialPropTex = m_GeometryPass->GetOutput(4);
-            m_PhongMaterial->Set("u_PositionTex", positionTex);
-            m_PhongMaterial->Set("u_NormalTex", normalTex);
-            m_PhongMaterial->Set("u_BaseColorTex", baseColorTex);
-            m_PhongMaterial->Set("u_MaterialPropTex", materialPropTex);
+            m_PhongMaterial->Set("u_PositionMap", positionTex);
+            m_PhongMaterial->Set("u_NormalMap", normalTex);
+            m_PhongMaterial->Set("u_BaseColorMap", baseColorTex);
+            m_PhongMaterial->Set("u_MaterialPropMap", materialPropTex);
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.DebugName = "Phong";
@@ -383,7 +411,7 @@ namespace Chozo
     void SceneRenderer::GeometryPass()
     {
 		RenderCommand::BeginRenderPass(m_CommandBuffer, m_GeometryPass);
-        for (auto [Mesh, SubmeshIndex, Material, Transform, ID] : m_MeshDatas)
+        for (const auto& [Mesh, SubmeshIndex, Material, Transform, ID] : m_MeshDatas)
         {
             if (!Material)
                 continue;
@@ -402,6 +430,28 @@ namespace Chozo
 		RenderCommand::EndRenderPass(m_CommandBuffer, m_GeometryPass);
     }
 
+    void SceneRenderer::DebugPass()
+	{
+    	RenderCommand::BeginRenderPass(m_CommandBuffer, m_DebugPass);
+    	for (const auto& [Mesh, SubmeshIndex, Material, Transform, ID] : m_MeshDatas)
+    	{
+    		if (!Material)
+    			continue;
+
+    		if (Mesh.As<DynamicMesh>())
+    			RenderCommand::SubmitMeshWithMaterial(
+					m_CommandBuffer,
+					m_DebugPass->GetPipeline(),
+					Mesh.As<DynamicMesh>(),
+					SubmeshIndex,
+					Material,
+					Transform,
+					(int)ID
+				);
+    	}
+    	RenderCommand::EndRenderPass(m_CommandBuffer, m_DebugPass);
+    }
+
     void SceneRenderer::IDPass()
     {
 		RenderCommand::BeginRenderPass(m_CommandBuffer, m_IDPass);
@@ -412,12 +462,13 @@ namespace Chozo
     void SceneRenderer::SolidPass()
     {
 		RenderCommand::BeginRenderPass(m_CommandBuffer, m_SolidPass);
-        for (auto [Mesh, SubmeshIndex, Material, Transform, ID] : m_MeshDatas)
+        for (const auto& [Mesh, SubmeshIndex, Material, Transform, ID] : m_MeshDatas)
         {
             if (!Material)
             {
                 if (Mesh.As<DynamicMesh>())
-                    RenderCommand::SubmitMeshWithMaterial(m_CommandBuffer,
+                    RenderCommand::SubmitMeshWithMaterial(
+                    	m_CommandBuffer,
 	                    m_SolidPass->GetPipeline(),
 	                    Mesh.As<DynamicMesh>(),
 	                    SubmeshIndex,
@@ -460,10 +511,10 @@ namespace Chozo
         Ref<TextureCube> irradianceMap = Renderer::GetIrradianceTextureCube();
         Ref<TextureCube> prefilterMap = Renderer::GetPrefilteredTextureCube();
         Ref<Texture2D> brdfLUTTexture = Renderer::GetBrdfLUT();
-        m_PBRMaterial->Set("u_PositionTex", positionTex);
-        m_PBRMaterial->Set("u_NormalTex", normalTex);
-        m_PBRMaterial->Set("u_BaseColorTex", baseColorTex);
-        m_PBRMaterial->Set("u_MaterialPropTex", materialPropTex);
+        m_PBRMaterial->Set("u_PositionMap", positionTex);
+        m_PBRMaterial->Set("u_NormalMap", normalTex);
+        m_PBRMaterial->Set("u_BaseColorMap", baseColorTex);
+        m_PBRMaterial->Set("u_MaterialPropMap", materialPropTex);
         m_PBRMaterial->Set("u_IrradianceMap", irradianceMap);
         m_PBRMaterial->Set("u_PrefilterMap", prefilterMap);
         m_PBRMaterial->Set("u_BRDFLutTex", brdfLUTTexture);
@@ -487,6 +538,7 @@ namespace Chozo
 
         SkyboxPass();
         GeometryPass();
+    	// DebugPass();
         SolidPass();
         IDPass();
         // PhongPass();

@@ -92,15 +92,19 @@ namespace Chozo {
     };
     
     template <typename T, typename... Args>
-    inline Ref<T> ContentBrowserPanel::CreateAsset(const std::string& filename, Ref<DirectoryInfo>& directory, Args &&...args)
+    Ref<T> ContentBrowserPanel::CreateAsset(const std::string& filename, Ref<DirectoryInfo>& directory, Args &&...args)
     {
-        fs::path filePath = Utils::File::GetAssetDirectory() / directory->FilePath;
-        Ref<T> asset = Application::GetAssetManager()->CreateNewAsset<T>(filename, filePath.string(), std::forward<Args>(args)...);
-        auto metadata = Application::GetAssetManager()->GetMetadata(asset->Handle);
+        const fs::path filePath = Utils::File::GetAssetDirectory() / directory->FilePath;
 
-        AddAssetToDir(directory, metadata);
-        SortAssets(directory);
+        if (Ref<T> asset = Application::GetAssetManager()->CreateNewAsset<T>(filename, filePath.string(), std::forward<Args>(args)...))
+        {
+            auto metadata = Application::GetAssetManager()->GetMetadata(asset->Handle);
+            AddAssetToDir(directory, metadata);
+            SortAssets(directory);
 
-        return asset;
+            return asset;
+        }
+
+        return nullptr;
     }
 }

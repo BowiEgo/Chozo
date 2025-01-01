@@ -17,6 +17,8 @@ namespace Chozo {
             return glm::vec3(1.0f);
         if (uniformType == "Vec4")
             return glm::vec4(1.0f);
+        if (uniformType == "Mat3")
+            return glm::mat3(1.0f);
         if (uniformType == "Mat4")
             return glm::mat4(1.0f);
         if (uniformType == "Array")
@@ -29,8 +31,9 @@ namespace Chozo {
     OpenGLMaterial::OpenGLMaterial(const Ref<Shader> &shader, std::string name)
         : m_Shader(shader.As<OpenGLShader>()), m_Name(std::move(name))
     {
-        m_TextureSlots.resize(Renderer::GetMaxTextureSlots());
-        m_TextureAssetHandles.resize(Renderer::GetMaxTextureSlots());
+        const auto maxTextureSlotCount = Renderer::GetMaxTextureSlotCount();
+        m_TextureSlots.resize(maxTextureSlotCount);
+        m_TextureAssetHandles.assign(maxTextureSlotCount, std::make_tuple("", 0));
         PopulateUniforms(m_Shader);
     }
 
@@ -109,7 +112,7 @@ namespace Chozo {
             if (textureIndex == -1)
             {
                 textureIndex = (int)m_TextureSlotIndex;
-                m_TextureSlots[m_TextureSlotIndex] = nullptr;
+                m_TextureSlots[m_TextureSlotIndex] = Application::GetAssetManager()->GetAsset(handle).As<Texture>();
                 m_TextureAssetHandles[m_TextureSlotIndex] = { name, handle };
                 m_TextureSlotIndex++;
             }

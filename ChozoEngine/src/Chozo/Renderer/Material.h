@@ -35,6 +35,7 @@ namespace Chozo
 		virtual Ref<Shader> GetShader() const = 0;
     protected:
         std::vector<std::tuple<std::string, AssetHandle>> m_TextureAssetHandles;
+    	std::vector<Ref<Texture>> m_TextureSlots;
     };
 
     class MaterialTable final : public RefCounted

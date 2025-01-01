@@ -15,6 +15,7 @@
 		"imguizmo",
 		"shaderc",
 		"spirv-cross",
-		"assimp"
+		"assimp",
+		"tinygltf"
 	]
 }

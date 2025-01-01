@@ -113,13 +113,13 @@ namespace Chozo {
     class MeshSourceThumbnailRenderer : public ThumbnailRenderer
     {
     public:
-        MeshSourceThumbnailRenderer();
+        // MeshSourceThumbnailRenderer();
         void Render(Ref<ThumbnailPoolTask> task) override;
     private:
-        glm::vec2 m_ViewportSize{200, 200};
-        EditorCamera m_Camera;
-        Ref<Scene> m_Scene;
-		Ref<SceneRenderer> m_SceneRenderer;
+  //       glm::vec2 m_ViewportSize{200, 200};
+  //       EditorCamera m_Camera;
+  //       Ref<Scene> m_Scene;
+		// Ref<SceneRenderer> m_SceneRenderer;
     };
     
 } // namespace Chozo

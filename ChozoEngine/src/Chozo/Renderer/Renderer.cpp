@@ -18,7 +18,7 @@ namespace Chozo {
         s_Data = new RendererData();
 
         // Textures
-        s_Data->MaxTextureSlots = RenderCommand::GetMaxTextureSlots();
+        s_Data->MaxTextureSlots = RenderCommand::GetMaxTextureSlotCount();
         s_Data->TextureSlots.resize(s_Data->MaxTextureSlots);
         s_Data->WhiteTexture = Texture2D::Create();
         uint32_t whiteTextureData = 0xffffffff;
@@ -71,7 +71,8 @@ namespace Chozo {
         auto shaderDir = std::string(Utils::File::GetShaderSoureceDirectory());
         s_Data->m_ShaderLibrary->Load("Solid", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/Solid.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("ID", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/ID.glsl.frag" });
-        s_Data->m_ShaderLibrary->Load("Geometry", { shaderDir + "/GBuffer.glsl.vert",  shaderDir + "/GBuffer.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("Geometry", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/GBuffer.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("Debug", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/Debug.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("Depth", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/Depth.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("Phong", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/Phong.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("IrradianceConvolution", { shaderDir + "/Common/CubemapSampler.glsl.vert",  shaderDir + "/IrradianceConvolution.glsl.frag" });
@@ -197,7 +198,10 @@ namespace Chozo {
         shader->Bind();
         for (auto& pair : material->GetUniforms())
             shader->SetUniform(pair.first, pair.second);
+
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
         shader->SetUniform("u_VertUniforms.ModelMatrix", transform);
+        shader->SetUniform("u_VertUniforms.NormalMatrix", normalMatrix);
 
         uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
         uint32_t vertexCount = mesh->GetMeshSource()->GetVertexs().size();
@@ -314,9 +318,9 @@ namespace Chozo {
         s_Config = config;
     }
 
-    uint32_t Renderer::GetMaxTextureSlots()
+    uint32_t Renderer::GetMaxTextureSlotCount()
     {
-        return RenderCommand::GetMaxTextureSlots();
+        return RenderCommand::GetMaxTextureSlotCount();
     }
 
     void Renderer::CreateStaticSky(const Ref<Texture2D>& texture)

@@ -36,7 +36,7 @@ namespace Chozo {
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); GCE;
     }
 
-    uint32_t OpenGLRenderAPI::GetMaxTextureSlots()
+    uint32_t OpenGLRenderAPI::GetMaxTextureSlotCount()
     {
         int maxTextureImageUnits;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits); GCE;
@@ -308,6 +308,8 @@ namespace Chozo {
                 material.As<OpenGLMaterial>()->Bind();
             }
             shader->Bind();
+            glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
+            shader->SetUniform("u_VertUniforms.NormalMatrix", normalMatrix);
             shader->SetUniform("u_VertUniforms.ModelMatrix", transform);
             shader->SetUniform("u_Material.ID", id);
 

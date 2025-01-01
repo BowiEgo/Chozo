@@ -32,8 +32,8 @@ namespace Chozo {
 		AssetHandle LoadAsset(const fs::path& filepath);
 		AssetHandle LoadAsset(AssetMetadata& metadata);
 		void SaveAssets();
-		uint64_t SaveAsset(Ref<Asset>& asset, AssetMetadata &metadata);
-		void ExportAsset(Ref<Asset>& asset, const fs::path &filepath);
+		uint64_t SaveAsset(Ref<Asset> asset, AssetMetadata &metadata);
+		void ExportAsset(Ref<Asset> asset, const fs::path &filepath);
     	void RegisterAssetCallback(Ref<Asset>& asset);
 
 		static AssetType GetAssetTypeFromExtension(const std::string& extension);
@@ -53,11 +53,15 @@ namespace Chozo {
 			else
 				filePath = directoryPath + "/" + filename;
 
-			Ref<Asset> asset = T::Create(std::forward<Args>(args)...);
-			ExportAsset(asset, filePath);
-			RegisterAssetCallback(asset);
+			if (Ref<Asset> asset = T::Create(std::forward<Args>(args)...))
+			{
+				ExportAsset(asset, filePath);
+				RegisterAssetCallback(asset);
 
-			return asset;
+				return asset;
+			}
+
+			return nullptr;
 		}
 		
 		void LoadAssetRegistry();
