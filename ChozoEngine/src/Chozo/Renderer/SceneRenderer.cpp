@@ -82,6 +82,7 @@ namespace Chozo
 			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
 			m_GeometryPass = RenderPass::Create(renderPassSpec);
 			m_GeometryPass->SetInput("CameraData", m_CameraUB);
+			m_GeometryPass->SetInput("MaterialParamsData", Renderer::GetMaterialParams());
         }
 
     	// Debug
@@ -131,7 +132,6 @@ namespace Chozo
 			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
 			m_SolidPass = RenderPass::Create(renderPassSpec);
 			m_SolidPass->SetInput("CameraData", m_CameraUB);
-			m_SolidPass->SetInput("SceneData", m_SceneUB);
         }
 
         // ID

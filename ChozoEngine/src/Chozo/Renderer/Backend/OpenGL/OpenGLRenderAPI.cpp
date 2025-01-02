@@ -311,7 +311,8 @@ namespace Chozo {
             glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
             shader->SetUniform("u_VertUniforms.NormalMatrix", normalMatrix);
             shader->SetUniform("u_VertUniforms.ModelMatrix", transform);
-            shader->SetUniform("u_Material.ID", id);
+            shader->SetUniform("u_Constant.MaterialIndex", material->GetIndex());
+            shader->SetUniform("u_Constant.ID", id);
 
 			const auto& subMeshes = mesh->GetMeshSource()->GetSubmeshes();
 			const auto& subMesh = subMeshes[submeshIndex];
@@ -328,7 +329,7 @@ namespace Chozo {
 
             auto rendererData = Renderer::GetRendererData();
             rendererData.Stats.DrawCalls++;
-            rendererData.IndexCount += indexCount;
+            rendererData.Stats.IndexCount += indexCount;
             rendererData.Stats.VerticesCount += vertexCount;
             rendererData.Stats.TriangleCount += indexCount;
         });

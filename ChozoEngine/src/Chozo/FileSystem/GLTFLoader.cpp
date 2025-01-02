@@ -528,15 +528,15 @@ namespace Chozo {
 
             // PBR
             {
-                glm::vec3 baseColor = {
+                glm::vec4 baseColor = {
                     mat.pbrMetallicRoughness.baseColorFactor[0],
                     mat.pbrMetallicRoughness.baseColorFactor[1],
                     mat.pbrMetallicRoughness.baseColorFactor[2],
-                    // mat.pbrMetallicRoughness.baseColorFactor[3],
+                    mat.pbrMetallicRoughness.baseColorFactor[3],
                 };
-                mi->Set("u_Material.BaseColor", baseColor);
-                mi->Set("u_Material.Metallic", (float)mat.pbrMetallicRoughness.metallicFactor);
-                mi->Set("u_Material.Roughness", (float)mat.pbrMetallicRoughness.roughnessFactor);
+                mi->Set("BaseColor", baseColor);
+                mi->Set("Metallic", (float)mat.pbrMetallicRoughness.metallicFactor);
+                mi->Set("Roughness", (float)mat.pbrMetallicRoughness.roughnessFactor);
 
                 const int baseColorTexIdx = mat.pbrMetallicRoughness.baseColorTexture.index;
                 const int metallicRoughnessTexIdx = mat.pbrMetallicRoughness.metallicRoughnessTexture.index;
@@ -554,7 +554,7 @@ namespace Chozo {
             // Occlusion
             {
                 const int occlusionTexIdx = mat.occlusionTexture.index;
-                mi->Set("u_Material.OcclusionStrength", 1.0f);
+                mi->Set("OcclusionIntensity", 1.0f);
                 HandleTextures(PBRMaterialTextureType::Occlusion, mat, occlusionTexIdx, mi);
             }
 
@@ -565,10 +565,10 @@ namespace Chozo {
                     mat.emissiveFactor[1],
                     mat.emissiveFactor[2],
                 };
-                mi->Set("u_Material.Emissive", emissive);
+                mi->Set("Emissive", emissive);
 
                 const int emissiveTexIdx = mat.emissiveTexture.index;
-                mi->Set("u_Material.EmissiveStrength", 1.0f);
+                mi->Set("EmissiveIntensity", 1.0f);
                 HandleTextures(PBRMaterialTextureType::Emissive, mat, emissiveTexIdx, mi);
             }
 
@@ -625,7 +625,13 @@ namespace Chozo {
                     Application::GetAssetManager()->ExportAsset(texture, filepath);
 
                     mi->Set("u_" + propName + "Map", texture);
-                    mi->Set("u_Material.Enable" + propName + "Map", true);
+
+                    if (propType == PBRMaterialTextureType::MetallicRoughness) {
+                        mi->Set("EnableMetallicMap", true);
+                        mi->Set("EnableRoughnessMap", true);
+                    }
+                    else
+                        mi->Set("Enable" + propName + "Map", true);
                 }
             }
         }

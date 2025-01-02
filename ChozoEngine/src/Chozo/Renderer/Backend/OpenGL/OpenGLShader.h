@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Chozo/Renderer/Shader.h"
+#include "Chozo/Renderer/Shader/Shader.h"
 #include "OpenGLUniformBuffer.h"
 
 typedef unsigned int GLenum; // TODO: remove!
@@ -21,7 +21,6 @@ namespace Chozo {
         ShaderReflection GetReflection() const override { return m_Reflection; }
 
         void SetUniform(const std::string& name, const UniformValue& value, uint32_t count) const override;
-    public:
         void SetUniformBlockBinding(const std::string& name, uint32_t bindingPoint) const;
         void ClearCache() override;
         void Compile() override;
@@ -32,15 +31,17 @@ namespace Chozo {
         void SetUniform1iV(const std::string &name, const int *values, uint32_t count) const;
         void SetUniform1f(const std::string& name, float value) const;
         void SetUniform2f(const std::string& name, float v0, float v1) const;
+        void SetUniform2f(const std::string& name, const std::array<float, 2>& value) const;
+        void SetUniform2f(const std::string& name, const glm::vec2& value) const;
         void SetUniform3f(const std::string& name, float v0, float v1, float v2) const;
+        void SetUniform3f(const std::string& name, const std::array<float, 3>& value) const;
+        void SetUniform3f(const std::string& name, const glm::vec3& value) const;
         void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3) const;
-        void SetUniformVec2(const std::string& name, const glm::vec2& vector) const;
-        void SetUniformVec3(const std::string& name, const glm::vec3& vector) const;
-        void SetUniformVec3(const std::string& name, const float vector[3]) const;
-        void SetUniformVec4(const std::string& name, const glm::vec4& vector) const;
-        void SetUniformMat3(const std::string& name, const glm::mat3& matrix) const;
-        void SetUniformMat4(const std::string& name, const glm::mat4& matrix) const;
-        void SetUniformMat4V(const std::string& name, const std::vector<glm::mat4>& array, uint32_t count) const;
+        void SetUniform4f(const std::string& name, const std::array<float, 4>& value) const;
+        void SetUniform4f(const std::string& name, const glm::vec4& value) const;
+        void SetUniform3m(const std::string& name, const glm::mat3& matrix) const;
+        void SetUniform4m(const std::string& name, const glm::mat4& matrix) const;
+        void SetUniform4mv(const std::string& name, const std::vector<glm::mat4>& array, uint32_t count) const;
         int GetUniformLocation(const std::string& name) const;
     private:
         uint32_t m_RendererID{};

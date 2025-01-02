@@ -727,10 +727,9 @@ namespace Chozo {
 			out << YAML::BeginMap;
             out << YAML::Key << "Name" << YAML::Value << material->GetName();
             out << YAML::Key << "ShaderName" << YAML::Value << material->GetShader()->GetName();
-            for (const auto& [name, value] : material->GetUniforms())
+            for (const auto& [name, value] : material->GetParamUniforms())
             {
-                if (name.find("u_Material") != std::string::npos)
-                    Utils::Serialization::SerializeProperty(name, value, out);
+                Utils::Serialization::SerializeProperty(name, value, out);
             }
             out << YAML::EndMap;
         }
@@ -866,17 +865,17 @@ namespace Chozo {
         //         Name = meshSourceMaterial->GetName();
         //         ShaderName = meshSourceMaterial->GetShader()->GetName();
         //
-        //         BaseColor       = Utils::GetVec3(meshSourceMaterial->GetUniforms()["u_Material.BaseColor"]);
-        //         Metallic        = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Metallic"]);
-        //         Roughness       = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Roughness"]);
-        //         Ambient         = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Ambient"]);
-        //         AmbientStrength = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.AmbientStrength"]);
-        //         Reflectance     = Utils::GetFloat(meshSourceMaterial->GetUniforms()["u_Material.Reflectance"]);
+        //         BaseColor       = Utils::GetVec3(meshSourceMaterial->GetUniforms()["BaseColor"]);
+        //         Metallic        = Utils::GetFloat(meshSourceMaterial->GetUniforms()["Metallic"]);
+        //         Roughness       = Utils::GetFloat(meshSourceMaterial->GetUniforms()["Roughness"]);
+        //         Ambient         = Utils::GetFloat(meshSourceMaterial->GetUniforms()["Ambient"]);
+        //         AmbientStrength = Utils::GetFloat(meshSourceMaterial->GetUniforms()["AmbientStrength"]);
+        //         Reflectance     = Utils::GetFloat(meshSourceMaterial->GetUniforms()["Reflectance"]);
         //
-        //         EnableBaseColorMap = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableBaseColorMap"]);
-        //         EnableNormalMap    = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableNormalMap"]);
-        //         EnableMetallicTex  = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableMetallicTex"]);
-        //         EnableRoughnessTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["u_Material.EnableRoughnessTex"]);
+        //         EnableBaseColorMap = Utils::GetBool(meshSourceMaterial->GetUniforms()["EnableBaseColorMap"]);
+        //         EnableNormalMap    = Utils::GetBool(meshSourceMaterial->GetUniforms()["EnableNormalMap"]);
+        //         EnableMetallicTex  = Utils::GetBool(meshSourceMaterial->GetUniforms()["EnableMetallicTex"]);
+        //         EnableRoughnessTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["EnableRoughnessTex"]);
         //
         //         auto baseColorTex = meshSourceMaterial->GetTexture("u_BaseColorMap");
         //         auto normalTex    = meshSourceMaterial->GetTexture("u_NormalMap");
@@ -1000,17 +999,17 @@ namespace Chozo {
         //         CZ_CORE_ASSERT(shader, meshMaterial.ShaderName, meshMaterial.Name, "Shader called {} of Material {} doesn't exist.");
         //         Ref<Material> material = Material::Create(shader, meshMaterial.Name);
         //
-        //         material->Set("u_Material.BaseColor", meshMaterial.BaseColor);
-        //         material->Set("u_Material.Metallic", meshMaterial.Metallic);
-        //         material->Set("u_Material.Roughness", meshMaterial.Roughness);
-        //         material->Set("u_Material.Reflectance", meshMaterial.Reflectance);
-        //         material->Set("u_Material.Ambient", meshMaterial.Ambient);
-        //         material->Set("u_Material.AmbientStrength", meshMaterial.AmbientStrength);
+        //         material->Set("BaseColor", meshMaterial.BaseColor);
+        //         material->Set("Metallic", meshMaterial.Metallic);
+        //         material->Set("Roughness", meshMaterial.Roughness);
+        //         material->Set("Reflectance", meshMaterial.Reflectance);
+        //         material->Set("Ambient", meshMaterial.Ambient);
+        //         material->Set("AmbientStrength", meshMaterial.AmbientStrength);
         //
-        //         material->Set("u_Material.EnableBaseColorMap", meshMaterial.EnableBaseColorMap);
-        //         material->Set("u_Material.EnableNormalMap", meshMaterial.EnableNormalMap);
-        //         material->Set("u_Material.EnableMetallicTex", meshMaterial.EnableMetallicTex);
-        //         material->Set("u_Material.EnableRoughnessTex", meshMaterial.EnableRoughnessTex);
+        //         material->Set("EnableBaseColorMap", meshMaterial.EnableBaseColorMap);
+        //         material->Set("EnableNormalMap", meshMaterial.EnableNormalMap);
+        //         material->Set("EnableMetallicTex", meshMaterial.EnableMetallicTex);
+        //         material->Set("EnableRoughnessTex", meshMaterial.EnableRoughnessTex);
         //
         //         auto baseColorTex    = Application::GetAssetManager()->GetAsset(meshMaterial.BaseColorTexture);
         //         auto normalTex    = Application::GetAssetManager()->GetAsset(meshMaterial.NormalTexture);

@@ -1,15 +1,21 @@
 #include "Renderer.h"
 
 #include "RenderCommand.h"
+#include "OrthographicCamera.h"
 #include "Geometry/BoxGeometry.h"
 #include "Geometry/QuadGeometry.h"
+
+#include "Chozo/Utilities/CommonUtils.h"
+
+#include <future>
 
 namespace Chozo {
 
     static Renderer::RendererConfig s_Config;
+    static Renderer::MaterialParamsData s_MaterialParamsDataUB;
     static Renderer::RendererData* s_Data = nullptr;
     static std::vector<std::function<void()>> s_RenderCommandQueue;
-    static std::atomic<std::chrono::steady_clock::time_point> s_LastSubmitTime = std::chrono::steady_clock::now();
+    static std::atomic s_LastSubmitTime = std::chrono::steady_clock::now();
     static std::future<void> s_DebounceTask;
 
     void Renderer::Init()
@@ -85,9 +91,14 @@ namespace Chozo {
         s_Data->m_ShaderLibrary->Load("CubemapPreview", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/CubemapPreview.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("SceneComposite", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/SceneComposite.glsl.frag" });
 
+        // UniformBuffers
+        s_Data->m_MaterialParamsUB = UniformBuffer::Create(sizeof(MaterialParamsData));
+        s_Data->m_MaterialParamsUB->SetData(&s_MaterialParamsDataUB, sizeof(MaterialParamsData));
+        s_MaterialParamsDataUB.MaterialCount = 0;
+
         // PreethamSky
         {
-            Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("PreethamSky");
+            Ref<Shader> shader = GetRendererData().m_ShaderLibrary->Get("PreethamSky");
 
             FramebufferSpecification fbSpec;
             fbSpec.Width = s_Data->PreethamSkyTextureCube->GetWidth();
@@ -108,8 +119,8 @@ namespace Chozo {
         }
         // Cubemap-Sampler
         {
-            Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("CubemapSampler");
-            const uint32_t cubemapSize = Renderer::GetConfig().EnvironmentMapResolution;
+            Ref<Shader> shader = GetRendererData().m_ShaderLibrary->Get("CubemapSampler");
+            const uint32_t cubemapSize = GetConfig().EnvironmentMapResolution;
 
             FramebufferSpecification fbSpec;
             fbSpec.Width = cubemapSize;
@@ -156,16 +167,16 @@ namespace Chozo {
             PipelineSpecification prefilteredPipelineSpec;
 			prefilteredPipelineSpec.DebugName = "PBR-Prefiltered";
 			prefilteredPipelineSpec.TargetFramebuffer = framebuffer;
-            prefilteredPipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Prefiltered");
+            prefilteredPipelineSpec.Shader = GetShaderLibrary()->Get("Prefiltered");
 			s_Data->m_PrefilteredMaterial = Material::Create(prefilteredPipelineSpec.Shader, prefilteredPipelineSpec.DebugName);
 			s_Data->m_PrefilteredPipeline = Pipeline::Create(prefilteredPipelineSpec);
         }
         // BrdfLUT-Texture
         {
-            Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("BrdfLUT");
+            Ref<Shader> shader = GetRendererData().m_ShaderLibrary->Get("BrdfLUT");
             FramebufferSpecification fbSpec;
-            fbSpec.Width = Renderer::GetConfig().IrradianceMapComputeSamples;
-            fbSpec.Height = Renderer::GetConfig().IrradianceMapComputeSamples;
+            fbSpec.Width = GetConfig().IrradianceMapComputeSamples;
+            fbSpec.Height = GetConfig().IrradianceMapComputeSamples;
             fbSpec.Attachments = { ImageFormat::RG16F };
             Ref<Framebuffer> framebuffer = Framebuffer::Create(fbSpec);
 
@@ -192,27 +203,6 @@ namespace Chozo {
         delete s_Data;
     }
 
-    void Renderer::DrawMesh(const glm::mat4 &transform, const DynamicMesh* mesh, Material* material, uint32_t entityID)
-    {
-        Ref<Shader> shader = material->GetShader();
-        shader->Bind();
-        for (auto& pair : material->GetUniforms())
-            shader->SetUniform(pair.first, pair.second);
-
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
-        shader->SetUniform("u_VertUniforms.ModelMatrix", transform);
-        shader->SetUniform("u_VertUniforms.NormalMatrix", normalMatrix);
-
-        uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
-        uint32_t vertexCount = mesh->GetMeshSource()->GetVertexs().size();
-
-        RenderCommand::DrawIndexed(mesh->GetVertexArray(), indexCount * 3);
-        s_Data->Stats.DrawCalls++;
-        s_Data->IndexCount += indexCount;
-        s_Data->Stats.VerticesCount += vertexCount;
-        s_Data->Stats.TriangleCount += indexCount;
-    }
-
     void Renderer::Begin()
     {
         s_RenderCommandQueue.clear();
@@ -227,6 +217,70 @@ namespace Chozo {
     void Renderer::Submit(std::function<void()> &&func)
     {
         s_RenderCommandQueue.emplace_back([func = std::forward<std::function<void()>>(func)]() mutable { func(); });
+    }
+
+    bool Renderer::SubmitMaterial(Ref<Material> material)
+    {
+        const uint32_t index = s_MaterialParamsDataUB.MaterialCount;
+
+        if (index >= 1000)
+        {
+            CZ_CORE_WARN("MaterialParamsBuffer is full, cannot submit more material params.");
+            return false;
+        }
+
+        if (material->GetIndex() > -1)
+        {
+            CZ_CORE_WARN("Material {} has already been submitted.", material->GetName());
+            return false;
+        }
+
+        auto& matParams = s_MaterialParamsDataUB.Materials[index];
+        const auto& uniforms = material->GetParamUniforms();
+
+        for (const auto& [name, value] : uniforms)
+        {
+            UpdateMaterialParams(name, value, matParams);
+        }
+
+        material->SetIndex((int)index);
+        material->OnUniformChanged([&matParams, index](const std::string &name, const UniformValue& value) {
+            UpdateMaterialParams(name, value, matParams);
+        });
+
+        s_MaterialParamsDataUB.MaterialCount++;
+
+        return true;
+    }
+
+    void Renderer::UpdateMaterialParams(const std::string &name, const UniformValue &value, MaterialParams &matParams)
+    {
+        if (name == "BaseColor")
+            matParams.BaseColor = Uniform::As<glm::vec4>(value);
+        if (name == "Metallic")
+            matParams.MiscParams.x = Uniform::As<float>(value);
+        if (name == "Roughness")
+            matParams.MiscParams.y = Uniform::As<float>(value);
+        if (name == "OcclusionIntensity")
+            matParams.MiscParams.z = Uniform::As<float>(value);
+        if (name == "Emissive")
+            matParams.Emissive = glm::vec4(Uniform::As<glm::vec3>(value), matParams.Emissive.w);
+        if (name == "EmissiveIntensity")
+            matParams.Emissive.w = Uniform::As<float>(value);
+        if (name == "EnableBaseColorMap")
+            Utils::SetFlag<MaterialFlags>(matParams.Flags, Uniform::As<bool>(value), MaterialFlags::EnableBaseColorMap);
+        if (name == "EnableMetallicMap")
+            Utils::SetFlag<MaterialFlags>(matParams.Flags, Uniform::As<bool>(value), MaterialFlags::EnableMetallicMap);
+        if (name == "EnableRoughnessMap")
+            Utils::SetFlag<MaterialFlags>(matParams.Flags, Uniform::As<bool>(value), MaterialFlags::EnableRoughnessMap);
+        if (name == "EnableNormalMap")
+            Utils::SetFlag<MaterialFlags>(matParams.Flags, Uniform::As<bool>(value), MaterialFlags::EnableNormalMap);
+        if (name == "EnableEmissiveMap")
+            Utils::SetFlag<MaterialFlags>(matParams.Flags, Uniform::As<bool>(value), MaterialFlags::EnableEmissiveMap);
+        if (name == "EnableOcclusionMap")
+            Utils::SetFlag<MaterialFlags>(matParams.Flags, Uniform::As<bool>(value), MaterialFlags::EnableOcclusionMap);
+
+        s_Data->m_MaterialParamsUB->SetData(&s_MaterialParamsDataUB, sizeof(MaterialParamsData));
     }
 
     void Renderer::DebouncedSubmit(std::function<void()> &&func, uint32_t delay)
@@ -253,7 +307,7 @@ namespace Chozo {
 
     Renderer::RendererData Renderer::GetRendererData()
     {
-        return *s_Data; 
+        return *s_Data;
     }
 
     Ref<Texture2D> Renderer::GetBrdfLUT()
@@ -321,6 +375,11 @@ namespace Chozo {
     uint32_t Renderer::GetMaxTextureSlotCount()
     {
         return RenderCommand::GetMaxTextureSlotCount();
+    }
+
+    Ref<TextureCube> Renderer::CreateCubemap(const std::string &filePath)
+    {
+        return nullptr;
     }
 
     void Renderer::CreateStaticSky(const Ref<Texture2D>& texture)

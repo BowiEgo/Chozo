@@ -2,8 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include "Shader/Shader.h"
 #include "VertexArray.h"
-#include "Shader.h"
 #include "Material.h"
 #include "Environment.h"
 #include "EditorCamera.h"

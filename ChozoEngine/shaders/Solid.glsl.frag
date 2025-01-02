@@ -20,17 +20,11 @@ layout(std140, binding = 0) uniform CameraData
     mat4 u_InverseViewProjectionMatrix;
 };
 
-layout(std140, binding = 1) uniform SceneData
+layout(push_constant) uniform PushConstants
 {
-	DirectionalLight DirectionalLights;
-	vec3 CameraPosition; // Offset = 32
-	float EnvironmentMapIntensity;
-} u_Scene;
-
-layout(push_constant) uniform FragUniforms
-{
+    int MaterialIndex;
     int ID;
-} u_Material;
+} u_Constant;
 
 float near = 0.1;
 float far  = 20.0;
@@ -58,5 +52,5 @@ void main()
 
     o_Color = vec4(baseColor * brightness, 1.0);
     o_Depth = vec4(vec3(depth), 1.0);
-    o_EntityID = u_Material.ID;
+    o_EntityID = u_Constant.ID;
 }

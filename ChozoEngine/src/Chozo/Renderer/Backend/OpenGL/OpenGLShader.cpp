@@ -82,45 +82,28 @@ namespace Chozo {
 
     void OpenGLShader::SetUniform(const std::string &name, const UniformValue &value, const uint32_t count) const
     {
-        std::visit([&](auto&& val) {
-            using T = std::decay_t<decltype(val)>;
-            if constexpr (std::is_same_v<T, bool>) {
-                SetUniformBool(name, val);
-            } else if constexpr (std::is_same_v<T, int>) {
-                SetUniform1i(name, val);
-            } else if constexpr (std::is_same_v<T, unsigned int>) {
-                SetUniform1i(name, val);
-            } else if constexpr (std::is_same_v<T, float>) {
-                SetUniform1f(name, val);
-            } else if constexpr (std::is_same_v<T, std::pair<float, float>>) {
-                SetUniform2f(name, val.first, val.second);
-            } else if constexpr (std::is_same_v<T, std::tuple<float, float, float>>) {
-                SetUniform3f(name, std::get<0>(val), std::get<1>(val), std::get<2>(val));
-            } else if constexpr (std::is_same_v<T, std::tuple<float, float, float, float>>) {
-                SetUniform4f(name, std::get<0>(val), std::get<1>(val), std::get<2>(val), std::get<3>(val));
-            } else if constexpr (std::is_same_v<T, glm::vec2>) {
-                SetUniformVec2(name, val);
-            } else if constexpr (std::is_same_v<T, glm::vec3>) {
-                SetUniformVec3(name, val);
-            } else if constexpr (std::is_same_v<T, float[3]>) {
-                SetUniformVec3(name, val);
-            } else if constexpr (std::is_same_v<T, glm::vec4>) {
-                SetUniformVec4(name, val);
-            } else if constexpr (std::is_same_v<T, glm::mat3>) {
-                SetUniformMat3(name, val);
-            } else if constexpr (std::is_same_v<T, glm::mat4>) {
-                SetUniformMat4(name, val);
-            } else if constexpr (std::is_same_v<T, std::vector<int>>) {
-                SetUniform1iV(name, val.data(), count);
-            } else if constexpr (std::is_same_v<T, std::vector<glm::mat4>>) {
-                SetUniformMat4V(name, val, count);
-            }
-        }, value);
+        switch (Uniform::GetType(value)) {
+            case UniformType::Bool: SetUniformBool(name, Uniform::As<bool>(value)); break;
+            case UniformType::Int:
+            case UniformType::Uint: SetUniform1i(name, Uniform::As<int>(value)); break;
+            case UniformType::Float: SetUniform1f(name, Uniform::As<float>(value)); break;
+            case UniformType::Float2: SetUniform2f(name, Uniform::As<std::array<float, 2>>(value)); break;
+            case UniformType::Float3: SetUniform3f(name, Uniform::As<std::array<float, 3>>(value)); break;
+            case UniformType::Float4: SetUniform4f(name, Uniform::As<std::array<float, 4>>(value)); break;
+            case UniformType::Vec2: SetUniform2f(name, Uniform::As<glm::vec2>(value)); break;
+            case UniformType::Vec3: SetUniform3f(name, Uniform::As<glm::vec3>(value)); break;
+            case UniformType::Vec4: SetUniform4f(name, Uniform::As<glm::vec4>(value)); break;
+            case UniformType::Mat3: SetUniform3m(name, Uniform::As<glm::mat3>(value)); break;
+            case UniformType::Mat4: SetUniform4m(name, Uniform::As<glm::mat4>(value)); break;
+            case UniformType::Mat4Vec: SetUniform4mv(name, Uniform::As<std::vector<glm::mat4>>(value), count); break;
+            case UniformType::IntVec: SetUniform1iV(name, Uniform::As<std::vector<int>>(value).data(), count); break;
+            default: return;
+        }
     }
 
     void OpenGLShader::SetUniformBlockBinding(const std::string& name, const uint32_t bindingPoint) const
     {
-        GLuint uniformBlockIndex = glGetUniformBlockIndex(m_RendererID, name.c_str());
+        const GLuint uniformBlockIndex = glGetUniformBlockIndex(m_RendererID, name.c_str());
         if (uniformBlockIndex != GL_INVALID_INDEX)
             glUniformBlockBinding(m_RendererID, uniformBlockIndex, bindingPoint);
         else
@@ -182,9 +165,29 @@ namespace Chozo {
         glUniform2f(GetUniformLocation(name), v0, v1);
     }
 
+    void OpenGLShader::SetUniform2f(const std::string& name, const std::array<float, 2>& value) const
+    {
+        SetUniform2f(name, value[0], value[1]);
+    }
+
+    void OpenGLShader::SetUniform2f(const std::string& name, const glm::vec2& value) const
+    {
+        SetUniform2f(name, value.x, value.y);
+    }
+
     void OpenGLShader::SetUniform3f(const std::string& name, const float v0, const float v1, const float v2) const
     {
         glUniform3f(GetUniformLocation(name), v0, v1, v2);
+    }
+
+    void OpenGLShader::SetUniform3f(const std::string& name, const std::array<float, 3>& value) const
+    {
+        SetUniform3f(name, value[0], value[1], value[2]);
+    }
+
+    void OpenGLShader::SetUniform3f(const std::string& name, const glm::vec3& value) const
+    {
+        SetUniform3f(name, value.x, value.y, value.z);
     }
 
     void OpenGLShader::SetUniform4f(const std::string& name, const float v0, const float v1, const float v2, const float v3) const
@@ -192,39 +195,29 @@ namespace Chozo {
         glUniform4f(GetUniformLocation(name), v0, v1, v2, v3);
     }
 
-    void OpenGLShader::SetUniformVec2(const std::string &name, const glm::vec2 &vector) const
+    void OpenGLShader::SetUniform4f(const std::string& name, const std::array<float, 4>& value) const
     {
-        glUniform2f(GetUniformLocation(name), vector.x, vector.y);
+        SetUniform4f(name, value[0], value[1], value[2], value[3]);
     }
 
-    void OpenGLShader::SetUniformVec3(const std::string &name, const glm::vec3 &vector) const
+    void OpenGLShader::SetUniform4f(const std::string& name, const glm::vec4& value) const
     {
-        glUniform3f(GetUniformLocation(name), vector.x, vector.y, vector.z);
+        SetUniform4f(name, value.x, value.y, value.z, value.w);
     }
 
-    void OpenGLShader::SetUniformVec3(const std::string &name, const float vector[3]) const
-    {
-        glUniform3f(GetUniformLocation(name), vector[0], vector[1], vector[2]);
-    }
-
-    void OpenGLShader::SetUniformVec4(const std::string &name, const glm::vec4 &vector) const
-    {
-        glUniform4f(GetUniformLocation(name), vector.x, vector.y, vector.z, vector.w);
-    }
-
-    void OpenGLShader::SetUniformMat3(const std::string& name, const glm::mat3& matrix) const
+    void OpenGLShader::SetUniform3m(const std::string& name, const glm::mat3& matrix) const
     {
         glUniformMatrix3fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
     }
 
-    void OpenGLShader::SetUniformMat4(const std::string& name, const glm::mat4& matrix) const
+    void OpenGLShader::SetUniform4m(const std::string& name, const glm::mat4& matrix) const
     {
         glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
     }
 
-    void OpenGLShader::SetUniformMat4V(const std::string& name, const std::vector<glm::mat4>& value, const uint32_t count) const
+    void OpenGLShader::SetUniform4mv(const std::string& name, const std::vector<glm::mat4>& array, const uint32_t count) const
     {
-        glUniformMatrix4fv(GetUniformLocation(name), count, GL_FALSE, &value[0][0][0]);
+        glUniformMatrix4fv(GetUniformLocation(name), count, GL_FALSE, &array[0][0][0]);
     }
 
     int OpenGLShader::GetUniformLocation(const std::string& name) const
@@ -234,7 +227,7 @@ namespace Chozo {
 
         int location = glGetUniformLocation(m_RendererID, name.c_str());
         if (location == -1)
-            CZ_CORE_ERROR("Uniform '{}' doesn't exist!", name);
+            CZ_CORE_ERROR("Uniform '{0}' doesn't exist at shader {1}!", name, m_Name);
 
         m_UniformLocationCache[name] = location;
         return location;

@@ -258,7 +258,7 @@ namespace Chozo {
 
     void EditorAssetManager::RegisterAssetCallback(Ref<Asset>& asset)
     {
-        asset->RegisterOnModifyCallback([this, handle = asset->Handle]()
+        asset->OnUpdated([this, handle = asset->Handle]()
         {
             auto metadata = m_AssetRegistry[handle];
             metadata.ModifiedAt = Utils::Time::CreateTimestamp();

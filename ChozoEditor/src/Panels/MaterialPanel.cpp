@@ -4,6 +4,8 @@
 #include "PropertyUI.h"
 
 #include <typeindex>
+#include <nlohmann/detail/input/parser.hpp>
+#include <xpc/xpc.h>
 
 namespace Chozo {
 
@@ -42,11 +44,17 @@ namespace Chozo {
         const auto checkerboard = Renderer::GetCheckerboardTexture();
         auto baseColorTex = material->GetTexture("u_BaseColorMap");
         auto metallicRoughnessTex = material->GetTexture("u_MetallicRoughnessMap");
+        auto metallicTex = material->GetTexture("u_MetallicMap");
+        auto roughnessTex = material->GetTexture("u_RoughnessMap");
         auto occlusionTex = material->GetTexture("u_OcclusionMap");
         auto emissiveTex = material->GetTexture("u_EmissiveMap");
         auto normalTex = material->GetTexture("u_NormalMap");
         s_Instance->m_BaseColorTexture = baseColorTex ? baseColorTex : checkerboard;
         s_Instance->m_MetallicRoughnessTexture = metallicRoughnessTex ? metallicRoughnessTex : checkerboard;
+        s_Instance->m_MetallicTexture = metallicRoughnessTex ? metallicRoughnessTex
+            : (metallicTex ? metallicRoughnessTex : checkerboard);
+        s_Instance->m_RoughnessTexture = metallicRoughnessTex ? metallicRoughnessTex
+            : (roughnessTex ? metallicRoughnessTex : checkerboard);
         s_Instance->m_OcclusionTexture = occlusionTex ? occlusionTex : checkerboard;
         s_Instance->m_EmissiveTexture = emissiveTex ? emissiveTex : checkerboard;
         s_Instance->m_NormalTexture = normalTex ? normalTex : checkerboard;
@@ -80,35 +88,48 @@ namespace Chozo {
             if (!material)
                 material = renderer->GetMaterial();
 
-            for (const auto& uniform : material->GetShader()->GetReflection().uniforms)
+            for (const auto& [uniformName, uniformValue] : material->GetParamUniforms())
             {
-                if (uniform.resourceName != "u_Material")
-                    continue;
+                const auto uniformType = Uniform::GetType(uniformValue);
 
-                auto uniformName = uniform.name;
-                auto fullName = uniform.fullName();
-                auto value = material->GetUniforms()[fullName];
-
-                if (std::holds_alternative<glm::vec3>(value))
+                if (uniformType == UniformType::Vec4)
                 {
-                    auto& target = std::get<glm::vec3>(value);
-                    DrawColumnValue<glm::vec3>(uniformName, target, [&](auto& targetVal) {
-                        if (ImGui::ColorEdit3(("##" + uniformName).c_str(), glm::value_ptr(targetVal)))
+                    std::string label = "##" + uniformName;
+                    std::string name = uniformName;
+                    auto target = Uniform::As<glm::vec4>(uniformValue);
+                    DrawColumnValue<glm::vec4>(name, target, [&](auto& targetVal) {
+                        if (ImGui::ColorEdit4(label.c_str(), glm::value_ptr(targetVal)))
                         {
-                            material->Set(fullName, targetVal);
-                            OnMaterialChange(fullName, targetVal);
+                            material->Set(name, targetVal);
+                            OnMaterialChange(name, targetVal);
                         }
                     });
                 }
 
-                if (std::holds_alternative<float>(value))
+                if (uniformType == UniformType::Vec3)
                 {
-                    auto& target = std::get<float>(value);
-                    DrawColumnValue<float>(uniformName, target, [&](auto& targetVal) {
-                        if (ImGui::DragFloat(("##" + uniformName).c_str(), &targetVal, 0.0025f, 0.0f, 1.0f))
+                    std::string label = "##" + uniformName;
+                    std::string name = uniformName;
+                    auto target = Uniform::As<glm::vec3>(uniformValue);
+                    DrawColumnValue<glm::vec3>(name, target, [&](auto& targetVal) {
+                        if (ImGui::ColorEdit3(label.c_str(), glm::value_ptr(targetVal)))
                         {
-                            material->Set(fullName, targetVal);
-                            OnMaterialChange(fullName, targetVal);
+                            material->Set(name, targetVal);
+                            OnMaterialChange(name, targetVal);
+                        }
+                    });
+                }
+
+                if (uniformType == UniformType::Float)
+                {
+                    std::string label = "##" + uniformName;
+                    std::string name = uniformName;
+                    auto target = Uniform::As<float>(uniformValue);
+                    DrawColumnValue<float>(name, target, [&](auto& targetVal) {
+                        if (ImGui::DragFloat(label.c_str(), &targetVal, 0.0025f, 0.0f, 1.0f))
+                        {
+                            material->Set(name, targetVal);
+                            OnMaterialChange(name, targetVal);
                         }
                     });
                 }
@@ -116,10 +137,13 @@ namespace Chozo {
                 if (uniformName == "BaseColor")
                     RenderTextureProp(PreviewType::BaseColor);
 
-                if (uniformName == "Roughness")
-                    RenderTextureProp(PreviewType::MetallicRoughness);
+                if (uniformName == "Metallic")
+                    RenderTextureProp(PreviewType::Metallic);
 
-                if (uniformName == "OcclusionStrength")
+                if (uniformName == "Roughness")
+                    RenderTextureProp(PreviewType::Roughness);
+
+                if (uniformName == "OcclusionIntensity")
                     RenderTextureProp(PreviewType::Occlusion);
 
                 if (uniformName == "Emissive")
@@ -144,7 +168,7 @@ namespace Chozo {
         ImGui::InvisibleButton("##thumbnailButton", ImVec2{80, 80});
 
         UI::BeginDragAndDrop([type, this](const AssetHandle handle) {
-            Ref<Asset> asset = Application::GetAssetManager()->GetAsset(handle);
+            const Ref<Asset> asset = Application::GetAssetManager()->GetAsset(handle);
             auto& previewTex = GetPreviewTextureByType(type);
             previewTex = asset.As<Texture2D>();
 
@@ -157,7 +181,7 @@ namespace Chozo {
             RenderPreviewImageByType(type);
     }
 
-    Ref<Texture2D>& MaterialPanel::GetPreviewTextureByType(PreviewType type)
+    Ref<Texture2D>& MaterialPanel::GetPreviewTextureByType(const PreviewType type)
     {
         switch (type) {
             #define GENERATE_CASE(ENUM) case PreviewType::ENUM: return m_##ENUM##Texture;
@@ -179,15 +203,15 @@ namespace Chozo {
                 if (m_##ENUM##Texture && m_##ENUM##Texture != checkerboard) \
                 { \
                     material->Set("u_" #ENUM "Map", m_##ENUM##Texture); \
-                    material->Set("u_Material.Enable" #ENUM "Map", true); \
+                    material->Set("Enable" #ENUM "Map", true); \
                     OnMaterialChange("u_" #ENUM "Map", m_##ENUM##Texture); \
-                    OnMaterialChange("u_Material.Enable" #ENUM "Map", true); \
+                    OnMaterialChange("Enable" #ENUM "Map", true); \
                 } \
                 else \
                 { \
                     m_##ENUM##Texture = checkerboard; \
-                    material->Set("u_Material.Enable" #ENUM "Map", false); \
-                    OnMaterialChange("u_Material.Enable" #ENUM "Map", false); \
+                    material->Set("Enable" #ENUM "Map", false); \
+                    OnMaterialChange("Enable" #ENUM "Map", false); \
                 } \
                 break; \
             };
@@ -207,8 +231,8 @@ namespace Chozo {
             return;
 
         std::string typeString = PreviewTypeToString(type);
-        std::string uniformName = "u_Material.Enable" + typeString + "Map";
-        bool enabled = std::get<bool>(material->GetUniforms()[uniformName]);
+        std::string uniformName = "Enable" + typeString + "Map";
+        bool enabled = std::get<bool>(material->GetParamUniforms()[uniformName]);
         bool changed = false;
 
         DrawColumnImage("##", enabled, changed, [type, this]() {

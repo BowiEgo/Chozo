@@ -420,7 +420,7 @@ namespace Chozo {
                     tc.Rotation = rotation;
                     tc.Scale = scale;
 
-                    m_ActiveScene->HandleModified();
+                    m_ActiveScene->HandleUpdated();
                 }
             }
         }

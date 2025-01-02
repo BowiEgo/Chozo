@@ -5,7 +5,7 @@
 #include "EditorCamera.h"
 #include "RenderCommand.h"
 #include "OrthographicCamera.h"
-#include "Shader.h"
+#include "Shader/Shader.h"
 #include "Texture.h"
 
 #include "Chozo/Scene/Components.h"
@@ -17,7 +17,7 @@ namespace Chozo {
     public:
         struct RenderCamera
         {
-            glm::mat4 PrjectionMatrix;
+            glm::mat4 ProjectionMatrix;
             glm::mat4 ViewMatrix;
         };
 

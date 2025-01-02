@@ -1,8 +1,9 @@
 #pragma once
 
-#include "czpch.h"
-#include "Shader.h"
 #include "Texture.h"
+#include "Shader/Shader.h"
+
+#include "czpch.h"
 
 namespace Chozo
 {
@@ -10,6 +11,8 @@ namespace Chozo
     class Material : public Asset
     {
     public:
+    	using UniformChangedCb = std::function<void(const std::string&, const UniformValue&)>;
+
         static Ref<Material> Create(const std::string& name = "");
         static Ref<Material> Create(const Ref<Shader>& shader, const std::string& name = "");
 		static Ref<Material> Copy(const Ref<Material>& other, const std::string& name = "");
@@ -25,17 +28,33 @@ namespace Chozo
 		virtual void Set(const std::string& name, const Ref<Texture2D>& texture) = 0;
 		virtual void Set(const std::string& name, const Ref<TextureCube>& texture) = 0;
 
-        virtual std::map<std::string, UniformValue> GetUniforms() = 0;
         virtual Ref<Texture2D> GetTexture(std::string name) = 0;
         virtual std::vector<Ref<Texture>> GetAllTextures() const = 0;
         virtual uint32_t GetLastTextureSlotIndex() const = 0;
+    	std::map<std::string, UniformValue> GetParamUniforms() const { return m_ParamUniforms; }
+    	std::map<std::string, UniformValue> GetTextureUniforms() const { return m_TextureUniforms; }
         std::vector<std::tuple<std::string, AssetHandle>> GetTextureAssetHandles() const { return m_TextureAssetHandles; }
 
 		virtual std::string GetName() = 0;
 		virtual Ref<Shader> GetShader() const = 0;
+    	int GetIndex() const { return m_Index; }
+    	void SetIndex(int index) { m_Index = index; }
+
+    	void OnUniformChanged(const UniformChangedCb& cb) {
+    		m_UniformChangedCbs.push_back(cb);
+    	}
+
+    	void HandleValueChanged(const std::string& name, const UniformValue& value) const {
+    		for (auto& cb : m_UniformChangedCbs)
+    			cb(name, value);
+    	}
     protected:
         std::vector<std::tuple<std::string, AssetHandle>> m_TextureAssetHandles;
     	std::vector<Ref<Texture>> m_TextureSlots;
+    	std::map<std::string, UniformValue> m_ParamUniforms;
+    	std::map<std::string, UniformValue> m_TextureUniforms;
+    	std::vector<UniformChangedCb> m_UniformChangedCbs;
+    	int m_Index = -1;
     };
 
     class MaterialTable final : public RefCounted

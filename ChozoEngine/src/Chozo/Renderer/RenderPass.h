@@ -1,12 +1,12 @@
 #pragma once
 
-#include "czpch.h"
-
-#include "Shader.h"
+#include "Shader/Shader.h"
 #include "Framebuffer.h"
 #include "UniformBuffer.h"
 #include "Pipeline.h"
 #include "Texture.h"
+
+#include "czpch.h"
 
 namespace Chozo {
 

@@ -23,9 +23,9 @@ layout(location = 0) out vec3 o_Tangent;
 //layout(push_constant) uniform PushConstants
 //{
 //    vec3 BaseColor;
-//    float OcclusionStrength;
+//    float OcclusionIntensity;
 //    vec3 Emissive;
-//    float EmissiveStrength;
+//    float EmissiveIntensity;
 //    float Metallic;
 //    float Roughness;
 //
@@ -49,5 +49,5 @@ void main()
     o_Tangent = vec3(1.0);
 //    o_Bitangent = v_Bitangent;
 //    o_NormalMap = normalMap.rgb;
-//    o_Occlusion = occlusionMap.rgb * u_Material.OcclusionStrength;
+//    o_Occlusion = occlusionMap.rgb * OcclusionIntensity;
 }

@@ -1,57 +1,55 @@
 #pragma once
 
-#include "Chozo/Renderer/Material.h"
+#include "Chozo/Renderer/Shader/Uniform.h"
 
 #include <glm/glm.hpp>
 #include <yaml-cpp/yaml.h>
 
-// #define CZ_SERIALIZE_PROPERTY(propName, propVal, outputNode) outputNode << YAML::Key << propName << YAML::Value << propVal
-
 namespace Chozo::Utils {
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const std::pair<float, float>& v)
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const std::array<float, 2>& v)
     {
         out << YAML::Flow;
-        out << YAML::BeginSeq << v.first << v.second << YAML::EndSeq;
+        out << YAML::BeginSeq << v[0] << v[1] << YAML::EndSeq;
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const std::tuple<float, float, float>& v)
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const std::array<float, 3>& v)
     {
         out << YAML::Flow;
-        out << YAML::BeginSeq << std::get<0>(v) << std::get<1>(v) << std::get<2>(v) << YAML::EndSeq;
+        out << YAML::BeginSeq << v[0] << v[1] << v[2] << YAML::EndSeq;
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const std::tuple<float, float, float, float>& v)
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const std::array<float, 4>& v)
     {
         out << YAML::Flow;
-        out << YAML::BeginSeq << std::get<0>(v) << std::get<1>(v) << std::get<2>(v) << std::get<3>(v) << YAML::EndSeq;
+        out << YAML::BeginSeq << v[0] << v[1] << v[2] << v[3] << YAML::EndSeq;
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
     {
         out << YAML::Flow;
         out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
     {
         out << YAML::Flow;
         out << YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& v)
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& v)
     {
         out << YAML::Flow;
         out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat3& v)
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat3& v)
     {
         out << YAML::Flow;
         out << YAML::BeginSeq;
@@ -62,7 +60,7 @@ namespace Chozo::Utils {
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat4& v)
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat4& v)
     {
         out << YAML::Flow;
         out << YAML::BeginSeq;
@@ -73,7 +71,7 @@ namespace Chozo::Utils {
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const std::vector<glm::mat4>& v)
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const std::vector<glm::mat4>& v)
     {
         out << YAML::Flow;
         out << YAML::BeginSeq;
@@ -86,7 +84,7 @@ namespace Chozo::Utils {
         return out;
     }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const std::vector<int>& v)
+    inline YAML::Emitter& operator<<(YAML::Emitter& out, const std::vector<int>& v)
     {
         out << YAML::Flow;
         out << YAML::BeginSeq;
@@ -99,23 +97,18 @@ namespace Chozo::Utils {
     
     namespace Serialization {
 
-        static void SerializeProperty(std::string name, UniformValue value, YAML::Emitter& outputNode)
+        static void SerializeProperty(const std::string& name, const UniformValue& value, YAML::Emitter& outputNode)
         {
-            std::visit([&](auto&& arg) {
-                using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, glm::mat3>)
-                {}
-                else if constexpr (std::is_same_v<T, glm::mat4>)
-                {}
-                else if constexpr (std::is_same_v<T, int>)
-                {
-                    outputNode << YAML::Key << name << YAML::Value << (arg ? "true" : "false");
-                }
-                else
-                {
-                    outputNode << YAML::Key << name << YAML::Value << arg;
-                }
-            }, value);
+            switch (Uniform::GetType(value)) {
+                case UniformType::Int:
+                    outputNode << YAML::Key << name << YAML::Value << (Uniform::As<bool>(value) ? "true" : "false");
+                    break;
+                default:
+                    std::visit([&](const auto& arg) {
+                        outputNode << YAML::Key << name << YAML::Value << arg;
+                    }, value);
+                    break;
+            }
         }
     }
 

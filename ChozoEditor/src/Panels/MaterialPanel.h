@@ -7,6 +7,8 @@ namespace Chozo {
 
     #define FOREACH_PREVIEW_TYPE(TYPE) \
         	TYPE(BaseColor) \
+        	TYPE(Metallic) \
+        	TYPE(Roughness) \
         	TYPE(MetallicRoughness) \
             TYPE(Occlusion) \
             TYPE(Emissive) \
@@ -19,14 +21,14 @@ namespace Chozo {
 		None
 	};
 
-    inline PreviewType StringToPreviewType(std::string_view type) {
+    inline PreviewType StringToPreviewType(const std::string_view type) {
         #define GENERATE_IF(ENUM) if (type == #ENUM) return PreviewType::ENUM;
         FOREACH_PREVIEW_TYPE(GENERATE_IF)
         #undef GENERATE_IF
         return PreviewType::None;
     }
 
-    inline const char* PreviewTypeToString(PreviewType type) {
+    inline const char* PreviewTypeToString(const PreviewType type) {
         switch (type) {
             #define GENERATE_CASE(ENUM) case PreviewType::ENUM: return #ENUM;
             FOREACH_PREVIEW_TYPE(GENERATE_CASE)
@@ -62,6 +64,6 @@ namespace Chozo {
         static bool s_Show;
 
         AssetHandle m_Material;
-        Ref<Texture2D> m_BaseColorTexture, m_MetallicRoughnessTexture, m_OcclusionTexture, m_EmissiveTexture, m_NormalTexture;
+        Ref<Texture2D> m_BaseColorTexture, m_MetallicRoughnessTexture, m_MetallicTexture, m_RoughnessTexture, m_OcclusionTexture, m_EmissiveTexture, m_NormalTexture;
     };
 }

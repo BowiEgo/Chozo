@@ -51,16 +51,24 @@ namespace Chozo {
         m_TextureSlotIndex = other->GetLastTextureSlotIndex();
         m_TextureAssetHandles = other->GetTextureAssetHandles();
 
-        auto uniforms = other.As<OpenGLMaterial>()->GetUniforms();
-        for (const auto& [uniformName, uniformValue] : uniforms)
+        auto paramUniforms = other->GetParamUniforms();
+        for (const auto& [uniformName, uniformValue] : paramUniforms)
+            Set(uniformName, uniformValue);
+
+        auto texUniforms = other->GetTextureUniforms();
+        for (const auto& [uniformName, uniformValue] : texUniforms)
             Set(uniformName, uniformValue);
     }
 
     void OpenGLMaterial::Set(const std::string &name, const UniformValue &value)
     {
-        m_Uniforms[name] = value;
+        const auto oldValue = m_ParamUniforms[name];
+        m_ParamUniforms[name] = value;
 
-        HandleModified();
+        HandleUpdated();
+
+        if (oldValue != value)
+            HandleValueChanged(name, value);
     }
 
     void OpenGLMaterial::Set(const std::string &name, const Ref<Texture> &texture)
@@ -90,9 +98,9 @@ namespace Chozo {
             m_TextureSlotIndex++;
         }
 
-        m_Uniforms[name] = textureIndex;
+        m_TextureUniforms[name] = textureIndex;
 
-        HandleModified();
+        HandleUpdated();
     }
 
     void OpenGLMaterial::SetTextureHandle(const std::string &name, const AssetHandle handle)
@@ -117,9 +125,9 @@ namespace Chozo {
                 m_TextureSlotIndex++;
             }
 
-            m_Uniforms[name] = textureIndex;
+            m_TextureUniforms[name] = textureIndex;
 
-            HandleModified();
+            HandleUpdated();
         }
     }
 
@@ -135,23 +143,18 @@ namespace Chozo {
 
     Ref<Texture2D> OpenGLMaterial::GetTexture(std::string name)
     {
-        const UniformValue value = m_Uniforms[name];
+        const UniformValue value = m_TextureUniforms[name];
         uint32_t slotIndex = 0;
 
-        if (std::holds_alternative<bool>(value))
-        {
-            if (std::get<bool>(value))
+        switch (Uniform::GetType(value)) {
+            case UniformType::Bool:
+            {
                 CZ_CORE_ERROR("{} does not contain int/unsigned int value", name);
-
-            return nullptr;
-        }
-        else if (std::holds_alternative<int>(value))
-        {
-            slotIndex = std::get<int>(value);
-        }
-        else if (std::holds_alternative<unsigned int>(value))
-        {
-            slotIndex = std::get<unsigned int>(value);
+                return nullptr;
+            }
+            case UniformType::Int: slotIndex = Uniform::As<int>(value); break;
+            case UniformType::Uint: slotIndex = Uniform::As<unsigned int>(value); break;
+            default: break;
         }
 
         auto texture = m_TextureSlots[slotIndex];
@@ -170,7 +173,7 @@ namespace Chozo {
     {
         BindTextures();
         m_Shader->Bind();
-        for (const auto&[name, value] : m_Uniforms)
+        for (const auto&[name, value] : m_TextureUniforms)
             m_Shader->Shader::SetUniform(name, value);
     }
 
@@ -207,5 +210,18 @@ namespace Chozo {
         const ShaderReflection reflection = shader->GetReflection();
         for (const auto& uniform : reflection.uniforms)
             Set(uniform.fullName(), GetUniformDefaultValue(uniform.type));
+
+        Set("BaseColor", glm::vec4(1.0f));
+        Set("Metallic", 0.0f);
+        Set("Roughness", 0.0f);
+        Set("OcclusionIntensity", 1.0f);
+        Set("Emissive", glm::vec3(0.0f));
+        Set("EmissiveIntensity", 1.0f);
+        Set("EnableBaseColorMap", false);
+        Set("EnableMetallicMap", false);
+        Set("EnableRoughnessMap", false);
+        Set("EnableNormalMap", false);
+        Set("EnableEmissiveMap", false);
+        Set("EnableOcclusionMap", false);
     }
 }

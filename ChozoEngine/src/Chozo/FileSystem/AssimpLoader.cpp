@@ -150,17 +150,17 @@ namespace Chozo {
 
 				auto mi = Material::Create(Renderer::GetRendererData().m_ShaderLibrary->Get("Geometry"), aiMaterialName.data);
 
-				glm::vec3 baseColorColor(0.8f);
+				glm::vec4 baseColorColor(0.8f);
 				float emission = 0.0f;
 				aiColor3D aiColor, aiEmission;
 				if (aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor) == AI_SUCCESS)
-					baseColorColor = { aiColor.r, aiColor.g, aiColor.b };
+					baseColorColor = { aiColor.r, aiColor.g, aiColor.b, 1.0f };
 
 				if (aiMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, aiEmission) == AI_SUCCESS)
 					emission = aiEmission.r;
 
-				mi->Set("u_Material.BaseColor", baseColorColor);
-				// mi->Set("u_Material.Emission", emission);
+				mi->Set("BaseColor", baseColorColor);
+				// mi->Set("Emission", emission);
 
 				float metallic, roughness;
 				if (aiMaterial->Get(AI_MATKEY_REFLECTIVITY, metallic) != aiReturn_SUCCESS)
@@ -169,8 +169,8 @@ namespace Chozo {
 				if (aiMaterial->Get(AI_MATKEY_ROUGHNESS_FACTOR, roughness) != aiReturn_SUCCESS)
 					roughness = 0.5f;
 
-				mi->Set("u_Material.Metallic", metallic);
-				mi->Set("u_Material.Roughness", roughness);
+				mi->Set("Metallic", metallic);
+				mi->Set("Roughness", roughness);
 
 				ApplyTextureByType(mi, aiMaterial, scene, PBRMaterialTextureType::BaseColor, filepath);
 				ApplyTextureByType(mi, aiMaterial, scene, PBRMaterialTextureType::MetallicRoughness, filepath);
@@ -244,7 +244,7 @@ namespace Chozo {
 			break;
 		}
 
-		target->Set("u_Material.Enable" + propTypeName + "Map", false);
+		target->Set("Enable" + propTypeName + "Map", false);
 
 		bool hasMap = false;
 		if (propType == PBRMaterialTextureType::BaseColor) {
@@ -297,7 +297,7 @@ namespace Chozo {
 			if (texture)
 			{
 				target->Set("u_" + propTypeName + "Map", texture);
-				target->Set("u_Material.Enable" + propTypeName + "Map", true);
+				target->Set("Enable" + propTypeName + "Map", true);
 				Application::GetAssetManager()->AddMemoryOnlyAsset(texture);
 			}
 		}

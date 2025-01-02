@@ -11,7 +11,9 @@ namespace Chozo {
 
     Ref<Material> Material::Create(const std::string &name)
     {
+        Ref<Material> material;
         Ref<Shader> shader;
+
         if (name == "Basic")
             shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Basic");
         if (name == "Solid")
@@ -24,35 +26,42 @@ namespace Chozo {
         switch (RenderCommand::GetType())
         {
             case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RenderAPI::Type::OpenGL:   return Ref<OpenGLMaterial>::Create(shader, name);
+            case RenderAPI::Type::OpenGL:   material = Ref<OpenGLMaterial>::Create(shader, name); break;
+            default: CZ_CORE_ASSERT(false, "Unknown RenderAPI!"); return nullptr;
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
-        return nullptr;
+        Renderer::SubmitMaterial(material);
+        return material;
     }
 
     Ref<Material> Material::Create(const Ref<Shader>& shader, const std::string &name)
     {
+        Ref<Material> material;
+
         switch (RenderCommand::GetType())
         {
             case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RenderAPI::Type::OpenGL:   return Ref<OpenGLMaterial>::Create(shader, name);
+            case RenderAPI::Type::OpenGL:   material = Ref<OpenGLMaterial>::Create(shader, name); break;
+            default: CZ_CORE_ASSERT(false, "Unknown RenderAPI!"); return nullptr;
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
-        return nullptr;
+        Renderer::SubmitMaterial(material);
+        return material;
     }
 
     Ref<Material> Material::Copy(const Ref<Material> &other, const std::string &name)
     {
+        Ref<Material> material;
+
         switch (RenderCommand::GetType())
         {
             case RenderAPI::Type::None:     CZ_CORE_ASSERT(false, "RenderAPI::None is currently not supported!"); return nullptr;
-            case RenderAPI::Type::OpenGL:   return Ref<OpenGLMaterial>::Create(other, name);
+            case RenderAPI::Type::OpenGL:   material = Ref<OpenGLMaterial>::Create(other, name); break;
+            default: CZ_CORE_ASSERT(false, "Unknown RenderAPI!"); return nullptr;
         }
 
-        CZ_CORE_ASSERT(false, "Unknown RenderAPI!");
-        return nullptr;
+        Renderer::SubmitMaterial(material);
+        return material;
     }
 
     //==============================================================================

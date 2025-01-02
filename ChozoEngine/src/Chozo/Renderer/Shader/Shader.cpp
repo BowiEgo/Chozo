@@ -1,10 +1,8 @@
 #include "Shader.h"
 
-#include "RenderCommand.h"
-#include "Chozo/Core/Application.h"
+#include "Chozo/Renderer/RenderCommand.h"
 #include "Chozo/Renderer/Backend/OpenGL/OpenGLShader.h"
-
-#include <GLFW/glfw3.h>
+#include "Chozo/Core/Application.h"
 
 namespace Chozo {
 

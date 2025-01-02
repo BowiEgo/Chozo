@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "Chozo/Core/UUID.h"
+#include "Chozo/Core/Observer.h"
 #include "Chozo/Utilities/TimeUtils.h"
 #include "AssetType.h"
 
@@ -13,6 +14,8 @@ namespace Chozo {
 	class Asset : public RefCounted
 	{
 	public:
+		using UpdatedCb = std::function<void()>;
+
 		AssetHandle Handle = 0;
 
 		~Asset() override = default;
@@ -29,18 +32,17 @@ namespace Chozo {
 			return !(*this == other);
 		}
 
-		void RegisterOnModifyCallback(const std::function<void()>& callback)
+		void OnUpdated(const UpdatedCb& cb)
 		{
-			onModifyCallback = callback;
+			m_UpdatedCbs.push_back(cb);
 		}
 
-		void HandleModified() const
-		{
-			if (onModifyCallback)
-				onModifyCallback();
+		void HandleUpdated() const {
+			for (auto& cb : m_UpdatedCbs)
+				cb();
 		}
 	private:
-		std::function<void()> onModifyCallback;
+		std::vector<UpdatedCb> m_UpdatedCbs;
 	};
 
     struct AssetMetadata

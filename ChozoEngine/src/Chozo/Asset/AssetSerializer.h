@@ -78,9 +78,9 @@ namespace Chozo {
 	// 	std::string ShaderName;
 	//
 	// 	glm::vec3 BaseColor;
-	// 	float OcclusionStrength;
+	// 	float OcclusionIntensity;
 	// 	glm::vec3 Emissive;
-	// 	float EmissiveStrength;
+	// 	float EmissiveIntensity;
 	// 	float Metallic;
 	// 	float Roughness;
 	//
@@ -96,9 +96,9 @@ namespace Chozo {
 	// 		serializer->WriteString(instance.ShaderName);
 	//
 	// 		serializer->WriteRaw(instance.BaseColor);
-	// 		serializer->WriteRaw(instance.OcclusionStrength);
+	// 		serializer->WriteRaw(instance.OcclusionIntensity);
 	// 		serializer->WriteRaw(instance.Emissive);
-	// 		serializer->WriteRaw(instance.EmissiveStrength);
+	// 		serializer->WriteRaw(instance.EmissiveIntensity);
 	// 		serializer->WriteRaw(instance.Metallic);
 	// 		serializer->WriteRaw(instance.Roughness);
 	//
@@ -115,9 +115,9 @@ namespace Chozo {
 	// 		deserializer->ReadString(instance.ShaderName);
 	//
 	// 		deserializer->ReadRaw(instance.BaseColor);
-	// 		deserializer->ReadRaw(instance.OcclusionStrength);
+	// 		deserializer->ReadRaw(instance.OcclusionIntensity);
 	// 		deserializer->ReadRaw(instance.Emissive);
-	// 		deserializer->ReadRaw(instance.EmissiveStrength);
+	// 		deserializer->ReadRaw(instance.EmissiveIntensity);
 	// 		deserializer->ReadRaw(instance.Metallic);
 	// 		deserializer->ReadRaw(instance.Roughness);
 	//
