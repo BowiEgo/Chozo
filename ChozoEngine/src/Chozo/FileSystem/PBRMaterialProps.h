@@ -11,7 +11,7 @@ namespace Chozo {
             TYPE(Roughness) \
             TYPE(MetallicRoughness) \
             TYPE(Normal) \
-            TYPE(Occlusion) \
+            TYPE(AO) \
             TYPE(Emissive) \
 
     enum class PBRMaterialTextureType : uint16_t {

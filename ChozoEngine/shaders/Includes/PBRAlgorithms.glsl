@@ -6,7 +6,7 @@ void ComputeBasisVectors(const vec3 N, out vec3 S, out vec3 T)
 {
 	// Branchless select non-degenerate T.
 	T = cross(N, vec3(0.0, 1.0, 0.0));
-	T = mix(cross(N, vec3(1.0, 0.0, 0.0)), T, step(Epsilon, dot(T, T)));
+	T = mix(cross(N, vec3(1.0, 0.0, 0.0)), T, step(EPSILON, dot(T, T)));
 
 	T = normalize(T);
 	S = normalize(cross(N, T));

@@ -46,7 +46,7 @@ namespace Chozo {
         auto metallicRoughnessTex = material->GetTexture("u_MetallicRoughnessMap");
         auto metallicTex = material->GetTexture("u_MetallicMap");
         auto roughnessTex = material->GetTexture("u_RoughnessMap");
-        auto occlusionTex = material->GetTexture("u_OcclusionMap");
+        auto occlusionTex = material->GetTexture("u_AOMap");
         auto emissiveTex = material->GetTexture("u_EmissiveMap");
         auto normalTex = material->GetTexture("u_NormalMap");
         s_Instance->m_BaseColorTexture = baseColorTex ? baseColorTex : checkerboard;
@@ -55,7 +55,7 @@ namespace Chozo {
             : (metallicTex ? metallicRoughnessTex : checkerboard);
         s_Instance->m_RoughnessTexture = metallicRoughnessTex ? metallicRoughnessTex
             : (roughnessTex ? metallicRoughnessTex : checkerboard);
-        s_Instance->m_OcclusionTexture = occlusionTex ? occlusionTex : checkerboard;
+        s_Instance->m_AOTexture = occlusionTex ? occlusionTex : checkerboard;
         s_Instance->m_EmissiveTexture = emissiveTex ? emissiveTex : checkerboard;
         s_Instance->m_NormalTexture = normalTex ? normalTex : checkerboard;
     }
@@ -143,8 +143,8 @@ namespace Chozo {
                 if (uniformName == "Roughness")
                     RenderTextureProp(PreviewType::Roughness);
 
-                if (uniformName == "OcclusionIntensity")
-                    RenderTextureProp(PreviewType::Occlusion);
+                if (uniformName == "AOIntensity")
+                    RenderTextureProp(PreviewType::AO);
 
                 if (uniformName == "Emissive")
                     RenderTextureProp(PreviewType::Emissive);

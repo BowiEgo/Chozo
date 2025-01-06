@@ -10,7 +10,7 @@ namespace Chozo {
         	TYPE(Metallic) \
         	TYPE(Roughness) \
         	TYPE(MetallicRoughness) \
-            TYPE(Occlusion) \
+            TYPE(AO) \
             TYPE(Emissive) \
             TYPE(Normal) \
 
@@ -64,6 +64,6 @@ namespace Chozo {
         static bool s_Show;
 
         AssetHandle m_Material;
-        Ref<Texture2D> m_BaseColorTexture, m_MetallicRoughnessTexture, m_MetallicTexture, m_RoughnessTexture, m_OcclusionTexture, m_EmissiveTexture, m_NormalTexture;
+        Ref<Texture2D> m_BaseColorTexture, m_MetallicRoughnessTexture, m_MetallicTexture, m_RoughnessTexture, m_AOTexture, m_EmissiveTexture, m_NormalTexture;
     };
 }

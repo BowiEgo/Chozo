@@ -15,7 +15,7 @@ vec3 GetReflectedVector(const vec3 r, const vec3 n, const float roughness) {
 }
 
 vec3 GetReflectedVector(const GBufferData GBuffer, BRDFContext BRDFCtx) {
-    return 2.0 * dot(GBuffer.View, GBuffer.Normal) * GBuffer.Normal - GBuffer.View;
+    return 2.0 * dot(GBuffer.View, GBuffer.PerturbedNormal) * GBuffer.PerturbedNormal - GBuffer.View;
 }
 
 vec3 EvaluateIBL(const GBufferData GBuffer, BRDFContext BRDFCtx)
@@ -25,13 +25,13 @@ vec3 EvaluateIBL(const GBufferData GBuffer, BRDFContext BRDFCtx)
     // specular layer
     vec3 Fr = vec3(0.0);
     vec3 E = SpecularDFG(BRDFCtx);
-//    vec3 r = GetReflectedVector(GBuffer.Reflected, GBuffer.Normal, GBuffer.Roughness);
+//    vec3 r = GetReflectedVector(GBuffer.Reflected, GBuffer.PerturbedNormal, GBuffer.Roughness);
     vec3 r = GetReflectedVector(GBuffer, BRDFCtx);
     Fr = E * PrefilteredRadiance(BRDFCtx, r, GBuffer.PerceptualRoughness);
 
     // diffuse layer
     vec3 Fd = vec3(0.0);
-    vec3 diffuseIrradiance = DiffuseIrradiance(GBuffer.Normal, BRDFCtx);
+    vec3 diffuseIrradiance = DiffuseIrradiance(GBuffer.PerturbedNormal, BRDFCtx);
     float diffuseBRDF = GBuffer.AO;
     Fd = GBuffer.BaseColor * diffuseIrradiance * (1.0 - E) * diffuseBRDF;
 
@@ -82,8 +82,8 @@ float GetAngleAttenuation(vec3 lightDir, vec3 spotDir, float cosOuter, float cos
 vec3 SurfaceShading(const GBufferData GBuffer, BRDFContext BRDFCtx, Light light)
 {
     float NoV = BRDFCtx.NoV;
-    float NoL = Saturate(dot(GBuffer.Normal, light.l));
-    float NoH = Saturate(dot(GBuffer.Normal, light.h));
+    float NoL = Saturate(dot(GBuffer.PerturbedNormal, light.l));
+    float NoH = Saturate(dot(GBuffer.PerturbedNormal, light.h));
     float LoH = Saturate(dot(light.l, light.h));
 
     float D = D_GGX(GBuffer.Roughness, NoH, light.h);

@@ -1,5 +1,6 @@
 layout(std140, binding = 1) uniform SceneData
 {
-    vec3 CameraPosition; // Offset = 32
+    vec3 CameraPosition;
     float EnvironmentMapIntensity;
+    vec3 AmbientLightColor;
 } u_Scene;

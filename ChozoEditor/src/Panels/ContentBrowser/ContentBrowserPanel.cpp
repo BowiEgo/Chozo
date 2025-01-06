@@ -209,8 +209,9 @@ namespace Chozo {
         }
 
         const auto filename = CreateItemName(AssetType::Material);
+        const auto shader = Renderer::GetShaderLibrary()->Get("Geometry");
 
-        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, filename);
+        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, shader, filename);
 
         s_Instance->OnBrowserRefresh();
 

@@ -27,6 +27,7 @@ namespace Chozo
         RED_INTEGER,
 		B10R11G11UF,
 		SRGB,
+    	SRGB8,
 
 		// Depth/Stencil
 		DEPTH32FSTENCIL8UINT,
@@ -92,6 +93,7 @@ namespace Chozo
 				case ImageFormat::RED_INTEGER:    return 4;  // Assuming 32-bit integer
 				case ImageFormat::B10R11G11UF:    return 4;  // 10-bit R, 11-bit G, 11-bit B packed into 4 bytes
 				case ImageFormat::SRGB:           return 3;  // SRGB, typically 8-bit per channel, 3 components
+				case ImageFormat::SRGB8:           return 3;  // SRGB, typically 8-bit per channel, 3 components
 				case ImageFormat::DEPTH32FSTENCIL8UINT: return 5; // 32-bit float depth + 8-bit stencil = 4 + 1 bytes
 				case ImageFormat::DEPTH32F:       return 4;  // 32-bit float for depth
 				case ImageFormat::DEPTH24STENCIL8:return 4;  // 24-bit depth + 8-bit stencil packed into 4 bytes

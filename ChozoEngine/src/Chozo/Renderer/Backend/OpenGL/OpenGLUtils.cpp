@@ -58,6 +58,7 @@ namespace Chozo {
             case ImageFormat::RGBA32F: return GL_RGBA32F;
             case ImageFormat::B10R11G11UF: return GL_R11F_G11F_B10F;
             case ImageFormat::SRGB: return GL_SRGB;
+            case ImageFormat::SRGB8: return GL_SRGB8;
             case ImageFormat::DEPTH32FSTENCIL8UINT: return GL_DEPTH32F_STENCIL8;
             case ImageFormat::DEPTH24STENCIL8: return GL_DEPTH24_STENCIL8;
             default: return GL_NONE;
@@ -87,6 +88,7 @@ namespace Chozo {
             case ImageFormat::RGBA32F: return GL_RGBA;
             case ImageFormat::B10R11G11UF: return GL_R11F_G11F_B10F; // Fine if using this format
             case ImageFormat::SRGB: return GL_SRGB_ALPHA;  // Use GL_SRGB_ALPHA for SRGB with alpha
+            case ImageFormat::SRGB8: return GL_RGB;
             case ImageFormat::DEPTH32FSTENCIL8UINT: return GL_DEPTH_STENCIL;
             case ImageFormat::DEPTH24STENCIL8: return GL_DEPTH_STENCIL;
             default: return GL_NONE;
@@ -116,6 +118,7 @@ namespace Chozo {
             case ImageFormat::RGBA32F: return GL_FLOAT;  // 32-bit float for 4 channels
             case ImageFormat::B10R11G11UF: return GL_UNSIGNED_INT_10F_11F_11F_REV;  // Special packed float format
             case ImageFormat::SRGB: return GL_UNSIGNED_BYTE;  // Unsigned 8-bit with sRGB
+            case ImageFormat::SRGB8: return GL_UNSIGNED_BYTE;
             case ImageFormat::DEPTH32FSTENCIL8UINT: return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;  // Depth + stencil combined
             case ImageFormat::DEPTH24STENCIL8: return GL_UNSIGNED_INT_24_8;  // 24-bit depth, 8-bit stencil
             default: return GL_NONE;

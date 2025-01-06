@@ -78,7 +78,7 @@ namespace Chozo {
 	// 	std::string ShaderName;
 	//
 	// 	glm::vec3 BaseColor;
-	// 	float OcclusionIntensity;
+	// 	float AOIntensity;
 	// 	glm::vec3 Emissive;
 	// 	float EmissiveIntensity;
 	// 	float Metallic;
@@ -87,7 +87,7 @@ namespace Chozo {
 	// 	bool EnableBaseColorMap;
 	// 	bool EnableMetallicRoughnessMap;
 	// 	bool EnableNormalMap;
-	// 	bool EnableOcclusionMap;
+	// 	bool EnableAOMap;
 	// 	bool EnableEmissiveMap;
 	//
 	// 	static void Serialize(StreamWriter* serializer, const MeshMaterial& instance)
@@ -96,7 +96,7 @@ namespace Chozo {
 	// 		serializer->WriteString(instance.ShaderName);
 	//
 	// 		serializer->WriteRaw(instance.BaseColor);
-	// 		serializer->WriteRaw(instance.OcclusionIntensity);
+	// 		serializer->WriteRaw(instance.AOIntensity);
 	// 		serializer->WriteRaw(instance.Emissive);
 	// 		serializer->WriteRaw(instance.EmissiveIntensity);
 	// 		serializer->WriteRaw(instance.Metallic);
@@ -105,7 +105,7 @@ namespace Chozo {
 	// 		serializer->WriteRaw(instance.EnableBaseColorMap);
 	// 		serializer->WriteRaw(instance.EnableMetallicRoughnessMap);
 	// 		serializer->WriteRaw(instance.EnableNormalMap);
-	// 		serializer->WriteRaw(instance.EnableOcclusionMap);
+	// 		serializer->WriteRaw(instance.EnableAOMap);
 	// 		serializer->WriteRaw(instance.EnableEmissiveMap);
 	// 	}
 	//
@@ -115,7 +115,7 @@ namespace Chozo {
 	// 		deserializer->ReadString(instance.ShaderName);
 	//
 	// 		deserializer->ReadRaw(instance.BaseColor);
-	// 		deserializer->ReadRaw(instance.OcclusionIntensity);
+	// 		deserializer->ReadRaw(instance.AOIntensity);
 	// 		deserializer->ReadRaw(instance.Emissive);
 	// 		deserializer->ReadRaw(instance.EmissiveIntensity);
 	// 		deserializer->ReadRaw(instance.Metallic);
@@ -124,7 +124,7 @@ namespace Chozo {
 	// 		deserializer->ReadRaw(instance.EnableBaseColorMap);
 	// 		deserializer->ReadRaw(instance.EnableMetallicRoughnessMap);
 	// 		deserializer->ReadRaw(instance.EnableNormalMap);
-	// 		deserializer->ReadRaw(instance.EnableOcclusionMap);
+	// 		deserializer->ReadRaw(instance.EnableAOMap);
 	// 		deserializer->ReadRaw(instance.EnableEmissiveMap);
 	// 	}
 	// };

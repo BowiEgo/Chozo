@@ -4,7 +4,7 @@ layout(location = 0) out vec4 o_Color;
 layout(location = 1) out vec4 o_Depth;
 layout(location = 2) out int o_EntityID;
 
-layout(location = 0) in vec3 v_WorldNormal;
+#include "Snippets/Fragment/ModelVaryings.glsl"
 
 struct DirectionalLight
 {

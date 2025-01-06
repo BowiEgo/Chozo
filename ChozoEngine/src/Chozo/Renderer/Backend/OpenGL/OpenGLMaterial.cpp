@@ -214,7 +214,7 @@ namespace Chozo {
         Set("BaseColor", glm::vec4(1.0f));
         Set("Metallic", 0.0f);
         Set("Roughness", 0.0f);
-        Set("OcclusionIntensity", 1.0f);
+        Set("AOIntensity", 1.0f);
         Set("Emissive", glm::vec3(0.0f));
         Set("EmissiveIntensity", 1.0f);
         Set("EnableBaseColorMap", false);
@@ -222,6 +222,6 @@ namespace Chozo {
         Set("EnableRoughnessMap", false);
         Set("EnableNormalMap", false);
         Set("EnableEmissiveMap", false);
-        Set("EnableOcclusionMap", false);
+        Set("EnableAOMap", false);
     }
 }

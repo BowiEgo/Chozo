@@ -34,7 +34,7 @@ namespace Chozo
 
 			FramebufferSpecification fbSpec;
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-			fbSpec.Attachments = { ImageFormat::RGBA16F };
+			fbSpec.Attachments = { ImageFormat::RGB16F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
             
 			PipelineSpecification pipelineSpec;
@@ -213,6 +213,7 @@ namespace Chozo
 			renderPassSpec.DebugName = "PBR";
 			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
 			m_PBRPass = RenderPass::Create(renderPassSpec);
+        	m_PBRPass->SetInput("CameraData", m_CameraUB);
 			m_PBRPass->SetInput("SceneData", m_SceneUB);
         	m_PBRPass->SetInput("DirectionalLightsData", m_DirectionalLightsUB);
 			m_PBRPass->SetInput("PointLightsData", m_PointLightsUB);
@@ -294,6 +295,7 @@ namespace Chozo
         CameraDataUB.ViewMatrix = camera.GetViewMatrix();
 
         SceneDataUB.CameraPosition = camera.GetPosition();
+        SceneDataUB.AmbientLightColor = glm::vec3(1.0);
         SceneDataUB.EnvironmentMapIntensity = m_Scene->m_EnvironmentIntensity;
 
         m_CameraUB->SetData(&CameraDataUB, sizeof(CameraData));
@@ -508,6 +510,7 @@ namespace Chozo
         Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
         Ref<Texture2D> baseColorTex = m_GeometryPass->GetOutput(3);
         Ref<Texture2D> materialPropTex = m_GeometryPass->GetOutput(4);
+        Ref<Texture2D> emissiveTex = m_GeometryPass->GetOutput(5);
         Ref<TextureCube> irradianceMap = Renderer::GetIrradianceTextureCube();
         Ref<TextureCube> prefilterMap = Renderer::GetPrefilteredTextureCube();
         Ref<Texture2D> brdfLUTTexture = Renderer::GetBrdfLUT();
@@ -515,6 +518,7 @@ namespace Chozo
         m_PBRMaterial->Set("u_NormalMap", normalTex);
         m_PBRMaterial->Set("u_BaseColorMap", baseColorTex);
         m_PBRMaterial->Set("u_MaterialPropMap", materialPropTex);
+        m_PBRMaterial->Set("u_EmissiveMap", emissiveTex);
         m_PBRMaterial->Set("u_IrradianceMap", irradianceMap);
         m_PBRMaterial->Set("u_PrefilterMap", prefilterMap);
         m_PBRMaterial->Set("u_BRDFLutTex", brdfLUTTexture);

@@ -17,7 +17,7 @@ vec2 IntegrateBRDF(float NoV, float roughness)
     V.z = NoV;
 
     float A = 0.0;
-    float B = 0.0; 
+    float B = 0.0;
 
     vec3 N = vec3(0.0, 0.0, 1.0);
     vec3 S, T;

@@ -39,7 +39,7 @@ vec3 DiffuseIrradiance(const vec3 n, const BRDFContext BRDFCtx)
 
 void InitBRDFContext(const GBufferData GBuffer, out BRDFContext BRDFCtx)
 {
-    BRDFCtx.NoV = Saturate(max(min(dot(GBuffer.Normal, GBuffer.View), 0.999), 0.01));
+    BRDFCtx.NoV = Saturate(max(min(dot(GBuffer.PerturbedNormal, GBuffer.View), 0.999), 0.01));
     BRDFCtx.f0 = 0.16 * GBuffer.Reflectance * GBuffer.Reflectance * (1.0 - GBuffer.Metallic)
         + GBuffer.BaseColor * GBuffer.Metallic;
     BRDFCtx.dfg = textureLod(u_BRDFLutTex, vec2(BRDFCtx.NoV, GBuffer.PerceptualRoughness), 0.0).rgb;

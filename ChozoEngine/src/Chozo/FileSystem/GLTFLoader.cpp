@@ -551,11 +551,11 @@ namespace Chozo {
                 HandleTextures(PBRMaterialTextureType::Normal, mat, normalTexIdx, mi);
             }
 
-            // Occlusion
+            // AO
             {
                 const int occlusionTexIdx = mat.occlusionTexture.index;
-                mi->Set("OcclusionIntensity", 1.0f);
-                HandleTextures(PBRMaterialTextureType::Occlusion, mat, occlusionTexIdx, mi);
+                mi->Set("AOIntensity", 1.0f);
+                HandleTextures(PBRMaterialTextureType::AO, mat, occlusionTexIdx, mi);
             }
 
             // Emissive
@@ -600,6 +600,8 @@ namespace Chozo {
                     spec.DebugName = mat.name + "_" + propName;
 
                     spec.Format = (image.component == 3) ? ImageFormat::RGB : ImageFormat::RGBA;
+                    if (propType == PBRMaterialTextureType::BaseColor)
+                        spec.Format = ImageFormat::SRGB;
                     spec.Width = image.width;
                     spec.Height = image.height;
 

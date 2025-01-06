@@ -4,9 +4,9 @@ vec4 projectionPosition = u_ProjectionMatrix * viewPosition;
 
 gl_Position = projectionPosition;
 
-mat3 normalMatrix = transpose(inverse(mat3(u_VertUniforms.ModelMatrix)));
+mat3 normalMatrix = u_VertUniforms.NormalMatrix;
 v_TexCoord = a_TexCoord;
-v_FragPosition = vec3(modelPosition);
+v_FragPosition = vec3(viewPosition);
 
 v_WorldNormal = normalMatrix * a_Normal;
 v_WorldTangent = normalMatrix * a_Tangent;

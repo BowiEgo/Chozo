@@ -261,7 +261,7 @@ namespace Chozo {
             matParams.MiscParams.x = Uniform::As<float>(value);
         if (name == "Roughness")
             matParams.MiscParams.y = Uniform::As<float>(value);
-        if (name == "OcclusionIntensity")
+        if (name == "AOIntensity")
             matParams.MiscParams.z = Uniform::As<float>(value);
         if (name == "Emissive")
             matParams.Emissive = glm::vec4(Uniform::As<glm::vec3>(value), matParams.Emissive.w);
@@ -277,8 +277,8 @@ namespace Chozo {
             Utils::SetFlag<MaterialFlags>(matParams.Flags, Uniform::As<bool>(value), MaterialFlags::EnableNormalMap);
         if (name == "EnableEmissiveMap")
             Utils::SetFlag<MaterialFlags>(matParams.Flags, Uniform::As<bool>(value), MaterialFlags::EnableEmissiveMap);
-        if (name == "EnableOcclusionMap")
-            Utils::SetFlag<MaterialFlags>(matParams.Flags, Uniform::As<bool>(value), MaterialFlags::EnableOcclusionMap);
+        if (name == "EnableAOMap")
+            Utils::SetFlag<MaterialFlags>(matParams.Flags, Uniform::As<bool>(value), MaterialFlags::EnableAOMap);
 
         s_Data->m_MaterialParamsUB->SetData(&s_MaterialParamsDataUB, sizeof(MaterialParamsData));
     }

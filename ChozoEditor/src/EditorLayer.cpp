@@ -207,7 +207,7 @@ namespace Chozo {
         }
 
         std::string buttons[6] = {
-            "Position", "Normal", "Depth", "BaseColor", "MetallicRoughnessOcclusion", "Emissive"
+            "Position", "Normal", "Depth", "BaseColor", "MetallicRoughnessAO", "Emissive"
         };
         for (int i = 0; i < std::size(buttons); i++)
         {
