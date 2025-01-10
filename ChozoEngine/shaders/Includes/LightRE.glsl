@@ -283,11 +283,10 @@ vec3 GetIBLRadiance(const in vec3 normal, const in vec3 viewDir, const in float 
     vec3 reflectVec = reflect(-viewDir, normal);
     // Mixing the reflection with the normal is more accurate and keeps rough objects from gathering light from behind their tangent plane.
     reflectVec = normalize(mix(reflectVec, normal, roughness * roughness));
+//    DebugColor = reflectVec;
     reflectVec = InverseTransformDirection(reflectVec, u_ViewMatrix);
 
     float lod = 4.0 * roughness * (2.0 - roughness);
-
-//    DebugColor = reflectVec;
 
     return textureLod(u_PrefilterMap, reflectVec, lod).rgb;
 }

@@ -68,6 +68,13 @@ namespace Chozo {
         glfwSetWindowUserPointer(m_Window, &m_Data);
         SetVSync(false);
 
+        // Pixel ratio
+        int windowWidth, windowHeight;
+        int fbWidth, fbHeight;
+        glfwGetWindowSize(m_Window, &windowWidth, &windowHeight);
+        glfwGetFramebufferSize(m_Window, &fbWidth, &fbHeight);
+        m_Data.PixelRatio = (float)fbWidth / (float)windowWidth;
+
         // Set GLFW callbacks
         glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
         {

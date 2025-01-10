@@ -25,7 +25,8 @@ namespace Chozo {
             uint32_t EnvironmentMapResolution = 1024;
             uint32_t IrradianceMapComputeSamples = 512;
 
-            glm::vec4 ClearColor = { 0.105f, 0.110f, 0.110f, 1.0f };
+            float PixelRatio = 1.0f;
+            glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
         };
 
         struct Statistics

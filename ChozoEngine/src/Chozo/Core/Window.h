@@ -38,6 +38,8 @@ namespace Chozo {
         [[nodiscard]] unsigned int GetWidth() const { return m_Data.Width; }
         [[nodiscard]] unsigned int GetHeight() const { return m_Data.Height; }
 
+        float GetPixelRatio() const { return m_Data.PixelRatio; }
+
         // Window attributes
         void SetEventCallback(const EventCallbackFn& callback) { m_Data.EventCallback = callback; }
         void SetVSync(bool enabled);
@@ -56,6 +58,7 @@ namespace Chozo {
         {
             std::string Title;
             unsigned int Width, Height;
+            float PixelRatio;
             bool VSync;
 
             EventCallbackFn EventCallback;

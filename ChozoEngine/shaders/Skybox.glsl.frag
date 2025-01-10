@@ -1,7 +1,7 @@
 #version 450
 
 layout (location = 0) in vec3 v_TexCoords;
-layout(location = 0) out vec3 o_Color;
+layout(location = 0) out vec4 o_Color;
 
 layout(binding = 0) uniform samplerCube u_Texture;
 
@@ -19,5 +19,5 @@ void main()
 	color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));
 
-	o_Color = color;
+	o_Color = vec4(color, texture.a);
 }

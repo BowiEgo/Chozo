@@ -102,7 +102,6 @@ namespace Chozo {
 
             m_DepthAttachment = 0;
             m_DepthAttachmentImage = nullptr;
-
         }
     }
 
@@ -117,7 +116,7 @@ namespace Chozo {
         glBindFramebuffer(GL_FRAMEBUFFER, 0); GCE;
     }
 
-    void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height, int mip)
+    void OpenGLFramebuffer::Resize(const uint32_t width, const uint32_t height, int mip)
     {
         if (width == 0 || height == 0 || width > s_MaxFramebufferSize || height > s_MaxFramebufferSize)
         {
@@ -125,23 +124,26 @@ namespace Chozo {
             return;
         }
 
-        if (m_Specification.Width != width || m_Specification.Height != height)
+        const auto physicalWidth = int(width * m_Specification.PixelRatio);
+        const auto physicalHeight = int(height * m_Specification.PixelRatio);
+        if (m_Specification.Width != physicalWidth || m_Specification.Height != physicalHeight)
         {
-            m_Specification.Width = width;
-            m_Specification.Height = height;
+            m_Specification.Width = physicalWidth;
+            m_Specification.Height = physicalHeight;
 
             Bind();
+
             for (auto& images : m_ColorAttachmentImages)
-                images->Resize(width, height);
+                images->Resize(m_Specification.Width, m_Specification.Height);
 
             if (m_DepthAttachmentImage)
             {
                 if (m_Specification.DepthRenderbuffer)
                 {
                     glBindRenderbuffer(GL_RENDERBUFFER, m_DepthAttachment); GCE;
-                    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height); GCE;
+                    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, (GLsizei)m_Specification.Width, (GLsizei)m_Specification.Height); GCE;
                 } else {
-                    m_DepthAttachmentImage->Resize(width, height);
+                    m_DepthAttachmentImage->Resize(m_Specification.Width, m_Specification.Height);
                     if (mip > -1)
                         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachment, mip);
                 }
@@ -150,13 +152,15 @@ namespace Chozo {
         }
     }
 
-    int OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, int x, int y)
+    int OpenGLFramebuffer::ReadPixel(uint32_t attachmentIndex, const int x, const int y)
     {
         Bind();
         CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is larger than colorAttachments size");
         glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex); GCE;
         int pixelData;
-        glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData); GCE;
+        const auto physicalX = GLsizei(x * m_Specification.PixelRatio);
+        const auto physicalY = GLsizei(y * m_Specification.PixelRatio);
+        glReadPixels(physicalX, physicalY, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData); GCE;
         Unbind();
         return pixelData;
     }

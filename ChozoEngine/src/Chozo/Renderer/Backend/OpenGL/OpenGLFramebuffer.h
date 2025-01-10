@@ -14,23 +14,23 @@ namespace Chozo {
         void Invalidate();
 		void Release();
 
-        virtual void Bind() const override;
-        virtual void Unbind() const override;
+        void Bind() const override;
+        void Unbind() const override;
 
-        virtual void Resize(uint32_t width, uint32_t height, int mip = -1) override;
-        virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) override;
+        void Resize(uint32_t width, uint32_t height, int mip = -1) override;
+        int ReadPixel(uint32_t attachmentIndex, int x, int y) override;
 
-		virtual RendererID GetRendererID() const override { return m_RendererID; };
-        virtual RendererID GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const override {
+		RendererID GetRendererID() const override { return m_RendererID; };
+        RendererID GetColorAttachmentRendererID(uint32_t attachmentIndex = 0) const override {
             CZ_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size(), "attachmentIndex is smaller than colorAttachments size");
             return m_ColorAttachments[attachmentIndex];
         };
-        virtual RendererID GetDepthAttachmentRendererID() const override { return m_DepthAttachment; }
-		virtual FramebufferSpecification& GetSpecification() override { return m_Specification; };
-        virtual Ref<Texture2D> GetImage(uint32_t attachmentIndex) const override { return m_ColorAttachmentImages[attachmentIndex]; }
-		virtual Ref<Texture2D> GetDepthImage() const override { return m_DepthAttachmentImage; }
+        RendererID GetDepthAttachmentRendererID() const override { return m_DepthAttachment; }
+		FramebufferSpecification& GetSpecification() override { return m_Specification; };
+        Ref<Texture2D> GetImage(uint32_t attachmentIndex) const override { return m_ColorAttachmentImages[attachmentIndex]; }
+		Ref<Texture2D> GetDepthImage() const override { return m_DepthAttachmentImage; }
 #if 0
-        virtual void ClearColorAttachmentBuffer(uint32_t attachmentIndex) override;
+        void ClearColorAttachmentBuffer(uint32_t attachmentIndex) override;
 #endif
     private:
         void CreateColorAttachmentImages(int samples, std::vector<FramebufferTexture2DSpecification> attachmentSpecs, uint32_t width, uint32_t height);

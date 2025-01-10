@@ -36,6 +36,7 @@ namespace Chozo {
     struct FramebufferSpecification
     {
         uint32_t Width = 1, Height = 1;
+        float PixelRatio = 1.0f;
 		glm::vec4 ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
 
         FramebufferAttachmentSpecification Attachments;
