@@ -601,7 +601,7 @@ namespace Chozo {
 
                     spec.Format = (image.component == 3) ? ImageFormat::RGB : ImageFormat::RGBA;
                     if (propType == PBRMaterialTextureType::BaseColor)
-                        spec.Format = ImageFormat::SRGB;
+                        spec.ColorSpace = ColorSpace::SRGB;
                     spec.Width = image.width;
                     spec.Height = image.height;
 

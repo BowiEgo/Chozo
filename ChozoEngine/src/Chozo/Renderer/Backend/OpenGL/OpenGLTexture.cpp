@@ -1,6 +1,7 @@
 #include "OpenGLTexture.h"
 
 #include "OpenGLUtils.h"
+#include "Chozo/Renderer/Color.h"
 #include "Chozo/FileSystem/TextureImporter.h"
 
 #include "stb_image.h"
@@ -123,6 +124,8 @@ namespace Chozo
         m_DataType = GetGLDataType(m_Spec.Format);
 
         CZ_CORE_ASSERT(m_InternalFormat & m_DataFormat, "Format not supported!");
+
+        ConvertColorSpace(m_Buffer, m_Spec.ColorSpace, m_Width, m_Height, GetChannelCount(m_Spec.Format));
 
         glGenTextures(1, &m_RendererID); GCE;
         glBindTexture(GL_TEXTURE_2D, m_RendererID); GCE;
