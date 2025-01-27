@@ -158,7 +158,7 @@ namespace Chozo
 			m_IDMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
             Ref<Texture2D> solidIdTex = m_SolidPass->GetOutput(2);
             Ref<Texture2D> solidDepthTex = m_SolidPass->GetOutput(1);
-            Ref<Texture2D> PBRIdTex = m_GeometryPass->GetOutput(5);
+            Ref<Texture2D> PBRIdTex = m_GeometryPass->GetOutput(6);
             Ref<Texture2D> PBRDepthTex = m_GeometryPass->GetOutput(2);
             m_IDMaterial->Set("u_SolidIdTex", solidIdTex);
             m_IDMaterial->Set("u_SolidDepthTex", solidDepthTex);
