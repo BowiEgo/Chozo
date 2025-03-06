@@ -38,8 +38,7 @@ namespace Chozo
         	fbSpec.PixelRatio = pixelRatio;
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 			fbSpec.Attachments = { ImageFormat::RGB16F };
-			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
-            
+
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "Skybox";
 			pipelineSpec.Shader = skyboxShader;
@@ -410,8 +409,8 @@ namespace Chozo
     {
 		RenderCommand::BeginRenderPass(m_CommandBuffer, m_SkyboxPass);
 
-        m_SkyboxMaterial->Set("u_FragUniforms.TextureLod", m_SceneData.SkyboxLod);
-		m_SkyboxMaterial->Set("u_FragUniforms.Intensity", m_SceneData.SceneEnvironmentIntensity);
+        m_SkyboxMaterial->Set("u_Constant.TextureLod", m_SceneData.SkyboxLod);
+		m_SkyboxMaterial->Set("u_Constant.Intensity", m_SceneData.SceneEnvironmentIntensity);
 
 		const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackTextureCube();
 		m_SkyboxMaterial->Set("u_Texture", radianceMap);

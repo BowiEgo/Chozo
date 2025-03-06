@@ -173,6 +173,18 @@ namespace Chozo {
     {
         BindTextures();
         m_Shader->Bind();
+        const ShaderReflection reflection = m_Shader->GetReflection();
+        for (const auto&[name, value] : m_ParamUniforms)
+        {
+            const bool exists = std::find_if(reflection.uniforms.begin(), reflection.uniforms.end(),
+                [&name](const UniformInfo& uniform) {
+                    return uniform.fullName() == name;
+                }) != reflection.uniforms.end();
+
+            if (exists)
+                m_Shader->Shader::SetUniform(name, value);
+        }
+
         for (const auto&[name, value] : m_TextureUniforms)
             m_Shader->Shader::SetUniform(name, value);
     }
@@ -211,17 +223,17 @@ namespace Chozo {
         for (const auto& uniform : reflection.uniforms)
             Set(uniform.fullName(), GetUniformDefaultValue(uniform.type));
 
-        Set("BaseColor", glm::vec4(1.0f));
-        Set("Metallic", 0.0f);
-        Set("Roughness", 0.0f);
-        Set("AOIntensity", 1.0f);
-        Set("Emissive", glm::vec3(0.0f));
-        Set("EmissiveIntensity", 1.0f);
-        Set("EnableBaseColorMap", false);
-        Set("EnableMetallicMap", false);
-        Set("EnableRoughnessMap", false);
-        Set("EnableNormalMap", false);
-        Set("EnableEmissiveMap", false);
-        Set("EnableAOMap", false);
+        // Set("BaseColor", glm::vec4(1.0f));
+        // Set("Metallic", 0.0f);
+        // Set("Roughness", 0.0f);
+        // Set("AOIntensity", 1.0f);
+        // Set("Emissive", glm::vec3(0.0f));
+        // Set("EmissiveIntensity", 1.0f);
+        // Set("EnableBaseColorMap", false);
+        // Set("EnableMetallicMap", false);
+        // Set("EnableRoughnessMap", false);
+        // Set("EnableNormalMap", false);
+        // Set("EnableEmissiveMap", false);
+        // Set("EnableAOMap", false);
     }
 }
