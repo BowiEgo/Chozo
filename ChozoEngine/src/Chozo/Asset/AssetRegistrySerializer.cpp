@@ -25,7 +25,7 @@ namespace Chozo {
                 {
                     out << YAML::BeginMap;
                     out << YAML::Key << "Handle" << YAML::Value << handle;
-                    out << YAML::Key << "FilePath" << YAML::Value << metadata.FilePath;
+                    out << YAML::Key << "FilePath" << YAML::Value << metadata.FilePath.string();
                     out << YAML::Key << "FileSize" << YAML::Value << metadata.FileSize;
                     out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(metadata.Type);
                     out << YAML::Key << "CreatedAt" << YAML::Value << metadata.CreatedAt;

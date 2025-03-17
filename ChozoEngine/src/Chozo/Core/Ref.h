@@ -153,7 +153,8 @@ namespace Chozo {
 		static Ref<T> Create(Args&&... args)
 		{
 #if defined(ENGINE_PLATFORM_WIN32)
-			return Ref<T>(new(typeid(T).name()) T(std::forward<Args>(args)...));
+			//return Ref<T>(new(typeid(T).name()) T(std::forward<Args>(args)...));
+			return Ref<T>(new T(std::forward<Args>(args)...));
 #else
 			return Ref<T>(new T(std::forward<Args>(args)...));
 #endif

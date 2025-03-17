@@ -80,7 +80,7 @@ namespace Chozo {
         inline fs::path GetCachePathByNameAndStage(const std::string& name, const ShaderStage& stage)
         {
             const fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
-            Utils::File::CreateDirectoryIfNeeded(cacheDirectory);
+            Utils::File::CreateDirectoryIfNeeded(cacheDirectory.string());
 
             return cacheDirectory / (name + ShaderUtils::ShaderStageToVulkanCacheFileExtension(stage));
         }

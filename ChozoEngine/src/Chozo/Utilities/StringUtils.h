@@ -1,5 +1,7 @@
 #pragma once
 
+#include <codecvt>
+
 namespace Chozo::Utils {
 
     namespace String {
@@ -44,11 +46,12 @@ namespace Chozo::Utils {
 
 		inline uint64_t WCharToUint64(const wchar_t* wchar_str)
 		{
-			std::wstring wstr(wchar_str);
-			std::string str(wstr.begin(), wstr.end());
-			uint64_t result = std::stoull(str);
+			if (!wchar_str) return 0;
 
-			return result;
+			std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+			std::string str = converter.to_bytes(wchar_str);
+
+			return std::stoull(str);
 		}
 	}
 }

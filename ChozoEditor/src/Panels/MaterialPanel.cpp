@@ -5,7 +5,6 @@
 
 #include <typeindex>
 #include <nlohmann/detail/input/parser.hpp>
-#include <xpc/xpc.h>
 
 namespace Chozo {
 
@@ -200,18 +199,22 @@ namespace Chozo {
         switch (type) {
             #define GENERATE_CASE(ENUM) case PreviewType::ENUM: { \
                 auto checkerboard = Renderer::GetCheckerboardTexture(); \
+                bool enableMap = false; \
                 if (m_##ENUM##Texture && m_##ENUM##Texture != checkerboard) \
                 { \
-                    material->Set("u_" #ENUM "Map", m_##ENUM##Texture); \
-                    material->Set("Enable" #ENUM "Map", true); \
-                    OnMaterialChange("u_" #ENUM "Map", m_##ENUM##Texture); \
-                    OnMaterialChange("Enable" #ENUM "Map", true); \
+                    Ref<Texture> texture = m_##ENUM##Texture; \
+                    enableMap = true; \
+                    material->Set("u_" #ENUM "Map", texture); \
+                    material->Set("Enable" #ENUM "Map", enableMap); \
+                    OnMaterialChange("u_" #ENUM "Map", texture); \
+                    OnMaterialChange("Enable" #ENUM "Map", enableMap); \
                 } \
                 else \
                 { \
+                    enableMap = false; \
                     m_##ENUM##Texture = checkerboard; \
-                    material->Set("Enable" #ENUM "Map", false); \
-                    OnMaterialChange("Enable" #ENUM "Map", false); \
+                    material->Set("Enable" #ENUM "Map", enableMap); \
+                    OnMaterialChange("Enable" #ENUM "Map", enableMap); \
                 } \
                 break; \
             };

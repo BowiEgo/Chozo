@@ -1,4 +1,4 @@
-#include "GLTFLoader.h"
+﻿#include "GLTFLoader.h"
 
 #include "TextureImporter.h"
 
@@ -6,7 +6,6 @@
 #include "Chozo/Renderer/Renderer.h"
 
 #define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
 #include <tiny_gltf.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -468,9 +467,8 @@ namespace Chozo {
 
             // Make sure index component type legal（unsigned short or unsigned int）
             if (indexAccessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT &&
-                indexAccessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
-            {
-                std::cerr << "Unsupported index component type: " << indexAccessor.componentType << std::endl;
+                indexAccessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+                CZ_CORE_ERROR("GLTFLoader: Unsupported index component type: {0}", indexAccessor.componentType);
                 return;
             }
 

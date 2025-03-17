@@ -150,7 +150,7 @@ namespace Chozo {
                 shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(
                     source,
                     ShaderUtils::ShaderStageToShaderC(stage),
-                    shaderFilepath.c_str(),
+                    shaderFilepath.string().c_str(),
                     options);
 
                 if (module.GetCompilationStatus() != shaderc_compilation_status_success)

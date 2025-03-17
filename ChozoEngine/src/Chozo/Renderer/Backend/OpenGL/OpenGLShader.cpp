@@ -120,7 +120,7 @@ namespace Chozo {
             auto stage = ShaderUtils::GetShaderStageFromExtension(shaderFilepath.extension().string());
             fs::path cachePath = ShaderUtils::GetCachePathByNameAndStage(shaderFilepath.filename().stem().string(), stage);
 
-            Utils::File::DeleteFile(cachePath);
+            Utils::File::DeleteFile(cachePath.string());
         }
     }
 

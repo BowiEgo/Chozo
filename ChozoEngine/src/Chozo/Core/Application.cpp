@@ -3,7 +3,10 @@
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
 
+#ifdef ENGINE_PLATFORM_WIN32
+#else
 #include "Chozo/Core/Thread.h"
+#endif
 
 #include <GLFW/glfw3.h>
 

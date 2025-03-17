@@ -68,8 +68,8 @@ namespace Chozo
                 { ShaderDataType::Float3, "a_Bitangent" },
             });
             uint32_t maxIndicesCount = indexCount * 3;
-            uint32_t indices[maxIndicesCount];
-            IBO = IndexBuffer::Create(indices, maxIndicesCount);
+			auto indices = std::vector<uint32_t>(maxIndicesCount);
+            IBO = IndexBuffer::Create(indices.data(), maxIndicesCount);
 
             VAO->AddVertexBuffer(VBO);
             VAO->SetIndexBuffer(IBO);

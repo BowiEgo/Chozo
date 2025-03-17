@@ -2,7 +2,7 @@
 
 #include "Chozo/Renderer/GraphicsContext.h"
 
-class GLFWwindow;
+struct GLFWwindow;
 
 namespace Chozo {
     

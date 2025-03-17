@@ -30,15 +30,15 @@ namespace Chozo {
     void OpenGLIndexBuffer::ClearData()
     {
         Bind();
-        uint32_t indices[m_End / sizeof(uint32_t)];
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_End, indices); GCE;
+		auto indices = std::vector<uint32_t>(m_End / sizeof(uint32_t));
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_End, indices.data()); GCE;
     }
 
     void OpenGLIndexBuffer::Resize(uint32_t count)
     {
         Bind();
-        uint32_t indices[count];
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW); GCE;
+        auto indices = std::vector<uint32_t>(count);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW); GCE;
     }
 
     void OpenGLIndexBuffer::Bind() const

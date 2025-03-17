@@ -43,7 +43,7 @@ namespace Chozo {
         {
             const std::string filename = std::to_string(assetHandle) + ".png";
             const fs::path filePath = Utils::File::GetThumbnailCacheDirectory() / fs::path(filename);
-            Utils::File::DeleteFile(filePath);
+            Utils::File::DeleteFile(filePath.string());
             thumbnails.erase(assetHandle);
         }
     }
@@ -61,7 +61,7 @@ namespace Chozo {
                 if (AssetHandle handle = Utils::String::ToUint64(fileName); handle != 0)
                 {
                     if (const bool exist = Application::GetAssetManager()->IsAssetHandleValid(handle); !exist)
-                        Utils::File::DeleteFile(entry.path());
+                        Utils::File::DeleteFile(entry.path().string());
                 }
             }
         }

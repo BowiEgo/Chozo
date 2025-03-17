@@ -42,9 +42,12 @@ namespace Chozo {
         // Right-click on blank space
         if (ImGui::BeginPopupContextWindow(nullptr, 1 | ImGuiPopupFlags_NoOpenOverItems))
         {
+#ifdef ENGINE_PLATFORM_MACOS
             // ImGui::OpenPopup("AddComponent");
             m_SelectedEntity = DrawAddComponent();
             ImGui::EndPopup();
+#else
+#endif
         }
         ImGui::End();
     }

@@ -59,7 +59,7 @@ namespace Chozo {
         }
         s_Data->BrdfLUT = Texture2D::Create(std::string("../resources/textures/brdfLUT.png"));
 
-        uint32_t samplers[s_Data->MaxTextureSlots];
+		auto samplers = std::vector<uint32_t>(s_Data->MaxTextureSlots);
         for (uint32_t i = 0; i < s_Data->MaxTextureSlots; i++)
         {
             samplers[i] = i;
@@ -71,7 +71,6 @@ namespace Chozo {
         s_Data->BoxMesh = Geometry::Create<BoxGeometry>();
 
         // Shaders
-        std::vector<int> samplersVec(samplers, samplers + s_Data->MaxTextureSlots);
         s_Data->m_ShaderLibrary = ShaderLibrary::Create();
 
         auto shaderDir = std::string(Utils::File::GetShaderSoureceDirectory());

@@ -621,8 +621,11 @@ namespace Chozo {
 
     void EditorLayer::OpenProject()
     {
+#ifdef CZ_PLATFORM_WINDOWS
+#else
         const std::string filepath = FileDialogs::OpenFile("Chozo Project (*.chozo)\0*.chozo\0");
         OpenProject(filepath);
+#endif
     }
 
     void EditorLayer::OpenProject(const fs::path &path)

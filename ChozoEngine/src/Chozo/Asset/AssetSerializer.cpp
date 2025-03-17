@@ -672,7 +672,7 @@ namespace Chozo {
 		spec.WrapR = (ImageParameter)textureMetada.WrapR;
 		spec.WrapS = (ImageParameter)textureMetada.WrapS;
 		spec.WrapT = (ImageParameter)textureMetada.WrapT;
-        spec.DebugName = metadata.FilePath.stem();
+        spec.DebugName = metadata.FilePath.stem().string();
 
         // Read buffer
         Buffer buffer;

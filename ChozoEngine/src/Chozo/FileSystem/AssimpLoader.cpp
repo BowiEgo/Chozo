@@ -244,7 +244,8 @@ namespace Chozo {
 			break;
 		}
 
-		target->Set("Enable" + propTypeName + "Map", false);
+		bool enableMap = false;
+		target->Set("Enable" + propTypeName + "Map", enableMap);
 
 		bool hasMap = false;
 		if (propType == PBRMaterialTextureType::BaseColor) {

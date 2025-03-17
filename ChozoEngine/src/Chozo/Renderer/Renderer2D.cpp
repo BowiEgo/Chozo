@@ -178,7 +178,7 @@ namespace Chozo {
         uint32_t whiteTextureData = 0xffffffff;
         s_Data.WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
 
-        int32_t samplers[s_Data.MaxTextureSlots];
+		auto samplers = std::vector<int32_t>(s_Data.MaxTextureSlots);
         for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
         {
             samplers[i] = i;
@@ -188,10 +188,9 @@ namespace Chozo {
         // Shader
         auto shaderDir = std::string(Utils::File::GetShaderSoureceDirectory());
 
-        std::vector<int> samplersVec(samplers, samplers + s_Data.MaxTextureSlots);
         s_Data.TextureShader = Shader::Create("Texture", { shaderDir + "/Texture.glsl.vert",  shaderDir + "/Texture.glsl.frag" });
         s_Data.TextureShader->Bind();
-        s_Data.TextureShader->SetUniform("u_Textures", samplersVec, s_Data.MaxTextureSlots);
+        s_Data.TextureShader->SetUniform("u_Textures", samplers, s_Data.MaxTextureSlots);
 
         s_Data.CircleShader = Shader::Create("Circle", { shaderDir + "/Circle.glsl.vert",  shaderDir + "/Circle.glsl.frag" });
         s_Data.LineShader = Shader::Create("Line", { shaderDir + "/Line.glsl.vert",  shaderDir + "/Line.glsl.frag" });

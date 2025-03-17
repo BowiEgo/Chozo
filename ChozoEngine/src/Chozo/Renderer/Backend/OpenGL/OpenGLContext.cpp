@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 
 namespace Chozo {
+
     OpenGLContext::OpenGLContext(GLFWwindow *windowHandle)
         : m_WindowHandle(windowHandle)
     {
