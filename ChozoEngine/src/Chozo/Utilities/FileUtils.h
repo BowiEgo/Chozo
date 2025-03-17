@@ -66,7 +66,7 @@ namespace Chozo {
             return result;
         }
 
-        static bool ReadBinaryFile(const std::string& filepath, std::vector<u_int32_t>& target)
+        static bool ReadBinaryFile(const std::string& filepath, std::vector<uint32_t>& target)
         {
             std::ifstream in(filepath, std::ios::in | std::ios::binary);
             if (in)

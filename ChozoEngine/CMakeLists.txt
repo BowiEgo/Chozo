@@ -52,11 +52,14 @@ find_package(spirv_cross_glsl CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 find_path(TINYGLTF_INCLUDE_DIRS "tiny_gltf.h")
 
-find_library(COCOA_LIBRARY Cocoa)
+if(APPLE)
+    find_library(COCOA_LIBRARY Cocoa)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
-    ${COCOA_LIBRARY}
-)
+    target_link_libraries(${PROJECT_NAME} PUBLIC
+        ${COCOA_LIBRARY}
+    )
+endif()
+
 target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog_header_only)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     OpenGL::GL

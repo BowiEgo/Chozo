@@ -1,8 +1,11 @@
 # Directories
 .cache/
+.vs/
 .idea/
 .vscode/
+**.cmake
 cmake-build-debug/
+CMakeFiles
 bin/
 build/
 lib/

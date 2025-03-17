@@ -88,7 +88,7 @@ namespace Chozo {
 
     using ShaderSources = std::unordered_map<ShaderStage, std::string>;
     using ShaderPaths = std::unordered_map<ShaderStage, fs::path>;
-    using ShaderBinaries = std::unordered_map<ShaderStage, std::vector<u_int32_t>>;
+    using ShaderBinaries = std::unordered_map<ShaderStage, std::vector<uint32_t>>;
     
     class ShaderCompiler : public RefCounted
     {

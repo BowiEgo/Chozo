@@ -50,7 +50,7 @@ namespace Chozo
 		return true;
 	}
 
-    bool FileStreamReader::ReadBinary(std::vector<u_int32_t>& destination)
+    bool FileStreamReader::ReadBinary(std::vector<uint32_t>& destination)
     {
 		const auto size = GetFileSize();
 
