@@ -23,13 +23,16 @@ namespace Chozo {
         RenderCommand::Init();
         s_Data = new RendererData();
 
+        std::string resourcesDir = Utils::File::GetResourcesDirectory().string();
+        CZ_CORE_INFO("Resources Directory: {0}", resourcesDir);
+
         // Textures
         s_Data->MaxTextureSlots = RenderCommand::GetMaxTextureSlotCount();
         s_Data->TextureSlots.resize(s_Data->MaxTextureSlots);
         s_Data->WhiteTexture = Texture2D::Create();
         uint32_t whiteTextureData = 0xffffffff;
         s_Data->WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
-        s_Data->CheckerboardTexture = Texture2D::Create(std::string("../resources/textures/CheckerboardTexture.png"));
+        s_Data->CheckerboardTexture = Texture2D::Create(resourcesDir + "/textures/CheckerboardTexture.png");
 
         TextureCubeSpecification spec;
 		spec.Format = ImageFormat::RGBA;
@@ -57,7 +60,7 @@ namespace Chozo {
             cubemapSpec.MinFilter = ImageParameter::LINEAR_MIPMAP_LINEAR;
             s_Data->PrefilteredTextureCube = TextureCube::Create(cubemapSpec);
         }
-        s_Data->BrdfLUT = Texture2D::Create(std::string("../resources/textures/brdfLUT.png"));
+        s_Data->BrdfLUT = Texture2D::Create(resourcesDir + "/textures/brdfLUT.png");
 
 		auto samplers = std::vector<uint32_t>(s_Data->MaxTextureSlots);
         for (uint32_t i = 0; i < s_Data->MaxTextureSlots; i++)
@@ -73,7 +76,7 @@ namespace Chozo {
         // Shaders
         s_Data->m_ShaderLibrary = ShaderLibrary::Create();
 
-        auto shaderDir = std::string(Utils::File::GetShaderSoureceDirectory());
+        auto shaderDir = Utils::File::GetShaderSourcesDirectory().string();
         s_Data->m_ShaderLibrary->Load("Solid", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/Solid.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("ID", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/ID.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("Geometry", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/GBuffer.glsl.frag" });

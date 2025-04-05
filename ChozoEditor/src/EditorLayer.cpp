@@ -42,8 +42,10 @@ namespace Chozo {
 
     void EditorLayer::OnAttach()
     {
-        m_IconPlay = Texture2D::Create(std::string("../resources/icons/Toolbar/play.png"));
-        m_IconStop = Texture2D::Create(std::string("../resources/icons/Toolbar/stop.png"));
+        auto resourcesDir = Utils::File::GetResourcesDirectory().string();
+
+        m_IconPlay = Texture2D::Create(resourcesDir + "/icons/Toolbar/play.png");
+        m_IconStop = Texture2D::Create(resourcesDir + "/icons/Toolbar/stop.png");
         // --------------------
         // Scene
         // --------------------

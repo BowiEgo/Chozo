@@ -152,7 +152,7 @@ namespace Chozo {
 		template<typename... Args>
 		static Ref<T> Create(Args&&... args)
 		{
-#if defined(ENGINE_PLATFORM_WIN32)
+#if defined(CZ_PLATFORM_WIN)
 			//return Ref<T>(new(typeid(T).name()) T(std::forward<Args>(args)...));
 			return Ref<T>(new T(std::forward<Args>(args)...));
 #else

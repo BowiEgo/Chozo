@@ -32,6 +32,7 @@ namespace Chozo {
         void Begin();
         void End();
         
+        void SetFont(std::string fontPath, float dpi);
         void SetDarkThemeColors();
     private:
         bool m_BlockEvents = false;

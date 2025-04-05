@@ -1,8 +1,8 @@
 #include "SceneHierarchyPanel.h"
 
-#include  "Chozo/Renderer/Geometry/Geometry.h"
-#include  "Chozo/Renderer/Geometry/BoxGeometry.h"
-#include  "Chozo/Renderer/Geometry/SphereGeometry.h"
+#include "Chozo/Renderer/Geometry/Geometry.h"
+#include "Chozo/Renderer/Geometry/BoxGeometry.h"
+#include "Chozo/Renderer/Geometry/SphereGeometry.h"
 #include "Chozo/ImGui/ImGuiUI.h"
 
 #include "PropertyUI.h"
@@ -42,12 +42,9 @@ namespace Chozo {
         // Right-click on blank space
         if (ImGui::BeginPopupContextWindow(nullptr, 1 | ImGuiPopupFlags_NoOpenOverItems))
         {
-#ifdef ENGINE_PLATFORM_MACOS
             // ImGui::OpenPopup("AddComponent");
             m_SelectedEntity = DrawAddComponent();
             ImGui::EndPopup();
-#else
-#endif
         }
         ImGui::End();
     }

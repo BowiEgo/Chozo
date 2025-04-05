@@ -13,7 +13,7 @@ namespace Chozo
     class Entity
     {
     public:
-        Entity() = default;
+        Entity() : m_EntityHandle(entt::null), m_Scene(nullptr) {}
         Entity(entt::entity handle, Scene* scene);
         Entity(const Entity& other) = default;
         ~Entity() {};

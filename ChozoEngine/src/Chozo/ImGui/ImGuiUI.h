@@ -5,6 +5,7 @@
 
 #include <vector>
 
+#include "Chozo/Core/Application.h"
 #include "Chozo/Renderer/Texture.h"
 #include "Chozo/Utilities/StringUtils.h"
 
@@ -208,6 +209,16 @@ namespace Chozo {
 			}
 		}
 	};
+
+	inline float DpiFloat(float v) {
+		const auto dpi = Application::Get().GetWindow().GetDPI();
+		return v * dpi;
+	}
+
+	inline ImVec2 DpiVec2(float x, float y) {
+		const auto dpi = Application::Get().GetWindow().GetDPI();
+		return ImVec2(x * dpi, y * dpi);
+	}
 }
 
 namespace Chozo::UI {

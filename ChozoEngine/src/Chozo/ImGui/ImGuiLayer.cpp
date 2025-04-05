@@ -19,6 +19,9 @@ namespace Chozo {
 
     void ImGuiLayer::OnAttach()
     {
+        auto resourcesDir = Utils::File::GetResourcesDirectory().string();
+        const auto dpi = Application::Get().GetWindow().GetDPI();
+
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -29,15 +32,14 @@ namespace Chozo {
         //io.ConfigViewportsNoAutoMerge = true;
         //io.ConfigViewportsNoTaskBarIcon = true;
 
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Open_Sans/static/OpenSans-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Nunito/static/Nunito-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Nunito_Sans/static/NunitoSans_10pt-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Raleway/static/Raleway-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Roboto/Roboto-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Abel/Abel-Regular.ttf", 16.0f);
-        // io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Nanum_Gothic/NanumGothic-Regular.ttf", 16.0f);
-        io.Fonts->AddFontFromFileTTF("../resources/fonts/Titillium_Web/TitilliumWeb-Bold.ttf", 18.0f);
-        io.FontDefault =  io.Fonts->AddFontFromFileTTF("../resources/fonts/Titillium_Web/TitilliumWeb-Regular.ttf", 18.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF(resourcesDir + "/fonts/Open_Sans/static/OpenSans-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF(resourcesDir + "/fonts/Nunito/static/Nunito-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF(resourcesDir + "/fonts/Nunito_Sans/static/NunitoSans_10pt-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF(resourcesDir + "/fonts/Raleway/static/Raleway-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF(resourcesDir + "/fonts/Roboto/Roboto-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF(resourcesDir + "/fonts/Abel/Abel-Regular.ttf", 16.0f);
+        // io.FontDefault =  io.Fonts->AddFontFromFileTTF(resourcesDir + "/fonts/Nanum_Gothic/NanumGothic-Regular.ttf", 16.0f);
+        SetFont("/fonts/Titillium_Web/TitilliumWeb-Regular.ttf", dpi);
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
@@ -81,6 +83,16 @@ namespace Chozo {
             handled |= e.isInCategory(EventCategory_Keyboard) & io.WantCaptureKeyboard;
             e.SetHandled(handled);
         }
+
+        if (typeid(e) == typeid(WindowContentScaledEvent))
+        {
+            auto& scaledEvent = static_cast<WindowContentScaledEvent&>(e);
+            auto dpi = scaledEvent.GetXScale();
+
+            SetFont("/fonts/Titillium_Web/TitilliumWeb-Regular.ttf", dpi);
+            ImGui_ImplOpenGL3_DestroyFontsTexture();
+            ImGui_ImplOpenGL3_CreateFontsTexture();
+        }
     }
 
     void ImGuiLayer::Begin()
@@ -107,6 +119,16 @@ namespace Chozo {
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
         }
+    }
+
+    void ImGuiLayer::SetFont(std::string fontPath, float dpi)
+    {
+        auto resourcesDir = Utils::File::GetResourcesDirectory().string();
+        ImGuiIO& io = ImGui::GetIO();
+
+        io.Fonts->Clear();
+        io.Fonts->AddFontFromFileTTF((resourcesDir + fontPath).c_str(), 18.0f * dpi);
+        io.FontDefault = io.Fonts->Fonts.back();
     }
 
     void ImGuiLayer::SetDarkThemeColors()

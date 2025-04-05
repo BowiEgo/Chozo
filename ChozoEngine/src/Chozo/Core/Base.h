@@ -5,7 +5,7 @@
 #include <functional>
 #include "Ref.h"
 
-// #ifdef ENGINE_PLATFORM_WIN32
+// #ifdef CZ_PLATFORM_WIN
 //     #ifdef CHOZO_BUILD_DLL
 //         #define CHOZO_API __declspec(dllexport)
 //     #else
@@ -20,7 +20,7 @@
 ////////////////////////////////////////////////////////////////////////////
 #ifdef CZ_COMPILER_MSVC
 	#define CZ_FORCE_INLINE __forceinline
-#elif defined(ENGINE_PLATFORM_MACOS)
+#elif defined(CZ_PLATFORM_MACOS)
 	#define CZ_FORCE_INLINE __attribute__((always_inline)) inline
 #else
 	#define CZ_FORCE_INLINE inline
@@ -42,11 +42,11 @@
 //     #error "Platform not supported"
 // #endif
 
-#ifdef ENGINE_PLATFORM_WIN32
+#ifdef CZ_PLATFORM_WIN
 	#define CZ_DEBUG_BREAK __debugbreak()
-#elif defined(ENGINE_PLATFORM_MACOS)
+#elif defined(CZ_PLATFORM_MACOS)
 	#define CZ_DEBUG_BREAK __builtin_debugtrap()
-#elif defined(ENGINE_PLATFORM_LINUX)
+#elif defined(CZ_PLATFORM_LINUX)
     #define DEBUG_BREAK raise(SIGTRAP)
 #else
 	#define CZ_DEBUG_BREAK
@@ -54,7 +54,7 @@
 
 
 #ifdef CZ_ENABLE_ASSERTS
-    // #ifdef ENGINE_PLATFORM_MACOS
+    // #ifdef CZ_PLATFORM_MACOS
 	// 	#define CZ_CORE_ASSERT_MESSAGE_INTERNAL(...)  ::Chozo::Log::PrintAssertMessage(::Chozo::Log::Type::Core, "Assertion Failed", ##__VA_ARGS__)
 	// 	#define CZ_ASSERT_MESSAGE_INTERNAL(...)  ::Chozo::Log::PrintAssertMessage(::Chozo::Log::Type::Client, "Assertion Failed", ##__VA_ARGS__)
 	// #else

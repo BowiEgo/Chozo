@@ -1,5 +1,6 @@
 project(ChozoEditor VERSION 1.0.0)
 
+# Source files
 file(GLOB_RECURSE chozo_editor_sources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
 file(GLOB_RECURSE chozo_editor_headers RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.h)
 
@@ -17,5 +18,11 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ChozoEngine)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/ChozoEditor/resources
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>/../resources
+)
 
 # target_compile_definitions(${PROJECT_NAME} PRIVATE $<TARGET_PROPERTY:${ENGINE_PROJECT_NAME},COMPILE_DEFINITIONS>)

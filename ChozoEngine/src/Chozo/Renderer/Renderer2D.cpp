@@ -186,7 +186,8 @@ namespace Chozo {
         }
 
         // Shader
-        auto shaderDir = std::string(Utils::File::GetShaderSoureceDirectory());
+        std::string shaderDir = Utils::File::GetShaderSourcesDirectory().string();
+        CZ_CORE_INFO("Shader Directory: {0}", shaderDir);
 
         s_Data.TextureShader = Shader::Create("Texture", { shaderDir + "/Texture.glsl.vert",  shaderDir + "/Texture.glsl.frag" });
         s_Data.TextureShader->Bind();

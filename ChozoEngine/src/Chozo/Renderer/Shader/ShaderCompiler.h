@@ -77,12 +77,26 @@ namespace Chozo {
 			}
         }
 
-        inline fs::path GetCachePathByNameAndStage(const std::string& name, const ShaderStage& stage)
+        inline fs::path GetCachePathByNameAndStage(const std::string_view name, ShaderStage stage)
         {
-            const fs::path cacheDirectory = Utils::File::GetShaderCacheDirectory();
-            Utils::File::CreateDirectoryIfNeeded(cacheDirectory.string());
+			if(name.find_first_of("/\\") != std::string_view::npos) {
+				throw std::invalid_argument("Shader name contains path separators");
+			}
 
-            return cacheDirectory / (name + ShaderUtils::ShaderStageToVulkanCacheFileExtension(stage));
+            fs::path cacheDir = Utils::File::GetShaderCacheDirectory();
+
+//#ifdef CZ_PLATFORM_WIN
+//			cacheDir = Utils::File::GetAbsolutePath(cacheDir);
+//#endif
+
+			fs::path fullPath = (cacheDir / name).concat(
+				ShaderUtils::ShaderStageToVulkanCacheFileExtension(stage)
+			).lexically_normal();
+
+			std::wstring pathStr = fullPath.wstring();
+    std::replace(pathStr.begin(), pathStr.end(), L'\\', L'/');
+
+            return fs::path(pathStr);
         }
 	}
 

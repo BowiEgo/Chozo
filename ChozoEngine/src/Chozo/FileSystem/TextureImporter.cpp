@@ -28,7 +28,7 @@ namespace Chozo {
 
 		if (!imageBuffer.Data)
         {
-            CZ_CORE_ERROR("Failed to load image! {}" , stbi_failure_reason());
+            CZ_CORE_ERROR("Failed to load image from {}! {}" , path, stbi_failure_reason());
             return {};
         }
 
@@ -59,7 +59,7 @@ namespace Chozo {
 
 		if (!imageBuffer.Data)
         {
-            CZ_CORE_ERROR("Failed to load image! {}" , stbi_failure_reason());
+            CZ_CORE_ERROR("Failed to load image from buffer! {}" , stbi_failure_reason());
 			return {};
         }
 

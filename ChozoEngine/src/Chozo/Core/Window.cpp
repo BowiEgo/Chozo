@@ -37,6 +37,10 @@ namespace Chozo {
 
         CZ_CORE_TRACE("Creating window({1}, {2}) for {0}", props.Title, props.Width, props.Height);
 
+#ifdef CZ_PLATFORM_WIN
+        SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+#endif
+
         // Initialize GLFW
         if (!s_GLFWInitialized)
         {
@@ -75,7 +79,31 @@ namespace Chozo {
         glfwGetFramebufferSize(m_Window, &fbWidth, &fbHeight);
         m_Data.PixelRatio = (float)fbWidth / (float)windowWidth;
 
+		// DPI Scaling
+        float xscale, yscale, factor = 1.0f;
+#ifdef CZ_PLATFORM_MACOS
+        factor = 0.5f;
+#endif
+        glfwGetWindowContentScale(m_Window, &xscale, &yscale);
+        m_Data.XScale = xscale * factor;
+        m_Data.YScale = yscale * factor;
+
         // Set GLFW callbacks
+        glfwSetWindowContentScaleCallback(m_Window, [](GLFWwindow* window, float xscale, float yscale)
+        {
+            float factor = 1.0f;
+#ifdef CZ_PLATFORM_MACOS
+            factor = 0.75f;
+#endif
+
+            WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+            data.XScale = xscale * factor;
+            data.YScale = yscale * factor;
+
+            WindowContentScaledEvent event(data.XScale, data.YScale);
+            data.EventCallback(event);
+         });
+
         glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
         {
             WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);

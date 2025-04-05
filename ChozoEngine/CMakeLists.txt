@@ -7,23 +7,11 @@ project(ChozoEngine VERSION 1.0.0)
 # ChozoEngine static library
 #
 if(WIN32)
-    message("//----------------- Platform: Windows -----------------//")
     file(GLOB_RECURSE platform_sources "Platform/Windows/*.cpp")
-    set(platform_definitions ENGINE_PLATFORM_WIN32)
+elseif(APPLE)
+    file(GLOB_RECURSE platform_sources "Platform/Mac/*.cpp")
 elseif(UNIX)
-    if(APPLE)
-        message("//----------------- Platform: MacOS -----------------//")
-        file(GLOB_RECURSE platform_sources "Platform/Mac/*.cpp")
-        set(platform_definitions ENGINE_PLATFORM_MACOS)
-    else()
-        message("//----------------- Platform: Linux -----------------//")
-        file(GLOB_RECURSE platform_sources "Platform/Linux/*.cpp")
-        set(platform_definitions ENGINE_PLATFORM_LINUX)
-    endif()
-else()
-    message("//----------------- Platform: Unsupported -----------------//")
-    set(platform_sources "")
-    set(platform_definitions ENGINE_PLATFORM_UNSUPPORTED)
+    file(GLOB_RECURSE platform_sources "Platform/Linux/*.cpp")
 endif()
 
 file(GLOB_RECURSE chozo_engine_sources RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.cpp)
@@ -34,7 +22,6 @@ set(LIBRARY_OUTPUT_PATH ${LIB_PATH})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE CZ_DEBUG)
 target_compile_definitions(${PROJECT_NAME} PRIVATE WINDOW_WIDTH=1920 WINDOW_HEIGHT=1080)
-target_compile_definitions(${PROJECT_NAME} PRIVATE ${platform_definitions})
 
 # message(${PROJECT_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include/spdlog)
 
@@ -90,3 +77,8 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
     src/czpch.cpp
 )
 
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/ChozoEngine/shaders
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>/../shaders
+)

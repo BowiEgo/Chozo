@@ -50,7 +50,7 @@ namespace Chozo {
 
     void ThumbnailManager::ClearUselessCaches()
     {
-        const fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
+        fs::path cacheDir = Utils::File::GetThumbnailCacheDirectory();
 
 		for (const auto& entry : fs::directory_iterator(cacheDir))
         {

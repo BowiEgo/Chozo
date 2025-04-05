@@ -16,10 +16,8 @@ namespace Chozo {
 
         static void ExportPNG(const std::string& filename, const Buffer &source, const glm::vec2 srcSize, const glm::vec2 outputSize, bool isHDR)
         {
-            fs::path cacheDir(Utils::File::GetThumbnailCacheDirectory());
+            fs::path cacheDir = Utils::File::GetThumbnailCacheDirectory();
             fs::path filepath = cacheDir / filename;
-
-            File::CreateDirectoryIfNeeded(cacheDir.string());
 
             TextureExporter::ToFileFromBuffer(
                 filepath,

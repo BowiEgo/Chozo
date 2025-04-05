@@ -6,7 +6,7 @@ namespace Chozo {
     enum class EventType
     {
         None = 0,
-        WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
+        WindowClose, WindowContentScale, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
         AppTick, AppUpdate, AppRender,
         SceneRender,
         KeyPressed, KeyReleased, KeyTyped,
