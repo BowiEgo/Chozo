@@ -1,5 +1,7 @@
 project(ChozoEngine VERSION 1.0.0)
 
+include(${CMAKE_SOURCE_DIR}/cmake/ResourceUtils.cmake)
+
 # Add macro GL_SILENCE_DEPRECATION to ignore warnings about deprecated OpenGL API on MacOS.
 # add_definitions(-DGL_SILENCE_DEPRECATION)
 
@@ -77,8 +79,8 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
     src/czpch.cpp
 )
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/ChozoEngine/shaders
-    $<TARGET_FILE_DIR:${PROJECT_NAME}>/../shaders
+define_target_resource_path(${PROJECT_NAME} TARGET_SHADERS_DIR "shaders")
+copy_directory_to_parent(${PROJECT_NAME}
+  ${CMAKE_CURRENT_SOURCE_DIR}/shaders
+  shaders
 )

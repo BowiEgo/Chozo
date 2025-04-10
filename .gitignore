@@ -3,7 +3,6 @@
 .vs/
 .idea/
 .vscode/
-**.cmake
 cmake-build-debug/
 CMakeFiles
 bin/
@@ -15,4 +14,3 @@ vcpkg_installed
 
 # Files
 .DS_Store
-imgui.ini
