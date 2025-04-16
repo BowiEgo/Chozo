@@ -80,10 +80,10 @@ namespace Chozo {
         uint32_t TextureSlotIndex = 1; // 0 = white texture
 
         glm::vec4 QuadVertexPositions[4] = {
-            { -0.5f, -0.5f, 0.0f, 1.0f },
-            {  0.5f, -0.5f, 0.0f, 1.0f },
-            {  0.5f,  0.5f, 0.0f, 1.0f },
-            { -0.5f,  0.5f, 0.0f, 1.0f }
+            { -1.0f, -1.0f, 0.0f, 1.0f },
+            {  1.0f, -1.0f, 0.0f, 1.0f },
+            {  1.0f,  1.0f, 0.0f, 1.0f },
+            { -1.0f,  1.0f, 0.0f, 1.0f }
         };
 
         glm::vec2 QuadTexCoords[4] = {
@@ -287,12 +287,10 @@ namespace Chozo {
 
     void Renderer2D::DrawFullScreenQuad()
     {
-        glm::mat4 transform = glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 1.0f });
-
         constexpr size_t quadVertexCount = 4;
         for (size_t i = 0; i < quadVertexCount; i++)
         {
-            s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[i];
+            s_Data.QuadVertexBufferPtr->Position = s_Data.QuadVertexPositions[i];
             s_Data.QuadVertexBufferPtr->TexCoord = s_Data.QuadTexCoords[i];
             s_Data.QuadVertexBufferPtr++;
         }

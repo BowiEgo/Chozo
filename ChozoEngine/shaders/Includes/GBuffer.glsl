@@ -1,4 +1,3 @@
-#include "../Snippets/Fragment/Varyings.glsl"
 #include "../Snippets/Fragment/Scene.glsl"
 
 precision mediump int;

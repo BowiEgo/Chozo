@@ -206,6 +206,7 @@ namespace Chozo
         {
             FramebufferSpecification fbSpec;
         	fbSpec.PixelRatio = pixelRatio;
+            // fbSpec.ClearColor = { 1.0f, 1.0f, 1.0f, 1.0f };
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			fbSpec.Attachments = { ImageFormat::RGBA16F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);

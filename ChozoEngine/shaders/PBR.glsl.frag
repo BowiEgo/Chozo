@@ -9,6 +9,9 @@ layout(std140, binding = 0) uniform CameraData
     mat4 u_InverseViewProjectionMatrix;
 };
 
+layout(location = 0) in vec2 v_TexCoord;
+layout(location = 1) in vec3 v_FragPosition;
+
 vec3 DebugColor = vec3(0.0);
 
 #include "Includes/GBuffer.glsl"

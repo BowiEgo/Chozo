@@ -534,7 +534,11 @@ namespace Chozo {
 
     void ContentBrowserPanel::ImportAssets()
     {
-        fs::path path = FileDialogs::OpenFile("Import (*.png)\0*.jpeg\0");
+        const char* filter =
+            "Texture Files (*.png; *.jpeg)\0*.png;*.jpeg\0"
+            "Model Files (*.gltf; *.glb; *.obj)\0*.gltf;*.glb;*.obj\0"
+            "All Files (*.*)\0*.*\0\0";
+        fs::path path = FileDialogs::OpenFile(filter);
         AssetType type = Utils::GetAssetTypeFromExtension(path.extension().string());
 
         Texture2DSpecification textureSpec;

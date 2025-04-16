@@ -155,6 +155,79 @@ namespace Chozo {
                 triangle.V2.Bitangent += bitangent;
             }
         }
+
+        static const tinygltf::Accessor* TryGetAccessor(const tinygltf::Model& model,
+            const tinygltf::Primitive& primitive,
+            const std::string& attributeName)
+        {
+            auto it = primitive.attributes.find(attributeName);
+            if (it != primitive.attributes.end()) {
+                int accessorIndex = it->second;
+                if (accessorIndex >= 0 && accessorIndex < model.accessors.size()) {
+                    const tinygltf::Accessor& accessor = model.accessors[accessorIndex];
+                        if (accessor.bufferView >= 0) {
+                        return &accessor;
+                    }
+                }
+            }
+            return nullptr;
+        }
+
+        static const float* GetAttributeFloatPointer(const tinygltf::Model& model, const tinygltf::Accessor& accessor)
+        {
+            if (accessor.bufferView < 0 || accessor.bufferView >= model.bufferViews.size())
+                return nullptr;
+
+            const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
+
+            // Check alignment
+            const size_t offset = bufferView.byteOffset + accessor.byteOffset;
+            if (offset % sizeof(float) != 0)
+            {
+                return nullptr;
+            }
+
+            if (bufferView.buffer < 0 || bufferView.buffer >= model.buffers.size())
+                return nullptr;
+
+            const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+
+            const uint8_t* data = buffer.data.data() + offset;
+            return reinterpret_cast<const float*>(data);
+        }
+
+        static const tinygltf::Accessor* TryGetIndexAccessor(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
+        {
+            if (primitive.indices < 0 || primitive.indices >= model.accessors.size())
+            {
+                std::cout << "[TryGetIndexAccessor] No indices." << std::endl;
+                return nullptr;
+            }
+
+            const auto& accessor = model.accessors[primitive.indices];
+
+            if (accessor.bufferView < 0)
+            {
+                std::cout << "[TryGetIndexAccessor] Accessor has no bufferView." << std::endl;
+                return nullptr;
+            }
+
+            if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE &&
+                accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT &&
+                accessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT)
+            {
+                std::cout << "[TryGetIndexAccessor] Invalid component type: " << accessor.componentType << std::endl;
+                return nullptr;
+            }
+
+            if (accessor.type != TINYGLTF_TYPE_SCALAR)
+            {
+                std::cout << "[TryGetIndexAccessor] Invalid accessor type: " << accessor.type << std::endl;
+                return nullptr;
+            }
+
+            return &accessor;
+        }
     }
 
     Ref<MeshSource> GLTFLoader::LoadFromFile(const fs::path &filepath)
@@ -335,71 +408,39 @@ namespace Chozo {
         aabb.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
         aabb.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 
-        const bool hasPositions = primitive.attributes.find("POSITION") != primitive.attributes.end();
-        const bool hasNormals = primitive.attributes.find("NORMAL") != primitive.attributes.end();
-        const bool hasTangents = primitive.attributes.find("TANGENT") != primitive.attributes.end();
-        const bool hasTexcoords = primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end();
+        const float* positions = nullptr;
+        const float* normals = nullptr;
+        const float* tangents = nullptr;
+        const float* texcoords = nullptr;
 
-        if (hasPositions)
+        const auto* positionAccessor = GLTFLoaderUtils::TryGetAccessor(m_GLTFModel, primitive, "POSITION");
+        const auto* normalAccessor = GLTFLoaderUtils::TryGetAccessor(m_GLTFModel, primitive, "NORMAL");
+        const auto* tangentAccessor = GLTFLoaderUtils::TryGetAccessor(m_GLTFModel, primitive, "TANGENT");
+        const auto* texcoordAccessor = GLTFLoaderUtils::TryGetAccessor(m_GLTFModel, primitive, "TEXCOORD_0");
+
+        const bool hasPosition = positionAccessor != nullptr;
+        const bool hasNormals = normalAccessor != nullptr;
+        const bool hasTangent = tangentAccessor != nullptr;
+        const bool hasTexcoord = texcoordAccessor != nullptr;
+
+        if (hasPosition)
+            positions = GLTFLoaderUtils::GetAttributeFloatPointer(m_GLTFModel, *positionAccessor);
+
+        if (hasNormals)
+            normals = GLTFLoaderUtils::GetAttributeFloatPointer(m_GLTFModel, *normalAccessor);
+
+        if (hasTangent)
+            tangents = GLTFLoaderUtils::GetAttributeFloatPointer(m_GLTFModel, *tangentAccessor);
+
+        if (hasTexcoord)
+            texcoords = GLTFLoaderUtils::GetAttributeFloatPointer(m_GLTFModel, *texcoordAccessor);
+
+        if (positions != nullptr)
         {
-            const tinygltf::Accessor& positionAccessor = m_GLTFModel.accessors[primitive.attributes.at("POSITION")];
-
-            const float* positions = nullptr;
-            const float* normals = nullptr;
-            const float* tangents = nullptr;
-            const float* texcoords = nullptr;
-
-            {
-                const tinygltf::Accessor& accessors = positionAccessor;
-                const tinygltf::BufferView& bufferView = m_GLTFModel.bufferViews[accessors.bufferView];
-                const auto offset = bufferView.byteOffset + accessors.byteOffset;
-                CZ_CORE_ASSERT("bufferView.byteOffset is not aligned with accessor.byteOffset", offset % sizeof(float) == 0);
-                const tinygltf::Buffer& buffer = m_GLTFModel.buffers[bufferView.buffer];
-                const uint8_t* data = buffer.data.data() + offset;
-
-                positions = reinterpret_cast<const float*>(data);
-            }
-
-            if (hasNormals)
-            {
-                const tinygltf::Accessor& accessors = m_GLTFModel.accessors[primitive.attributes.at("NORMAL")];
-                const tinygltf::BufferView& bufferView = m_GLTFModel.bufferViews[accessors.bufferView];
-                const auto offset = bufferView.byteOffset + accessors.byteOffset;
-                CZ_CORE_ASSERT("bufferView.byteOffset is not aligned with accessor.byteOffset", offset % sizeof(float) == 0);
-                const tinygltf::Buffer& buffer = m_GLTFModel.buffers[bufferView.buffer];
-                const uint8_t* data = buffer.data.data() + offset;
-
-                normals = reinterpret_cast<const float*>(data);
-            }
-
-            if (hasTangents)
-            {
-                const tinygltf::Accessor& accessors = m_GLTFModel.accessors[primitive.attributes.at("TANGENT")];
-                const tinygltf::BufferView& bufferView = m_GLTFModel.bufferViews[accessors.bufferView];
-                const auto offset = bufferView.byteOffset + accessors.byteOffset;
-                CZ_CORE_ASSERT("bufferView.byteOffset is not aligned with accessor.byteOffset", offset % sizeof(float) == 0);
-                const tinygltf::Buffer& buffer = m_GLTFModel.buffers[bufferView.buffer];
-                const uint8_t* data = buffer.data.data() + offset;
-
-                tangents = reinterpret_cast<const float*>(data);
-            }
-
-            if (hasTexcoords)
-            {
-                const tinygltf::Accessor& accessors = m_GLTFModel.accessors[primitive.attributes.at("TEXCOORD_0")];
-                const tinygltf::BufferView& bufferView = m_GLTFModel.bufferViews[accessors.bufferView];
-                const auto offset = bufferView.byteOffset + accessors.byteOffset;
-                CZ_CORE_ASSERT("bufferView.byteOffset is not aligned with accessor.byteOffset", offset % sizeof(float) == 0);
-                const tinygltf::Buffer& buffer = m_GLTFModel.buffers[bufferView.buffer];
-                const uint8_t* data = buffer.data.data() + offset;
-
-                texcoords = reinterpret_cast<const float*>(data);
-            }
-
-            submesh.VertexCount = static_cast<uint32_t>(positionAccessor.count);
+            submesh.VertexCount = static_cast<uint32_t>(positionAccessor->count);
             m_CurrVertexPos += submesh.VertexCount;
 
-            for (size_t i = 0; i < positionAccessor.count; i++)
+            for (size_t i = 0; i < positionAccessor->count; i++)
             {
                 Vertex vertex{};
 
@@ -415,23 +456,23 @@ namespace Chozo {
                         normals[i * 3 + 2])
                     : glm::vec3(0.0f, 1.0f, 0.0f);
 
-                vertex.Tangent = hasTangents
+                vertex.Tangent = hasTangent
                     ? glm::vec3(
                         tangents[i * 3 + 0],
                         tangents[i * 3 + 1],
                         tangents[i * 3 + 2])
                     : glm::vec3(0.0f, 0.0f, 0.0f);
 
-                vertex.TexCoord = hasTexcoords
+                vertex.TexCoord = hasTexcoord
                     ? glm::vec2(
                         texcoords[i * 2 + 0],
                         texcoords[i * 2 + 1])
                     : glm::vec2(0.0f, 0.0f);
 
-                if (positionAccessor.minValues.size() == 3 && positionAccessor.maxValues.size() == 3)
+                if (positionAccessor->minValues.size() == 3 && positionAccessor->maxValues.size() == 3)
                 {
-                    aabb.Min = glm::vec3(positionAccessor.minValues[0], positionAccessor.minValues[1], positionAccessor.minValues[2]);
-                    aabb.Max = glm::vec3(positionAccessor.maxValues[0], positionAccessor.maxValues[1], positionAccessor.maxValues[2]);
+                    aabb.Min = glm::vec3(positionAccessor->minValues[0], positionAccessor->minValues[1], positionAccessor->minValues[2]);
+                    aabb.Max = glm::vec3(positionAccessor->maxValues[0], positionAccessor->maxValues[1], positionAccessor->maxValues[2]);
                 }
                 else
                 {
@@ -453,33 +494,32 @@ namespace Chozo {
 
     void GLTFLoader::HandleIndices(const tinygltf::Primitive& primitive, Submesh& submesh, Ref<MeshSource> meshSource)
     {
-        if (primitive.indices != -1)
+        if (const auto* indexAccessor = GLTFLoaderUtils::TryGetIndexAccessor(m_GLTFModel, primitive))
         {
-            const tinygltf::Accessor& indexAccessor = m_GLTFModel.accessors[primitive.indices];
-            const tinygltf::BufferView& indexBufferView = m_GLTFModel.bufferViews[indexAccessor.bufferView];
+            const tinygltf::BufferView& indexBufferView = m_GLTFModel.bufferViews[indexAccessor->bufferView];
             const tinygltf::Buffer& indexBuffer = m_GLTFModel.buffers[indexBufferView.buffer];
 
-            const uint8_t* indexData = indexBuffer.data.data() + indexBufferView.byteOffset + indexAccessor.byteOffset;
-            size_t indexCount = indexAccessor.count;
+            const uint8_t* indexData = indexBuffer.data.data() + indexBufferView.byteOffset + indexAccessor->byteOffset;
+            size_t indexCount = indexAccessor->count;
 
             submesh.IndexCount = static_cast<uint32_t>(indexCount);
             m_CurrIndexPos += submesh.IndexCount;
 
             // Make sure index component type legal（unsigned short or unsigned int）
-            if (indexAccessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT &&
-                indexAccessor.componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-                CZ_CORE_ERROR("GLTFLoader: Unsupported index component type: {0}", indexAccessor.componentType);
+            if (indexAccessor->componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT &&
+                indexAccessor->componentType != TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+                CZ_CORE_ERROR("GLTFLoader: Unsupported index component type: {0}", indexAccessor->componentType);
                 return;
             }
 
             for (size_t i = 0; i < indexCount; i += 3) {
                 Index index{};
-                if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+                if (indexAccessor->componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
                     const auto* indices = reinterpret_cast<const uint16_t*>(indexData);
                     index.V1 = indices[i];
                     index.V2 = indices[i + 1];
                     index.V3 = indices[i + 2];
-                } else if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+                } else if (indexAccessor->componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
                     const auto* indices = reinterpret_cast<const uint32_t*>(indexData);
                     index.V1 = indices[i];
                     index.V2 = indices[i + 1];
@@ -588,7 +628,7 @@ namespace Chozo {
 
             if (tex.source >= 0 && tex.source < m_GLTFModel.images.size())
             {
-                if (const tinygltf::Image &image = m_GLTFModel.images[tex.source]; !image.image.empty())
+                if (const tinygltf::Image &image = m_GLTFModel.images[tex.source]; !image.image.empty() && image.bufferView > -1)
                 {
                     Texture2DSpecification spec;
                     spec.WrapS = ImageParameter::REPEAT;
@@ -621,7 +661,10 @@ namespace Chozo {
                     const Ref<Texture2D> texture = Texture2D::Create(imageBuffer, spec);
 
                     fs::path filepath = Utils::File::GetAssetDirectory();
-                    filepath /= fs::path("Textures/" + spec.DebugName);
+                    filepath /= fs::path("Textures");
+                    Utils::File::CreateDirectoryIfNeeded(filepath.string());
+                    
+                    filepath /= fs::path(spec.DebugName);
                     Application::GetAssetManager()->ExportAsset(texture, filepath);
 
                     mi->Set("u_" + propName + "Map", texture);
