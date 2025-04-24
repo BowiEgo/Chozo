@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Chozo/Renderer/Shader.h"
+#include "Chozo/Renderer/Shader/Shader.h"
 #include "OpenGLUniformBuffer.h"
 
 typedef unsigned int GLenum; // TODO: remove!

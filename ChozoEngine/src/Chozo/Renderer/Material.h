@@ -1,7 +1,7 @@
 #pragma once
 
 #include "czpch.h"
-#include "Shader.h"
+#include "Shader/Shader.h"
 #include "Texture.h"
 
 namespace Chozo

@@ -25,7 +25,7 @@
 #include "Chozo/Renderer/SceneRenderer.h"
 
 #include "Chozo/Renderer/Pipeline.h"
-#include "Chozo/Renderer/Shader.h"
+#include "Chozo/Renderer/Shader/Shader.h"
 #include "Chozo/Renderer/Texture.h"
 #include "Chozo/Renderer/VertexBuffer.h"
 #include "Chozo/Renderer/IndexBuffer.h"

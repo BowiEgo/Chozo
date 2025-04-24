@@ -2,7 +2,7 @@
 
 #include "czpch.h"
 
-#include "Shader.h"
+#include "Shader/Shader.h"
 #include "Framebuffer.h"
 #include "Mesh.h"
 
