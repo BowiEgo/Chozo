@@ -40,6 +40,32 @@ function(copy_directory_to_parent TARGET FROM_DIR TO_NAME)
     )
 endfunction()
 
+# Usage:
+#   create_directories(
+#       TARGET MyExe
+#       DIRS
+#           assets/HDRIs
+#           assets/Materials
+#           assets/Meshes
+#           assets/Scenes
+#           assets/Textures
+#   )
+function(create_directories)
+    cmake_parse_arguments(CD "" "TARGET" "DIRS" ${ARGN})
+
+    if(NOT CD_TARGET OR NOT CD_DIRS)
+        message(FATAL_ERROR "create_directories requires TARGET and DIRS")
+    endif()
+
+    foreach(dir IN LISTS CD_DIRS)
+        add_custom_command(TARGET ${CD_TARGET} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                    "$<TARGET_FILE_DIR:${CD_TARGET}>/${dir}"
+            COMMENT "Creating directory ${dir} in runtime output dir"
+        )
+    endforeach()
+endfunction()
+
 function(copy_platform_imgui_ini TARGET)
     if(WIN32)
         set(PLATFORM "Windows")

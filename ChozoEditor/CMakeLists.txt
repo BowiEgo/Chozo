@@ -26,6 +26,17 @@ copy_directory_to_parent(${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/resources
   resources
 )
+create_directories(
+    TARGET ${PROJECT_NAME}
+    DIRS
+        assets/HDRIs
+        assets/Materials
+        assets/Meshes
+        assets/Scenes
+        assets/Textures
+        caches/shader
+        caches/thumbnail
+)
 copy_platform_imgui_ini(${PROJECT_NAME})
 
 # target_compile_definitions(${PROJECT_NAME} PRIVATE $<TARGET_PROPERTY:${ENGINE_PROJECT_NAME},COMPILE_DEFINITIONS>)
