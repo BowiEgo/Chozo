@@ -1,4 +1,3 @@
-#include "../Snippets/Fragment/Varyings.glsl"
 #include "../Snippets/Fragment/Scene.glsl"
 
 layout(binding = 0) uniform sampler2D u_PositionTex;
