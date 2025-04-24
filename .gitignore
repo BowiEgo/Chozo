@@ -1,8 +1,10 @@
 # Directories
 .cache/
 .idea/
+.vs/
 .vscode/
 cmake-build-debug/
+CMakeFiles/
 bin/
 build/
 lib/
@@ -12,4 +14,5 @@ vcpkg_installed
 
 # Files
 .DS_Store
+**.cmake
 imgui.ini

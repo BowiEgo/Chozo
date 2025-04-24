@@ -16,7 +16,7 @@ namespace Chozo
 		virtual void SetStreamPosition(uint64_t position) = 0;
 		virtual uint64_t GetFileSize() = 0;
 		virtual bool ReadData(char* destination, size_t size) = 0;
-		virtual bool ReadBinary(std::vector<u_int32_t>& destination) = 0;
+		virtual bool ReadBinary(std::vector<uint32_t>& destination) = 0;
 
 		operator bool() const { return IsStreamGood(); }
 

@@ -2,6 +2,15 @@
 
 #include <regex>
 
+#if defined(CZ_PLATFORM_WIN)
+#include <Windows.h>
+#elif defined(CZ_PLATFORM_MACOS)
+#include <mach-o/dyld.h>
+#endif
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 namespace Chozo {
 
     namespace Utils::File {
@@ -17,33 +26,82 @@ namespace Chozo {
             return std::regex_match(fileExtension, imagePattern);
         }
 
-        static const char* GetAssetDirectory()
+        static fs::path GetExecutablePath()
         {
-            // TODO: make sure the assets directory is valid
-            return "../assets";
+#if defined(CZ_PLATFORM_WIN)
+            wchar_t buffer[MAX_PATH] = { 0 };
+            GetModuleFileNameW(nullptr, buffer, MAX_PATH);
+            return fs::path(buffer).lexically_normal();
+#elif defined(CZ_PLATFORM_MACOS)
+            char buffer[1024];
+            uint32_t size = sizeof(buffer);
+            if (_NSGetExecutablePath(buffer, &size) == 0)
+                return fs::path(buffer).lexically_normal();
+            else {
+                std::string path(size, '\0');
+                _NSGetExecutablePath(path.data(), &size);
+                return fs::path(path).lexically_normal();
+            }
+#endif
         }
 
-        static const char* GetShaderSoureceDirectory()
+        static fs::path GetAbsolutePath(const fs::path& path)
         {
-            return "../../ChozoEngine/shaders";
+            fs::path result;
+
+            if (path.is_relative()) {
+                fs::path exePath = fs::absolute(Utils::File::GetExecutablePath()).parent_path();
+                result = (exePath / path).lexically_normal();
+            }
+
+            result = fs::absolute(result).lexically_normal();
+
+            std::wstring dirStr = result.wstring();
+            std::replace(dirStr.begin(), dirStr.end(), L'\\', L'/');
+
+            return fs::path(dirStr);
         }
 
-        static const char* GetShaderCacheDirectory()
-        {
-            // TODO: make sure the assets directory is valid
-            return "../caches/shader";
-        }
-
-        static const char* GetThumbnailCacheDirectory()
-        {
-            // TODO: make sure the assets directory is valid
-            return "../caches/thumbnail";
-        }
-
-        static void CreateDirectoryIfNeeded(std::string directory)
+        static bool CreateDirectoryIfNeeded(std::string directory)
         {
             if (!fs::exists(directory))
-                fs::create_directories(directory);
+                return fs::create_directories(directory);
+
+            return false;
+        }
+
+        static const fs::path GetResourcesDirectory()
+        {
+            return GetAbsolutePath(fs::path("../resources"));
+        }
+
+        static const fs::path GetShaderSourcesDirectory()
+        {
+            return GetAbsolutePath(fs::path("../../../ChozoEngine/lib/shaders"));
+        }
+
+        static const fs::path GetAssetDirectory()
+        {           
+            // TODO: make sure the assets directory is valid
+            auto path = GetAbsolutePath(fs::path("./assets"));
+            CreateDirectoryIfNeeded(path.string());
+            return path;
+        }
+
+        static const fs::path GetShaderCacheDirectory()
+        {
+            // TODO: make sure the assets directory is valid
+            auto path = GetAbsolutePath(fs::path("./caches/shader"));
+            CreateDirectoryIfNeeded(path.string());
+            return path;
+        }
+
+        static const fs::path GetThumbnailCacheDirectory()
+        {
+            // TODO: make sure the assets directory is valid
+            auto path = GetAbsolutePath(fs::path("./caches/thumbnail"));
+            CreateDirectoryIfNeeded(path.string());
+            return path;
         }
 
         static std::string ReadTextFile(const std::string& filepath)
@@ -66,7 +124,7 @@ namespace Chozo {
             return result;
         }
 
-        static bool ReadBinaryFile(const std::string& filepath, std::vector<u_int32_t>& target)
+        static bool ReadBinaryFile(const std::string& filepath, std::vector<uint32_t>& target)
         {
             std::ifstream in(filepath, std::ios::in | std::ios::binary);
             if (in)

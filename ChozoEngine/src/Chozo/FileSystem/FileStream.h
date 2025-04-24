@@ -42,7 +42,7 @@ namespace Chozo
 		void SetStreamPosition(const uint64_t position) override { m_Stream.seekg(position); }
 		uint64_t GetFileSize() override;
 		bool ReadData(char* destination, size_t size) override;
-		bool ReadBinary(std::vector<u_int32_t>& destination) override;
+		bool ReadBinary(std::vector<uint32_t>& destination) override;
 	private:
 		fs::path m_Path;
 		std::ifstream m_Stream;
