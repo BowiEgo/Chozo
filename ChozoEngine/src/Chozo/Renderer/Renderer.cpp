@@ -18,7 +18,7 @@ namespace Chozo {
         s_Data = new RendererData();
 
         // Textures
-        s_Data->MaxTextureSlots = RenderCommand::GetMaxTextureSlots();
+        s_Data->MaxTextureSlots = RenderCommand::GetMaxTextureSlotCount();
         s_Data->TextureSlots.resize(s_Data->MaxTextureSlots);
         s_Data->WhiteTexture = Texture2D::Create();
         uint32_t whiteTextureData = 0xffffffff;
@@ -53,7 +53,7 @@ namespace Chozo {
         }
         s_Data->BrdfLUT = Texture2D::Create(std::string("../resources/textures/brdfLUT.png"));
 
-        uint32_t samplers[s_Data->MaxTextureSlots];
+        auto samplers = std::vector<uint32_t>(s_Data->MaxTextureSlots);
         for (uint32_t i = 0; i < s_Data->MaxTextureSlots; i++)
         {
             samplers[i] = i;
@@ -65,10 +65,9 @@ namespace Chozo {
         s_Data->BoxMesh = Geometry::Create<BoxGeometry>();
 
         // Shaders
-        std::vector<int> samplersVec(samplers, samplers + s_Data->MaxTextureSlots);
         s_Data->m_ShaderLibrary = ShaderLibrary::Create();
 
-        auto shaderDir = std::string(Utils::File::GetShaderSoureceDirectory());
+        auto shaderDir = Utils::File::GetShaderSourcesDirectory().string();
         s_Data->m_ShaderLibrary->Load("Solid", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/Solid.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("ID", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/ID.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("Geometry", { shaderDir + "/GBuffer.glsl.vert",  shaderDir + "/GBuffer.glsl.frag" });
@@ -314,9 +313,9 @@ namespace Chozo {
         s_Config = config;
     }
 
-    uint32_t Renderer::GetMaxTextureSlots()
+    uint32_t Renderer::GetMaxTextureSlotCount()
     {
-        return RenderCommand::GetMaxTextureSlots();
+        return RenderCommand::GetMaxTextureSlotCount();
     }
 
     void Renderer::CreateStaticSky(const Ref<Texture2D>& texture)

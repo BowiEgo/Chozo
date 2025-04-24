@@ -29,8 +29,8 @@ namespace Chozo {
     OpenGLMaterial::OpenGLMaterial(const Ref<Shader> &shader, std::string name)
         : m_Shader(shader.As<OpenGLShader>()), m_Name(std::move(name))
     {
-        m_TextureSlots.resize(Renderer::GetMaxTextureSlots());
-        m_TextureAssetHandles.resize(Renderer::GetMaxTextureSlots());
+        m_TextureSlots.resize(Renderer::GetMaxTextureSlotCount());
+        m_TextureAssetHandles.resize(Renderer::GetMaxTextureSlotCount());
         PopulateUniforms(m_Shader);
     }
 

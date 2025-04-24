@@ -14,5 +14,3 @@ vcpkg_installed
 
 # Files
 .DS_Store
-**.cmake
-imgui.ini

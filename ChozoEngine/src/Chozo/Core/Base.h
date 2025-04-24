@@ -79,6 +79,7 @@ namespace Chozo {
 	namespace fs = std::filesystem;
 	
 	using byte = uint8_t;
+	using uint = uint32_t;
 
     template<typename T, typename ... Args>
 	using Callback = std::function<T(Args&& ...args)>;

@@ -59,7 +59,3 @@ endif()
 target_compile_definitions(${ENGINE_PROJECT_NAME} PRIVATE ${platform_definitions})
 target_compile_definitions(${EDITOR_PROJECT_NAME} PRIVATE ${platform_definitions})
 target_compile_definitions(${SANDBOX_PROJECT_NAME} PRIVATE ${platform_definitions})
-
-target_link_libraries(${ENGINE_PROJECT_NAME} PRIVATE global_flags)
-target_link_libraries(${EDITOR_PROJECT_NAME} PRIVATE global_flags)
-target_link_libraries(${SANDBOX_PROJECT_NAME} PRIVATE global_flags)

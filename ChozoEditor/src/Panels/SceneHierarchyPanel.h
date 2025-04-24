@@ -28,7 +28,7 @@ namespace Chozo {
         static SceneHierarchyPanel& Get() { return *s_Instance; }
 
         static void SetContext(const Ref<Scene>& context);
-        static Entity DrawAddComponent(Entity entity = Entity(entt::null, nullptr));
+        static Entity DrawAddComponent(Entity entity = Entity{});
 
         static void RegisterOnSelectedChange(const Callback &callback) {
             s_Instance->m_Callback = callback;

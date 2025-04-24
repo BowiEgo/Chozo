@@ -36,7 +36,7 @@ namespace Chozo {
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); GCE;
     }
 
-    uint32_t OpenGLRenderAPI::GetMaxTextureSlots()
+    uint32_t OpenGLRenderAPI::GetMaxTextureSlotCount()
     {
         int maxTextureImageUnits;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits); GCE;

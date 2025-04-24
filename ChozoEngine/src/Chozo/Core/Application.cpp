@@ -3,7 +3,10 @@
 #include "Chozo/Renderer/Renderer.h"
 #include "Chozo/Renderer/Renderer2D.h"
 
+#ifdef CZ_PLATFORM_WIN
+#else
 #include "Chozo/Core/Thread.h"
+#endif
 
 #include <GLFW/glfw3.h>
 
@@ -25,6 +28,11 @@ namespace Chozo {
 
         Renderer2D::Init();
         Renderer::Init();
+
+        Renderer::RendererConfig config;
+        config.PixelRatio = m_Window->GetPixelRatio();
+        config.ClearColor = { 0.105f, 0.110f, 0.110f, 1.0f };
+        Renderer::SetConfig(config);
         // TODO: Move to Project
         m_AssetManager = Ref<EditorAssetManager>::Create();
         m_AssetManager->LoadAssetRegistry();

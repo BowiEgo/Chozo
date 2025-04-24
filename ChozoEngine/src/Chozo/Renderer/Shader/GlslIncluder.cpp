@@ -18,11 +18,11 @@ namespace Chozo {
 			: m_FileFinder.FindReadableFilepath(requestedPath);
     	const fs::path requestedFullPath = rawPath.lexically_normal();
 
-    	const bool included = m_IncludedFiles.find(requestedFullPath) != m_IncludedFiles.end();
+    	const bool included = m_IncludedFiles.find(requestedFullPath.string()) != m_IncludedFiles.end();
     	if (!included)
-    		m_IncludedFiles.insert(requestedFullPath);
+    		m_IncludedFiles.insert(requestedFullPath.string());
 
-        const auto name = std::string(requestedFullPath);
+        const auto name = std::string(requestedFullPath.string());
         const std::string contents = Utils::File::ReadTextFile(name);
 
         const auto container = new std::array<std::string, 2>;

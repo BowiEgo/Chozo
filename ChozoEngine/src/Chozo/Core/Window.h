@@ -38,13 +38,18 @@ namespace Chozo {
         [[nodiscard]] unsigned int GetWidth() const { return m_Data.Width; }
         [[nodiscard]] unsigned int GetHeight() const { return m_Data.Height; }
 
+        float GetPixelRatio() const { return m_Data.PixelRatio; }
+
         // Window attributes
         void SetEventCallback(const EventCallbackFn& callback) { m_Data.EventCallback = callback; }
         void SetVSync(bool enabled);
         [[nodiscard]] bool IsVSync() const;
+        [[nodiscard]] float GetDPI() const { return m_Data.XScale; }
 
         [[nodiscard]] GLFWwindow* GetNativeWindow() const { return m_Window; }
         [[nodiscard]] GLFWwindow* GetSharedWindow() const { return m_SharedWindow; }
+
+        void GLFWContentScaleCallback(GLFWwindow* window, float xscale, float yscale);
 
         static Scope<Window> Create(const WindowProps& props = WindowProps());
     private:
@@ -55,7 +60,9 @@ namespace Chozo {
         struct WindowData
         {
             std::string Title;
+            float XScale, YScale = 1.0f;
             unsigned int Width, Height;
+            float PixelRatio;
             bool VSync;
 
             EventCallbackFn EventCallback;

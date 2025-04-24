@@ -227,14 +227,14 @@ namespace Chozo {
                         camera.SetPerspectiveVerticalFOV(glm::radians(target));
                 });
 
-                float near = camera.GetPerspectiveNearClip();
-                DrawColumnValue<float>("Near", near, [&](auto& target) {
+                float nearClip = camera.GetPerspectiveNearClip();
+                DrawColumnValue<float>("Near", nearClip, [&](auto& target) {
                     if (ImGui::DragFloat("##Near", &target))
                         camera.SetPerspectiveNearClip(target);
                 });
 
-                float far = camera.GetPerspectiveFarClip();
-                DrawColumnValue<float>("Far", far, [&](auto& target) {
+                float farClip = camera.GetPerspectiveFarClip();
+                DrawColumnValue<float>("Far", farClip, [&](auto& target) {
                     if (ImGui::DragFloat("##Far", &target))
                         camera.SetPerspectiveFarClip(target);
                 });
@@ -248,14 +248,14 @@ namespace Chozo {
                         camera.SetOrthographicSize(target);
                 });
 
-                float near = camera.GetOrthographicNearClip();
-                DrawColumnValue<float>("Near", near, [&](auto& target) {
+                float nearClip = camera.GetOrthographicNearClip();
+                DrawColumnValue<float>("Near", nearClip, [&](auto& target) {
                     if (ImGui::DragFloat("##Near", &target))
                         camera.SetOrthographicNearClip(target);
                 });
 
-                float far = camera.GetOrthographicFarClip();
-                DrawColumnValue<float>("Far", far, [&](auto& target) {
+                float farClip = camera.GetOrthographicFarClip();
+                DrawColumnValue<float>("Far", farClip, [&](auto& target) {
                     if (ImGui::DragFloat("##Far", &target))
                         camera.SetOrthographicFarClip(target);
                 });

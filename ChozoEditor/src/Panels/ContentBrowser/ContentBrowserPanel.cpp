@@ -25,15 +25,16 @@ namespace Chozo {
     {
         s_Instance = this;
 
-        m_Icons["HierarchyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-open-1.png"));
-        m_Icons["Directory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder.png"));
-        m_Icons["EmptyDirectory"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/folder-empty.png"));
-        m_Icons["TextFile"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/file.png"));
+        auto resourcesDir = Utils::File::GetResourcesDirectory().string();
+        m_Icons["HierarchyDirectory"] = Texture2D::Create(resourcesDir + "/icons/ContentBrowser/folder-open-1.png");
+        m_Icons["Directory"] = Texture2D::Create(resourcesDir + "/icons/ContentBrowser/folder.png");
+        m_Icons["EmptyDirectory"] = Texture2D::Create(resourcesDir + "/icons/ContentBrowser/folder-empty.png");
+        m_Icons["TextFile"] = Texture2D::Create(resourcesDir + "/icons/ContentBrowser/file.png");
         // Toolbar
-        m_Icons["Back"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/left-arrow.png"));
-        m_Icons["Refresh"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/refresh.png"));
-        m_Icons["Search"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/search.png"));
-        m_Icons["Clear"] = Texture2D::Create(std::string("../resources/icons/ContentBrowser/clear.png"));
+        m_Icons["Back"] = Texture2D::Create(resourcesDir + "/icons/ContentBrowser/left-arrow.png");
+        m_Icons["Refresh"] = Texture2D::Create(resourcesDir + "/icons/ContentBrowser/refresh.png");
+        m_Icons["Search"] = Texture2D::Create(resourcesDir + "/icons/ContentBrowser/search.png");
+        m_Icons["Clear"] = Texture2D::Create(resourcesDir + "/icons/ContentBrowser/clear.png");
 
         m_ContentSelection = ContentSelection();
         OnBrowserRefresh();
@@ -209,8 +210,9 @@ namespace Chozo {
         }
 
         const auto filename = CreateItemName(AssetType::Material);
+        const auto shader = Renderer::GetShaderLibrary()->Get("Geometry");
 
-        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, "Lit");
+        auto material = s_Instance->CreateAsset<Material>(filename, s_Instance->m_CurrentDirectory, shader, filename);
 
         s_Instance->OnBrowserRefresh();
 
@@ -330,20 +332,20 @@ namespace Chozo {
 
     void ContentBrowserPanel::RenderAssetMenu(float height)
     {
-        ImGui::BeginChild("##asset_menu", ImVec2(0, height));
+        ImGui::BeginChild("##asset_menu", DpiVec2(0, height));
         if (UI::IconButton("Add New", IM_COL32(70, 160, 0, 255), IM_COL32(70, 180, 40, 255), IM_COL32(100, 190, 40, 255)))
         {
             ImGui::OpenPopup("AddNewContextMenu");
         }
         RenderAddNewContextMenu();
         ImGui::SameLine();
-        
+
         if (UI::IconButton("Import", IM_COL32(210, 130, 0, 255), IM_COL32(210, 150, 40, 255), IM_COL32(240, 160, 40, 255)))
         {
             ImportAssets();
         }
         ImGui::SameLine();
-        
+
         if (UI::IconButton("Save All", IM_COL32(33, 33, 33, 255), IM_COL32(55, 55, 55, 255), IM_COL32(77, 77, 77, 255)))
         {
             SaveAllAssets();
@@ -355,9 +357,9 @@ namespace Chozo {
 
     void ContentBrowserPanel::RenderDirectoryHierarchy(Ref<DirectoryInfo> directory)
     {
-		std::string name = directory == m_BaseDirectory ? "All" : directory->FilePath.filename().string();
-		std::string id = name + "_TreeNode";
-		// bool previousState = ImGui::TreeNodeBehaviorIsOpen(ImGui::GetID(id.c_str()));
+        std::string name = directory == m_BaseDirectory ? "All" : directory->FilePath.filename().string();
+        std::string id = name + "_TreeNode";
+        // bool previousState = ImGui::TreeNodeBehaviorIsOpen(ImGui::GetID(id.c_str()));
 
         auto* window = ImGui::GetCurrentWindow();
         // window->DC.CurrLineSize.y = 20.0f;
@@ -367,24 +369,24 @@ namespace Chozo {
         //                           window->WorkRect.Max.x, window->DC.CursorPos.y + window->DC.CurrLineSize.y };
 
         // const bool isItemClicked = [&itemRect, &id]
-		// {
-		// 	if (ImGui::ItemHoverable(itemRect, ImGui::GetID(id.c_str()), ImGuiItemFlags_None))
-		// 	{
-		// 		return ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseReleased(ImGuiMouseButton_Left);
-		// 	}
-		// 	return false;
-		// }();
+        // {
+        // 	if (ImGui::ItemHoverable(itemRect, ImGui::GetID(id.c_str()), ImGuiItemFlags_None))
+        // 	{
+        // 		return ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+        // 	}
+        // 	return false;
+        // }();
 
         // const bool isWindowFocused = ImGui::IsWindowFocused();
 
         // auto fillWithColor = [&](const ImColor& color)
-		// {
-		// 	const ImU32 bgColor = ImGui::ColorConvertFloat4ToU32(color);
-		// 	ImGui::GetWindowDrawList()->AddRectFilled(itemRect.Min, itemRect.Max, bgColor);
-		// };
+        // {
+        // 	const ImU32 bgColor = ImGui::ColorConvertFloat4ToU32(color);
+        // 	ImGui::GetWindowDrawList()->AddRectFilled(itemRect.Min, itemRect.Max, bgColor);
+        // };
 
-		// Tree Node
-		UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+        // Tree Node
+        UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, DpiVec2(0.0f, 0.0f));
 
         ImGuiTreeNodeFlags flags = (directory == m_CurrentDirectory ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
@@ -410,30 +412,30 @@ namespace Chozo {
 
     void ContentBrowserPanel::RenderTopBar(float height)
     {
-        ImGui::BeginChild("##top_bar", ImVec2(0, height));
-		ImGui::BeginGroup();
+        ImGui::BeginChild("##top_bar", DpiVec2(0, height));
+        ImGui::BeginGroup();
         {
-			// const float edgeOffset = 4.0f;
+            // const float edgeOffset = 4.0f;
             // Navigation buttons
             {
-                UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 0.0f));
+                UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, DpiVec2(2.0f, 0.0f));
 
                 auto contentBrowserButton = [height](const char* labelId, const Ref<Texture2D>& icon, bool isDisabled = false, bool isFlipped = false)
-                {
-					// const ImU32 buttonCol = Colors::Theme::backgroundDark;
-                    // const ImU32 buttonColP = UI::ColourWithMultipliedValue(Colors::Theme::backgroundDark, 0.8f);
-                    
-                    const float iconSize = std::min(24.0f, height);
-                    constexpr float iconPadding = 2.0f;
-                    ImGui::BeginDisabled(isDisabled);
-                    const bool clicked = ImGui::Button(labelId, ImVec2(iconSize, iconSize));
-                    ImGui::EndDisabled();
-                    UI::DrawButtonImage(icon, Colors::Theme::textDarker,
-                        UI::ColourWithMultipliedValue(Colors::Theme::textDarker, 1.2f),
-                        UI::ColourWithMultipliedValue(Colors::Theme::textDarker, 0.8f),
-                        UI::RectExpanded(UI::GetItemRect(), -iconPadding, -iconPadding),
-                        isFlipped ? ImVec2(1, 0) : ImVec2(0, 0),
-                        isFlipped ? ImVec2(0, 1) : ImVec2(1, 1));
+                    {
+                        // const ImU32 buttonCol = Colors::Theme::backgroundDark;
+                        // const ImU32 buttonColP = UI::ColourWithMultipliedValue(Colors::Theme::backgroundDark, 0.8f);
+
+                        const float iconSize = std::min(24.0f, height);
+                        constexpr float iconPadding = 2.0f;
+                        ImGui::BeginDisabled(isDisabled);
+                        const bool clicked = ImGui::Button(labelId, DpiVec2(iconSize, iconSize));
+                        ImGui::EndDisabled();
+                        UI::DrawButtonImage(icon, Colors::Theme::textDarker,
+                            UI::ColourWithMultipliedValue(Colors::Theme::textDarker, 1.2f),
+                            UI::ColourWithMultipliedValue(Colors::Theme::textDarker, 0.8f),
+                            UI::RectExpanded(UI::GetItemRect(), -iconPadding, -iconPadding),
+                            isFlipped ? ImVec2(1, 0) : ImVec2(0, 0),
+                            isFlipped ? ImVec2(0, 1) : ImVec2(1, 1));
                     ImGui::SameLine();
                     return clicked;
                 };
@@ -463,7 +465,7 @@ namespace Chozo {
 			UI::ScopedStyle rounding(ImGuiStyleVar_FrameRounding, 3.0f);
 			UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(28.0f, framePaddingY));
 
-            ImGui::SetNextItemWidth(200);
+            ImGui::SetNextItemWidth(DpiFloat(200.0f));
 
             ImGui::InputText("##Search", m_SearchBuffer, MAX_SEARCH_BUFFER_LENGTH);
             bool focused = ImGui::IsItemFocused();
@@ -493,7 +495,7 @@ namespace Chozo {
                 if (focused) {
     				const float lineHeight = ImGui::GetItemRectSize().y - framePaddingY / 2.0f;
 
-                    UI::ShiftCursorX(150.0f);
+                    UI::ShiftCursorX(DpiFloat(150.0f));
                     UI::ShiftCursorY(framePaddingY + 1.0f);
                     if (ImGui::InvisibleButton("##ClearIcon", ImVec2{ lineHeight, lineHeight }))
                     {
@@ -514,7 +516,7 @@ namespace Chozo {
         // Breadcrumbs
         {
             UI::ShiftCursorY(-(ImGui::GetItemRectSize().y + 6.0f));
-            UI::ShiftCursorX(300.0f);
+            UI::ShiftCursorX(DpiFloat(300.0f));
             if (m_CurrentDirectory)
                 ImGui::Text("%s", m_CurrentDirectory->FilePath.string().c_str());
         }
@@ -525,14 +527,18 @@ namespace Chozo {
 
     void ContentBrowserPanel::RenderBottomBar(float height)
     {
-		ImGui::BeginChild("##bottom_bar", ImVec2(0, height));
+		ImGui::BeginChild("##bottom_bar", DpiVec2(0, height));
         // TODO:
 		ImGui::EndChild();
     }
 
     void ContentBrowserPanel::ImportAssets()
     {
-        fs::path path = FileDialogs::OpenFile("Import (*.png)\0*.jpeg\0");
+        const char* filter =
+            "Texture Files (*.png; *.jpeg)\0*.png;*.jpeg\0"
+            "Model Files (*.gltf; *.glb; *.obj)\0*.gltf;*.glb;*.obj\0"
+            "All Files (*.*)\0*.*\0\0";
+        fs::path path = FileDialogs::OpenFile(filter);
         AssetType type = Utils::GetAssetTypeFromExtension(path.extension().string());
 
         Texture2DSpecification textureSpec;

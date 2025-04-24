@@ -23,14 +23,14 @@ namespace Chozo {
     class Renderer
     {
     public:
-
         struct RendererConfig
         {
             // Tiering settings
             uint32_t EnvironmentMapResolution = 1024;
             uint32_t IrradianceMapComputeSamples = 512;
 
-            glm::vec4 ClearColor = { 0.105f, 0.110f, 0.110f, 1.0f };
+            float PixelRatio = 1.0f;
+            glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
         };
 
         struct Statistics
@@ -108,7 +108,7 @@ namespace Chozo {
         static RendererConfig& GetConfig();
 		static void SetConfig(const RendererConfig& config);
 
-        static uint32_t GetMaxTextureSlots();
+        static uint32_t GetMaxTextureSlotCount();
 
         static Ref<TextureCube> CreateCubemap(const std::string& filePath);
 		static void CreateStaticSky( const Ref<Texture2D>& texture);

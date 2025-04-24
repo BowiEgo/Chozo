@@ -1,8 +1,8 @@
 #include "SceneHierarchyPanel.h"
 
-#include  "Chozo/Renderer/Geometry/Geometry.h"
-#include  "Chozo/Renderer/Geometry/BoxGeometry.h"
-#include  "Chozo/Renderer/Geometry/SphereGeometry.h"
+#include "Chozo/Renderer/Geometry/Geometry.h"
+#include "Chozo/Renderer/Geometry/BoxGeometry.h"
+#include "Chozo/Renderer/Geometry/SphereGeometry.h"
 #include "Chozo/ImGui/ImGuiUI.h"
 
 #include "PropertyUI.h"

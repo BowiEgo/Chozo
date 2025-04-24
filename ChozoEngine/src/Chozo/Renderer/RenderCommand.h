@@ -24,7 +24,7 @@ namespace Chozo {
         virtual ~RenderAPI() = default;
         virtual void Init() = 0;
         
-        virtual uint32_t GetMaxTextureSlots() = 0;
+        virtual uint32_t GetMaxTextureSlotCount() = 0;
 
         virtual void SetClearColor(const glm::vec4& color) = 0;
         virtual void Clear() = 0;
@@ -59,7 +59,7 @@ namespace Chozo {
         static void SwitchAPI(RenderAPI::Type api);
         inline static RenderAPI::Type GetType() { return s_Type; }
 
-        inline static uint32_t GetMaxTextureSlots()  { return s_API->GetMaxTextureSlots(); }
+        inline static uint32_t GetMaxTextureSlotCount()  { return s_API->GetMaxTextureSlotCount(); }
 
         inline static void SetClearColor(const glm::vec4& color) { s_API->SetClearColor(color); }
         inline static void Clear() { s_API->Clear(); }

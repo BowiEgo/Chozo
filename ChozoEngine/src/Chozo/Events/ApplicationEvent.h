@@ -3,6 +3,29 @@
 #include "Event.h"
 
 namespace Chozo {
+
+    class WindowContentScaledEvent : public Event
+    {
+    public:
+        WindowContentScaledEvent(float xscale, float yscale)
+            : m_XScale(xscale), m_YScale(yscale) {
+        }
+
+        [[nodiscard]] float GetXScale() const { return m_XScale; }
+        [[nodiscard]] float GetYScale() const { return m_YScale; }
+
+        [[nodiscard]] std::string ToString() const override
+        {
+            std::stringstream ss;
+            ss << "WindowContentScaledEvent: " << m_XScale << ", " << m_YScale;
+            return ss.str();
+        }
+
+        EVENT_CLASS_TYPE(WindowContentScale)
+        EVENT_CLASS_CATEGORY(EventCategory_Application)
+    private:
+        float m_XScale, m_YScale;
+    };
     
     class WindowResizedEvent : public Event
     {
