@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "VertexArray.h"
-#include "Shader.h"
+#include "Shader/Shader.h"
 #include "Material.h"
 #include "Environment.h"
 #include "EditorCamera.h"
