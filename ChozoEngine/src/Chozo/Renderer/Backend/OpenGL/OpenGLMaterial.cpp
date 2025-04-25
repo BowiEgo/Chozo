@@ -17,6 +17,8 @@ namespace Chozo {
             return glm::vec3(1.0f);
         if (uniformType == "Vec4")
             return glm::vec4(1.0f);
+        if (uniformType == "Mat3")
+            return glm::mat3(1.0f);
         if (uniformType == "Mat4")
             return glm::mat4(1.0f);
         if (uniformType == "Array")
@@ -57,7 +59,7 @@ namespace Chozo {
     {
         m_Uniforms[name] = value;
 
-        HandleModified();
+        HandleUpdated();
     }
 
     void OpenGLMaterial::Set(const std::string &name, const Ref<Texture> &texture)
@@ -89,7 +91,7 @@ namespace Chozo {
 
         m_Uniforms[name] = textureIndex;
 
-        HandleModified();
+        HandleUpdated();
     }
 
     void OpenGLMaterial::SetTextureHandle(const std::string &name, const AssetHandle handle)
@@ -116,7 +118,7 @@ namespace Chozo {
 
             m_Uniforms[name] = textureIndex;
 
-            HandleModified();
+            HandleUpdated();
         }
     }
 

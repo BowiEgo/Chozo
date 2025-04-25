@@ -92,8 +92,6 @@ namespace Chozo {
         static void Init();
         static void Shutdown();
         
-        static void DrawMesh(const glm::mat4 &transform, const DynamicMesh* mesh, Material* material, uint32_t entityID = -1); // TODO: Remove
-
         static Ref<ShaderLibrary> GetShaderLibrary() { return GetRendererData().m_ShaderLibrary; }
         static RendererData GetRendererData();
         static Ref<Texture2D> GetBrdfLUT();

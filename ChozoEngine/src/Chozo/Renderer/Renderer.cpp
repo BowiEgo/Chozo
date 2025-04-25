@@ -190,24 +190,6 @@ namespace Chozo {
         delete s_Data;
     }
 
-    void Renderer::DrawMesh(const glm::mat4 &transform, const DynamicMesh* mesh, Material* material, uint32_t entityID)
-    {
-        Ref<Shader> shader = material->GetShader();
-        shader->Bind();
-        for (auto& pair : material->GetUniforms())
-            shader->SetUniform(pair.first, pair.second);
-        shader->SetUniform("u_VertUniforms.ModelMatrix", transform);
-
-        uint32_t indexCount = mesh->GetMeshSource()->GetIndexs().size();
-        uint32_t vertexCount = mesh->GetMeshSource()->GetVertexs().size();
-
-        RenderCommand::DrawIndexed(mesh->GetVertexArray(), indexCount * 3);
-        s_Data->Stats.DrawCalls++;
-        s_Data->IndexCount += indexCount;
-        s_Data->Stats.VerticesCount += vertexCount;
-        s_Data->Stats.TriangleCount += indexCount;
-    }
-
     void Renderer::Begin()
     {
         s_RenderCommandQueue.clear();
@@ -248,7 +230,7 @@ namespace Chozo {
 
     Renderer::RendererData Renderer::GetRendererData()
     {
-        return *s_Data; 
+        return *s_Data;
     }
 
     Ref<Texture2D> Renderer::GetBrdfLUT()

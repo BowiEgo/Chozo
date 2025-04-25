@@ -4,6 +4,7 @@
 
 #include "Chozo/Core/Buffer.h"
 #include "Chozo/Asset/Asset.h"
+#include "Chozo/Renderer/Color.h"
 #include "RendererTypes.h"
 #include "Image.h"
 
@@ -30,6 +31,8 @@ namespace Chozo {
         ImageParameter WrapR = ImageParameter::CLAMP_TO_BORDER;
         ImageParameter WrapS = ImageParameter::CLAMP_TO_BORDER;
         ImageParameter WrapT = ImageParameter::CLAMP_TO_BORDER;
+
+        ColorSpace ColorSpace = ColorSpace::LinearSRGB;
 
         std::string DebugName;
     };
@@ -64,8 +67,9 @@ namespace Chozo {
 
         virtual void ExtractBuffer() = 0;
         virtual void CopyToHostBuffer(Buffer& buffer) const = 0;
-    };
 
+        void ConvertColorSpace(const Buffer &buffer, ColorSpace colorSpace, uint32_t width, uint32_t height, uint32_t channelCount) const;
+    };
 
     class Texture2D : public Texture
     {

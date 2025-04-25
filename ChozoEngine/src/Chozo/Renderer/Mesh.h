@@ -89,7 +89,7 @@ namespace Chozo
 		std::string Name;
 		glm::mat4 LocalTransform;
 
-		inline bool IsRoot() const { return Parent == 0xffffffff; }
+		bool IsRoot() const { return Parent == 0xffffffff; }
 
         static void Serialize(StreamWriter* serializer, const MeshNode& instance)
 		{
@@ -114,22 +114,22 @@ namespace Chozo
     {
     public:
         MeshSource() = default;
-        MeshSource(const std::string path);
+        MeshSource(const std::string& path);
         MeshSource(const std::vector<Vertex>& vertexs, const std::vector<Index>& indexs, const uint32_t& indexCount, const uint32_t& indicesCount);
         virtual ~MeshSource() = default;
 
         static Ref<MeshSource> Create(const std::string &path);
 
         static AssetType GetStaticType() { return AssetType::MeshSource; }
-		virtual AssetType GetAssetType() const override { return GetStaticType(); }
+		AssetType GetAssetType() const override { return GetStaticType(); }
 
-        const inline AABB& GetBoundingBox() const { return m_BoundingBox; }
+        const AABB& GetBoundingBox() const { return m_BoundingBox; }
 
-        inline std::vector<Vertex> GetVertexs() { return m_Buffer.Vertexs; }
-        inline std::vector<Index> GetIndexs() { return m_Buffer.Indexs; }
-        inline uint32_t GetTriangleCount() { return m_Buffer.IndexCount; }
+        std::vector<Vertex> GetVertexs() { return m_Buffer.Vertexs; }
+        std::vector<Index> GetIndexs() { return m_Buffer.Indexs; }
+        // uint32_t GetTriangleCount() { return m_Buffer.IndexCount; }
 
-        inline MeshBuffer* GetBuffer() { return &m_Buffer; }
+        MeshBuffer* GetBuffer() { return &m_Buffer; }
 
         std::vector<Submesh>& GetSubmeshes() { return m_Submeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return m_Submeshes; }
@@ -148,7 +148,8 @@ namespace Chozo
 
 		std::vector<AssetHandle> m_Materials;
 
-        friend class MeshImporter;
+        friend class AssimpLoader;
+        friend class GLTFLoader;
         friend class MeshSourceSerializer;
         friend class Geometry;
     };
@@ -180,7 +181,7 @@ namespace Chozo
         }
         Ref<MaterialTable> GetMaterials() { return m_Materials; }
 
-        operator bool() { return m_MeshSource->GetBuffer()->IndexCount != 0; }
+        // operator bool() { return m_MeshSource->GetBuffer()->IndexCount != 0; }
 
     	void RegisterOnChange(const OnChangeFunc &callback) { m_OnChangeCbs.push_back(callback); }
     	void NotifyChange() const {

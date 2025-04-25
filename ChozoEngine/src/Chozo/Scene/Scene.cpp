@@ -21,7 +21,7 @@ namespace Chozo {
 
     Entity Scene::CreateEntity(const std::string& name)
     {
-        HandleModified();
+        HandleUpdated();
 		return CreateChildEntity({}, name);
     }
 
@@ -148,7 +148,7 @@ namespace Chozo {
     void Scene::DestroyEntity(Entity entity)
     {
         entity.Destroy();
-        HandleModified();
+        HandleUpdated();
     }
 
     void Scene::OnUpdateEditor(TimeStep ts)
@@ -374,7 +374,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -382,7 +382,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<RelationshipComponent>(Entity entity, RelationshipComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -390,7 +390,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -398,7 +398,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -406,7 +406,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -414,7 +414,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<MeshComponent>(Entity entity, MeshComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -424,7 +424,7 @@ namespace Chozo {
         component.Camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
 
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -432,7 +432,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -440,7 +440,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<SkyLightComponent>(Entity entity, SkyLightComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -448,7 +448,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<DirectionalLightComponent>(Entity entity, DirectionalLightComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -456,7 +456,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<PointLightComponent>(Entity entity, PointLightComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 
@@ -464,7 +464,7 @@ namespace Chozo {
     void Scene::OnComponentAdded<SpotLightComponent>(Entity entity, SpotLightComponent& component)
     {
         component.RegisterGlobalCallback([this]() {
-            HandleModified();
+            HandleUpdated();
         });
     }
 }

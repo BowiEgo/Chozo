@@ -4,6 +4,7 @@
 #include "PropertyUI.h"
 
 #include <typeindex>
+#include <nlohmann/detail/input/parser.hpp>
 
 namespace Chozo {
 
@@ -20,8 +21,7 @@ namespace Chozo {
     {
         const auto checkerboard = Renderer::GetCheckerboardTexture();
         s_Instance->m_BaseColorTexture = s_Instance->m_BaseColorTexture ? s_Instance->m_BaseColorTexture : checkerboard;
-        s_Instance->m_MetallicTexture = checkerboard;
-        s_Instance->m_RoughnessTexture = checkerboard;
+        s_Instance->m_MetallicRoughnessTexture = checkerboard;
         s_Instance->m_NormalTexture = checkerboard;
     }
 
@@ -41,13 +41,21 @@ namespace Chozo {
         renderer->Update();
 
         const auto checkerboard = Renderer::GetCheckerboardTexture();
-        auto baseColorTex = material->GetTexture("u_BaseColorTex");
-        auto metallicTex = material->GetTexture("u_MetallicTex");
-        auto roughnessTex = material->GetTexture("u_RoughnessTex");
-        auto normalTex = material->GetTexture("u_NormalTex");
+        auto baseColorTex = material->GetTexture("u_BaseColorMap");
+        auto metallicRoughnessTex = material->GetTexture("u_MetallicRoughnessMap");
+        auto metallicTex = material->GetTexture("u_MetallicMap");
+        auto roughnessTex = material->GetTexture("u_RoughnessMap");
+        auto occlusionTex = material->GetTexture("u_AOMap");
+        auto emissiveTex = material->GetTexture("u_EmissiveMap");
+        auto normalTex = material->GetTexture("u_NormalMap");
         s_Instance->m_BaseColorTexture = baseColorTex ? baseColorTex : checkerboard;
-        s_Instance->m_MetallicTexture = metallicTex ? metallicTex : checkerboard;
-        s_Instance->m_RoughnessTexture = roughnessTex ? roughnessTex : checkerboard;
+        s_Instance->m_MetallicRoughnessTexture = metallicRoughnessTex ? metallicRoughnessTex : checkerboard;
+        s_Instance->m_MetallicTexture = metallicRoughnessTex ? metallicRoughnessTex
+            : (metallicTex ? metallicRoughnessTex : checkerboard);
+        s_Instance->m_RoughnessTexture = metallicRoughnessTex ? metallicRoughnessTex
+            : (roughnessTex ? metallicRoughnessTex : checkerboard);
+        s_Instance->m_AOTexture = occlusionTex ? occlusionTex : checkerboard;
+        s_Instance->m_EmissiveTexture = emissiveTex ? emissiveTex : checkerboard;
         s_Instance->m_NormalTexture = normalTex ? normalTex : checkerboard;
     }
 
@@ -79,49 +87,79 @@ namespace Chozo {
             if (!material)
                 material = renderer->GetMaterial();
 
+
             for (const auto& uniform : material->GetShader()->GetReflection().uniforms)
             {
-                if (uniform.resourceName != "u_Material")
+                auto propName = uniform.name;
+                auto uniformName = uniform.fullName();
+                auto uniformValue = material->GetUniforms()[uniformName];
+                auto previewType = StringToPreviewType(propName);
+
+                std::string prefix = "u_Material.";
+                size_t prefixPos = uniformName.find(prefix);
+
+                if (prefixPos == std::string::npos)
                     continue;
 
-                auto uniformName = uniform.name;
-                auto fullName = uniform.fullName();
-                auto value = material->GetUniforms()[fullName];
-                auto previewType = StringToPreviewType(uniformName);
+                std::string label = "##" + propName;
 
-                if (std::holds_alternative<glm::vec3>(value))
+                const auto uniformType = Uniform::GetType(uniformValue);
+
+                if (uniformType == UniformType::Vec4)
                 {
-                    auto& target = std::get<glm::vec3>(value);
-                    DrawColumnValue<glm::vec3>(uniformName, target, [&](auto& targetVal) {
-                        if (ImGui::ColorEdit3(("##" + uniformName).c_str(), glm::value_ptr(targetVal)))
+                    auto target = Uniform::As<glm::vec4>(uniformValue);
+                    DrawColumnValue<glm::vec4>(propName, target, [&](auto& targetVal) {
+                        if (ImGui::ColorEdit4(label.c_str(), glm::value_ptr(targetVal)))
                         {
-                            material->Set(fullName, targetVal);
-                            OnMaterialChange(fullName, targetVal);
+                            material->Set(uniformName, targetVal);
+                            OnMaterialChange(uniformName, targetVal);
                         }
                     });
-
-                    RenderTextureProp(previewType);
                 }
 
-                if (uniformName == "Normal")
+                if (uniformType == UniformType::Vec3)
                 {
+                    auto target = Uniform::As<glm::vec3>(uniformValue);
+                    DrawColumnValue<glm::vec3>(propName, target, [&](auto& targetVal) {
+                        if (ImGui::ColorEdit3(label.c_str(), glm::value_ptr(targetVal)))
+                        {
+                            material->Set(uniformName, targetVal);
+                            OnMaterialChange(uniformName, targetVal);
+                        }
+                    });
+                }
+
+                if (uniformType == UniformType::Float)
+                {
+                    auto target = Uniform::As<float>(uniformValue);
+                    DrawColumnValue<float>(propName, target, [&](auto& targetVal) {
+                        if (ImGui::DragFloat(label.c_str(), &targetVal, 0.0025f, 0.0f, 1.0f))
+                        {
+                            material->Set(uniformName, targetVal);
+                            OnMaterialChange(uniformName, targetVal);
+                        }
+                    });
+                }
+
+                if (propName == "BaseColor")
+                    RenderTextureProp(PreviewType::BaseColor);
+
+                if (propName == "Metallic")
+                    RenderTextureProp(PreviewType::Metallic);
+
+                if (propName == "Roughness")
+                    RenderTextureProp(PreviewType::Roughness);
+
+                if (propName == "AOIntensity")
+                    RenderTextureProp(PreviewType::AO);
+
+                if (propName == "Emissive")
+                    RenderTextureProp(PreviewType::Emissive);
+
+                if (propName == "EnableNormalMap") {
                     DrawColumnValue("Normal", [&]() {
                     });
                     RenderTextureProp(PreviewType::Normal);
-                }
-
-                if (std::holds_alternative<float>(value))
-                {
-                    auto& target = std::get<float>(value);
-                    DrawColumnValue<float>(uniformName, target, [&](auto& targetVal) {
-                        if (ImGui::DragFloat(("##" + uniformName).c_str(), &targetVal, 0.0025f, 0.0f, 1.0f))
-                        {
-                            material->Set(fullName, targetVal);
-                            OnMaterialChange(fullName, targetVal);
-                        }
-                    });
-
-                    RenderTextureProp(previewType);
                 }
             }
         }
@@ -137,7 +175,7 @@ namespace Chozo {
         ImGui::InvisibleButton("##thumbnailButton", ImVec2{80, 80});
 
         UI::BeginDragAndDrop([type, this](const AssetHandle handle) {
-            Ref<Asset> asset = Application::GetAssetManager()->GetAsset(handle);
+            const Ref<Asset> asset = Application::GetAssetManager()->GetAsset(handle);
             auto& previewTex = GetPreviewTextureByType(type);
             previewTex = asset.As<Texture2D>();
 
@@ -150,7 +188,7 @@ namespace Chozo {
             RenderPreviewImageByType(type);
     }
 
-    Ref<Texture2D>& MaterialPanel::GetPreviewTextureByType(PreviewType type)
+    Ref<Texture2D>& MaterialPanel::GetPreviewTextureByType(const PreviewType type)
     {
         switch (type) {
             #define GENERATE_CASE(ENUM) case PreviewType::ENUM: return m_##ENUM##Texture;
@@ -169,18 +207,22 @@ namespace Chozo {
         switch (type) {
             #define GENERATE_CASE(ENUM) case PreviewType::ENUM: { \
                 auto checkerboard = Renderer::GetCheckerboardTexture(); \
+                bool enableMap = false; \
                 if (m_##ENUM##Texture && m_##ENUM##Texture != checkerboard) \
                 { \
-                    material->Set("u_" #ENUM "Tex", m_##ENUM##Texture); \
-                    material->Set("u_Material.Enable" #ENUM "Tex", true); \
-                    OnMaterialChange("u_" #ENUM "Tex", m_##ENUM##Texture); \
-                    OnMaterialChange("u_Material.Enable" #ENUM "Tex", true); \
+                    Ref<Texture> texture = m_##ENUM##Texture; \
+                    enableMap = true; \
+                    material->Set("u_" #ENUM "Map", texture); \
+                    material->Set("Enable" #ENUM "Map", enableMap); \
+                    OnMaterialChange("u_" #ENUM "Map", texture); \
+                    OnMaterialChange("Enable" #ENUM "Map", enableMap); \
                 } \
                 else \
                 { \
+                    enableMap = false; \
                     m_##ENUM##Texture = checkerboard; \
-                    material->Set("u_Material.Enable" #ENUM "Tex", false); \
-                    OnMaterialChange("u_Material.Enable" #ENUM "Tex", false); \
+                    material->Set("Enable" #ENUM "Map", enableMap); \
+                    OnMaterialChange("Enable" #ENUM "Map", enableMap); \
                 } \
                 break; \
             };
@@ -202,6 +244,8 @@ namespace Chozo {
         std::string typeString = PreviewTypeToString(type);
         std::string uniformName = "u_Material.Enable" + typeString + "Tex";
         bool enabled = std::get<bool>(material->GetUniforms()[uniformName]);
+        // std::string uniformName = "Enable" + typeString + "Map";
+        // bool enabled = std::get<bool>(material->GetParamUniforms()[uniformName]);
         bool changed = false;
 
         DrawColumnImage("##", enabled, changed, [type, this]() {

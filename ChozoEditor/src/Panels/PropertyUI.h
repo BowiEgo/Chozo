@@ -85,7 +85,7 @@ namespace Chozo {
         const bool changed = DrawVec3Control(label, values, resetValue, valueSpeed, columnWidth);
 
         if (changed && context)
-            context->HandleModified();
+            context->HandleUpdated();
 
         return changed;
     }
