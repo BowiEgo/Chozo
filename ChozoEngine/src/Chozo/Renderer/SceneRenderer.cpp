@@ -66,6 +66,7 @@ namespace Chozo
                 ImageFormat::RGB16F,
                 ImageFormat::RGB16F,
                 ImageFormat::RGB16F,
+                ImageFormat::RGBA16F,
                 ImageFormat::RED32I,
                 ImageFormat::Depth
             };
@@ -453,20 +454,22 @@ namespace Chozo
     {
         RenderCommand::BeginRenderPass(m_CommandBuffer, m_PBRPass);
        
-        Ref<Texture2D> positionTex = m_GeometryPass->GetOutput(0);
-        Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
-        Ref<Texture2D> baseColorTex = m_GeometryPass->GetOutput(3);
-        Ref<Texture2D> materialPropTex = m_GeometryPass->GetOutput(4);
+        Ref<Texture2D> positionMap = m_GeometryPass->GetOutput(0);
+        Ref<Texture2D> normalMap = m_GeometryPass->GetOutput(1);
+        Ref<Texture2D> baseColorMap = m_GeometryPass->GetOutput(3);
+        Ref<Texture2D> materialPropMap = m_GeometryPass->GetOutput(4);
+        Ref<Texture2D> emissiveMap = m_GeometryPass->GetOutput(5);
         Ref<TextureCube> irradianceMap = Renderer::GetIrradianceTextureCube();
         Ref<TextureCube> prefilterMap = Renderer::GetPrefilteredTextureCube();
         Ref<Texture2D> brdfLUTTexture = Renderer::GetBrdfLUT();
-        m_PBRMaterial->Set("u_PositionTex", positionTex);
-        m_PBRMaterial->Set("u_NormalTex", normalTex);
-        m_PBRMaterial->Set("u_BaseColorTex", baseColorTex);
-        m_PBRMaterial->Set("u_MaterialPropTex", materialPropTex);
+        m_PBRMaterial->Set("u_PositionMap", positionMap);
+        m_PBRMaterial->Set("u_NormalMap", normalMap);
+        m_PBRMaterial->Set("u_BaseColorMap", baseColorMap);
+        m_PBRMaterial->Set("u_MaterialPropMap", materialPropMap);
+        m_PBRMaterial->Set("u_EmissiveMap", emissiveMap);
         m_PBRMaterial->Set("u_IrradianceMap", irradianceMap);
         m_PBRMaterial->Set("u_PrefilterMap", prefilterMap);
-        m_PBRMaterial->Set("u_BRDFLutTex", brdfLUTTexture);
+        m_PBRMaterial->Set("u_BRDFLutMap", brdfLUTTexture);
 
 		RenderCommand::SubmitFullscreenQuad(m_CommandBuffer, m_PBRPass->GetPipeline(), m_PBRMaterial);
 		RenderCommand::EndRenderPass(m_CommandBuffer, m_PBRPass);

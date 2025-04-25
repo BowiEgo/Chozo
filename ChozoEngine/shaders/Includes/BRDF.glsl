@@ -3,7 +3,7 @@
 
 layout(binding = 4) uniform samplerCube u_IrradianceMap;
 layout(binding = 5) uniform samplerCube u_PrefilterMap;
-layout(binding = 6) uniform sampler2D u_BRDFLutTex;
+layout(binding = 6) uniform sampler2D u_BRDFLutMap;
 
 struct BRDFContext
 {
@@ -42,7 +42,7 @@ void InitBRDFContext(const GBufferData GBuffer, out BRDFContext BRDFCtx)
     BRDFCtx.NoV = Saturate(max(min(dot(GBuffer.Normal, GBuffer.View), 0.999), 0.01));
     BRDFCtx.f0 = 0.16 * GBuffer.Reflectance * GBuffer.Reflectance * (1.0 - GBuffer.Metallic)
         + GBuffer.BaseColor * GBuffer.Metallic;
-    BRDFCtx.dfg = textureLod(u_BRDFLutTex, vec2(BRDFCtx.NoV, GBuffer.PerceptualRoughness), 0.0).rgb;
+    BRDFCtx.dfg = textureLod(u_BRDFLutMap, vec2(BRDFCtx.NoV, GBuffer.PerceptualRoughness), 0.0).rgb;
 
     BRDFCtx.EnergyCompensation = vec3(1.0);
     BRDFCtx.IBLRoughnessOneLevel = 4.0;

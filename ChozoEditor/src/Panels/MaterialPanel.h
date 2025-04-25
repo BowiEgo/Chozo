@@ -50,7 +50,7 @@ namespace Chozo {
 
         void OnImGuiRender();
     private:
-        void RenderTextureProp(PreviewType type);
+        void RenderMap(PreviewType type);
         void RenderPreviewImageByType(PreviewType type) const;
 
         void RenderPreviewImage(PreviewType type = PreviewType::None, const Ref<Texture2D>& texture = nullptr);

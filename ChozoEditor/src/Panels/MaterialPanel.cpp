@@ -41,22 +41,22 @@ namespace Chozo {
         renderer->Update();
 
         const auto checkerboard = Renderer::GetCheckerboardTexture();
-        auto baseColorTex = material->GetTexture("u_BaseColorMap");
-        auto metallicRoughnessTex = material->GetTexture("u_MetallicRoughnessMap");
-        auto metallicTex = material->GetTexture("u_MetallicMap");
-        auto roughnessTex = material->GetTexture("u_RoughnessMap");
-        auto occlusionTex = material->GetTexture("u_AOMap");
-        auto emissiveTex = material->GetTexture("u_EmissiveMap");
-        auto normalTex = material->GetTexture("u_NormalMap");
-        s_Instance->m_BaseColorTexture = baseColorTex ? baseColorTex : checkerboard;
-        s_Instance->m_MetallicRoughnessTexture = metallicRoughnessTex ? metallicRoughnessTex : checkerboard;
-        s_Instance->m_MetallicTexture = metallicRoughnessTex ? metallicRoughnessTex
-            : (metallicTex ? metallicRoughnessTex : checkerboard);
-        s_Instance->m_RoughnessTexture = metallicRoughnessTex ? metallicRoughnessTex
-            : (roughnessTex ? metallicRoughnessTex : checkerboard);
-        s_Instance->m_AOTexture = occlusionTex ? occlusionTex : checkerboard;
-        s_Instance->m_EmissiveTexture = emissiveTex ? emissiveTex : checkerboard;
-        s_Instance->m_NormalTexture = normalTex ? normalTex : checkerboard;
+        auto baseColorMap = material->GetTexture("u_BaseColorMap");
+        auto metallicRoughnessMap = material->GetTexture("u_MetallicRoughnessMap");
+        auto metallicMap = material->GetTexture("u_MetallicMap");
+        auto roughnessMap = material->GetTexture("u_RoughnessMap");
+        auto occlusionMap = material->GetTexture("u_AOMap");
+        auto emissiveMap = material->GetTexture("u_EmissiveMap");
+        auto normalMap = material->GetTexture("u_NormalMap");
+        s_Instance->m_BaseColorTexture = baseColorMap ? baseColorMap : checkerboard;
+        s_Instance->m_MetallicRoughnessTexture = metallicRoughnessMap ? metallicRoughnessMap : checkerboard;
+        s_Instance->m_MetallicTexture = metallicRoughnessMap ? metallicRoughnessMap
+            : (metallicMap ? metallicRoughnessMap : checkerboard);
+        s_Instance->m_RoughnessTexture = metallicRoughnessMap ? metallicRoughnessMap
+            : (roughnessMap ? metallicRoughnessMap : checkerboard);
+        s_Instance->m_AOTexture = occlusionMap ? occlusionMap : checkerboard;
+        s_Instance->m_EmissiveTexture = emissiveMap ? emissiveMap : checkerboard;
+        s_Instance->m_NormalTexture = normalMap ? normalMap : checkerboard;
     }
 
     void MaterialPanel::OnImGuiRender()
@@ -142,24 +142,24 @@ namespace Chozo {
                 }
 
                 if (propName == "BaseColor")
-                    RenderTextureProp(PreviewType::BaseColor);
+                    RenderMap(PreviewType::BaseColor);
 
                 if (propName == "Metallic")
-                    RenderTextureProp(PreviewType::Metallic);
+                    RenderMap(PreviewType::Metallic);
 
                 if (propName == "Roughness")
-                    RenderTextureProp(PreviewType::Roughness);
+                    RenderMap(PreviewType::Roughness);
 
                 if (propName == "AOIntensity")
-                    RenderTextureProp(PreviewType::AO);
+                    RenderMap(PreviewType::AO);
 
                 if (propName == "Emissive")
-                    RenderTextureProp(PreviewType::Emissive);
+                    RenderMap(PreviewType::Emissive);
 
                 if (propName == "EnableNormalMap") {
                     DrawColumnValue("Normal", [&]() {
                     });
-                    RenderTextureProp(PreviewType::Normal);
+                    RenderMap(PreviewType::Normal);
                 }
             }
         }
@@ -232,7 +232,7 @@ namespace Chozo {
         }
     }
 
-    void MaterialPanel::RenderTextureProp(PreviewType type)
+    void MaterialPanel::RenderMap(PreviewType type)
     {
         if (type == PreviewType::None)
             return;
@@ -242,7 +242,7 @@ namespace Chozo {
             return;
 
         std::string typeString = PreviewTypeToString(type);
-        std::string uniformName = "u_Material.Enable" + typeString + "Tex";
+        std::string uniformName = "u_Material.Enable" + typeString + "Map";
         bool enabled = std::get<bool>(material->GetUniforms()[uniformName]);
         // std::string uniformName = "Enable" + typeString + "Map";
         // bool enabled = std::get<bool>(material->GetParamUniforms()[uniformName]);

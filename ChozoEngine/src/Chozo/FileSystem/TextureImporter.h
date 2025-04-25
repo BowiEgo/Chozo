@@ -10,7 +10,7 @@ namespace Chozo {
 	{
 	public:
 		static Buffer ToBufferFromFile(const std::string &path, ImageFormat& outFormat, uint32_t& outWidth, uint32_t& outHeight, bool flipY = false);
-		static Buffer ToBufferFromMemory(Buffer buffer, ImageFormat& outFormat, uint32_t& outWidth, uint32_t& outHeight);
+		static Buffer ToBufferFromMemory(Buffer buffer, ImageFormat& outFormat, uint32_t& outWidth, uint32_t& outHeight, bool flipY = false);
         static float ExtractGammaFromHDR(const std::string& filepath);
 	};
 }
