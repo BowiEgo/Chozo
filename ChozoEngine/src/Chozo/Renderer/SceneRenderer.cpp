@@ -28,11 +28,14 @@ namespace Chozo
         m_PointLightsUB = UniformBuffer::Create(sizeof(PointLightsData));
         m_SpotLightsUB = UniformBuffer::Create(sizeof(SpotLightsData));
 
+    	const float pixelRatio = Renderer::GetConfig().PixelRatio;
+
         // Skybox
         {
 			auto skyboxShader = Renderer::GetShaderLibrary()->Get("Skybox");
 
 			FramebufferSpecification fbSpec;
+			fbSpec.PixelRatio = pixelRatio;
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 			fbSpec.Attachments = { ImageFormat::RGBA16F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
@@ -59,6 +62,7 @@ namespace Chozo
         // G-Buffer
         {
 			FramebufferSpecification fbSpec;
+			fbSpec.PixelRatio = pixelRatio;
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			fbSpec.Attachments = {
                 ImageFormat::RGB16F,
@@ -89,6 +93,7 @@ namespace Chozo
         // Solid
         {
             FramebufferSpecification fbSpec;
+            fbSpec.PixelRatio = pixelRatio;
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			fbSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGB16F, ImageFormat::RED32I, ImageFormat::Depth };
 
@@ -109,6 +114,7 @@ namespace Chozo
         // ID
         {
             FramebufferSpecification fbSpec;
+            fbSpec.PixelRatio = pixelRatio;
 			fbSpec.Attachments = {
                 ImageFormat::RGB8,
                 ImageFormat::RED32I,
@@ -139,6 +145,7 @@ namespace Chozo
         // Phong-Light
         {
             FramebufferSpecification fbSpec;
+            fbSpec.PixelRatio = pixelRatio;
 			fbSpec.Attachments = { ImageFormat::RGBA32F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
 
@@ -170,6 +177,7 @@ namespace Chozo
         // PBR
         {
             FramebufferSpecification fbSpec;
+            fbSpec.PixelRatio = pixelRatio;
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			fbSpec.Attachments = { ImageFormat::RGBA16F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
@@ -203,6 +211,7 @@ namespace Chozo
         // Final composite
         {
             FramebufferSpecification fbSpec;
+            fbSpec.PixelRatio = pixelRatio;
             fbSpec.ClearColor = Renderer::GetConfig().ClearColor;
             fbSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
 
