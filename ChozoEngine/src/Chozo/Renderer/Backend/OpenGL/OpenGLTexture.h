@@ -18,16 +18,16 @@ namespace Chozo {
 
         virtual ~OpenGLTexture2D();
 
-        virtual uint32_t GetWidth() const override { return m_Width; };
-        virtual uint32_t GetHeight() const override { return m_Height; };
-		virtual RendererID GetRendererID() const override { return m_RendererID; };
-        virtual Texture2DSpecification GetSpecification() const override { return m_Spec; };
+        uint32_t GetWidth() const override { return m_Width; };
+        uint32_t GetHeight() const override { return m_Height; };
+		RendererID GetRendererID() const override { return m_RendererID; };
+        Texture2DSpecification GetSpecification() const override { return m_Spec; };
 
-        virtual void Resize(uint32_t width, uint32_t height) override;
+        void Resize(uint32_t width, uint32_t height) override;
 
-        virtual void SetData(const void* data, const uint32_t size) override;
-        virtual void ExtractBuffer() override;
-        virtual void CopyToHostBuffer(Buffer& buffer) const override;
+        void SetData(const void* data, const uint32_t size) override;
+        void ExtractBuffer() override;
+        void CopyToHostBuffer(Buffer& buffer) const override;
 
         void Bind(uint32_t slot = 0) const;
         void Unbind() const;
@@ -50,13 +50,13 @@ namespace Chozo {
 
         void Invalidate();
 
-        virtual uint32_t GetWidth() const override { return m_Width; };
-        virtual uint32_t GetHeight() const override { return m_Height; };
-		virtual RendererID GetRendererID() const override { return m_RendererID; };
+        uint32_t GetWidth() const override { return m_Width; };
+        uint32_t GetHeight() const override { return m_Height; };
+		RendererID GetRendererID() const override { return m_RendererID; };
 
-        virtual void SetData(void* data, uint32_t size) override;
-        virtual void ExtractBuffer() override;
-        virtual void CopyToHostBuffer(Buffer& buffer) const override;
+        void SetData(void* data, uint32_t size) override;
+        void ExtractBuffer() override;
+        void CopyToHostBuffer(Buffer& buffer) const override;
 
         void Bind(uint32_t slot = 0) const;
         void Unbind() const;

@@ -5,7 +5,7 @@ layout(location = 1) out vec3 o_PerturbedNormal;
 layout(location = 2) out vec3 o_Depth;
 layout(location = 3) out vec3 o_BaseColor;
 layout(location = 4) out vec3 o_MetallicRoughnessAO;
-layout(location = 5) out vec4 o_Emissive;
+layout(location = 5) out vec3 o_Emissive;
 layout(location = 6) out int o_EntityID;
 
 #include "Snippets/Fragment/ModelVaryings.glsl"
@@ -74,8 +74,8 @@ void main()
     vec3 perturbedNormal = normalize(TBN * perturbation);
 
     o_Position = v_FragPosition;
-//    o_PerturbedNormal = (u_Constant.EnableNormalMap == 1) ? perturbedNormal : normalize(v_WorldNormal);
-    o_PerturbedNormal = (u_Constant.EnableNormalMap == 1) ? texture(u_NormalMap, v_TexCoord).rgb * 2.0 - vec3(1.0) : normalize(v_Normal);
+    o_PerturbedNormal = (u_Constant.EnableNormalMap == 1) ? perturbedNormal : normalize(v_WorldNormal);
+//    o_PerturbedNormal = (u_Constant.EnableNormalMap == 1) ? texture(u_NormalMap, v_TexCoord).rgb * 2.0 - vec3(1.0) : normalize(v_Normal);
     o_Depth = vec3(visualizedDepth);
 
     o_BaseColor = u_Constant.BaseColor;
@@ -92,7 +92,7 @@ void main()
 
     o_MetallicRoughnessAO.b = (u_Constant.EnableAOMap == 1) ? aoMap.r * u_Constant.AOIntensity : 0.0;
 
-    o_Emissive = vec4(u_Constant.Emissive.rgb, u_Constant.EmissiveIntensity);
+    o_Emissive = u_Constant.Emissive.rgb * u_Constant.EmissiveIntensity;
     if (u_Constant.EnableEmissiveMap == 1)
         o_Emissive.rgb *= emissiveMap.rgb;
 

@@ -17,7 +17,7 @@ struct GBufferData
 
     float AO;
     highp vec3 Position;
-    vec3 Normal;
+    vec3 PerturbedNormal;
     vec3 View;
     vec3 Reflected;
 } GBuffer;
@@ -38,8 +38,8 @@ void InitGBuffer(out GBufferData GBuffer)
 
     GBuffer.AO        = 1.0;
     GBuffer.Position  = texture(u_PositionMap, v_TexCoord).rgb;
-    GBuffer.Normal    = normalize(texture(u_NormalMap, v_TexCoord).rgb);
+    GBuffer.PerturbedNormal    = normalize(texture(u_NormalMap, v_TexCoord).rgb);
     GBuffer.View      = normalize(u_Scene.CameraPosition - GBuffer.Position);
-//    GBuffer.Reflected = reflect(-GBuffer.View, GBuffer.Normal);
-    GBuffer.Reflected = 2.0 * dot(GBuffer.View, GBuffer.Normal) * GBuffer.Normal - GBuffer.View;
+//    GBuffer.Reflected = reflect(-GBuffer.View, GBuffer.PerturbedNormal);
+    GBuffer.Reflected = 2.0 * dot(GBuffer.View, GBuffer.PerturbedNormal) * GBuffer.PerturbedNormal - GBuffer.View;
 }

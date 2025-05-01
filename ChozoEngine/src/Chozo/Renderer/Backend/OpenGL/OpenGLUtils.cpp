@@ -86,7 +86,7 @@ namespace Chozo {
             case ImageFormat::RGBA16F: return GL_RGBA;
             case ImageFormat::RGBA32F: return GL_RGBA;
             case ImageFormat::B10R11G11UF: return GL_R11F_G11F_B10F; // Fine if using this format
-            case ImageFormat::SRGB: return GL_SRGB_ALPHA;  // Use GL_SRGB_ALPHA for SRGB with alpha
+            case ImageFormat::SRGB: return GL_RGB;
             case ImageFormat::DEPTH32FSTENCIL8UINT: return GL_DEPTH_STENCIL;
             case ImageFormat::DEPTH24STENCIL8: return GL_DEPTH_STENCIL;
             default: return GL_NONE;

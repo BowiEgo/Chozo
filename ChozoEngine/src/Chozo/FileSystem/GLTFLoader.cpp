@@ -663,7 +663,7 @@ namespace Chozo {
                     fs::path filepath = Utils::File::GetAssetDirectory();
                     filepath /= fs::path("Textures");
                     Utils::File::CreateDirectoryIfNeeded(filepath.string());
-                    
+
                     filepath /= fs::path(spec.DebugName);
                     Application::GetAssetManager()->ExportAsset(texture, filepath);
 

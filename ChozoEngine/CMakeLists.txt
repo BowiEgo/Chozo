@@ -78,9 +78,3 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
     src/czpch.h
     src/czpch.cpp
 )
-
-define_target_resource_path(${PROJECT_NAME} TARGET_SHADERS_DIR "shaders")
-copy_directory_to_parent(${PROJECT_NAME}
-  ${CMAKE_CURRENT_SOURCE_DIR}/shaders
-  shaders
-)

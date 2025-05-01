@@ -66,7 +66,7 @@ namespace Chozo
                 ImageFormat::RGB16F,
                 ImageFormat::RGB16F,
                 ImageFormat::RGB16F,
-                ImageFormat::RGBA16F,
+                ImageFormat::RGB16F,
                 ImageFormat::RED32I,
                 ImageFormat::Depth
             };

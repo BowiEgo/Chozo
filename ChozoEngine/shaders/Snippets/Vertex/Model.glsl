@@ -6,7 +6,7 @@ gl_Position = projectionPosition;
 
 mat3 normalMatrix = u_VertUniforms.NormalMatrix;
 v_TexCoord = a_TexCoord;
-v_FragPosition = vec3(modelPosition);
+v_FragPosition = vec3(viewPosition);
 
 v_Normal = a_Normal;
 v_WorldNormal = normalMatrix * a_Normal;
