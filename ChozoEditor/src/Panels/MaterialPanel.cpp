@@ -237,7 +237,7 @@ namespace Chozo {
             return;
 
         std::string typeString = PreviewTypeToString(type);
-        std::string uniformName = "u_Constant.Enable" + typeString + "Map";
+        std::string uniformName = "Enable" + typeString + "Map";
         bool enabled = std::get<bool>(material->GetConstantUniforms()[uniformName]);
         // std::string uniformName = "Enable" + typeString + "Map";
         // bool enabled = std::get<bool>(material->GetParamUniforms()[uniformName]);
