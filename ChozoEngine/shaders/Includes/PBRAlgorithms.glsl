@@ -6,7 +6,7 @@ void ComputeBasisVectors(const vec3 N, out vec3 S, out vec3 T)
 {
 	// Branchless select non-degenerate T.
 	T = cross(N, vec3(0.0, 1.0, 0.0));
-	T = mix(cross(N, vec3(1.0, 0.0, 0.0)), T, step(Epsilon, dot(T, T)));
+	T = mix(cross(N, vec3(1.0, 0.0, 0.0)), T, step(EPSILON, dot(T, T)));
 
 	T = normalize(T);
 	S = normalize(cross(N, T));
@@ -101,14 +101,14 @@ float GaSchlickGGX(float cosLi, float NdotV, float roughness)
 // ----------------------------------------------------------------------------
 float GeometrySchlickGGX(float NoV, float roughness)
 {
-    // note that we use a different k for IBL
-    float a = roughness;
-    float k = (a * a) / 2.0;
+	// note that we use a different k for IBL
+	float a = roughness;
+	float k = (a * a) / 2.0;
 
-    float nom   = NoV;
-    float denom = NoV * (1.0 - k) + k;
+	float nom   = NoV;
+	float denom = NoV * (1.0 - k) + k;
 
-    return nom / denom;
+	return nom / denom;
 }
 
 // ----------------------------------------------------------------------------

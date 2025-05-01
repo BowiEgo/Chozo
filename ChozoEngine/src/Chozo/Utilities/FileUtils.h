@@ -77,7 +77,7 @@ namespace Chozo {
 
         static const fs::path GetShaderSourcesDirectory()
         {
-            return GetAbsolutePath(fs::path("../../../ChozoEngine/lib/shaders"));
+            return GetAbsolutePath(fs::path("../../../../ChozoEngine/shaders"));
         }
 
         static const fs::path GetAssetDirectory()

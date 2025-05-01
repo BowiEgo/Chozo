@@ -566,11 +566,11 @@ namespace Chozo {
 
             // PBR
             {
-                glm::vec4 baseColor = {
+                glm::vec3 baseColor = {
                     mat.pbrMetallicRoughness.baseColorFactor[0],
                     mat.pbrMetallicRoughness.baseColorFactor[1],
                     mat.pbrMetallicRoughness.baseColorFactor[2],
-                    mat.pbrMetallicRoughness.baseColorFactor[3],
+                    // mat.pbrMetallicRoughness.baseColorFactor[3],
                 };
                 mi->Set("BaseColor", baseColor);
                 mi->Set("Metallic", (float)mat.pbrMetallicRoughness.metallicFactor);

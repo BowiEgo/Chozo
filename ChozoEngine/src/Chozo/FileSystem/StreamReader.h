@@ -3,6 +3,7 @@
 #include "czpch.h"
 
 #include "Chozo/Core/Buffer.h"
+#include "Chozo/Core/UUID.h"
 
 namespace Chozo
 {
@@ -34,6 +35,12 @@ namespace Chozo
 		void ReadObject(T& obj)
 		{
 			T::Deserialize(this, obj);
+		}
+
+		template<>
+		void ReadObject<UUID>(UUID& uuid)
+		{
+			ReadRaw(uuid);
 		}
 
 		template<typename Key, typename Value>

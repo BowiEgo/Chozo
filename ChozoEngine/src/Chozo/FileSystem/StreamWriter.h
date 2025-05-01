@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Chozo/Core/Buffer.h"
+#include "Chozo/Core/UUID.h"
 
 namespace Chozo
 {
@@ -31,6 +32,12 @@ namespace Chozo
 		void WriteObject(const T& obj)
 		{
 			T::Serialize(this, obj);
+		}
+
+		template<>
+		void WriteObject<UUID>(const UUID& uuid)
+		{
+			WriteRaw(uuid);
 		}
 
 		template<typename Key, typename Value>

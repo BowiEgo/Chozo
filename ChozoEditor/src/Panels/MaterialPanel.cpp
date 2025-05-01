@@ -90,20 +90,15 @@ namespace Chozo {
 
             for (const auto& uniform : material->GetShader()->GetReflection().uniforms)
             {
-                auto propName = uniform.name;
-                auto uniformName = uniform.fullName();
-                auto uniformValue = material->GetUniforms()[uniformName];
-                auto previewType = StringToPreviewType(propName);
-
-                std::string prefix = "u_Material.";
-                size_t prefixPos = uniformName.find(prefix);
-
-                if (prefixPos == std::string::npos)
+                if (uniform.resourceName != "u_Constant")
                     continue;
 
-                std::string label = "##" + propName;
+                auto propName = uniform.name;
+                auto uniformValue = material->GetConstantUniforms()[propName];
 
+                std::string label = "##" + propName;
                 const auto uniformType = Uniform::GetType(uniformValue);
+                const auto previewType = StringToPreviewType(propName);
 
                 if (uniformType == UniformType::Vec4)
                 {
@@ -111,8 +106,8 @@ namespace Chozo {
                     DrawColumnValue<glm::vec4>(propName, target, [&](auto& targetVal) {
                         if (ImGui::ColorEdit4(label.c_str(), glm::value_ptr(targetVal)))
                         {
-                            material->Set(uniformName, targetVal);
-                            OnMaterialChange(uniformName, targetVal);
+                            material->Set(propName, targetVal);
+                            OnMaterialChange(propName, targetVal);
                         }
                     });
                 }
@@ -123,8 +118,8 @@ namespace Chozo {
                     DrawColumnValue<glm::vec3>(propName, target, [&](auto& targetVal) {
                         if (ImGui::ColorEdit3(label.c_str(), glm::value_ptr(targetVal)))
                         {
-                            material->Set(uniformName, targetVal);
-                            OnMaterialChange(uniformName, targetVal);
+                            material->Set(propName, targetVal);
+                            OnMaterialChange(propName, targetVal);
                         }
                     });
                 }
@@ -135,8 +130,8 @@ namespace Chozo {
                     DrawColumnValue<float>(propName, target, [&](auto& targetVal) {
                         if (ImGui::DragFloat(label.c_str(), &targetVal, 0.0025f, 0.0f, 1.0f))
                         {
-                            material->Set(uniformName, targetVal);
-                            OnMaterialChange(uniformName, targetVal);
+                            material->Set(propName, targetVal);
+                            OnMaterialChange(propName, targetVal);
                         }
                     });
                 }
@@ -242,8 +237,8 @@ namespace Chozo {
             return;
 
         std::string typeString = PreviewTypeToString(type);
-        std::string uniformName = "u_Material.Enable" + typeString + "Map";
-        bool enabled = std::get<bool>(material->GetUniforms()[uniformName]);
+        std::string uniformName = "u_Constant.Enable" + typeString + "Map";
+        bool enabled = std::get<bool>(material->GetConstantUniforms()[uniformName]);
         // std::string uniformName = "Enable" + typeString + "Map";
         // bool enabled = std::get<bool>(material->GetParamUniforms()[uniformName]);
         bool changed = false;

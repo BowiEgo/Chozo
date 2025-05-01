@@ -36,7 +36,7 @@ namespace Chozo
             fbSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 			fbSpec.Attachments = { ImageFormat::RGBA16F };
 			// fbSpec.ExistingImages[0] = m_CompositePass->GetOutput(0);
-            
+
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "Skybox";
 			pipelineSpec.Shader = skyboxShader;
@@ -104,7 +104,6 @@ namespace Chozo
 			renderPassSpec.Pipeline = Pipeline::Create(pipelineSpec);
 			m_SolidPass = RenderPass::Create(renderPassSpec);
 			m_SolidPass->SetInput("CameraData", m_CameraUB);
-			m_SolidPass->SetInput("SceneData", m_SceneUB);
         }
 
         // ID
@@ -124,7 +123,7 @@ namespace Chozo
 			m_IDMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
             Ref<Texture2D> solidIdTex = m_SolidPass->GetOutput(2);
             Ref<Texture2D> solidDepthTex = m_SolidPass->GetOutput(1);
-            Ref<Texture2D> PBRIdTex = m_GeometryPass->GetOutput(5);
+            Ref<Texture2D> PBRIdTex = m_GeometryPass->GetOutput(6);
             Ref<Texture2D> PBRDepthTex = m_GeometryPass->GetOutput(2);
             m_IDMaterial->Set("u_SolidIdTex", solidIdTex);
             m_IDMaterial->Set("u_SolidDepthTex", solidDepthTex);
@@ -153,10 +152,10 @@ namespace Chozo
             Ref<Texture2D> normalTex = m_GeometryPass->GetOutput(1);
             Ref<Texture2D> baseColorTex = m_GeometryPass->GetOutput(3);
             Ref<Texture2D> materialPropTex = m_GeometryPass->GetOutput(4);
-            m_PhongMaterial->Set("u_PositionTex", positionTex);
-            m_PhongMaterial->Set("u_NormalTex", normalTex);
-            m_PhongMaterial->Set("u_BaseColorTex", baseColorTex);
-            m_PhongMaterial->Set("u_MaterialPropTex", materialPropTex);
+        	m_PhongMaterial->Set("u_PositionMap", positionTex);
+        	m_PhongMaterial->Set("u_NormalMap", normalTex);
+        	m_PhongMaterial->Set("u_BaseColorMap", baseColorTex);
+        	m_PhongMaterial->Set("u_MaterialPropMap", materialPropTex);
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.DebugName = "Phong";
@@ -267,6 +266,7 @@ namespace Chozo
         CameraDataUB.ViewMatrix = camera.GetViewMatrix();
 
         SceneDataUB.CameraPosition = camera.GetPosition();
+        SceneDataUB.AmbientLightColor = glm::vec3(1.0);
         SceneDataUB.EnvironmentMapIntensity = m_Scene->m_EnvironmentIntensity;
 
         m_CameraUB->SetData(&CameraDataUB, sizeof(CameraData));
@@ -367,18 +367,18 @@ namespace Chozo
         m_MeshDatas.push_back(meshData);
     }
 
-    void SceneRenderer::SkyboxPass()
+	void SceneRenderer::SkyboxPass()
     {
-		RenderCommand::BeginRenderPass(m_CommandBuffer, m_SkyboxPass);
+    	RenderCommand::BeginRenderPass(m_CommandBuffer, m_SkyboxPass);
 
-        m_SkyboxMaterial->Set("u_FragUniforms.TextureLod", m_SceneData.SkyboxLod);
-		m_SkyboxMaterial->Set("u_FragUniforms.Intensity", m_SceneData.SceneEnvironmentIntensity);
+    	m_SkyboxMaterial->Set("TextureLod", m_SceneData.SkyboxLod);
+    	m_SkyboxMaterial->Set("Intensity", m_SceneData.SceneEnvironmentIntensity);
 
-		const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackTextureCube();
-		m_SkyboxMaterial->Set("u_Texture", radianceMap);
+    	const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackTextureCube();
+    	m_SkyboxMaterial->Set("u_Texture", radianceMap);
 
-		RenderCommand::SubmitFullscreenBox(m_CommandBuffer, m_SkyboxPass->GetPipeline(), m_SkyboxMaterial);
-		RenderCommand::EndRenderPass(m_CommandBuffer, m_SkyboxPass);
+    	RenderCommand::SubmitFullscreenBox(m_CommandBuffer, m_SkyboxPass->GetPipeline(), m_SkyboxMaterial);
+    	RenderCommand::EndRenderPass(m_CommandBuffer, m_SkyboxPass);
     }
 
     void SceneRenderer::GeometryPass()
@@ -445,7 +445,7 @@ namespace Chozo
 
 		// const Ref<TextureCube> radianceMap = m_SceneData.SceneEnvironment ? m_SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackTextureCube();
 		// m_PBRIrradianceMaterial->Set("u_Texture", radianceMap);
-        
+
 		// Renderer::SubmitCubeMap(m_CommandBuffer, m_PBRIrradiancePass->GetPipeline(), m_PBRIrradiance, m_PBRIrradianceMaterial);
 		// Renderer::EndRenderPass(m_CommandBuffer, m_PBRIrradiancePass);
     }
@@ -453,7 +453,7 @@ namespace Chozo
     void SceneRenderer::PBRPass()
     {
         RenderCommand::BeginRenderPass(m_CommandBuffer, m_PBRPass);
-       
+
         Ref<Texture2D> positionMap = m_GeometryPass->GetOutput(0);
         Ref<Texture2D> normalMap = m_GeometryPass->GetOutput(1);
         Ref<Texture2D> baseColorMap = m_GeometryPass->GetOutput(3);

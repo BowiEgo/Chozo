@@ -50,14 +50,18 @@ namespace Chozo {
         m_TextureSlotIndex = other->GetLastTextureSlotIndex();
         m_TextureAssetHandles = other->GetTextureAssetHandles();
 
-        auto uniforms = other.As<OpenGLMaterial>()->GetUniforms();
-        for (const auto& [uniformName, uniformValue] : uniforms)
+        auto paramUniforms = other->GetConstantUniforms();
+        for (const auto& [uniformName, uniformValue] : paramUniforms)
+            Set(uniformName, uniformValue);
+
+        auto texUniforms = other->GetTextureUniforms();
+        for (const auto& [uniformName, uniformValue] : texUniforms)
             Set(uniformName, uniformValue);
     }
 
     void OpenGLMaterial::Set(const std::string &name, const UniformValue &value)
     {
-        m_Uniforms[name] = value;
+        m_ConstantUniforms[name] = value;
 
         HandleUpdated();
     }
@@ -89,7 +93,7 @@ namespace Chozo {
             m_TextureSlotIndex++;
         }
 
-        m_Uniforms[name] = textureIndex;
+        m_TextureUniforms[name] = textureIndex;
 
         HandleUpdated();
     }
@@ -116,7 +120,7 @@ namespace Chozo {
                 m_TextureSlotIndex++;
             }
 
-            m_Uniforms[name] = textureIndex;
+            m_TextureUniforms[name] = textureIndex;
 
             HandleUpdated();
         }
@@ -134,7 +138,7 @@ namespace Chozo {
 
     Ref<Texture2D> OpenGLMaterial::GetTexture(std::string name)
     {
-        const UniformValue value = m_Uniforms[name];
+        const UniformValue value = m_TextureUniforms[name];
         uint32_t slotIndex = 0;
 
         if (std::holds_alternative<bool>(value))
@@ -169,7 +173,23 @@ namespace Chozo {
     {
         BindTextures();
         m_Shader->Bind();
-        for (const auto&[name, value] : m_Uniforms)
+
+        const ShaderReflection reflection = m_Shader->GetReflection();
+        for (const auto& uniform : m_ConstantUniforms)
+        {
+            const std::string& name = uniform.first;
+            const auto& value = uniform.second;
+
+            const bool exists = std::find_if(reflection.uniforms.begin(), reflection.uniforms.end(),
+                [&name](const UniformInfo& uniformInfo) {
+                    return uniformInfo.resourceName == "u_Constant" && uniformInfo.name == name;
+                }) != reflection.uniforms.end();
+
+            if (exists)
+                m_Shader->Shader::SetUniform("u_Constant." + name, value);
+        }
+
+        for (const auto&[name, value] : m_TextureUniforms)
             m_Shader->Shader::SetUniform(name, value);
     }
 
@@ -205,6 +225,9 @@ namespace Chozo {
     {
         const ShaderReflection reflection = shader->GetReflection();
         for (const auto& uniform : reflection.uniforms)
-            Set(uniform.fullName(), GetUniformDefaultValue(uniform.type));
+            if (uniform.resourceName == "u_Constant")
+                Set(uniform.name, GetUniformDefaultValue(uniform.type));
+            else
+                Set(uniform.fullName(), GetUniformDefaultValue(uniform.type));
     }
 }

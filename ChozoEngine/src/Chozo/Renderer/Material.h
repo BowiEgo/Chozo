@@ -25,16 +25,21 @@ namespace Chozo
 		virtual void Set(const std::string& name, const Ref<Texture2D>& texture) = 0;
 		virtual void Set(const std::string& name, const Ref<TextureCube>& texture) = 0;
 
-        virtual std::map<std::string, UniformValue> GetUniforms() = 0;
-        virtual Ref<Texture2D> GetTexture(std::string name) = 0;
-        virtual std::vector<Ref<Texture>> GetAllTextures() const = 0;
-        virtual uint32_t GetLastTextureSlotIndex() const = 0;
+    	std::map<std::string, UniformValue> GetConstantUniforms() const { return m_ConstantUniforms; }
+    	std::map<std::string, uint32_t> GetTextureUniforms() const { return m_TextureUniforms; }
+        virtual std::vector<Ref<Texture>> GetAllTextures() const { return m_TextureSlots; }
+        virtual uint32_t GetLastTextureSlotIndex() const { return m_TextureSlotIndex; }
         std::vector<std::tuple<std::string, AssetHandle>> GetTextureAssetHandles() const { return m_TextureAssetHandles; }
 
-		virtual std::string GetName() = 0;
+		virtual std::string GetName() const = 0;
 		virtual Ref<Shader> GetShader() const = 0;
+    	virtual Ref<Texture2D> GetTexture(std::string name) = 0;
     protected:
-        std::vector<std::tuple<std::string, AssetHandle>> m_TextureAssetHandles;
+    	std::map<std::string, UniformValue> m_ConstantUniforms;
+    	std::map<std::string, uint32_t> m_TextureUniforms;
+    	std::vector<std::tuple<std::string, AssetHandle>> m_TextureAssetHandles;
+    	std::vector<Ref<Texture>> m_TextureSlots;
+    	uint32_t m_TextureSlotIndex = 0;
     };
 
     class MaterialTable final : public RefCounted

@@ -727,10 +727,9 @@ namespace Chozo {
 			out << YAML::BeginMap;
             out << YAML::Key << "Name" << YAML::Value << material->GetName();
             out << YAML::Key << "ShaderName" << YAML::Value << material->GetShader()->GetName();
-            for (const auto& [name, value] : material->GetUniforms())
+            for (const auto& [name, value] : material->GetConstantUniforms())
             {
-                if (name.find("u_Material") != std::string::npos)
-                    Utils::Serialization::SerializeProperty(name, value, out);
+                Utils::Serialization::SerializeProperty(name, value, out);
             }
             out << YAML::EndMap;
         }
@@ -743,7 +742,6 @@ namespace Chozo {
                 if (name.find("Map") != std::string::npos)
                     out << YAML::Key << name << YAML::Value << handle;
             }
-            std::vector<AssetHandle> textureHandles;
             out << YAML::EndMap;
         }
 
@@ -851,93 +849,10 @@ namespace Chozo {
         stream.WriteArray(meshSource->m_Buffer.Indexs);
         meshSourceMetadata.IndexBufferSize = (stream.GetStreamPosition() - start) - meshSourceMetadata.IndexBufferOffset;
 
-        // Write material buffer
-        // if (hasMaterials)
-        // {
-        //     fs::path path(metadata.FilePath);
-        //     fs::path filepath = Utils::File::GetAssetDirectory() / path;
-        //
-        //     std::vector<MeshMaterial> meshMaterials(meshSource->m_Materials.size());
-        //     for (size_t i = 0; i < meshSource->m_Materials.size(); i++)
-        //     {
-        //         auto& [Name, ShaderName, BaseColor, Metallic, Roughness, Reflectance, Ambient, AmbientStrength, EnableBaseColorMap, EnableNormalMap, EnableMetallicTex, EnableRoughnessTex, BaseColorTexture, NormalTexture, MetallicTexture, RoughnessTexture] = meshMaterials[i];
-        //         Ref<Material> meshSourceMaterial = Application::GetAssetManager()->GetAsset(meshSource->m_Materials[i]);
-        //
-        //         Name = meshSourceMaterial->GetName();
-        //         ShaderName = meshSourceMaterial->GetShader()->GetName();
-        //
-        //         BaseColor       = Utils::GetVec3(meshSourceMaterial->GetUniforms()["BaseColor"]);
-        //         Metallic        = Utils::GetFloat(meshSourceMaterial->GetUniforms()["Metallic"]);
-        //         Roughness       = Utils::GetFloat(meshSourceMaterial->GetUniforms()["Roughness"]);
-        //         Ambient         = Utils::GetFloat(meshSourceMaterial->GetUniforms()["Ambient"]);
-        //         AmbientStrength = Utils::GetFloat(meshSourceMaterial->GetUniforms()["AmbientStrength"]);
-        //         Reflectance     = Utils::GetFloat(meshSourceMaterial->GetUniforms()["Reflectance"]);
-        //
-        //         EnableBaseColorMap = Utils::GetBool(meshSourceMaterial->GetUniforms()["EnableBaseColorMap"]);
-        //         EnableNormalMap    = Utils::GetBool(meshSourceMaterial->GetUniforms()["EnableNormalMap"]);
-        //         EnableMetallicTex  = Utils::GetBool(meshSourceMaterial->GetUniforms()["EnableMetallicTex"]);
-        //         EnableRoughnessTex = Utils::GetBool(meshSourceMaterial->GetUniforms()["EnableRoughnessTex"]);
-        //
-        //         auto baseColorTex = meshSourceMaterial->GetTexture("u_BaseColorMap");
-        //         auto normalTex    = meshSourceMaterial->GetTexture("u_NormalMap");
-        //         auto metallicTex  = meshSourceMaterial->GetTexture("u_MetallicTex");
-        //         auto roughnessTex = meshSourceMaterial->GetTexture("u_RoughnessTex");
-        //
-        //         if (baseColorTex)
-        //         {
-        //             if (Application::GetAssetManager()->IsMemoryAsset(baseColorTex->Handle))
-        //             {
-        //                 auto texAsset = baseColorTex.As<Asset>();
-        //                 auto texPath = filepath.parent_path() / baseColorTex->GetSpecification().DebugName;
-        //                 Application::GetAssetManager()->ExportAsset(texAsset, path);
-        //             }
-        //             BaseColorTexture = baseColorTex->Handle;
-        //
-        //         }
-        //
-        //         if (normalTex)
-        //         {
-        //             if (Application::GetAssetManager()->IsMemoryAsset(normalTex->Handle))
-        //             {
-        //                 auto texAsset = normalTex.As<Asset>();
-        //                 auto texPath = filepath.parent_path() / normalTex->GetSpecification().DebugName;
-        //                 Application::GetAssetManager()->ExportAsset(texAsset, path);
-        //             }
-        //             NormalTexture = normalTex->Handle;
-        //         }
-        //
-        //         if (metallicTex)
-        //         {
-        //             if (Application::GetAssetManager()->IsMemoryAsset(metallicTex->Handle))
-        //             {
-        //                 auto texAsset = metallicTex.As<Asset>();
-        //                 auto texPath = filepath.parent_path() / metallicTex->GetSpecification().DebugName;
-        //                 Application::GetAssetManager()->ExportAsset(texAsset, path);
-        //             }
-        //             MetallicTexture = metallicTex->Handle;
-        //         }
-        //
-        //         if (roughnessTex)
-        //         {
-        //             if (Application::GetAssetManager()->IsMemoryAsset(roughnessTex->Handle))
-        //             {
-        //                 auto texAsset = roughnessTex.As<Asset>();
-        //                 auto texPath = filepath.parent_path() / roughnessTex->GetSpecification().DebugName;
-        //                 Application::GetAssetManager()->ExportAsset(texAsset, path);
-        //             }
-        //             RoughnessTexture = roughnessTex->Handle;
-        //         }
-        //     }
-        //
-        //     meshSourceMetadata.MaterialArrayOffset = stream.GetStreamPosition() - start;
-        //     stream.WriteArray(meshMaterials);
-        //     meshSourceMetadata.MaterialArraySize = (stream.GetStreamPosition() - start) - meshSourceMetadata.SubMeshArrayOffset;
-        // }
-        // else
-        // {
-        //     meshSourceMetadata.MaterialArrayOffset = 0;
-        //     meshSourceMetadata.MaterialArraySize = 0;
-        // }
+        // Write material handle
+        meshSourceMetadata.MaterialArrayOffset = stream.GetStreamPosition() - start;
+        stream.WriteArray(meshSource->GetMaterials());
+        meshSourceMetadata.MaterialArraySize = (stream.GetStreamPosition() - start) - meshSourceMetadata.MaterialArrayOffset;
 
         // Write metadata
 		uint64_t endOfStream = stream.GetStreamPosition();
@@ -985,51 +900,8 @@ namespace Chozo {
 		stream.ReadArray(meshSource->m_Buffer.Indexs);
 
         // Read materials
-        // if (meshSourceMetadata.Flags & (uint32_t)MeshSourceFileMetadata::MeshFlags::HasMaterials)
-        // {
-        //     std::vector<MeshMaterial> meshMaterials;
-        //     stream.SetStreamPosition(meshSourceMetadata.MaterialArrayOffset + streamOffset);
-        //     stream.ReadArray(meshMaterials);
-        //
-        //     meshSource->m_Materials.resize(meshMaterials.size());
-        //     for (size_t i = 0; i < meshMaterials.size(); i++)
-        //     {
-        //         const auto& meshMaterial = meshMaterials[i];
-        //
-        //         Ref<Shader> shader = Renderer::GetShaderLibrary()->Get(meshMaterial.ShaderName);
-        //         CZ_CORE_ASSERT(shader, meshMaterial.ShaderName, meshMaterial.Name, "Shader called {} of Material {} doesn't exist.");
-        //         Ref<Material> material = Material::Create(shader, meshMaterial.Name);
-        //
-        //         material->Set("BaseColor", meshMaterial.BaseColor);
-        //         material->Set("Metallic", meshMaterial.Metallic);
-        //         material->Set("Roughness", meshMaterial.Roughness);
-        //         material->Set("Reflectance", meshMaterial.Reflectance);
-        //         material->Set("Ambient", meshMaterial.Ambient);
-        //         material->Set("AmbientStrength", meshMaterial.AmbientStrength);
-        //
-        //         material->Set("EnableBaseColorMap", meshMaterial.EnableBaseColorMap);
-        //         material->Set("EnableNormalMap", meshMaterial.EnableNormalMap);
-        //         material->Set("EnableMetallicTex", meshMaterial.EnableMetallicTex);
-        //         material->Set("EnableRoughnessTex", meshMaterial.EnableRoughnessTex);
-        //
-        //         auto baseColorTex    = Application::GetAssetManager()->GetAsset(meshMaterial.BaseColorTexture);
-        //         auto normalTex    = Application::GetAssetManager()->GetAsset(meshMaterial.NormalTexture);
-        //         auto metallicTex = Application::GetAssetManager()->GetAsset(meshMaterial.MetallicTexture);
-        //         auto roughnessTex = Application::GetAssetManager()->GetAsset(meshMaterial.RoughnessTexture);
-        //
-        //         if (baseColorTex)
-        //             material->Set("u_BaseColorMap", baseColorTex.As<Texture2D>());
-        //         if (normalTex)
-        //             material->Set("u_NormalMap", normalTex.As<Texture2D>());
-        //         if (metallicTex)
-        //             material->Set("u_MetallicTex", metallicTex.As<Texture2D>());
-        //         if (roughnessTex)
-        //             material->Set("u_RoughnessTex", roughnessTex.As<Texture2D>());
-        //
-        //         Application::GetAssetManager()->AddMemoryOnlyAsset(material);
-        //         meshSource->m_Materials[i] = material->Handle;
-        //     }
-        // }
+        stream.SetStreamPosition(meshSourceMetadata.MaterialArrayOffset + streamOffset);
+        stream.ReadArray(meshSource->m_Materials);
 
         return meshSource;
     }

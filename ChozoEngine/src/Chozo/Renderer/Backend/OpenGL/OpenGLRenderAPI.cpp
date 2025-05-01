@@ -93,9 +93,9 @@ namespace Chozo {
         Ref<Shader> shader = Renderer::GetRendererData().m_ShaderLibrary->Get("Skybox");
         shader->Bind();
 
-        shader->SetUniform("u_Texture", 0);
-        shader->SetUniform("u_FragUniforms.Intensity", environmentIntensity);
-        shader->SetUniform("u_FragUniforms.TextureLod", skyboxLod);
+        // shader->SetUniform("u_Texture", 0);
+        // shader->SetUniform("u_Constant.Intensity", environmentIntensity);
+        // shader->SetUniform("u_Constant.TextureLod", skyboxLod);
 
         // TODO: Change to pipeline context status.
         glDepthFunc(GL_LEQUAL); GCE;
@@ -307,9 +307,12 @@ namespace Chozo {
             {
                 material.As<OpenGLMaterial>()->Bind();
             }
+
             shader->Bind();
+            glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
+            shader->SetUniform("u_VertUniforms.NormalMatrix", normalMatrix);
             shader->SetUniform("u_VertUniforms.ModelMatrix", transform);
-            shader->SetUniform("u_Material.ID", id);
+            shader->SetUniform("u_Constant.ID", id);
 
 			const auto& subMeshes = mesh->GetMeshSource()->GetSubmeshes();
 			const auto& subMesh = subMeshes[submeshIndex];

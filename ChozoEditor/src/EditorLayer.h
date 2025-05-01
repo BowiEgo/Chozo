@@ -12,6 +12,7 @@
 #include "Panels/MaterialPanel.h"
 #include "Panels/EnvironmentPanel.h"
 #include "Panels/TextureViewerPanel.h"
+#include "Panels/AssetsPanel.h"
 
 namespace Chozo {
 
@@ -64,6 +65,7 @@ namespace Chozo {
         EnvironmentPanel m_EnvironmentPanel;
         MaterialPanel m_MaterialPanel;
         TextureViewerPanel m_TextureViewerPanel;
+        AssetsPanel m_AssetsPanel;
 
         // Gizmo
         int m_GizmoType = ImGuizmo::OPERATION::TRANSLATE; // -1 = no gizmo

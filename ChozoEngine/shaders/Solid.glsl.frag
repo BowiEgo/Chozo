@@ -4,14 +4,12 @@ layout(location = 0) out vec4 o_Color;
 layout(location = 1) out vec4 o_Depth;
 layout(location = 2) out int o_EntityID;
 
-layout(location = 0) in vec3 v_Normal;
-layout(location = 1) in vec2 v_TexCoord;
-layout(location = 2) in vec3 v_FragPosition;
+#include "Snippets/Fragment/ModelVaryings.glsl"
 
 struct DirectionalLight
 {
-	vec3 Direction;
-	float Intensity;
+    vec3 Direction;
+    float Intensity;
     vec3 Color;
 };
 
@@ -22,25 +20,18 @@ layout(std140, binding = 0) uniform CameraData
     mat4 u_InverseViewProjectionMatrix;
 };
 
-layout(std140, binding = 1) uniform SceneData
-{
-	DirectionalLight DirectionalLights;
-	vec3 CameraPosition; // Offset = 32
-	float EnvironmentMapIntensity;
-} u_Scene;
-
-layout(push_constant) uniform FragUniforms
+layout(push_constant) uniform PushConstants
 {
     int ID;
-} u_Material;
+} u_Constant;
 
 float near = 0.1;
 float far  = 20.0;
 
-float LinearizeDepth(float depth) 
+float LinearizeDepth(float depth)
 {
-    float z = depth * 2.0 - 1.0; // back to NDC 
-    return (2.0 * near * far) / (far + near - z * (far - near));    
+    float z = depth * 2.0 - 1.0; // back to NDC
+    return (2.0 * near * far) / (far + near - z * (far - near));
 }
 
 void main()
@@ -53,12 +44,12 @@ void main()
 
     vec3 topLeftDirection = normalize(-viewDir + up * 0.5 - right * 0.5);
 
-    vec3 normal = normalize(v_Normal);
+    vec3 normal = normalize(v_WorldNormal);
     vec3 baseColor = vec3(1.0);
 
     float brightness = clamp(dot(normal, topLeftDirection), 0.3, 1.0);
 
     o_Color = vec4(baseColor * brightness, 1.0);
     o_Depth = vec4(vec3(depth), 1.0);
-    o_EntityID = u_Material.ID;
+    o_EntityID = u_Constant.ID;
 }

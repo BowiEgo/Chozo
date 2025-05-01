@@ -171,6 +171,7 @@ namespace Chozo {
         m_EnvironmentPanel.OnImGuiRender();
         m_MaterialPanel.OnImGuiRender();
         m_TextureViewerPanel.OnImGuiRender();
+        m_AssetsPanel.OnImGuiRender();
 
         // --------------------
         // Settings panel

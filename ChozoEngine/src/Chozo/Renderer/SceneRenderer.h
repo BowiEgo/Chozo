@@ -122,6 +122,8 @@ namespace Chozo
 		{
 			glm::vec3 CameraPosition;
 			float EnvironmentMapIntensity = 1.0f;
+            glm::vec3 AmbientLightColor;
+        	float Padding;
 		} SceneDataUB;
 
         struct CameraData

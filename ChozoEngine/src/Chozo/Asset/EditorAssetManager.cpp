@@ -99,7 +99,15 @@ namespace Chozo {
 
     std::unordered_set<AssetHandle> EditorAssetManager::GetAllAssetsWithType(AssetType type)
     {
-        return {};
+        std::unordered_set<AssetHandle> result;
+
+        for (const auto& [handle, asset] : m_LoadedAssets)
+        {
+            if (asset && asset->GetAssetType() == type)
+                result.insert(handle);
+        }
+
+        return result;
     }
 
     const std::unordered_map<AssetHandle, Ref<Asset>> &EditorAssetManager::GetLoadedAssets()

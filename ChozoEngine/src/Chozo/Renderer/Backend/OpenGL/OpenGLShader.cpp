@@ -124,7 +124,7 @@ namespace Chozo {
         if (uniformBlockIndex != GL_INVALID_INDEX)
             glUniformBlockBinding(m_RendererID, uniformBlockIndex, bindingPoint);
         else
-            CZ_CORE_WARN("Uniform Block '{}' not found in shader!", name);
+            CZ_CORE_WARN("Uniform Block '{}' not found in shader '{}'!", name, m_Name);
     }
 
     void OpenGLShader::ClearCache()
@@ -143,6 +143,7 @@ namespace Chozo {
 
     void OpenGLShader::Compile()
     {
+        CZ_CORE_TRACE("Compiling shader '{}'...", m_Name);
         auto compiler = ShaderCompiler::Create(m_Name);
         m_RendererID = compiler->Compile(m_FilePaths);
         m_Reflection = compiler->Reflect();
@@ -234,7 +235,7 @@ namespace Chozo {
 
         int location = glGetUniformLocation(m_RendererID, name.c_str());
         if (location == -1)
-            CZ_CORE_ERROR("Uniform '{}' doesn't exist!", name);
+            CZ_CORE_ERROR("Uniform '{}' doesn't exist in shader '{}'!", name, m_Name);
 
         m_UniformLocationCache[name] = location;
         return location;

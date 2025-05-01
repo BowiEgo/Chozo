@@ -70,7 +70,7 @@ namespace Chozo {
         auto shaderDir = Utils::File::GetShaderSourcesDirectory().string();
         s_Data->m_ShaderLibrary->Load("Solid", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/Solid.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("ID", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/ID.glsl.frag" });
-        s_Data->m_ShaderLibrary->Load("Geometry", { shaderDir + "/GBuffer.glsl.vert",  shaderDir + "/GBuffer.glsl.frag" });
+        s_Data->m_ShaderLibrary->Load("Geometry", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/GBuffer.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("Depth", { shaderDir + "/Common/Model.glsl.vert",  shaderDir + "/Depth.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("Phong", { shaderDir + "/Common/FullScreenQuad.glsl.vert",  shaderDir + "/Phong.glsl.frag" });
         s_Data->m_ShaderLibrary->Load("IrradianceConvolution", { shaderDir + "/Common/CubemapSampler.glsl.vert",  shaderDir + "/IrradianceConvolution.glsl.frag" });

@@ -153,8 +153,8 @@ namespace Chozo {
 		uint64_t IndexBufferOffset{};
 		uint64_t IndexBufferSize{};
 
-		// uint64_t MaterialArrayOffset{};
-		// uint64_t MaterialArraySize{};
+		uint64_t MaterialArrayOffset{};
+		uint64_t MaterialArraySize{};
 	};
 
 	class MeshSourceSerializer final : public AssetSerializer

@@ -40,9 +40,9 @@ void main()
     else
     {
         if (envLayer.rgb != vec3(0.0))
-            color = envLayer.rgb;
+        color = envLayer.rgb;
         else
-            discard;
+        discard;
     }
 
     o_Color = vec4(color, alpha);
