@@ -41,6 +41,7 @@ namespace Chozo {
         bool EntityExists(entt::entity entity);
 
         Entity InstantiateMesh(Ref<Mesh> mesh);
+        Entity InstantiateMeshToEntity(Ref<Mesh> mesh, Entity rootEntity);
 	    void BuildMeshEntityHierarchy(Entity parent, Ref<Mesh> mesh, const MeshNode& node);
 
         entt::registry& Reg() { return m_Registry; }

@@ -264,15 +264,6 @@ void RE_IndirectSpecular_Physical(const in vec3 radiance, const in vec3 irradian
     reflectedLight.IndirectDiffuse += diffuse * cosineWeightedIrradiance;
 }
 
-//vec3 GetIBLIrradiance(const in vec3 normal)
-//{
-//    vec3 worldNormal = normal;
-//    float lod = PerceptualRoughnessToLod(BRDFCtx, perceptualRoughness);
-//    vec4 envMapColor = textureCubeUV(envMap, envMapRotation * worldNormal, 1.0);
-//
-//    return PI * envMapColor.rgb * envMapIntensity;
-//}
-
 vec3 GetIBLIrradiance(const in vec3 normal, const in float lod)
 {
     return PI * textureLod(u_IrradianceMap, normal, lod).rgb;
@@ -283,7 +274,7 @@ vec3 GetIBLRadiance(const in vec3 normal, const in vec3 viewDir, const in float 
     vec3 reflectVec = reflect(-viewDir, normal);
     // Mixing the reflection with the normal is more accurate and keeps rough objects from gathering light from behind their tangent plane.
     reflectVec = normalize(mix(reflectVec, normal, roughness * roughness));
-    //    DebugColor = reflectVec;
+
     reflectVec = InverseTransformDirection(reflectVec, u_ViewMatrix);
 
     float lod = 4.0 * roughness * (2.0 - roughness);

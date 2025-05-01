@@ -229,6 +229,10 @@ namespace Chozo {
     static void SerializeEntity(YAML::Emitter& out, Entity entity)
     {
         CZ_CORE_ASSERT(entity.HasComponent<IDComponent>(), "");
+        const bool isRoot = entity.GetComponent<RelationshipComponent>().ParentHandle == 0;
+
+        if (entity.HasComponent<MeshComponent>() && !isRoot) // Skip child entities of meshSource
+            return;
 
         out << YAML::BeginMap;
         out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID();
@@ -322,38 +326,48 @@ namespace Chozo {
 
         if (entity.HasComponent<MeshComponent>())
         {
-            out << YAML::Key << "MeshComponent";
-            out << YAML::BeginMap;
-
             auto& mc = entity.GetComponent<MeshComponent>();
-            out << YAML::Key << "Type" << YAML::Value << static_cast<int>(mc.Type);
 
             auto mesh = mc.MeshInstance;
             auto meshSrc = mc.MeshInstance->GetMeshSource();
-            out << YAML::Key << "Geometry" << YAML::Value;
-            if (const auto* box = dynamic_cast<BoxGeometry*>(mesh.get()))
+
+            out << YAML::Key << "MeshComponent";
+            out << YAML::BeginMap;
+            out << YAML::Key << "Type" << YAML::Value << static_cast<int>(mc.Type);
+            if (dynamic_cast<Geometry*>(mesh.get()))
             {
-                out << YAML::BeginMap;
-                out << YAML::Key << "Type" << YAML::Value << static_cast<int>(GeometryType::Box);
-                out << YAML::Key << "Width" << YAML::Value << box->GetWidth();
-                out << YAML::Key << "Height" << YAML::Value << box->GetHeight();
-                out << YAML::Key << "Depth" << YAML::Value << box->GetDepth();
-                out << YAML::Key << "WidthSegments" << YAML::Value << box->GetWidthSegments();
-                out << YAML::Key << "HeightSegments" << YAML::Value << box->GetHeightSegments();
-                out << YAML::Key << "DepthSegments" << YAML::Value << box->GetDepthSegments();
-                out << YAML::EndMap;
+                out << YAML::Key << "Geometry" << YAML::Value;
+                if (const auto* box = dynamic_cast<BoxGeometry*>(mesh.get()))
+                {
+                    out << YAML::BeginMap;
+                    out << YAML::Key << "Type" << YAML::Value << static_cast<int>(GeometryType::Box);
+                    out << YAML::Key << "Width" << YAML::Value << box->GetWidth();
+                    out << YAML::Key << "Height" << YAML::Value << box->GetHeight();
+                    out << YAML::Key << "Depth" << YAML::Value << box->GetDepth();
+                    out << YAML::Key << "WidthSegments" << YAML::Value << box->GetWidthSegments();
+                    out << YAML::Key << "HeightSegments" << YAML::Value << box->GetHeightSegments();
+                    out << YAML::Key << "DepthSegments" << YAML::Value << box->GetDepthSegments();
+                    out << YAML::EndMap;
+                }
+                if (const auto* sphere = dynamic_cast<SphereGeometry*>(mesh.get()))
+                {
+                    out << YAML::BeginMap;
+                    out << YAML::Key << "Type" << YAML::Value << static_cast<int>(GeometryType::Sphere);
+                    out << YAML::Key << "Radius" << YAML::Value << sphere->GetRadius();
+                    out << YAML::Key << "PhiLength" << YAML::Value << sphere->GetPhiLength();
+                    out << YAML::Key << "PhiStart" << YAML::Value << sphere->GetPhiStart();
+                    out << YAML::Key << "ThetaStart" << YAML::Value << sphere->GetThetaStart();
+                    out << YAML::Key << "ThetaLength" << YAML::Value << sphere->GetThetaLength();
+                    out << YAML::Key << "WidthSegments" << YAML::Value << sphere->GetWidthSegments();
+                    out << YAML::Key << "HeightSegments" << YAML::Value << sphere->GetHeightSegments();
+                    out << YAML::EndMap;
+                }
             }
-            if (const auto* sphere = dynamic_cast<SphereGeometry*>(mesh.get()))
+            else
             {
+                out << YAML::Key << "MeshSource" << YAML::Value;
                 out << YAML::BeginMap;
-                out << YAML::Key << "Type" << YAML::Value << static_cast<int>(GeometryType::Sphere);
-                out << YAML::Key << "Radius" << YAML::Value << sphere->GetRadius();
-                out << YAML::Key << "PhiLength" << YAML::Value << sphere->GetPhiLength();
-                out << YAML::Key << "PhiStart" << YAML::Value << sphere->GetPhiStart();
-                out << YAML::Key << "ThetaStart" << YAML::Value << sphere->GetThetaStart();
-                out << YAML::Key << "ThetaLength" << YAML::Value << sphere->GetThetaLength();
-                out << YAML::Key << "WidthSegments" << YAML::Value << sphere->GetWidthSegments();
-                out << YAML::Key << "HeightSegments" << YAML::Value << sphere->GetHeightSegments();
+                out << YAML::Key << "Handle" << YAML::Value << meshSrc->Handle;
                 out << YAML::EndMap;
             }
 
@@ -405,6 +419,18 @@ namespace Chozo {
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<RelationshipComponent>())
+        {
+            out << YAML::Key << "RelationshipComponent" << YAML::Value;
+            out << YAML::BeginMap;
+
+            auto& rc = entity.GetComponent<RelationshipComponent>();
+            out << YAML::Key << "ParentHandle" << YAML::Value << rc.ParentHandle;
+            out << YAML::Key << "Children" << YAML::Value << rc.Children;
+
+            out << YAML::EndMap;
+        }
+
         out << YAML::EndMap;
     }
 
@@ -420,6 +446,8 @@ namespace Chozo {
         uint64_t size = stream.GetStreamPosition() - start;
 
 #if 0
+        fs::path path(metadata.FilePath);
+        fs::path filepath = Utils::File::GetAssetDirectory() / path;
         fs::path dest2 = filepath.parent_path() / (filepath.filename().string() + ".txt");
         fs::path dirPath(dest2);
         if (!(fs::exists(dirPath) && fs::is_directory(dirPath)))
@@ -546,41 +574,50 @@ namespace Chozo {
 
                 if (auto meshComponent = entity["MeshComponent"])
                 {
-                    Ref<Geometry> geometry;
-                    auto geometryNode = meshComponent["Geometry"];
-                    // auto type = geometryNode["Type"].as<int>();
+                    if (auto geometryNode = meshComponent["Geometry"])
+                    {
+                        Ref<Geometry> geometry;
 
-                    switch (GeometryType(geometryNode["Type"].as<int>())) {
-                        case GeometryType::Box:
-                            geometry = Geometry::Create<BoxGeometry>(
-                                geometryNode["Width"].as<float>(),
-                                geometryNode["Height"].as<float>(),
-                                geometryNode["Depth"].as<float>(),
-                                geometryNode["WidthSegments"].as<uint32_t>(),
-                                geometryNode["HeightSegments"].as<uint32_t>(),
-                                geometryNode["DepthSegments"].as<uint32_t>()
-                            );
+                        auto materialNode = meshComponent["Material"];
+                        auto materialHandle = materialNode["Handle"].as<uint64_t>();
+
+                        switch (GeometryType(geometryNode["Type"].as<int>())) {
+                            case GeometryType::Box:
+                                geometry = Geometry::Create<BoxGeometry>(
+                                    geometryNode["Width"].as<float>(),
+                                    geometryNode["Height"].as<float>(),
+                                    geometryNode["Depth"].as<float>(),
+                                    geometryNode["WidthSegments"].as<uint32_t>(),
+                                    geometryNode["HeightSegments"].as<uint32_t>(),
+                                    geometryNode["DepthSegments"].as<uint32_t>()
+                                );
                             break;
-                        case GeometryType::Sphere:
-                            geometry = Geometry::Create<SphereGeometry>(
-                                geometryNode["Radius"].as<float>(),
-                                geometryNode["WidthSegments"].as<uint32_t>(),
-                                geometryNode["HeightSegments"].as<uint32_t>(),
-                                geometryNode["PhiStart"].as<float>(),
-                                geometryNode["PhiLength"].as<float>(),
-                                geometryNode["ThetaStart"].as<float>(),
-                                geometryNode["ThetaLength"].as<float>()
-                            );
+                            case GeometryType::Sphere:
+                                geometry = Geometry::Create<SphereGeometry>(
+                                    geometryNode["Radius"].as<float>(),
+                                    geometryNode["WidthSegments"].as<uint32_t>(),
+                                    geometryNode["HeightSegments"].as<uint32_t>(),
+                                    geometryNode["PhiStart"].as<float>(),
+                                    geometryNode["PhiLength"].as<float>(),
+                                    geometryNode["ThetaStart"].as<float>(),
+                                    geometryNode["ThetaLength"].as<float>()
+                                );
                             break;
-                        default:
-                            break;
+                            default:
+                                break;
+                        }
+
+                        deserializedEntity.AddComponent<MeshComponent>(geometry, 0, materialHandle);
+                    }
+                    else
+                    {
+                        const AssetHandle meshSourceHandle = meshComponent["MeshSource"].as<uint64_t>();
+                        const auto meshSource = Application::GetAssetManager()->GetAsset(meshSourceHandle).As<MeshSource>();;
+                        const auto mesh = Ref<Mesh>::Create(meshSource);
+                        scene->InstantiateMeshToEntity(mesh, deserializedEntity);
                     }
 
                     // auto meshType = MeshType(meshComponent["Type"].as<int>());
-                    auto materialNode = meshComponent["Material"];
-                    auto materialHandle = materialNode["Handle"].as<uint64_t>();
-
-                    deserializedEntity.AddComponent<MeshComponent>(geometry, 0, materialHandle);
                 }
 
                 if (auto dirLightComponent = entity["DirectionalLightComponent"])
@@ -606,6 +643,21 @@ namespace Chozo {
                     comp.AngleAttenuation = spotLightComponent["AngleAttenuation"].as<float>();
                     comp.Color = spotLightComponent["Color"].as<glm::vec3>();
                     comp.Angle = spotLightComponent["Angle"].as<float>();
+                }
+
+                if (auto relationshipComponent = entity["RelationshipComponent"])
+                {
+                    auto& comp = deserializedEntity.AddComponent<RelationshipComponent>();
+                    comp.ParentHandle = relationshipComponent["ParentHandle"].as<uint64_t>();
+                    const auto& childrenNode = relationshipComponent["Children"];
+                    if (childrenNode && childrenNode.IsSequence())
+                    {
+                        comp.Children.clear();
+                        for (const auto& child : childrenNode)
+                        {
+                            comp.Children.push_back(child.as<uint64_t>());
+                        }
+                    }
                 }
             }
         }

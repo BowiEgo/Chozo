@@ -10,7 +10,7 @@
  * - Punctual lights
  *
  * Area lights are currently not supported.
- *d
+ *
  * Returns a pre-exposed HDR RGBA color in linear space.
  */
 vec3 EvaluateLights(const in GBufferData GBuffer, const in PhysicalMaterial material)

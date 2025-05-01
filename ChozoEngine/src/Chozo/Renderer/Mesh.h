@@ -160,7 +160,7 @@ namespace Chozo
     	using OnChangeFunc = std::function<void()>;
 
         Mesh();
-        Mesh(Ref<MeshSource>& meshSource)
+        Mesh(const Ref<MeshSource>& meshSource)
             : m_MeshSource(meshSource)
         {
             Invalidate();

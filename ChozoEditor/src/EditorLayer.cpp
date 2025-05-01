@@ -529,8 +529,8 @@ namespace Chozo {
             }
             case AssetType::MeshSource:
             {
-                auto meshSouce = asset.As<MeshSource>();
-                const auto mesh = Ref<Mesh>::Create(meshSouce);
+                const auto meshSource = asset.As<MeshSource>();
+                const auto mesh = Ref<Mesh>::Create(meshSource);
                 const Entity rootEntity = m_ActiveScene->InstantiateMesh(mesh);
                 m_SceneHierarchyPanel.SetSelectedEntity(rootEntity);
                 break;

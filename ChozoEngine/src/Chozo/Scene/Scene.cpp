@@ -92,6 +92,13 @@ namespace Chozo {
         return rootEntity;
     }
 
+    Entity Scene::InstantiateMeshToEntity(Ref<Mesh> mesh, Entity rootEntity)
+    {
+        BuildMeshEntityHierarchy(rootEntity, mesh, mesh->GetMeshSource()->GetRootNode());
+
+        return rootEntity;
+    }
+
     void Scene::BuildMeshEntityHierarchy(Entity parent, Ref<Mesh> mesh, const MeshNode &node)
     {
 		Ref<MeshSource> meshSource = mesh->GetMeshSource();
