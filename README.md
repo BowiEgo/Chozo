@@ -1,5 +1,7 @@
 # Chozo
 
+![](http://youke.xn--y7xa690gmna.cn/s1/2026/01/17/696b90b473735.webp)
+
 ## Install & Build
 
 ```console
