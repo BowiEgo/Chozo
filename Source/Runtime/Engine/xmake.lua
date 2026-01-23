@@ -1,0 +1,5 @@
+target("Engine")
+    set_kind("static")
+    add_rules("chozo_module")
+    add_deps("Core")
+    add_packages("glfw")
