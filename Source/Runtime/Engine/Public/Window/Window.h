@@ -11,14 +11,10 @@ namespace Chozo
         FWindow(const FWindowDefinition& windowDef);
         ~FWindow();
 
-        void Init(const FWindowDefinition& windowDef);
-        void Shutdown();
-        void OnUpdate();
-    private:
-        GLFWwindow* m_Window{};
-        GLFWwindow* m_SharedWindow{};
-        // GraphicsContext* m_Context{};
-
+        virtual void Init(const FWindowDefinition& windowDef);
+        virtual void Shutdown();
+        virtual void OnUpdate();
+    protected:
         struct WindowData
         {
             std::string Title;
@@ -27,7 +23,7 @@ namespace Chozo
             float PixelRatio;
             bool VSync;
         };
-
+    
         WindowData m_Data;
     };
 }

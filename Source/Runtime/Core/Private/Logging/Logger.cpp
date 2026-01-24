@@ -27,8 +27,8 @@ namespace Chozo {
 
     FLogger::~FLogger() = default;
 
-    void FLogger::Log(const std::string& Category, ELogVerbosity Verbosity, const std::string& Message) {
-        // Map Chozo Verbosity to spdlog Levels
+    void FLogger::LogInternal(const std::string& Category, ELogVerbosity Verbosity, const std::string& Message)
+    {
         spdlog::level::level_enum SpdLevel;
         switch (Verbosity) {
             case ELogVerbosity::Trace:   SpdLevel = spdlog::level::trace; break;
@@ -39,12 +39,13 @@ namespace Chozo {
             default:                     SpdLevel = spdlog::level::info; break;
         }
 
+        // 组装格式：[Category] Message
         std::string FormattedMsg = "[" + Category + "] " + Message;
 
         Impl->SpdLogger->log(SpdLevel, FormattedMsg);
 
         if (Verbosity == ELogVerbosity::Fatal) {
-            Impl->SpdLogger->flush(); // Ensure log is written before crash
+            Impl->SpdLogger->flush(); 
             abort(); 
         }
     }

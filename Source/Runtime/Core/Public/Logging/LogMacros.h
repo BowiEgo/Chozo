@@ -37,4 +37,3 @@ namespace Chozo {
 
 #define DEFINE_LOG_CATEGORY(CategoryName) \
     FLogCategory##CategoryName CategoryName;
-    
