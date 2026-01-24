@@ -40,12 +40,13 @@ namespace Chozo
     private:
         void CreateVulkanWindow();
         void CreateVulkanSurface();
+        void SetupDebugMessenger();
 
         vk::raii::Context m_VkContext;
         std::unique_ptr<vk::raii::Instance> m_VkInstance;
+        std::unique_ptr<vk::raii::DebugUtilsMessengerEXT> m_DebugMessenger;
         std::unique_ptr<vk::raii::SurfaceKHR> m_VkSurface;
 
         GLFWwindow* m_Window{};
-        GLFWwindow* m_SharedWindow{};
     };
 }

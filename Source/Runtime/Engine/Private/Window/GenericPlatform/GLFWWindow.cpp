@@ -1,14 +1,31 @@
 #include "GLFWWindow.h"
+#include "VulkanUtils.h"
 
 namespace Chozo
 {
     DEFINE_LOG_CATEGORY(GLFWWindow);
+
+    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
+        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+        VkDebugUtilsMessageTypeFlagsEXT messageType,
+        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+        void* pUserData) {
+        
+        // Log the validation layer message based on its severity
+        if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+            CZ_LOG(LogVulkan, Error, "Validation Layer: {0}", pCallbackData->pMessage);
+        } else {
+            CZ_LOG(LogVulkan, Warning, "Validation Layer: {0}", pCallbackData->pMessage);
+        }
+        return VK_FALSE; // indicates that the Vulkan call that triggered the validation layer message should not be aborted
+    }
 
     GLFWWindow::GLFWWindow(const FWindowDefinition& windowDef)
         : FWindow(windowDef)
     {
         CreateVulkanWindow();
         CreateVulkanSurface();
+        SetupDebugMessenger();
     }
 
     GLFWWindow::~GLFWWindow()
@@ -19,16 +36,22 @@ namespace Chozo
     void GLFWWindow::Shutdown()
     {
         CZ_LOG(GLFWWindow, Trace, "Destroying window {0}", m_Data.Title);
-        glfwDestroyWindow(m_Window);
+
+        m_VkSurface.reset();
+        m_DebugMessenger.reset();
+        m_VkInstance.reset();
+
+        if (m_Window) {
+            glfwDestroyWindow(m_Window);
+        }
+
         glfwTerminate();
     }
 
     void GLFWWindow::OnUpdate()
     {
         /* Poll for and process events */
-        while (!glfwWindowShouldClose(m_Window)) {
-            glfwPollEvents();
-        }
+        glfwPollEvents();
     }
 
     void GLFWWindow::SetVSync(bool enabled)
@@ -45,6 +68,9 @@ namespace Chozo
     {
         CZ_LOG(GLFWWindow, Trace, "Creating window({1}, {2}) for {0}", m_Data.Title, m_Data.Width, m_Data.Height);
 
+        const bool dimensionsInValid = m_Data.Width <= 0 || m_Data.Height <= 0;
+        CZ_ASSERT(!dimensionsInValid, "Invalid window dimensions!");
+
 #ifdef CZ_PLATFORM_WIN
         SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 #endif
@@ -53,7 +79,7 @@ namespace Chozo
         if (!s_GLFWInitialized)
         {
             const int success = glfwInit();
-            CZ_CORE_ASSERT(success, "Could not initialize GLFW!");
+            CZ_ASSERT(success, "Could not initialize GLFW!");
             glfwSetErrorCallback(GLFWErrorCallback);
             s_GLFWInitialized = true;
         }
@@ -89,11 +115,25 @@ namespace Chozo
 
     void GLFWWindow::CreateVulkanSurface()
     {
-        // 1. get required extensions from GLFW
+        // Check validation layer support
+        if (VulkanUtils::EnableValidationLayers && !VulkanUtils::CheckValidationLayerSupport(m_VkContext)) {
+            CZ_LOG(GLFWWindow, Warning, "Validation layers requested, but not available!");
+        }
+
+        // Get required extensions from GLFW
         uint32_t glfwExtensionCount = 0;
         const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-        
-        // 2. fill in ApplicationInfo and InstanceCreateInfo
+        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+        if (VulkanUtils::EnableValidationLayers) {
+            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        }
+
+        // Check if the required GLFW extensions are supported by the Vulkan implementation.
+        if (!VulkanUtils::CheckInstanceExtensions(m_VkContext, extensions)) {
+            throw std::runtime_error("Required Vulkan extensions are not supported!");
+        }
+                
+        // Fill in ApplicationInfo and InstanceCreateInfo
         const vk::ApplicationInfo appInfo = vk::ApplicationInfo()
             .setPApplicationName("Chozo Engine")
             .setApplicationVersion(VK_MAKE_VERSION(1, 0, 0))
@@ -103,15 +143,21 @@ namespace Chozo
 
         vk::InstanceCreateInfo createInfo = vk::InstanceCreateInfo()
             .setPApplicationInfo(&appInfo)
-            .setEnabledExtensionCount(glfwExtensionCount)
-            .setPpEnabledExtensionNames(glfwExtensions);
+            .setEnabledExtensionCount(static_cast<uint32_t>(extensions.size()))
+            .setPpEnabledExtensionNames(extensions.data());
+
+        // Add validation layers if enabled
+        if (VulkanUtils::EnableValidationLayers) {
+            createInfo.setEnabledLayerCount(static_cast<uint32_t>(VulkanUtils::ValidationLayers.size()))
+                      .setPpEnabledLayerNames(VulkanUtils::ValidationLayers.data());
+        }
         
-        // 3. create RAII Instance
+        // Create RAII Instance
         try {
             m_VkInstance = std::make_unique<vk::raii::Instance>(m_VkContext, createInfo);
             CZ_LOG(GLFWWindow, Info, "Vulkan RAII Instance created.");
 
-            // 4. create Surface
+            // Create Surface
             VkSurfaceKHR surfacePtr;
             VkResult result = glfwCreateWindowSurface(**m_VkInstance, m_Window, nullptr, &surfacePtr);
 
@@ -119,13 +165,38 @@ namespace Chozo
                 CZ_LOG(GLFWWindow, Fatal, "Failed to create Window Surface!");
             }
             
-            // 5. Give the raw pointer to RAII wrapper for automatic management
+            // Give the raw pointer to RAII wrapper for automatic management
             m_VkSurface = std::make_unique<vk::raii::SurfaceKHR>(*m_VkInstance, surfacePtr);
             CZ_LOG(GLFWWindow, Info, "Vulkan RAII Surface created.");
-            
+        } catch (const vk::SystemError& err) {
+            CZ_LOG(GLFWWindow, Fatal, "Vulkan RAII System Error: {0}", err.what());
         } catch (const std::exception& e) {
             CZ_LOG(GLFWWindow, Fatal, "Vulkan RAII Error: {0}", e.what());
         }
+    }
+
+    void GLFWWindow::SetupDebugMessenger()
+    {
+        if (!VulkanUtils::EnableValidationLayers) return;
+
+        vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | 
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | 
+            vk::DebugUtilsMessageSeverityFlagBitsEXT::eError
+        );
+
+        vk::DebugUtilsMessageTypeFlagsEXT messageTypeFlags(
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | 
+            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance | 
+            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
+        );
+
+        vk::DebugUtilsMessengerCreateInfoEXT messengerInfo = vk::DebugUtilsMessengerCreateInfoEXT()
+            .setMessageSeverity(severityFlags)
+            .setMessageType(messageTypeFlags)
+            .setPfnUserCallback(DebugCallback); // Static method for handling debug messages
+
+        m_DebugMessenger = std::make_unique<vk::raii::DebugUtilsMessengerEXT>(*m_VkInstance, messengerInfo);
     }
 
 }
