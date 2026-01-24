@@ -8,4 +8,5 @@ includes("scripts/chozo_module.lua")
 -- XMake will look for xmake.lua in each subdirectory
 includes("Source/Runtime/**")
 
+add_requires("spdlog")
 add_requires("glfw")

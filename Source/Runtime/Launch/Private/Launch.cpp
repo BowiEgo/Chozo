@@ -1,12 +1,13 @@
 #include "Launch.h"
 
+DEFINE_LOG_CATEGORY_STATIC(LogLaunch, Info);
+
 int main(int argc, char **argv)
 {
-	std::string Str = "Hello World!";
-	std::cout << "Hello, Chozo Engine!" << std::endl;
-	std::cout << Str << std::endl;
+	std::string msg = "Starting up Chozo Engine..";
+	CZ_LOG(LogLaunch, Info, msg);
 
-	Chozo::EngineLoop engineLoop;
+	Chozo::FEngineLoop engineLoop;
 
 	engineLoop.Init();
 	engineLoop.Tick();

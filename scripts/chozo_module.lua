@@ -43,5 +43,19 @@ rule("chozo_module")
             target:set("pcxxheader", pch_path)
         end
 
-        target:add("defines", target:name():upper() .. "_EXPORTS")
+        local export_macro = target:name():upper() .. "_EXPORTS"
+        print("Configuring module: " .. target:name() .. " with macro: " .. export_macro)
+
+        if target:kind() == "shared" then
+            target:add("defines", export_macro)
+            
+            if not target:is_plat("windows") then
+                -- Hide all symbols by default on Linux/Mac to match Windows behavior
+                target:add("cxflags", "-fvisibility=hidden")
+            end
+        end
+
+        -- Ensure Public headers are propagated to dependent targets
+        local dir = target:scriptdir():gsub("\\", "/")
+        target:add("includedirs", dir .. "/Public", {public = true})
     end)

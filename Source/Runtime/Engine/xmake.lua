@@ -1,5 +1,5 @@
 target("Engine")
-    set_kind("static")
+    set_kind("shared")
     add_rules("chozo_module")
     add_deps("Core")
     add_packages("glfw")

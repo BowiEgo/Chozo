@@ -1,28 +1,17 @@
 ﻿#pragma once
 
+#include "WindowDefinition.h"
+
 namespace Chozo
 {
-    struct WindowProps
-    {
-        std::string Title;
-        unsigned int Width;
-        unsigned int Height;
 
-        explicit WindowProps(std::string  title = "Chozo Engine",
-                    const unsigned int width = WINDOW_WIDTH,
-                    const unsigned int height = WINDOW_HEIGHT)
-            : Title(std::move(title)), Width(width), Height(height)
-        {
-        }
-    };
-
-    class Window
+    class ENGINE_API FWindow
     {
     public:
-        Window(const WindowProps& props);
-        ~Window();
+        FWindow(const FWindowDefinition& windowDef);
+        ~FWindow();
 
-        void Init(const WindowProps& props);
+        void Init(const FWindowDefinition& windowDef);
         void Shutdown();
         void OnUpdate();
     private:
