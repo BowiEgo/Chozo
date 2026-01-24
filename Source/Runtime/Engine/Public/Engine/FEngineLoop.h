@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Core.h"
+#include "Window.h"
 
 namespace Chozo {
 
@@ -12,8 +13,12 @@ namespace Chozo {
         FEngineLoop();
         virtual ~FEngineLoop() {};
 
-        static void Init();
-        static void Tick();
-        static void Exit();
+        void Init();
+        void Tick();
+        void Exit();
+
+        bool ShouldClose() const;
+    private:
+        std::unique_ptr<FWindow> m_Window;
     };
 }

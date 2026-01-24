@@ -11,8 +11,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-
-#include <GLFW/glfw3.h>
+#include <memory>
 
 #ifndef WINDOW_WIDTH
     #define WINDOW_WIDTH 1280

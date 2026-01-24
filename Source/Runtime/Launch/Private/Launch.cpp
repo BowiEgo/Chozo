@@ -10,6 +10,15 @@ int main(int argc, char **argv)
 	Chozo::FEngineLoop engineLoop;
 
 	engineLoop.Init();
-	engineLoop.Tick();
+	
+	while (true) 
+    {
+        engineLoop.Tick();
+
+        if (engineLoop.ShouldClose()) break;
+    }
+
     engineLoop.Exit();
+
+	return 0;
 }
