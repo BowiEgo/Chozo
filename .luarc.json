@@ -1,0 +1,5 @@
+{
+  "diagnostics": {
+    "globals": ["target", "set_kind", "add_rules", "add_deps", "add_packages", "add_defines", "on_load", "os", "raise"]
+  }
+}

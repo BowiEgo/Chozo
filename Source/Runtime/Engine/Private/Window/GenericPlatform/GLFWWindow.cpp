@@ -1,202 +1,251 @@
 #include "GLFWWindow.h"
 #include "VulkanUtils.h"
+#include "vulkan/vulkan.hpp"
+#include "vulkan/vulkan_raii.hpp"
+#include <cstdint>
+#include <stdexcept>
 
-namespace Chozo
-{
-    DEFINE_LOG_CATEGORY(GLFWWindow);
+namespace Chozo {
+DEFINE_LOG_CATEGORY(GLFWWindow);
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
-        VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-        VkDebugUtilsMessageTypeFlagsEXT messageType,
-        const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-        void* pUserData) {
-        
-        // Log the validation layer message based on its severity
-        if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-            CZ_LOG(LogVulkan, Error, "Validation Layer: {0}", pCallbackData->pMessage);
-        } else {
-            CZ_LOG(LogVulkan, Warning, "Validation Layer: {0}", pCallbackData->pMessage);
-        }
-        return VK_FALSE; // indicates that the Vulkan call that triggered the validation layer message should not be aborted
+static VKAPI_ATTR VkBool32 VKAPI_CALL
+DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+              VkDebugUtilsMessageTypeFlagsEXT messageType,
+              const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData) {
+
+    // Log the validation layer message based on its severity
+    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+        CZ_LOG(LogVulkan, Error, "Validation Layer: {0}", pCallbackData->pMessage);
+    } else {
+        CZ_LOG(LogVulkan, Warning, "Validation Layer: {0}", pCallbackData->pMessage);
+    }
+    return VK_FALSE; // indicates that the Vulkan call that triggered the
+                     // validation layer message should not be aborted
+}
+
+GLFWWindow::GLFWWindow(const FWindowDefinition &windowDef) : FWindow(windowDef) {
+    CreateVKWindow();
+    CreateVKInstance();
+    SetupDebugMessenger();
+    CreateVKSurface();
+    PickPhysicalDevice();
+    CreateLogicalDevice();
+}
+
+GLFWWindow::~GLFWWindow() { Shutdown(); }
+
+void GLFWWindow::Shutdown() {
+    CZ_LOG(GLFWWindow, Trace, "Destroying window {0}", m_Data.Title);
+
+    if (m_Window) {
+        glfwDestroyWindow(m_Window);
     }
 
-    GLFWWindow::GLFWWindow(const FWindowDefinition& windowDef)
-        : FWindow(windowDef)
-    {
-        CreateVulkanWindow();
-        CreateVulkanSurface();
-        SetupDebugMessenger();
-    }
+    glfwTerminate();
+}
 
-    GLFWWindow::~GLFWWindow()
-    {
-        Shutdown();
-    }
+void GLFWWindow::OnUpdate() {
+    /* Poll for and process events */
+    glfwPollEvents();
+}
 
-    void GLFWWindow::Shutdown()
-    {
-        CZ_LOG(GLFWWindow, Trace, "Destroying window {0}", m_Data.Title);
+void GLFWWindow::SetVSync(bool enabled) { m_Data.VSync = enabled; }
 
-        m_VkSurface.reset();
-        m_DebugMessenger.reset();
-        m_VkInstance.reset();
+bool GLFWWindow::ShouldClose() const { return glfwWindowShouldClose(m_Window); }
 
-        if (m_Window) {
-            glfwDestroyWindow(m_Window);
-        }
+void GLFWWindow::CreateVKWindow() {
+    CZ_LOG(GLFWWindow, Trace, "Creating window({1}, {2}) for {0}", m_Data.Title, m_Data.Width,
+           m_Data.Height);
 
-        glfwTerminate();
-    }
-
-    void GLFWWindow::OnUpdate()
-    {
-        /* Poll for and process events */
-        glfwPollEvents();
-    }
-
-    void GLFWWindow::SetVSync(bool enabled)
-    {
-        m_Data.VSync = enabled;
-    }
-
-    bool GLFWWindow::ShouldClose() const
-    {
-        return glfwWindowShouldClose(m_Window);
-    }
-
-    void GLFWWindow::CreateVulkanWindow()
-    {
-        CZ_LOG(GLFWWindow, Trace, "Creating window({1}, {2}) for {0}", m_Data.Title, m_Data.Width, m_Data.Height);
-
-        const bool dimensionsInValid = m_Data.Width <= 0 || m_Data.Height <= 0;
-        CZ_ASSERT(!dimensionsInValid, "Invalid window dimensions!");
+    const bool dimensionsInValid = m_Data.Width <= 0 || m_Data.Height <= 0;
+    CZ_ASSERT(!dimensionsInValid, "Invalid window dimensions!");
 
 #ifdef CZ_PLATFORM_WIN
-        SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 #endif
 
-        // Initialize GLFW window
-        if (!s_GLFWInitialized)
-        {
-            const int success = glfwInit();
-            CZ_ASSERT(success, "Could not initialize GLFW!");
-            glfwSetErrorCallback(GLFWErrorCallback);
-            s_GLFWInitialized = true;
-        }
-
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-        m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
-
-        // Set user pointer to access WindowData in callbacks
-        glfwSetWindowUserPointer(m_Window, &m_Data);
-
-        // Pixel ratio
-        int windowWidth, windowHeight;
-        int fbWidth, fbHeight;
-        glfwGetWindowSize(m_Window, &windowWidth, &windowHeight);
-        glfwGetFramebufferSize(m_Window, &fbWidth, &fbHeight);
-        m_Data.PixelRatio = (float)fbWidth / (float)windowWidth;
-
-		// DPI Scaling
-        float xscale, yscale, factor = 1.0f;
-#ifdef CZ_PLATFORM_MACOS
-        factor = 0.5f;
-#endif
-        glfwGetWindowContentScale(m_Window, &xscale, &yscale);
-        m_Data.XScale = xscale * factor;
-        m_Data.YScale = yscale * factor;
-
-        CZ_LOG(GLFWWindow, Info, "GLFW Window created for Vulkan successfully.");
-
-        SetVSync(false);
+    // Initialize GLFW window
+    if (!s_GLFWInitialized) {
+        const int success = glfwInit();
+        CZ_ASSERT(success, "Could not initialize GLFW!");
+        glfwSetErrorCallback(GLFWErrorCallback);
+        s_GLFWInitialized = true;
     }
 
-    void GLFWWindow::CreateVulkanSurface()
-    {
-        // Check validation layer support
-        if (VulkanUtils::EnableValidationLayers && !VulkanUtils::CheckValidationLayerSupport(m_VkContext)) {
-            CZ_LOG(GLFWWindow, Warning, "Validation layers requested, but not available!");
-        }
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-        // Get required extensions from GLFW
-        uint32_t glfwExtensionCount = 0;
-        const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-        if (VulkanUtils::EnableValidationLayers) {
-            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-        }
+    m_Window =
+        glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
 
-        // Check if the required GLFW extensions are supported by the Vulkan implementation.
-        if (!VulkanUtils::CheckInstanceExtensions(m_VkContext, extensions)) {
-            throw std::runtime_error("Required Vulkan extensions are not supported!");
-        }
-                
-        // Fill in ApplicationInfo and InstanceCreateInfo
-        const vk::ApplicationInfo appInfo = vk::ApplicationInfo()
-            .setPApplicationName("Chozo Engine")
-            .setApplicationVersion(VK_MAKE_VERSION(1, 0, 0))
-            .setPEngineName("Chozo")
-            .setEngineVersion(VK_MAKE_VERSION(1, 0, 0))
-            .setApiVersion(vk::ApiVersion14);
+    // Set user pointer to access WindowData in callbacks
+    glfwSetWindowUserPointer(m_Window, &m_Data);
 
-        vk::InstanceCreateInfo createInfo = vk::InstanceCreateInfo()
+    // Pixel ratio
+    int windowWidth, windowHeight;
+    int fbWidth, fbHeight;
+    glfwGetWindowSize(m_Window, &windowWidth, &windowHeight);
+    glfwGetFramebufferSize(m_Window, &fbWidth, &fbHeight);
+    m_Data.PixelRatio = (float)fbWidth / (float)windowWidth;
+
+    // DPI Scaling
+    float xscale, yscale, factor = 1.0f;
+#ifdef CZ_PLATFORM_MACOS
+    factor = 0.5f;
+#endif
+    glfwGetWindowContentScale(m_Window, &xscale, &yscale);
+    m_Data.XScale = xscale * factor;
+    m_Data.YScale = yscale * factor;
+
+    CZ_LOG(GLFWWindow, Info, "GLFW Window created for Vulkan successfully.");
+
+    SetVSync(false);
+}
+
+void GLFWWindow::CreateVKInstance() {
+    // Check validation layer support
+    if (VulkanUtils::EnableValidationLayers &&
+        !VulkanUtils::CheckValidationLayerSupport(m_VkContext)) {
+        CZ_LOG(GLFWWindow, Warning, "Validation layers requested, but not available!");
+    }
+
+    // Get required extensions from GLFW
+    uint32_t glfwExtensionCount = 0;
+    const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    if (VulkanUtils::EnableValidationLayers) {
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
+
+    // Check if the required GLFW extensions are supported by the Vulkan
+    // implementation.
+    if (!VulkanUtils::CheckInstanceExtensions(m_VkContext, extensions)) {
+        throw std::runtime_error("Required Vulkan extensions are not supported!");
+    }
+
+    // Fill in ApplicationInfo and InstanceCreateInfo
+    const vk::ApplicationInfo appInfo = vk::ApplicationInfo()
+                                            .setPApplicationName("Chozo Engine")
+                                            .setApplicationVersion(VK_MAKE_VERSION(1, 0, 0))
+                                            .setPEngineName("Chozo")
+                                            .setEngineVersion(VK_MAKE_VERSION(1, 0, 0))
+                                            .setApiVersion(vk::ApiVersion14);
+
+    vk::InstanceCreateInfo createInfo =
+        vk::InstanceCreateInfo()
             .setPApplicationInfo(&appInfo)
             .setEnabledExtensionCount(static_cast<uint32_t>(extensions.size()))
             .setPpEnabledExtensionNames(extensions.data());
 
-        // Add validation layers if enabled
-        if (VulkanUtils::EnableValidationLayers) {
-            createInfo.setEnabledLayerCount(static_cast<uint32_t>(VulkanUtils::ValidationLayers.size()))
-                      .setPpEnabledLayerNames(VulkanUtils::ValidationLayers.data());
-        }
-        
-        // Create RAII Instance
-        try {
-            m_VkInstance = std::make_unique<vk::raii::Instance>(m_VkContext, createInfo);
-            CZ_LOG(GLFWWindow, Info, "Vulkan RAII Instance created.");
-
-            // Create Surface
-            VkSurfaceKHR surfacePtr;
-            VkResult result = glfwCreateWindowSurface(**m_VkInstance, m_Window, nullptr, &surfacePtr);
-
-            if (result != VK_SUCCESS) {
-                CZ_LOG(GLFWWindow, Fatal, "Failed to create Window Surface!");
-            }
-            
-            // Give the raw pointer to RAII wrapper for automatic management
-            m_VkSurface = std::make_unique<vk::raii::SurfaceKHR>(*m_VkInstance, surfacePtr);
-            CZ_LOG(GLFWWindow, Info, "Vulkan RAII Surface created.");
-        } catch (const vk::SystemError& err) {
-            CZ_LOG(GLFWWindow, Fatal, "Vulkan RAII System Error: {0}", err.what());
-        } catch (const std::exception& e) {
-            CZ_LOG(GLFWWindow, Fatal, "Vulkan RAII Error: {0}", e.what());
-        }
+    // Add validation layers if enabled
+    if (VulkanUtils::EnableValidationLayers) {
+        createInfo.setEnabledLayerCount(static_cast<uint32_t>(VulkanUtils::ValidationLayers.size()))
+            .setPpEnabledLayerNames(VulkanUtils::ValidationLayers.data());
     }
 
-    void GLFWWindow::SetupDebugMessenger()
-    {
-        if (!VulkanUtils::EnableValidationLayers) return;
+    // Create RAII Instance
+    try {
+        m_VkInstance = vk::raii::Instance(m_VkContext, createInfo);
+        CZ_LOG(GLFWWindow, Info, "Vulkan RAII Instance created.");
+    } catch (const vk::SystemError &err) {
+        CZ_LOG(GLFWWindow, Fatal, "Vulkan RAII System Error: {0}", err.what());
+    } catch (const std::exception &e) {
+        CZ_LOG(GLFWWindow, Fatal, "Vulkan RAII Error: {0}", e.what());
+    }
+}
 
-        vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | 
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | 
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eError
-        );
+void GLFWWindow::SetupDebugMessenger() {
+    if (!VulkanUtils::EnableValidationLayers)
+        return;
 
-        vk::DebugUtilsMessageTypeFlagsEXT messageTypeFlags(
-            vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | 
-            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance | 
-            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation
-        );
+    vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(
+        vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+        vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+        vk::DebugUtilsMessageSeverityFlagBitsEXT::eError);
 
-        vk::DebugUtilsMessengerCreateInfoEXT messengerInfo = vk::DebugUtilsMessengerCreateInfoEXT()
+    vk::DebugUtilsMessageTypeFlagsEXT messageTypeFlags(
+        vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+        vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
+        vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation);
+
+    vk::DebugUtilsMessengerCreateInfoEXT messengerInfo =
+        vk::DebugUtilsMessengerCreateInfoEXT()
             .setMessageSeverity(severityFlags)
             .setMessageType(messageTypeFlags)
             .setPfnUserCallback(DebugCallback); // Static method for handling debug messages
 
-        m_DebugMessenger = std::make_unique<vk::raii::DebugUtilsMessengerEXT>(*m_VkInstance, messengerInfo);
+    m_DebugMessenger = vk::raii::DebugUtilsMessengerEXT(m_VkInstance, messengerInfo);
+}
+
+void GLFWWindow::CreateVKSurface() {
+    VkSurfaceKHR surfaceHandle;
+    VkResult result = glfwCreateWindowSurface(*m_VkInstance, m_Window, nullptr, &surfaceHandle);
+
+    if (result != VK_SUCCESS) {
+        CZ_LOG(GLFWWindow, Fatal, "Failed to create Window Surface!");
     }
 
+    // Give the raw pointer to RAII wrapper for automatic management
+    m_VkSurface = vk::raii::SurfaceKHR(m_VkInstance, surfaceHandle);
+    CZ_LOG(GLFWWindow, Info, "Vulkan RAII Surface created.");
 }
+
+void GLFWWindow::PickPhysicalDevice() {
+    auto devices = m_VkInstance.enumeratePhysicalDevices();
+
+    if (devices.empty()) {
+        CZ_LOG(GLFWWindow, Fatal, "Failed to find GPUs with Vulkan support");
+    }
+
+    for (const auto &device : devices) {
+        m_PhysicalDevice = device;
+        break;
+    }
+
+    auto deviceProperties = m_PhysicalDevice.getProperties();
+    auto deviceFeatures = m_PhysicalDevice.getFeatures();
+
+    VulkanUtils::LogPhysicalDeviceInfo(deviceProperties);
+    VulkanUtils::LogMemoryBudget(m_PhysicalDevice);
+}
+
+void GLFWWindow::CreateLogicalDevice() {
+    VulkanUtils::QueueFamilyIndices indices =
+        VulkanUtils::FindQueueFamilies(m_PhysicalDevice, m_VkSurface);
+
+    std::set<uint32_t> uniqueQueueFamilies = {indices.Graphics.value(), indices.Present.value(),
+                                              indices.Compute.value()};
+
+    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+    float queuePriority = 1.0f; // range is [0.0, 1.0]
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        queueCreateInfos.push_back({{}, queueFamily, 1, &queuePriority});
+    }
+
+    // Configure Vulkan 1.3 and Extension features
+    // IMPORTANT: Keep these structures in scope until m_LogicalDevice is created
+    vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT extendedDynamicStateFeatures;
+    extendedDynamicStateFeatures.extendedDynamicState = vk::True;
+
+    vk::PhysicalDeviceVulkan13Features vulkan13Features;
+    vulkan13Features.dynamicRendering = vk::True;
+    vulkan13Features.pNext = &extendedDynamicStateFeatures;
+
+    // Link features to DeviceCreateInfo
+    std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    vk::DeviceCreateInfo deviceCreateInfo({}, queueCreateInfos, {}, deviceExtensions);
+    deviceCreateInfo.pNext = &vulkan13Features; // Hook the feature chain here
+
+    // Create the logical device
+    m_LogicalDevice = vk::raii::Device(m_PhysicalDevice, deviceCreateInfo);
+
+    // Get queue handles for each operation type
+    m_GraphicsQueue = vk::raii::Queue(m_LogicalDevice, indices.Graphics.value(), 0);
+    m_PresentQueue = vk::raii::Queue(m_LogicalDevice, indices.Present.value(), 0);
+    m_ComputeQueue = vk::raii::Queue(m_LogicalDevice, indices.Compute.value(), 0);
+
+    CZ_LOG(GLFWWindow, Info, "Queue Family Indices -> Graphics: {}, Present: {}, Compute: {}",
+           indices.Graphics.value(), indices.Present.value(), indices.Compute.value());
+}
+
+} // namespace Chozo

@@ -1,9 +1,12 @@
 .vscode
 .idea
 .xmake
+.cache
 
 build
 vsxmake2022
 compile_commands.json
 
 *.exe
+.clangd
+
