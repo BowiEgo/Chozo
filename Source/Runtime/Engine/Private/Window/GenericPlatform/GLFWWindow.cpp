@@ -2,8 +2,6 @@
 #include "VulkanUtils.h"
 #include "vulkan/vulkan.hpp"
 #include "vulkan/vulkan_raii.hpp"
-#include <cstdint>
-#include <stdexcept>
 
 namespace Chozo {
 DEFINE_LOG_CATEGORY(GLFWWindow);
@@ -30,6 +28,9 @@ GLFWWindow::GLFWWindow(const FWindowDefinition &windowDef) : FWindow(windowDef) 
     CreateVKSurface();
     PickPhysicalDevice();
     CreateLogicalDevice();
+    CreateSwapchain();
+    CreateImageViews();
+    CreateGraphicsPipeline();
 }
 
 GLFWWindow::~GLFWWindow() { Shutdown(); }
@@ -248,4 +249,87 @@ void GLFWWindow::CreateLogicalDevice() {
            indices.Graphics.value(), indices.Present.value(), indices.Compute.value());
 }
 
+void GLFWWindow::CreateSwapchain() {
+    VulkanUtils::SwapchainSupportDetails details =
+        VulkanUtils::QuerySwapchainSupport(m_PhysicalDevice, m_VkSurface);
+
+    int pixelWidth, pixelHeight;
+    glfwGetFramebufferSize(m_Window, &pixelWidth, &pixelHeight);
+    vk::SurfaceFormatKHR surfaceFormat = VulkanUtils::ChooseSwapSurfaceFormat(details.formats);
+    vk::PresentModeKHR presentMode = VulkanUtils::ChooseSwapPresentMode(details.presentModes);
+    vk::Extent2D extent =
+        VulkanUtils::ChooseSwapExtent(details.capabilities, pixelWidth, pixelHeight);
+
+    // Determine image count (Minimum + 1 for triple buffering)
+    uint32_t imageCount = details.capabilities.minImageCount + 1;
+    if (details.capabilities.maxImageCount > 0 && imageCount > details.capabilities.maxImageCount) {
+        imageCount = details.capabilities.maxImageCount;
+    }
+
+    vk::SwapchainCreateInfoKHR createInfo;
+    createInfo.surface = *m_VkSurface;
+    createInfo.minImageCount = imageCount;
+    createInfo.imageFormat = surfaceFormat.format;
+    createInfo.imageColorSpace = surfaceFormat.colorSpace;
+    createInfo.imageExtent = extent;
+    createInfo.imageArrayLayers = 1;
+    createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+
+    // If indices are different, use Concurrent mode; otherwise use Exclusive
+    VulkanUtils::QueueFamilyIndices indices =
+        VulkanUtils::FindQueueFamilies(m_PhysicalDevice, m_VkSurface);
+    uint32_t queueFamilyIndices[] = {indices.Graphics.value(), indices.Present.value()};
+    if (indices.Graphics != indices.Present) {
+        createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
+        createInfo.queueFamilyIndexCount = 2;
+        createInfo.pQueueFamilyIndices = queueFamilyIndices;
+    } else {
+        createInfo.imageSharingMode = vk::SharingMode::eExclusive;
+    }
+
+    // Use the current transform of the surface to avoid unintended rotation
+    if (details.capabilities.supportedTransforms & vk::SurfaceTransformFlagBitsKHR::eIdentity) {
+        createInfo.preTransform = vk::SurfaceTransformFlagBitsKHR::eIdentity;
+    } else {
+        createInfo.preTransform = details.capabilities.currentTransform;
+    }
+
+    createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+    createInfo.presentMode = presentMode;
+    createInfo.clipped = true;
+    createInfo.oldSwapchain = nullptr;
+
+    m_Swapchain = vk::raii::SwapchainKHR(m_LogicalDevice, createInfo);
+
+    // Retrieve the images created by the swapchain
+    m_SwapchainImages = m_Swapchain.getImages();
+    m_SwapchainImageFormat = surfaceFormat.format;
+    m_SwapchainExtent = extent;
+}
+
+void GLFWWindow::CreateImageViews() {
+    m_SwapchainImageViews.clear();
+
+    vk::ImageViewCreateInfo createInfo;
+    createInfo.viewType = vk::ImageViewType::e2D;
+    createInfo.format = m_SwapchainImageFormat;
+
+    createInfo.components.r = vk::ComponentSwizzle::eIdentity;
+    createInfo.components.g = vk::ComponentSwizzle::eIdentity;
+    createInfo.components.b = vk::ComponentSwizzle::eIdentity;
+    createInfo.components.a = vk::ComponentSwizzle::eIdentity;
+
+    createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+    createInfo.subresourceRange.baseMipLevel = 0;
+    createInfo.subresourceRange.levelCount = 1;
+    createInfo.subresourceRange.baseArrayLayer = 0;
+    createInfo.subresourceRange.layerCount = 1;
+
+    for (auto image : m_SwapchainImages) {
+        createInfo.image = image;
+        m_SwapchainImageViews.emplace_back(m_LogicalDevice, createInfo);
+    }
+}
+
+void GLFWWindow::CreateGraphicsPipeline() {}
 } // namespace Chozo

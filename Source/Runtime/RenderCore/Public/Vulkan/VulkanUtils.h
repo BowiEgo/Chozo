@@ -92,6 +92,55 @@ inline QueueFamilyIndices FindQueueFamilies(const vk::raii::PhysicalDevice &phys
     return indices;
 }
 
+// Swapchain
+struct SwapchainSupportDetails {
+    vk::SurfaceCapabilitiesKHR capabilities;
+    std::vector<vk::SurfaceFormatKHR> formats;
+    std::vector<vk::PresentModeKHR> presentModes;
+};
+
+inline SwapchainSupportDetails QuerySwapchainSupport(const vk::raii::PhysicalDevice &physicalDevice,
+                                                     const vk::raii::SurfaceKHR &surface) {
+    return SwapchainSupportDetails{physicalDevice.getSurfaceCapabilitiesKHR(*surface),
+                                   physicalDevice.getSurfaceFormatsKHR(*surface),
+                                   physicalDevice.getSurfacePresentModesKHR(*surface)};
+}
+
+inline vk::SurfaceFormatKHR
+ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats) {
+    for (const auto &availableFormat : availableFormats) {
+        if (availableFormat.format == vk::Format::eB8G8R8A8Srgb &&
+            availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
+            return availableFormat;
+        }
+    }
+
+    return availableFormats[0];
+}
+
+inline vk::PresentModeKHR
+ChooseSwapPresentMode(const std::vector<vk::PresentModeKHR> &availablePresentModes) {
+    for (const auto &availablePresentMode : availablePresentModes) {
+        if (availablePresentMode == vk::PresentModeKHR::eMailbox) {
+            return availablePresentMode;
+        }
+    }
+    return vk::PresentModeKHR::eFifo;
+}
+
+vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities, int pixelWidth,
+                              int pixelHeight) {
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+        return capabilities.currentExtent;
+    }
+
+    return {std::clamp<uint32_t>(pixelWidth, capabilities.minImageExtent.width,
+                                 capabilities.maxImageExtent.width),
+            std::clamp<uint32_t>(pixelHeight, capabilities.minImageExtent.height,
+                                 capabilities.maxImageExtent.height)};
+}
+
+// Log
 inline void LogPhysicalDeviceInfo(const vk::PhysicalDeviceProperties &properties) {
 
     CZ_LOG(VulkanUtils, Info, "Device Name: {}", properties.deviceName.data());

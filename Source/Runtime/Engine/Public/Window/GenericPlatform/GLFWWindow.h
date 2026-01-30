@@ -42,6 +42,9 @@ private:
     void CreateVKSurface();
     void PickPhysicalDevice();
     void CreateLogicalDevice();
+    void CreateSwapchain();
+    void CreateImageViews();
+    void CreateGraphicsPipeline();
 
     vk::raii::Context m_VkContext;
     vk::raii::Instance m_VkInstance = nullptr;
@@ -52,6 +55,11 @@ private:
     vk::raii::Queue m_GraphicsQueue = nullptr;
     vk::raii::Queue m_PresentQueue = nullptr;
     vk::raii::Queue m_ComputeQueue = nullptr;
+    vk::raii::SwapchainKHR m_Swapchain = nullptr;
+    std::vector<vk::Image> m_SwapchainImages;
+    vk::Format m_SwapchainImageFormat;
+    vk::Extent2D m_SwapchainExtent;
+    std::vector<vk::raii::ImageView> m_SwapchainImageViews;
 
     GLFWwindow *m_Window{};
 };
