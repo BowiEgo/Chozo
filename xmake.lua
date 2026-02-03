@@ -2,6 +2,17 @@ set_project("ChozoEngine")
 set_version("1.0.0")
 set_languages("c++20")
 
+add_rules("mode.debug", "mode.release")
+if is_mode("debug") then
+    set_symbols("debug")
+    set_optimize("none")
+end
+
+if is_mode("release") then
+    set_symbols("hidden")  -- Strip symbols for smaller binary size
+    set_optimize("fastest") -- Maximize performance
+end
+
 add_runenvs("CHOZO_ROOT", os.projectdir())
 
 if is_plat("windows") then
