@@ -1,5 +1,9 @@
 #pragma once
 
+#include <filesystem>
+#include <functional>
+#include <memory>
+
 #include <cstdint>
 #if defined(_WIN32)
 #define CHOZO_DLL_EXPORT __declspec(dllexport)
@@ -30,31 +34,45 @@
 #define ENGINE_API CHOZO_DLL_IMPORT
 #endif
 
+#ifdef RENDERCORE_EXPORTS
+#define RENDERCORE_API CHOZO_DLL_EXPORT
+#else
+#define RENDERCORE_API CHOZO_DLL_IMPORT
+#endif
+
 #ifdef CZ_ENABLE_ASSERTS
 // #ifdef ENGINE_PLATFORM_MACOS
-// 	#define CZ_CORE_ASSERT_MESSAGE_INTERNAL(...)  ::Chozo::Log::PrintAssertMessage(::Chozo::Log::Type::Core, "Assertion Failed", ##__VA_ARGS__)
-// 	#define CZ_ASSERT_MESSAGE_INTERNAL(...)  ::Chozo::Log::PrintAssertMessage(::Chozo::Log::Type::Client, "Assertion Failed", ##__VA_ARGS__)
-// #else
-// 	#define CZ_CORE_ASSERT_MESSAGE_INTERNAL(...)  ::Chozo::Log::PrintAssertMessage(::Chozo::Log::Type::Core, "Assertion Failed" __VA_OPT__(,) __VA_ARGS__)
-// 	#define CZ_ASSERT_MESSAGE_INTERNAL(...)  ::Chozo::Log::PrintAssertMessage(::Chozo::Log::Type::Client, "Assertion Failed" __VA_OPT__(,) __VA_ARGS__)
-// #endif
+// 	#define CZ_CORE_ASSERT_MESSAGE_INTERNAL(...)
+// ::Chozo::Log::PrintAssertMessage(::Chozo::Log::Type::Core, "Assertion
+// Failed", ##__VA_ARGS__) 	#define CZ_ASSERT_MESSAGE_INTERNAL(...)
+// ::Chozo::Log::PrintAssertMessage(::Chozo::Log::Type::Client, "Assertion
+// Failed", ##__VA_ARGS__) #else 	#define CZ_CORE_ASSERT_MESSAGE_INTERNAL(...)
+// ::Chozo::Log::PrintAssertMessage(::Chozo::Log::Type::Core, "Assertion Failed"
+// __VA_OPT__(,)
+// __VA_ARGS__) 	#define CZ_ASSERT_MESSAGE_INTERNAL(...)
+// ::Chozo::Log::PrintAssertMessage(::Chozo::Log::Type::Client, "Assertion
+// Failed" __VA_OPT__(,)
+// __VA_ARGS__) #endif
 
-#define CZ_ASSERT(condition, ...)                                                                                                                                                                      \
-    {                                                                                                                                                                                                  \
-        if (!(condition)) {                                                                                                                                                                            \
-            CZ_ERROR("Assertion Failed: {0}", __VA_ARGS__);                                                                                                                                            \
-            CZ_DEBUG_BREAK;                                                                                                                                                                            \
-        }                                                                                                                                                                                              \
+#define CZ_ASSERT(condition, ...)                                              \
+    {                                                                          \
+        if (!(condition)) {                                                    \
+            CZ_ERROR("Assertion Failed: {0}", __VA_ARGS__);                    \
+            CZ_DEBUG_BREAK;                                                    \
+        }                                                                      \
     }
-#define CZ_CORE_ASSERT(condition, ...)                                                                                                                                                                 \
-    {                                                                                                                                                                                                  \
-        if (!(condition)) {                                                                                                                                                                            \
-            CZ_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__);                                                                                                                                       \
-            CZ_DEBUG_BREAK;                                                                                                                                                                            \
-        }                                                                                                                                                                                              \
+#define CZ_CORE_ASSERT(condition, ...)                                         \
+    {                                                                          \
+        if (!(condition)) {                                                    \
+            CZ_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__);               \
+            CZ_DEBUG_BREAK;                                                    \
+        }                                                                      \
     }
-// #define CZ_CORE_ASSERT(condition, ...) { if(!(condition)) { CZ_CORE_ASSERT_MESSAGE_INTERNAL(__VA_ARGS__); CZ_DEBUG_BREAK; } }
-// #define CZ_ASSERT(condition, ...) { if(!(condition)) { CZ_ASSERT_MESSAGE_INTERNAL(__VA_ARGS__); CZ_DEBUG_BREAK; } }
+// #define CZ_CORE_ASSERT(condition, ...) { if(!(condition)) {
+// CZ_CORE_ASSERT_MESSAGE_INTERNAL(__VA_ARGS__); CZ_DEBUG_BREAK; } } #define
+// CZ_ASSERT(condition,
+// ...) { if(!(condition)) { CZ_ASSERT_MESSAGE_INTERNAL(__VA_ARGS__);
+// CZ_DEBUG_BREAK; } }
 #else
 #define CZ_ASSERT(condition, ...)
 #define CZ_CORE_ASSERT(condition, ...)
@@ -69,3 +87,21 @@ using int8 = std::int8_t;
 using int16 = std::int16_t;
 using int32 = std::int32_t;
 using int64 = std::int64_t;
+
+namespace Chozo {
+namespace fs = std::filesystem;
+
+using byte = uint8_t;
+using uint = uint32_t;
+
+template <typename T, typename... Args>
+using Callback = std::function<T(Args &&...args)>;
+
+template <typename T> using Scope = std::unique_ptr<T>;
+
+template <typename T, typename... Args>
+constexpr Scope<T> CreateScope(Args &&...args) {
+    return std::make_unique<T>(std::forward<Args>(args)...);
+}
+
+} // namespace Chozo

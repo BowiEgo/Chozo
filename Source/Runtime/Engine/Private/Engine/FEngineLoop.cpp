@@ -1,41 +1,52 @@
 ﻿#include "FEngineLoop.h"
-#include "Window/GenericPlatform/GLFWWindow.h"
+#include "RendererAPI.h"
 
 namespace Chozo {
 
-    DEFINE_LOG_CATEGORY(LogEngineLoop);
+DEFINE_LOG_CATEGORY(LogEngineLoop);
 
-    FEngineLoop::FEngineLoop()
-    { }
+FEngineLoop::FEngineLoop() {}
 
-    void FEngineLoop::Init()
-	{
-        CZ_LOG(LogEngineLoop, Info, "Engine Loop Initializing...");
+void FEngineLoop::Init() {
+    CZ_LOG(LogEngineLoop, Trace, "Engine Loop Initializing...");
 
-        FWindowDefinition def;
-        def.Title = "Chozo Engine - Vulkan";
-        def.Width = 1280;
-        def.Height = 720;
+    fs::path projectRoot = Utils::File::GetProjectRoot();
+    CZ_LOG(LogEngineLoop, Info,
+           "Project Root set from environment variable: {0}",
+           projectRoot.string());
+    VFS::SetProtocolPath("engine", projectRoot);
+    VFS::SetProtocolPath("shaders", projectRoot / "Shaders");
 
-        m_Window = std::make_unique<GLFWWindow>(def);
-	}
+    RendererAPI::SetAPI(RendererAPI::API::Vulkan);
 
-    void FEngineLoop::Tick()
-    {
-        if (m_Window) {
-            m_Window->OnUpdate();
-        }
-    }
+    FWindowDefinition def;
+    def.Title = "Chozo Engine - Vulkan";
+    def.Width = 1280;
+    def.Height = 720;
 
-    void FEngineLoop::Exit()
-    {
-        if (m_Window) {
-            m_Window->Shutdown();
-        }
-    }
+    m_Window = Window::Create(def);
+    CZ_ASSERT(m_Window, "Failed to create window!");
+    m_Window->Init();
 
-    bool FEngineLoop::ShouldClose() const
-    {
-        return m_Window ? m_Window->ShouldClose() : true;
+    m_RenderEngine = CreateScope<RenderEngine>(m_Window.get());
+    m_RenderEngine->Init();
+
+    CZ_LOG(LogEngineLoop, Info, "Engine Loop Initialized");
+}
+
+void FEngineLoop::Tick() {
+    if (m_Window) {
+        m_Window->OnUpdate();
     }
 }
+
+void FEngineLoop::Exit() {
+    if (m_Window) {
+        m_Window->Shutdown();
+    }
+}
+
+bool FEngineLoop::ShouldClose() const {
+    return m_Window ? m_Window->ShouldClose() : true;
+}
+} // namespace Chozo

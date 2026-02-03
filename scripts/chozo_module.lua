@@ -2,7 +2,7 @@ rule("chozo_module")
     on_load(function (target)
         local dir = target:scriptdir():gsub("\\", "/")
 
-        -- 1. Setup Include Directories
+        -- Setup Include Directories
         -- Include the root of Public/Private
         target:add("includedirs", dir .. "/Public", {public = true})
         target:add("includedirs", dir .. "/Private")
@@ -15,7 +15,7 @@ rule("chozo_module")
             target:add("includedirs", sub)
         end
 
-        -- 2. Add source files with PCH support
+        -- Add source files with PCH support
         local function add_files_if_exists(target, subdir, pattern, is_header)
             local search_path = path.join(dir, subdir, pattern)
             local matched_files = os.files(search_path)
@@ -36,7 +36,7 @@ rule("chozo_module")
             add_files_if_exists(target, subdir, "**.cpp", false)
         end
 
-        -- 3. Setup PCH and Export Macros
+        -- Setup PCH and Export Macros
         local pch_name = target:name() .. "PCH.h"
         local pch_path = path.join(dir, "Public", pch_name)
         if os.isfile(pch_path) then

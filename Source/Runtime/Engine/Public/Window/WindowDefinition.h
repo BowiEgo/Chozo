@@ -1,19 +1,14 @@
 ﻿#pragma once
 
-#include "CoreTypes.h"
+namespace Chozo {
 
-namespace Chozo
-{
-    
-    struct ENGINE_API FWindowDefinition {
-        std::string Title;
-        unsigned int Width;
-        unsigned int Height;
+struct ENGINE_API FWindowDefinition {
+    std::string Title;
+    float XScale, YScale = 1.0f;
+    unsigned int Width, Height;
+    float PixelRatio;
+    bool VSync;
 
-        FWindowDefinition()
-            : Title("Chozo Engine")
-            , Width(1280)
-            , Height(720)
-        {}
-    };
-}
+    FWindowDefinition() : Title("Chozo Engine"), Width(1280), Height(720) {}
+};
+} // namespace Chozo

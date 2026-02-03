@@ -14,6 +14,8 @@
 #include <utility>
 #include <vector>
 
+#include <CoreTypes.h>
+
 #ifndef WINDOW_WIDTH
 #define WINDOW_WIDTH 1280
 #endif
