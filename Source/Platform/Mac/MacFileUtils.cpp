@@ -1,19 +1,19 @@
 #include <mach-o/dyld.h>
 
-namespace Chozo {
+namespace ChozoUtils {
 
-namespace Utils::File {
+namespace File {
 
-fs::path GetExecutablePath() {
+std::filesystem::path GetExecutablePath() {
     char buffer[1024];
     uint32_t size = sizeof(buffer);
     if (_NSGetExecutablePath(buffer, &size) == 0)
-        return fs::path(buffer).lexically_normal();
+        return std::filesystem::path(buffer).lexically_normal();
     else {
         std::string path(size, '\0');
         _NSGetExecutablePath(path.data(), &size);
-        return fs::path(path).lexically_normal();
+        return std::filesystem::path(path).lexically_normal();
     }
 }
-} // namespace Utils::File
-} // namespace Chozo
+} // namespace File
+} // namespace ChozoUtils

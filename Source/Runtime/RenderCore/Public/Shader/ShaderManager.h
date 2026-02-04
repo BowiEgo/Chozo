@@ -5,29 +5,26 @@
 #include "Shader.h"
 #include "ShaderCompiler.h"
 
-namespace Chozo {
-
 DECLARE_LOG_CATEGORY_EXTERN(LogShaderManager, Info);
 
-class RENDERCORE_API ShaderManager : public RefCounted {
+class RENDERCORE_API CShaderManager : public FRefCounted {
 public:
-    ShaderManager() = default;
-    ~ShaderManager() = default;
+    CShaderManager() = default;
+    ~CShaderManager() = default;
 
-    static void Init(GraphicsContext *context);
-    static ShaderManager *Get() {
+    static void Init(CGraphicsContext *context);
+    static CShaderManager *Get() {
         CZ_CORE_ASSERT(
             s_Instance,
             "ShaderManager instance is null! Did you forget to call Init()?");
         return s_Instance;
     }
-    Ref<Shader> Load(const ShaderCreateInfo &rep);
+    TRef<CShader> Load(const FShaderCreateInfo &rep);
 
 private:
-    static ShaderManager *s_Instance;
-    GraphicsContext *m_Context;
+    static CShaderManager *s_Instance;
+    CGraphicsContext *m_Context;
 
-    std::unordered_map<ShaderID, Ref<Shader>> m_ShaderCache;
-    Scope<ShaderCompiler> m_Compiler;
+    std::unordered_map<FShaderID, TRef<CShader>> m_ShaderCache;
+    TScope<CShaderCompiler> m_Compiler;
 };
-} // namespace Chozo

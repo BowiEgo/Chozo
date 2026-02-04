@@ -1,13 +1,10 @@
 #include "OpenGLContext.h"
 
-namespace Chozo {
+COpenGLContext::COpenGLContext(IRendererWindow *windowHandle)
+    : CGraphicsContext(windowHandle) {}
 
-OpenGLContext::OpenGLContext(IRendererWindow *windowHandle)
-    : GraphicsContext(windowHandle) {}
+void COpenGLContext::Init() {}
 
-void OpenGLContext::Init() {}
-
-void OpenGLContext::SwapBuffers() {
+void COpenGLContext::SwapBuffers() {
     // Present the rendered image to the screen}
 }
-} // namespace Chozo

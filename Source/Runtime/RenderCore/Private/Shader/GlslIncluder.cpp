@@ -2,19 +2,17 @@
 #include "FileUtils.h"
 #include "VFS.h"
 
-namespace Chozo {
-
-shaderc_include_result *GlslIncluder::GetInclude(const char *requestedPath,
-                                                 shaderc_include_type type,
-                                                 const char *requestingPath,
-                                                 size_t include_depth) {
+shaderc_include_result *FGlslIncluder::GetInclude(const char *requestedPath,
+                                                  shaderc_include_type type,
+                                                  const char *requestingPath,
+                                                  size_t include_depth) {
     std::string path = requestedPath;
 
     // If it's a relative path (not starting with a protocol),
     // you might want to resolve it relative to the 'requestingPath'.
     // For now, VFS::Resolve handles our virtual protocols.
     auto physicalPath = VFS::Resolve(path);
-    std::string content = Utils::File::ReadTextFile(physicalPath);
+    std::string content = ChozoUtils::File::ReadTextFile(physicalPath);
 
     // Handle file not found case to prevent downstream crashes
     if (content.empty() && !std::filesystem::exists(physicalPath)) {
@@ -39,7 +37,7 @@ shaderc_include_result *GlslIncluder::GetInclude(const char *requestedPath,
     return result;
 }
 
-void GlslIncluder::ReleaseInclude(shaderc_include_result *data) {
+void FGlslIncluder::ReleaseInclude(shaderc_include_result *data) {
     if (data) {
         if (data->user_data) {
             delete static_cast<std::pair<std::string, std::string> *>(
@@ -48,5 +46,3 @@ void GlslIncluder::ReleaseInclude(shaderc_include_result *data) {
         delete data;
     }
 }
-
-} // namespace Chozo

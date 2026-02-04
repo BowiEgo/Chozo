@@ -1,9 +1,7 @@
 #pragma once
 
-namespace Chozo {
-
-using WindowHandle = void *;
-using WindowSurface = void *;
+using FWindowHandle = void *;
+using FWindowSurface = void *;
 
 class IRendererWindow {
 public:
@@ -11,8 +9,7 @@ public:
 
     virtual void GetFramebufferSize(int *width, int *height) const = 0;
     virtual std::vector<const char *> GetRequiredExtensions() const = 0;
-    virtual WindowHandle GetWindowWrapper() const = 0;
-    virtual WindowHandle GetNativeHandle()
+    virtual FWindowHandle GetWindowWrapper() const = 0;
+    virtual FWindowHandle GetNativeHandle()
         const = 0; // Windows HWND, Linux Window, MacOS NSWindow*
 };
-} // namespace Chozo

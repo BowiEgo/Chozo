@@ -2,12 +2,10 @@
 
 #include "GraphicsContext.h"
 
-namespace Chozo {
-
-class RENDERCORE_API OpenGLContext : public GraphicsContext {
+class RENDERCORE_API COpenGLContext : public CGraphicsContext {
 public:
-    OpenGLContext(IRendererWindow *windowHandle);
-    ~OpenGLContext() {};
+    COpenGLContext(IRendererWindow *windowHandle);
+    ~COpenGLContext() {};
 
     virtual void Init() override;
     virtual void SwapBuffers() override;
@@ -15,6 +13,5 @@ public:
     virtual void CreateRenderer() override {}; // TODO: Remove
 
 private:
-    WindowHandle m_WindowHandle{};
+    FWindowHandle m_FWindowHandle{};
 };
-} // namespace Chozo

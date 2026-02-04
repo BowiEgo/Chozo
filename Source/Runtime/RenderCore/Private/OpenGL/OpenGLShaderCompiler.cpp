@@ -1,11 +1,9 @@
 #include "OpenGLShaderCompiler.h"
 #include "FileUtils.h"
 
-namespace Chozo {
-
-bool OpenGLShaderCompiler::CompileInternal(
-    const ShaderCompilerInput &input, ShaderCompilerOutput &output) {
-    // std::string source = Utils::File::ReadTextFile(input.SourcePath);
+bool COpenGLShaderCompiler::CompileInternal(const FShaderCompilerInput &input,
+                                            FShaderCompilerOutput &output) {
+    // std::string source = ChozoUtils::File::ReadTextFile(input.SourcePath);
 
     // // Manual Macro Injection
     // std::string macroPrefix = "#version 450 core\n";
@@ -20,4 +18,3 @@ bool OpenGLShaderCompiler::CompileInternal(
     // output.bSucceeded = true;
     return true;
 };
-} // namespace Chozo

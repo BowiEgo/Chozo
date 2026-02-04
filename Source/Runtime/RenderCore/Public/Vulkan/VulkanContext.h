@@ -5,12 +5,10 @@
 #include "vulkan/vulkan.hpp"
 #include <vulkan/vulkan_raii.hpp>
 
-namespace Chozo {
-
-class RENDERCORE_API VulkanContext : public GraphicsContext {
+class RENDERCORE_API CVulkanContext : public CGraphicsContext {
 public:
-    VulkanContext(IRendererWindow *windowHandle);
-    ~VulkanContext() {};
+    CVulkanContext(IRendererWindow *windowHandle);
+    ~CVulkanContext() {};
 
     virtual void Init() override;
     virtual void SwapBuffers() override;
@@ -61,4 +59,3 @@ private:
     vk::Format m_SwapchainImageFormat;
     vk::Extent2D m_SwapchainExtent;
 };
-} // namespace Chozo

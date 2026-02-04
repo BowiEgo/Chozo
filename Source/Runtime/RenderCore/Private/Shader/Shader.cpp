@@ -5,24 +5,21 @@
 #include "VulkanContext.h"
 #include "VulkanShader.h"
 
-namespace Chozo {
+TRef<CShader> CShader::Create(CGraphicsContext *context,
+                              const FShaderCreateInfo &rep,
+                              const FShaderCompilerOutput &vsOutput,
+                              const FShaderCompilerOutput &fsOutput) {
 
-Ref<Shader> Shader::Create(GraphicsContext *context,
-    const ShaderCreateInfo &rep, const ShaderCompilerOutput &vsOutput,
-    const ShaderCompilerOutput &fsOutput) {
-
-    switch (RendererAPI::GetAPI()) {
-    case RendererAPI::API::None:
+    switch (CRendererAPI::GetType()) {
+    case CRendererAPI::EType::None:
         CZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
         return nullptr;
-    case RendererAPI::API::OpenGL:
-        return Ref<OpenGLShader>::Create(context, rep, vsOutput, fsOutput);
-    case RendererAPI::API::Vulkan:
-        return Ref<VulkanShader>::Create(context, rep, vsOutput, fsOutput);
+    case CRendererAPI::EType::OpenGL:
+        return TRef<COpenGLShader>::Create(context, rep, vsOutput, fsOutput);
+    case CRendererAPI::EType::Vulkan:
+        return TRef<CVulkanShader>::Create(context, rep, vsOutput, fsOutput);
     }
 
     CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
     return nullptr;
 }
-
-} // namespace Chozo

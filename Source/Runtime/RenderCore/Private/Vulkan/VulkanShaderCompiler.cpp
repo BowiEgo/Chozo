@@ -3,14 +3,12 @@
 // #include "GlslIncluder.h"
 #include "ShaderUtils.h"
 
-namespace Chozo {
-
 DEFINE_LOG_CATEGORY(LogVulkanShaderCompiler);
 
-bool VulkanShaderCompiler::CompileInternal(const ShaderCompilerInput &input,
-                                           ShaderCompilerOutput &output) {
-    fs::path sourcePath = VFS::Resolve(input.SourcePath);
-    std::string source = Utils::File::ReadTextFile(sourcePath);
+bool CVulkanShaderCompiler::CompileInternal(const FShaderCompilerInput &input,
+                                            FShaderCompilerOutput &output) {
+    std::filesystem::path sourcePath = VFS::Resolve(input.SourcePath);
+    std::string source = ChozoUtils::File::ReadTextFile(sourcePath);
     CZ_LOG(LogVulkanShaderCompiler, Trace, "Source Path: {0}",
            sourcePath.string());
     CZ_LOG(LogVulkanShaderCompiler, Trace, "Source Size: {0} bytes",
@@ -33,7 +31,8 @@ bool VulkanShaderCompiler::CompileInternal(const ShaderCompilerInput &input,
     options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
     // Map and Compile
-    shaderc_shader_kind kind = ShaderUtils::ShaderStageToKind(input.Stage);
+    shaderc_shader_kind kind =
+        ChozoUtils::Shader::ShaderStageToKind(input.Stage);
 
     // CompileGlslToSpv handles macros and includes internally
     // if options are set
@@ -55,4 +54,3 @@ bool VulkanShaderCompiler::CompileInternal(const ShaderCompilerInput &input,
     // CZ_LOG(LogVulkanShaderCompiler, Trace, "{}", source);
     return true;
 }
-} // namespace Chozo

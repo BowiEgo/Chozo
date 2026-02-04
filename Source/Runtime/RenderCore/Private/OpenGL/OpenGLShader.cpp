@@ -2,20 +2,18 @@
 #include "Logger.h"
 #include "ShaderCompiler.h"
 
-namespace Chozo {
-
 DEFINE_LOG_CATEGORY(LogOpenGLShader);
 
-OpenGLShader::OpenGLShader(GraphicsContext *context,
-    const ShaderCreateInfo &rep, const ShaderCompilerOutput &vsOutput,
-    const ShaderCompilerOutput &fsOutput)
-    : Shader(context, rep) {}
+COpenGLShader::COpenGLShader(CGraphicsContext *context,
+                             const FShaderCreateInfo &rep,
+                             const FShaderCompilerOutput &vsOutput,
+                             const FShaderCompilerOutput &fsOutput)
+    : CShader(context, rep) {}
 
-void OpenGLShader::Bind() const {}
-void OpenGLShader::Unbind() const {}
-void OpenGLShader::ClearCache() {}
-void OpenGLShader::Compile() {
+void COpenGLShader::Bind() const {}
+void COpenGLShader::Unbind() const {}
+void COpenGLShader::ClearCache() {}
+void COpenGLShader::Compile() {
     CZ_LOG(LogOpenGLShader, Trace, "Compiling shader '{}'", m_Rep.Name);
 }
-void OpenGLShader::AsyncCompile() {}
-} // namespace Chozo
+void COpenGLShader::AsyncCompile() {}

@@ -1,9 +1,6 @@
 ﻿#include "Window.h"
-#include "GenericGLFWWindow.h"
+#include "GLFWWindow.h"
 
-namespace Chozo {
-
-Scope<Window> Window::Create(const FWindowDefinition &windowDef) {
-    return CreateScope<GenericGLFWWindow>(windowDef);
+TScope<CWindow> CWindow::Create(const FWindowDefinition &windowDef) {
+    return CreateScope<CGLFWWindow>(windowDef);
 }
-} // namespace Chozo

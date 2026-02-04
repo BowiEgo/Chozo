@@ -1,8 +1,6 @@
 #pragma once
 
-namespace Chozo {
-
-using ShaderID = uint32_t;
+using FShaderID = uint32_t;
 
 #define FOREACH_SHADER_STAGE(TYPE)                                             \
     TYPE(Vertex, vertex, VERTEX, vert)                                         \
@@ -95,7 +93,7 @@ struct AttributeInfo {
     uint32_t location;
 };
 
-struct ShaderReflection {
+struct FShaderReflection {
     std::vector<UniformInfo> uniforms;
     std::vector<AttributeInfo> attributes;
     std::unordered_map<std::string, uint32_t> uniformLocations;
@@ -103,16 +101,16 @@ struct ShaderReflection {
 
 using ShaderDefinitions = std::map<std::string, std::string>;
 
-struct ShaderCreateInfo {
+struct FShaderCreateInfo {
     std::string Name;
     std::string VirtualPath;
     std::string EntryPoint;
     ShaderDefinitions
         Definitions; // Macros for permutations, e.g., {"USE_ALBEDO": "1"}
 
-    ShaderCreateInfo(const std::string name, const std::string path,
-                     const std::string entryPoint = "main",
-                     const ShaderDefinitions &defs = {})
+    FShaderCreateInfo(const std::string name, const std::string path,
+                      const std::string entryPoint = "main",
+                      const ShaderDefinitions &defs = {})
         : Name(name), VirtualPath(path), EntryPoint(entryPoint),
           Definitions(defs) {}
 
@@ -135,18 +133,16 @@ struct ShaderCreateInfo {
 };
 
 // Define the environment and parameters for a single shader compilation task
-struct ShaderCompilerInput {
+struct FShaderCompilerInput {
     std::string SourcePath;
     ShaderStage Stage;
     ShaderMacros Macros;
 };
 
 // The result of the compilation, including binaries and reflection data
-struct ShaderCompilerOutput {
+struct FShaderCompilerOutput {
     std::vector<uint32_t> Binary;
     std::string SourceCode;
-    ShaderReflection Reflection;
+    FShaderReflection Reflection;
     bool bSucceeded = false;
 };
-
-} // namespace Chozo

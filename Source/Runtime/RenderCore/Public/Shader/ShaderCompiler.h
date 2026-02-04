@@ -3,26 +3,23 @@
 #include "Core.h"
 #include "ShaderTypes.h"
 
-namespace Chozo {
-
 DECLARE_LOG_CATEGORY_EXTERN(LogShaderCompiler, Info);
 
-class RENDERCORE_API ShaderCompiler : public RefCounted {
+class RENDERCORE_API CShaderCompiler : public FRefCounted {
 public:
-    virtual ~ShaderCompiler() = default;
+    virtual ~CShaderCompiler() = default;
 
-    void PreProcess(const ShaderCompilerInput &input,
+    void PreProcess(const FShaderCompilerInput &input,
                     std::string &outProcessedSource);
-    ShaderReflection Reflect();
-    bool Compile(const ShaderCreateInfo &rep, ShaderCompilerOutput &vsOutput,
-                 ShaderCompilerOutput &fsOutput);
+    FShaderReflection Reflect();
+    bool Compile(const FShaderCreateInfo &rep, FShaderCompilerOutput &vsOutput,
+                 FShaderCompilerOutput &fsOutput);
 
-    virtual bool CompileInternal(const ShaderCompilerInput &input,
-                                 ShaderCompilerOutput &output) = 0;
+    virtual bool CompileInternal(const FShaderCompilerInput &input,
+                                 FShaderCompilerOutput &output) = 0;
 
-    static Scope<ShaderCompiler> Create();
+    static TScope<CShaderCompiler> Create();
 
 protected:
     // Store compiler settings, not instance data like source code
 };
-} // namespace Chozo

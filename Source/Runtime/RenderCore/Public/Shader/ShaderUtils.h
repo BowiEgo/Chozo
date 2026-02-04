@@ -5,9 +5,7 @@
 
 #include <shaderc/shaderc.hpp>
 
-namespace Chozo {
-
-namespace ShaderUtils {
+namespace ChozoUtils::Shader {
 
 inline ShaderStage StringToShaderStage(std::string_view shaderStage) {
 #define GENERATE_IF(ENUM, LOWER_ENUM, UPPER_ENUM, SHORT_ENUM)                  \
@@ -31,7 +29,7 @@ inline const char *ShaderStageToString(ShaderStage shaderStage) {
 }
 
 inline ShaderStage GetShaderStageFromExtension(const std::string &extension) {
-    const std::string ext = Utils::String::ToLowerCopy(extension);
+    const std::string ext = ChozoUtils::String::ToLowerCopy(extension);
     if (s_ShaderExtensionMap.find(ext) == s_ShaderExtensionMap.end())
         return ShaderStage::None;
 
@@ -63,25 +61,25 @@ inline std::string
     }
 }
 
-inline fs::path GetCachePathByNameAndStage(const std::string_view name,
-                                           ShaderStage stage) {
+inline std::filesystem::path
+    GetCachePathByNameAndStage(const std::string_view name, ShaderStage stage) {
     if (name.find_first_of("/\\") != std::string_view::npos) {
         throw std::invalid_argument("Shader name contains path separators");
     }
 
-    fs::path cacheDir = Utils::File::GetShaderCacheDirectory();
+    std::filesystem::path cacheDir =
+        ChozoUtils::File::GetShaderCacheDirectory();
 
-    fs::path fullPath =
+    std::filesystem::path fullPath =
         (cacheDir / name)
-            .concat(ShaderUtils::ShaderStageToVulkanCacheFileExtension(stage))
+            .concat(ChozoUtils::Shader::ShaderStageToVulkanCacheFileExtension(
+                stage))
             .lexically_normal();
 
     std::wstring pathStr = fullPath.wstring();
     std::replace(pathStr.begin(), pathStr.end(), L'\\', L'/');
 
-    return fs::path(pathStr);
+    return std::filesystem::path(pathStr);
 }
 
-} // namespace ShaderUtils
-
-} // namespace Chozo
+} // namespace ChozoUtils::Shader

@@ -1,4 +1,4 @@
-#include "GenericGLFWWindow.h"
+#include "GLFWWindow.h"
 
 #ifdef CHOZO_PLATFORM_WINDOWS
     #ifndef NOMINMAX
@@ -16,17 +16,14 @@
 
 #include <GLFW/glfw3native.h>
 
-namespace Chozo {
+DEFINE_LOG_CATEGORY(LogCGLFWWindow);
 
-DEFINE_LOG_CATEGORY(LogGenericGLFWWindow);
+CGLFWWindow::~CGLFWWindow() {}
 
-GenericGLFWWindow::~GenericGLFWWindow() {}
+void CGLFWWindow::Init() { CreateGLFWWindow(); }
 
-void GenericGLFWWindow::Init() { CreateGLFWWindow(); }
-
-void GenericGLFWWindow::Shutdown() {
-    CZ_LOG(GenericGLFWWindow, Trace, "Destroying window {0}",
-           m_Definition.Title);
+void CGLFWWindow::Shutdown() {
+    CZ_LOG(CGLFWWindow, Trace, "Destroying window {0}", m_Definition.Title);
 
     if (m_Window) {
         glfwDestroyWindow(GetGLFWWindow());
@@ -35,22 +32,22 @@ void GenericGLFWWindow::Shutdown() {
     glfwTerminate();
 }
 
-void GenericGLFWWindow::OnUpdate() {
+void CGLFWWindow::OnUpdate() {
     /* Poll for and process events */
     glfwPollEvents();
 }
 
-void GenericGLFWWindow::SetVSync(bool enabled) { m_Definition.VSync = enabled; }
+void CGLFWWindow::SetVSync(bool enabled) { m_Definition.VSync = enabled; }
 
-bool GenericGLFWWindow::ShouldClose() const {
+bool CGLFWWindow::ShouldClose() const {
     return glfwWindowShouldClose(GetGLFWWindow());
 }
 
-void GenericGLFWWindow::GetFramebufferSize(int *width, int *height) const {
+void CGLFWWindow::GetFramebufferSize(int *width, int *height) const {
     glfwGetFramebufferSize(GetGLFWWindow(), width, height);
 }
 
-std::vector<const char *> GenericGLFWWindow::GetRequiredExtensions() const {
+std::vector<const char *> CGLFWWindow::GetRequiredExtensions() const {
     uint32_t glfwExtensionCount = 0;
     const char **glfwExtensions =
         glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -59,7 +56,7 @@ std::vector<const char *> GenericGLFWWindow::GetRequiredExtensions() const {
                                      glfwExtensions + glfwExtensionCount);
 }
 
-WindowHandle GenericGLFWWindow::GetNativeHandle() const {
+FWindowHandle CGLFWWindow::GetNativeHandle() const {
 #ifdef CHOZO_PLATFORM_WINDOWS
     return (void *)glfwGetWin32Window((GLFWwindow *)m_Window);
 #elif defined(CHOZO_PLATFORM_LINUX)
@@ -72,13 +69,14 @@ WindowHandle GenericGLFWWindow::GetNativeHandle() const {
     return nullptr;
 }
 
-void GenericGLFWWindow::CreateGLFWWindow() {
-    CZ_LOG(LogGenericGLFWWindow, Trace, "Creating window({1}, {2}) for {0}",
+void CGLFWWindow::CreateGLFWWindow() {
+    CZ_LOG(LogCGLFWWindow, Trace, "Creating window({1}, {2}) for {0}",
            m_Definition.Title, m_Definition.Width, m_Definition.Height);
 
     const bool dimensionsInValid =
         m_Definition.Width <= 0 || m_Definition.Height <= 0;
-    CZ_ASSERT(!dimensionsInValid, "Invalid window dimensions!");
+    CZ_CORE_ASSERT(!dimensionsInValid,
+                   "CGLFWWindow: Invalid window dimensions!");
 
 #ifdef CZ_PLATFORM_WIN
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
@@ -87,8 +85,8 @@ void GenericGLFWWindow::CreateGLFWWindow() {
     // Initialize GLFW window
     if (!s_GLFWInitialized) {
         const int success = glfwInit();
-        CZ_ASSERT(success, "Could not initialize GLFW!");
-        glfwSetErrorCallback(GLFWErrorCallback);
+        CZ_CORE_ASSERT(success, "CGLFWWindow: Could not initialize GLFW!");
+        glfwSetErrorCallback(CGLFWWindow::OnGLFWError);
         s_GLFWInitialized = true;
     }
 
@@ -117,10 +115,11 @@ void GenericGLFWWindow::CreateGLFWWindow() {
     m_Definition.XScale = xscale * factor;
     m_Definition.YScale = yscale * factor;
 
-    CZ_LOG(LogGenericGLFWWindow, Info,
-           "GLFW Window created for Vulkan successfully.");
+    CZ_LOG(LogCGLFWWindow, Info, "GLFW Window for Vulkan created.");
 
     SetVSync(false);
 }
 
-} // namespace Chozo
+void CGLFWWindow::OnGLFWError(int error, const char *description) {
+    CZ_LOG(LogCGLFWWindow, Error, "GLFW Error ({0}):", error, description);
+}

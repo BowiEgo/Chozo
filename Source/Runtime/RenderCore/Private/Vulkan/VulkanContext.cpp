@@ -5,8 +5,6 @@
 #include "vulkan/vulkan.hpp"
 #include "vulkan/vulkan_raii.hpp"
 
-namespace Chozo {
-
 static VKAPI_ATTR VkBool32 VKAPI_CALL
     DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                   VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -25,12 +23,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL
                      // validation layer message should not be aborted
 }
 
-VulkanContext::VulkanContext(IRendererWindow *windowHandle)
-    : GraphicsContext(windowHandle) {
+CVulkanContext::CVulkanContext(IRendererWindow *windowHandle)
+    : CGraphicsContext(windowHandle) {
     // Initialize Vulkan with the provided window handle
 }
 
-void VulkanContext::Init() {
+void CVulkanContext::Init() {
     // Set up Vulkan context
     CreateVKInstance();
     SetupDebugMessenger();
@@ -40,14 +38,14 @@ void VulkanContext::Init() {
     CreateSwapchain();
 }
 
-void VulkanContext::SwapBuffers() {
+void CVulkanContext::SwapBuffers() {
     // Present the rendered image to the screen
 }
 
-void VulkanContext::CreateVKInstance() {
+void CVulkanContext::CreateVKInstance() {
     // Check validation layer support
-    if (VulkanUtils::EnableValidationLayers &&
-        !VulkanUtils::CheckValidationLayerSupport(m_Context)) {
+    if (ChozoUtils::Vulkan::EnableValidationLayers &&
+        !ChozoUtils::Vulkan::CheckValidationLayerSupport(m_Context)) {
         CZ_LOG(LogVulkanContext, Warning,
                "Validation layers requested, but not available!");
     }
@@ -55,13 +53,13 @@ void VulkanContext::CreateVKInstance() {
     // Get required extensions from GLFW
     auto extensions = m_Window->GetRequiredExtensions();
 
-    if (VulkanUtils::EnableValidationLayers) {
+    if (ChozoUtils::Vulkan::EnableValidationLayers) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
     // Check if the required GLFW extensions are supported by the Vulkan
     // implementation.
-    if (!VulkanUtils::CheckInstanceExtensions(m_Context, extensions)) {
+    if (!ChozoUtils::Vulkan::CheckInstanceExtensions(m_Context, extensions)) {
         throw std::runtime_error(
             "Required Vulkan extensions are not supported!");
     }
@@ -82,11 +80,12 @@ void VulkanContext::CreateVKInstance() {
             .setPpEnabledExtensionNames(extensions.data());
 
     // Add validation layers if enabled
-    if (VulkanUtils::EnableValidationLayers) {
+    if (ChozoUtils::Vulkan::EnableValidationLayers) {
         createInfo
-            .setEnabledLayerCount(
-                static_cast<uint32_t>(VulkanUtils::ValidationLayers.size()))
-            .setPpEnabledLayerNames(VulkanUtils::ValidationLayers.data());
+            .setEnabledLayerCount(static_cast<uint32_t>(
+                ChozoUtils::Vulkan::ValidationLayers.size()))
+            .setPpEnabledLayerNames(
+                ChozoUtils::Vulkan::ValidationLayers.data());
     }
 
     // Create RAII Instance
@@ -101,8 +100,8 @@ void VulkanContext::CreateVKInstance() {
     }
 }
 
-void VulkanContext::SetupDebugMessenger() {
-    if (!VulkanUtils::EnableValidationLayers)
+void CVulkanContext::SetupDebugMessenger() {
+    if (!ChozoUtils::Vulkan::EnableValidationLayers)
         return;
 
     vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(
@@ -126,7 +125,7 @@ void VulkanContext::SetupDebugMessenger() {
         vk::raii::DebugUtilsMessengerEXT(m_Instance, messengerInfo);
 }
 
-void VulkanContext::CreateVKSurface() {
+void CVulkanContext::CreateVKSurface() {
     VkSurfaceKHR surfaceHandle;
     VkResult result;
 
@@ -147,15 +146,14 @@ void VulkanContext::CreateVKSurface() {
         // Implement Metal/Cocoa logic here...
 #endif
 
-        CZ_LOG(LogVulkanContext, Info,
-               "Vulkan RAII Surface created successfully.");
+        CZ_LOG(LogVulkanContext, Info, "Vulkan RAII Surface created.");
     } catch (const std::exception &e) {
         CZ_LOG(LogVulkanContext, Fatal, "Failed to create Window Surface: {0}",
                e.what());
     }
 }
 
-void VulkanContext::PickPhysicalDevice() {
+void CVulkanContext::PickPhysicalDevice() {
     auto devices = m_Instance.enumeratePhysicalDevices();
 
     if (devices.empty()) {
@@ -171,13 +169,13 @@ void VulkanContext::PickPhysicalDevice() {
     auto deviceProperties = m_PhysicalDevice.getProperties();
     auto deviceFeatures = m_PhysicalDevice.getFeatures();
 
-    VulkanUtils::LogPhysicalDeviceInfo(deviceProperties);
-    VulkanUtils::LogMemoryBudget(m_PhysicalDevice);
+    ChozoUtils::Vulkan::LogPhysicalDeviceInfo(deviceProperties);
+    ChozoUtils::Vulkan::LogMemoryBudget(m_PhysicalDevice);
 }
 
-void VulkanContext::CreateLogicalDevice() {
-    VulkanUtils::QueueFamilyIndices indices =
-        VulkanUtils::FindQueueFamilies(m_PhysicalDevice, m_Surface);
+void CVulkanContext::CreateLogicalDevice() {
+    FQueueFamilyIndices indices =
+        ChozoUtils::Vulkan::FindQueueFamilies(m_PhysicalDevice, m_Surface);
 
     std::set<uint32_t> uniqueQueueFamilies = {indices.Graphics.value(),
                                               indices.Present.value(),
@@ -224,18 +222,18 @@ void VulkanContext::CreateLogicalDevice() {
            indices.Compute.value());
 }
 
-void VulkanContext::CreateSwapchain() {
-    VulkanUtils::SwapchainSupportDetails details =
-        VulkanUtils::QuerySwapchainSupport(m_PhysicalDevice, m_Surface);
+void CVulkanContext::CreateSwapchain() {
+    ChozoUtils::Vulkan::SwapchainSupportDetails details =
+        ChozoUtils::Vulkan::QuerySwapchainSupport(m_PhysicalDevice, m_Surface);
 
     int pixelWidth, pixelHeight;
     m_Window->GetFramebufferSize(&pixelWidth, &pixelHeight);
 
     vk::SurfaceFormatKHR surfaceFormat =
-        VulkanUtils::ChooseSwapSurfaceFormat(details.formats);
+        ChozoUtils::Vulkan::ChooseSwapSurfaceFormat(details.formats);
     vk::PresentModeKHR presentMode =
-        VulkanUtils::ChooseSwapPresentMode(details.presentModes);
-    vk::Extent2D extent = VulkanUtils::ChooseSwapExtent(
+        ChozoUtils::Vulkan::ChooseSwapPresentMode(details.presentModes);
+    vk::Extent2D extent = ChozoUtils::Vulkan::ChooseSwapExtent(
         details.capabilities, pixelWidth, pixelHeight);
 
     // Determine image count (Minimum + 1 for triple buffering)
@@ -255,8 +253,8 @@ void VulkanContext::CreateSwapchain() {
     createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
     // If indices are different, use Concurrent mode; otherwise use Exclusive
-    VulkanUtils::QueueFamilyIndices indices =
-        VulkanUtils::FindQueueFamilies(m_PhysicalDevice, m_Surface);
+    FQueueFamilyIndices indices =
+        ChozoUtils::Vulkan::FindQueueFamilies(m_PhysicalDevice, m_Surface);
     uint32_t queueFamilyIndices[] = {indices.Graphics.value(),
                                      indices.Present.value()};
     if (indices.Graphics != indices.Present) {
@@ -288,7 +286,7 @@ void VulkanContext::CreateSwapchain() {
     m_SwapchainExtent = extent;
 }
 
-void VulkanContext::CreateImageViews() {
+void CVulkanContext::CreateImageViews() {
     m_SwapchainImageViews.clear();
 
     vk::ImageViewCreateInfo createInfo;
@@ -313,9 +311,9 @@ void VulkanContext::CreateImageViews() {
 }
 
 // Consolidates all state into a single immutable pipeline object
-void VulkanContext::CreateGraphicsPipeline() {
-    Ref<Shader> myShader = ShaderManager::Get()->Load(
-        ShaderCreateInfo("Test", "shaders://Test.glsl"));
+void CVulkanContext::CreateGraphicsPipeline() {
+    TRef<CShader> myShader = CShaderManager::Get()->Load(
+        FShaderCreateInfo("Test", "shaders://Test.glsl"));
     // // 1. Load Shaders (Assuming you used the automated build we discussed)
     // auto vertShaderCode = ReadShaderFile("shaders/simple.vert.spv");
     // auto fragShaderCode = ReadShaderFile("shaders/simple.frag.spv");
@@ -388,8 +386,7 @@ void VulkanContext::CreateGraphicsPipeline() {
     // m_GraphicsPipeline =
     //     m_LogicalDevice.createGraphicsPipeline(nullptr, pipelineInfo);
 }
-void VulkanContext::CreateCommandPool() {}
-void VulkanContext::CreateVertexBuffer() {}
-void VulkanContext::CreateCommandBuffers() {}
-void VulkanContext::CreateSyncObjects() {}
-} // namespace Chozo
+void CVulkanContext::CreateCommandPool() {}
+void CVulkanContext::CreateVertexBuffer() {}
+void CVulkanContext::CreateCommandBuffers() {}
+void CVulkanContext::CreateSyncObjects() {}

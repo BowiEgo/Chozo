@@ -4,16 +4,14 @@
 #include "vulkan/vulkan.hpp"
 #include <vulkan/vulkan_raii.hpp>
 
-namespace Chozo {
-
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanShader, Info);
 
-class RENDERCORE_API VulkanShader : public Shader {
+class RENDERCORE_API CVulkanShader : public CShader {
 public:
-    VulkanShader(GraphicsContext *context, const ShaderCreateInfo &rep,
-                 const ShaderCompilerOutput &vsOutput,
-                 const ShaderCompilerOutput &fsOutput);
-    ~VulkanShader() {};
+    CVulkanShader(CGraphicsContext *context, const FShaderCreateInfo &rep,
+                  const FShaderCompilerOutput &vsOutput,
+                  const FShaderCompilerOutput &fsOutput);
+    ~CVulkanShader() {};
 
     void Bind() const override;
     void Unbind() const override;
@@ -25,4 +23,3 @@ private:
     vk::raii::ShaderModule m_VertexModule{nullptr};
     vk::raii::ShaderModule m_FragmentModule{nullptr};
 };
-} // namespace Chozo

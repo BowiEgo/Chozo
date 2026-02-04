@@ -5,21 +5,14 @@
 
 #include <GLFW/glfw3.h>
 
-namespace Chozo {
-
-DECLARE_LOG_CATEGORY_EXTERN(LogGenericGLFWWindow, Info);
+DECLARE_LOG_CATEGORY_EXTERN(LogCGLFWWindow, Info);
 
 static bool s_GLFWInitialized = false;
 
-static void GLFWErrorCallback(int error, const char *description) {
-    CZ_LOG(LogGenericGLFWWindow, Error, "GLFW Error ({0}):", error,
-           description);
-}
-
-class ENGINE_API GenericGLFWWindow : public Window {
+class ENGINE_API CGLFWWindow : public CWindow {
 public:
-    GenericGLFWWindow(const FWindowDefinition &def) : Window(def) {};
-    ~GenericGLFWWindow();
+    CGLFWWindow(const FWindowDefinition &def) : CWindow(def) {};
+    ~CGLFWWindow();
 
     // from Window
     virtual void Init() override;
@@ -31,13 +24,15 @@ public:
     // from IRendererWindow
     virtual void GetFramebufferSize(int *width, int *height) const override;
     virtual std::vector<const char *> GetRequiredExtensions() const override;
-    virtual WindowHandle GetNativeHandle() const override;
+    virtual FWindowHandle GetNativeHandle() const override;
 
     GLFWwindow *GetGLFWWindow() const {
         return static_cast<GLFWwindow *>(m_Window);
     }
 
 private:
+    static void OnGLFWError(int error, const char *description);
+
+private:
     void CreateGLFWWindow();
 };
-} // namespace Chozo

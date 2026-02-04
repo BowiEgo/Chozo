@@ -3,11 +3,11 @@
 #include <codecvt>
 
 #if defined(CZ_PLATFORM_WIN)
-#include <windows.h>
+    #include <windows.h>
 #else
 #endif
 
-namespace Chozo::Utils {
+namespace ChozoUtils {
 
 namespace String {
 
@@ -18,7 +18,7 @@ inline bool isNumeric(const std::string &str) {
 
 inline std::string &ToLower(std::string &string) {
     std::transform(string.begin(), string.end(), string.begin(),
-        [](const unsigned char c) { return std::tolower(c); });
+                   [](const unsigned char c) { return std::tolower(c); });
     return string;
 }
 
@@ -43,7 +43,6 @@ inline std::string FormatWithCommas(uint64_t value) {
 }
 } // namespace Numeric
 
-namespace WChar {
+namespace WChar {} // namespace WChar
 
-} // namespace WChar
-} // namespace Chozo::Utils
+} // namespace ChozoUtils

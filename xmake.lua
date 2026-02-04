@@ -11,6 +11,7 @@ end
 if is_mode("release") then
     set_symbols("hidden")  -- Strip symbols for smaller binary size
     set_optimize("fastest") -- Maximize performance
+    add_defines("CZ_DIST")
 end
 
 add_runenvs("CHOZO_ROOT", os.projectdir())

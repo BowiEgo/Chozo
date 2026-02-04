@@ -1,4 +1,4 @@
-# Chozo Engine Logging System Documentation
+# Logging System Documentation
 
 ## 1. Overview
 

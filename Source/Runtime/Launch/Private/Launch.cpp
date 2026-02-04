@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
     std::string msg = "Starting up Chozo Engine..";
     CZ_LOG(LogLaunch, Info, msg);
 
-    Chozo::FEngineLoop engineLoop;
+    CEngineLoop engineLoop;
 
     engineLoop.Init();
 

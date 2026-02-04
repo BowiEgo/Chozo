@@ -3,11 +3,9 @@
 #include "CoreTypes.h"
 #include <atomic>
 
-namespace Chozo {
-
-class RefCounted {
+class FRefCounted {
 public:
-    virtual ~RefCounted() = default;
+    virtual ~FRefCounted() = default;
 
     void IncRefCount() const { ++m_RefCount; }
     void DecRefCount() const { --m_RefCount; }
@@ -24,52 +22,53 @@ CORE_API void RemoveFromLiveReferences(void *instance);
 CORE_API bool IsLive(const void *instance);
 } // namespace RefUtils
 
-template <typename T> class Ref {
+template <typename T> class TRef {
 public:
-    Ref() : m_Instance(nullptr) {}
+    TRef() : m_Instance(nullptr) {}
 
-    Ref(std::nullptr_t n) // NOLINT
+    TRef(std::nullptr_t n) // NOLINT
         : m_Instance(nullptr) {}
 
-    Ref(T *instance) // NOLINT
+    TRef(T *instance) // NOLINT
         : m_Instance(instance) {
-        static_assert(std::is_base_of_v<RefCounted, T>, "Class is not RefCounted!");
+        static_assert(std::is_base_of_v<FRefCounted, T>,
+                      "Class is not TRefCounted!");
 
         IncRef();
     }
 
     template <typename T2>
-    Ref(const Ref<T2> &other) // NOLINT
+    TRef(const TRef<T2> &other) // NOLINT
     {
         m_Instance = (T *)other.m_Instance;
         IncRef();
     }
 
     template <typename T2>
-    Ref(Ref<T2> &&other) // NOLINT
+    TRef(TRef<T2> &&other) // NOLINT
     {
         m_Instance = (T *)other.m_Instance;
         other.m_Instance = nullptr;
     }
 
     // Takes a raw pointer that ALREADY has a +1 ref count and wraps it
-    static Ref<T> Adopt(T *instance) // NOLINT
+    static TRef<T> Adopt(T *instance) // NOLINT
     {
         // We call a private constructor that doesn't trigger IncRef
-        return Ref<T>(instance, false);
+        return TRef<T>(instance, false);
     }
 
-    ~Ref() { DecRef(); }
+    ~TRef() { DecRef(); }
 
-    Ref(const Ref<T> &other) : m_Instance(other.m_Instance) { IncRef(); }
+    TRef(const TRef<T> &other) : m_Instance(other.m_Instance) { IncRef(); }
 
-    Ref &operator=(std::nullptr_t) {
+    TRef &operator=(std::nullptr_t) {
         DecRef();
         m_Instance = nullptr;
         return *this;
     }
 
-    Ref &operator=(const Ref<T> &other) {
+    TRef &operator=(const TRef<T> &other) {
         if (this == &other)
             return *this;
 
@@ -80,7 +79,7 @@ public:
         return *this;
     }
 
-    template <typename T2> Ref &operator=(const Ref<T2> &other) {
+    template <typename T2> TRef &operator=(const TRef<T2> &other) {
         other.IncRef();
         DecRef();
 
@@ -88,7 +87,7 @@ public:
         return *this;
     }
 
-    template <typename T2> Ref &operator=(Ref<T2> &&other) {
+    template <typename T2> TRef &operator=(TRef<T2> &&other) {
         DecRef();
 
         m_Instance = other.m_Instance;
@@ -116,21 +115,23 @@ public:
         m_Instance = instance;
     }
 
-    template <typename T2> Ref<T2> As() const { return Ref<T2>(*this); }
+    template <typename T2> TRef<T2> As() const { return TRef<T2>(*this); }
 
-    template <typename... Args> static Ref<T> Create(Args &&...args) {
+    template <typename... Args> static TRef<T> Create(Args &&...args) {
 #if defined(ENGINE_PLATFORM_WIN32)
-        return Ref<T>(new (typeid(T).name()) T(std::forward<Args>(args)...));
+        return TRef<T>(new (typeid(T).name()) T(std::forward<Args>(args)...));
 #else
-        return Ref<T>(new T(std::forward<Args>(args)...));
+        return TRef<T>(new T(std::forward<Args>(args)...));
 #endif
     }
 
-    bool operator==(const Ref<T> &other) const { return m_Instance == other.m_Instance; }
+    bool operator==(const TRef<T> &other) const {
+        return m_Instance == other.m_Instance;
+    }
 
-    bool operator!=(const Ref<T> &other) const { return !(*this == other); }
+    bool operator!=(const TRef<T> &other) const { return !(*this == other); }
 
-    bool EqualsObject(const Ref<T> &other) {
+    bool EqualsObject(const TRef<T> &other) {
         if (!m_Instance || !other.m_Instance)
             return false;
 
@@ -138,7 +139,7 @@ public:
     }
 
 private:
-    Ref(T *instance, bool increment) : m_Instance(instance) {
+    TRef(T *instance, bool increment) : m_Instance(instance) {
         if (m_Instance && increment) {
             IncRef();
         }
@@ -163,7 +164,7 @@ private:
         }
     }
 
-    template <class T2> friend class Ref;
+    template <class T2> friend class TRef;
     mutable T *m_Instance;
 };
 
@@ -171,7 +172,7 @@ template <typename T> class WeakRef {
 public:
     WeakRef() = default;
 
-    WeakRef(Ref<T> ref) // NOLINT
+    WeakRef(TRef<T> ref) // NOLINT
     {
         m_Instance = ref.Raw();
     }
@@ -187,7 +188,9 @@ public:
     T &operator*() { return *m_Instance; }
     const T &operator*() const { return *m_Instance; }
 
-    [[nodiscard]] bool IsValid() const { return m_Instance ? RefUtils::IsLive(m_Instance) : false; }
+    [[nodiscard]] bool IsValid() const {
+        return m_Instance ? RefUtils::IsLive(m_Instance) : false;
+    }
     explicit operator bool() const { return IsValid(); }
 
     template <typename T2> WeakRef<T2> As() const {
@@ -197,4 +200,3 @@ public:
 private:
     T *m_Instance = nullptr;
 };
-} // namespace Chozo

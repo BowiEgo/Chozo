@@ -4,22 +4,18 @@
 #include "GraphicsContext.h"
 #include "Window.h"
 
-namespace Chozo {
-
 DECLARE_LOG_CATEGORY_EXTERN(LogRenderEngine, Info);
 
-class ENGINE_API RenderEngine {
+class ENGINE_API CRenderEngine {
 public:
-    RenderEngine(Window* window) : m_Window(window) {};
-    ~RenderEngine() = default;
+    CRenderEngine(CWindow *window) : m_Window(window) {};
+    ~CRenderEngine() = default;
 
-    GraphicsContext &GetGraphicsContext() { return *m_Context; }
+    CGraphicsContext &GetCGraphicsContext() { return *m_Context; }
 
     void Init();
 
 private:
-    Scope<GraphicsContext> m_Context;
-    Window* m_Window;
+    TScope<CGraphicsContext> m_Context;
+    CWindow *m_Window;
 };
-
-} // namespace Chozo

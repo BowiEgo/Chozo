@@ -3,8 +3,6 @@
 #include "LogMacros.h"
 #include "Logger.h"
 
-namespace Chozo {
-
 DECLARE_LOG_CATEGORY_EXTERN(LogVFS, Info);
 
 class CORE_API VFS {
@@ -23,4 +21,3 @@ private:
     static std::unordered_map<std::string, std::filesystem::path>
         s_PathProtocols;
 };
-} // namespace Chozo

@@ -2,9 +2,7 @@
 
 #include <shaderc/shaderc.hpp>
 
-namespace Chozo {
-
-class GlslIncluder : public shaderc::CompileOptions::IncluderInterface {
+class FGlslIncluder : public shaderc::CompileOptions::IncluderInterface {
 public:
     shaderc_include_result *GetInclude(const char *requestedPath,
                                        shaderc_include_type type,
@@ -13,4 +11,3 @@ public:
 
     void ReleaseInclude(shaderc_include_result *data) override;
 };
-} // namespace Chozo

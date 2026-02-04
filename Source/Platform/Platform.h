@@ -1,7 +1,3 @@
 #pragma once
 
-namespace Chozo {
-
-enum class WindowPlatformType { Unknown, Windows, Linux, MacOS };
-
-} // namespace Chozo
+enum class EWindowPlatformType { Unknown, Windows, Linux, MacOS };

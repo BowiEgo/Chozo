@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-namespace Chozo {
-
 struct ENGINE_API FWindowDefinition {
     std::string Title;
     float XScale, YScale = 1.0f;
@@ -11,4 +9,3 @@ struct ENGINE_API FWindowDefinition {
 
     FWindowDefinition() : Title("Chozo Engine"), Width(1280), Height(720) {}
 };
-} // namespace Chozo

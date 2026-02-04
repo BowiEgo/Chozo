@@ -2,14 +2,11 @@
 
 #include "ShaderCompiler.h"
 
-namespace Chozo {
-
-class RENDERCORE_API OpenGLShaderCompiler : public ShaderCompiler {
+class RENDERCORE_API COpenGLShaderCompiler : public CShaderCompiler {
 public:
-    OpenGLShaderCompiler() = default;
-    ~OpenGLShaderCompiler() override = default;
+    COpenGLShaderCompiler() = default;
+    ~COpenGLShaderCompiler() override = default;
 
-    virtual bool CompileInternal(const ShaderCompilerInput &input,
-                                 ShaderCompilerOutput &output) override;
+    virtual bool CompileInternal(const FShaderCompilerInput &input,
+                                 FShaderCompilerOutput &output) override;
 };
-} // namespace Chozo

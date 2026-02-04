@@ -1,7 +1,5 @@
 #include "VFS.h"
 
-namespace Chozo {
-
 DEFINE_LOG_CATEGORY(LogVFS);
 
 std::unordered_map<std::string, std::filesystem::path> VFS::s_PathProtocols;
@@ -48,4 +46,3 @@ std::filesystem::path VFS::Resolve(const std::string &virtualPath) {
 
     return resolvedPath;
 }
-} // namespace Chozo

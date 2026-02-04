@@ -3,6 +3,7 @@
 #include "CoreTypes.h"
 
 #include "Ref.h"
+#include "Scope.h"
 
 #include "FileUtils.h"
 #include "StringUtils.h"

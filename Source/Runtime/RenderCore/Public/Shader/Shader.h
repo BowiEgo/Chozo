@@ -4,18 +4,16 @@
 #include "GraphicsContext.h"
 #include "ShaderTypes.h"
 
-namespace Chozo {
-
-class RENDERCORE_API Shader : public RefCounted {
+class RENDERCORE_API CShader : public FRefCounted {
 protected:
-    Shader(GraphicsContext *context, const ShaderCreateInfo &rep)
+    CShader(CGraphicsContext *context, const FShaderCreateInfo &rep)
         : m_Context(context), m_Rep(rep) {};
 
 public:
-    virtual ~Shader() = default;
+    virtual ~CShader() = default;
 
     const std::string &GetName() const { return m_Rep.Name; }
-    const ShaderID &GetID() const { return m_ID; }
+    const FShaderID &GetID() const { return m_ID; }
 
     virtual void Bind() const = 0;
     virtual void Unbind() const = 0;
@@ -23,15 +21,14 @@ public:
     virtual void Compile() = 0;
     virtual void AsyncCompile() = 0;
 
-    static Ref<Shader> Create(GraphicsContext *context,
-        const ShaderCreateInfo &rep, const ShaderCompilerOutput &vsOutput,
-        const ShaderCompilerOutput &fsOutput);
+    static TRef<CShader> Create(CGraphicsContext *context,
+                                const FShaderCreateInfo &rep,
+                                const FShaderCompilerOutput &vsOutput,
+                                const FShaderCompilerOutput &fsOutput);
 
 protected:
-    ShaderID m_ID{};
-    ShaderCreateInfo m_Rep;
-    GraphicsContext *m_Context;
-    ShaderReflection m_Reflection;
+    FShaderID m_ID{};
+    FShaderCreateInfo m_Rep;
+    CGraphicsContext *m_Context;
+    FShaderReflection m_Reflection;
 };
-
-} // namespace Chozo

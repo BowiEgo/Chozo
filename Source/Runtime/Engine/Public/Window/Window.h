@@ -5,15 +5,10 @@
 #include "RendererWindow.h"
 #include "WindowDefinition.h"
 
-namespace Chozo {
-
-using WindowHandle = void *;
-using WindowSurface = void *;
-
-class ENGINE_API Window : public IRendererWindow {
+class ENGINE_API CWindow : public IRendererWindow {
 public:
-    Window(const FWindowDefinition &def) : m_Definition(def) {};
-    virtual ~Window() {};
+    CWindow(const FWindowDefinition &def) : m_Definition(def) {};
+    virtual ~CWindow() {};
 
     virtual void Init() = 0;
     virtual void Shutdown() = 0;
@@ -25,8 +20,8 @@ public:
     virtual void GetFramebufferSize(int *width, int *height) const override = 0;
     virtual std::vector<const char *>
         GetRequiredExtensions() const override = 0;
-    virtual WindowHandle GetWindowWrapper() const override { return m_Window; }
-    virtual WindowHandle GetNativeHandle() const = 0;
+    virtual FWindowHandle GetWindowWrapper() const override { return m_Window; }
+    virtual FWindowHandle GetNativeHandle() const = 0;
 
     unsigned int GetWidth() const { return m_Definition.Width; }
     unsigned int GetHeight() const { return m_Definition.Height; }
@@ -34,10 +29,9 @@ public:
     bool IsVSync() const { return m_Definition.VSync; }
     float GetDPI() const { return m_Definition.XScale; }
 
-    static Scope<Window> Create(const FWindowDefinition &windowDef);
+    static TScope<CWindow> Create(const FWindowDefinition &windowDef);
 
 protected:
     FWindowDefinition m_Definition;
-    WindowHandle m_Window{nullptr};
+    FWindowHandle m_Window{nullptr};
 };
-} // namespace Chozo

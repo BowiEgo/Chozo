@@ -1,16 +1,14 @@
 #include "Core.h"
 #include "Shader.h"
 
-namespace Chozo {
-
 DECLARE_LOG_CATEGORY_EXTERN(LogOpenGLShader, Info);
 
-class RENDERCORE_API OpenGLShader : public Shader {
+class RENDERCORE_API COpenGLShader : public CShader {
 public:
-    OpenGLShader(GraphicsContext *context, const ShaderCreateInfo &rep,
-        const ShaderCompilerOutput &vsOutput,
-        const ShaderCompilerOutput &fsOutput);
-    ~OpenGLShader() = default;
+    COpenGLShader(CGraphicsContext *context, const FShaderCreateInfo &rep,
+                  const FShaderCompilerOutput &vsOutput,
+                  const FShaderCompilerOutput &fsOutput);
+    ~COpenGLShader() = default;
 
     void Bind() const override;
     void Unbind() const override;
@@ -20,4 +18,3 @@ public:
 
 private:
 };
-} // namespace Chozo

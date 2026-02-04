@@ -12,19 +12,17 @@
 
 #include <set>
 
-namespace Chozo {
-
 DEFINE_LOG_CATEGORY(LogShaderCompiler);
 
-Scope<ShaderCompiler> ShaderCompiler::Create() {
-    switch (RendererAPI::GetAPI()) {
-    case RendererAPI::API::None:
+TScope<CShaderCompiler> CShaderCompiler::Create() {
+    switch (CRendererAPI::GetType()) {
+    case CRendererAPI::EType::None:
         CZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
         return nullptr;
-    case RendererAPI::API::OpenGL:
-        return CreateScope<OpenGLShaderCompiler>();
-    case RendererAPI::API::Vulkan:
-        return CreateScope<VulkanShaderCompiler>();
+    case CRendererAPI::EType::OpenGL:
+        return CreateScope<COpenGLShaderCompiler>();
+    case CRendererAPI::EType::Vulkan:
+        return CreateScope<CVulkanShaderCompiler>();
     }
 
     CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
@@ -81,7 +79,7 @@ static const std::string GetSPIRType(const spirv_cross::SPIRType &type) {
 
 static void ReflectSPIRReSource(const spirv_cross::Compiler &compiler,
                                 const spirv_cross::Resource &resource,
-                                ShaderReflection &reflection) {
+                                FShaderReflection &reflection) {
     const auto &bufferType = compiler.get_type(resource.base_type_id);
     std::string bufferName = compiler.get_name(resource.id);
     uint32_t bufferSize = compiler.get_declared_struct_size(bufferType);
@@ -126,9 +124,9 @@ static void ReflectSPIRReSource(const spirv_cross::Compiler &compiler,
 }
 } // namespace ShaderUtils
 
-void ShaderCompiler::PreProcess(const ShaderCompilerInput &input,
-                                std::string &outProcessedSource) {
-    fs::path shaderSourcePath = VFS::Resolve(input.SourcePath);
+void CShaderCompiler::PreProcess(const FShaderCompilerInput &input,
+                                 std::string &outProcessedSource) {
+    std::filesystem::path shaderSourcePath = VFS::Resolve(input.SourcePath);
 
     shaderc::Compiler compiler;
     shaderc::CompileOptions options;
@@ -139,10 +137,10 @@ void ShaderCompiler::PreProcess(const ShaderCompilerInput &input,
         options.AddMacroDefinition("FRAGMENT_SHADER");
     }
 
-    options.SetIncluder(std::make_unique<GlslIncluder>());
+    options.SetIncluder(std::make_unique<FGlslIncluder>());
 
     const auto preProcessingResult = compiler.PreprocessGlsl(
-        outProcessedSource, ShaderUtils::ShaderStageToKind(input.Stage),
+        outProcessedSource, ChozoUtils::Shader::ShaderStageToKind(input.Stage),
         shaderSourcePath.string().c_str(), options);
 
     if (preProcessingResult.GetCompilationStatus() !=
@@ -151,28 +149,28 @@ void ShaderCompiler::PreProcess(const ShaderCompilerInput &input,
             "Renderer",
             fmt::format("Failed to pre-process \"{}\"'s {} shader.\nError: {}",
                         shaderSourcePath,
-                        ShaderUtils::ShaderStageToString(input.Stage),
+                        ChozoUtils::Shader::ShaderStageToString(input.Stage),
                         preProcessingResult.GetErrorMessage()));
 
     outProcessedSource =
         std::string(preProcessingResult.begin(), preProcessingResult.end());
 }
 
-ShaderReflection ShaderCompiler::Reflect() { return ShaderReflection{}; }
+FShaderReflection CShaderCompiler::Reflect() { return FShaderReflection{}; }
 
-bool ShaderCompiler::Compile(const ShaderCreateInfo &rep,
-                             ShaderCompilerOutput &vsOutput,
-                             ShaderCompilerOutput &fsOutput) {
+bool CShaderCompiler::Compile(const FShaderCreateInfo &rep,
+                              FShaderCompilerOutput &vsOutput,
+                              FShaderCompilerOutput &fsOutput) {
     CZ_LOG(LogShaderCompiler, Trace, "Compiling Shader: {}", rep.Name);
 
     bool sucess;
 
-    ShaderCompilerInput vsInput;
+    FShaderCompilerInput vsInput;
     vsInput.SourcePath = rep.VirtualPath;
     vsInput.Stage = ShaderStage::Vertex;
     vsInput.Macros.Add(rep.Definitions);
 
-    ShaderCompilerInput fsInput;
+    FShaderCompilerInput fsInput;
     fsInput.SourcePath = rep.VirtualPath;
     fsInput.Stage = ShaderStage::Fragment;
     fsInput.Macros.Add(rep.Definitions);
@@ -190,5 +188,3 @@ bool ShaderCompiler::Compile(const ShaderCreateInfo &rep,
 
     return sucess;
 }
-
-} // namespace Chozo

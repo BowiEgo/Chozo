@@ -3,17 +3,15 @@
 #include "ShaderCompiler.h"
 #include "VulkanContext.h"
 
-namespace Chozo {
-
 DEFINE_LOG_CATEGORY(LogVulkanShader);
 
-VulkanShader::VulkanShader(GraphicsContext *context,
-                           const ShaderCreateInfo &rep,
-                           const ShaderCompilerOutput &vsOutput,
-                           const ShaderCompilerOutput &fsOutput)
-    : Shader(context, rep) {
+CVulkanShader::CVulkanShader(CGraphicsContext *context,
+                             const FShaderCreateInfo &rep,
+                             const FShaderCompilerOutput &vsOutput,
+                             const FShaderCompilerOutput &fsOutput)
+    : CShader(context, rep) {
 
-    auto *vkContext = dynamic_cast<VulkanContext *>(m_Context);
+    auto *vkContext = dynamic_cast<CVulkanContext *>(m_Context);
     auto &device = vkContext->GetDevice();
 
     try {
@@ -39,11 +37,10 @@ VulkanShader::VulkanShader(GraphicsContext *context,
     // m_Reflection.Merge(fsOutput.Reflection); // Combine VS and FS bindings
 }
 
-void VulkanShader::Bind() const {}
-void VulkanShader::Unbind() const {}
-void VulkanShader::ClearCache() {}
-void VulkanShader::Compile() {
+void CVulkanShader::Bind() const {}
+void CVulkanShader::Unbind() const {}
+void CVulkanShader::ClearCache() {}
+void CVulkanShader::Compile() {
     CZ_LOG(LogVulkanShader, Trace, "Compiling shader '{}'", m_Rep.Name);
 }
-void VulkanShader::AsyncCompile() {}
-} // namespace Chozo
+void CVulkanShader::AsyncCompile() {}

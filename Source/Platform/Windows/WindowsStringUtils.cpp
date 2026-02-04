@@ -2,7 +2,7 @@
 #include <string>
 #include <windows.h>
 
-namespace Chozo::Utils {
+namespace ChozoUtils {
 
 namespace WChar {
 
@@ -13,7 +13,7 @@ inline std::string WStringToString(const std::wstring &wstr) {
         CP_UTF8, 0, &wstr[0], (int)wstr.size(), nullptr, 0, nullptr, nullptr);
     std::string strTo(size_needed, 0);
     WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0],
-        size_needed, nullptr, nullptr);
+                        size_needed, nullptr, nullptr);
     return strTo;
 }
 
@@ -26,4 +26,4 @@ inline uint64_t WCharToUint64(const wchar_t *wchar_str) {
     return std::stoull(str);
 }
 } // namespace WChar
-} // namespace Chozo::Utils
+} // namespace ChozoUtils

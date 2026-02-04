@@ -11,9 +11,7 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
-namespace Chozo {
-
-namespace Utils::File {
+namespace ChozoUtils::File {
 
 DECLARE_LOG_CATEGORY_EXTERN(LogFileUtils, Info);
 
@@ -23,46 +21,48 @@ static const std::regex hdrPattern(R"(\.(hdr)$)", std::regex::icase);
 static const std::regex scenePattern(R"(\.(chozo)$)", std::regex::icase);
 
 static const bool IsImage(std::string path) {
-    fs::path filePath = fs::path(path);
+    std::filesystem::path filePath = std::filesystem::path(path);
     std::string fileExtension = filePath.extension().string();
     return std::regex_match(fileExtension, imagePattern);
 }
 
-fs::path GetExecutablePath();
+std::filesystem::path GetExecutablePath();
 
-static fs::path GetAbsolutePath(const fs::path &path) {
-    fs::path result;
+static std::filesystem::path
+    GetAbsolutePath(const std::filesystem::path &path) {
+    std::filesystem::path result;
 
     if (path.is_relative()) {
-        fs::path exePath =
-            fs::absolute(Utils::File::GetExecutablePath()).parent_path();
+        std::filesystem::path exePath =
+            std::filesystem::absolute(ChozoUtils::File::GetExecutablePath())
+                .parent_path();
         result = (exePath / path).lexically_normal();
     }
 
-    result = fs::absolute(result).lexically_normal();
+    result = std::filesystem::absolute(result).lexically_normal();
 
     std::wstring dirStr = result.wstring();
     std::replace(dirStr.begin(), dirStr.end(), L'\\', L'/');
 
-    return fs::path(dirStr);
+    return std::filesystem::path(dirStr);
 }
 
 static bool CreateDirectoryIfNeeded(std::string directory) {
-    if (!fs::exists(directory))
-        return fs::create_directories(directory);
+    if (!std::filesystem::exists(directory))
+        return std::filesystem::create_directories(directory);
 
     return false;
 }
 
-static fs::path GetProjectRoot() {
-    fs::path projectRoot;
+static std::filesystem::path GetProjectRoot() {
+    std::filesystem::path projectRoot;
 
     const char *envPath = std::getenv("CHOZO_ROOT");
 
     if (envPath) {
-        projectRoot = fs::path(envPath);
+        projectRoot = std::filesystem::path(envPath);
     } else {
-        projectRoot = fs::current_path();
+        projectRoot = std::filesystem::current_path();
         CZ_LOG(
             LogFileUtils, Warning,
             "CHOZO_ROOT environment variable not found! Falling back to: {0}",
@@ -72,31 +72,32 @@ static fs::path GetProjectRoot() {
     return projectRoot;
 }
 
-static const fs::path GetResourcesDirectory() {
-    return GetAbsolutePath(fs::path("../resources"));
+static const std::filesystem::path GetResourcesDirectory() {
+    return GetAbsolutePath(std::filesystem::path("../resources"));
 }
 
-static const fs::path GetShaderSourcesDirectory() {
-    return GetAbsolutePath(fs::path("../../../../ChozoEngine/shaders"));
+static const std::filesystem::path GetShaderSourcesDirectory() {
+    return GetAbsolutePath(
+        std::filesystem::path("../../../../ChozoEngine/shaders"));
 }
 
-static const fs::path GetAssetDirectory() {
+static const std::filesystem::path GetAssetDirectory() {
     // TODO: make sure the assets directory is valid
-    auto path = GetAbsolutePath(fs::path("./assets"));
+    auto path = GetAbsolutePath(std::filesystem::path("./assets"));
     CreateDirectoryIfNeeded(path.string());
     return path;
 }
 
-static const fs::path GetShaderCacheDirectory() {
+static const std::filesystem::path GetShaderCacheDirectory() {
     // TODO: make sure the assets directory is valid
-    auto path = GetAbsolutePath(fs::path("./caches/shader"));
+    auto path = GetAbsolutePath(std::filesystem::path("./caches/shader"));
     CreateDirectoryIfNeeded(path.string());
     return path;
 }
 
-static const fs::path GetThumbnailCacheDirectory() {
+static const std::filesystem::path GetThumbnailCacheDirectory() {
     // TODO: make sure the assets directory is valid
-    auto path = GetAbsolutePath(fs::path("./caches/thumbnail"));
+    auto path = GetAbsolutePath(std::filesystem::path("./caches/thumbnail"));
     CreateDirectoryIfNeeded(path.string());
     return path;
 }
@@ -148,14 +149,14 @@ static bool ReadBinaryFile(const std::string &filepath,
 
 static void DeleteFile(const std::string &filepath) {
     try {
-        if (fs::exists(filepath)) {
-            fs::remove(filepath);
+        if (std::filesystem::exists(filepath)) {
+            std::filesystem::remove(filepath);
             CZ_LOG(LogFileUtils, Trace, "File at {} deleted successfully",
                    filepath);
         } else {
             CZ_LOG(LogFileUtils, Warning, "File at {} not found", filepath);
         }
-    } catch (const fs::filesystem_error &err) {
+    } catch (const std::filesystem::filesystem_error &err) {
         CZ_LOG(LogFileUtils, Error, "Error: {}  {}", err.what(), filepath);
     }
 }
@@ -179,5 +180,4 @@ static std::string BytesToHumanReadable(uint64_t bytes) {
     }
     return oss.str();
 }
-} // namespace Utils::File
-} // namespace Chozo
+} // namespace ChozoUtils::File

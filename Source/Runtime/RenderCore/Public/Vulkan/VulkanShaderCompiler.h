@@ -2,16 +2,13 @@
 
 #include "ShaderCompiler.h"
 
-namespace Chozo {
-
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanShaderCompiler, Info);
 
-class RENDERCORE_API VulkanShaderCompiler : public ShaderCompiler {
+class RENDERCORE_API CVulkanShaderCompiler : public CShaderCompiler {
 public:
-    VulkanShaderCompiler() = default;
-    ~VulkanShaderCompiler() override = default;
+    CVulkanShaderCompiler() = default;
+    ~CVulkanShaderCompiler() override = default;
 
-    virtual bool CompileInternal(const ShaderCompilerInput &input,
-                                 ShaderCompilerOutput &output) override;
+    virtual bool CompileInternal(const FShaderCompilerInput &input,
+                                 FShaderCompilerOutput &output) override;
 };
-} // namespace Chozo

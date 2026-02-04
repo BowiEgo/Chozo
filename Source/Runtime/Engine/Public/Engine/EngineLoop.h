@@ -4,14 +4,12 @@
 #include "RenderEngine.h"
 #include "Window.h"
 
-namespace Chozo {
-
 DECLARE_LOG_CATEGORY_EXTERN(LogEngineLoop, Info);
 
-class ENGINE_API FEngineLoop {
+class ENGINE_API CEngineLoop {
 public:
-    FEngineLoop();
-    virtual ~FEngineLoop() {};
+    CEngineLoop();
+    virtual ~CEngineLoop() {};
 
     void Init();
     void Tick();
@@ -20,7 +18,6 @@ public:
     bool ShouldClose() const;
 
 private:
-    Scope<Window> m_Window;
-    Scope<RenderEngine> m_RenderEngine;
+    TScope<CWindow> m_Window;
+    TScope<CRenderEngine> m_RenderEngine;
 };
-} // namespace Chozo

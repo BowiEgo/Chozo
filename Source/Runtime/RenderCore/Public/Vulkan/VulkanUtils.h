@@ -7,7 +7,18 @@
 
 #include <optional>
 
-namespace Chozo::VulkanUtils {
+struct FQueueFamilyIndices {
+    std::optional<uint32_t> Graphics;
+    std::optional<uint32_t> Present;
+    std::optional<uint32_t> Compute;
+    std::optional<uint32_t> Transfer;
+
+    bool IsComplete() const {
+        return Graphics.has_value() && Present.has_value();
+    }
+};
+
+namespace ChozoUtils::Vulkan {
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanUtils, Info);
 
@@ -45,21 +56,10 @@ inline bool CheckInstanceExtensions(const vk::raii::Context &context,
                        [](const auto &p) { return p.extensionName; });
 }
 
-struct QueueFamilyIndices {
-    std::optional<uint32_t> Graphics;
-    std::optional<uint32_t> Present;
-    std::optional<uint32_t> Compute;
-    std::optional<uint32_t> Transfer;
-
-    bool IsComplete() const {
-        return Graphics.has_value() && Present.has_value();
-    }
-};
-
-inline QueueFamilyIndices
+inline FQueueFamilyIndices
     FindQueueFamilies(const vk::raii::PhysicalDevice &physicalDevice,
                       const vk::raii::SurfaceKHR &surface) {
-    QueueFamilyIndices indices;
+    FQueueFamilyIndices indices;
 
     // find the index of the first queue family that supports graphics
     auto queueFamilyProps = physicalDevice.getQueueFamilyProperties();
@@ -219,4 +219,4 @@ inline void LogMemoryBudget(vk::raii::PhysicalDevice &physicalDevice) {
 
     CZ_LOG(LogVulkanUtils, Info, "---------------------------------");
 }
-} // namespace Chozo::VulkanUtils
+} // namespace ChozoUtils::Vulkan
