@@ -1,12 +1,13 @@
+#include "WindowsString.h"
+
 #include <codecvt>
-#include <string>
 #include <windows.h>
 
-namespace ChozoUtils {
+namespace ChozoPlatform {
 
 namespace WChar {
 
-inline std::string WStringToString(const std::wstring &wstr) {
+std::string WStringToString(const std::wstring &wstr) {
     if (wstr.empty())
         return {};
     int size_needed = WideCharToMultiByte(
@@ -17,7 +18,7 @@ inline std::string WStringToString(const std::wstring &wstr) {
     return strTo;
 }
 
-inline uint64_t WCharToUint64(const wchar_t *wchar_str) {
+uint64_t WCharToUint64(const wchar_t *wchar_str) {
     if (!wchar_str)
         return 0;
 
@@ -26,4 +27,4 @@ inline uint64_t WCharToUint64(const wchar_t *wchar_str) {
     return std::stoull(str);
 }
 } // namespace WChar
-} // namespace ChozoUtils
+} // namespace ChozoPlatform

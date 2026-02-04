@@ -1,8 +1,8 @@
+#include "MacFile.h"
+
 #include <mach-o/dyld.h>
 
-namespace ChozoUtils {
-
-namespace File {
+namespace ChozoPlatform::File {
 
 std::filesystem::path GetExecutablePath() {
     char buffer[1024];
@@ -15,5 +15,4 @@ std::filesystem::path GetExecutablePath() {
         return std::filesystem::path(path).lexically_normal();
     }
 }
-} // namespace File
-} // namespace ChozoUtils
+} // namespace ChozoPlatform::File

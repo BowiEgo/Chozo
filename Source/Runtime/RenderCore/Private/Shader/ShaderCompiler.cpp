@@ -111,7 +111,7 @@ static void ReflectSPIRReSource(const spirv_cross::Compiler &compiler,
         // CZ_LOG(LogShaderCompiler, Trace, "    Size: {0}", memberSize);
         // CZ_LOG(LogShaderCompiler, Trace, "    Offset: {0}", memberOffset);
 
-        UniformInfo info;
+        FUniformInfo info;
         info.name = memberName;
         info.resourceName = bufferName;
         info.type = SPIRType;
@@ -130,27 +130,27 @@ void CShaderCompiler::PreProcess(const FShaderCompilerInput &input,
 
     shaderc::Compiler compiler;
     shaderc::CompileOptions options;
+    uint32 kind = ChozoUtils::Shader::ShaderStageToKind(input.Stage);
+    shaderc_shader_kind shadercKind = static_cast<shaderc_shader_kind>(kind);
 
-    if (input.Stage == ShaderStage::Vertex) {
+    if (input.Stage == EShaderStage::Vertex) {
         options.AddMacroDefinition("VERTEX_SHADER");
-    } else if (input.Stage == ShaderStage::Fragment) {
+    } else if (input.Stage == EShaderStage::Fragment) {
         options.AddMacroDefinition("FRAGMENT_SHADER");
     }
 
     options.SetIncluder(std::make_unique<FGlslIncluder>());
 
-    const auto preProcessingResult = compiler.PreprocessGlsl(
-        outProcessedSource, ChozoUtils::Shader::ShaderStageToKind(input.Stage),
-        shaderSourcePath.string().c_str(), options);
+    const auto preProcessingResult =
+        compiler.PreprocessGlsl(outProcessedSource, shadercKind,
+                                shaderSourcePath.string().c_str(), options);
 
     if (preProcessingResult.GetCompilationStatus() !=
         shaderc_compilation_status_success)
-        CZ_CORE_ASSERT(
-            "Renderer",
-            fmt::format("Failed to pre-process \"{}\"'s {} shader.\nError: {}",
-                        shaderSourcePath,
-                        ChozoUtils::Shader::ShaderStageToString(input.Stage),
-                        preProcessingResult.GetErrorMessage()));
+        CZ_LOG(LogShaderCompiler, Error,
+               "Failed to pre-process \"{}\"'s {} shader.\nError: {}",
+               shaderSourcePath.string(), kind,
+               preProcessingResult.GetErrorMessage());
 
     outProcessedSource =
         std::string(preProcessingResult.begin(), preProcessingResult.end());
@@ -167,12 +167,12 @@ bool CShaderCompiler::Compile(const FShaderCreateInfo &rep,
 
     FShaderCompilerInput vsInput;
     vsInput.SourcePath = rep.VirtualPath;
-    vsInput.Stage = ShaderStage::Vertex;
+    vsInput.Stage = EShaderStage::Vertex;
     vsInput.Macros.Add(rep.Definitions);
 
     FShaderCompilerInput fsInput;
     fsInput.SourcePath = rep.VirtualPath;
-    fsInput.Stage = ShaderStage::Fragment;
+    fsInput.Stage = EShaderStage::Fragment;
     fsInput.Macros.Add(rep.Definitions);
 
     bool vsSuccess = CompileInternal(vsInput, vsOutput);

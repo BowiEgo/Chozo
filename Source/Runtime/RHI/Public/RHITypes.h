@@ -1,28 +1,31 @@
 #pragma once
 
-using FShaderID = uint32_t;
+#include "CoreMinimal.h"
 
+////////////////////////////////////////////////////////////////////////////
+//============================= Shader ===================================//
+////////////////////////////////////////////////////////////////////////////
+
+using FShaderID = uint32;
+
+// -- EShaderStage --
+// ENUM | LOWER | UPPER | SHORT | GLSL
 #define FOREACH_SHADER_STAGE(TYPE)                                             \
-    TYPE(Vertex, vertex, VERTEX, vert)                                         \
-    TYPE(Fragment, fragment, FRAGMENT, frag)
+    TYPE(Vertex, vertex, VERTEX, vert, vertex)                                 \
+    TYPE(Fragment, fragment, FRAGMENT, frag, fragment)                         \
+    TYPE(Compute, compute, COMPUTE, comp, compute)                             \
+    TYPE(Geometry, geometry, GEOMETRY, geom, geometry)                         \
+    TYPE(Hull, hull, HULL, tesc, tess_control)                                 \
+    TYPE(Domain, domain, DOMAIN, tese, tess_evaluation)
 
-enum class ShaderStage : uint16_t {
-#define GENERATE_ENUM(ENUM, LOWER_ENUM, UPPER_ENUM, SHORT_ENUM) ENUM,
+enum class EShaderStage : uint16 {
+#define GENERATE_ENUM(ENUM, ...) ENUM,
     FOREACH_SHADER_STAGE(GENERATE_ENUM)
 #undef GENERATE_ENUM
         None
 };
 
-inline static std::unordered_map<std::string, ShaderStage>
-    s_ShaderExtensionMap = {
-        // Vertex
-        {".vert", ShaderStage::Vertex},
-
-        // Fragment
-        {".frag", ShaderStage::Fragment},
-        {".pixel", ShaderStage::Fragment},
-};
-
+// -- ShaderMacro --
 struct ShaderMacro {
     std::string Name;
     std::string Definition;
@@ -34,7 +37,7 @@ struct ShaderMacro {
 
 // A collection of macros, providing helper methods for hashing
 // and string conversion
-class ShaderMacros {
+class FShaderMacros {
 public:
     void Add(const std::string &name, const std::string &definition = "1") {
         m_Macros[name] = definition;
@@ -76,7 +79,7 @@ private:
     std::map<std::string, std::string> m_Macros;
 };
 
-struct UniformInfo {
+struct FUniformInfo {
     std::string type;
     std::string name;
     std::string resourceName;
@@ -86,7 +89,7 @@ struct UniformInfo {
     std::string fullName() const { return resourceName + "." + name; }
 };
 
-struct AttributeInfo {
+struct FAttributeInfo {
     std::string type;
     std::string name;
     uint32_t size;
@@ -94,23 +97,23 @@ struct AttributeInfo {
 };
 
 struct FShaderReflection {
-    std::vector<UniformInfo> uniforms;
-    std::vector<AttributeInfo> attributes;
+    std::vector<FUniformInfo> uniforms;
+    std::vector<FAttributeInfo> attributes;
     std::unordered_map<std::string, uint32_t> uniformLocations;
 };
 
-using ShaderDefinitions = std::map<std::string, std::string>;
+using FShaderDefinitions = std::map<std::string, std::string>;
 
 struct FShaderCreateInfo {
     std::string Name;
     std::string VirtualPath;
-    std::string EntryPoint;
-    ShaderDefinitions
+    std::string EntryPoint = "main";
+    FShaderDefinitions
         Definitions; // Macros for permutations, e.g., {"USE_ALBEDO": "1"}
 
     FShaderCreateInfo(const std::string name, const std::string path,
                       const std::string entryPoint = "main",
-                      const ShaderDefinitions &defs = {})
+                      const FShaderDefinitions &defs = {})
         : Name(name), VirtualPath(path), EntryPoint(entryPoint),
           Definitions(defs) {}
 
@@ -135,8 +138,8 @@ struct FShaderCreateInfo {
 // Define the environment and parameters for a single shader compilation task
 struct FShaderCompilerInput {
     std::string SourcePath;
-    ShaderStage Stage;
-    ShaderMacros Macros;
+    EShaderStage Stage;
+    FShaderMacros Macros;
 };
 
 // The result of the compilation, including binaries and reflection data

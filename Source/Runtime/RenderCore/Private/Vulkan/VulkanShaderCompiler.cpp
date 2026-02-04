@@ -1,7 +1,8 @@
 #include "VulkanShaderCompiler.h"
 #include "FileUtils.h"
-// #include "GlslIncluder.h"
 #include "ShaderUtils.h"
+
+#include <shaderc/shaderc.hpp>
 
 DEFINE_LOG_CATEGORY(LogVulkanShaderCompiler);
 
@@ -21,6 +22,8 @@ bool CVulkanShaderCompiler::CompileInternal(const FShaderCompilerInput &input,
 
     shaderc::Compiler compiler;
     shaderc::CompileOptions options;
+    uint32 kind = ChozoUtils::Shader::ShaderStageToKind(input.Stage);
+    shaderc_shader_kind shadercKind = static_cast<shaderc_shader_kind>(kind);
 
     // Inject Macros
     for (const auto &[name, value] : input.Macros.GetMap()) {
@@ -30,14 +33,10 @@ bool CVulkanShaderCompiler::CompileInternal(const FShaderCompilerInput &input,
     // Setup Includer (Crucial!)
     options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
-    // Map and Compile
-    shaderc_shader_kind kind =
-        ChozoUtils::Shader::ShaderStageToKind(input.Stage);
-
     // CompileGlslToSpv handles macros and includes internally
     // if options are set
     auto result = compiler.CompileGlslToSpv(
-        source, kind, sourcePath.string().c_str(), options);
+        source, shadercKind, sourcePath.string().c_str(), options);
 
     if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
         CZ_LOG(LogVulkanShaderCompiler, Error, "ShaderC Error: {0}",

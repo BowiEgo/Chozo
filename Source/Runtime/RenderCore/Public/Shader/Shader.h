@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GraphicsContext.h"
-#include "ShaderTypes.h"
+#include "RHITypes.h"
 
 class RENDERCORE_API CShader : public FRefCounted {
 protected:

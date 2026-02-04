@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core.h"
-#include "ShaderTypes.h"
+#include "RHITypes.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogShaderCompiler, Info);
 

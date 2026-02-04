@@ -324,9 +324,9 @@ void CVulkanContext::CreateGraphicsPipeline() {
     //     CreateShaderModule(myShader->GetVertSpv());
 
     // // 2. Shader Stages
-    // vk::PipelineShaderStageCreateInfo shaderStages[] = {
-    //     {{}, vk::ShaderStageFlagBits::eVertex, *vertModule, "main"},
-    //     {{}, vk::ShaderStageFlagBits::eFragment, *fragModule, "main"}};
+    // vk::PipelineEShaderStageCreateInfo shaderStages[] = {
+    //     {{}, vk::EShaderStageFlagBits::eVertex, *vertModule, "main"},
+    //     {{}, vk::EShaderStageFlagBits::eFragment, *fragModule, "main"}};
 
     // auto shader =
 

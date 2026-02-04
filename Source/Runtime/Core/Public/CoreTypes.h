@@ -30,16 +30,22 @@
     #define CORE_API CHOZO_DLL_IMPORT
 #endif
 
-#ifdef ENGINE_EXPORTS
-    #define ENGINE_API CHOZO_DLL_EXPORT
+#ifdef RHI_EXPORTS
+    #define RHI_API CHOZO_DLL_EXPORT
 #else
-    #define ENGINE_API CHOZO_DLL_IMPORT
+    #define RHI_API CHOZO_DLL_IMPORT
 #endif
 
 #ifdef RENDERCORE_EXPORTS
     #define RENDERCORE_API CHOZO_DLL_EXPORT
 #else
     #define RENDERCORE_API CHOZO_DLL_IMPORT
+#endif
+
+#ifdef ENGINE_EXPORTS
+    #define ENGINE_API CHOZO_DLL_EXPORT
+#else
+    #define ENGINE_API CHOZO_DLL_IMPORT
 #endif
 
 ////////////////////////////////////////////////////////////////////////////

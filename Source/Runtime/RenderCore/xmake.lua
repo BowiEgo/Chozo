@@ -2,6 +2,7 @@ target("RenderCore")
     set_kind("shared")
     add_rules("chozo_module")
     add_deps("Core")
+    add_deps("RHI")
 
     add_packages("shaderc")
 
