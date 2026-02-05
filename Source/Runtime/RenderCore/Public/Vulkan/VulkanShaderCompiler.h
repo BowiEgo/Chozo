@@ -4,7 +4,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanShaderCompiler, Info);
 
-class RENDERCORE_API CVulkanShaderCompiler : public CShaderCompiler {
+class RENDER_CORE_API CVulkanShaderCompiler : public CShaderCompiler {
 public:
     CVulkanShaderCompiler() = default;
     ~CVulkanShaderCompiler() override = default;

@@ -14,12 +14,10 @@
 #include <utility>
 #include <vector>
 
-#include <CoreTypes.h>
-
 #ifndef WINDOW_WIDTH
-#define WINDOW_WIDTH 1280
+    #define WINDOW_WIDTH 1280
 #endif
 
 #ifndef WINDOW_HEIGHT
-#define WINDOW_HEIGHT 720
+    #define WINDOW_HEIGHT 720
 #endif

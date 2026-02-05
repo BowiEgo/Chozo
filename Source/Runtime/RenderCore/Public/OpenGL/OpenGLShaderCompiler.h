@@ -2,7 +2,7 @@
 
 #include "ShaderCompiler.h"
 
-class RENDERCORE_API COpenGLShaderCompiler : public CShaderCompiler {
+class RENDER_CORE_API COpenGLShaderCompiler : public CShaderCompiler {
 public:
     COpenGLShaderCompiler() = default;
     ~COpenGLShaderCompiler() override = default;

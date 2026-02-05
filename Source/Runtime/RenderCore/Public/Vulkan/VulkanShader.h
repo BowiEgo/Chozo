@@ -6,18 +6,12 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanShader, Info);
 
-class RENDERCORE_API CVulkanShader : public CShader {
+class RENDER_CORE_API CVulkanShader : public CShader {
 public:
     CVulkanShader(CGraphicsContext *context, const FShaderCreateInfo &rep,
                   const FShaderCompilerOutput &vsOutput,
                   const FShaderCompilerOutput &fsOutput);
     ~CVulkanShader() {};
-
-    void Bind() const override;
-    void Unbind() const override;
-    void ClearCache() override;
-    void Compile() override;
-    void AsyncCompile() override;
 
 private:
     vk::raii::ShaderModule m_VertexModule{nullptr};

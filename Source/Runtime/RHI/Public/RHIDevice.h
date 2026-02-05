@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CoreMinimal.h"
+#include "Ref.h"
 
 class RHI_API IRHIDevice : public FRefCounted {
 public:

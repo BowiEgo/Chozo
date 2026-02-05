@@ -5,7 +5,7 @@
 #include "vulkan/vulkan.hpp"
 #include <vulkan/vulkan_raii.hpp>
 
-class RENDERCORE_API CVulkanContext : public CGraphicsContext {
+class RENDER_CORE_API CVulkanContext : public CGraphicsContext {
 public:
     CVulkanContext(IRendererWindow *windowHandle);
     ~CVulkanContext() {};

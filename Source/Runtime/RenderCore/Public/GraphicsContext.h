@@ -1,11 +1,11 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "RendererWindow.h"
+#include "Scope.h"
 
 using FWindowHandle = void *;
 
-class RENDERCORE_API CGraphicsContext {
+class RENDER_CORE_API CGraphicsContext {
 public:
     CGraphicsContext(IRendererWindow *windowHandle) : m_Window(windowHandle) {};
     virtual ~CGraphicsContext() = default;

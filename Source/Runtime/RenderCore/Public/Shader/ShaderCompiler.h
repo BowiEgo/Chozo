@@ -5,7 +5,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogShaderCompiler, Info);
 
-class RENDERCORE_API CShaderCompiler : public FRefCounted {
+class RENDER_CORE_API CShaderCompiler : public FRefCounted {
 public:
     virtual ~CShaderCompiler() = default;
 

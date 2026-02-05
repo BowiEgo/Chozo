@@ -1,10 +1,12 @@
 #pragma once
 
-#include "CoreMinimal.h"
+#include "RHITypes.h"
+#include "Ref.h"
 
 class RHI_API IRHIShader : public FRefCounted {
 public:
-    virtual ~IRHIShader() = default;
+    IRHIShader();
+    virtual ~IRHIShader();
 
     virtual EShaderStage GetStage() const = 0;
     virtual const std::string &GetName() const = 0;

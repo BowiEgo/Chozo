@@ -1,7 +1,5 @@
 #pragma once
 
-#include "CoreTypes.h"
-
 #include "Ref.h"
 #include "Scope.h"
 

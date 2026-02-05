@@ -9,11 +9,3 @@ COpenGLShader::COpenGLShader(CGraphicsContext *context,
                              const FShaderCompilerOutput &vsOutput,
                              const FShaderCompilerOutput &fsOutput)
     : CShader(context, rep) {}
-
-void COpenGLShader::Bind() const {}
-void COpenGLShader::Unbind() const {}
-void COpenGLShader::ClearCache() {}
-void COpenGLShader::Compile() {
-    CZ_LOG(LogOpenGLShader, Trace, "Compiling shader '{}'", m_Rep.Name);
-}
-void COpenGLShader::AsyncCompile() {}

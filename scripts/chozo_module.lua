@@ -21,23 +21,20 @@ rule("chozo_module")
         end
 
         -- Setup Export Macros
-        -- Generate macro like CORE_EXPORTS, RENDERCORE_EXPORTS
-        local export_macro = target:name():upper() .. "_EXPORTS"
+        -- Generate macro like CORE_EXPORTS, RENDER_CORE_EXPORTS
+        local prefix = target:name():gsub("([a-z])([A-Z])", "%1_%2"):upper()
+        
         if target:kind() == "shared" then
-            target:add("defines", export_macro)
-            if not target:is_plat("windows") then
-                -- Emulate Windows DLL behavior on Unix
-                target:add("cxflags", "-fvisibility=hidden")
-            end
+            target:add("defines", prefix .. "_EXPORTS")
         end
 
         -- Setup PCH
-        -- Looks for TargetNamePCH.h in the root Public folder
+        -- Looks for TargetNamePCH.h in the target root folder
         local pch_name = target:name() .. "PCH.h"
-        local pch_path = path.join(dir, "Public", pch_name)
+        local pch_path = path.join(dir, pch_name)
+
         if os.isfile(pch_path) then
             target:set("pcxxheader", pch_path)
-            -- Ensure PCH can be used across the target
             print(string.format("Module [%s]: PCH detected -> %s", target:name(), pch_name))
         end
 

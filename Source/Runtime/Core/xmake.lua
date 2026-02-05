@@ -1,5 +1,5 @@
 target("Core")
     set_kind("shared")
     add_rules("chozo_module")
-    add_deps("Platform")
+    add_deps("ChozoBase", "Platform")
     add_packages("spdlog", "glm", { public = true })

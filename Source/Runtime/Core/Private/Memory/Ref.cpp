@@ -1,5 +1,3 @@
-#include "CoreTypes.h"
-
 #include <mutex>
 
 static std::unordered_set<void *> s_LiveReferences;

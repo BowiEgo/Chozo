@@ -1,6 +1,7 @@
 #pragma once
 
-#include "CoreTypes.h"
+#include "ChozoExport.h"
+#include "CoreMinimal.h"
 
 enum class ELogVerbosity : uint8 {
     Fatal,   // Critical error, app cannot continue

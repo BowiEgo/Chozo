@@ -7,7 +7,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogShaderManager, Info);
 
-class RENDERCORE_API CShaderManager : public FRefCounted {
+class RENDER_CORE_API CShaderManager : public FRefCounted {
 public:
     CShaderManager() = default;
     ~CShaderManager() = default;

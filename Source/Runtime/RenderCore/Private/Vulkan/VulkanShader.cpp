@@ -36,11 +36,3 @@ CVulkanShader::CVulkanShader(CGraphicsContext *context,
     m_Reflection = vsOutput.Reflection;
     // m_Reflection.Merge(fsOutput.Reflection); // Combine VS and FS bindings
 }
-
-void CVulkanShader::Bind() const {}
-void CVulkanShader::Unbind() const {}
-void CVulkanShader::ClearCache() {}
-void CVulkanShader::Compile() {
-    CZ_LOG(LogVulkanShader, Trace, "Compiling shader '{}'", m_Rep.Name);
-}
-void CVulkanShader::AsyncCompile() {}

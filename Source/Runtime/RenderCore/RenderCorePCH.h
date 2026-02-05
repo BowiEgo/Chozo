@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <optional>
@@ -15,4 +16,3 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "CoreMinimal.h"
-#include "CoreTypes.h"

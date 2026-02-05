@@ -1,6 +1,8 @@
 #pragma once
 
-#include "CoreMinimal.h"
+#include "CoreTypes.h"
+#include "RHIPCH.h"
+#include <map>
 
 ////////////////////////////////////////////////////////////////////////////
 //============================= Shader ===================================//

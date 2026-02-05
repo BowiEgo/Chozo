@@ -1,4 +1,4 @@
-target("RenderCore")
+target("VulkanRHI")
     set_kind("shared")
     add_rules("chozo_module")
     add_deps("Core", "RHI")

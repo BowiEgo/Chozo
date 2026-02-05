@@ -2,7 +2,7 @@
 
 #include "GraphicsContext.h"
 
-class RENDERCORE_API COpenGLContext : public CGraphicsContext {
+class RENDER_CORE_API COpenGLContext : public CGraphicsContext {
 public:
     COpenGLContext(IRendererWindow *windowHandle);
     ~COpenGLContext() {};
