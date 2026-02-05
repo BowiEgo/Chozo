@@ -1,6 +1,7 @@
 # Chozo
 
-![](http://youke.xn--y7xa690gmna.cn/s1/2026/01/17/696b90b473735.webp)
+![20260206010122_64_2.png](https://s3.bmp.ovh/2026/02/06/540pZlli.png)
+![20260206012048_65_2.jpg](https://s3.bmp.ovh/2026/02/06/TtwHpCpM.jpg)
 
 ## Install & Build
 
