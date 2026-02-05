@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Core.h"
+#include "EngineExport.h"
 #include "RenderEngine.h"
 #include "Window.h"
 

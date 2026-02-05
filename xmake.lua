@@ -30,7 +30,6 @@ includes("scripts/export_header.lua")
 
 -- XMake will look for xmake.lua in each subdirectory
 includes("Source/Platform")
-includes("Source/Runtime/ChozoBase")
 includes("Source/Runtime/Core")
 includes("Source/Runtime/VulkanRHI")
 includes("Source/Runtime/RHI")

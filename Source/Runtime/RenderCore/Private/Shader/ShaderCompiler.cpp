@@ -2,10 +2,10 @@
 
 // #include "Chozo/FileSystem/FileStream.h"
 #include "GlslIncluder.h"
-#include "OpenGLShaderCompiler.h"
 #include "RendererAPI.h"
 #include "ShaderUtils.h"
-#include "VulkanShaderCompiler.h"
+
+#include <shaderc/shaderc.hpp>
 
 #include <spirv_cross/spirv_cross.hpp>
 #include <spirv_cross/spirv_glsl.hpp>
@@ -14,24 +14,9 @@
 
 DEFINE_LOG_CATEGORY(LogShaderCompiler);
 
-TScope<CShaderCompiler> CShaderCompiler::Create() {
-    switch (CRendererAPI::GetType()) {
-    case CRendererAPI::EType::None:
-        CZ_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
-        return nullptr;
-    case CRendererAPI::EType::OpenGL:
-        return CreateScope<COpenGLShaderCompiler>();
-    case CRendererAPI::EType::Vulkan:
-        return CreateScope<CVulkanShaderCompiler>();
-    }
-
-    CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
-    return nullptr;
-}
-
 namespace ShaderUtils {
 
-static const std::string GetSPIRType(const spirv_cross::SPIRType &type) {
+static const std::string GetSPIRType(const spirv_cross::SPIRType& type) {
     std::string result;
 
     switch (type.basetype) {
@@ -77,10 +62,10 @@ static const std::string GetSPIRType(const spirv_cross::SPIRType &type) {
     return result;
 }
 
-static void ReflectSPIRReSource(const spirv_cross::Compiler &compiler,
-                                const spirv_cross::Resource &resource,
-                                FShaderReflection &reflection) {
-    const auto &bufferType = compiler.get_type(resource.base_type_id);
+static void ReflectSPIRReSource(const spirv_cross::Compiler& compiler,
+                                const spirv_cross::Resource& resource,
+                                FShaderReflection& reflection) {
+    const auto& bufferType = compiler.get_type(resource.base_type_id);
     std::string bufferName = compiler.get_name(resource.id);
     uint32_t bufferSize = compiler.get_declared_struct_size(bufferType);
     uint32_t binding =
@@ -97,7 +82,7 @@ static void ReflectSPIRReSource(const spirv_cross::Compiler &compiler,
         std::string memberName = compiler.get_member_name(
             resource.base_type_id,
             i); // Get the name of the member (e.g., "ModelMatrix")
-        const auto &memberType = compiler.get_type(
+        const auto& memberType = compiler.get_type(
             bufferType.member_types[i]); // Get the type of the member
 
         // Size and offset of the member
@@ -124,13 +109,13 @@ static void ReflectSPIRReSource(const spirv_cross::Compiler &compiler,
 }
 } // namespace ShaderUtils
 
-void CShaderCompiler::PreProcess(const FShaderCompilerInput &input,
-                                 std::string &outProcessedSource) {
+void CShaderCompiler::PreProcess(const FShaderCompilerInput& input,
+                                 std::string& outProcessedSource) {
     std::filesystem::path shaderSourcePath = VFS::Resolve(input.SourcePath);
 
     shaderc::Compiler compiler;
     shaderc::CompileOptions options;
-    uint32 kind = ChozoUtils::Shader::ShaderStageToKind(input.Stage);
+    uint32 kind = ChozoUtils::Shader::StageToKind(input.Stage);
     shaderc_shader_kind shadercKind = static_cast<shaderc_shader_kind>(kind);
 
     if (input.Stage == EShaderStage::Vertex) {
@@ -158,9 +143,9 @@ void CShaderCompiler::PreProcess(const FShaderCompilerInput &input,
 
 FShaderReflection CShaderCompiler::Reflect() { return FShaderReflection{}; }
 
-bool CShaderCompiler::Compile(const FShaderCreateInfo &rep,
-                              FShaderCompilerOutput &vsOutput,
-                              FShaderCompilerOutput &fsOutput) {
+bool CShaderCompiler::Compile(const FShaderCreateInfo& rep,
+                              FShaderCompilerOutput& vsOutput,
+                              FShaderCompilerOutput& fsOutput) {
     CZ_LOG(LogShaderCompiler, Trace, "Compiling Shader: {}", rep.Name);
 
     bool sucess;
@@ -187,4 +172,50 @@ bool CShaderCompiler::Compile(const FShaderCreateInfo &rep,
     }
 
     return sucess;
+}
+
+bool CShaderCompiler::CompileInternal(const FShaderCompilerInput& input,
+                                      FShaderCompilerOutput& output) {
+    std::filesystem::path sourcePath = VFS::Resolve(input.SourcePath);
+    std::string source = ChozoUtils::File::ReadTextFile(sourcePath);
+    CZ_LOG(LogShaderCompiler, Trace, "Source Path: {0}", sourcePath.string());
+    CZ_LOG(LogShaderCompiler, Trace, "Source Size: {0} bytes", source.size());
+
+    if (source.empty())
+        return false;
+
+    PreProcess(input, source);
+
+    shaderc::Compiler compiler;
+    shaderc::CompileOptions options;
+    uint32 kind = ChozoUtils::Shader::StageToKind(input.Stage);
+    shaderc_shader_kind shadercKind = static_cast<shaderc_shader_kind>(kind);
+
+    // Inject Macros
+    for (const auto& [name, value] : input.Macros.GetMap()) {
+        options.AddMacroDefinition(name, value);
+    }
+
+    // Setup Includer (Crucial!)
+    options.SetOptimizationLevel(shaderc_optimization_level_performance);
+
+    // CompileGlslToSpv handles macros and includes internally
+    // if options are set
+    auto result = compiler.CompileGlslToSpv(
+        source, shadercKind, sourcePath.string().c_str(), options);
+
+    if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
+        CZ_LOG(LogShaderCompiler, Error, "ShaderC Error: {0}",
+               result.GetErrorMessage());
+        output.bSucceeded = false;
+        return false;
+    }
+
+    output.Binary = {result.cbegin(), result.cend()};
+    // Perform Reflection (Optional: use SPIRV-Reflect library)
+    // output.Reflection = Reflect(output.Binary);
+    output.bSucceeded = true;
+
+    // CZ_LOG(LogShaderCompiler, Trace, "{}", source);
+    return true;
 }

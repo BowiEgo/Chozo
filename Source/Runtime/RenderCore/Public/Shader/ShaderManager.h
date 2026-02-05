@@ -2,6 +2,7 @@
 
 #include "Core.h"
 #include "GraphicsContext.h"
+#include "RenderCoreExport.h"
 #include "Shader.h"
 #include "ShaderCompiler.h"
 
@@ -12,18 +13,21 @@ public:
     CShaderManager() = default;
     ~CShaderManager() = default;
 
-    static void Init(CGraphicsContext *context);
-    static CShaderManager *Get() {
+    static void Init(const TRef<IRHIDevice> device);
+    static const CShaderManager* Get() {
         CZ_CORE_ASSERT(
             s_Instance,
             "ShaderManager instance is null! Did you forget to call Init()?");
         return s_Instance;
     }
-    TRef<CShader> Load(const FShaderCreateInfo &rep);
+    // static const CGraphicsContext *GetGraphicsContext() { return m_Context; }
+
+    TRef<CShader> Load(const FShaderCreateInfo& rep);
 
 private:
-    static CShaderManager *s_Instance;
-    CGraphicsContext *m_Context;
+    static CShaderManager* s_Instance;
+    // CGraphicsContext *m_Context;
+    TRef<IRHIDevice> m_Device;
 
     std::unordered_map<FShaderID, TRef<CShader>> m_ShaderCache;
     TScope<CShaderCompiler> m_Compiler;

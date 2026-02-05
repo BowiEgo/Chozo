@@ -2,38 +2,48 @@
 
 DEFINE_LOG_CATEGORY(LogShaderManager);
 
-CShaderManager *CShaderManager::s_Instance = nullptr;
+CShaderManager* CShaderManager::s_Instance = nullptr;
 
-void CShaderManager::Init(CGraphicsContext *context) {
+void CShaderManager::Init(const TRef<IRHIDevice> device) {
     if (!s_Instance) {
         CZ_LOG(LogShaderManager, Trace, "ShaderManager Initializing...");
         s_Instance = new CShaderManager();
-        s_Instance->m_Context = context;
+        s_Instance->m_Device = device;
         CZ_LOG(LogShaderManager, Info, "ShaderManager Initialized");
     }
 
     if (!s_Instance->m_Compiler) {
-        s_Instance->m_Compiler = CShaderCompiler::Create();
+        s_Instance->m_Compiler = CreateScope<CShaderCompiler>();
     }
 }
 
-TRef<CShader> CShaderManager::Load(const FShaderCreateInfo &rep) {
+TRef<CShader> CShaderManager::Load(const FShaderCreateInfo& rep) {
     CZ_LOG(LogShaderManager, Trace, "Loading Shader: {}", rep.Name);
 
-    FShaderID id = rep.GetHash();
+    FShaderID id = rep.GenHash();
 
     if (m_ShaderCache.contains(id)) {
         return m_ShaderCache[id];
     }
 
+    FShaderCompiledData compiledData;
+    compiledData.ID = id;
+    compiledData.Name = rep.Name;
+
     FShaderCompilerOutput vsOutput, fsOutput;
-    bool success = m_Compiler->Compile(rep, vsOutput, fsOutput);
+    bool success = m_Compiler->Compile(rep, vsOutput,
+                                       fsOutput); // TODO: make more flexable
+
+    compiledData[EShaderStage::Vertex] = vsOutput;
+    compiledData[EShaderStage::Fragment] = fsOutput;
 
     if (success) {
-        auto shader = CShader::Create(m_Context, rep, vsOutput, fsOutput);
-        m_ShaderCache[id] = shader;
-        CZ_LOG(LogShaderManager, Info, "Shader: {} Loaded", rep.Name);
-        return shader;
+        auto shader = CreateRef<CShader>(m_Device, compiledData);
+        if (shader) {
+            m_ShaderCache[id] = shader;
+            CZ_LOG(LogShaderManager, Info, "Shader: {} Loaded", rep.Name);
+            return shader;
+        }
     }
 
     CZ_LOG(LogShaderManager, Error, "Failed to load Shader: {0}", rep.Name);

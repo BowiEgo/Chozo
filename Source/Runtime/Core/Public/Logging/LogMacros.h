@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ChozoExport.h"
-#include "CoreMinimal.h"
+#include "CoreExport.h"
+#include "CoreTypes.h"
 
 enum class ELogVerbosity : uint8 {
     Fatal,   // Critical error, app cannot continue
@@ -22,10 +22,10 @@ enum class ELogVerbosity : uint8 {
  * Base class for all log categories
  */
 struct CORE_API FLogCategoryBase {
-    FLogCategoryBase(const char *InName, ELogVerbosity InDefaultVerbosity)
+    FLogCategoryBase(const char* InName, ELogVerbosity InDefaultVerbosity)
         : Name(InName), DefaultVerbosity(InDefaultVerbosity) {}
 
-    const char *Name;
+    const char* Name;
     ELogVerbosity DefaultVerbosity;
 };
 

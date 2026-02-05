@@ -17,7 +17,7 @@ const std::unordered_map<std::string, EShaderStage> s_ShaderExtensionMap = {
 
 } // namespace
 
-EShaderStage StringToShaderStage(std::string_view shaderStage) {
+EShaderStage StringToStage(std::string_view shaderStage) {
 #define GENERATE_IF(ENUM, LOWER, UPPER, SHORT, GLSL)                           \
     if (shaderStage == #ENUM)                                                  \
         return EShaderStage::ENUM;
@@ -26,7 +26,7 @@ EShaderStage StringToShaderStage(std::string_view shaderStage) {
     return EShaderStage::None;
 }
 
-const char *ShaderStageToString(EShaderStage shaderStage) {
+const char *StageToString(EShaderStage shaderStage) {
     switch (shaderStage) {
 #define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL)                         \
     case EShaderStage::ENUM:                                                   \
@@ -38,7 +38,7 @@ const char *ShaderStageToString(EShaderStage shaderStage) {
     }
 }
 
-EShaderStage GetShaderStageFromExtension(const std::string &extension) {
+EShaderStage GetStageFromExtension(const std::string &extension) {
     const std::string ext = ChozoUtils::String::ToLowerCopy(extension);
     if (s_ShaderExtensionMap.find(ext) == s_ShaderExtensionMap.end())
         return EShaderStage::None;
@@ -46,7 +46,7 @@ EShaderStage GetShaderStageFromExtension(const std::string &extension) {
     return s_ShaderExtensionMap.at(ext);
 }
 
-uint32 ShaderStageToKind(EShaderStage shaderStage) {
+uint32 StageToKind(EShaderStage shaderStage) {
     switch (shaderStage) {
 #define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL)                         \
     case EShaderStage::ENUM:                                                   \
@@ -58,8 +58,7 @@ uint32 ShaderStageToKind(EShaderStage shaderStage) {
     }
 }
 
-std::string
-    ShaderStageToVulkanCacheFileExtension(const EShaderStage shaderStage) {
+std::string StageToVulkanCacheFileExtension(const EShaderStage shaderStage) {
     switch (shaderStage) {
 #define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL)                         \
     case EShaderStage::ENUM:                                                   \
@@ -82,8 +81,7 @@ std::filesystem::path GetCachePathByNameAndStage(const std::string_view name,
 
     std::filesystem::path fullPath =
         (cacheDir / name)
-            .concat(ChozoUtils::Shader::ShaderStageToVulkanCacheFileExtension(
-                stage))
+            .concat(ChozoUtils::Shader::StageToVulkanCacheFileExtension(stage))
             .lexically_normal();
 
     std::wstring pathStr = fullPath.wstring();

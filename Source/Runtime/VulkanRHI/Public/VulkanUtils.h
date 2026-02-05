@@ -2,7 +2,6 @@
 
 #include "Core.h"
 
-#include "vulkan/vulkan.hpp"
 #include <vulkan/vulkan_raii.hpp>
 
 #include <optional>
@@ -30,35 +29,35 @@ constexpr bool EnableValidationLayers = true;
 #endif
 } // namespace
 
-inline const std::vector<const char *> ValidationLayers = {
+inline const std::vector<const char*> ValidationLayers = {
     "VK_LAYER_KHRONOS_validation"};
 
 template <typename T, typename Getter>
-inline bool IsSupported(const std::vector<const char *> &required,
-                        const std::vector<T> &available, Getter &&nameGetter) {
-    return std::ranges::all_of(required, [&](const char *name) {
-        return std::ranges::any_of(available, [&](const T &item) {
+inline bool IsSupported(const std::vector<const char*>& required,
+                        const std::vector<T>& available, Getter&& nameGetter) {
+    return std::ranges::all_of(required, [&](const char* name) {
+        return std::ranges::any_of(available, [&](const T& item) {
             return std::string_view(nameGetter(item)) == name;
         });
     });
 }
 
-inline bool CheckValidationLayerSupport(vk::raii::Context &context) {
+inline bool CheckValidationLayerSupport(vk::raii::Context& context) {
     auto available = context.enumerateInstanceLayerProperties();
     return IsSupported(ValidationLayers, available,
-                       [](auto &l) { return l.layerName; });
+                       [](auto& l) { return l.layerName; });
 }
 
-inline bool CheckInstanceExtensions(const vk::raii::Context &context,
-                                    const std::vector<const char *> &required) {
+inline bool CheckInstanceExtensions(const vk::raii::Context& context,
+                                    const std::vector<const char*>& required) {
     auto available = context.enumerateInstanceExtensionProperties();
     return IsSupported(required, available,
-                       [](const auto &p) { return p.extensionName; });
+                       [](const auto& p) { return p.extensionName; });
 }
 
 inline FQueueFamilyIndices
-    FindQueueFamilies(const vk::raii::PhysicalDevice &physicalDevice,
-                      const vk::raii::SurfaceKHR &surface) {
+    FindQueueFamilies(const vk::raii::PhysicalDevice& physicalDevice,
+                      const vk::raii::SurfaceKHR& surface) {
     FQueueFamilyIndices indices;
 
     // find the index of the first queue family that supports graphics
@@ -93,7 +92,7 @@ inline FQueueFamilyIndices
 
         CZ_LOG(LogVulkanUtils, Info, "Indices valid: G{}, P{}, C{}", gIdx, pIdx,
                cIdx);
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
         CZ_LOG(LogVulkanUtils, Error, "Crash during index access: {}",
                e.what());
     }
@@ -109,8 +108,8 @@ struct SwapchainSupportDetails {
 };
 
 inline SwapchainSupportDetails
-    QuerySwapchainSupport(const vk::raii::PhysicalDevice &physicalDevice,
-                          const vk::raii::SurfaceKHR &surface) {
+    QuerySwapchainSupport(const vk::raii::PhysicalDevice& physicalDevice,
+                          const vk::raii::SurfaceKHR& surface) {
 
     try {
         if (!(*physicalDevice)) {
@@ -129,15 +128,15 @@ inline SwapchainSupportDetails
             physicalDevice.getSurfaceCapabilitiesKHR(*surface),
             physicalDevice.getSurfaceFormatsKHR(*surface),
             physicalDevice.getSurfacePresentModesKHR(*surface)};
-    } catch (const std::exception &e) {
+    } catch (const std::exception& e) {
         CZ_LOG(LogVulkanUtils, Error, "Vulkan RAII Error: %s", e.what());
         return {};
     }
 }
 
 inline vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(
-    const std::vector<vk::SurfaceFormatKHR> &availableFormats) {
-    for (const auto &availableFormat : availableFormats) {
+    const std::vector<vk::SurfaceFormatKHR>& availableFormats) {
+    for (const auto& availableFormat : availableFormats) {
         if (availableFormat.format == vk::Format::eB8G8R8A8Srgb &&
             availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
             return availableFormat;
@@ -148,8 +147,8 @@ inline vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(
 }
 
 inline vk::PresentModeKHR ChooseSwapPresentMode(
-    const std::vector<vk::PresentModeKHR> &availablePresentModes) {
-    for (const auto &availablePresentMode : availablePresentModes) {
+    const std::vector<vk::PresentModeKHR>& availablePresentModes) {
+    for (const auto& availablePresentMode : availablePresentModes) {
         if (availablePresentMode == vk::PresentModeKHR::eMailbox) {
             return availablePresentMode;
         }
@@ -157,7 +156,7 @@ inline vk::PresentModeKHR ChooseSwapPresentMode(
     return vk::PresentModeKHR::eFifo;
 }
 
-vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities,
+vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities,
                               int pixelWidth, int pixelHeight) {
     if (capabilities.currentExtent.width !=
         (std::numeric_limits<uint32_t>::max)()) {
@@ -179,7 +178,7 @@ vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities,
 
 // Log
 inline void
-    LogPhysicalDeviceInfo(const vk::PhysicalDeviceProperties &properties) {
+    LogPhysicalDeviceInfo(const vk::PhysicalDeviceProperties& properties) {
 
     CZ_LOG(LogVulkanUtils, Info, "Device Name: {}",
            properties.deviceName.data());
@@ -191,14 +190,14 @@ inline void
            VK_API_VERSION_PATCH(properties.apiVersion));
 }
 
-inline void LogMemoryBudget(vk::raii::PhysicalDevice &physicalDevice) {
+inline void LogMemoryBudget(vk::raii::PhysicalDevice& physicalDevice) {
     vk::PhysicalDeviceMemoryProperties memProperties =
         physicalDevice.getMemoryProperties();
 
     CZ_LOG(LogVulkanUtils, Info, "--- GPU Memory Budget Report ---");
 
     for (uint32_t i = 0; i < memProperties.memoryHeapCount; i++) {
-        const auto &heap = memProperties.memoryHeaps[i];
+        const auto& heap = memProperties.memoryHeaps[i];
         float sizeGB =
             static_cast<float>(heap.size) / (1024.0f * 1024.0f * 1024.0f);
 

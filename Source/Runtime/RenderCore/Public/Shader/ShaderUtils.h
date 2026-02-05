@@ -4,16 +4,15 @@
 
 namespace ChozoUtils::Shader {
 
-EShaderStage StringToShaderStage(std::string_view shaderStage);
+EShaderStage StringToStage(std::string_view shaderStage);
 
-const char *ShaderStageToString(EShaderStage shaderStage);
+const char *StageToString(EShaderStage shaderStage);
 
-EShaderStage GetShaderStageFromExtension(const std::string &extension);
+EShaderStage GetStageFromExtension(const std::string &extension);
 
-uint32 ShaderStageToKind(EShaderStage shaderStage);
+uint32 StageToKind(EShaderStage shaderStage);
 
-std::string
-    ShaderStageToVulkanCacheFileExtension(const EShaderStage shaderStage);
+std::string StageToVulkanCacheFileExtension(const EShaderStage shaderStage);
 
 std::filesystem::path GetCachePathByNameAndStage(const std::string_view name,
                                                  EShaderStage stage);

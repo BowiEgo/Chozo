@@ -27,6 +27,9 @@ enum class EShaderStage : uint16 {
         None
 };
 
+static constexpr size_t kShaderStageCount =
+    static_cast<size_t>(EShaderStage::None);
+
 // -- ShaderMacro --
 struct ShaderMacro {
     std::string Name;
@@ -61,7 +64,7 @@ public:
     }
 
     // Generate a unique hash for shader permutation caching
-    size_t GetHash() const {
+    size_t GenHash() const {
         size_t hash = 0;
         for (const auto &[name, def] : m_Macros) {
             // Simple hash combine logic
@@ -119,7 +122,7 @@ struct FShaderCreateInfo {
         : Name(name), VirtualPath(path), EntryPoint(entryPoint),
           Definitions(defs) {}
 
-    size_t GetHash() const {
+    size_t GenHash() const {
         size_t h = std::hash<std::string>{}(VirtualPath);
 
         auto hashCombine = [](size_t &seed, const std::string &s) {
@@ -150,4 +153,18 @@ struct FShaderCompilerOutput {
     std::string SourceCode;
     FShaderReflection Reflection;
     bool bSucceeded = false;
+};
+
+struct FShaderCompiledData {
+    FShaderID ID;
+    std::string Name;
+    FShaderCompilerOutput StageOutputs[kShaderStageCount];
+
+    FShaderCompilerOutput &operator[](EShaderStage stage) {
+        return StageOutputs[static_cast<size_t>(stage)];
+    }
+
+    const FShaderCompilerOutput &operator[](EShaderStage stage) const {
+        return StageOutputs[static_cast<size_t>(stage)];
+    }
 };

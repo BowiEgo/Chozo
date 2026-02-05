@@ -20,14 +20,6 @@ rule("chozo_module")
             end
         end
 
-        -- Setup Export Macros
-        -- Generate macro like CORE_EXPORTS, RENDER_CORE_EXPORTS
-        local prefix = target:name():gsub("([a-z])([A-Z])", "%1_%2"):upper()
-        
-        if target:kind() == "shared" then
-            target:add("defines", prefix .. "_EXPORTS")
-        end
-
         -- Setup PCH
         -- Looks for TargetNamePCH.h in the target root folder
         local pch_name = target:name() .. "PCH.h"

@@ -1,13 +1,14 @@
 ﻿#pragma once
 
 #include "Core.h"
+#include "EngineExport.h"
 #include "Platform.h"
 #include "RendererWindow.h"
 #include "WindowDefinition.h"
 
 class ENGINE_API CWindow : public IRendererWindow {
 public:
-    CWindow(const FWindowDefinition &def) : m_Definition(def) {};
+    CWindow(const FWindowDefinition& def) : m_Definition(def) {};
     virtual ~CWindow() {};
 
     virtual void Init() = 0;
@@ -17,9 +18,8 @@ public:
     virtual bool ShouldClose() const = 0;
 
     // from IRendererWindow
-    virtual void GetFramebufferSize(int *width, int *height) const override = 0;
-    virtual std::vector<const char *>
-        GetRequiredExtensions() const override = 0;
+    virtual void GetFramebufferSize(int* width, int* height) const override = 0;
+    virtual std::vector<const char*> GetRequiredExtensions() const override = 0;
     virtual FWindowHandle GetWindowWrapper() const override { return m_Window; }
     virtual FWindowHandle GetNativeHandle() const = 0;
 
@@ -29,7 +29,7 @@ public:
     bool IsVSync() const { return m_Definition.VSync; }
     float GetDPI() const { return m_Definition.XScale; }
 
-    static TScope<CWindow> Create(const FWindowDefinition &windowDef);
+    static TScope<CWindow> Create(const FWindowDefinition& windowDef);
 
 protected:
     FWindowDefinition m_Definition;

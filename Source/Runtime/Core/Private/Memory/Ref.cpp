@@ -1,17 +1,19 @@
 #include <mutex>
 
-static std::unordered_set<void *> s_LiveReferences;
+#include "CoreMinimal.h"
+
+static std::unordered_set<void*> s_LiveReferences;
 static std::mutex s_LiveReferenceMutex;
 
 namespace RefUtils {
 
-CORE_API void AddToLiveReferences(void *instance) {
+CORE_API void AddToLiveReferences(void* instance) {
     std::scoped_lock<std::mutex> lock(s_LiveReferenceMutex);
     CZ_CORE_ASSERT(instance, "");
     s_LiveReferences.insert(instance);
 }
 
-CORE_API void RemoveFromLiveReferences(void *instance) {
+CORE_API void RemoveFromLiveReferences(void* instance) {
     std::scoped_lock<std::mutex> lock(s_LiveReferenceMutex);
     CZ_CORE_ASSERT(instance, "");
     CZ_CORE_ASSERT(s_LiveReferences.find(instance) != s_LiveReferences.end(),
@@ -19,7 +21,7 @@ CORE_API void RemoveFromLiveReferences(void *instance) {
     s_LiveReferences.erase(instance);
 }
 
-CORE_API bool IsLive(void *instance) {
+CORE_API bool IsLive(void* instance) {
     CZ_CORE_ASSERT(instance, "");
     return s_LiveReferences.find(instance) != s_LiveReferences.end();
 }

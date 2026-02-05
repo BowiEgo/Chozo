@@ -10,9 +10,9 @@ namespace ChozoUtils {
 
 namespace String {
 
-CORE_API bool isNumeric(const std::string &str);
+CORE_API bool isNumeric(const std::string& str);
 
-CORE_API std::string &ToLower(std::string &string);
+CORE_API std::string& ToLower(std::string& string);
 
 CORE_API std::string ToLowerCopy(const std::string_view string);
 

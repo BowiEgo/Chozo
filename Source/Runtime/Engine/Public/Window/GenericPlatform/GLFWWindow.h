@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core.h"
+#include "EngineExport.h"
 #include "Window.h"
 
 #include <GLFW/glfw3.h>
@@ -11,7 +12,7 @@ static bool s_GLFWInitialized = false;
 
 class ENGINE_API CGLFWWindow : public CWindow {
 public:
-    CGLFWWindow(const FWindowDefinition &def) : CWindow(def) {};
+    CGLFWWindow(const FWindowDefinition& def) : CWindow(def) {};
     ~CGLFWWindow();
 
     // from Window
@@ -22,16 +23,16 @@ public:
     virtual bool ShouldClose() const override;
 
     // from IRendererWindow
-    virtual void GetFramebufferSize(int *width, int *height) const override;
-    virtual std::vector<const char *> GetRequiredExtensions() const override;
+    virtual void GetFramebufferSize(int* width, int* height) const override;
+    virtual std::vector<const char*> GetRequiredExtensions() const override;
     virtual FWindowHandle GetNativeHandle() const override;
 
-    GLFWwindow *GetGLFWWindow() const {
-        return static_cast<GLFWwindow *>(m_Window);
+    GLFWwindow* GetGLFWWindow() const {
+        return static_cast<GLFWwindow*>(m_Window);
     }
 
 private:
-    static void OnGLFWError(int error, const char *description);
+    static void OnGLFWError(int error, const char* description);
 
 private:
     void CreateGLFWWindow();

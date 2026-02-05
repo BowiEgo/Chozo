@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "EngineExport.h"
+
 struct ENGINE_API FWindowDefinition {
     std::string Title;
     float XScale, YScale = 1.0f;
