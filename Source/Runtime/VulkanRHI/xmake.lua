@@ -15,10 +15,6 @@ target("VulkanRHI")
         sdk_path = path.translate(sdk_path)
 
         target:add("includedirs", path.join(sdk_path, "Include"))
-        -- Use an absolute path to link vulkan-1.lib directly.
-        -- This prevents the linker from searching the entire SDK/Lib directory,
-        -- effectively avoiding conflicts with the SDK's built-in shaderc libraries.
-        target:add("links", path.join(sdk_path, "Lib", "vulkan-1.lib"))
     end)
 
     if is_plat("windows") then

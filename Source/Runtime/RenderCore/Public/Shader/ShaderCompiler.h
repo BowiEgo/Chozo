@@ -2,11 +2,10 @@
 
 #include "Core.h"
 #include "RHITypes.h"
-#include "RenderCoreExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogShaderCompiler, Info);
 
-class RENDER_CORE_API CShaderCompiler : public FRefCounted {
+class CShaderCompiler : public FRefCounted {
 public:
     virtual ~CShaderCompiler() = default;
 
