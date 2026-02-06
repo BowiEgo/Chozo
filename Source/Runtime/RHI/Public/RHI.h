@@ -1,10 +1,25 @@
 #pragma once
 
-class RHI_API IRHI {
+#include "RHIDevice.h"
+#include "RHIExport.h"
+#include "RHISwapchain.h"
+#include "Ref.h"
+
+struct FRHICreateInfo {
+    // --- Windowing ---
+    // [Note] Raw window handle (HWND on Windows, Window on X11)
+    void* WindowHandle = nullptr;
+    std::vector<const char*> RequiredExtensions;
+};
+
+class RHI_API IRHI : public FRefCounted {
 public:
-    IRHI() {}
+    IRHI();
+    virtual ~IRHI();
 
-    virtual ~IRHI() = default;
+    virtual TRef<IRHIDevice> CreateDevice(const FRHIDeviceCreateInfo& info) = 0;
+    virtual TRef<IRHISwapchain>
+        CreateSwapchain(const FRHISwapchainCreateInfo& info) = 0;
 
-    static TRef<IRHI> Create();
+    virtual TRef<IRHIDevice> GetDevice() const = 0;
 };

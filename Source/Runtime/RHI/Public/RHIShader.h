@@ -6,7 +6,6 @@
 #include "Ref.h"
 
 struct FRHIShaderCreateInfo {
-    TRef<IRHIDevice> Device;
     EShaderStage Stage;
     std::string Name;
     const std::vector<uint32_t>* Binary = nullptr;
@@ -14,10 +13,8 @@ struct FRHIShaderCreateInfo {
 
 class RHI_API IRHIShader : public FRefCounted {
 public:
-    IRHIShader(const FRHIShaderCreateInfo& info)
-        : m_Stage(info.Stage), m_Name(info.Name), m_Device(info.Device) {}
-
-    virtual ~IRHIShader() = default;
+    IRHIShader(const FRHIShaderCreateInfo& info);
+    virtual ~IRHIShader();
 
     const EShaderStage GetStage() const { return m_Stage; };
     const std::string& GetName() const { return m_Name; };

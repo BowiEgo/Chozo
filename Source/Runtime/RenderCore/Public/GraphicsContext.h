@@ -1,25 +1,28 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "RHI.h"
 #include "RenderCoreExport.h"
 #include "RendererWindow.h"
 #include "Scope.h"
 
-using FWindowHandle = void*;
+DECLARE_LOG_CATEGORY_EXTERN(LogGraphicsContext, Info);
 
 class RENDER_CORE_API CGraphicsContext {
 public:
-    CGraphicsContext(IRendererWindow* windowHandle) : m_Window(windowHandle) {};
-    virtual ~CGraphicsContext() = default;
+    CGraphicsContext(IRendererWindow* windowHandle);
+    ~CGraphicsContext();
 
-    virtual void Init() = 0;
-    virtual void SwapBuffers() = 0;
+    IRHI* GetRHI() const { return m_RHI.get(); }
 
-    virtual void CreateRenderer() = 0; // TODO: Remove
+    void Init();
+    // void SwapBuffers();
 
-    // English comment: Factory method to create the appropriate context
-    static TScope<CGraphicsContext> Create(IRendererWindow* windowHandle);
+    static CGraphicsContext& Get();
 
 protected:
+    static CGraphicsContext* s_Instance;
+
     IRendererWindow* m_Window;
+    TScope<IRHI> m_RHI;
 };

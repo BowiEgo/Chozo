@@ -3,11 +3,11 @@
 
 DEFINE_LOG_CATEGORY(LogVulkanRHIShader);
 
-CVulkanRHIShader::CVulkanRHIShader(const FRHIShaderCreateInfo& info)
+CVulkanRHIShader::CVulkanRHIShader(const FRHIShaderCreateInfo& info,
+                                   const CVulkanRHIDevice* device)
     : IRHIShader(info) {
 
-    auto* deviceImpl = static_cast<const CVulkanRHIDevice*>(info.Device.Raw());
-    if (!deviceImpl) {
+    if (!device) {
         CZ_LOG(LogVulkanRHIShader, Error,
                "Invalid Device handle for shader creation");
         return;
@@ -18,7 +18,7 @@ CVulkanRHIShader::CVulkanRHIShader(const FRHIShaderCreateInfo& info)
     mkInfo.pCode = info.Binary->data();
 
     try {
-        m_Module = deviceImpl->GetVKDevice().createShaderModule(mkInfo);
+        m_Module = device->GetVKLogicalDevice().createShaderModule(mkInfo);
 
         CZ_LOG(LogVulkanRHIShader, Info, "Vulkan Shader Module created: {0}",
                info.Name);

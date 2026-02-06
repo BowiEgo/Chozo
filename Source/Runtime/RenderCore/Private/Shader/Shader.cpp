@@ -4,15 +4,15 @@
 
 DEFINE_LOG_CATEGORY(LogShader);
 
-CShader::CShader(const TRef<IRHIDevice> device, const FShaderCompiledData &data)
-    : m_Device(device), m_ID(data.ID), m_Name(data.Name) {
+CShader::CShader(const FShaderCompiledData& data)
+    : m_ID(data.ID), m_Name(data.Name) {
     CZ_LOG(LogShader, Trace, "Creating shader", data.Name);
     CreateRHIDeviceResource(data);
 }
 
-void CShader::CreateRHIDeviceResource(const FShaderCompiledData &data) {
+void CShader::CreateRHIDeviceResource(const FShaderCompiledData& data) {
     for (uint32 i = 0; i < kShaderStageCount; ++i) {
-        const FShaderCompilerOutput &output = data.StageOutputs[i];
+        const FShaderCompilerOutput& output = data.StageOutputs[i];
 
         // [Note] Only create RHI resources for stages that were actually
         // compiled
@@ -20,8 +20,6 @@ void CShader::CreateRHIDeviceResource(const FShaderCompiledData &data) {
             EShaderStage stage = static_cast<EShaderStage>(i);
 
             FRHIShaderCreateInfo createInfo;
-            createInfo.Device =
-                m_Device; // [Note] Ensure the RHI knows which device to use
             createInfo.Stage = stage;
             createInfo.Name =
                 m_Name + "_" +
@@ -30,7 +28,8 @@ void CShader::CreateRHIDeviceResource(const FShaderCompiledData &data) {
 
             // [Note] Use the Device to create the actual hardware resource
             m_RHIShaders[static_cast<size_t>(stage)] =
-                m_Device->CreateShader(createInfo);
+                CGraphicsContext::Get().GetRHI()->GetDevice()->CreateShader(
+                    createInfo);
 
             CZ_LOG(LogShader, Trace, "Created RHI shader stage: {0}", i);
         }

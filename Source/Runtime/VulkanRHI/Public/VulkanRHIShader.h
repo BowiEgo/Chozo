@@ -9,7 +9,8 @@ class CVulkanRHIDevice;
 
 class VULKAN_RHI_API CVulkanRHIShader : public IRHIShader {
 public:
-    CVulkanRHIShader(const FRHIShaderCreateInfo& info);
+    CVulkanRHIShader(const FRHIShaderCreateInfo& info,
+                     const CVulkanRHIDevice* device);
     virtual ~CVulkanRHIShader() = default;
 
 private:

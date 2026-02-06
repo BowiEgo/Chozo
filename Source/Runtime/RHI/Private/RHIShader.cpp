@@ -1,20 +1,6 @@
 #include "RHIShader.h"
 
-// #include "OpenGLRHIShader.h"
-// #include "RendererAPI.h"
-// #include "VulkanRHIShader.h"
+IRHIShader::IRHIShader(const FRHIShaderCreateInfo& info)
+    : m_Stage(info.Stage), m_Name(info.Name) {}
 
-// TRef<IRHIShader> IRHIShader::Create(const FRHIShaderCreateInfo &info) {
-//     switch (CRendererAPI::GetType()) {
-//     case CRendererAPI::EType::None:
-//         CZ_CORE_ASSERT(false, "RendererAPI::None is currently not
-//         supported!"); return nullptr;
-//     case CRendererAPI::EType::OpenGL:
-//         // return TRef<COpenGLRHIShader>(info);
-//     case CRendererAPI::EType::Vulkan:
-//         return TRef<CVulkanRHIShader>(info);
-//     }
-
-//     CZ_CORE_ASSERT(false, "Unknown RendererAPI!");
-//     return nullptr;
-// }
+IRHIShader::~IRHIShader() = default;

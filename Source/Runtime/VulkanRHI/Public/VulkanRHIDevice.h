@@ -8,7 +8,9 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVulkanRHIDevice, Info);
 
 class VULKAN_RHI_API CVulkanRHIDevice : public IRHIDevice {
 public:
-    CVulkanRHIDevice(const FRHIDeviceCreateInfo& info);
+    CVulkanRHIDevice(const vk::raii::Instance& instance,
+                     const vk::raii::SurfaceKHR& surface,
+                     const FRHIDeviceCreateInfo& info);
     virtual ~CVulkanRHIDevice() = default;
 
     virtual TRef<IRHIShader>
@@ -17,26 +19,28 @@ public:
     virtual void WaitIdle() override {};
 
 private: // TODO: Remove
-    void CreateVKInstance();
-    void SetupDebugMessenger();
-    void CreateVKSurface();
     void PickPhysicalDevice();
 
 private:
     void Init();
 
 public:
-    const vk::raii::Device& GetVKDevice() const { return m_LogicalDevice; }
+    const vk::raii::Instance& GetVKInstance() const { return m_Instance; }
 
-private: // TODO: Remove
-    vk::raii::Context m_Context;
-    vk::raii::Instance m_Instance = nullptr;
-    vk::raii::DebugUtilsMessengerEXT m_DebugMessenger = nullptr;
-    vk::raii::SurfaceKHR m_Surface = nullptr;
-    vk::raii::PhysicalDevice m_PhysicalDevice = nullptr;
+    const vk::raii::PhysicalDevice& GetVKPhysicalDevice() const {
+        return m_PhysicalDevice;
+    }
+    const vk::raii::Device& GetVKLogicalDevice() const {
+        return m_LogicalDevice;
+    }
 
 private:
+    const vk::raii::Instance& m_Instance;
+    const vk::raii::SurfaceKHR& m_Surface;
+
+    vk::raii::PhysicalDevice m_PhysicalDevice = nullptr;
     vk::raii::Device m_LogicalDevice = nullptr;
+
     vk::raii::Queue m_GraphicsQueue = nullptr;
     vk::raii::Queue m_PresentQueue = nullptr;
     vk::raii::Queue m_ComputeQueue = nullptr;

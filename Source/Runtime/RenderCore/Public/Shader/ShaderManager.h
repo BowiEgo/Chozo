@@ -13,7 +13,7 @@ public:
     CShaderManager() = default;
     ~CShaderManager() = default;
 
-    static void Init(const TRef<IRHIDevice> device);
+    static void Init();
     static const CShaderManager* Get() {
         CZ_CORE_ASSERT(
             s_Instance,
@@ -27,7 +27,6 @@ public:
 private:
     static CShaderManager* s_Instance;
     // CGraphicsContext *m_Context;
-    TRef<IRHIDevice> m_Device;
 
     std::unordered_map<FShaderID, TRef<CShader>> m_ShaderCache;
     TScope<CShaderCompiler> m_Compiler;

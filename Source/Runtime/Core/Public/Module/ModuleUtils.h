@@ -1,7 +1,5 @@
 #pragma once
 
-using PFN_CreateDevice = IRHIDevice*(const FRHIDeviceCreateInfo&);
-
 static std::string GetPlatformLibName(const std::string& name) {
 #if defined(CHOZO_PLATFORM_WINDOWS)
     return name + ".dll";

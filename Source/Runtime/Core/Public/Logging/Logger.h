@@ -8,14 +8,14 @@
 
 class CORE_API FLogger {
 public:
-    static FLogger &Get();
+    static FLogger& Get();
 
     /**
      * The core log function that dispatches messages to sinks
      */
     template <typename... Args>
-    void Log(const std::string &Category, ELogVerbosity Verbosity,
-             const std::string &Format, Args &&...args) {
+    void Log(const std::string& Category, ELogVerbosity Verbosity,
+             const std::string& Format, Args&&... args) {
         std::string FormattedMsg = spdlog::fmt_lib::format(
             fmt::runtime(Format), std::forward<Args>(args)...);
         LogInternal(Category, Verbosity, FormattedMsg);
@@ -29,8 +29,8 @@ private:
     struct FImpl;
     std::unique_ptr<FImpl> Impl;
 
-    void LogInternal(const std::string &Category, ELogVerbosity Verbosity,
-                     const std::string &Message);
+    void LogInternal(const std::string& Category, ELogVerbosity Verbosity,
+                     const std::string& Message);
 };
 
 #define CZ_LOG(Category, Verbosity, Format, ...)                               \
@@ -43,3 +43,9 @@ private:
             }                                                                  \
         }                                                                      \
     } while (0)
+
+#define CZ_CORE_LOG(Verbosity, Format, ...)                                    \
+    CZ_LOG(Core, Verbosity, Format, ##__VA_ARGS__)
+
+#define CZ_APP_LOG(Verbosity, Format, ...)                                     \
+    CZ_LOG(App, Verbosity, Format, ##__VA_ARGS__)

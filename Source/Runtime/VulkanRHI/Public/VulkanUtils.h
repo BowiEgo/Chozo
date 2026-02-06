@@ -2,15 +2,13 @@
 
 #include "Core.h"
 
-#include <vulkan/vulkan_raii.hpp>
-
 #include <optional>
 
 struct FQueueFamilyIndices {
-    std::optional<uint32_t> Graphics;
-    std::optional<uint32_t> Present;
-    std::optional<uint32_t> Compute;
-    std::optional<uint32_t> Transfer;
+    std::optional<uint32> Graphics;
+    std::optional<uint32> Present;
+    std::optional<uint32> Compute;
+    std::optional<uint32> Transfer;
 
     bool IsComplete() const {
         return Graphics.has_value() && Present.has_value();
@@ -63,7 +61,7 @@ inline FQueueFamilyIndices
     // find the index of the first queue family that supports graphics
     auto queueFamilyProps = physicalDevice.getQueueFamilyProperties();
 
-    for (uint32_t i = 0; i < queueFamilyProps.size(); i++) {
+    for (uint32 i = 0; i < queueFamilyProps.size(); i++) {
         const auto queueFamilyProp = queueFamilyProps[i];
 
         if (queueFamilyProp.queueFlags & vk::QueueFlagBits::eGraphics) {
@@ -86,9 +84,9 @@ inline FQueueFamilyIndices
     }
 
     try {
-        uint32_t gIdx = indices.Graphics.value();
-        uint32_t pIdx = indices.Present.value();
-        uint32_t cIdx = indices.Compute.value();
+        uint32 gIdx = indices.Graphics.value();
+        uint32 pIdx = indices.Present.value();
+        uint32 cIdx = indices.Compute.value();
 
         CZ_LOG(LogVulkanUtils, Info, "Indices valid: G{}, P{}, C{}", gIdx, pIdx,
                cIdx);
@@ -156,15 +154,16 @@ inline vk::PresentModeKHR ChooseSwapPresentMode(
     return vk::PresentModeKHR::eFifo;
 }
 
-vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities,
-                              int pixelWidth, int pixelHeight) {
+inline vk::Extent2D
+    ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities,
+                     int pixelWidth, int pixelHeight) {
     if (capabilities.currentExtent.width !=
-        (std::numeric_limits<uint32_t>::max)()) {
+        (std::numeric_limits<uint32>::max)()) {
         return capabilities.currentExtent;
     }
 
-    vk::Extent2D actualExtent = {static_cast<uint32_t>(pixelWidth),
-                                 static_cast<uint32_t>(pixelHeight)};
+    vk::Extent2D actualExtent = {static_cast<uint32>(pixelWidth),
+                                 static_cast<uint32>(pixelHeight)};
 
     actualExtent.width =
         std::clamp(actualExtent.width, capabilities.minImageExtent.width,
@@ -196,7 +195,7 @@ inline void LogMemoryBudget(vk::raii::PhysicalDevice& physicalDevice) {
 
     CZ_LOG(LogVulkanUtils, Info, "--- GPU Memory Budget Report ---");
 
-    for (uint32_t i = 0; i < memProperties.memoryHeapCount; i++) {
+    for (uint32 i = 0; i < memProperties.memoryHeapCount; i++) {
         const auto& heap = memProperties.memoryHeaps[i];
         float sizeGB =
             static_cast<float>(heap.size) / (1024.0f * 1024.0f * 1024.0f);
