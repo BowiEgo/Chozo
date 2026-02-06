@@ -4,8 +4,9 @@
 DEFINE_LOG_CATEGORY(LogVulkanRHIShader);
 
 CVulkanRHIShader::CVulkanRHIShader(const FRHIShaderCreateInfo& info,
-                                   const CVulkanRHIDevice* device)
-    : IRHIShader(info) {
+                                   const std::vector<uint32_t>* binary,
+                                   const TRef<CVulkanRHIDevice> device)
+    : IRHIShader(info), m_Device(device) {
 
     if (!device) {
         CZ_LOG(LogVulkanRHIShader, Error,
@@ -14,8 +15,8 @@ CVulkanRHIShader::CVulkanRHIShader(const FRHIShaderCreateInfo& info,
     }
 
     vk::ShaderModuleCreateInfo mkInfo{};
-    mkInfo.codeSize = info.Binary->size() * sizeof(uint32_t);
-    mkInfo.pCode = info.Binary->data();
+    mkInfo.codeSize = binary->size() * sizeof(uint32_t);
+    mkInfo.pCode = binary->data();
 
     try {
         m_Module = device->GetVKLogicalDevice().createShaderModule(mkInfo);

@@ -13,15 +13,14 @@ public:
     CVulkanRHI(const FRHICreateInfo& info);
     virtual ~CVulkanRHI() = default;
 
-    virtual TRef<IRHIDevice>
-        CreateDevice(const FRHIDeviceCreateInfo& info) override {
-        return TRef<CVulkanRHIDevice>::Create(m_Instance, m_Surface, info);
+    virtual void CreateDevice(const FRHIDeviceCreateInfo& info) override {
+        m_Device = TRef<CVulkanRHIDevice>::Create(info, m_Instance, m_Surface);
     }
 
     // [Note] Surface creation is triggered here but delegated to the platform
-    virtual TRef<IRHISwapchain>
-        CreateSwapchain(const FRHISwapchainCreateInfo& info) override {
-        return TRef<CVulkanRHISwapchain>::Create(m_Instance, m_Surface, info);
+    virtual void CreateSwapchain(const FRHISwapchainCreateInfo& info) override {
+        m_Swapchain =
+            TRef<CVulkanRHISwapchain>::Create(info, m_Surface, m_Device);
     }
 
     virtual TRef<IRHIDevice> GetDevice() const override { return m_Device; };
@@ -41,5 +40,6 @@ private:
         nullptr; // Only in Debug
     vk::raii::SurfaceKHR m_Surface = nullptr;
 
-    TRef<IRHIDevice> m_Device;
+    TRef<CVulkanRHIDevice> m_Device;
+    TRef<CVulkanRHISwapchain> m_Swapchain;
 };

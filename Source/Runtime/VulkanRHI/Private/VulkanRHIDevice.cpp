@@ -5,17 +5,39 @@
 
 DEFINE_LOG_CATEGORY(LogVulkanRHIDevice);
 
-CVulkanRHIDevice::CVulkanRHIDevice(const vk::raii::Instance& instance,
-                                   const vk::raii::SurfaceKHR& surface,
-                                   const FRHIDeviceCreateInfo& info)
-    : IRHIDevice(info), m_Instance(instance), m_Surface(surface) {
-    PickPhysicalDevice();
-    Init();
+CVulkanRHIDevice::CVulkanRHIDevice(const FRHIDeviceCreateInfo& info,
+                                   const vk::raii::Instance& instance,
+                                   const vk::raii::SurfaceKHR& surface)
+    : IRHIDevice(info) {
+    PickPhysicalDevice(instance);
+    CreateLogicalDevice(surface);
 }
 
-void CVulkanRHIDevice::Init() {
+void CVulkanRHIDevice::PickPhysicalDevice(const vk::raii::Instance& instance) {
+    auto devices = instance.enumeratePhysicalDevices();
+
+    if (devices.empty()) {
+        CZ_LOG(LogVulkanRHIDevice, Fatal,
+               "Failed to find GPUs with Vulkan support");
+    }
+
+    for (const auto& device : devices) {
+        m_PhysicalDevice = device;
+        break;
+    }
+
+    auto deviceProperties = m_PhysicalDevice.getProperties();
+    auto deviceFeatures = m_PhysicalDevice.getFeatures();
+
+    ChozoUtils::Vulkan::LogPhysicalDeviceInfo(deviceProperties);
+    ChozoUtils::Vulkan::LogMemoryBudget(m_PhysicalDevice);
+}
+
+void CVulkanRHIDevice::CreateLogicalDevice(
+    const vk::raii::SurfaceKHR& surface) {
+
     FQueueFamilyIndices indices =
-        ChozoUtils::Vulkan::FindQueueFamilies(m_PhysicalDevice, m_Surface);
+        ChozoUtils::Vulkan::FindQueueFamilies(m_PhysicalDevice, surface);
 
     std::set<uint32_t> uniqueQueueFamilies;
     if (indices.Graphics.has_value())
@@ -78,27 +100,9 @@ void CVulkanRHIDevice::Init() {
     CZ_LOG(LogVulkanRHIDevice, Info, "Vulkan Logical Device Created.");
 }
 
-void CVulkanRHIDevice::PickPhysicalDevice() {
-    auto devices = m_Instance.enumeratePhysicalDevices();
-
-    if (devices.empty()) {
-        CZ_LOG(LogVulkanRHIDevice, Fatal,
-               "Failed to find GPUs with Vulkan support");
-    }
-
-    for (const auto& device : devices) {
-        m_PhysicalDevice = device;
-        break;
-    }
-
-    auto deviceProperties = m_PhysicalDevice.getProperties();
-    auto deviceFeatures = m_PhysicalDevice.getFeatures();
-
-    ChozoUtils::Vulkan::LogPhysicalDeviceInfo(deviceProperties);
-    ChozoUtils::Vulkan::LogMemoryBudget(m_PhysicalDevice);
-}
-
 TRef<IRHIShader>
-    CVulkanRHIDevice::CreateShader(const FRHIShaderCreateInfo& info) {
-    return TRef<CVulkanRHIShader>::Create(info, this);
+    CVulkanRHIDevice::CreateShader(const FRHIShaderCreateInfo& info,
+                                   const std::vector<uint32_t>* binary) const {
+    TRef<CVulkanRHIDevice> deviceRef(this);
+    return TRef<CVulkanRHIShader>::Create(info, binary, deviceRef);
 }

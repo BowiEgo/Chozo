@@ -27,7 +27,9 @@ public:
     virtual ~IRHIDevice();
 
     // --- Shader Resource Factory ---
-    virtual TRef<IRHIShader> CreateShader(const FRHIShaderCreateInfo& info) = 0;
+    virtual TRef<IRHIShader>
+        CreateShader(const FRHIShaderCreateInfo& info,
+                     const std::vector<uint32_t>* binary) const = 0;
 
     // --- Future extensions ---
     // virtual TRef<IRHIBuffer> CreateBuffer(const FRHIBufferDesc& desc) = 0;

@@ -3,29 +3,32 @@
 #include "VulkanRHIDevice.h"
 #include "VulkanUtils.h"
 
-CVulkanRHISwapchain::CVulkanRHISwapchain(const vk::raii::Instance& instance,
+CVulkanRHISwapchain::CVulkanRHISwapchain(const FRHISwapchainCreateInfo& info,
                                          const vk::raii::SurfaceKHR& surface,
-                                         const FRHISwapchainCreateInfo& info)
-    : IRHISwapchain(info), m_Instance(instance), m_Surface(surface) {
-    Init();
+                                         const TRef<CVulkanRHIDevice> device)
+    : IRHISwapchain(info), m_Device(device) {
+    CreateVKSwapchain(surface);
 }
 
-void CVulkanRHISwapchain::Init() { CreateVKSwapchain(); }
+void CVulkanRHISwapchain::CreateVKSwapchain(
+    const vk::raii::SurfaceKHR& surface) {
 
-void CVulkanRHISwapchain::CreateVKSwapchain() {
-    TRef<CVulkanRHIDevice> vkDevice = m_Data.Device.As<CVulkanRHIDevice>();
+    CZ_CORE_ASSERT(*surface,
+                   "Surface handle is null before creating swapchain!");
+
     const vk::raii::PhysicalDevice& physicalDevice =
-        vkDevice->GetVKPhysicalDevice();
-    const vk::raii::Device& logicalDevice = vkDevice->GetVKLogicalDevice();
+        m_Device->GetVKPhysicalDevice();
+    const vk::raii::Device& logicalDevice = m_Device->GetVKLogicalDevice();
 
     ChozoUtils::Vulkan::SwapchainSupportDetails details =
-        ChozoUtils::Vulkan::QuerySwapchainSupport(physicalDevice, m_Surface);
+        ChozoUtils::Vulkan::QuerySwapchainSupport(physicalDevice, surface);
 
     int pixelWidth = m_Data.FrameBufferWidth,
         pixelHeight = m_Data.FrameBufferHeight;
 
     vk::SurfaceFormatKHR surfaceFormat =
         ChozoUtils::Vulkan::ChooseSwapSurfaceFormat(details.formats);
+
     vk::PresentModeKHR presentMode =
         ChozoUtils::Vulkan::ChooseSwapPresentMode(details.presentModes);
     vk::Extent2D extent = ChozoUtils::Vulkan::ChooseSwapExtent(
@@ -39,7 +42,7 @@ void CVulkanRHISwapchain::CreateVKSwapchain() {
     }
 
     vk::SwapchainCreateInfoKHR createInfo;
-    createInfo.surface = *m_Surface;
+    createInfo.surface = *surface;
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -50,7 +53,7 @@ void CVulkanRHISwapchain::CreateVKSwapchain() {
     // If indices are different, use Concurrent mode; otherwise use
     // Exclusive
     FQueueFamilyIndices indices =
-        ChozoUtils::Vulkan::FindQueueFamilies(physicalDevice, m_Surface);
+        ChozoUtils::Vulkan::FindQueueFamilies(physicalDevice, surface);
     uint32_t queueFamilyIndices[] = {indices.Graphics.value(),
                                      indices.Present.value()};
     if (indices.Graphics != indices.Present) {

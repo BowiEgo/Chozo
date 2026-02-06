@@ -36,12 +36,6 @@ void CVulkanRHI::Init() {
         CZ_LOG(LogVulkan, Info, "Vulkan Debug Messenger enabled.");
     }
     CreateVKSurface();
-
-    FRHIDeviceCreateInfo info;
-    info.AppName = "ChozoEngine";
-    info.AppVersion = 1;
-
-    m_Device = CreateDevice(info);
 }
 
 void CVulkanRHI::CreateVKInstance() {

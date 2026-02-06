@@ -6,7 +6,6 @@
 
 struct FRHISwapchainCreateInfo {
     std::string Name;
-    TRef<IRHIDevice> Device;
     int FrameBufferWidth, FrameBufferHeight;
     void* WindowHandle = nullptr;
 };

@@ -31,8 +31,8 @@ public:
     TRef(std::nullptr_t n) // NOLINT
         : m_Instance(nullptr) {}
 
-    TRef(T* instance) // NOLINT
-        : m_Instance(instance) {
+    TRef(const T* instance) // NOLINT
+        : m_Instance(const_cast<T*>(instance)) {
         static_assert(std::is_base_of_v<FRefCounted, T>,
                       "Class is not TRefCounted!");
 

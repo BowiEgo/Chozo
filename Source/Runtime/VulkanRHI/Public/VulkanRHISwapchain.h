@@ -1,24 +1,23 @@
 #pragma once
 
 #include "RHISwapchain.h"
+#include "VulkanRHIDevice.h"
 #include "VulkanRHIExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanRHISwapchain, Info);
 
 class VULKAN_RHI_API CVulkanRHISwapchain : public IRHISwapchain {
 public:
-    CVulkanRHISwapchain(const vk::raii::Instance& instance,
+    CVulkanRHISwapchain(const FRHISwapchainCreateInfo& info,
                         const vk::raii::SurfaceKHR& surface,
-                        const FRHISwapchainCreateInfo& info);
+                        const TRef<CVulkanRHIDevice> device);
     virtual ~CVulkanRHISwapchain() = default;
 
 private:
-    void Init();
-    void CreateVKSwapchain();
+    void CreateVKSwapchain(const vk::raii::SurfaceKHR& surface);
 
 private:
-    const vk::raii::Instance& m_Instance;
-    const vk::raii::SurfaceKHR& m_Surface;
+    TRef<CVulkanRHIDevice> m_Device;
 
     vk::raii::SwapchainKHR m_Swapchain = nullptr;
     std::vector<vk::Image> m_SwapchainImages;

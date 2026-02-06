@@ -10,9 +10,11 @@ class CVulkanRHIDevice;
 class VULKAN_RHI_API CVulkanRHIShader : public IRHIShader {
 public:
     CVulkanRHIShader(const FRHIShaderCreateInfo& info,
-                     const CVulkanRHIDevice* device);
+                     const std::vector<uint32_t>* binary,
+                     const TRef<CVulkanRHIDevice> device);
     virtual ~CVulkanRHIShader() = default;
 
 private:
     vk::raii::ShaderModule m_Module = nullptr;
+    TRef<CVulkanRHIDevice> m_Device;
 };

@@ -108,7 +108,6 @@ struct SwapchainSupportDetails {
 inline SwapchainSupportDetails
     QuerySwapchainSupport(const vk::raii::PhysicalDevice& physicalDevice,
                           const vk::raii::SurfaceKHR& surface) {
-
     try {
         if (!(*physicalDevice)) {
             CZ_LOG(LogVulkanUtils, Error,
@@ -134,6 +133,11 @@ inline SwapchainSupportDetails
 
 inline vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(
     const std::vector<vk::SurfaceFormatKHR>& availableFormats) {
+    if (availableFormats.empty()) {
+        CZ_LOG(LogVulkanUtils, Error, "No surface formats available!");
+        return vk::Format::eUndefined;
+    }
+
     for (const auto& availableFormat : availableFormats) {
         if (availableFormat.format == vk::Format::eB8G8R8A8Srgb &&
             availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {

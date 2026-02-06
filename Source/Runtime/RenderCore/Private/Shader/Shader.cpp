@@ -11,25 +11,25 @@ CShader::CShader(const FShaderCompiledData& data)
 }
 
 void CShader::CreateRHIDeviceResource(const FShaderCompiledData& data) {
+    const auto device = CGraphicsContext::Get().GetRHI()->GetDevice();
+    CZ_CORE_ASSERT(device, "No RHIDevice of GraphicsContext exist");
+
     for (uint32 i = 0; i < kShaderStageCount; ++i) {
         const FShaderCompilerOutput& output = data.StageOutputs[i];
 
-        // [Note] Only create RHI resources for stages that were actually
-        // compiled
+        // Only create RHI resources for stages that were actually compiled
         if (output.bSucceeded && !output.Binary.empty()) {
             EShaderStage stage = static_cast<EShaderStage>(i);
 
             FRHIShaderCreateInfo createInfo;
             createInfo.Stage = stage;
-            createInfo.Name =
-                m_Name + "_" +
-                ChozoUtils::Shader::StageToString(stage); // e.g., MyShader_0
-            createInfo.Binary = &output.Binary;
+            createInfo.Name = m_Name + "_" +
+                              ChozoUtils::Shader::StageToString(
+                                  stage); // e.g., MyShader_Vertex
 
-            // [Note] Use the Device to create the actual hardware resource
+            // Use the Device to create the actual hardware resource
             m_RHIShaders[static_cast<size_t>(stage)] =
-                CGraphicsContext::Get().GetRHI()->GetDevice()->CreateShader(
-                    createInfo);
+                device->CreateShader(createInfo, &output.Binary);
 
             CZ_LOG(LogShader, Trace, "Created RHI shader stage: {0}", i);
         }

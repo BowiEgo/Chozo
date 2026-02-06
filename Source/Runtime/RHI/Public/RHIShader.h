@@ -8,7 +8,6 @@
 struct FRHIShaderCreateInfo {
     EShaderStage Stage;
     std::string Name;
-    const std::vector<uint32_t>* Binary = nullptr;
 };
 
 class RHI_API IRHIShader : public FRefCounted {
@@ -16,13 +15,12 @@ public:
     IRHIShader(const FRHIShaderCreateInfo& info);
     virtual ~IRHIShader();
 
-    const EShaderStage GetStage() const { return m_Stage; };
-    const std::string& GetName() const { return m_Name; };
+    const EShaderStage GetStage() const { return m_Data.Stage; };
+    const std::string& GetName() const { return m_Data.Name; };
 
-    static TRef<IRHIShader> Create(const FRHIShaderCreateInfo& info);
+    static TRef<IRHIShader> Create(const FRHIShaderCreateInfo& info,
+                                   const std::vector<uint32_t>* binary);
 
 protected:
-    EShaderStage m_Stage;
-    std::string m_Name;
-    TRef<IRHIDevice> m_Device;
+    FRHIShaderCreateInfo m_Data;
 };

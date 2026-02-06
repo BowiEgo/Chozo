@@ -8,25 +8,22 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVulkanRHIDevice, Info);
 
 class VULKAN_RHI_API CVulkanRHIDevice : public IRHIDevice {
 public:
-    CVulkanRHIDevice(const vk::raii::Instance& instance,
-                     const vk::raii::SurfaceKHR& surface,
-                     const FRHIDeviceCreateInfo& info);
+    CVulkanRHIDevice(const FRHIDeviceCreateInfo& info,
+                     const vk::raii::Instance& instance,
+                     const vk::raii::SurfaceKHR& surface);
     virtual ~CVulkanRHIDevice() = default;
 
     virtual TRef<IRHIShader>
-        CreateShader(const FRHIShaderCreateInfo& info) override;
+        CreateShader(const FRHIShaderCreateInfo& info,
+                     const std::vector<uint32_t>* binary) const override;
 
     virtual void WaitIdle() override {};
 
-private: // TODO: Remove
-    void PickPhysicalDevice();
-
 private:
-    void Init();
+    void PickPhysicalDevice(const vk::raii::Instance& instance);
+    void CreateLogicalDevice(const vk::raii::SurfaceKHR& surface);
 
 public:
-    const vk::raii::Instance& GetVKInstance() const { return m_Instance; }
-
     const vk::raii::PhysicalDevice& GetVKPhysicalDevice() const {
         return m_PhysicalDevice;
     }
@@ -35,9 +32,6 @@ public:
     }
 
 private:
-    const vk::raii::Instance& m_Instance;
-    const vk::raii::SurfaceKHR& m_Surface;
-
     vk::raii::PhysicalDevice m_PhysicalDevice = nullptr;
     vk::raii::Device m_LogicalDevice = nullptr;
 
