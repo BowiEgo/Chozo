@@ -16,35 +16,26 @@ void CShaderManager::Init() {
     }
 }
 
-TRef<CShader> CShaderManager::Load(const FShaderCreateInfo& rep) {
-    CZ_LOG(LogShaderManager, Trace, "Loading Shader: {}", rep.Name);
+TRef<CShader> CShaderManager::Load(const FShaderCreateInfo& info) {
+    CZ_LOG(LogShaderManager, Trace, "Loading Shader: {}", info.Name);
 
-    FShaderID id = rep.GenHash();
+    FShaderID id = info.GenHash();
 
-    if (m_ShaderCache.contains(id)) {
-        return m_ShaderCache[id];
-    }
+    // if (m_ShaderCache.contains(id)) {
+    //     return m_ShaderCache[id];
+    // }
 
-    FShaderCompiledData compiledData;
-    compiledData.ID = id;
-    compiledData.Name = rep.Name;
+    FShaderCompilerOutput output;
 
-    FShaderCompilerOutput vsOutput, fsOutput;
-    bool success = m_Compiler->Compile(rep, vsOutput,
-                                       fsOutput); // TODO: make more flexable
-
-    compiledData[EShaderStage::Vertex] = vsOutput;
-    compiledData[EShaderStage::Fragment] = fsOutput;
-
-    if (success) {
-        auto shader = CreateRef<CShader>(compiledData);
+    if (bool success = m_Compiler->Compile(info, output)) {
+        auto shader = CreateRef<CShader>(info, output);
         if (shader) {
-            m_ShaderCache[id] = shader;
-            CZ_LOG(LogShaderManager, Info, "Shader: {} Loaded", rep.Name);
+            // m_ShaderCache[id] = shader;
+            CZ_LOG(LogShaderManager, Info, "Shader: {} Loaded", info.Name);
             return shader;
         }
     }
 
-    CZ_LOG(LogShaderManager, Error, "Failed to load Shader: {0}", rep.Name);
+    CZ_LOG(LogShaderManager, Error, "Failed to load Shader: {0}", info.Name);
     return nullptr;
 }

@@ -1,18 +1,15 @@
 #include "VulkanRHISwapchain.h"
 
 #include "VulkanRHIDevice.h"
-#include "VulkanUtils.h"
 
 CVulkanRHISwapchain::CVulkanRHISwapchain(const FRHISwapchainCreateInfo& info,
                                          const vk::raii::SurfaceKHR& surface,
                                          const TRef<CVulkanRHIDevice> device)
     : IRHISwapchain(info), m_Device(device) {
-    CreateVKSwapchain(surface);
+    init(surface);
 }
 
-void CVulkanRHISwapchain::CreateVKSwapchain(
-    const vk::raii::SurfaceKHR& surface) {
-
+void CVulkanRHISwapchain::init(const vk::raii::SurfaceKHR& surface) {
     CZ_CORE_ASSERT(*surface,
                    "Surface handle is null before creating swapchain!");
 
@@ -23,8 +20,8 @@ void CVulkanRHISwapchain::CreateVKSwapchain(
     ChozoUtils::Vulkan::SwapchainSupportDetails details =
         ChozoUtils::Vulkan::QuerySwapchainSupport(physicalDevice, surface);
 
-    int pixelWidth = m_Data.FrameBufferWidth,
-        pixelHeight = m_Data.FrameBufferHeight;
+    int pixelWidth = m_Info.FrameBufferWidth,
+        pixelHeight = m_Info.FrameBufferHeight;
 
     vk::SurfaceFormatKHR surfaceFormat =
         ChozoUtils::Vulkan::ChooseSwapSurfaceFormat(details.formats);
@@ -80,7 +77,9 @@ void CVulkanRHISwapchain::CreateVKSwapchain(
     m_Swapchain = vk::raii::SwapchainKHR(logicalDevice, createInfo);
 
     // Retrieve the images created by the swapchain
-    m_SwapchainImages = m_Swapchain.getImages();
-    m_SwapchainImageFormat = surfaceFormat.format;
-    m_SwapchainExtent = extent;
+    m_Images = m_Swapchain.getImages();
+    m_ImageFormat = surfaceFormat.format;
+    m_Extent = extent;
 }
+
+void CVulkanRHISwapchain::CreateVKRenderPass() {}

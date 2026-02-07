@@ -1,6 +1,6 @@
 #include "RHISwapchain.h"
 
 IRHISwapchain::IRHISwapchain(const FRHISwapchainCreateInfo& info)
-    : m_Data(info) {}
+    : m_Info(info) {}
 
 IRHISwapchain::~IRHISwapchain() = default;

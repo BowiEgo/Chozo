@@ -17,8 +17,10 @@ public:
     IRHI();
     virtual ~IRHI();
 
-    virtual void CreateDevice(const FRHIDeviceCreateInfo& info) = 0;
-    virtual void CreateSwapchain(const FRHISwapchainCreateInfo& info) = 0;
+    virtual TRef<IRHIDevice> CreateDevice(const FRHIDeviceCreateInfo& info) = 0;
+    virtual TRef<IRHISwapchain>
+        CreateSwapchain(const FRHISwapchainCreateInfo& info) = 0;
 
     virtual TRef<IRHIDevice> GetDevice() const = 0;
+    virtual TRef<IRHISwapchain> GetSwapchain() const = 0;
 };

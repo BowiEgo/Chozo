@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RHIExport.h"
+#include "RHIPipeline.h"
 #include "Ref.h"
 
 class IRHIShader;
@@ -31,6 +32,9 @@ public:
         CreateShader(const FRHIShaderCreateInfo& info,
                      const std::vector<uint32_t>* binary) const = 0;
 
+    virtual TRef<IRHIPipeline>
+        CreatePipeline(const FRHIPipelineCreateInfo& info) const = 0;
+
     // --- Future extensions ---
     // virtual TRef<IRHIBuffer> CreateBuffer(const FRHIBufferDesc& desc) = 0;
     // virtual TRef<IRHICommandContext> GetImmediateContext() = 0;
@@ -41,5 +45,5 @@ public:
     virtual void WaitIdle() = 0;
 
 protected:
-    FRHIDeviceCreateInfo m_Data;
+    FRHIDeviceCreateInfo m_Info;
 };

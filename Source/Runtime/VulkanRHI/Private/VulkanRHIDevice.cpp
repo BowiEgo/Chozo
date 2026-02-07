@@ -1,5 +1,6 @@
 #include "VulkanRHIDevice.h"
 
+#include "VulkanRHIPipeline.h"
 #include "VulkanRHIShader.h"
 #include "VulkanUtils.h"
 
@@ -11,6 +12,10 @@ CVulkanRHIDevice::CVulkanRHIDevice(const FRHIDeviceCreateInfo& info,
     : IRHIDevice(info) {
     PickPhysicalDevice(instance);
     CreateLogicalDevice(surface);
+}
+
+CVulkanRHIDevice::~CVulkanRHIDevice() {
+    CZ_LOG(LogVulkanRHIDevice, Trace, "Destroying Vulkan Device...");
 }
 
 void CVulkanRHIDevice::PickPhysicalDevice(const vk::raii::Instance& instance) {
@@ -103,6 +108,11 @@ void CVulkanRHIDevice::CreateLogicalDevice(
 TRef<IRHIShader>
     CVulkanRHIDevice::CreateShader(const FRHIShaderCreateInfo& info,
                                    const std::vector<uint32_t>* binary) const {
-    TRef<CVulkanRHIDevice> deviceRef(this);
-    return TRef<CVulkanRHIShader>::Create(info, binary, deviceRef);
+    return TRef<CVulkanRHIShader>::Create(info, binary,
+                                          TRef<CVulkanRHIDevice>(this));
+}
+
+TRef<IRHIPipeline>
+    CVulkanRHIDevice::CreatePipeline(const FRHIPipelineCreateInfo& info) const {
+    return TRef<CVulkanRHIPipeline>::Create(info, TRef<CVulkanRHIDevice>(this));
 }

@@ -28,3 +28,7 @@ CVulkanRHIShader::CVulkanRHIShader(const FRHIShaderCreateInfo& info,
                "Failed to create Vulkan shader module: {0}", e.what());
     }
 }
+
+CVulkanRHIShader::~CVulkanRHIShader() {
+    CZ_LOG(LogVulkanRHIShader, Trace, "Destroying Shader Module...");
+}

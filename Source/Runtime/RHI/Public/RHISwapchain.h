@@ -15,6 +15,8 @@ public:
     IRHISwapchain(const FRHISwapchainCreateInfo& info);
     virtual ~IRHISwapchain();
 
+    virtual const EPixelFormat GetImageFormat() const = 0;
+
 protected:
-    FRHISwapchainCreateInfo m_Data;
+    FRHISwapchainCreateInfo m_Info;
 };

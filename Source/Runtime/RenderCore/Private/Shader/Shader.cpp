@@ -4,34 +4,36 @@
 
 DEFINE_LOG_CATEGORY(LogShader);
 
-CShader::CShader(const FShaderCompiledData& data)
-    : m_ID(data.ID), m_Name(data.Name) {
-    CZ_LOG(LogShader, Trace, "Creating shader", data.Name);
-    CreateRHIDeviceResource(data);
+CShader::CShader(const FShaderCreateInfo& info,
+                 const FShaderCompilerOutput& data)
+    : m_Info(info), m_Data(data) {
+    CZ_LOG(LogShader, Trace, "Creating shader", info.Name);
 }
 
-void CShader::CreateRHIDeviceResource(const FShaderCompiledData& data) {
+TRef<IRHIShader>
+    CShader::CreateRHIDeviceResource(const FShaderCreateInfo& info,
+                                     const FShaderCompilerOutput& data) {
     const auto device = CGraphicsContext::Get().GetRHI()->GetDevice();
     CZ_CORE_ASSERT(device, "No RHIDevice of GraphicsContext exist");
 
-    for (uint32 i = 0; i < kShaderStageCount; ++i) {
-        const FShaderCompilerOutput& output = data.StageOutputs[i];
+    // Only create RHI resources for stages that were actually compiled
+    if (data.bSucceeded && !data.Binary.empty()) {
+        const std::string stageStr =
+            ChozoUtils::Shader::StageToString(info.Stage);
 
-        // Only create RHI resources for stages that were actually compiled
-        if (output.bSucceeded && !output.Binary.empty()) {
-            EShaderStage stage = static_cast<EShaderStage>(i);
+        FRHIShaderCreateInfo createInfo;
+        createInfo.Stage = info.Stage;
+        createInfo.Name = info.Name + "_" + stageStr; // e.g., MyShader_Vertex
+        createInfo.EntryPoint = info.EntryPoint;
 
-            FRHIShaderCreateInfo createInfo;
-            createInfo.Stage = stage;
-            createInfo.Name = m_Name + "_" +
-                              ChozoUtils::Shader::StageToString(
-                                  stage); // e.g., MyShader_Vertex
+        // Use the Device to create the actual hardware resource
+        auto RHIShader = device->CreateShader(createInfo, &data.Binary);
 
-            // Use the Device to create the actual hardware resource
-            m_RHIShaders[static_cast<size_t>(stage)] =
-                device->CreateShader(createInfo, &output.Binary);
+        CZ_LOG(LogShader, Info, "RHI shader: {} created", createInfo.Name,
+               stageStr);
 
-            CZ_LOG(LogShader, Trace, "Created RHI shader stage: {0}", i);
-        }
+        return RHIShader;
     }
+
+    return nullptr;
 }

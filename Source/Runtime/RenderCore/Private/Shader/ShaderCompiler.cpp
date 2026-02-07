@@ -110,7 +110,7 @@ static void ReflectSPIRReSource(const spirv_cross::Compiler& compiler,
 
 void CShaderCompiler::PreProcess(const FShaderCompilerInput& input,
                                  std::string& outProcessedSource) {
-    std::filesystem::path shaderSourcePath = VFS::Resolve(input.SourcePath);
+    std::filesystem::path shaderSourcePath = VFS::Resolve(input.VirtualPath);
 
     shaderc::Compiler compiler;
     shaderc::CompileOptions options;
@@ -142,44 +142,52 @@ void CShaderCompiler::PreProcess(const FShaderCompilerInput& input,
 
 FShaderReflection CShaderCompiler::Reflect() { return FShaderReflection{}; }
 
-bool CShaderCompiler::Compile(const FShaderCreateInfo& rep,
-                              FShaderCompilerOutput& vsOutput,
-                              FShaderCompilerOutput& fsOutput) {
-    CZ_LOG(LogShaderCompiler, Trace, "Compiling Shader: {}", rep.Name);
+bool CShaderCompiler::Compile(const FShaderCreateInfo& info,
+                              FShaderCompilerOutput& output) {
+    CZ_LOG(LogShaderCompiler, Trace, "Compiling Shader: {} in Stage: {}",
+           info.Name, ChozoUtils::Shader::StageToString(info.Stage));
 
-    bool sucess;
+    FShaderCompilerInput input;
+    input.VirtualPath = info.VirtualPath;
+    input.Stage = info.Stage;
+    input.Macros.Add(info.Definitions);
 
-    FShaderCompilerInput vsInput;
-    vsInput.SourcePath = rep.VirtualPath;
-    vsInput.Stage = EShaderStage::Vertex;
-    vsInput.Macros.Add(rep.Definitions);
+    bool success = CompileInternal(input, output);
 
-    FShaderCompilerInput fsInput;
-    fsInput.SourcePath = rep.VirtualPath;
-    fsInput.Stage = EShaderStage::Fragment;
-    fsInput.Macros.Add(rep.Definitions);
-
-    bool vsSuccess = CompileInternal(vsInput, vsOutput);
-    bool fsSuccess = CompileInternal(fsInput, fsOutput);
-
-    sucess = vsSuccess && fsSuccess;
-    if (sucess) {
-        CZ_LOG(LogShaderCompiler, Info, "Shader: {} Compiled", rep.Name);
+    if (success) {
+        CZ_LOG(LogShaderCompiler, Info, "Shader: {} Compiled", info.Name);
     } else {
         CZ_LOG(LogShaderCompiler, Error, "Failed to Compile Shader: {}",
-               rep.Name);
+               info.Name);
     }
 
-    return sucess;
+    return success;
+}
+
+const std::string
+    CShaderCompiler::GetOrLoadSource(const std::filesystem::path& sourcePath) {
+    CZ_LOG(LogShaderCompiler, Trace, "Load shader source from: {}",
+           sourcePath.string());
+
+    std::string source;
+    if (m_SourceCache.find(sourcePath) == m_SourceCache.end()) {
+        // [Note] File I/O happens only once per path
+        source = ChozoUtils::File::ReadTextFile(sourcePath);
+        m_SourceCache[sourcePath] = source;
+        CZ_LOG(LogShaderCompiler, Info, "Cached shader source: {}",
+               sourcePath.string());
+    } else {
+        source = m_SourceCache[sourcePath];
+    }
+
+    CZ_LOG(LogShaderCompiler, Trace, "Source size: {} bytes", source.size());
+    return source;
 }
 
 bool CShaderCompiler::CompileInternal(const FShaderCompilerInput& input,
                                       FShaderCompilerOutput& output) {
-    std::filesystem::path sourcePath = VFS::Resolve(input.SourcePath);
-    std::string source = ChozoUtils::File::ReadTextFile(sourcePath);
-    CZ_LOG(LogShaderCompiler, Trace, "Source Path: {0}", sourcePath.string());
-    CZ_LOG(LogShaderCompiler, Trace, "Source Size: {0} bytes", source.size());
-
+    const std::filesystem::path sourcePath = VFS::Resolve(input.VirtualPath);
+    std::string source = GetOrLoadSource(sourcePath);
     if (source.empty())
         return false;
 

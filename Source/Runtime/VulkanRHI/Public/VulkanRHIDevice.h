@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RHIDevice.h"
+#include "RHIPipeline.h"
 #include "RHIShader.h"
 #include "VulkanRHIExport.h"
 
@@ -11,11 +12,14 @@ public:
     CVulkanRHIDevice(const FRHIDeviceCreateInfo& info,
                      const vk::raii::Instance& instance,
                      const vk::raii::SurfaceKHR& surface);
-    virtual ~CVulkanRHIDevice() = default;
+    virtual ~CVulkanRHIDevice();
 
     virtual TRef<IRHIShader>
         CreateShader(const FRHIShaderCreateInfo& info,
                      const std::vector<uint32_t>* binary) const override;
+
+    virtual TRef<IRHIPipeline>
+        CreatePipeline(const FRHIPipelineCreateInfo& info) const override;
 
     virtual void WaitIdle() override {};
 

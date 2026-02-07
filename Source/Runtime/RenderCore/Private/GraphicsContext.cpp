@@ -20,9 +20,9 @@ CGraphicsContext::CGraphicsContext(IRendererWindow* windowHandle)
 CGraphicsContext::~CGraphicsContext() { s_Instance = nullptr; }
 
 void CGraphicsContext::Init() {
+    CShaderManager::Init();
 
     CModule vulkanModule;
-
     if (vulkanModule.Load("VulkanRHI.dll")) {
         FRHICreateInfo info;
         info.WindowHandle = m_Window->GetNativeHandle();
@@ -40,13 +40,27 @@ void CGraphicsContext::Init() {
             deviceInfo.AppVersion = 1;
             m_RHI->CreateDevice(deviceInfo);
 
+            FShaderCreateInfo vertShaderInfo("Test", "shaders://Test.glsl",
+                                             EShaderStage::Vertex, "main");
+            FShaderCreateInfo fagShaderInfo("Test", "shaders://Test.glsl",
+                                            EShaderStage::Fragment, "main");
+            TRef<CShader> vertShader =
+                CShaderManager::Get()->Load(vertShaderInfo);
+            TRef<CShader> fragShader =
+                CShaderManager::Get()->Load(fagShaderInfo);
+
             FRHISwapchainCreateInfo swapchainInfo;
             swapchainInfo.FrameBufferWidth = 1280;
             swapchainInfo.FrameBufferHeight = 720;
             swapchainInfo.WindowHandle = m_Window->GetNativeHandle();
-            m_RHI->CreateSwapchain(swapchainInfo);
+            TRef<IRHISwapchain> swapchain =
+                m_RHI->CreateSwapchain(swapchainInfo);
 
-            CShaderManager::Init();
+            FRHIPipelineCreateInfo pipelineInfo;
+            pipelineInfo.RHIShaders = {vertShader->GetRHIShader(),
+                                       fragShader->GetRHIShader()};
+            pipelineInfo.ColorFormats.push_back(swapchain->GetImageFormat());
+            m_RHI->GetDevice()->CreatePipeline(pipelineInfo);
         }
     }
 }

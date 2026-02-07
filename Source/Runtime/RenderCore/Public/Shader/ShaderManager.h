@@ -14,7 +14,7 @@ public:
     ~CShaderManager() = default;
 
     static void Init();
-    static const CShaderManager* Get() {
+    static CShaderManager* Get() {
         CZ_CORE_ASSERT(
             s_Instance,
             "ShaderManager instance is null! Did you forget to call Init()?");
@@ -22,12 +22,13 @@ public:
     }
     // static const CGraphicsContext *GetGraphicsContext() { return m_Context; }
 
-    TRef<CShader> Load(const FShaderCreateInfo& rep);
+    TRef<CShader> Load(const FShaderCreateInfo& info);
 
 private:
     static CShaderManager* s_Instance;
     // CGraphicsContext *m_Context;
 
-    std::unordered_map<FShaderID, TRef<CShader>> m_ShaderCache;
+    // std::unordered_map<FShaderID, TRef<CShader>> m_ShaderCache;
+    std::unordered_map<std::string, std::string> m_ShaderSourceCache;
     TScope<CShaderCompiler> m_Compiler;
 };

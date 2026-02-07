@@ -11,14 +11,14 @@
 using FShaderID = uint32;
 
 // -- EShaderStage --
-// ENUM | LOWER | UPPER | SHORT | GLSL
+// ENUM | LOWER | UPPER | SHORT | GLSL | VULKAN
 #define FOREACH_SHADER_STAGE(TYPE)                                             \
-    TYPE(Vertex, vertex, VERTEX, vert, vertex)                                 \
-    TYPE(Fragment, fragment, FRAGMENT, frag, fragment)                         \
-    TYPE(Compute, compute, COMPUTE, comp, compute)                             \
-    TYPE(Geometry, geometry, GEOMETRY, geom, geometry)                         \
-    TYPE(Hull, hull, HULL, tesc, tess_control)                                 \
-    TYPE(Domain, domain, DOMAIN, tese, tess_evaluation)
+    TYPE(Vertex, vertex, VERTEX, vert, vertex, Vertex)                         \
+    TYPE(Fragment, fragment, FRAGMENT, frag, fragment, Fragment)               \
+    TYPE(Compute, compute, COMPUTE, comp, compute, Compute)                    \
+    TYPE(Geometry, geometry, GEOMETRY, geom, geometry, Geometry)               \
+    TYPE(Hull, hull, HULL, tesc, tess_control, TessellationControl)            \
+    TYPE(Domain, domain, DOMAIN, tese, tess_evaluation, TessellationEvaluation)
 
 enum class EShaderStage : uint16 {
 #define GENERATE_ENUM(ENUM, ...) ENUM,
@@ -36,7 +36,7 @@ struct ShaderMacro {
     std::string Definition;
 
     ShaderMacro() = default;
-    ShaderMacro(const std::string &name, const std::string &def)
+    ShaderMacro(const std::string& name, const std::string& def)
         : Name(name), Definition(def) {}
 };
 
@@ -44,12 +44,12 @@ struct ShaderMacro {
 // and string conversion
 class FShaderMacros {
 public:
-    void Add(const std::string &name, const std::string &definition = "1") {
+    void Add(const std::string& name, const std::string& definition = "1") {
         m_Macros[name] = definition;
     }
 
-    void Add(const std::map<std::string, std::string> &definitions) {
-        for (const auto &[name, def] : definitions) {
+    void Add(const std::map<std::string, std::string>& definitions) {
+        for (const auto& [name, def] : definitions) {
             m_Macros[name] = def;
         }
     }
@@ -57,7 +57,7 @@ public:
     // Convert to a string format for GLSL injection: "#define NAME DEF\n"
     std::string ToGLSLString() const {
         std::string result;
-        for (const auto &[name, def] : m_Macros) {
+        for (const auto& [name, def] : m_Macros) {
             result += "#define " + name + " " + def + "\n";
         }
         return result;
@@ -66,7 +66,7 @@ public:
     // Generate a unique hash for shader permutation caching
     size_t GenHash() const {
         size_t hash = 0;
-        for (const auto &[name, def] : m_Macros) {
+        for (const auto& [name, def] : m_Macros) {
             // Simple hash combine logic
             hash ^= std::hash<std::string>{}(name) + 0x9e3779b9 + (hash << 6) +
                     (hash >> 2);
@@ -76,7 +76,7 @@ public:
         return hash;
     }
 
-    const std::map<std::string, std::string> &GetMap() const {
+    const std::map<std::string, std::string>& GetMap() const {
         return m_Macros;
     }
 
@@ -107,42 +107,9 @@ struct FShaderReflection {
     std::unordered_map<std::string, uint32_t> uniformLocations;
 };
 
-using FShaderDefinitions = std::map<std::string, std::string>;
-
-struct FShaderCreateInfo {
-    std::string Name;
-    std::string VirtualPath;
-    std::string EntryPoint = "main";
-    FShaderDefinitions
-        Definitions; // Macros for permutations, e.g., {"USE_ALBEDO": "1"}
-
-    FShaderCreateInfo(const std::string name, const std::string path,
-                      const std::string entryPoint = "main",
-                      const FShaderDefinitions &defs = {})
-        : Name(name), VirtualPath(path), EntryPoint(entryPoint),
-          Definitions(defs) {}
-
-    size_t GenHash() const {
-        size_t h = std::hash<std::string>{}(VirtualPath);
-
-        auto hashCombine = [](size_t &seed, const std::string &s) {
-            seed ^= std::hash<std::string>{}(s) + 0x9e3779b9 + (seed << 6) +
-                    (seed >> 2);
-        };
-
-        for (const auto &[key, value] : Definitions) {
-            hashCombine(h, key);
-            hashCombine(h, value);
-        }
-        hashCombine(h, EntryPoint);
-
-        return h;
-    }
-};
-
 // Define the environment and parameters for a single shader compilation task
 struct FShaderCompilerInput {
-    std::string SourcePath;
+    std::string VirtualPath;
     EShaderStage Stage;
     FShaderMacros Macros;
 };
@@ -150,21 +117,16 @@ struct FShaderCompilerInput {
 // The result of the compilation, including binaries and reflection data
 struct FShaderCompilerOutput {
     std::vector<uint32_t> Binary;
-    std::string SourceCode;
     FShaderReflection Reflection;
     bool bSucceeded = false;
 };
 
-struct FShaderCompiledData {
-    FShaderID ID;
-    std::string Name;
-    FShaderCompilerOutput StageOutputs[kShaderStageCount];
-
-    FShaderCompilerOutput &operator[](EShaderStage stage) {
-        return StageOutputs[static_cast<size_t>(stage)];
-    }
-
-    const FShaderCompilerOutput &operator[](EShaderStage stage) const {
-        return StageOutputs[static_cast<size_t>(stage)];
-    }
+enum class EPixelFormat {
+    Unknown,
+    RGBA8_UNORM,
+    RGBA8_SRGB,
+    BGRA8_UNORM,
+    BGRA8_SRGB,
+    D32_SFLOAT,
+    D24_UNORM_S8_UINT,
 };

@@ -3,6 +3,7 @@
 #include "RHISwapchain.h"
 #include "VulkanRHIDevice.h"
 #include "VulkanRHIExport.h"
+#include "VulkanUtils.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanRHISwapchain, Info);
 
@@ -14,14 +15,23 @@ public:
     virtual ~CVulkanRHISwapchain() = default;
 
 private:
-    void CreateVKSwapchain(const vk::raii::SurfaceKHR& surface);
+    void init(const vk::raii::SurfaceKHR& surface);
+
+public:
+    void CreateVKRenderPass();
+    virtual const EPixelFormat GetImageFormat() const {
+        return ChozoUtils::Vulkan::FromVulkanFormat(m_ImageFormat);
+    }
+    // vk::Format& GetDepthFormat() { return m_ImageFormat; }
 
 private:
     TRef<CVulkanRHIDevice> m_Device;
 
     vk::raii::SwapchainKHR m_Swapchain = nullptr;
-    std::vector<vk::Image> m_SwapchainImages;
-    std::vector<vk::raii::ImageView> m_SwapchainImageViews;
-    vk::Format m_SwapchainImageFormat;
-    vk::Extent2D m_SwapchainExtent;
+    std::vector<vk::Image> m_Images;
+    std::vector<vk::raii::ImageView> m_ImageViews;
+    vk::Format m_ImageFormat, m_DepthFormat;
+    vk::Extent2D m_Extent;
+
+    vk::RenderPass m_RenderPass = nullptr;
 };

@@ -13,17 +13,24 @@ public:
     CVulkanRHI(const FRHICreateInfo& info);
     virtual ~CVulkanRHI() = default;
 
-    virtual void CreateDevice(const FRHIDeviceCreateInfo& info) override {
+    virtual TRef<IRHIDevice>
+        CreateDevice(const FRHIDeviceCreateInfo& info) override {
         m_Device = TRef<CVulkanRHIDevice>::Create(info, m_Instance, m_Surface);
+        return m_Device;
     }
 
     // [Note] Surface creation is triggered here but delegated to the platform
-    virtual void CreateSwapchain(const FRHISwapchainCreateInfo& info) override {
+    virtual TRef<IRHISwapchain>
+        CreateSwapchain(const FRHISwapchainCreateInfo& info) override {
         m_Swapchain =
             TRef<CVulkanRHISwapchain>::Create(info, m_Surface, m_Device);
+        return m_Swapchain;
     }
 
     virtual TRef<IRHIDevice> GetDevice() const override { return m_Device; };
+    virtual TRef<IRHISwapchain> GetSwapchain() const override {
+        return m_Swapchain;
+    };
 
 private:
     void Init();
@@ -32,7 +39,7 @@ private:
     void CreateVKSurface();
 
 private:
-    FRHICreateInfo m_Data;
+    FRHICreateInfo m_Info;
     // [Note] Vulkan context and instance (Global to the RHI module)
     vk::raii::Context m_Context;
     vk::raii::Instance m_Instance = nullptr;

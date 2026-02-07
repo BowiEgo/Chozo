@@ -27,7 +27,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL
                      // validation layer message should not be aborted
 }
 
-CVulkanRHI::CVulkanRHI(const FRHICreateInfo& info) : m_Data(info) { Init(); }
+CVulkanRHI::CVulkanRHI(const FRHICreateInfo& info) : m_Info(info) { Init(); }
 
 void CVulkanRHI::Init() {
     CreateVKInstance();
@@ -47,7 +47,7 @@ void CVulkanRHI::CreateVKInstance() {
     }
 
     // Get required extensions from GLFW
-    auto extensions = m_Data.RequiredExtensions;
+    auto extensions = m_Info.RequiredExtensions;
 
     if (ChozoUtils::Vulkan::EnableValidationLayers) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -87,12 +87,11 @@ void CVulkanRHI::CreateVKInstance() {
     // Create RAII Instance
     try {
         m_Instance = vk::raii::Instance(m_Context, createInfo);
-        CZ_LOG(LogVulkanRHI, Info, "Vulkan RAII Instance created.");
+        CZ_LOG(LogVulkanRHI, Info, "Vulkan Instance created.");
     } catch (const vk::SystemError& err) {
-        CZ_LOG(LogVulkanRHI, Fatal, "Vulkan RAII System Error: {0}",
-               err.what());
+        CZ_LOG(LogVulkanRHI, Fatal, "Vulkan System Error: {0}", err.what());
     } catch (const std::exception& e) {
-        CZ_LOG(LogVulkanRHI, Fatal, "Vulkan RAII Error: {0}", e.what());
+        CZ_LOG(LogVulkanRHI, Fatal, "Vulkan Error: {0}", e.what());
     }
 }
 
@@ -125,7 +124,7 @@ void CVulkanRHI::CreateVKSurface() {
     VkSurfaceKHR surfaceHandle;
     VkResult result;
 
-    auto rawHandle = m_Data.WindowHandle;
+    auto rawHandle = m_Info.WindowHandle;
 
     try {
 #ifdef CHOZO_PLATFORM_WINDOWS
@@ -142,7 +141,7 @@ void CVulkanRHI::CreateVKSurface() {
         // Implement Metal/Cocoa logic here...
 #endif
 
-        CZ_LOG(LogVulkanRHI, Info, "Vulkan RAII Surface created.");
+        CZ_LOG(LogVulkanRHI, Info, "Vulkan Surface created.");
     } catch (const std::exception& e) {
         CZ_LOG(LogVulkanRHI, Fatal, "Failed to create Window Surface: {0}",
                e.what());

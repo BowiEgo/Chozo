@@ -26,7 +26,7 @@ EShaderStage StringToStage(std::string_view shaderStage) {
     return EShaderStage::None;
 }
 
-const char *StageToString(EShaderStage shaderStage) {
+const char* StageToString(EShaderStage shaderStage) {
     switch (shaderStage) {
 #define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL)                         \
     case EShaderStage::ENUM:                                                   \
@@ -38,7 +38,7 @@ const char *StageToString(EShaderStage shaderStage) {
     }
 }
 
-EShaderStage GetStageFromExtension(const std::string &extension) {
+EShaderStage GetStageFromExtension(const std::string& extension) {
     const std::string ext = ChozoUtils::String::ToLowerCopy(extension);
     if (s_ShaderExtensionMap.find(ext) == s_ShaderExtensionMap.end())
         return EShaderStage::None;
@@ -58,35 +58,35 @@ uint32 StageToKind(EShaderStage shaderStage) {
     }
 }
 
-std::string StageToVulkanCacheFileExtension(const EShaderStage shaderStage) {
-    switch (shaderStage) {
-#define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL)                         \
-    case EShaderStage::ENUM:                                                   \
-        return ".cache_vulkan." + std::string(#SHORT);
-        FOREACH_SHADER_STAGE(GENERATE_CASE)
-#undef GENERATE_CASE
-    default:
-        return "";
-    }
-}
+// std::string StageToVulkanCacheFileExtension(const EShaderStage shaderStage) {
+//     switch (shaderStage) {
+// #define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL) \
+//     case EShaderStage::ENUM: \
+//         return ".cache_vulkan." + std::string(#SHORT);
+//         FOREACH_SHADER_STAGE(GENERATE_CASE)
+// #undef GENERATE_CASE
+//     default:
+//         return "";
+//     }
+// }
 
-std::filesystem::path GetCachePathByNameAndStage(const std::string_view name,
-                                                 EShaderStage stage) {
-    if (name.find_first_of("/\\") != std::string_view::npos) {
-        throw std::invalid_argument("Shader name contains path separators");
-    }
+// std::filesystem::path GetCachePathByNameAndStage(const std::string_view name,
+//                                                  EShaderStage stage) {
+//     if (name.find_first_of("/\\") != std::string_view::npos) {
+//         throw std::invalid_argument("Shader name contains path separators");
+//     }
 
-    std::filesystem::path cacheDir =
-        ChozoUtils::File::GetShaderCacheDirectory();
+//     std::filesystem::path cacheDir =
+//         ChozoUtils::File::GetShaderCacheDirectory();
 
-    std::filesystem::path fullPath =
-        (cacheDir / name)
-            .concat(ChozoUtils::Shader::StageToVulkanCacheFileExtension(stage))
-            .lexically_normal();
+//     std::filesystem::path fullPath =
+//         (cacheDir / name)
+//             .concat(ChozoUtils::Shader::StageToVulkanCacheFileExtension(stage))
+//             .lexically_normal();
 
-    std::wstring pathStr = fullPath.wstring();
-    std::replace(pathStr.begin(), pathStr.end(), L'\\', L'/');
+//     std::wstring pathStr = fullPath.wstring();
+//     std::replace(pathStr.begin(), pathStr.end(), L'\\', L'/');
 
-    return std::filesystem::path(pathStr);
-}
+//     return std::filesystem::path(pathStr);
+// }
 } // namespace ChozoUtils::Shader
