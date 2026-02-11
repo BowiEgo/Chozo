@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "EngineExport.h"
-#include "GraphicsContext.h"
+#include "Renderer.h"
 #include "Scope.h"
 #include "Window.h"
 
@@ -14,8 +14,10 @@ public:
     ~CRenderEngine();
 
     void Init();
+    void Tick();
+    void Shutdown();
 
 private:
     CWindow* m_Window;
-    TScope<CGraphicsContext> m_Context;
+    TScope<CRenderer> m_Renderer;
 };

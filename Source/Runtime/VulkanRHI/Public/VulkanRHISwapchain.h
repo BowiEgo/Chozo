@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RHISwapchain.h"
+#include "RHISyncObject.h"
 #include "VulkanRHIDevice.h"
 #include "VulkanRHIExport.h"
 #include "VulkanUtils.h"
@@ -8,30 +9,39 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanRHISwapchain, Info);
 
 class VULKAN_RHI_API CVulkanRHISwapchain : public IRHISwapchain {
+    static constexpr uint32 INVALID_IMAGE_INDEX = 0xFFFFFFFF;
+
 public:
-    CVulkanRHISwapchain(const FRHISwapchainCreateInfo& info,
-                        const vk::raii::SurfaceKHR& surface,
+    CVulkanRHISwapchain(const FRHISwapchainCreateInfo& info, const vk::raii::SurfaceKHR& surface,
                         const TRef<CVulkanRHIDevice> device);
-    virtual ~CVulkanRHISwapchain() = default;
+    virtual ~CVulkanRHISwapchain();
 
 private:
-    void init(const vk::raii::SurfaceKHR& surface);
+    void Init();
+    void CleanupSwapchain();
+    void RecreateSwapchain();
 
 public:
     void CreateVKRenderPass();
-    virtual const EPixelFormat GetImageFormat() const {
-        return ChozoUtils::Vulkan::FromVulkanFormat(m_ImageFormat);
+
+    const vk::raii::SwapchainKHR& GetVKSwapchain() const { return m_Swapchain; }
+    const std::vector<vk::Image>& GetVKImages() const { return m_Images; }
+    const std::vector<vk::raii::ImageView>& GetVKImageViews() const { return m_ImageViews; }
+    const vk::Extent2D GetVKExtent() const { return m_Extent; }
+    // vk::Format& GetVKDepthFormat() { return m_ImageFormat; }
+
+    virtual const uint32 AcquireNextImage(TRef<IRHISyncObject> syncObject) override;
+    virtual const EPixelFormat GetImageFormat() override {
+        return ChozoUtils::Vulkan::FromVKFormat(m_ImageFormat);
     }
-    // vk::Format& GetDepthFormat() { return m_ImageFormat; }
 
 private:
-    TRef<CVulkanRHIDevice> m_Device;
+    WeakRef<CVulkanRHIDevice> m_Device;
 
+    const vk::raii::SurfaceKHR& m_Surface;
     vk::raii::SwapchainKHR m_Swapchain = nullptr;
     std::vector<vk::Image> m_Images;
     std::vector<vk::raii::ImageView> m_ImageViews;
     vk::Format m_ImageFormat, m_DepthFormat;
     vk::Extent2D m_Extent;
-
-    vk::RenderPass m_RenderPass = nullptr;
 };

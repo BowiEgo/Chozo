@@ -33,8 +33,7 @@ public:
 
     TRef(const T* instance) // NOLINT
         : m_Instance(const_cast<T*>(instance)) {
-        static_assert(std::is_base_of_v<FRefCounted, T>,
-                      "Class is not TRefCounted!");
+        static_assert(std::is_base_of_v<FRefCounted, T>, "Class is not TRefCounted!");
 
         IncRef();
     }
@@ -127,9 +126,7 @@ public:
 #endif
     }
 
-    bool operator==(const TRef<T>& other) const {
-        return m_Instance == other.m_Instance;
-    }
+    bool operator==(const TRef<T>& other) const { return m_Instance == other.m_Instance; }
 
     bool operator!=(const TRef<T>& other) const { return !(*this == other); }
 
@@ -170,8 +167,7 @@ private:
     mutable T* m_Instance;
 };
 
-template <typename T, typename... Args>
-constexpr TRef<T> CreateRef(Args&&... args) {
+template <typename T, typename... Args> constexpr TRef<T> CreateRef(Args&&... args) {
     return TRef<T>::Create(std::forward<Args>(args)...);
 }
 
@@ -195,9 +191,7 @@ public:
     T& operator*() { return *m_Instance; }
     const T& operator*() const { return *m_Instance; }
 
-    [[nodiscard]] bool IsValid() const {
-        return m_Instance ? RefUtils::IsLive(m_Instance) : false;
-    }
+    [[nodiscard]] bool IsValid() const { return m_Instance ? RefUtils::IsLive(m_Instance) : false; }
     explicit operator bool() const { return IsValid(); }
 
     template <typename T2> WeakRef<T2> As() const {

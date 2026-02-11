@@ -4,10 +4,12 @@
 #include "RHIExport.h"
 #include "Ref.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogRHISwapchain, Info);
+
 struct FRHISwapchainCreateInfo {
     std::string Name;
-    int FrameBufferWidth, FrameBufferHeight;
-    void* WindowHandle = nullptr;
+    FExtent2D FrameBufferSize;
+    void* NativeWindow = nullptr;
 };
 
 class RHI_API IRHISwapchain : public FRefCounted {
@@ -15,7 +17,8 @@ public:
     IRHISwapchain(const FRHISwapchainCreateInfo& info);
     virtual ~IRHISwapchain();
 
-    virtual const EPixelFormat GetImageFormat() const = 0;
+    virtual const uint32 AcquireNextImage(TRef<IRHISyncObject> semaphore) = 0;
+    virtual const EPixelFormat GetImageFormat() = 0;
 
 protected:
     FRHISwapchainCreateInfo m_Info;

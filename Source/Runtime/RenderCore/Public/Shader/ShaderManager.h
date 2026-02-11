@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core.h"
-#include "GraphicsContext.h"
+#include "RHIDevice.h"
 #include "RenderCoreExport.h"
 #include "Shader.h"
 #include "ShaderCompiler.h"
@@ -13,11 +13,10 @@ public:
     CShaderManager() = default;
     ~CShaderManager() = default;
 
-    static void Init();
+    static void Init(const TRef<IRHIDevice> device);
     static CShaderManager* Get() {
-        CZ_CORE_ASSERT(
-            s_Instance,
-            "ShaderManager instance is null! Did you forget to call Init()?");
+        CZ_CORE_ASSERT(s_Instance,
+                       "ShaderManager instance is null! Did you forget to call Init()?");
         return s_Instance;
     }
     // static const CGraphicsContext *GetGraphicsContext() { return m_Context; }
@@ -31,4 +30,5 @@ private:
     // std::unordered_map<FShaderID, TRef<CShader>> m_ShaderCache;
     std::unordered_map<std::string, std::string> m_ShaderSourceCache;
     TScope<CShaderCompiler> m_Compiler;
+    WeakRef<IRHIDevice> m_Device;
 };

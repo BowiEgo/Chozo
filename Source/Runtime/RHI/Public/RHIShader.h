@@ -4,6 +4,8 @@
 #include "RHITypes.h"
 #include "Ref.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogRHIShader, Info);
+
 struct FRHIShaderCreateInfo {
     EShaderStage Stage;
     std::string Name;

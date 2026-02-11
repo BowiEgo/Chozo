@@ -6,11 +6,10 @@ DEFINE_LOG_CATEGORY(LogVulkanRHIShader);
 CVulkanRHIShader::CVulkanRHIShader(const FRHIShaderCreateInfo& info,
                                    const std::vector<uint32_t>* binary,
                                    const TRef<CVulkanRHIDevice> device)
-    : IRHIShader(info), m_Device(device) {
+    : IRHIShader(info), m_Device(WeakRef(device)) {
 
     if (!device) {
-        CZ_LOG(LogVulkanRHIShader, Error,
-               "Invalid Device handle for shader creation");
+        CZ_LOG(LogVulkanRHIShader, Error, "Invalid Device handle for shader creation");
         return;
     }
 
@@ -19,16 +18,12 @@ CVulkanRHIShader::CVulkanRHIShader(const FRHIShaderCreateInfo& info,
     mkInfo.pCode = binary->data();
 
     try {
-        m_Module = device->GetVKLogicalDevice().createShaderModule(mkInfo);
+        m_Module = device->GetLogicalDevice().createShaderModule(mkInfo);
 
-        CZ_LOG(LogVulkanRHIShader, Info, "Vulkan Shader Module created: {0}",
-               info.Name);
+        CZ_LOG(LogVulkanRHIShader, Info, "Vulkan Shader Module created: {0}", info.Name);
     } catch (const std::exception& e) {
-        CZ_LOG(LogVulkanRHIShader, Error,
-               "Failed to create Vulkan shader module: {0}", e.what());
+        CZ_LOG(LogVulkanRHIShader, Error, "Failed to create Vulkan shader module: {0}", e.what());
     }
 }
 
-CVulkanRHIShader::~CVulkanRHIShader() {
-    CZ_LOG(LogVulkanRHIShader, Trace, "Destroying Shader Module...");
-}
+CVulkanRHIShader::~CVulkanRHIShader() {}

@@ -19,5 +19,5 @@
 #endif
 
 #ifndef WINDOW_HEIGHT
-    #define WINDOW_HEIGHT 720
+    #define WINDOW_HEIGHT 960
 #endif

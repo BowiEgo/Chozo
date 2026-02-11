@@ -9,8 +9,7 @@ namespace ChozoUtils::Shader {
 namespace {
 
 const std::unordered_map<std::string, EShaderStage> s_ShaderExtensionMap = {
-#define GENERATE_MAP(ENUM, LOWER, UPPER, SHORT, GLSL)                          \
-    {"." #SHORT, EShaderStage::ENUM},
+#define GENERATE_MAP(ENUM, LOWER, UPPER, SHORT, GLSL, VULKAN) {"." #SHORT, EShaderStage::ENUM},
     FOREACH_SHADER_STAGE(GENERATE_MAP)
 #undef GENERATE_MAP
         {".pixel", EShaderStage::Fragment}};
@@ -18,8 +17,8 @@ const std::unordered_map<std::string, EShaderStage> s_ShaderExtensionMap = {
 } // namespace
 
 EShaderStage StringToStage(std::string_view shaderStage) {
-#define GENERATE_IF(ENUM, LOWER, UPPER, SHORT, GLSL)                           \
-    if (shaderStage == #ENUM)                                                  \
+#define GENERATE_IF(ENUM, LOWER, UPPER, SHORT, GLSL, VULKAN)                                       \
+    if (shaderStage == #ENUM)                                                                      \
         return EShaderStage::ENUM;
     FOREACH_SHADER_STAGE(GENERATE_IF)
 #undef GENERATE_IF
@@ -28,8 +27,8 @@ EShaderStage StringToStage(std::string_view shaderStage) {
 
 const char* StageToString(EShaderStage shaderStage) {
     switch (shaderStage) {
-#define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL)                         \
-    case EShaderStage::ENUM:                                                   \
+#define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL, VULKAN)                                     \
+    case EShaderStage::ENUM:                                                                       \
         return #ENUM;
         FOREACH_SHADER_STAGE(GENERATE_CASE)
 #undef GENERATE_CASE
@@ -48,8 +47,8 @@ EShaderStage GetStageFromExtension(const std::string& extension) {
 
 uint32 StageToKind(EShaderStage shaderStage) {
     switch (shaderStage) {
-#define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL)                         \
-    case EShaderStage::ENUM:                                                   \
+#define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL, VULKAN)                                     \
+    case EShaderStage::ENUM:                                                                       \
         return shaderc_glsl_##GLSL##_shader;
         FOREACH_SHADER_STAGE(GENERATE_CASE)
 #undef GENERATE_CASE

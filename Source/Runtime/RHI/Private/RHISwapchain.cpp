@@ -1,6 +1,7 @@
 #include "RHISwapchain.h"
 
-IRHISwapchain::IRHISwapchain(const FRHISwapchainCreateInfo& info)
-    : m_Info(info) {}
+DEFINE_LOG_CATEGORY(LogRHISwapchain);
 
-IRHISwapchain::~IRHISwapchain() = default;
+IRHISwapchain::IRHISwapchain(const FRHISwapchainCreateInfo& info) : m_Info(info) {}
+
+IRHISwapchain::~IRHISwapchain() { CZ_LOG(LogRHISwapchain, Trace, "RHISwapchain destroying..."); }

@@ -3,30 +3,32 @@
 // English Comment: Common structures or constants can be placed here
 
 #ifdef VERTEX_SHADER
-// English Comment: Attributes from Vertex Buffer
-layout(location = 0) in vec3 a_Pos;
-layout(location = 1) in vec3 a_Color;
+layout(location = 0) out vec3 fragColor;
 
-// English Comment: Output to Fragment Shader
-layout(location = 0) out vec3 v_Color;
+vec2 positions[3] = vec2[](
+    vec2(0.0, -0.5),
+    vec2(0.5, 0.5),
+    vec2(-0.5, 0.5)
+);
+
+vec3 colors[3] = vec3[](
+    vec3(1.0, 0.0, 0.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(0.0, 0.0, 1.0)
+);
 
 void main() {
-    v_Color = a_Color;
-    
-    // English Comment: Standard gl_Position output
-    gl_Position = vec4(a_Pos, 1.0);
+    gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
+    fragColor = colors[gl_VertexIndex];
 }
 #endif
 
 #ifdef FRAGMENT_SHADER
-// English Comment: Input from Vertex Shader (interpolated)
-layout(location = 0) in vec3 v_Color;
+layout(location = 0) in vec3 fragColor;
 
-// English Comment: Final output color to Framebuffer
-layout(location = 0) out vec4 o_Color;
+layout(location = 0) out vec4 outColor;
 
 void main() {
-    // English Comment: Output the interpolated color with full opacity
-    o_Color = vec4(v_Color, 1.0);
+    outColor = vec4(fragColor, 1.0);
 }
 #endif

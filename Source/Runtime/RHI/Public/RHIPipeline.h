@@ -4,6 +4,8 @@
 #include "RHIShader.h"
 #include "Ref.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogRHIPipeline, Info);
+
 struct FRHIPipelineCreateInfo {
     std::string Name;
     std::vector<TRef<IRHIShader>> RHIShaders;

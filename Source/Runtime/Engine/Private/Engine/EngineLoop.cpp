@@ -9,8 +9,7 @@ void CEngineLoop::Init() {
     CZ_LOG(LogEngineLoop, Trace, "Engine Loop Initializing...");
 
     std::filesystem::path projectRoot = ChozoUtils::File::GetProjectRoot();
-    CZ_LOG(LogEngineLoop, Info,
-           "Project Root set from environment variable: {0}",
+    CZ_LOG(LogEngineLoop, Info, "Project Root set from environment variable: {0}",
            projectRoot.string());
     VFS::SetProtocolPath("engine", projectRoot);
     VFS::SetProtocolPath("shaders", projectRoot / "Shaders");
@@ -19,8 +18,8 @@ void CEngineLoop::Init() {
 
     FWindowDefinition def;
     def.Title = "Chozo Engine - Vulkan";
-    def.Width = 1280;
-    def.Height = 720;
+    def.Width = WINDOW_WIDTH;
+    def.Height = WINDOW_HEIGHT;
 
     m_Window = CWindow::Create(def);
     CZ_CORE_ASSERT(m_Window, "App: Failed to create window!");
@@ -33,17 +32,13 @@ void CEngineLoop::Init() {
 }
 
 void CEngineLoop::Tick() {
-    if (m_Window) {
-        m_Window->OnUpdate();
-    }
+    m_Window->OnUpdate();
+    m_RenderEngine->Tick();
 }
 
 void CEngineLoop::Exit() {
-    if (m_Window) {
-        m_Window->Shutdown();
-    }
+    m_RenderEngine->Shutdown();
+    m_Window->Shutdown();
 }
 
-bool CEngineLoop::ShouldClose() const {
-    return m_Window ? m_Window->ShouldClose() : true;
-}
+bool CEngineLoop::ShouldClose() const { return m_Window ? m_Window->ShouldClose() : true; }

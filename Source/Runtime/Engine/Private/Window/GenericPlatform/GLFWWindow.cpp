@@ -39,44 +39,46 @@ void CGLFWWindow::OnUpdate() {
 
 void CGLFWWindow::SetVSync(bool enabled) { m_Definition.VSync = enabled; }
 
-bool CGLFWWindow::ShouldClose() const {
-    return glfwWindowShouldClose(GetGLFWWindow());
+bool CGLFWWindow::ShouldClose() const { return glfwWindowShouldClose(GetGLFWWindow()); }
+
+FExtent2D CGLFWWindow::GetFramebufferSize() const {
+    FExtent2D result;
+
+    int w, h;
+    glfwGetFramebufferSize(GetGLFWWindow(), &w, &h);
+
+    result.Width = w;
+    result.Height = h;
+
+    return result;
 }
 
-void CGLFWWindow::GetFramebufferSize(int *width, int *height) const {
-    glfwGetFramebufferSize(GetGLFWWindow(), width, height);
-}
-
-std::vector<const char *> CGLFWWindow::GetRequiredExtensions() const {
+std::vector<const char*> CGLFWWindow::GetRequiredExtensions() const {
     uint32_t glfwExtensionCount = 0;
-    const char **glfwExtensions =
-        glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+    const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-    return std::vector<const char *>(glfwExtensions,
-                                     glfwExtensions + glfwExtensionCount);
+    return std::vector<const char*>(glfwExtensions, glfwExtensions + glfwExtensionCount);
 }
 
 FWindowHandle CGLFWWindow::GetNativeHandle() const {
 #ifdef CHOZO_PLATFORM_WINDOWS
-    return (void *)glfwGetWin32Window((GLFWwindow *)m_Window);
+    return (void*)glfwGetWin32Window((GLFWwindow*)m_Window);
 #elif defined(CHOZO_PLATFORM_LINUX)
 
-    return (void *)glfwGetX11Window(GetGLFWWindow());
+    return (void*)glfwGetX11Window(GetGLFWWindow());
 #elif defined(CHOZO_PLATFORM_MACOS)
 
-    return (void *)glfwGetCocoaWindow(GetGLFWWindow());
+    return (void*)glfwGetCocoaWindow(GetGLFWWindow());
 #endif
     return nullptr;
 }
 
 void CGLFWWindow::CreateGLFWWindow() {
-    CZ_LOG(LogCGLFWWindow, Trace, "Creating window({1}, {2}) for {0}",
-           m_Definition.Title, m_Definition.Width, m_Definition.Height);
+    CZ_LOG(LogCGLFWWindow, Trace, "Creating window({1}, {2}) for {0}", m_Definition.Title,
+           m_Definition.Width, m_Definition.Height);
 
-    const bool dimensionsInValid =
-        m_Definition.Width <= 0 || m_Definition.Height <= 0;
-    CZ_CORE_ASSERT(!dimensionsInValid,
-                   "CGLFWWindow: Invalid window dimensions!");
+    const bool dimensionsInValid = m_Definition.Width <= 0 || m_Definition.Height <= 0;
+    CZ_CORE_ASSERT(!dimensionsInValid, "CGLFWWindow: Invalid window dimensions!");
 
 #ifdef CZ_PLATFORM_WIN
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
@@ -93,8 +95,8 @@ void CGLFWWindow::CreateGLFWWindow() {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    m_Window = glfwCreateWindow(m_Definition.Width, m_Definition.Height,
-                                m_Definition.Title.c_str(), nullptr, nullptr);
+    m_Window = glfwCreateWindow(m_Definition.Width, m_Definition.Height, m_Definition.Title.c_str(),
+                                nullptr, nullptr);
 
     // Set user pointer to access WindowData in callbacks
     glfwSetWindowUserPointer(GetGLFWWindow(), &m_Definition);
@@ -120,6 +122,6 @@ void CGLFWWindow::CreateGLFWWindow() {
     SetVSync(false);
 }
 
-void CGLFWWindow::OnGLFWError(int error, const char *description) {
+void CGLFWWindow::OnGLFWError(int error, const char* description) {
     CZ_LOG(LogCGLFWWindow, Error, "GLFW Error ({0}):", error, description);
 }

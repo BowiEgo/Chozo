@@ -4,10 +4,11 @@ DEFINE_LOG_CATEGORY(LogShaderManager);
 
 CShaderManager* CShaderManager::s_Instance = nullptr;
 
-void CShaderManager::Init() {
+void CShaderManager::Init(const TRef<IRHIDevice> device) {
     if (!s_Instance) {
         CZ_LOG(LogShaderManager, Trace, "ShaderManager Initializing...");
         s_Instance = new CShaderManager();
+        s_Instance->m_Device = WeakRef(device);
         CZ_LOG(LogShaderManager, Info, "ShaderManager Initialized");
     }
 
@@ -28,7 +29,7 @@ TRef<CShader> CShaderManager::Load(const FShaderCreateInfo& info) {
     FShaderCompilerOutput output;
 
     if (bool success = m_Compiler->Compile(info, output)) {
-        auto shader = CreateRef<CShader>(info, output);
+        auto shader = CreateRef<CShader>(info, output, m_Device);
         if (shader) {
             // m_ShaderCache[id] = shader;
             CZ_LOG(LogShaderManager, Info, "Shader: {} Loaded", info.Name);

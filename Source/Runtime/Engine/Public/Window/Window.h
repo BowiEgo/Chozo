@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Core.h"
 #include "EngineExport.h"
@@ -18,7 +18,7 @@ public:
     virtual bool ShouldClose() const = 0;
 
     // from IRendererWindow
-    virtual void GetFramebufferSize(int* width, int* height) const override = 0;
+    virtual FExtent2D GetFramebufferSize() const override = 0;
     virtual std::vector<const char*> GetRequiredExtensions() const override = 0;
     virtual FWindowHandle GetWindowWrapper() const override { return m_Window; }
     virtual FWindowHandle GetNativeHandle() const = 0;

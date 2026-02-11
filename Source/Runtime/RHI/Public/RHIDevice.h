@@ -2,7 +2,10 @@
 
 #include "RHIExport.h"
 #include "RHIPipeline.h"
+#include "RHISyncObject.h"
 #include "Ref.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogRHIDevice, Info);
 
 class IRHIShader;
 struct FRHIShaderCreateInfo;
@@ -28,12 +31,12 @@ public:
     virtual ~IRHIDevice();
 
     // --- Shader Resource Factory ---
-    virtual TRef<IRHIShader>
-        CreateShader(const FRHIShaderCreateInfo& info,
-                     const std::vector<uint32_t>* binary) const = 0;
+    virtual TRef<IRHIShader> CreateShader(const FRHIShaderCreateInfo& info,
+                                          const std::vector<uint32_t>* binary) const = 0;
 
-    virtual TRef<IRHIPipeline>
-        CreatePipeline(const FRHIPipelineCreateInfo& info) const = 0;
+    virtual TRef<IRHIPipeline> CreatePipeline(const FRHIPipelineCreateInfo& info) const = 0;
+
+    virtual TRef<IRHISyncObject> CreateSyncObject() const = 0;
 
     // --- Future extensions ---
     // virtual TRef<IRHIBuffer> CreateBuffer(const FRHIBufferDesc& desc) = 0;

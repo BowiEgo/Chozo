@@ -23,13 +23,11 @@ public:
     virtual bool ShouldClose() const override;
 
     // from IRendererWindow
-    virtual void GetFramebufferSize(int* width, int* height) const override;
+    virtual FExtent2D GetFramebufferSize() const override;
     virtual std::vector<const char*> GetRequiredExtensions() const override;
     virtual FWindowHandle GetNativeHandle() const override;
 
-    GLFWwindow* GetGLFWWindow() const {
-        return static_cast<GLFWwindow*>(m_Window);
-    }
+    GLFWwindow* GetGLFWWindow() const { return static_cast<GLFWwindow*>(m_Window); }
 
 private:
     static void OnGLFWError(int error, const char* description);

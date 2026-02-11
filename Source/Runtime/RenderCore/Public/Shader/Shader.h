@@ -14,14 +14,11 @@ struct FShaderCreateInfo {
     std::string VirtualPath;
     EShaderStage Stage;
     std::string EntryPoint = "main";
-    FShaderDefinitions
-        Definitions; // Macros for permutations, e.g., {"USE_ALBEDO": "1"}
+    FShaderDefinitions Definitions; // Macros for permutations, e.g., {"USE_ALBEDO": "1"}
 
-    FShaderCreateInfo(const std::string name, const std::string path,
-                      const EShaderStage stage, const std::string entry,
-                      const FShaderDefinitions& defs = {})
-        : Name(name), VirtualPath(path), Stage(stage), EntryPoint(entry),
-          Definitions(defs) {}
+    FShaderCreateInfo(const std::string name, const std::string path, const EShaderStage stage,
+                      const std::string entry, const FShaderDefinitions& defs = {})
+        : Name(name), VirtualPath(path), Stage(stage), EntryPoint(entry), Definitions(defs) {}
 
     size_t GenHash() const {
         size_t h = std::hash<std::string>{}(VirtualPath);
@@ -44,7 +41,8 @@ struct FShaderCreateInfo {
 
 class RENDER_CORE_API CShader : public FRefCounted {
 public:
-    CShader(const FShaderCreateInfo& info, const FShaderCompilerOutput& data);
+    CShader(const FShaderCreateInfo& info, const FShaderCompilerOutput& data,
+            const WeakRef<IRHIDevice> device);
     virtual ~CShader() = default;
 
     const FShaderID& GetID() const { return m_ID; }
@@ -65,5 +63,6 @@ protected:
     FShaderCreateInfo m_Info;
     FShaderReflection m_Reflection;
     FShaderCompilerOutput m_Data;
+    WeakRef<IRHIDevice> m_Device;
     TRef<IRHIShader> m_RHIShader;
 };

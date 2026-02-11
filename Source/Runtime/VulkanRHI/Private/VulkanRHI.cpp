@@ -4,30 +4,26 @@
 DEFINE_LOG_CATEGORY(LogVulkanRHI);
 
 extern "C" {
-VULKAN_RHI_API IRHI* CreateVulkanRHI(const FRHICreateInfo& info) {
-    return new CVulkanRHI(info);
-}
+VULKAN_RHI_API IRHI* CreateVulkanRHI(const FRHICreateInfo& info) { return new CVulkanRHI(info); }
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
     DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                   VkDebugUtilsMessageTypeFlagsEXT messageType,
-                  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                  void* pUserData) {
+                  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
 
     // Log the validation layer message based on its severity
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        CZ_LOG(LogVulkanRHI, Error, "Validation Layer: {0}",
-               pCallbackData->pMessage);
+        CZ_LOG(LogVulkanRHI, Error, "Validation Layer: {0}", pCallbackData->pMessage);
     } else {
-        CZ_LOG(LogVulkanRHI, Warning, "Validation Layer: {0}",
-               pCallbackData->pMessage);
+        CZ_LOG(LogVulkanRHI, Warning, "Validation Layer: {0}", pCallbackData->pMessage);
     }
     return VK_FALSE; // indicates that the Vulkan call that triggered the
                      // validation layer message should not be aborted
 }
 
 CVulkanRHI::CVulkanRHI(const FRHICreateInfo& info) : m_Info(info) { Init(); }
+CVulkanRHI::~CVulkanRHI() { CZ_LOG(LogVulkanRHI, Trace, "VulkanRHI destroying..."); }
 
 void CVulkanRHI::Init() {
     CreateVKInstance();
@@ -42,8 +38,7 @@ void CVulkanRHI::CreateVKInstance() {
     // Check validation layer support
     if (ChozoUtils::Vulkan::EnableValidationLayers &&
         !ChozoUtils::Vulkan::CheckValidationLayerSupport(m_Context)) {
-        CZ_LOG(LogVulkanRHI, Warning,
-               "Validation layers requested, but not available!");
+        CZ_LOG(LogVulkanRHI, Warning, "Validation layers requested, but not available!");
     }
 
     // Get required extensions from GLFW
@@ -56,18 +51,16 @@ void CVulkanRHI::CreateVKInstance() {
     // Check if the required GLFW extensions are supported by the Vulkan
     // implementation.
     if (!ChozoUtils::Vulkan::CheckInstanceExtensions(m_Context, extensions)) {
-        throw std::runtime_error(
-            "Required Vulkan extensions are not supported!");
+        throw std::runtime_error("Required Vulkan extensions are not supported!");
     }
 
     // Fill in ApplicationInfo and InstanceCreateInfo
-    const vk::ApplicationInfo appInfo =
-        vk::ApplicationInfo()
-            .setPApplicationName("Chozo Engine")
-            .setApplicationVersion(VK_MAKE_VERSION(1, 0, 0))
-            .setPEngineName("Chozo")
-            .setEngineVersion(VK_MAKE_VERSION(1, 0, 0))
-            .setApiVersion(vk::ApiVersion14);
+    const vk::ApplicationInfo appInfo = vk::ApplicationInfo()
+                                            .setPApplicationName("Chozo Engine")
+                                            .setApplicationVersion(VK_MAKE_VERSION(1, 0, 0))
+                                            .setPEngineName("Chozo")
+                                            .setEngineVersion(VK_MAKE_VERSION(1, 0, 0))
+                                            .setApiVersion(vk::ApiVersion14);
 
     vk::InstanceCreateInfo createInfo =
         vk::InstanceCreateInfo()
@@ -78,10 +71,9 @@ void CVulkanRHI::CreateVKInstance() {
     // Add validation layers if enabled
     if (ChozoUtils::Vulkan::EnableValidationLayers) {
         createInfo
-            .setEnabledLayerCount(static_cast<uint32_t>(
-                ChozoUtils::Vulkan::ValidationLayers.size()))
-            .setPpEnabledLayerNames(
-                ChozoUtils::Vulkan::ValidationLayers.data());
+            .setEnabledLayerCount(
+                static_cast<uint32_t>(ChozoUtils::Vulkan::ValidationLayers.size()))
+            .setPpEnabledLayerNames(ChozoUtils::Vulkan::ValidationLayers.data());
     }
 
     // Create RAII Instance
@@ -113,24 +105,21 @@ void CVulkanRHI::SetupVKDebugMessenger() {
         vk::DebugUtilsMessengerCreateInfoEXT()
             .setMessageSeverity(severityFlags)
             .setMessageType(messageTypeFlags)
-            .setPfnUserCallback(
-                DebugCallback); // Static method for handling debug messages
+            .setPfnUserCallback(DebugCallback); // Static method for handling debug messages
 
-    m_DebugMessenger =
-        vk::raii::DebugUtilsMessengerEXT(m_Instance, messengerInfo);
+    m_DebugMessenger = vk::raii::DebugUtilsMessengerEXT(m_Instance, messengerInfo);
 }
 
 void CVulkanRHI::CreateVKSurface() {
     VkSurfaceKHR surfaceHandle;
     VkResult result;
 
-    auto rawHandle = m_Info.WindowHandle;
+    auto rawHandle = m_Info.NativeWindow;
 
     try {
 #ifdef CHOZO_PLATFORM_WINDOWS
         /* Using Vulkan-Hpp Win32 structure */
-        vk::Win32SurfaceCreateInfoKHR createInfo({}, GetModuleHandle(nullptr),
-                                                 (HWND)rawHandle);
+        vk::Win32SurfaceCreateInfoKHR createInfo({}, GetModuleHandle(nullptr), (HWND)rawHandle);
 
         // Directly initialize the RAII wrapper
         m_Surface = vk::raii::SurfaceKHR(m_Instance, createInfo);
@@ -143,7 +132,16 @@ void CVulkanRHI::CreateVKSurface() {
 
         CZ_LOG(LogVulkanRHI, Info, "Vulkan Surface created.");
     } catch (const std::exception& e) {
-        CZ_LOG(LogVulkanRHI, Fatal, "Failed to create Window Surface: {0}",
-               e.what());
+        CZ_LOG(LogVulkanRHI, Fatal, "Failed to create Window Surface: {0}", e.what());
     }
+}
+
+void CVulkanRHI::CreateCommandPool() {
+    auto RHIDevice = m_Device.As<CVulkanRHIDevice>();
+    uint32 graphicsQueueIndex = RHIDevice->GetGraphicsQueueIndex();
+
+    // 2. 正确填充初始化信息
+    FRHICommandPoolCreateInfo info;
+    info.QueueIndex = graphicsQueueIndex;
+    m_MainCommandPool = CreateRef<CVulkanRHICommandPool>(info, m_Device);
 }

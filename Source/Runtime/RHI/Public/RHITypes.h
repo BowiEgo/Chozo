@@ -12,12 +12,12 @@ using FShaderID = uint32;
 
 // -- EShaderStage --
 // ENUM | LOWER | UPPER | SHORT | GLSL | VULKAN
-#define FOREACH_SHADER_STAGE(TYPE)                                             \
-    TYPE(Vertex, vertex, VERTEX, vert, vertex, Vertex)                         \
-    TYPE(Fragment, fragment, FRAGMENT, frag, fragment, Fragment)               \
-    TYPE(Compute, compute, COMPUTE, comp, compute, Compute)                    \
-    TYPE(Geometry, geometry, GEOMETRY, geom, geometry, Geometry)               \
-    TYPE(Hull, hull, HULL, tesc, tess_control, TessellationControl)            \
+#define FOREACH_SHADER_STAGE(TYPE)                                                                 \
+    TYPE(Vertex, vertex, VERTEX, vert, vertex, Vertex)                                             \
+    TYPE(Fragment, fragment, FRAGMENT, frag, fragment, Fragment)                                   \
+    TYPE(Compute, compute, COMPUTE, comp, compute, Compute)                                        \
+    TYPE(Geometry, geometry, GEOMETRY, geom, geometry, Geometry)                                   \
+    TYPE(Hull, hull, HULL, tesc, tess_control, TessellationControl)                                \
     TYPE(Domain, domain, DOMAIN, tese, tess_evaluation, TessellationEvaluation)
 
 enum class EShaderStage : uint16 {
@@ -27,8 +27,7 @@ enum class EShaderStage : uint16 {
         None
 };
 
-static constexpr size_t kShaderStageCount =
-    static_cast<size_t>(EShaderStage::None);
+static constexpr size_t kShaderStageCount = static_cast<size_t>(EShaderStage::None);
 
 // -- ShaderMacro --
 struct ShaderMacro {
@@ -36,8 +35,7 @@ struct ShaderMacro {
     std::string Definition;
 
     ShaderMacro() = default;
-    ShaderMacro(const std::string& name, const std::string& def)
-        : Name(name), Definition(def) {}
+    ShaderMacro(const std::string& name, const std::string& def) : Name(name), Definition(def) {}
 };
 
 // A collection of macros, providing helper methods for hashing
@@ -68,17 +66,13 @@ public:
         size_t hash = 0;
         for (const auto& [name, def] : m_Macros) {
             // Simple hash combine logic
-            hash ^= std::hash<std::string>{}(name) + 0x9e3779b9 + (hash << 6) +
-                    (hash >> 2);
-            hash ^= std::hash<std::string>{}(def) + 0x9e3779b9 + (hash << 6) +
-                    (hash >> 2);
+            hash ^= std::hash<std::string>{}(name) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+            hash ^= std::hash<std::string>{}(def) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
         }
         return hash;
     }
 
-    const std::map<std::string, std::string>& GetMap() const {
-        return m_Macros;
-    }
+    const std::map<std::string, std::string>& GetMap() const { return m_Macros; }
 
 private:
     std::map<std::string, std::string> m_Macros;
@@ -119,6 +113,11 @@ struct FShaderCompilerOutput {
     std::vector<uint32_t> Binary;
     FShaderReflection Reflection;
     bool bSucceeded = false;
+};
+
+struct FExtent2D {
+    uint32 Width;
+    uint32 Height;
 };
 
 enum class EPixelFormat {
