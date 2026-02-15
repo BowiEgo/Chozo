@@ -1,7 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "Core.h"
 #include "EngineExport.h"
+#include "Event.h"
 #include "Platform.h"
 #include "RendererWindow.h"
 #include "WindowDefinition.h"
@@ -16,6 +17,7 @@ public:
     virtual void OnUpdate() = 0;
     virtual void SetVSync(bool enabled) = 0;
     virtual bool ShouldClose() const = 0;
+    virtual void SetEventCallback(const FEventCallback& callback) = 0;
 
     // from IRendererWindow
     virtual FExtent2D GetFramebufferSize() const override = 0;

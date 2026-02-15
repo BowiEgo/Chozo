@@ -21,6 +21,9 @@ public:
     virtual void OnUpdate() override;
     virtual void SetVSync(bool enabled) override;
     virtual bool ShouldClose() const override;
+    virtual void SetEventCallback(const FEventCallback& callback) override {
+        m_Definition.EventCallback = callback;
+    }
 
     // from IRendererWindow
     virtual FExtent2D GetFramebufferSize() const override;
@@ -34,4 +37,5 @@ private:
 
 private:
     void CreateGLFWWindow();
+    void SetGLFWCallbacks();
 };

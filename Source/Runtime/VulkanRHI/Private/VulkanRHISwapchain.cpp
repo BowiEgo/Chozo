@@ -111,31 +111,7 @@ void CVulkanRHISwapchain::Init() {
 
 void CVulkanRHISwapchain::CleanupSwapchain() { m_ImageViews.clear(); }
 
-void CVulkanRHISwapchain::RecreateSwapchain() {
-    m_Device->GetLogicalDevice().waitIdle();
-
-    // 2. 获取新的窗口大小
-    // int width = 0, height = 0;
-    // // 假设你持有一个 Window 引用或通过 RHI 获取
-    // m_Window->GetFramebufferSize(&width, &height);
-    //
-    // // [Note] Handle minimization: if size is 0, wait until window is restored
-    // while (width == 0 || height == 0) {
-    //     m_Window->GetFramebufferSize(&width, &height);
-    //     m_Window->WaitEvents(); // 避免空转 CPU
-    // }
-    //
-    // 3. 清理旧资源
-    CleanupSwapchain();
-    Init();
-
-    // 5. 重新创建 ImageView
-    // GetImages() 并循环创建新的 m_ImageViews
-    // auto images = m_Swapchain.getImages();
-    // for (auto& img : images) {
-    //     m_ImageViews.push_back(CreateImageView(img, ...));
-    // }
-}
+void CVulkanRHISwapchain::RecreateSwapchain() { RecreateSwapchain(m_Info.FrameBufferSize); }
 
 void CVulkanRHISwapchain::CreateVKRenderPass() {}
 
@@ -154,4 +130,18 @@ const uint32 CVulkanRHISwapchain::AcquireNextImage(TRef<IRHISyncObject> syncObje
     }
 
     return resultValue.value;
+}
+
+void CVulkanRHISwapchain::RecreateSwapchain(const FExtent2D& frameBufferSize) {
+    m_Device->GetLogicalDevice().waitIdle();
+    m_Info.FrameBufferSize = frameBufferSize;
+    CleanupSwapchain();
+    Init();
+
+    // 5. 重新创建 ImageView
+    // GetImages() 并循环创建新的 m_ImageViews
+    // auto images = m_Swapchain.getImages();
+    // for (auto& img : images) {
+    //     m_ImageViews.push_back(CreateImageView(img, ...));
+    // }
 }

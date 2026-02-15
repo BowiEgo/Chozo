@@ -70,7 +70,7 @@ FQueueFamilyIndices FindQueueFamilies(const vk::raii::PhysicalDevice& physicalDe
         uint32 pIdx = indices.Present.value();
         uint32 cIdx = indices.Compute.value();
 
-        CZ_LOG(LogVulkanUtils, Info, "Indices valid: G{}, P{}, C{}", gIdx, pIdx, cIdx);
+        // CZ_LOG(LogVulkanUtils, Info, "Indices valid: G{}, P{}, C{}", gIdx, pIdx, cIdx);
     } catch (const std::exception& e) {
         CZ_LOG(LogVulkanUtils, Error, "Crash during index access: {}", e.what());
     }

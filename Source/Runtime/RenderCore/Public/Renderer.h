@@ -21,6 +21,8 @@ public:
     void Tick();
     void Shutdown();
 
+    IGraphicsContext* GetGraphicsContext() const { return m_Context.get(); }
+
 private:
     IRendererWindow* m_Window;
     TScope<IGraphicsContext> m_Context;

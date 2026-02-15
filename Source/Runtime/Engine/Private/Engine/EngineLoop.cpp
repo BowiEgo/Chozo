@@ -24,6 +24,7 @@ void CEngineLoop::Init() {
     m_Window = CWindow::Create(def);
     CZ_CORE_ASSERT(m_Window, "App: Failed to create window!");
     m_Window->Init();
+    m_Window->SetEventCallback(CZ_BIND_EVENT_FN(OnEvent));
 
     m_RenderEngine = CreateScope<CRenderEngine>(m_Window.get());
     m_RenderEngine->Init();
@@ -42,3 +43,5 @@ void CEngineLoop::Exit() {
 }
 
 bool CEngineLoop::ShouldClose() const { return m_Window ? m_Window->ShouldClose() : true; }
+
+bool CEngineLoop::OnEvent(IEvent& e) { return m_RenderEngine->OnEvent(e); }

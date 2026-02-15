@@ -20,6 +20,8 @@ public:
     virtual const uint32 AcquireNextImage(TRef<IRHISyncObject> semaphore) = 0;
     virtual const EPixelFormat GetImageFormat() = 0;
 
+    virtual void RecreateSwapchain(const FExtent2D& frameBufferSize) = 0;
+
 protected:
     FRHISwapchainCreateInfo m_Info;
 };

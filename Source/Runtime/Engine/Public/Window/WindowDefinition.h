@@ -8,6 +8,7 @@ struct ENGINE_API FWindowDefinition {
     unsigned int Width, Height;
     float PixelRatio;
     bool VSync;
+    FEventCallback EventCallback;
 
     FWindowDefinition() : Title("Chozo Engine"), Width(1280), Height(720) {}
 };

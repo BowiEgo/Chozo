@@ -2,6 +2,7 @@
 
 #include "Core.h"
 #include "EngineExport.h"
+#include "Event.h"
 #include "RenderEngine.h"
 #include "Window.h"
 
@@ -17,6 +18,9 @@ public:
     void Exit();
 
     bool ShouldClose() const;
+
+private:
+    bool OnEvent(IEvent& e);
 
 private:
     TScope<CWindow> m_Window;

@@ -149,43 +149,39 @@ void CVulkanGraphicsContext::DrawFrame(const TRef<IRHICommandBuffer> commandBuff
                       // frame In the next chapter you see how to use multiple frames in flight and
                       // fences to sync
 
-    auto [result, imageIndex] =
-        swapchain.acquireNextImage(UINT64_MAX, *presentCompleteSemaphore, nullptr);
-    RecordCommandBuffer(commandBuffer, imageIndex);
+    try {
+        auto [result, imageIndex] =
+            swapchain.acquireNextImage(UINT64_MAX, *presentCompleteSemaphore, nullptr);
+        RecordCommandBuffer(commandBuffer, imageIndex);
 
-    device.resetFences(*drawFence);
-    vk::PipelineStageFlags waitDestinationStageMask(
-        vk::PipelineStageFlagBits::eColorAttachmentOutput);
+        device.resetFences(*drawFence);
+        vk::PipelineStageFlags waitDestinationStageMask(
+            vk::PipelineStageFlagBits::eColorAttachmentOutput);
 
-    vk::SubmitInfo submitInfo;
-    submitInfo.setWaitSemaphores(*presentCompleteSemaphore);
-    submitInfo.setWaitDstStageMask(waitDestinationStageMask);
-    vk::CommandBuffer cmd = *commandBuffer.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
-    submitInfo.setCommandBuffers(cmd);
-    submitInfo.setSignalSemaphores(*renderFinishedSemaphore);
+        vk::SubmitInfo submitInfo;
+        submitInfo.setWaitSemaphores(*presentCompleteSemaphore);
+        submitInfo.setWaitDstStageMask(waitDestinationStageMask);
+        vk::CommandBuffer cmd = *commandBuffer.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
+        submitInfo.setCommandBuffers(cmd);
+        submitInfo.setSignalSemaphores(*renderFinishedSemaphore);
 
-    queue.submit(submitInfo, *drawFence);
+        queue.submit(submitInfo, *drawFence);
 
-    result = device.waitForFences(*drawFence, vk::True, UINT64_MAX);
-    if (result != vk::Result::eSuccess) {
-        CZ_LOG(LogVulkanGraphicsContext, Error, "failed to wait for fence!");
-    }
+        result = device.waitForFences(*drawFence, vk::True, UINT64_MAX);
+        if (result != vk::Result::eSuccess) {
+            CZ_LOG(LogVulkanGraphicsContext, Error, "failed to wait for fence!");
+        }
 
-    vk::PresentInfoKHR presentInfoKHR;
-    presentInfoKHR.setWaitSemaphores(*renderFinishedSemaphore);
-    presentInfoKHR.setSwapchains(*swapchain);
-    presentInfoKHR.setPImageIndices(&imageIndex);
+        vk::PresentInfoKHR presentInfoKHR;
+        presentInfoKHR.setWaitSemaphores(*renderFinishedSemaphore);
+        presentInfoKHR.setSwapchains(*swapchain);
+        presentInfoKHR.setPImageIndices(&imageIndex);
 
-    result = queue.presentKHR(presentInfoKHR);
-
-    switch (result) {
-    case vk::Result::eSuccess:
-        break;
-    case vk::Result::eSuboptimalKHR:
-        CZ_LOG(LogVulkanGraphicsContext, Error,
-               "vk::Queue::presentKHR returned vk::Result::eSuboptimalKHR !");
-        break;
-    default:
-        break; // an unexpected result is returned!
+        result = queue.presentKHR(presentInfoKHR);
+    } catch (const vk::OutOfDateKHRError& e) {
+        CZ_LOG(LogVulkanGraphicsContext, Warning, "Swapchain out of date, recreating...");
+        m_RHI->GetSwapchain().As<CVulkanRHISwapchain>()->RecreateSwapchain();
+    } catch (const std::exception& e) {
+        CZ_LOG(LogVulkanGraphicsContext, Error, "Render error: {0}", e.what());
     }
 }

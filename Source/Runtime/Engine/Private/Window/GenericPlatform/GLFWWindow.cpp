@@ -1,4 +1,5 @@
 #include "GLFWWindow.h"
+#include "ApplicationEvent.h"
 
 #ifdef CHOZO_PLATFORM_WINDOWS
     #ifndef NOMINMAX
@@ -20,7 +21,10 @@ DEFINE_LOG_CATEGORY(LogCGLFWWindow);
 
 CGLFWWindow::~CGLFWWindow() {}
 
-void CGLFWWindow::Init() { CreateGLFWWindow(); }
+void CGLFWWindow::Init() {
+    CreateGLFWWindow();
+    SetGLFWCallbacks();
+}
 
 void CGLFWWindow::Shutdown() {
     CZ_LOG(CGLFWWindow, Trace, "Destroying window {0}", m_Definition.Title);
@@ -93,7 +97,7 @@ void CGLFWWindow::CreateGLFWWindow() {
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     m_Window = glfwCreateWindow(m_Definition.Width, m_Definition.Height, m_Definition.Title.c_str(),
                                 nullptr, nullptr);
@@ -110,7 +114,7 @@ void CGLFWWindow::CreateGLFWWindow() {
 
     // DPI Scaling
     float xscale, yscale, factor = 1.0f;
-#ifdef CZ_PLATFORM_MACOS
+#ifdef CHOZO_PLATFORM_MACOS
     factor = 0.5f;
 #endif
     glfwGetWindowContentScale(GetGLFWWindow(), &xscale, &yscale);
@@ -120,6 +124,32 @@ void CGLFWWindow::CreateGLFWWindow() {
     CZ_LOG(LogCGLFWWindow, Info, "GLFW Window for Vulkan created.");
 
     SetVSync(false);
+}
+
+void CGLFWWindow::SetGLFWCallbacks() {
+    glfwSetWindowContentScaleCallback(
+        (GLFWwindow*)m_Window, [](GLFWwindow* window, float xscale, float yscale) {
+            float factor = 1.0f;
+#ifdef CHOZO_PLATFORM_MACOS
+            factor = 0.75f;
+#endif
+
+            FWindowDefinition& def = *(FWindowDefinition*)glfwGetWindowUserPointer(window);
+            def.XScale = xscale * factor;
+            def.YScale = yscale * factor;
+
+            CWindowContentScaledEvent event(def.XScale, def.YScale);
+            def.EventCallback(event);
+        });
+
+    glfwSetWindowSizeCallback((GLFWwindow*)m_Window, [](GLFWwindow* window, int width, int height) {
+        FWindowDefinition& def = *(FWindowDefinition*)glfwGetWindowUserPointer(window);
+        def.Width = width;
+        def.Height = height;
+
+        CWindowResizedEvent event(width, height);
+        def.EventCallback(event);
+    });
 }
 
 void CGLFWWindow::OnGLFWError(int error, const char* description) {

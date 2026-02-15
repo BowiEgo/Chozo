@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ApplicationEvent.h"
 #include "CoreMinimal.h"
 #include "EngineExport.h"
 #include "Renderer.h"
@@ -16,6 +17,8 @@ public:
     void Init();
     void Tick();
     void Shutdown();
+    bool OnEvent(IEvent& e);
+    void OnWindowResize(CWindowResizedEvent& e);
 
 private:
     CWindow* m_Window;

@@ -19,9 +19,9 @@ public:
 private:
     void Init();
     void CleanupSwapchain();
-    void RecreateSwapchain();
 
 public:
+    void RecreateSwapchain();
     void CreateVKRenderPass();
 
     const vk::raii::SwapchainKHR& GetVKSwapchain() const { return m_Swapchain; }
@@ -34,6 +34,8 @@ public:
     virtual const EPixelFormat GetImageFormat() override {
         return ChozoUtils::Vulkan::FromVKFormat(m_ImageFormat);
     }
+
+    virtual void RecreateSwapchain(const FExtent2D& frameBufferSize) override;
 
 private:
     WeakRef<CVulkanRHIDevice> m_Device;
