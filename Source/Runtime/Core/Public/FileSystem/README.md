@@ -54,7 +54,7 @@ The `Resolve` function implements the following logic:
 ### 4.1 Initializing the System
 
 ```cpp
-// Within EngineLoop.cpp or Application initialization
+// Within Application.cpp or Application initialization
 auto root = std::filesystem::current_path();
 
 // Map engine-internal resources

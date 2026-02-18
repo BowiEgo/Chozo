@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Core.h"
-#include "EngineExport.h"
 #include "Window.h"
+#include "WindowingExport.h"
 
 #include <GLFW/glfw3.h>
 
@@ -10,7 +10,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogCGLFWWindow, Info);
 
 static bool s_GLFWInitialized = false;
 
-class ENGINE_API CGLFWWindow : public CWindow {
+class WINDOWING_API CGLFWWindow : public CWindow {
 public:
     CGLFWWindow(const FWindowDefinition& def) : CWindow(def) {};
     ~CGLFWWindow();

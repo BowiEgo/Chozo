@@ -29,9 +29,9 @@ rule("export_header")
         if kind == "shared" then
             target:add("defines", prefix .. "_EXPORTS")
             table.insert(lines, "#ifdef " .. prefix .. "_EXPORTS")
-            table.insert(lines, "    #define " .. prefix .. "_API CHOZO_DLL_EXPORT")
+            table.insert(lines, "    #define " .. prefix .. "_API CZ_DLL_EXPORT")
             table.insert(lines, "#else")
-            table.insert(lines, "    #define " .. prefix .. "_API CHOZO_DLL_IMPORT")
+            table.insert(lines, "    #define " .. prefix .. "_API CZ_DLL_IMPORT")
             table.insert(lines, "#endif")
         else
             -- [Note] For static libs, API macro is empty

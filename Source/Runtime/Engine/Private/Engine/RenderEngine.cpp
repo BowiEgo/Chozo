@@ -20,14 +20,14 @@ void CRenderEngine::Tick() { m_Renderer->Tick(); }
 void CRenderEngine::Shutdown() { m_Renderer->Shutdown(); }
 
 bool CRenderEngine::OnEvent(IEvent& e) {
-    if (typeid(e) == typeid(CWindowResizedEvent)) {
-        OnWindowResize(static_cast<CWindowResizedEvent&>(e));
+    if (typeid(e) == typeid(FWindowResizedEvent)) {
+        OnWindowResize(static_cast<FWindowResizedEvent&>(e));
     }
 
     return true;
 }
 
-void CRenderEngine::OnWindowResize(CWindowResizedEvent& e) {
+void CRenderEngine::OnWindowResize(FWindowResizedEvent& e) {
     CZ_LOG(LogRenderEngine, Trace, e.ToString());
 
     FExtent2D frameBufferSize;

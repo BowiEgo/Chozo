@@ -3,10 +3,14 @@
 #include "RHICommandBuffer.h"
 #include "RHIDevice.h"
 #include "RHIExport.h"
+#include "RHIPipeline.h"
 #include "RHISwapchain.h"
+#include "RHISyncObject.h"
 #include "Ref.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHI, Info);
+
+using RecordCallback = std::function<void(uint32)>;
 
 struct FRHICreateInfo {
     // --- Windowing ---
@@ -20,11 +24,22 @@ public:
     IRHI();
     virtual ~IRHI();
 
+    // virtual void RecordCommandBuffer(const TRef<IRHICommandBuffer> commandBuffer,
+    //                                  const TRef<IRHIPipeline> pipeline,
+    //                                  const uint32 imageIndex) = 0;
+    virtual void DrawFrame(const TRef<IRHICommandBuffer> commandBuffer,
+                           const TRef<IRHISyncObject> syncObject,
+                           RecordCallback recordCallback) = 0;
     virtual TRef<IRHIDevice> CreateDevice(const FRHIDeviceCreateInfo& info) = 0;
     virtual TRef<IRHISwapchain> CreateSwapchain(const FRHISwapchainCreateInfo& info) = 0;
     virtual TRef<IRHISyncObject> CreateSyncObject() = 0;
     virtual TRef<IRHICommandBuffer> CreateCommandBuffer() = 0;
 
+    virtual void BeginRenderingToSwapchain(const TRef<IRHICommandBuffer> commandBuffer,
+                                           uint32 imageIndex, bool bClear) = 0;
+    virtual void EndRendering(const TRef<IRHICommandBuffer> cmd) = 0;
+
     virtual TRef<IRHIDevice> GetDevice() const = 0;
     virtual TRef<IRHISwapchain> GetSwapchain() const = 0;
+    virtual TRef<IRHICommandPool> GetCommandPool() const = 0;
 };

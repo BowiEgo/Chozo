@@ -1,13 +1,13 @@
 ﻿#pragma once
 
 #include "Core.h"
-#include "EngineExport.h"
 #include "Event.h"
 #include "Platform.h"
 #include "RendererWindow.h"
 #include "WindowDefinition.h"
+#include "WindowingExport.h"
 
-class ENGINE_API CWindow : public IRendererWindow {
+class WINDOWING_API CWindow : public IRendererWindow {
 public:
     CWindow(const FWindowDefinition& def) : m_Definition(def) {};
     virtual ~CWindow() {};

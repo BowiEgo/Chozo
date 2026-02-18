@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CorePCH.h"
 #include "CoreTypes.h"
 
 enum class EEventType {

@@ -13,6 +13,7 @@ CVulkanRHIDevice::CVulkanRHIDevice(const FRHIDeviceCreateInfo& info,
     : IRHIDevice(info) {
     PickPhysicalDevice(instance);
     CreateLogicalDevice(surface);
+    InitGlobalDescriptorPool();
 }
 
 CVulkanRHIDevice::~CVulkanRHIDevice() {
@@ -136,6 +137,37 @@ void CVulkanRHIDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) 
     }
 
     CZ_LOG(LogVulkanRHIDevice, Info, "Vulkan Logical Device Created.");
+}
+
+void CVulkanRHIDevice::InitGlobalDescriptorPool() {
+    std::vector<vk::DescriptorPoolSize> poolSizes = {
+        {vk::DescriptorType::eCombinedImageSampler, 1000},
+        {vk::DescriptorType::eSampledImage, 1000},
+        {vk::DescriptorType::eStorageImage, 1000},
+        {vk::DescriptorType::eUniformBuffer, 1000}};
+
+    m_GlobalDescriptorPool = CreateDescriptorPool(1000, poolSizes);
+}
+
+vk::raii::DescriptorPool
+    CVulkanRHIDevice::CreateDescriptorPool(uint32 maxSets,
+                                           const std::vector<vk::DescriptorPoolSize>& poolSizes) {
+    vk::raii::DescriptorPool result = nullptr;
+
+    vk::DescriptorPoolCreateInfo poolInfo;
+    poolInfo.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
+    poolInfo.maxSets = maxSets;
+    poolInfo.setPoolSizes(poolSizes);
+
+    try {
+        result = vk::raii::DescriptorPool(m_LogicalDevice, poolInfo);
+        CZ_LOG(LogVulkanRHIDevice, Info, "Vulkan Descriptor Pool Created with max sets: {}",
+               maxSets);
+    } catch (const std::exception& e) {
+        CZ_LOG(LogVulkanRHIDevice, Error, "Failed to create Vulkan Descriptor Pool: {0}", e.what());
+    }
+
+    return result;
 }
 
 TRef<IRHIShader> CVulkanRHIDevice::CreateShader(const FRHIShaderCreateInfo& info,

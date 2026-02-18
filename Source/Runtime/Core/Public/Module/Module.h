@@ -5,7 +5,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCore, Info);
 
-#ifdef CHOZO_PLATFORM_WINDOWS
+#ifdef CZ_PLATFORM_WINDOWS
     #ifndef WIN32_LEAN_AND_MEAN
         #define WIN32_LEAN_AND_MEAN
     #endif
@@ -37,8 +37,7 @@ public:
         if (!func) {
             CZ_LOG(LogCore, Error, "Failed to locate symbol: {0}", name);
             // [Note] Use a more robust way to return a "null" value
-            using ReturnType =
-                decltype(std::declval<FuncPtr>()(std::forward<Args>(args)...));
+            using ReturnType = decltype(std::declval<FuncPtr>()(std::forward<Args>(args)...));
             return ReturnType{};
         }
 

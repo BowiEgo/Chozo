@@ -19,9 +19,7 @@ const std::regex s_ScenePattern(R"(\.(chozo)$)", std::regex::icase);
 
 } // namespace
 
-std::filesystem::path GetExecutablePath() {
-    return ChozoPlatform::File::GetExecutablePath();
-}
+std::filesystem::path GetExecutablePath() { return ChozoPlatform::File::GetExecutablePath(); }
 
 const bool IsImage(std::string path) {
     std::filesystem::path filePath = std::filesystem::path(path);
@@ -29,13 +27,12 @@ const bool IsImage(std::string path) {
     return std::regex_match(fileExtension, s_ImagePattern);
 }
 
-std::filesystem::path GetAbsolutePath(const std::filesystem::path &path) {
+std::filesystem::path GetAbsolutePath(const std::filesystem::path& path) {
     std::filesystem::path result;
 
     if (path.is_relative()) {
         std::filesystem::path exePath =
-            std::filesystem::absolute(ChozoUtils::File::GetExecutablePath())
-                .parent_path();
+            std::filesystem::absolute(ChozoUtils::File::GetExecutablePath()).parent_path();
         result = (exePath / path).lexically_normal();
     }
 
@@ -57,16 +54,18 @@ bool CreateDirectoryIfNeeded(std::string directory) {
 std::filesystem::path GetProjectRoot() {
     std::filesystem::path projectRoot;
 
-    const char *envPath = std::getenv("CHOZO_ROOT");
+    const char* envPath = std::getenv("CZ_ROOT");
+
+    std::string pathStr(envPath);
+    pathStr.erase(pathStr.find_last_not_of(';') + 1);
 
     if (envPath) {
-        projectRoot = std::filesystem::path(envPath);
+        projectRoot = std::filesystem::path(pathStr);
     } else {
         projectRoot = std::filesystem::current_path();
-        CZ_LOG(
-            LogFileUtils, Warning,
-            "CHOZO_ROOT environment variable not found! Falling back to: {0}",
-            projectRoot.string());
+        CZ_LOG(LogFileUtils, Warning,
+               "CZ_ROOT environment variable not found! Falling back to: {0}",
+               projectRoot.string());
     }
 
     return projectRoot;
@@ -77,8 +76,7 @@ const std::filesystem::path GetResourcesDirectory() {
 }
 
 const std::filesystem::path GetShaderSourcesDirectory() {
-    return GetAbsolutePath(
-        std::filesystem::path("../../../../ChozoEngine/shaders"));
+    return GetAbsolutePath(std::filesystem::path("../../../../ChozoEngine/shaders"));
 }
 
 const std::filesystem::path GetAssetDirectory() {
@@ -102,7 +100,7 @@ const std::filesystem::path GetThumbnailCacheDirectory() {
     return path;
 }
 
-std::string ReadTextFile(const std::filesystem::path &filepath) {
+std::string ReadTextFile(const std::filesystem::path& filepath) {
     std::string result;
     std::ifstream in(filepath, std::ios::in | std::ios::binary | std::ios::ate);
     if (in) {
@@ -112,26 +110,22 @@ std::string ReadTextFile(const std::filesystem::path &filepath) {
             in.seekg(0, std::ios::beg);
 
             if (!in.read(result.data(), size)) {
-                CZ_LOG(LogFileUtils, Error,
-                       "Failed to read content from file: {0}",
+                CZ_LOG(LogFileUtils, Error, "Failed to read content from file: {0}",
                        filepath.string());
                 result.clear();
             }
         } else {
-            CZ_LOG(LogFileUtils, Warning, "File is empty: {0}",
-                   filepath.string());
+            CZ_LOG(LogFileUtils, Warning, "File is empty: {0}", filepath.string());
         }
         in.close();
     } else {
-        CZ_LOG(LogFileUtils, Error, "Could not open file '{0}'",
-               filepath.string());
+        CZ_LOG(LogFileUtils, Error, "Could not open file '{0}'", filepath.string());
     }
 
     return result;
 }
 
-bool ReadBinaryFile(const std::string &filepath,
-                    std::vector<uint32_t> &target) {
+bool ReadBinaryFile(const std::string& filepath, std::vector<uint32_t>& target) {
     std::ifstream in(filepath, std::ios::in | std::ios::binary);
     if (in) {
         in.seekg(0, std::ios::end);
@@ -139,7 +133,7 @@ bool ReadBinaryFile(const std::string &filepath,
         in.seekg(0, std::ios::beg);
 
         target.resize(size / sizeof(uint32_t));
-        in.read((char *)target.data(), size);
+        in.read((char*)target.data(), size);
         return true;
     } else {
         CZ_LOG(LogFileUtils, Error, "Could not open file '{0}'", filepath);
@@ -147,16 +141,15 @@ bool ReadBinaryFile(const std::string &filepath,
     }
 }
 
-void DeleteFile(const std::string &filepath) {
+void DeleteFile(const std::string& filepath) {
     try {
         if (std::filesystem::exists(filepath)) {
             std::filesystem::remove(filepath);
-            CZ_LOG(LogFileUtils, Trace, "File at {} deleted successfully",
-                   filepath);
+            CZ_LOG(LogFileUtils, Trace, "File at {} deleted successfully", filepath);
         } else {
             CZ_LOG(LogFileUtils, Warning, "File at {} not found", filepath);
         }
-    } catch (const std::filesystem::filesystem_error &err) {
+    } catch (const std::filesystem::filesystem_error& err) {
         CZ_LOG(LogFileUtils, Error, "Error: {}  {}", err.what(), filepath);
     }
 }

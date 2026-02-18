@@ -36,14 +36,15 @@ void CVulkanRHISwapchain::Init() {
         ChozoUtils::Vulkan::ChooseSwapExtent(details.capabilities, pixelWidth, pixelHeight);
 
     // Determine image count (Minimum + 1 for triple buffering)
-    uint32_t imageCount = details.capabilities.minImageCount + 1;
-    if (details.capabilities.maxImageCount > 0 && imageCount > details.capabilities.maxImageCount) {
-        imageCount = details.capabilities.maxImageCount;
+    m_ImageCount = details.capabilities.minImageCount + 1;
+    if (details.capabilities.maxImageCount > 0 &&
+        m_ImageCount > details.capabilities.maxImageCount) {
+        m_ImageCount = details.capabilities.maxImageCount;
     }
 
     vk::SwapchainCreateInfoKHR createInfo;
     createInfo.surface = *m_Surface;
-    createInfo.minImageCount = imageCount;
+    createInfo.minImageCount = m_ImageCount;
     createInfo.imageFormat = surfaceFormat.format;
     createInfo.imageColorSpace = surfaceFormat.colorSpace;
     createInfo.imageExtent = extent;
@@ -84,6 +85,7 @@ void CVulkanRHISwapchain::Init() {
     // Retrieve the images created by the swapchain
     m_Images = m_Swapchain.getImages();
     m_ImageFormat = surfaceFormat.format;
+    m_DepthFormat = vk::Format::eD32Sfloat;
 
     m_ImageViews.reserve(m_Images.size());
     for (const auto& image : m_Images) {
@@ -106,14 +108,62 @@ void CVulkanRHISwapchain::Init() {
 
         m_ImageViews.emplace_back(logicalDevice, viewInfo);
     }
+
     m_Extent = extent;
+    m_ImageLayouts.assign(m_Images.size(), vk::ImageLayout::eUndefined);
+
+    CreateVKRenderPass();
 }
 
 void CVulkanRHISwapchain::CleanupSwapchain() { m_ImageViews.clear(); }
 
 void CVulkanRHISwapchain::RecreateSwapchain() { RecreateSwapchain(m_Info.FrameBufferSize); }
 
-void CVulkanRHISwapchain::CreateVKRenderPass() {}
+void CVulkanRHISwapchain::CreateVKRenderPass() {
+
+    // 1. Attachment Description
+    vk::AttachmentDescription colorAttachment{};
+    colorAttachment.format = m_ImageFormat;
+    colorAttachment.samples = vk::SampleCountFlagBits::e1;
+    colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+    colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+    colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+    // 2. Attachment Reference
+    vk::AttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+    // 3. Subpass
+    vk::SubpassDescription subpass{};
+    subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+
+    // 4. Subpass Dependency
+    vk::SubpassDependency dependency{};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.srcAccessMask = vk::AccessFlagBits::eNone;
+    dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+
+    // 5. Create Render Pass
+    // vk::RenderPassCreateInfo renderPassInfo{};
+    // renderPassInfo.attachmentCount = 1;
+    // renderPassInfo.pAttachments = &colorAttachment;
+    // renderPassInfo.subpassCount = 1;
+    // renderPassInfo.pSubpasses = &subpass;
+    // renderPassInfo.dependencyCount = 1;
+    // renderPassInfo.pDependencies = &dependency;
+
+    // auto& device = m_Device->GetLogicalDevice();
+    // m_RenderPass = vk::raii::RenderPass(device, renderPassInfo);
+}
 
 const uint32 CVulkanRHISwapchain::AcquireNextImage(TRef<IRHISyncObject> syncObject) {
     auto vkSync = syncObject.As<CVulkanRHISyncObject>();

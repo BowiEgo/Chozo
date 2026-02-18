@@ -12,10 +12,18 @@ public:
                             const TRef<CVulkanRHIDevice> device);
     virtual ~CVulkanRHICommandBuffer();
 
-    vk::raii::CommandBuffer& GetVKCommandBuffer() { return m_ActiveCmdHandle; }
+    virtual void Begin() { m_Handle.begin({}); }
+    virtual void SetViewport(const FRHIViewport& viewport) override;
+    virtual void SetScissor(const FRHIScissor& scissor) override;
+    virtual void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex,
+                      uint32_t firstInstance) override;
+    virtual void End() { m_Handle.end(); }
+    virtual void BindPipeline(TRef<IRHIPipeline> pipeline) override;
+
+    vk::raii::CommandBuffer& GetVKCommandBuffer() { return m_Handle; }
 
 private:
     WeakRef<CVulkanRHIDevice> m_Device;
 
-    vk::raii::CommandBuffer m_ActiveCmdHandle = nullptr;
+    vk::raii::CommandBuffer m_Handle = nullptr;
 };

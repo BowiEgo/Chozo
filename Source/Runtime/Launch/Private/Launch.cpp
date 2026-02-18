@@ -2,22 +2,20 @@
 
 DEFINE_LOG_CATEGORY_STATIC(LogLaunch, Info);
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     std::string msg = "Starting up Chozo Engine..";
     CZ_LOG(LogLaunch, Info, msg);
 
-    CEngineLoop engineLoop;
-
-    engineLoop.Init();
+    CApplication app;
 
     while (true) {
-        engineLoop.Tick();
+        app.Run();
 
-        if (engineLoop.ShouldClose())
+        if (app.ShouldClose())
             break;
     }
 
-    engineLoop.Exit();
+    app.Exit();
 
     return 0;
 }

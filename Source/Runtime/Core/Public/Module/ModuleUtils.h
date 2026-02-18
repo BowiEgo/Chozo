@@ -1,9 +1,9 @@
 #pragma once
 
 static std::string GetPlatformLibName(const std::string& name) {
-#if defined(CHOZO_PLATFORM_WINDOWS)
+#if defined(CZ_PLATFORM_WINDOWS)
     return name + ".dll";
-#elif defined(CHOZO_PLATFORM_MACOS)
+#elif defined(CZ_PLATFORM_MACOS)
     return "lib" + name + ".dylib";
 #else
     return "lib" + name + ".so";

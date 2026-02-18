@@ -18,7 +18,9 @@ public:
     virtual ~IRHISwapchain();
 
     virtual const uint32 AcquireNextImage(TRef<IRHISyncObject> semaphore) = 0;
-    virtual const EPixelFormat GetImageFormat() = 0;
+    virtual const EPixelFormat GetImageFormat() const = 0;
+    virtual const EPixelFormat GetDepthFormat() const = 0;
+    virtual const FExtent2D GetExtent() const = 0;
 
     virtual void RecreateSwapchain(const FExtent2D& frameBufferSize) = 0;
 

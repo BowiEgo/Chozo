@@ -23,12 +23,19 @@ public:
 private:
     void PickPhysicalDevice(const vk::raii::Instance& instance);
     void CreateLogicalDevice(const vk::raii::SurfaceKHR& surface);
+    void InitGlobalDescriptorPool();
 
 public:
+    vk::raii::DescriptorPool
+        CreateDescriptorPool(uint32 maxSets, const std::vector<vk::DescriptorPoolSize>& poolSizes);
+
     const vk::raii::PhysicalDevice& GetPhysicalDevice() const { return m_PhysicalDevice; }
     const vk::raii::Device& GetLogicalDevice() const { return m_LogicalDevice; }
     const vk::raii::Queue& GetGraphicsQueue() const { return m_GraphicsQueue; }
     const uint32 GetGraphicsQueueIndex() const { return m_GraphicsQueueIndex; }
+    const vk::raii::DescriptorPool& GetGlobalDescriptorPool() const {
+        return m_GlobalDescriptorPool;
+    }
 
 private:
     std::vector<const char*> m_RequiredDeviceExtension = {vk::KHRSwapchainExtensionName};
@@ -39,4 +46,6 @@ private:
     vk::raii::Queue m_PresentQueue = nullptr;
     vk::raii::Queue m_ComputeQueue = nullptr;
     uint32 m_GraphicsQueueIndex;
+
+    vk::raii::DescriptorPool m_GlobalDescriptorPool = nullptr;
 };

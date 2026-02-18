@@ -23,6 +23,8 @@ public:
     }
     virtual ~CVulkanRHISyncObject() = default;
 
+    void WaitAndResetFence(TRef<CVulkanRHIDevice> device) const;
+
     const vk::raii::Semaphore& GetPresentCompleteSemaphore() const {
         return m_PresentCompleteSemaphore;
     }
@@ -34,5 +36,5 @@ public:
 private:
     vk::raii::Semaphore m_PresentCompleteSemaphore = nullptr;
     vk::raii::Semaphore m_RenderFinishedSemaphore = nullptr;
-    vk::raii::Fence m_DrawFence = nullptr;
+    mutable vk::raii::Fence m_DrawFence = nullptr;
 };

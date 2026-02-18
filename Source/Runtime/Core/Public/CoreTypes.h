@@ -3,15 +3,15 @@
 #include <functional>
 
 #if defined(_WIN32)
-    #define CHOZO_DLL_EXPORT __declspec(dllexport)
-    #define CHOZO_DLL_IMPORT __declspec(dllimport)
+    #define CZ_DLL_EXPORT __declspec(dllexport)
+    #define CZ_DLL_IMPORT __declspec(dllimport)
 #else
     #if defined(__GNUC__) || defined(__clang__)
-        #define CHOZO_DLL_EXPORT __attribute__((visibility("default")))
-        #define CHOZO_DLL_IMPORT __attribute__((visibility("default")))
+        #define CZ_DLL_EXPORT __attribute__((visibility("default")))
+        #define CZ_DLL_IMPORT __attribute__((visibility("default")))
     #else
-        #define CHOZO_DLL_EXPORT
-        #define CHOZO_DLL_IMPORT
+        #define CZ_DLL_EXPORT
+        #define CZ_DLL_IMPORT
     #endif
 #endif
 
@@ -59,21 +59,17 @@ static constexpr bool GIsDebug = false;
 // --- Assertion System ---
 #ifdef CZ_DEBUG
     // Internal assertion implementation
-    #define CZ_INTERNAL_ASSERT_IMPL(type, condition, ...)                      \
-        do {                                                                   \
-            if (!(condition)) {                                                \
-                CZ_##type##_LOG(                                               \
-                    Fatal,                                                     \
-                    "Assertion Failed: {0}\n\tat {1}:{2}\n\tMessage: {3}",     \
-                    #condition, __FILE__, __LINE__, __VA_ARGS__);              \
-                CZ_DEBUGBREAK();                                               \
-            }                                                                  \
+    #define CZ_INTERNAL_ASSERT_IMPL(type, condition, ...)                                          \
+        do {                                                                                       \
+            if (!(condition)) {                                                                    \
+                CZ_##type##_LOG(Fatal, "Assertion Failed: {0}\n\tat {1}:{2}\n\tMessage: {3}",      \
+                                #condition, __FILE__, __LINE__, __VA_ARGS__);                      \
+                CZ_DEBUGBREAK();                                                                   \
+            }                                                                                      \
         } while (0)
 
-    #define CZ_CORE_ASSERT(condition, ...)                                     \
-        CZ_INTERNAL_ASSERT_IMPL(CORE, condition, __VA_ARGS__)
-    #define CZ_ASSERT(condition, ...)                                          \
-        CZ_INTERNAL_ASSERT_IMPL(APP, condition, __VA_ARGS__)
+    #define CZ_CORE_ASSERT(condition, ...) CZ_INTERNAL_ASSERT_IMPL(CORE, condition, __VA_ARGS__)
+    #define CZ_ASSERT(condition, ...) CZ_INTERNAL_ASSERT_IMPL(APP, condition, __VA_ARGS__)
 #else
     // Stripped in Release builds
     #define CZ_CORE_ASSERT(condition, ...)
@@ -88,15 +84,14 @@ static constexpr bool GIsDebug = false;
 #define BIT(x) (1ULL << (x))
 
 // Support functions with any number of arguments
-#define CZ_BIND_EVENT_FN(fn)                                                   \
+#define CZ_BIND_EVENT_FN(fn)                                                                       \
     [this](auto&&... args) { return fn(std::forward<decltype(args)>(args)...); }
 
 ////////////////////////////////////////////////////////////////////////////
 //============================ Global Scope ==============================//
 ////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename... Args>
-using TCallback = std::function<T(Args&&... args)>;
+template <typename T, typename... Args> using TCallback = std::function<T(Args&&... args)>;
 
 ////////////////////////////////////////////////////////////////////////////
 //========================== Basic Type Aliases ==========================//

@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include "EngineExport.h"
+#include "WindowingExport.h"
 
-struct ENGINE_API FWindowDefinition {
+struct WINDOWING_API FWindowDefinition {
     std::string Title;
     float XScale, YScale = 1.0f;
     unsigned int Width, Height;

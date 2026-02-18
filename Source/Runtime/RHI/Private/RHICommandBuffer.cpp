@@ -2,4 +2,4 @@
 
 IRHICommandBuffer::IRHICommandBuffer(const FRHICommandBufferCreateInfo& info) : m_Info(info) {}
 
-IRHICommandBuffer::~IRHICommandBuffer() = default;
+IRHICommandBuffer::~IRHICommandBuffer() {}

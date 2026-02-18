@@ -19,8 +19,6 @@ public:
     IRHIPipeline(const FRHIPipelineCreateInfo& info);
     virtual ~IRHIPipeline();
 
-    virtual void Bind() = 0;
-
 protected:
     FRHIPipelineCreateInfo m_Info;
 };

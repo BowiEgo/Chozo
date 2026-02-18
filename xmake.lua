@@ -15,30 +15,45 @@ if is_mode("release") then
     add_defines("CZ_DIST")
 end
 
-add_runenvs("CHOZO_ROOT", os.projectdir())
+add_runenvs("CZ_ROOT", path.absolute(os.projectdir()))
 
 if is_plat("windows") then
-    add_defines("CHOZO_PLATFORM_WINDOWS")
+    add_defines("CZ_PLATFORM_WINDOWS")
 elseif is_plat("linux") then
-    add_defines("CHOZO_PLATFORM_LINUX")
+    add_defines("CZ_PLATFORM_LINUX")
 elseif is_plat("macosx") then
-    add_defines("CHOZO_PLATFORM_MACOS")
+    add_defines("CZ_PLATFORM_MACOS")
 end
+
+local sdk_path = os.getenv("VULKAN_SDK")
+if sdk_path then
+    sdk_path = path.translate(sdk_path)
+end
+
+add_requires("spdlog", "glm")
+add_requires("glfw", {configs = {shared = true}})
 
 -- Load the custom module rule defined above
 includes("scripts/chozo_module.lua")
 includes("scripts/export_header.lua")
 
 -- XMake will look for xmake.lua in each subdirectory
+includes("External")
 includes("Source/Platform")
 includes("Source/Runtime/Core")
-includes("Source/Runtime/VulkanrHI")
+includes("Source/Runtime/Windowing")
+includes("Source/Runtime/VulkanRHI")
 includes("Source/Runtime/RHI")
+includes("Source/Runtime/VulkanImGui")
+includes("Source/Runtime/UI")
 includes("Source/Runtime/RenderCore")
 includes("Source/Runtime/Engine")
 includes("Source/Runtime/Launch")
 
-add_requires("spdlog")
-add_requires("glfw")
-add_requires("glm")
-add_requires("shaderc")
+target("VulkanSDK_Interface")
+    set_kind("headeronly")
+    if sdk_path then
+        add_includedirs(path.join(sdk_path, "Include"), {public = true})
+        add_linkdirs(path.join(sdk_path, "Lib"), {public = true})
+    end
+

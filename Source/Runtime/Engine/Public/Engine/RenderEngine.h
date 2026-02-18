@@ -18,7 +18,9 @@ public:
     void Tick();
     void Shutdown();
     bool OnEvent(IEvent& e);
-    void OnWindowResize(CWindowResizedEvent& e);
+    void OnWindowResize(FWindowResizedEvent& e);
+
+    CRenderer* GetRenderer() const { return m_Renderer.get(); }
 
 private:
     CWindow* m_Window;

@@ -8,13 +8,12 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVulkanRHIPipeline, Info);
 class CVulkanRHIDevice;
 
 class VULKAN_RHI_API CVulkanRHIPipeline : public IRHIPipeline {
-    friend class CVulkanGraphicsContext;
+    friend class CVulkanRHI;
+    friend class CVulkanRHICommandBuffer;
 
 public:
     CVulkanRHIPipeline(const FRHIPipelineCreateInfo& info, const TRef<CVulkanRHIDevice> device);
     virtual ~CVulkanRHIPipeline();
-
-    virtual void Bind() override {};
 
 private:
     void Init();

@@ -2,9 +2,9 @@
 
 #include "Event.h"
 
-class CWindowContentScaledEvent : public IEvent {
+class FWindowContentScaledEvent : public IEvent {
 public:
-    CWindowContentScaledEvent(float xscale, float yscale) : m_XScale(xscale), m_YScale(yscale) {}
+    FWindowContentScaledEvent(float xscale, float yscale) : m_XScale(xscale), m_YScale(yscale) {}
 
     float GetXScale() const { return m_XScale; }
     float GetYScale() const { return m_YScale; }
@@ -21,9 +21,9 @@ private:
     float m_XScale, m_YScale;
 };
 
-class CWindowResizedEvent : public IEvent {
+class FWindowResizedEvent : public IEvent {
 public:
-    CWindowResizedEvent(unsigned int width, unsigned int height)
+    FWindowResizedEvent(unsigned int width, unsigned int height)
         : m_Width(width), m_Height(height) {}
 
     unsigned int GetWidth() const { return m_Width; }
@@ -41,33 +41,33 @@ private:
     unsigned int m_Width, m_Height;
 };
 
-class CWindowCloseEvent final : public IEvent {
+class FWindowCloseEvent final : public IEvent {
 public:
-    CWindowCloseEvent() = default;
+    FWindowCloseEvent() = default;
 
     EVENT_CLASS_TYPE(WindowClose)
     EVENT_CLASS_CATEGORY(EventCategory_Application)
 };
 
-class CAppTickEvent final : public IEvent {
+class FAppTickEvent final : public IEvent {
 public:
-    CAppTickEvent() = default;
+    FAppTickEvent() = default;
 
     EVENT_CLASS_TYPE(AppTick)
     EVENT_CLASS_CATEGORY(EventCategory_Application)
 };
 
-class CAppUpdateEvent final : public IEvent {
+class FAppUpdateEvent final : public IEvent {
 public:
-    CAppUpdateEvent() = default;
+    FAppUpdateEvent() = default;
 
     EVENT_CLASS_TYPE(AppUpdate)
     EVENT_CLASS_CATEGORY(EventCategory_Application)
 };
 
-class CAppRenderEvent final : public IEvent {
+class FAppRenderEvent final : public IEvent {
 public:
-    CAppRenderEvent() = default;
+    FAppRenderEvent() = default;
 
     EVENT_CLASS_TYPE(AppRender)
     EVENT_CLASS_CATEGORY(EventCategory_Application)
