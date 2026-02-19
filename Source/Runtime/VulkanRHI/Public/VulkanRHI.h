@@ -24,23 +24,23 @@ private:
     void CreateCommandPool();
 
 private:
-    void TransitionImageLayout(const TRef<IRHICommandBuffer> cmd, uint32 imageIndex,
+    void TransitionImageLayout(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
                                vk::ImageLayout old_layout, vk::ImageLayout new_layout,
                                vk::AccessFlags2 src_access_mask, vk::AccessFlags2 dst_access_mask,
                                vk::PipelineStageFlags2 src_stage_mask,
                                vk::PipelineStageFlags2 dst_stage_mask);
 
 public:
-    virtual void BeginRenderingToSwapchain(const TRef<IRHICommandBuffer> commandBuffer,
-                                           uint32 imageIndex, bool bClear) override;
-    virtual void EndRendering(const TRef<IRHICommandBuffer> cmd) override;
+    virtual void BeginRenderingToSwapchain(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
+                                           bool bClear) override;
+    virtual void EndRendering(const TRef<IRHICommandBuffer>& cmd) override;
 
-    // virtual void RecordCommandBuffer(const TRef<IRHICommandBuffer> commandBuffer,
+    // virtual void RecordCommandBuffer(const TRef<IRHICommandBuffer> cmd,
     //                                  const TRef<IRHIPipeline> pipeline,
     //                                  const uint32 imageIndex) override;
 
-    virtual void DrawFrame(const TRef<IRHICommandBuffer> commandBuffer,
-                           const TRef<IRHISyncObject> syncObject,
+    virtual void DrawFrame(const TRef<IRHICommandBuffer>& cmd,
+                           const TRef<IRHISyncObject>& syncObject,
                            RecordCallback recordCallback) override;
 
     virtual TRef<IRHIDevice> CreateDevice(const FRHIDeviceCreateInfo& info) override {

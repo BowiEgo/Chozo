@@ -42,9 +42,10 @@ void CRenderer::Tick() {
     RHI->DrawFrame(cmdBuffer, syncObject, [&](uint32 imageIndex) {
         cmdBuffer->Begin();
 
-        // 1. draw scene using RHI interface
-        RHI->BeginRenderingToSwapchain(cmdBuffer, imageIndex, true); // bClear = true
+        RHI->BeginRenderingToSwapchain(cmdBuffer, imageIndex,
+                                       true); // bClear = true / false(preserve the scene)
         {
+            // 1. draw scene using RHI interface
             auto extent = RHI->GetSwapchain()->GetExtent();
             cmdBuffer->BindPipeline(m_ScenePipeline);
             cmdBuffer->SetViewport(
@@ -52,17 +53,12 @@ void CRenderer::Tick() {
             cmdBuffer->SetScissor({0, 0, extent.Width, extent.Height});
             cmdBuffer->Draw(3, 1, 0, 0);
 
+            // 2. draw UI on top of the scene
             if (m_UICallback) {
                 m_UICallback(cmdBuffer);
             }
         }
         RHI->EndRendering(cmdBuffer);
-
-        // // 2. draw UI on top of the scene
-        // RHI->BeginRenderingToSwapchain(cmdBuffer, imageIndex,
-        //                                false); // bClear = false (preserve the scene)
-
-        // RHI->EndRendering(cmdBuffer);
 
         cmdBuffer->End();
     });

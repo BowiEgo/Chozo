@@ -91,6 +91,7 @@ void CVulkanImGuiRenderer::Init(ImGuiContext* ctx) {
 }
 
 void CVulkanImGuiRenderer::Shutdown() {
+    m_Context->GetRHI()->GetDevice()->WaitIdle();
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -102,13 +103,9 @@ void CVulkanImGuiRenderer::NewFrame() {
     ImGui::NewFrame();
 
     ImGuiIO& io = ImGui::GetIO();
-    // io.WantCaptureMouse = true;
-    // CZ_LOG(LogVulkanImGuiRenderer, Info, "WantCaptureMouse: {}", io.WantCaptureMouse);
-    // CZ_LOG(LogVulkanImGuiRenderer, Info, "Mouse Pos: ({}, {}) | MouseDown[0]: {}", io.MousePos.x,
-    //        io.MousePos.y, io.MouseDown[0]);
 }
 
-void CVulkanImGuiRenderer::Render(ImDrawData* drawData, const TRef<IRHICommandBuffer> cmdBuffer) {
+void CVulkanImGuiRenderer::Render(ImDrawData* drawData, const TRef<IRHICommandBuffer>& cmdBuffer) {
     if (!drawData || drawData->TotalVtxCount == 0)
         return;
 

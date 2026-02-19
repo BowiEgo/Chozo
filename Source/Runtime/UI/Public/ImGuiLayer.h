@@ -30,7 +30,7 @@ public:
     void SetFont(std::string fontPath, float dpi);
     void SetDarkThemeColors();
 
-    void Render(const TRef<IRHICommandBuffer> cmdBuffer);
+    void Render(const TRef<IRHICommandBuffer>& cmdBuffer);
 
 private:
     CModule m_RHIModule;

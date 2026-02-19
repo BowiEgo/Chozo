@@ -146,7 +146,7 @@ void CVulkanRHI::CreateCommandPool() {
     m_MainCommandPool = CreateRef<CVulkanRHICommandPool>(info, m_Device);
 }
 
-void CVulkanRHI::BeginRenderingToSwapchain(const TRef<IRHICommandBuffer> cmd, uint32_t imageIndex,
+void CVulkanRHI::BeginRenderingToSwapchain(const TRef<IRHICommandBuffer>& cmd, uint32_t imageIndex,
                                            bool bClear) {
 
     auto vlkCmd = &cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
@@ -188,7 +188,7 @@ void CVulkanRHI::BeginRenderingToSwapchain(const TRef<IRHICommandBuffer> cmd, ui
     vlkCmd->beginRendering(renderingInfo);
 }
 
-void CVulkanRHI::EndRendering(const TRef<IRHICommandBuffer> cmd) {
+void CVulkanRHI::EndRendering(const TRef<IRHICommandBuffer>& cmd) {
     auto vlkCmd = &cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
     vlkCmd->endRendering();
 
@@ -204,8 +204,8 @@ void CVulkanRHI::EndRendering(const TRef<IRHICommandBuffer> cmd) {
     m_Swapchain.As<CVulkanRHISwapchain>()->SetLayout(m_ImageIndex, vk::ImageLayout::ePresentSrcKHR);
 }
 
-void CVulkanRHI::DrawFrame(const TRef<IRHICommandBuffer> commandBuffer,
-                           const TRef<IRHISyncObject> syncObject,
+void CVulkanRHI::DrawFrame(const TRef<IRHICommandBuffer>& cmd,
+                           const TRef<IRHISyncObject>& syncObject,
                            RecordCallback recordCallback) { // [Note] 增加回调函数
     const auto& queue = m_Device->GetGraphicsQueue();
     const auto& vlkSync = syncObject.As<CVulkanRHISyncObject>();
@@ -228,8 +228,7 @@ void CVulkanRHI::DrawFrame(const TRef<IRHICommandBuffer> commandBuffer,
         vk::SubmitInfo submitInfo;
         submitInfo.setWaitSemaphores(*vlkSync->GetPresentCompleteSemaphore());
         submitInfo.setWaitDstStageMask(waitStages);
-        submitInfo.setCommandBuffers(
-            *commandBuffer.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer());
+        submitInfo.setCommandBuffers(*cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer());
         submitInfo.setSignalSemaphores(*vlkSync->GetRenderFinishedSemaphore());
 
         queue.submit(submitInfo, *vlkSync->GetDrawFence());
@@ -248,7 +247,7 @@ void CVulkanRHI::DrawFrame(const TRef<IRHICommandBuffer> commandBuffer,
     }
 }
 
-void CVulkanRHI::TransitionImageLayout(const TRef<IRHICommandBuffer> cmd, uint32 imageIndex,
+void CVulkanRHI::TransitionImageLayout(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
                                        vk::ImageLayout old_layout, vk::ImageLayout new_layout,
                                        vk::AccessFlags2 src_access_mask,
                                        vk::AccessFlags2 dst_access_mask,

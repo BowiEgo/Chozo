@@ -24,20 +24,20 @@ public:
     IRHI();
     virtual ~IRHI();
 
-    // virtual void RecordCommandBuffer(const TRef<IRHICommandBuffer> commandBuffer,
-    //                                  const TRef<IRHIPipeline> pipeline,
+    // virtual void RecordCommandBuffer(const TRef<IRHICommandBuffer>& cmd,
+    //                                  const TRef<IRHIPipeline>& pipeline,
     //                                  const uint32 imageIndex) = 0;
-    virtual void DrawFrame(const TRef<IRHICommandBuffer> commandBuffer,
-                           const TRef<IRHISyncObject> syncObject,
+    virtual void DrawFrame(const TRef<IRHICommandBuffer>& cmd,
+                           const TRef<IRHISyncObject>& syncObject,
                            RecordCallback recordCallback) = 0;
     virtual TRef<IRHIDevice> CreateDevice(const FRHIDeviceCreateInfo& info) = 0;
     virtual TRef<IRHISwapchain> CreateSwapchain(const FRHISwapchainCreateInfo& info) = 0;
     virtual TRef<IRHISyncObject> CreateSyncObject() = 0;
     virtual TRef<IRHICommandBuffer> CreateCommandBuffer() = 0;
 
-    virtual void BeginRenderingToSwapchain(const TRef<IRHICommandBuffer> commandBuffer,
-                                           uint32 imageIndex, bool bClear) = 0;
-    virtual void EndRendering(const TRef<IRHICommandBuffer> cmd) = 0;
+    virtual void BeginRenderingToSwapchain(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
+                                           bool bClear) = 0;
+    virtual void EndRendering(const TRef<IRHICommandBuffer>& cmd) = 0;
 
     virtual TRef<IRHIDevice> GetDevice() const = 0;
     virtual TRef<IRHISwapchain> GetSwapchain() const = 0;

@@ -111,7 +111,7 @@ void CImGuiLayer::OnEvent(IEvent& e) {
     }
 }
 
-void CImGuiLayer::Render(const TRef<IRHICommandBuffer> cmdBuffer) {
+void CImGuiLayer::Render(const TRef<IRHICommandBuffer>& cmdBuffer) {
     m_ImGuiRenderer->Render(ImGui::GetDrawData(), cmdBuffer);
 }
 
