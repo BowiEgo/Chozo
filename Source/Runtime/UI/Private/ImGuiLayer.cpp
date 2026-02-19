@@ -81,6 +81,9 @@ void CImGuiLayer::OnAttach() {
 
     // SetDarkThemeColors();
 
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+
     // Setup Platform/Renderer backends
     m_ImGuiRenderer->Init(ImGui::GetCurrentContext());
 }

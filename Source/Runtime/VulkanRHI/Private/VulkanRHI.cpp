@@ -152,7 +152,7 @@ void CVulkanRHI::BeginRenderingToSwapchain(const TRef<IRHICommandBuffer> cmd, ui
     auto vlkCmd = &cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
     auto swapchain = m_Swapchain.As<CVulkanRHISwapchain>();
     vk::Extent2D extent = swapchain->GetVKExtent();
-    vk::ClearValue clearColor = vk::ClearColorValue(0.02f, 0.02f, 0.02f, 1.0f);
+    vk::ClearValue clearColor = vk::ClearColorValue(0.1f, 0.1f, 0.1f, 1.0f);
 
     m_ImageIndex = imageIndex;
 

@@ -111,8 +111,6 @@ void CVulkanRHISwapchain::Init() {
 
     m_Extent = extent;
     m_ImageLayouts.assign(m_Images.size(), vk::ImageLayout::eUndefined);
-
-    CreateVKRenderPass();
 }
 
 void CVulkanRHISwapchain::CleanupSwapchain() { m_ImageViews.clear(); }

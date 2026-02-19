@@ -57,3 +57,64 @@ target("VulkanSDK_Interface")
         add_linkdirs(path.join(sdk_path, "Lib"), {public = true})
     end
 
+target("CopyBinaries")
+    set_kind("phony") -- Does not compile any code
+
+    -- Ensure this runs after the core modules are built
+    add_deps("RenderCore", "Windowing")
+
+    after_build(function (target)
+        import("core.base.option")
+        
+        -- The directory where your final executable stays (e.g., bin/windows/x64/debug)
+        local outdir = target:targetdir()
+        local dlls = {}
+
+        local vulkan_sdk_path = os.getenv("VULKAN_SDK")
+        if vulkan_sdk_path then
+            table.insert(dlls, path.join(vulkan_sdk_path, "Bin/shaderc_shared.dll"))
+        else
+            cprint("${yellow}[CopyBinaries]:${clear} Warning - VULKAN_SDK environment variable not found!")
+        end
+
+        local windowing = target:dep("Windowing")
+        if windowing then
+            local glfw_pkg = windowing:pkg("glfw")
+            if glfw_pkg then
+                local pkg_installdir = glfw_pkg:installdir()
+                -- Check both bin and lib for the dll
+                local possible_paths = {
+                    path.join(pkg_installdir, "bin/glfw3.dll"),
+                    path.join(pkg_installdir, "lib/glfw3.dll"),
+                    path.join(pkg_installdir, "glfw3.dll")
+                }
+                
+                local found = false
+                for _, p in ipairs(possible_paths) do
+                    if os.isfile(p) then
+                        table.insert(dlls, p)
+                        found = true
+                        break
+                    end
+                end
+
+                if not found then
+                    cprint("${yellow}[CopyBinaries]:${clear} Warning - glfw3.dll not found in pkg dir: %s", pkg_installdir)
+                end
+            end
+        end
+
+        for _, src in ipairs(dlls) do
+            local filename = path.filename(src)
+            local dst = path.join(outdir, filename)
+            
+            if os.isfile(src) then
+                if not os.isfile(dst) or os.mtime(src) > os.mtime(dst) then
+                    cprint("${green}[CopyBinaries]:${clear} updating %s", filename)
+                    os.cp(src, dst)
+                end
+            else
+                cprint("${yellow}[CopyBinaries]:${clear} Warning - source file missing: %s", src)
+            end
+        end
+    end)
