@@ -18,8 +18,11 @@ void CApplication::Init() {
     std::filesystem::path projectRoot = "D:/Codes/Github/Chozo";
     CZ_LOG(LogApplication, Info, "Project Root set from environment variable: {0}",
            projectRoot.string());
+    std::filesystem::path resourcesDir = "D:/Codes/Github/Chozo/Resources";
     VFS::SetProtocolPath("engine", projectRoot);
     VFS::SetProtocolPath("shaders", projectRoot / "Shaders");
+    VFS::SetProtocolPath("resources", resourcesDir);
+    VFS::SetProtocolPath("fonts", resourcesDir / "Fonts");
 
     FRendererAPI::SetType(FRendererAPI::EType::Vulkan);
 

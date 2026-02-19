@@ -28,8 +28,7 @@ bool CRenderEngine::OnEvent(IEvent& e) {
 }
 
 void CRenderEngine::OnWindowResize(FWindowResizedEvent& e) {
-    CZ_LOG(LogRenderEngine, Trace, e.ToString());
-
+    // CZ_LOG(LogRenderEngine, Trace, e.ToString());
     FExtent2D frameBufferSize;
     frameBufferSize.Width = e.GetWidth();
     frameBufferSize.Height = e.GetHeight();

@@ -27,7 +27,7 @@ public:
     void BlockEvents(bool block) { m_BlockEvents = block; }
     void Begin();
     void End();
-    void SetFont(std::string fontPath, float dpi);
+    void SetFont(std::string font);
     void SetDarkThemeColors();
 
     void Render(const TRef<IRHICommandBuffer>& cmdBuffer);

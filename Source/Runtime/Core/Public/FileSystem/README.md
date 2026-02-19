@@ -65,5 +65,5 @@ VFS::SetProtocolPath("shaders", root / "MyProject/Assets/Shaders");
 ### 4.2 Resolve the Virtual Path
 
 ```cpp
-std::string sourcePath = VFS::Resolve("shaders://Player.glsl");
+std::filesystem::path sourcePath = VFS::Resolve("shaders://Player.glsl");
 ```

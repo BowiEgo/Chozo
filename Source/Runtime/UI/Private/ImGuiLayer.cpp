@@ -2,6 +2,7 @@
 
 #include "ApplicationEvent.h"
 #include "ModuleUtils.h"
+#include "VFS.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -37,9 +38,6 @@ TScope<IImGuiRenderer> CImGuiLayer::CreateRenderer(CWindow* window, CGraphicsCon
 }
 
 void CImGuiLayer::OnAttach() {
-    // auto resourcesDir = Utils::File::GetResourcesDirectory().string();
-    // const auto dpi = Application::Get().GetWindow().GetDPI();
-
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -50,39 +48,22 @@ void CImGuiLayer::OnAttach() {
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
     // io.ConfigViewportsNoAutoMerge = true; io.ConfigViewportsNoTaskBarIcon = true;
 
-    // io.FontDefault =  io.Fonts->AddFontFromFileTTF(resourcesDir +
-    // "/fonts/Open_Sans/static/OpenSans-Regular.ttf", 16.0f); io.FontDefault =
-    // io.Fonts->AddFontFromFileTTF(resourcesDir +
-    // "/fonts/Nunito/static/Nunito-Regular.ttf", 16.0f); io.FontDefault =
-    // io.Fonts->AddFontFromFileTTF(resourcesDir +
-    // "/fonts/Nunito_Sans/static/NunitoSans_10pt-Regular.ttf", 16.0f); io.FontDefault =
-    // io.Fonts->AddFontFromFileTTF(resourcesDir +
-    // "/fonts/Raleway/static/Raleway-Regular.ttf", 16.0f); io.FontDefault =
-    // io.Fonts->AddFontFromFileTTF(resourcesDir +
-    // "/fonts/Roboto/Roboto-Regular.ttf", 16.0f); io.FontDefault =
-    // io.Fonts->AddFontFromFileTTF(resourcesDir +
-    // "/fonts/Abel/Abel-Regular.ttf", 16.0f); io.FontDefault =
-    // io.Fonts->AddFontFromFileTTF(resourcesDir +
-    // "/fonts/Nanum_Gothic/NanumGothic-Regular.ttf", 16.0f);
-    // SetFont("/fonts/Titillium_Web/TitilliumWeb-Regular.ttf", dpi);
+    SetFont("Titillium_Web/TitilliumWeb-Regular.ttf");
 
     // Setup Dear ImGui style
-    // ImGui::StyleColorsDark();
+    ImGui::StyleColorsDark();
     // ImGui::StyleColorsLight();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look
     // identical to regular ones.
-    // ImGuiStyle& style = ImGui::GetStyle();
-    // if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-    //     style.WindowRounding = 0.0f;
-    //     style.FrameRounding = 2.0f;
-    //     style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    // }
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        style.WindowRounding = 0.0f;
+        style.FrameRounding = 2.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+    }
 
     // SetDarkThemeColors();
-
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 
     // Setup Platform/Renderer backends
     m_ImGuiRenderer->Init(ImGui::GetCurrentContext());
@@ -90,7 +71,15 @@ void CImGuiLayer::OnAttach() {
 
 void CImGuiLayer::OnDetach() { m_ImGuiRenderer->Shutdown(); }
 
-void CImGuiLayer::OnImGuiRender() { ImGui::ShowDemoWindow(); }
+void CImGuiLayer::OnImGuiRender() {
+    ImGui::ShowDemoWindow();
+
+    ImGui::Begin("Settings");
+    ImGui::Text("Renderer stats:");
+    ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+                ImGui::GetIO().Framerate);
+    ImGui::End();
+}
 
 void CImGuiLayer::OnEvent(IEvent& e) {
     if (m_BlockEvents) {
@@ -135,13 +124,15 @@ void CImGuiLayer::End() {
     }
 }
 
-void CImGuiLayer::SetFont(std::string fontPath, float dpi) {
-    // auto resourcesDir = Utils::File::GetResourcesDirectory().string();
-    // ImGuiIO& io = ImGui::GetIO();
+void CImGuiLayer::SetFont(std::string font) {
+    const auto dpi = m_Window->GetDPI();
+    std::filesystem::path fontPath = VFS::Resolve("fonts://" + font);
 
-    // io.Fonts->Clear();
-    // io.Fonts->AddFontFromFileTTF((resourcesDir + fontPath).c_str(), 18.0f * dpi);
-    // io.FontDefault = io.Fonts->Fonts.back();
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.Fonts->Clear();
+    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), 18.0f * dpi);
+    io.FontDefault = io.Fonts->Fonts.back();
 }
 
 void CImGuiLayer::SetDarkThemeColors() {
