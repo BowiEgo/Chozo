@@ -52,23 +52,34 @@ bool CreateDirectoryIfNeeded(std::string directory) {
 }
 
 std::filesystem::path GetProjectRoot() {
-    std::filesystem::path projectRoot;
 
     const char* envPath = std::getenv("CZ_ROOT");
-
-    std::string pathStr(envPath);
-    pathStr.erase(pathStr.find_last_not_of(';') + 1);
-
     if (envPath) {
-        projectRoot = std::filesystem::path(pathStr);
-    } else {
-        projectRoot = std::filesystem::current_path();
-        CZ_LOG(LogFileUtils, Warning,
-               "CZ_ROOT environment variable not found! Falling back to: {0}",
-               projectRoot.string());
+        std::string pathStr(envPath);
+        // Clean up potential trailing semicolons from xmake/env path
+        size_t last = pathStr.find_last_not_of(";");
+        if (last != std::string::npos) {
+            pathStr = pathStr.substr(0, last + 1);
+        }
+        return std::filesystem::path(pathStr);
     }
 
-    return projectRoot;
+    try {
+        std::filesystem::path current = std::filesystem::current_path();
+
+        // Walk up from build/../debug/ to find the root
+        while (current.has_parent_path()) {
+            if (std::filesystem::exists(current / "Config") &&
+                std::filesystem::exists(current / "Resources")) {
+                return current;
+            }
+            current = current.parent_path();
+        }
+    } catch (const std::exception& e) {
+        CZ_LOG(LogFileUtils, Error, "Error while determining project root: {}", e.what());
+    }
+
+    return std::filesystem::current_path();
 }
 
 const std::filesystem::path GetResourcesDirectory() {

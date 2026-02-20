@@ -5,29 +5,28 @@ DEFINE_LOG_CATEGORY(LogApplication);
 
 CApplication* CApplication::s_Instance = nullptr;
 
-CApplication::CApplication() {
+CApplication::CApplication(const std::string& name) {
     CZ_CORE_ASSERT(!s_Instance, "Application already exists!");
     s_Instance = this;
-    Init();
+    Init(name);
 }
 
-void CApplication::Init() {
+void CApplication::Init(const std::string& name) {
     CZ_LOG(LogApplication, Trace, "Engine Loop Initializing...");
 
-    // std::filesystem::path projectRoot = ChozoUtils::File::GetProjectRoot();
-    std::filesystem::path projectRoot = "D:/Codes/Github/Chozo";
+    std::filesystem::path projectRoot = ChozoUtils::File::GetProjectRoot();
     CZ_LOG(LogApplication, Info, "Project Root set from environment variable: {0}",
            projectRoot.string());
-    std::filesystem::path resourcesDir = "D:/Codes/Github/Chozo/Resources";
-    VFS::SetProtocolPath("engine", projectRoot);
-    VFS::SetProtocolPath("shaders", projectRoot / "Shaders");
-    VFS::SetProtocolPath("resources", resourcesDir);
-    VFS::SetProtocolPath("fonts", resourcesDir / "Fonts");
+    std::filesystem::path resourcesDir = projectRoot / "Resources";
+    VFS::Mount("engine", projectRoot);
+    VFS::Mount("shaders", projectRoot / "Shaders");
+    VFS::Mount("resources", resourcesDir);
+    VFS::Mount("fonts", resourcesDir / "Fonts");
 
     FRendererAPI::SetType(FRendererAPI::EType::Vulkan);
 
     FWindowDefinition def;
-    def.Title = "Chozo Engine - Vulkan";
+    def.Title = name;
     def.Width = WINDOW_WIDTH;
     def.Height = WINDOW_HEIGHT;
 

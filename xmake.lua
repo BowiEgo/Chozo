@@ -49,6 +49,7 @@ includes("Source/Runtime/UI")
 includes("Source/Runtime/RenderCore")
 includes("Source/Runtime/Engine")
 includes("Source/Runtime/Launch")
+includes("Source/Editor")
 
 target("VulkanSDK_Interface")
     set_kind("headeronly")

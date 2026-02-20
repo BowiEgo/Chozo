@@ -30,7 +30,7 @@ A full, OS-compliant path on the actual storage device.
 
 ### 3.1 Protocol Registration
 
-Protocols are mapped to physical directories during the engine's initialization phase via `SetProtocolPath`.
+Protocols are mapped to physical directories during the engine's initialization phase via `Mount`.
 
 | Protocol      | Intended Use                                          | Typical Mapping                |
 | :------------ | :---------------------------------------------------- | :----------------------------- |
@@ -58,8 +58,8 @@ The `Resolve` function implements the following logic:
 auto root = std::filesystem::current_path();
 
 // Map engine-internal resources
-VFS::SetProtocolPath("engine", root / "Internal/Resources");
-VFS::SetProtocolPath("shaders", root / "MyProject/Assets/Shaders");
+VFS::Mount("engine", root / "Internal/Resources");
+VFS::Mount("shaders", root / "MyProject/Assets/Shaders");
 ```
 
 ### 4.2 Resolve the Virtual Path

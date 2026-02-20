@@ -15,9 +15,9 @@
 #include <vector>
 
 #ifndef WINDOW_WIDTH
-    #define WINDOW_WIDTH 1280
+    #define WINDOW_WIDTH 2560
 #endif
 
 #ifndef WINDOW_HEIGHT
-    #define WINDOW_HEIGHT 960
+    #define WINDOW_HEIGHT 1920
 #endif

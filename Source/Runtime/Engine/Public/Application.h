@@ -13,10 +13,10 @@ DECLARE_LOG_CATEGORY_EXTERN(LogApplication, Info);
 
 class ENGINE_API CApplication {
 public:
-    CApplication();
+    explicit CApplication(const std::string& name = "Chozo Engine");
     virtual ~CApplication() {};
 
-    void Init();
+    void Init(const std::string& name);
     void Run();
     void Exit();
 
@@ -40,3 +40,5 @@ private:
     CImGuiLayer* m_ImGuiLayer;
     ILayerStack m_LayerStack;
 };
+
+CApplication* CreateApplication();

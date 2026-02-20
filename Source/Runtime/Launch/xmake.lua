@@ -1,4 +1,4 @@
 target("Launch")
-    set_kind("binary")
-    add_rules("chozo_module")
-    add_deps("CopyBinaries", "Core", "Engine")
+    set_kind("static")
+    add_rules("chozo_module", "export_header")
+    add_deps("CopyBinaries", "Engine")

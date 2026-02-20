@@ -71,15 +71,7 @@ void CImGuiLayer::OnAttach() {
 
 void CImGuiLayer::OnDetach() { m_ImGuiRenderer->Shutdown(); }
 
-void CImGuiLayer::OnImGuiRender() {
-    ImGui::ShowDemoWindow();
-
-    ImGui::Begin("Settings");
-    ImGui::Text("Renderer stats:");
-    ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                ImGui::GetIO().Framerate);
-    ImGui::End();
-}
+void CImGuiLayer::OnImGuiRender() {}
 
 void CImGuiLayer::OnEvent(IEvent& e) {
     if (m_BlockEvents) {
@@ -127,6 +119,11 @@ void CImGuiLayer::End() {
 void CImGuiLayer::SetFont(std::string font) {
     const auto dpi = m_Window->GetDPI();
     std::filesystem::path fontPath = VFS::Resolve("fonts://" + font);
+
+    if (!std::filesystem::exists(fontPath)) {
+        CZ_LOG(LogImGuiLayer, Error, "Font file not found: {}", fontPath.string());
+        return;
+    }
 
     ImGuiIO& io = ImGui::GetIO();
 

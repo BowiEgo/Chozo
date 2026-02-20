@@ -4,8 +4,7 @@ DEFINE_LOG_CATEGORY(LogVFS);
 
 std::unordered_map<std::string, std::filesystem::path> VFS::s_PathProtocols;
 
-void VFS::SetProtocolPath(const std::string &protocol,
-                          const std::filesystem::path &physicalPath) {
+void VFS::Mount(const std::string& protocol, const std::filesystem::path& physicalPath) {
 
     // Ensure the protocol ends with "://" for consistency
     std::string key = protocol;
@@ -15,11 +14,11 @@ void VFS::SetProtocolPath(const std::string &protocol,
     s_PathProtocols[key] = physicalPath;
 }
 
-std::filesystem::path VFS::Resolve(const std::string &virtualPath) {
+std::filesystem::path VFS::Resolve(const std::string& virtualPath) {
     std::filesystem::path resolvedPath;
     bool found = false;
 
-    for (const auto &[protocol, physicalRoot] : s_PathProtocols) {
+    for (const auto& [protocol, physicalRoot] : s_PathProtocols) {
         if (virtualPath.compare(0, protocol.length(), protocol) == 0) {
             // Extract the relative part after "protocol://"
             std::string relativePath = virtualPath.substr(protocol.length());
@@ -40,8 +39,7 @@ std::filesystem::path VFS::Resolve(const std::string &virtualPath) {
     }
 
     if (!std::filesystem::exists(resolvedPath)) {
-        CZ_LOG(LogVFS, Warning, "File not found: ", resolvedPath.string(),
-               virtualPath);
+        CZ_LOG(LogVFS, Warning, "File not found: ", resolvedPath.string(), virtualPath);
     }
 
     return resolvedPath;
