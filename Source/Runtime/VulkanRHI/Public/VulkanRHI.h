@@ -5,6 +5,7 @@
 #include "VulkanRHICommandPool.h"
 #include "VulkanRHIDevice.h"
 #include "VulkanRHIExport.h"
+#include "VulkanRHIFrameBuffer.h"
 #include "VulkanRHISwapchain.h"
 #include "VulkanRHISyncObject.h"
 
@@ -24,24 +25,35 @@ private:
     void CreateCommandPool();
 
 private:
-    void TransitionImageLayout(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
-                               vk::ImageLayout old_layout, vk::ImageLayout new_layout,
-                               vk::AccessFlags2 src_access_mask, vk::AccessFlags2 dst_access_mask,
-                               vk::PipelineStageFlags2 src_stage_mask,
-                               vk::PipelineStageFlags2 dst_stage_mask);
+    // void TransitionImageLayout(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
+    //                            vk::ImageLayout old_layout, vk::ImageLayout new_layout,
+    //                            vk::AccessFlags2 src_access_mask, vk::AccessFlags2
+    //                            dst_access_mask, vk::PipelineStageFlags2 src_stage_mask,
+    //                            vk::PipelineStageFlags2 dst_stage_mask);
+
+    void TransitionTextureLayout(const TRef<CVulkanRHICommandBuffer>& cmd,
+                                 TRef<CVulkanRHITexture2D>& texture, vk::ImageLayout oldLayout,
+                                 vk::ImageLayout newLayout);
+    void SetupBarrierSync(vk::ImageMemoryBarrier2& barrier, vk::ImageLayout oldLayout,
+                          vk::ImageLayout newLayout);
 
 public:
-    virtual void BeginRenderingToSwapchain(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
-                                           bool bClear) override;
+    virtual void DrawFrame(const TRef<IRHICommandBuffer>& cmd,
+                           const TRef<IRHISyncObject>& syncObject,
+                           RecordCallback recordCallback) override;
+
+    virtual void BeginRendering(const TRef<IRHICommandBuffer>& cmd,
+                                const TRef<IRHITexture2D>& target, bool bClear) override;
+    // virtual void BeginRenderingToSwapchain(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
+    //                                        bool bClear) override;
     virtual void EndRendering(const TRef<IRHICommandBuffer>& cmd) override;
 
     // virtual void RecordCommandBuffer(const TRef<IRHICommandBuffer> cmd,
     //                                  const TRef<IRHIPipeline> pipeline,
     //                                  const uint32 imageIndex) override;
 
-    virtual void DrawFrame(const TRef<IRHICommandBuffer>& cmd,
-                           const TRef<IRHISyncObject>& syncObject,
-                           RecordCallback recordCallback) override;
+    virtual void PrepareTextureForSampling(const TRef<IRHICommandBuffer>& cmd,
+                                           const TRef<IRHITexture2D>& texture) override;
 
     virtual TRef<IRHIDevice> CreateDevice(const FRHIDeviceCreateInfo& info) override {
         m_Device = TRef<CVulkanRHIDevice>::Create(info, m_Instance, m_Surface);
@@ -50,8 +62,8 @@ public:
     }
 
     // [Note] Surface creation is triggered here but delegated to the platform
-    virtual TRef<IRHISwapchain> CreateSwapchain(const FRHISwapchainCreateInfo& info) override {
-        m_Swapchain = CreateRef<CVulkanRHISwapchain>(info, m_Surface, m_Device);
+    virtual TRef<IRHISwapchain> CreateSwapchain(const FRHISwapchainSpecification& spec) override {
+        m_Swapchain = CreateRef<CVulkanRHISwapchain>(spec, m_Device, m_Surface);
         return m_Swapchain;
     }
 
@@ -65,13 +77,22 @@ public:
         return CreateRef<CVulkanRHICommandBuffer>(info, m_Device);
     }
 
+    virtual TRef<IRHIFrameBuffer>
+        CreateFrameBuffer(const FFrameBufferSpecification& spec) override {
+        return CreateRef<CVulkanRHIFrameBuffer>(spec, m_Device);
+    }
+
+    virtual TRef<IRHITexture2D> CreateTexture2D(const FTextureSpecification& spec) override {
+        return CreateRef<CVulkanRHITexture2D>(spec, WeakRef(m_Device));
+    }
+
 public:
     virtual TRef<IRHIDevice> GetDevice() const override { return m_Device; }
     virtual TRef<IRHISwapchain> GetSwapchain() const override { return m_Swapchain; }
     virtual TRef<IRHICommandPool> GetCommandPool() const override { return m_MainCommandPool; }
 
-    const vk::raii::Instance& GetVKInstance() const { return m_Instance; }
-    const vk::raii::SurfaceKHR& GetVKSurface() const { return m_Surface; }
+    const vk::Instance GetVKInstance() const { return *m_Instance; }
+    const vk::SurfaceKHR GetVKSurface() const { return *m_Surface; }
 
 private:
     FRHICreateInfo m_Info;
@@ -88,4 +109,5 @@ private:
     TRef<CVulkanRHISwapchain> m_Swapchain;
     TRef<CVulkanRHICommandPool> m_MainCommandPool;
     std::vector<TRef<CVulkanRHICommandList>> m_FrameCommandLists;
+    TRef<CVulkanRHITexture2D> m_Target;
 };

@@ -26,6 +26,7 @@ public:
 
     CGraphicsContext* GetGraphicsContext() const { return m_Context.get(); }
     TRef<IRHICommandBuffer> GetCommandBuffer() const { return m_CommandBuffers[m_CurrentFrame]; }
+    TRef<IRHIFrameBuffer> GetSceneFrameBuffer() const { return m_SceneFrameBuffer; }
 
 private:
     CModule m_RHIModule;
@@ -40,4 +41,6 @@ private:
     TRef<IRHIPipeline> m_ScenePipeline;
 
     FOnRenderUI m_UICallback = nullptr;
+
+    TRef<IRHIFrameBuffer> m_SceneFrameBuffer;
 };

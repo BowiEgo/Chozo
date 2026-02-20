@@ -61,8 +61,7 @@ FQueueFamilyIndices FindQueueFamilies(const vk::raii::PhysicalDevice& physicalDe
             }
         }
 
-        if (indices.IsComplete())
-            break;
+        if (indices.IsComplete()) break;
     }
 
     try {
@@ -92,9 +91,9 @@ SwapchainSupportDetails QuerySwapchainSupport(const vk::raii::PhysicalDevice& ph
         }
         // Querying capabilities. If 'surface' is a "wild pointer" from a moved
         // Window object, this is where the 0xC0000409 occurs.
-        return SwapchainSupportDetails{physicalDevice.getSurfaceCapabilitiesKHR(*surface),
-                                       physicalDevice.getSurfaceFormatsKHR(*surface),
-                                       physicalDevice.getSurfacePresentModesKHR(*surface)};
+        return SwapchainSupportDetails{ physicalDevice.getSurfaceCapabilitiesKHR(*surface),
+                                        physicalDevice.getSurfaceFormatsKHR(*surface),
+                                        physicalDevice.getSurfacePresentModesKHR(*surface) };
     } catch (const std::exception& e) {
         CZ_LOG(LogVulkanUtils, Error, "Vulkan Error: %s", e.what());
         return {};
@@ -134,7 +133,8 @@ vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities, in
         return capabilities.currentExtent;
     }
 
-    vk::Extent2D actualExtent = {static_cast<uint32>(pixelWidth), static_cast<uint32>(pixelHeight)};
+    vk::Extent2D actualExtent = { static_cast<uint32>(pixelWidth),
+                                  static_cast<uint32>(pixelHeight) };
 
     actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width,
                                     capabilities.maxImageExtent.width);
@@ -193,6 +193,8 @@ vk::Format ToVKFormat(EPixelFormat format) {
         return vk::Format::eD32Sfloat;
     case EPixelFormat::D24_UNORM_S8_UINT:
         return vk::Format::eD24UnormS8Uint;
+    case EPixelFormat::D16_UNORM:
+        return vk::Format::eD16Unorm;
     default:
         return vk::Format::eUndefined;
     }
@@ -200,12 +202,34 @@ vk::Format ToVKFormat(EPixelFormat format) {
 
 // [Note] Reverse mapping might be useful for Swapchain -> RHI conversion
 EPixelFormat FromVKFormat(vk::Format format) {
-    if (format == vk::Format::eB8G8R8A8Unorm)
+    switch (format) {
+    case vk::Format::eR8G8B8A8Unorm:
+        return EPixelFormat::RGBA8_UNORM;
+    case vk::Format::eR8G8B8A8Srgb:
+        return EPixelFormat::RGBA8_SRGB;
+    case vk::Format::eB8G8R8A8Unorm:
         return EPixelFormat::BGRA8_UNORM;
-    if (format == vk::Format::eB8G8R8A8Srgb)
+    case vk::Format::eB8G8R8A8Srgb:
         return EPixelFormat::BGRA8_SRGB;
-    // ... implementation for other formats ...
-    return EPixelFormat::Unknown;
+    case vk::Format::eD32Sfloat:
+        return EPixelFormat::D32_SFLOAT;
+    case vk::Format::eD24UnormS8Uint:
+        return EPixelFormat::D24_UNORM_S8_UINT;
+    case vk::Format::eD16Unorm:
+        return EPixelFormat::D16_UNORM;
+    default:
+        return EPixelFormat::Unknown;
+    }
+}
+
+bool IsDepthFormat(EPixelFormat format) {
+    return format == EPixelFormat::D32_SFLOAT || format == EPixelFormat::D24_UNORM_S8_UINT ||
+           format == EPixelFormat::D16_UNORM;
+}
+
+bool IsDepthFormat(vk::Format format) {
+    return format == vk::Format::eD32Sfloat || format == vk::Format::eD24UnormS8Uint ||
+           format == vk::Format::eD16Unorm;
 }
 
 } // namespace ChozoUtils::Vulkan

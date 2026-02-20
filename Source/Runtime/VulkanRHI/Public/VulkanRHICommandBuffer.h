@@ -9,7 +9,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVulkanRHICommandBuffer, Info);
 class VULKAN_RHI_API CVulkanRHICommandBuffer : public IRHICommandBuffer {
 public:
     CVulkanRHICommandBuffer(const FRHICommandBufferCreateInfo& info,
-                            const TRef<CVulkanRHIDevice> device);
+                            const TRef<CVulkanRHIDevice>& device);
     virtual ~CVulkanRHICommandBuffer();
 
     virtual void Begin() { m_Handle.begin({}); }
@@ -20,7 +20,10 @@ public:
     virtual void End() { m_Handle.end(); }
     virtual void BindPipeline(TRef<IRHIPipeline> pipeline) override;
 
-    vk::raii::CommandBuffer& GetVKCommandBuffer() { return m_Handle; }
+    const vk::CommandBuffer GetVKCommandBuffer() const { return *m_Handle; }
+
+private:
+    void Init();
 
 private:
     WeakRef<CVulkanRHIDevice> m_Device;

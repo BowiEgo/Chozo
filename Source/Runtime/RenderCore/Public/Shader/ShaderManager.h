@@ -13,7 +13,7 @@ public:
     CShaderManager() = default;
     ~CShaderManager() = default;
 
-    static void Init(const TRef<IRHIDevice> device);
+    static void Init(const TRef<IRHIDevice>& device);
     static CShaderManager* Get() {
         CZ_CORE_ASSERT(s_Instance,
                        "ShaderManager instance is null! Did you forget to call Init()?");

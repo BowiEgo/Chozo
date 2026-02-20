@@ -4,6 +4,6 @@ CVulkanRHICommandList::CVulkanRHICommandList(const FRHICommandListCreateInfo& in
                                              const TRef<CVulkanRHICommandBuffer> commandBuffer)
     : IRHICommandList(info), m_CommandBuffer(commandBuffer) {}
 
-void CVulkanRHICommandList::Begin() { m_CommandBuffer->GetVKCommandBuffer().begin({}); }
+void CVulkanRHICommandList::Begin() { m_CommandBuffer->Begin(); }
 
 void CVulkanRHICommandList::End() {}

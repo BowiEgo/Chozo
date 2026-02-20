@@ -3,9 +3,11 @@
 #include "RHICommandBuffer.h"
 #include "RHIDevice.h"
 #include "RHIExport.h"
+#include "RHIFrameBuffer.h"
 #include "RHIPipeline.h"
 #include "RHISwapchain.h"
 #include "RHISyncObject.h"
+#include "RHITexture2D.h"
 #include "Ref.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHI, Info);
@@ -31,13 +33,19 @@ public:
                            const TRef<IRHISyncObject>& syncObject,
                            RecordCallback recordCallback) = 0;
     virtual TRef<IRHIDevice> CreateDevice(const FRHIDeviceCreateInfo& info) = 0;
-    virtual TRef<IRHISwapchain> CreateSwapchain(const FRHISwapchainCreateInfo& info) = 0;
+    virtual TRef<IRHISwapchain> CreateSwapchain(const FRHISwapchainSpecification& spec) = 0;
     virtual TRef<IRHISyncObject> CreateSyncObject() = 0;
     virtual TRef<IRHICommandBuffer> CreateCommandBuffer() = 0;
+    virtual TRef<IRHIFrameBuffer> CreateFrameBuffer(const FFrameBufferSpecification& spec) = 0;
+    virtual TRef<IRHITexture2D> CreateTexture2D(const FTextureSpecification& spec) = 0;
 
-    virtual void BeginRenderingToSwapchain(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
-                                           bool bClear) = 0;
+    virtual void BeginRendering(const TRef<IRHICommandBuffer>& cmd,
+                                const TRef<IRHITexture2D>& target, bool bClear) = 0;
+    // virtual void BeginRenderingToSwapchain(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
+    //                                        bool bClear) = 0;
     virtual void EndRendering(const TRef<IRHICommandBuffer>& cmd) = 0;
+    virtual void PrepareTextureForSampling(const TRef<IRHICommandBuffer>& cmd,
+                                           const TRef<IRHITexture2D>& texture) = 0;
 
     virtual TRef<IRHIDevice> GetDevice() const = 0;
     virtual TRef<IRHISwapchain> GetSwapchain() const = 0;

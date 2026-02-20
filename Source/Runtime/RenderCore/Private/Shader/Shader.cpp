@@ -13,6 +13,12 @@ CShader::CShader(const FShaderCreateInfo& info, const FShaderCompilerOutput& dat
 TRef<IRHIShader> CShader::CreateRHIDeviceResource(const FShaderCreateInfo& info,
                                                   const FShaderCompilerOutput& data) {
     // Only create RHI resources for stages that were actually compiled
+    auto device = m_Device.lock();
+    if (!device) {
+        CZ_LOG(LogShader, Error, "Device is no longer valid during shader creation!");
+        return nullptr;
+    }
+
     if (data.bSucceeded && !data.Binary.empty()) {
         const std::string stageStr = ChozoUtils::Shader::StageToString(info.Stage);
 
@@ -22,7 +28,7 @@ TRef<IRHIShader> CShader::CreateRHIDeviceResource(const FShaderCreateInfo& info,
         createInfo.EntryPoint = info.EntryPoint;
 
         // Use the Device to create the actual hardware resource
-        auto RHIShader = m_Device->CreateShader(createInfo, &data.Binary);
+        auto RHIShader = device->CreateShader(createInfo, &data.Binary);
 
         CZ_LOG(LogShader, Info, "RHI shader: {} created", createInfo.Name, stageStr);
 

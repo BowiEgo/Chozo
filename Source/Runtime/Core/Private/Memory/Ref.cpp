@@ -8,21 +8,23 @@ static std::mutex s_LiveReferenceMutex;
 namespace RefUtils {
 
 CORE_API void AddToLiveReferences(void* instance) {
+    if (!instance) return;
+
     std::scoped_lock<std::mutex> lock(s_LiveReferenceMutex);
-    CZ_CORE_ASSERT(instance, "");
     s_LiveReferences.insert(instance);
 }
 
 CORE_API void RemoveFromLiveReferences(void* instance) {
+    if (!instance || s_LiveReferences.find(instance) == s_LiveReferences.end()) return;
+
     std::scoped_lock<std::mutex> lock(s_LiveReferenceMutex);
-    CZ_CORE_ASSERT(instance, "");
-    CZ_CORE_ASSERT(s_LiveReferences.find(instance) != s_LiveReferences.end(),
-                   "");
     s_LiveReferences.erase(instance);
 }
 
-CORE_API bool IsLive(void* instance) {
-    CZ_CORE_ASSERT(instance, "");
-    return s_LiveReferences.find(instance) != s_LiveReferences.end();
+CORE_API bool IsLive(const void* instance) {
+    if (!instance) return false;
+
+    std::scoped_lock<std::mutex> lock(s_LiveReferenceMutex);
+    return s_LiveReferences.find(const_cast<void*>(instance)) != s_LiveReferences.end();
 }
 } // namespace RefUtils

@@ -7,8 +7,8 @@
 DEFINE_LOG_CATEGORY(LogVulkanRHIPipeline);
 
 CVulkanRHIPipeline::CVulkanRHIPipeline(const FRHIPipelineCreateInfo& info,
-                                       const TRef<CVulkanRHIDevice> device)
-    : IRHIPipeline(info), m_Device(WeakRef(device)) {
+                                       const TRef<CVulkanRHIDevice>& device)
+    : IRHIPipeline(info), m_Device(device) {
     Init();
 }
 
@@ -17,6 +17,14 @@ CVulkanRHIPipeline::~CVulkanRHIPipeline() {
 }
 
 void CVulkanRHIPipeline::Init() {
+    auto device = m_Device.lock();
+    if (!device) {
+        CZ_LOG(LogVulkanRHIPipeline, Error, "Device is no longer valid during Pipeline creation!");
+        return;
+    }
+
+    const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
+
     // Shader Stages
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
     shaderStages.reserve(m_Info.RHIShaders.size());
@@ -24,10 +32,10 @@ void CVulkanRHIPipeline::Init() {
     for (auto RHIShader : m_Info.RHIShaders) {
         TRef<CVulkanRHIShader> vulkanShader = RHIShader.As<CVulkanRHIShader>();
 
-        shaderStages.push_back({{},
-                                ChozoUtils::Vulkan::StageToFlagBits(RHIShader->GetStage()),
-                                vulkanShader->GetModule(),
-                                RHIShader->GetEntryPoint().c_str()});
+        shaderStages.push_back({ {},
+                                 ChozoUtils::Vulkan::StageToFlagBits(RHIShader->GetStage()),
+                                 vulkanShader->GetModule(),
+                                 RHIShader->GetEntryPoint().c_str() });
     }
 
     // Vertex Input
@@ -81,8 +89,8 @@ void CVulkanRHIPipeline::Init() {
                                                         &colorBlendAttachment);
 
     // Dynamic States
-    std::vector<vk::DynamicState> dynamicStates = {vk::DynamicState::eViewport,
-                                                   vk::DynamicState::eScissor};
+    std::vector<vk::DynamicState> dynamicStates = { vk::DynamicState::eViewport,
+                                                    vk::DynamicState::eScissor };
     vk::PipelineDynamicStateCreateInfo dynamicStateInfo({}, dynamicStates);
 
     // Rendering
@@ -104,7 +112,7 @@ void CVulkanRHIPipeline::Init() {
                                                     nullptr  // pPushConstantRanges
     );
 
-    m_PipelineLayout = vk::raii::PipelineLayout(m_Device->GetLogicalDevice(), pipelineLayoutInfo);
+    m_PipelineLayout = vk::raii::PipelineLayout(raiiDevice, pipelineLayoutInfo);
 
     // Final Assembly
     vk::GraphicsPipelineCreateInfo pipelineInfo{};
@@ -123,7 +131,7 @@ void CVulkanRHIPipeline::Init() {
         .setRenderPass(nullptr);      // [Note] Must be null when using pNext renderingInfo
 
     // Create the monolithic pipeline object
-    m_Pipeline = m_Device->GetLogicalDevice().createGraphicsPipeline(nullptr, pipelineInfo);
+    m_Pipeline = raiiDevice.createGraphicsPipeline(nullptr, pipelineInfo);
 
     m_Info.RHIShaders.clear();
 

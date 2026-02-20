@@ -1,4 +1,5 @@
 #include "VulkanRHI.h"
+
 #include "VulkanRHIPipeline.h"
 #include "VulkanUtils.h"
 
@@ -89,8 +90,7 @@ void CVulkanRHI::CreateVKInstance() {
 }
 
 void CVulkanRHI::SetupVKDebugMessenger() {
-    if (!ChozoUtils::Vulkan::EnableValidationLayers)
-        return;
+    if (!ChozoUtils::Vulkan::EnableValidationLayers) return;
 
     vk::DebugUtilsMessageSeverityFlagsEXT severityFlags(
         vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
@@ -146,139 +146,172 @@ void CVulkanRHI::CreateCommandPool() {
     m_MainCommandPool = CreateRef<CVulkanRHICommandPool>(info, m_Device);
 }
 
-void CVulkanRHI::BeginRenderingToSwapchain(const TRef<IRHICommandBuffer>& cmd, uint32_t imageIndex,
-                                           bool bClear) {
-
-    auto vlkCmd = &cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
-    auto swapchain = m_Swapchain.As<CVulkanRHISwapchain>();
-    vk::Extent2D extent = swapchain->GetVKExtent();
-    vk::ClearValue clearColor = vk::ClearColorValue(0.1f, 0.1f, 0.1f, 1.0f);
-
-    m_ImageIndex = imageIndex;
-
-    // Before starting rendering, transition the swapchain image to COLOR_ATTACHMENT_OPTIMAL
-    vk::ImageLayout currentLayout = swapchain->GetLayout(imageIndex);
-    if (currentLayout != vk::ImageLayout::eColorAttachmentOptimal) {
-        TransitionImageLayout(cmd, imageIndex,
-                              currentLayout,                              // curLayout
-                              vk::ImageLayout::eColorAttachmentOptimal,   // newLayout
-                              {},                                         // srcAccess
-                              vk::AccessFlagBits2::eColorAttachmentWrite, // dstAccess
-                              vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-                              vk::PipelineStageFlagBits2::eColorAttachmentOutput);
-        swapchain->SetLayout(imageIndex, vk::ImageLayout::eColorAttachmentOptimal);
-    }
-
-    // [Note] Configure attachment info dynamically
-    vk::RenderingAttachmentInfo colorAttachment;
-    colorAttachment.setImageView(swapchain->GetVKImageView(imageIndex));
-    colorAttachment.setImageLayout(vk::ImageLayout::eColorAttachmentOptimal);
-    // [Note] If bClear is true, we wipe the screen; if false, we draw on top (for UI)
-    colorAttachment.setLoadOp(bClear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eLoad);
-    colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
-    if (bClear) {
-        colorAttachment.setClearValue(clearColor);
-    }
-
-    vk::RenderingInfo renderingInfo;
-    renderingInfo.setRenderArea(vk::Rect2D({0, 0}, extent));
-    renderingInfo.setLayerCount(1);
-    renderingInfo.setColorAttachments(colorAttachment);
-
-    vlkCmd->beginRendering(renderingInfo);
-}
-
-void CVulkanRHI::EndRendering(const TRef<IRHICommandBuffer>& cmd) {
-    auto vlkCmd = &cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
-    vlkCmd->endRendering();
-
-    // After rendering, transition the swapchain image to PRESENT_SRC
-    TransitionImageLayout(cmd, m_ImageIndex, vk::ImageLayout::eColorAttachmentOptimal,
-                          vk::ImageLayout::ePresentSrcKHR,
-                          vk::AccessFlagBits2::eColorAttachmentWrite,         // srcAccessMask
-                          {},                                                 // dstAccessMask
-                          vk::PipelineStageFlagBits2::eColorAttachmentOutput, // srcStage
-                          vk::PipelineStageFlagBits2::eBottomOfPipe           // dstStage
-    );
-
-    m_Swapchain.As<CVulkanRHISwapchain>()->SetLayout(m_ImageIndex, vk::ImageLayout::ePresentSrcKHR);
-}
-
 void CVulkanRHI::DrawFrame(const TRef<IRHICommandBuffer>& cmd,
-                           const TRef<IRHISyncObject>& syncObject,
-                           RecordCallback recordCallback) { // [Note] 增加回调函数
-    const auto& queue = m_Device->GetGraphicsQueue();
-    const auto& vlkSync = syncObject.As<CVulkanRHISyncObject>();
+                           const TRef<IRHISyncObject>& syncObject, RecordCallback recordCallback) {
+    const auto queue = m_Device->GetGraphicsQueue();
+    const auto vkSync = syncObject.As<CVulkanRHISyncObject>();
+    vk::CommandBuffer vkCmd = cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
+    auto vkSwapchain = m_Swapchain->GetVKSwapchain();
 
     // 1. CPU waits for GPU to ensure resource safety
-    vlkSync->WaitAndResetFence(m_Device);
+    vkSync->WaitAndResetFence(m_Device);
 
     try {
         // 2. accuireNextImage
-        auto [result, imageIndex] = m_Swapchain->GetVKSwapchain().acquireNextImage(
-            UINT64_MAX, *vlkSync->GetPresentCompleteSemaphore(), nullptr);
+        m_ImageIndex = m_Swapchain->AcquireNextImage(vkSync);
 
         // 3. extute the external recording logic (no longer decided by RHI what to draw)
         if (recordCallback) {
-            recordCallback(imageIndex);
+            recordCallback(m_ImageIndex);
         }
 
         // 4. submit draw command buffer and signal the renderFinishedSemaphore when done
         vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
         vk::SubmitInfo submitInfo;
-        submitInfo.setWaitSemaphores(*vlkSync->GetPresentCompleteSemaphore());
-        submitInfo.setWaitDstStageMask(waitStages);
-        submitInfo.setCommandBuffers(*cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer());
-        submitInfo.setSignalSemaphores(*vlkSync->GetRenderFinishedSemaphore());
 
-        queue.submit(submitInfo, *vlkSync->GetDrawFence());
+        vk::Semaphore waitSemaphore = vkSync->GetPresentCompleteSemaphore();
+        vk::Semaphore signalSemaphore = vkSync->GetRenderFinishedSemaphore();
+        vk::Fence drawFence = vkSync->GetDrawFence();
+
+        submitInfo.setWaitSemaphores(waitSemaphore)
+            .setWaitDstStageMask(waitStages)
+            .setCommandBuffers(vkCmd)
+            .setSignalSemaphores(signalSemaphore);
+
+        queue.submit({ submitInfo }, drawFence);
 
         // 5. present the image, waiting on the renderFinishedSemaphore to ensure rendering is
         // complete
         vk::PresentInfoKHR presentInfo;
-        presentInfo.setWaitSemaphores(*vlkSync->GetRenderFinishedSemaphore());
-        presentInfo.setSwapchains(*m_Swapchain->GetVKSwapchain());
-        presentInfo.setPImageIndices(&imageIndex);
+        presentInfo.setWaitSemaphores(signalSemaphore)
+            .setSwapchains(vkSwapchain)
+            .setPImageIndices(&m_ImageIndex);
 
-        result = queue.presentKHR(presentInfo);
+        vk::Result result = queue.presentKHR(presentInfo);
 
     } catch (const vk::OutOfDateKHRError& e) {
         m_Swapchain->RecreateSwapchain();
     }
 }
 
-void CVulkanRHI::TransitionImageLayout(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
-                                       vk::ImageLayout old_layout, vk::ImageLayout new_layout,
-                                       vk::AccessFlags2 src_access_mask,
-                                       vk::AccessFlags2 dst_access_mask,
-                                       vk::PipelineStageFlags2 src_stage_mask,
-                                       vk::PipelineStageFlags2 dst_stage_mask) {
-    if (old_layout == new_layout)
-        return;
+void CVulkanRHI::BeginRendering(const TRef<IRHICommandBuffer>& cmd,
+                                const TRef<IRHITexture2D>& target, bool bClear) {
+    m_Target = target.As<CVulkanRHITexture2D>();
+    auto oldLayout = m_Target->GetCurrentLayout();
+    auto newLayout = vk::ImageLayout::eColorAttachmentOptimal;
 
-    auto vlkCmd = &cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
+    auto vkCmd = cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
+    auto swapchain = m_Swapchain.As<CVulkanRHISwapchain>();
+    FExtent2D targetSize = target->GetSize();
+
+    vk::Extent2D extent(targetSize.Width, targetSize.Height);
+    vk::ClearValue clearColor = vk::ClearColorValue(0.1f, 0.1f, 0.1f, 1.0f);
+
+    // Check layout and transition if necessary
+    TransitionTextureLayout(cmd, m_Target, oldLayout, newLayout);
+
+    // Setup rendering attachment
+    auto colorAttachmentInfo = m_Target->GetColorAttachmentInfo(clearColor, bClear);
+
+    // Begin rendering...
+    vk::RenderingInfo renderingInfo;
+    renderingInfo.setRenderArea(vk::Rect2D({ 0, 0 }, extent))
+        .setLayerCount(1)
+        .setColorAttachmentCount(1)
+        .setPColorAttachments(&colorAttachmentInfo); // Explicit pointer pass
+
+    vkCmd.beginRendering(renderingInfo);
+}
+
+void CVulkanRHI::EndRendering(const TRef<IRHICommandBuffer>& cmd) {
+    vk::CommandBuffer vkCmd = cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
+    vkCmd.endRendering();
+
+    // After rendering, transition the swapchain image to PRESENT_SRC
+    if (m_Target == m_Swapchain->GetColorAttachment(m_ImageIndex)) {
+        auto oldLayout = m_Target->GetCurrentLayout();
+        auto newLayout = vk::ImageLayout::ePresentSrcKHR;
+        TransitionTextureLayout(cmd, m_Target, oldLayout, newLayout);
+    }
+}
+
+void CVulkanRHI::PrepareTextureForSampling(const TRef<IRHICommandBuffer>& cmd,
+                                           const TRef<IRHITexture2D>& texture) {
+    auto vkTexture = texture.As<CVulkanRHITexture2D>();
+
+    // Perform the barrier here while we have access to the command buffer.
+    if (vkTexture->GetCurrentLayout() != vk::ImageLayout::eShaderReadOnlyOptimal) {
+        TransitionTextureLayout(cmd, vkTexture, vkTexture->GetCurrentLayout(),
+                                vk::ImageLayout::eShaderReadOnlyOptimal);
+    }
+}
+
+void CVulkanRHI::TransitionTextureLayout(const TRef<CVulkanRHICommandBuffer>& cmd,
+                                         TRef<CVulkanRHITexture2D>& texture,
+                                         vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
+    if (oldLayout == newLayout) return;
+
+    vk::CommandBuffer vkCmd = cmd->GetVKCommandBuffer();
+    auto vkImage = texture->GetVKImage();
 
     vk::ImageMemoryBarrier2 barrier;
+    barrier.setOldLayout(oldLayout)
+        .setNewLayout(newLayout)
+        .setSrcQueueFamilyIndex(vk::QueueFamilyIgnored)
+        .setDstQueueFamilyIndex(vk::QueueFamilyIgnored)
+        .setImage(vkImage)
+        .setSubresourceRange(
+            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
 
-    barrier.srcStageMask = src_stage_mask;
-    barrier.srcAccessMask = src_access_mask;
-    barrier.dstStageMask = dst_stage_mask;
-    barrier.dstAccessMask = dst_access_mask;
-    barrier.oldLayout = old_layout;
-    barrier.newLayout = new_layout;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = m_Swapchain->GetVKImages()[imageIndex];
-    barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-    barrier.subresourceRange.baseMipLevel = 0;
-    barrier.subresourceRange.levelCount = 1;
-    barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
+    // Automatically deduce stages and access masks based on layouts
+    SetupBarrierSync(barrier, oldLayout, newLayout);
 
-    vk::DependencyInfo dependency_info;
-    dependency_info.dependencyFlags = {};
-    dependency_info.imageMemoryBarrierCount = 1;
-    dependency_info.pImageMemoryBarriers = &barrier;
+    vk::DependencyInfo depInfo;
+    depInfo.setImageMemoryBarriers(barrier);
 
-    vlkCmd->pipelineBarrier2(dependency_info);
+    vkCmd.pipelineBarrier2(depInfo);
+
+    texture->SetCurrentLayout(newLayout);
+}
+
+// This function automatically sets srcAccessMask, dstAccessMask, srcStageMask, and dstStageMask
+// based on the old and new layouts. For simplicity, we handle common cases here.
+void CVulkanRHI::SetupBarrierSync(vk::ImageMemoryBarrier2& barrier, vk::ImageLayout oldLayout,
+                                  vk::ImageLayout newLayout) {
+    // Default to All Commands if no specific match is found (Safe but slow).
+    barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eAllCommands)
+        .setSrcAccessMask(vk::AccessFlagBits2::eMemoryWrite)
+        .setDstStageMask(vk::PipelineStageFlagBits2::eAllCommands)
+        .setDstAccessMask(vk::AccessFlagBits2::eMemoryWrite | vk::AccessFlagBits2::eMemoryRead);
+
+    // 1. From Undefined/Pre-initialized to something
+    if (oldLayout == vk::ImageLayout::eUndefined) {
+        barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eNone)
+            .setSrcAccessMask(vk::AccessFlagBits2::eNone);
+    }
+    // 2. From RenderTarget (Color Attachment)
+    else if (oldLayout == vk::ImageLayout::eColorAttachmentOptimal) {
+        barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eColorAttachmentOutput)
+            .setSrcAccessMask(vk::AccessFlagBits2::eColorAttachmentWrite);
+    }
+
+    // 3. To Present Source (The 1000001002 case)
+    if (newLayout == vk::ImageLayout::ePresentSrcKHR) {
+        barrier.setDstStageMask(vk::PipelineStageFlagBits2::eBottomOfPipe)
+            .setDstAccessMask(vk::AccessFlagBits2::eNone);
+    }
+    // 4. To Shader Read Only (Combined Image Sampler)
+    else if (newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+        barrier.setDstStageMask(vk::PipelineStageFlagBits2::eFragmentShader)
+            .setDstAccessMask(vk::AccessFlagBits2::eShaderRead);
+    }
+    // 5. To RenderTarget (Color Attachment)
+    else if (newLayout == vk::ImageLayout::eColorAttachmentOptimal) {
+        barrier.setDstStageMask(vk::PipelineStageFlagBits2::eColorAttachmentOutput)
+            .setDstAccessMask(vk::AccessFlagBits2::eColorAttachmentWrite);
+    } else {
+        // Handle other layout transitions as needed...
+        CZ_LOG(LogVulkanRHI, Warning, "Unsupported layout transition from {0} to {1}",
+               (uint32)oldLayout, (uint32)newLayout);
+    }
 }

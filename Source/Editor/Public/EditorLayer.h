@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Chozo.h"
-#include "Core.h"
-#include "Layer.h"
+
+#include "imgui.h"
 
 class EditorLayer : public ILayer {
 public:
@@ -15,4 +15,6 @@ public:
     void OnEvent(IEvent& e) override;
 
 private:
+    CRenderer* m_ViewportRenderer;
+    ImVec2 m_ViewportSize;
 };

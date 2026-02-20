@@ -128,4 +128,13 @@ enum class EPixelFormat {
     BGRA8_SRGB,
     D32_SFLOAT,
     D24_UNORM_S8_UINT,
+    D16_UNORM
+};
+
+enum class ETextureUsage {
+    None = 0,
+    Texture,         // For shader reading (e.g., Albedo maps)
+    ColorAttachment, // For rendering targets
+    DepthAttachment, // For rendering targets
+    Storage          // For Compute Shader read/write (RWTexture)
 };

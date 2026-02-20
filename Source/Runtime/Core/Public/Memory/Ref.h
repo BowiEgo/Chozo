@@ -28,33 +28,26 @@ template <typename T> class TRef {
 public:
     TRef() : m_Instance(nullptr) {}
 
-    TRef(std::nullptr_t n) // NOLINT
-        : m_Instance(nullptr) {}
+    TRef(std::nullptr_t n) : m_Instance(nullptr) {}
 
-    TRef(const T* instance) // NOLINT
-        : m_Instance(const_cast<T*>(instance)) {
+    TRef(const T* instance) : m_Instance(const_cast<T*>(instance)) {
         static_assert(std::is_base_of_v<FRefCounted, T>, "Class is not TRefCounted!");
 
         IncRef();
     }
 
-    template <typename T2>
-    TRef(const TRef<T2>& other) // NOLINT
-    {
+    template <typename T2> TRef(const TRef<T2>& other) {
         m_Instance = (T*)other.m_Instance;
         IncRef();
     }
 
-    template <typename T2>
-    TRef(TRef<T2>&& other) // NOLINT
-    {
+    template <typename T2> TRef(TRef<T2>&& other) {
         m_Instance = (T*)other.m_Instance;
         other.m_Instance = nullptr;
     }
 
     // Takes a raw pointer that ALREADY has a +1 ref count and wraps it
-    static TRef<T> Adopt(T* instance) // NOLINT
-    {
+    static TRef<T> Adopt(T* instance) {
         // We call a private constructor that doesn't trigger IncRef
         return TRef<T>(instance, false);
     }
@@ -174,28 +167,25 @@ template <typename T, typename... Args> constexpr TRef<T> CreateRef(Args&&... ar
 template <typename T> class WeakRef {
 public:
     WeakRef() = default;
+    WeakRef(const TRef<T>& ref) { m_Instance = const_cast<T*>(ref.Raw()); }
+    WeakRef(const WeakRef<T>& other) : m_Instance(other.m_Instance) {}
+    WeakRef(T* instance) : m_Instance(instance) {}
 
-    WeakRef(TRef<T> ref) // NOLINT
-    {
+    WeakRef& operator=(const TRef<T>& ref) {
         m_Instance = ref.Raw();
+        return *this;
     }
-
-    WeakRef(T* instance) // NOLINT
-    {
-        m_Instance = instance;
+    WeakRef& operator=(const WeakRef<T>& other) {
+        m_Instance = other.m_Instance;
+        return *this;
     }
-
-    T* operator->() { return m_Instance; }
-    const T* operator->() const { return m_Instance; }
-
-    T& operator*() { return *m_Instance; }
-    const T& operator*() const { return *m_Instance; }
 
     [[nodiscard]] bool IsValid() const { return m_Instance ? RefUtils::IsLive(m_Instance) : false; }
     explicit operator bool() const { return IsValid(); }
 
-    template <typename T2> WeakRef<T2> As() const {
-        return WeakRef<T2>(dynamic_cast<T2*>(m_Instance));
+    [[nodiscard]] TRef<T> lock() const {
+        // If the object is still in s_LiveReferences, upgrade to TRef.
+        return IsValid() ? TRef<T>(m_Instance) : TRef<T>(nullptr);
     }
 
 private:

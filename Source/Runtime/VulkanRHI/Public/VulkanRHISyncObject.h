@@ -9,29 +9,25 @@ class CVulkanRHIDevice;
 
 class VULKAN_RHI_API CVulkanRHISyncObject : public IRHISyncObject {
 public:
-    CVulkanRHISyncObject(const TRef<CVulkanRHIDevice> device) {
-        const vk::raii::Device& vkDevice = device->GetLogicalDevice();
-        vk::SemaphoreCreateInfo semInfo;
+    CVulkanRHISyncObject(const TRef<CVulkanRHIDevice>& device) {
+        const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
 
-        m_PresentCompleteSemaphore = vk::raii::Semaphore(vkDevice, semInfo);
-        m_RenderFinishedSemaphore = vk::raii::Semaphore(vkDevice, semInfo);
+        vk::SemaphoreCreateInfo semInfo;
+        m_PresentCompleteSemaphore = vk::raii::Semaphore(raiiDevice, semInfo);
+        m_RenderFinishedSemaphore = vk::raii::Semaphore(raiiDevice, semInfo);
 
         vk::FenceCreateInfo fenceInfo;
         fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
 
-        m_DrawFence = vk::raii::Fence(vkDevice, fenceInfo);
+        m_DrawFence = vk::raii::Fence(raiiDevice, fenceInfo);
     }
     virtual ~CVulkanRHISyncObject() = default;
 
     void WaitAndResetFence(TRef<CVulkanRHIDevice> device) const;
 
-    const vk::raii::Semaphore& GetPresentCompleteSemaphore() const {
-        return m_PresentCompleteSemaphore;
-    }
-    const vk::raii::Semaphore& GetRenderFinishedSemaphore() const {
-        return m_RenderFinishedSemaphore;
-    }
-    const vk::raii::Fence& GetDrawFence() const { return m_DrawFence; }
+    const vk::Semaphore GetPresentCompleteSemaphore() const { return *m_PresentCompleteSemaphore; }
+    const vk::Semaphore GetRenderFinishedSemaphore() const { return *m_RenderFinishedSemaphore; }
+    const vk::Fence GetDrawFence() const { return *m_DrawFence; }
 
 private:
     vk::raii::Semaphore m_PresentCompleteSemaphore = nullptr;

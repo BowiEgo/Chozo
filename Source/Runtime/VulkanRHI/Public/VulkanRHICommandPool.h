@@ -8,14 +8,18 @@
 class VULKAN_RHI_API CVulkanRHICommandPool : public IRHICommandPool {
 public:
     CVulkanRHICommandPool(const FRHICommandPoolCreateInfo& info,
-                          const TRef<CVulkanRHIDevice> device);
+                          const TRef<CVulkanRHIDevice>& device);
     virtual ~CVulkanRHICommandPool() = default;
 
     virtual TRef<IRHICommandList>
         AllocateCommandList(const FRHICommandListCreateInfo& info,
                             const TRef<IRHICommandBuffer> cmdBuffer) override;
 
-    vk::raii::CommandPool& GetHandle() { return m_Handle; }
+    vk::CommandPool GetVKCommandPool() { return *m_Handle; }
+    vk::raii::CommandPool& GetRAIICommandPool() { return m_Handle; }
+
+private:
+    void Init();
 
 private:
     WeakRef<CVulkanRHIDevice> m_Device;

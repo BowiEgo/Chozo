@@ -4,6 +4,7 @@
 #include "RHISyncObject.h"
 #include "VulkanRHIDevice.h"
 #include "VulkanRHIExport.h"
+#include "VulkanRHITexture2D.h"
 #include "VulkanUtils.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanRHISwapchain, Info);
@@ -12,56 +13,48 @@ class VULKAN_RHI_API CVulkanRHISwapchain : public IRHISwapchain {
     static constexpr uint32 INVALID_IMAGE_INDEX = 0xFFFFFFFF;
 
 public:
-    CVulkanRHISwapchain(const FRHISwapchainCreateInfo& info, const vk::raii::SurfaceKHR& surface,
-                        const TRef<CVulkanRHIDevice> device);
+    CVulkanRHISwapchain(const FRHISwapchainSpecification& spec,
+                        const TRef<CVulkanRHIDevice>& device, const vk::raii::SurfaceKHR& surface);
     virtual ~CVulkanRHISwapchain();
-
-private:
-    void Init();
-    void CleanupSwapchain();
-
-public:
-    void RecreateSwapchain();
-    void CreateVKRenderPass();
-
-    void SetLayout(uint32_t index, vk::ImageLayout layout) { m_ImageLayouts[index] = layout; }
-    vk::ImageLayout GetLayout(uint32_t index) const { return m_ImageLayouts[index]; }
-
-    const vk::raii::SwapchainKHR& GetVKSwapchain() const { return m_Swapchain; }
-    const std::vector<vk::Image>& GetVKImages() const { return m_Images; }
-    const std::vector<vk::raii::ImageView>& GetVKImageViews() const { return m_ImageViews; }
-    const vk::ImageView GetVKImageView(uint32 index) const { return *m_ImageViews[index]; }
-    const vk::Extent2D GetVKExtent() const { return m_Extent; }
-    // vk::Format& GetVKDepthFormat() { return m_ImageFormat; }
-    const uint32 GetImageCount() const { return m_ImageCount; }
-    const vk::raii::RenderPass& GetVKRenderPass() const { return m_RenderPass; }
-    const vk::Format& GetVKImageFormat() const { return m_ImageFormat; }
-    const vk::Format& GetVKDepthFormat() const { return m_DepthFormat; }
 
     virtual const uint32 AcquireNextImage(TRef<IRHISyncObject> syncObject) override;
     virtual const EPixelFormat GetImageFormat() const override {
-        return ChozoUtils::Vulkan::FromVKFormat(m_ImageFormat);
+        return ChozoUtils::Vulkan::FromVKFormat(m_VKImageFormat);
     }
     virtual const EPixelFormat GetDepthFormat() const override {
-        return ChozoUtils::Vulkan::FromVKFormat(m_DepthFormat);
+        return ChozoUtils::Vulkan::FromVKFormat(m_VKDepthFormat);
     }
     virtual const FExtent2D GetExtent() const override {
-        return FExtent2D(m_Extent.width, m_Extent.height);
+        return FExtent2D(m_VKExtent.width, m_VKExtent.height);
     }
 
     virtual void RecreateSwapchain(const FExtent2D& frameBufferSize) override;
 
 private:
+    void Init();
+
+public:
+    void RecreateSwapchain() { RecreateSwapchain(m_Spec.FrameBufferSize); }
+
+    void SetLayout(uint32_t index, vk::ImageLayout layout) {
+        m_ColorAttachments[index].As<CVulkanRHITexture2D>()->SetCurrentLayout(layout);
+    }
+    vk::ImageLayout GetLayout(uint32_t index) const {
+        return m_ColorAttachments[index].As<CVulkanRHITexture2D>()->GetCurrentLayout();
+    }
+
+    const vk::SwapchainKHR GetVKSwapchain() const { return *m_VKSwapchain; }
+    const vk::Extent2D GetVKExtent() const { return m_VKExtent; }
+    const uint32 GetImageCount() const { return m_ImageCount; }
+    const vk::Format GetVKImageFormat() const { return m_VKImageFormat; }
+    const vk::Format GetVKDepthFormat() const { return m_VKDepthFormat; }
+
+private:
     WeakRef<CVulkanRHIDevice> m_Device;
 
-    const vk::raii::SurfaceKHR& m_Surface;
-    vk::raii::SwapchainKHR m_Swapchain = nullptr;
-    std::vector<vk::Image> m_Images;
-    std::vector<vk::raii::ImageView> m_ImageViews;
-    vk::Format m_ImageFormat, m_DepthFormat;
-    vk::Extent2D m_Extent;
+    const vk::raii::SurfaceKHR& m_VKSurface;
+    vk::raii::SwapchainKHR m_VKSwapchain = nullptr;
+    vk::Format m_VKImageFormat, m_VKDepthFormat;
+    vk::Extent2D m_VKExtent;
     uint32 m_ImageCount;
-    vk::raii::RenderPass m_RenderPass = nullptr;
-
-    std::vector<vk::ImageLayout> m_ImageLayouts;
 };

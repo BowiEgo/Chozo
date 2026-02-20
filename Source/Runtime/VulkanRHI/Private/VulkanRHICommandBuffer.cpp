@@ -5,19 +5,32 @@
 DEFINE_LOG_CATEGORY(LogVulkanRHICommandBuffer);
 
 CVulkanRHICommandBuffer::CVulkanRHICommandBuffer(const FRHICommandBufferCreateInfo& info,
-                                                 const TRef<CVulkanRHIDevice> device)
-    : IRHICommandBuffer(info), m_Device(WeakRef(device)) {
-    vk::CommandBufferAllocateInfo allocInfo;
-    allocInfo.commandPool = m_Info.CommandPool.As<CVulkanRHICommandPool>()->GetHandle();
-    allocInfo.level = vk::CommandBufferLevel::ePrimary;
-    allocInfo.commandBufferCount = 1;
-
-    vk::raii::CommandBuffers cmdBuffers(m_Device->GetLogicalDevice(), allocInfo);
-    m_Handle = std::move(cmdBuffers.front());
+                                                 const TRef<CVulkanRHIDevice>& device)
+    : IRHICommandBuffer(info), m_Device(device) {
+    Init();
 }
 
 CVulkanRHICommandBuffer::~CVulkanRHICommandBuffer() {
     CZ_LOG(LogVulkanRHICommandBuffer, Trace, "VulkanRHICommandBuffer destroying...");
+}
+
+void CVulkanRHICommandBuffer::Init() {
+    auto device = m_Device.lock();
+    if (!device) {
+        CZ_LOG(LogVulkanRHICommandBuffer, Error,
+               "Device is no longer valid during CommandBuffer creation!");
+        return;
+    }
+
+    const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
+
+    vk::CommandBufferAllocateInfo allocInfo;
+    allocInfo.commandPool = m_Info.CommandPool.As<CVulkanRHICommandPool>()->GetRAIICommandPool();
+    allocInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocInfo.commandBufferCount = 1;
+
+    vk::raii::CommandBuffers cmdBuffers(raiiDevice, allocInfo);
+    m_Handle = std::move(cmdBuffers.front());
 }
 
 void CVulkanRHICommandBuffer::SetViewport(const FRHIViewport& vp) {
@@ -27,7 +40,7 @@ void CVulkanRHICommandBuffer::SetViewport(const FRHIViewport& vp) {
 }
 
 void CVulkanRHICommandBuffer::SetScissor(const FRHIScissor& sc) {
-    vk::Rect2D s({sc.x, sc.y}, {sc.width, sc.height});
+    vk::Rect2D s({ sc.x, sc.y }, { sc.width, sc.height });
     m_Handle.setScissor(0, s);
 }
 
@@ -38,7 +51,7 @@ void CVulkanRHICommandBuffer::Draw(uint32_t vertexCount, uint32_t instanceCount,
 }
 
 void CVulkanRHICommandBuffer::BindPipeline(TRef<IRHIPipeline> pipeline) {
-    auto vlkPipeline = *pipeline.As<CVulkanRHIPipeline>()->GetVKPipeline();
+    auto& vlkPipeline = pipeline.As<CVulkanRHIPipeline>()->GetRAIIPipeline();
 
     m_Handle.bindPipeline(vk::PipelineBindPoint::eGraphics, vlkPipeline);
 }

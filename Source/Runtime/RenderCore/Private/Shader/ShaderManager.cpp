@@ -4,7 +4,7 @@ DEFINE_LOG_CATEGORY(LogShaderManager);
 
 CShaderManager* CShaderManager::s_Instance = nullptr;
 
-void CShaderManager::Init(const TRef<IRHIDevice> device) {
+void CShaderManager::Init(const TRef<IRHIDevice>& device) {
     if (!s_Instance) {
         CZ_LOG(LogShaderManager, Trace, "ShaderManager Initializing...");
         s_Instance = new CShaderManager();

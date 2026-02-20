@@ -2,11 +2,12 @@
 
 #include "RHIDevice.h"
 #include "RHIExport.h"
+#include "RHITexture2D.h"
 #include "Ref.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHISwapchain, Info);
 
-struct FRHISwapchainCreateInfo {
+struct FRHISwapchainSpecification {
     std::string Name;
     FExtent2D FrameBufferSize;
     void* NativeWindow = nullptr;
@@ -14,7 +15,7 @@ struct FRHISwapchainCreateInfo {
 
 class RHI_API IRHISwapchain : public FRefCounted {
 public:
-    IRHISwapchain(const FRHISwapchainCreateInfo& info);
+    IRHISwapchain(const FRHISwapchainSpecification& spec);
     virtual ~IRHISwapchain();
 
     virtual const uint32 AcquireNextImage(TRef<IRHISyncObject> semaphore) = 0;
@@ -24,6 +25,10 @@ public:
 
     virtual void RecreateSwapchain(const FExtent2D& frameBufferSize) = 0;
 
+    TRef<IRHITexture2D> GetColorAttachment(uint32 index) { return m_ColorAttachments[index]; }
+
 protected:
-    FRHISwapchainCreateInfo m_Info;
+    FRHISwapchainSpecification m_Spec;
+
+    std::vector<TRef<IRHITexture2D>> m_ColorAttachments;
 };

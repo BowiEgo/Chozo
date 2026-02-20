@@ -28,7 +28,7 @@ constexpr bool EnableValidationLayers = true;
 #endif
 } // namespace
 
-const std::vector<const char*> ValidationLayers = {"VK_LAYER_KHRONOS_validation"};
+const std::vector<const char*> ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 
 template <typename T, typename Getter>
 bool IsSupported(const std::vector<const char*>& required, const std::vector<T>& available,
@@ -69,5 +69,9 @@ void LogMemoryBudget(vk::raii::PhysicalDevice& physicalDevice);
 vk::Format ToVKFormat(EPixelFormat format);
 
 EPixelFormat FromVKFormat(vk::Format format);
+
+bool IsDepthFormat(EPixelFormat format);
+
+bool IsDepthFormat(vk::Format format);
 
 } // namespace ChozoUtils::Vulkan

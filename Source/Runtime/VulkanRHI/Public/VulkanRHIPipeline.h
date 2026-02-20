@@ -12,12 +12,13 @@ class VULKAN_RHI_API CVulkanRHIPipeline : public IRHIPipeline {
     friend class CVulkanRHICommandBuffer;
 
 public:
-    CVulkanRHIPipeline(const FRHIPipelineCreateInfo& info, const TRef<CVulkanRHIDevice> device);
+    CVulkanRHIPipeline(const FRHIPipelineCreateInfo& info, const TRef<CVulkanRHIDevice>& device);
     virtual ~CVulkanRHIPipeline();
 
 private:
     void Init();
-    const vk::raii::Pipeline& GetVKPipeline() const { return m_Pipeline; }
+    const vk::Pipeline GetVKPipeline() const { return *m_Pipeline; }
+    const vk::raii::Pipeline& GetRAIIPipeline() const { return m_Pipeline; }
 
 private:
     WeakRef<CVulkanRHIDevice> m_Device;

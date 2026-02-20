@@ -26,7 +26,7 @@ public:
     CWindow* GetWindow() const { return m_Window.get(); }
     CRenderEngine* GetRenderEngine() const { return m_RenderEngine.get(); }
 
-    static CApplication& Get() { return *s_Instance; }
+    static CApplication* Get() { return s_Instance; }
 
 private:
     bool OnEvent(IEvent& e);

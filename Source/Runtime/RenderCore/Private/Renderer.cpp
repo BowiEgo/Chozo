@@ -12,25 +12,36 @@ void CRenderer::Init() {
     windowInfo.RequiredExtensions = m_Window->GetRequiredExtensions();
     m_Context = CreateScope<CGraphicsContext>(windowInfo);
 
-    CShaderManager::Init(m_Context->GetRHI()->GetDevice());
+    auto RHI = m_Context->GetRHI();
+    auto device = RHI->GetDevice();
+
+    CShaderManager::Init(device);
 
     FShaderCreateInfo vertShaderInfo("Test", "shaders://Test.glsl", EShaderStage::Vertex, "main");
     FShaderCreateInfo fagShaderInfo("Test", "shaders://Test.glsl", EShaderStage::Fragment, "main");
     TRef<CShader> vertShader = CShaderManager::Get()->Load(vertShaderInfo);
     TRef<CShader> fragShader = CShaderManager::Get()->Load(fagShaderInfo);
 
-    FRHIPipelineCreateInfo pipelineInfo;
-    pipelineInfo.Name = "Test";
-    pipelineInfo.RHIShaders = {vertShader->GetRHIShader(), fragShader->GetRHIShader()};
-    pipelineInfo.ColorFormats.push_back(m_Context->GetRHI()->GetSwapchain()->GetImageFormat());
-    m_ScenePipeline = m_Context->GetRHI()->GetDevice()->CreatePipeline(pipelineInfo);
-
     // m_Context->SetPipeline(m_ScenePipeline);
 
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        m_SyncObjects[i] = m_Context->GetRHI()->CreateSyncObject();
-        m_CommandBuffers[i] = m_Context->GetRHI()->CreateCommandBuffer();
+        m_SyncObjects[i] = RHI->CreateSyncObject();
+        m_CommandBuffers[i] = RHI->CreateCommandBuffer();
     }
+
+    FFrameBufferSpecification fbSpec;
+    fbSpec.Name = "SceneFrameBuffer";
+    fbSpec.Size = m_Window->GetFramebufferSize();
+    fbSpec.ColorFormats = { EPixelFormat::RGBA8_UNORM };
+    fbSpec.DepthFormat = EPixelFormat::D32_SFLOAT;
+
+    m_SceneFrameBuffer = RHI->CreateFrameBuffer(fbSpec);
+
+    FRHIPipelineCreateInfo pipelineInfo;
+    pipelineInfo.Name = "Test";
+    pipelineInfo.RHIShaders = { vertShader->GetRHIShader(), fragShader->GetRHIShader() };
+    pipelineInfo.ColorFormats = fbSpec.ColorFormats;
+    m_ScenePipeline = device->CreatePipeline(pipelineInfo);
 }
 
 void CRenderer::Tick() {
@@ -42,23 +53,34 @@ void CRenderer::Tick() {
     RHI->DrawFrame(cmdBuffer, syncObject, [&](uint32 imageIndex) {
         cmdBuffer->Begin();
 
-        RHI->BeginRenderingToSwapchain(cmdBuffer, imageIndex,
-                                       true); // bClear = true / false(preserve the scene)
+        // draw scene using RHI interface
         {
-            // 1. draw scene using RHI interface
+            auto target = m_SceneFrameBuffer->GetColorAttachment(0);
             auto extent = RHI->GetSwapchain()->GetExtent();
-            cmdBuffer->BindPipeline(m_ScenePipeline);
-            cmdBuffer->SetViewport(
-                {0.0f, 0.0f, (float)extent.Width, (float)extent.Height, 0.0f, 1.0f});
-            cmdBuffer->SetScissor({0, 0, extent.Width, extent.Height});
-            cmdBuffer->Draw(3, 1, 0, 0);
-
-            // 2. draw UI on top of the scene
-            if (m_UICallback) {
-                m_UICallback(cmdBuffer);
+            RHI->BeginRendering(cmdBuffer, target, true);
+            {
+                cmdBuffer->BindPipeline(m_ScenePipeline);
+                cmdBuffer->SetViewport(
+                    { 0.0f, 0.0f, (float)extent.Width, (float)extent.Height, 0.0f, 1.0f });
+                cmdBuffer->SetScissor({ 0, 0, extent.Width, extent.Height });
+                cmdBuffer->Draw(3, 1, 0, 0);
             }
+            RHI->EndRendering(cmdBuffer);
+
+            RHI->PrepareTextureForSampling(cmdBuffer, target);
         }
-        RHI->EndRendering(cmdBuffer);
+
+        // draw UI on top of the scene
+        {
+            auto target = RHI->GetSwapchain()->GetColorAttachment(imageIndex);
+            RHI->BeginRendering(cmdBuffer, target, false); // bClear = false (to preserve the scene)
+            {
+                if (m_UICallback) {
+                    m_UICallback(cmdBuffer);
+                }
+            }
+            RHI->EndRendering(cmdBuffer);
+        }
 
         cmdBuffer->End();
     });
@@ -67,11 +89,11 @@ void CRenderer::Tick() {
 }
 
 void CRenderer::Shutdown() {
-    if (!m_Context)
-        return;
+    if (!m_Context) return;
 
     m_Context->GetRHI()->GetDevice()->WaitIdle();
     m_ScenePipeline = nullptr;
+    m_SceneFrameBuffer = nullptr;
 
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         m_SyncObjects[i] = nullptr;

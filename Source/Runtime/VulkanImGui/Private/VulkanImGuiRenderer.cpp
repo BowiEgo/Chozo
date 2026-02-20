@@ -26,8 +26,7 @@ CVulkanImGuiRenderer::CVulkanImGuiRenderer(CWindow* window, CGraphicsContext* co
     : IImGuiRenderer(window, context) {}
 
 static void CheckVKResult(VkResult err) {
-    if (err == VK_SUCCESS)
-        return;
+    if (err == VK_SUCCESS) return;
 
     // [Note] Log the error code
     fprintf(stderr, "[Vulkan] Error: VkResult = %d\n", err);
@@ -55,13 +54,13 @@ void CVulkanImGuiRenderer::Init(ImGuiContext* ctx) {
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.ApiVersion = VK_API_VERSION_1_4; // Pass in your value of
     // VkApplicationInfo::apiVersion, otherwise will default to header version.
-    init_info.Instance = *RHI->GetVKInstance();
-    init_info.PhysicalDevice = *device->GetPhysicalDevice();
-    init_info.Device = *device->GetLogicalDevice();
+    init_info.Instance = RHI->GetVKInstance();
+    init_info.PhysicalDevice = device->GetPhysicalDevice();
+    init_info.Device = device->GetLogicalDevice();
     init_info.QueueFamily = device->GetGraphicsQueueIndex();
-    init_info.Queue = *device->GetGraphicsQueue();
+    init_info.Queue = device->GetGraphicsQueue();
     // init_info.PipelineCache = VK_NULL_HANDLE;
-    init_info.DescriptorPool = *device->GetGlobalDescriptorPool();
+    init_info.DescriptorPool = device->GetGlobalDescriptorPool();
     // init_info.DescriptorPoolSize = 1000;
     init_info.MinImageCount = 2;
     init_info.ImageCount = swapchain->GetImageCount();
@@ -106,11 +105,10 @@ void CVulkanImGuiRenderer::NewFrame() {
 }
 
 void CVulkanImGuiRenderer::Render(ImDrawData* drawData, const TRef<IRHICommandBuffer>& cmdBuffer) {
-    if (!drawData || drawData->TotalVtxCount == 0)
-        return;
+    if (!drawData || drawData->TotalVtxCount == 0) return;
 
     auto vlkCmdBuffer = cmdBuffer.As<CVulkanRHICommandBuffer>();
-    VkCommandBuffer cmd = *vlkCmdBuffer->GetVKCommandBuffer();
+    vk::CommandBuffer cmd = vlkCmdBuffer->GetVKCommandBuffer();
 
     ImGui_ImplVulkan_RenderDrawData(drawData, cmd);
 }

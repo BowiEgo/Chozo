@@ -18,6 +18,13 @@ CVulkanRHIDevice::CVulkanRHIDevice(const FRHIDeviceCreateInfo& info,
 
 CVulkanRHIDevice::~CVulkanRHIDevice() {
     CZ_LOG(LogVulkanRHIDevice, Trace, "Destroying Vulkan Device...");
+    for (auto& [type, layout] : m_LayoutCache) {
+        if (layout) {
+            vk::Device rawDevice = *m_LogicalDevice;
+            rawDevice.destroyDescriptorSetLayout(layout);
+        }
+    }
+    m_LayoutCache.clear();
 }
 
 void CVulkanRHIDevice::PickPhysicalDevice(const vk::raii::Instance& instance) {
@@ -75,13 +82,10 @@ void CVulkanRHIDevice::PickPhysicalDevice(const vk::raii::Instance& instance) {
 void CVulkanRHIDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
     FQueueFamilyIndices indices = ChozoUtils::Vulkan::FindQueueFamilies(m_PhysicalDevice, surface);
 
-    std::set<uint32_t> uniqueQueueFamilies;
-    if (indices.Graphics.has_value())
-        uniqueQueueFamilies.insert(indices.Graphics.value());
-    if (indices.Present.has_value())
-        uniqueQueueFamilies.insert(indices.Present.value());
-    if (indices.Compute.has_value())
-        uniqueQueueFamilies.insert(indices.Compute.value());
+    std::set<uint32> uniqueQueueFamilies;
+    if (indices.Graphics.has_value()) uniqueQueueFamilies.insert(indices.Graphics.value());
+    if (indices.Present.has_value()) uniqueQueueFamilies.insert(indices.Present.value());
+    if (indices.Compute.has_value()) uniqueQueueFamilies.insert(indices.Compute.value());
 
     vk::PhysicalDeviceFeatures2 features2;
     vk::PhysicalDeviceVulkan11Features features11;
@@ -110,8 +114,7 @@ void CVulkanRHIDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) 
     deviceCreateInfo.pNext = &featureChain.get<vk::PhysicalDeviceFeatures2>();
     deviceCreateInfo.queueCreateInfoCount = 1;
     deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
-    deviceCreateInfo.enabledExtensionCount =
-        static_cast<uint32_t>(m_RequiredDeviceExtension.size());
+    deviceCreateInfo.enabledExtensionCount = static_cast<uint32>(m_RequiredDeviceExtension.size());
     deviceCreateInfo.ppEnabledExtensionNames = m_RequiredDeviceExtension.data();
 
     // Create the logical device
@@ -141,10 +144,11 @@ void CVulkanRHIDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) 
 
 void CVulkanRHIDevice::InitGlobalDescriptorPool() {
     std::vector<vk::DescriptorPoolSize> poolSizes = {
-        {vk::DescriptorType::eCombinedImageSampler, 1000},
-        {vk::DescriptorType::eSampledImage, 1000},
-        {vk::DescriptorType::eStorageImage, 1000},
-        {vk::DescriptorType::eUniformBuffer, 1000}};
+        { vk::DescriptorType::eCombinedImageSampler, 1000 },
+        { vk::DescriptorType::eSampledImage, 1000 },
+        { vk::DescriptorType::eStorageImage, 1000 },
+        { vk::DescriptorType::eUniformBuffer, 1000 }
+    };
 
     m_GlobalDescriptorPool = CreateDescriptorPool(1000, poolSizes);
 }
@@ -170,8 +174,25 @@ vk::raii::DescriptorPool
     return result;
 }
 
+uint32 CVulkanRHIDevice::FindMemoryType(uint32 typeFilter,
+                                        vk::MemoryPropertyFlags properties) const {
+    vk::PhysicalDeviceMemoryProperties memProperties = m_PhysicalDevice.getMemoryProperties();
+
+    for (uint32 i = 0; i < memProperties.memoryTypeCount; i++) {
+        // Check if the memory type bit is set in the filter
+        // AND if it matches the required property flags.
+        if ((typeFilter & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+
+    CZ_CORE_ASSERT(false, "Failed to find suitable memory type!");
+    return 0;
+}
+
 TRef<IRHIShader> CVulkanRHIDevice::CreateShader(const FRHIShaderCreateInfo& info,
-                                                const std::vector<uint32_t>* binary) const {
+                                                const std::vector<uint32>* binary) const {
     return TRef<CVulkanRHIShader>::Create(info, binary, TRef<CVulkanRHIDevice>(this));
 }
 
@@ -184,3 +205,45 @@ TRef<IRHISyncObject> CVulkanRHIDevice::CreateSyncObject() const {
 }
 
 void CVulkanRHIDevice::WaitIdle() { m_LogicalDevice.waitIdle(); }
+
+vk::DescriptorSetLayout CVulkanRHIDevice::GetDescriptorSetLayout(EDescriptorLayoutType type) {
+    // Return cached layout if available.
+    if (m_LayoutCache.contains(type)) {
+        return m_LayoutCache[type];
+    }
+
+    vk::DescriptorSetLayoutCreateInfo layoutInfo;
+    std::vector<vk::DescriptorSetLayoutBinding> bindings;
+
+    switch (type) {
+    case EDescriptorLayoutType::CombinedImageSampler: {
+        // Standard binding for a texture and its sampler.
+        vk::DescriptorSetLayoutBinding binding;
+        binding.setBinding(0)
+            .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eFragment) // Typically for UI/Fragment
+            .setPImmutableSamplers(nullptr);
+        bindings.push_back(binding);
+        break;
+    }
+    case EDescriptorLayoutType::UniformBuffer: {
+        vk::DescriptorSetLayoutBinding binding;
+        binding.setBinding(0)
+            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+            .setDescriptorCount(1)
+            .setStageFlags(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
+        bindings.push_back(binding);
+        break;
+    }
+    }
+
+    layoutInfo.setBindings(bindings);
+
+    // Create the layout and store it in the cache.
+    vk::Device rawDevice = *m_LogicalDevice;
+    vk::DescriptorSetLayout newLayout = rawDevice.createDescriptorSetLayout(layoutInfo);
+    m_LayoutCache[type] = newLayout;
+
+    return newLayout;
+}

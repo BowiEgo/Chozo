@@ -32,10 +32,10 @@ void CGraphicsContext::Init() {
             deviceInfo.AppVersion = 1;
             m_RHI->CreateDevice(deviceInfo);
 
-            FRHISwapchainCreateInfo swapchainInfo;
-            swapchainInfo.FrameBufferSize = m_WindowInfo.FrameBufferSize;
-            swapchainInfo.NativeWindow = m_WindowInfo.NativeWindow;
-            TRef<IRHISwapchain> swapchain = m_RHI->CreateSwapchain(swapchainInfo);
+            FRHISwapchainSpecification swapchainSpec;
+            swapchainSpec.FrameBufferSize = m_WindowInfo.FrameBufferSize;
+            swapchainSpec.NativeWindow = m_WindowInfo.NativeWindow;
+            TRef<IRHISwapchain> swapchain = m_RHI->CreateSwapchain(swapchainSpec);
         }
     }
 }
