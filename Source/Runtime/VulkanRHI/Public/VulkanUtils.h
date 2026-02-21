@@ -55,8 +55,8 @@ SwapchainSupportDetails QuerySwapchainSupport(const vk::raii::PhysicalDevice& ph
 vk::SurfaceFormatKHR
     ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& availableFormats);
 
-vk::PresentModeKHR
-    ChooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes);
+vk::PresentModeKHR ChooseSwapPresentMode(const EPresentMode inMode,
+                                         const std::vector<vk::PresentModeKHR>& availableVKModes);
 
 vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities, int pixelWidth,
                               int pixelHeight);

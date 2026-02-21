@@ -25,12 +25,6 @@ private:
     void CreateCommandPool();
 
 private:
-    // void TransitionImageLayout(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
-    //                            vk::ImageLayout old_layout, vk::ImageLayout new_layout,
-    //                            vk::AccessFlags2 src_access_mask, vk::AccessFlags2
-    //                            dst_access_mask, vk::PipelineStageFlags2 src_stage_mask,
-    //                            vk::PipelineStageFlags2 dst_stage_mask);
-
     void TransitionTextureLayout(const TRef<CVulkanRHICommandBuffer>& cmd,
                                  TRef<CVulkanRHITexture2D>& texture, vk::ImageLayout oldLayout,
                                  vk::ImageLayout newLayout);
@@ -38,19 +32,13 @@ private:
                           vk::ImageLayout newLayout);
 
 public:
-    virtual void DrawFrame(const TRef<IRHICommandBuffer>& cmd,
-                           const TRef<IRHISyncObject>& syncObject,
-                           RecordCallback recordCallback) override;
+    virtual void DrawFrame(const TRef<IRHICommandBuffer>& cmd, TRef<IRHISyncObject>& syncObject,
+                           uint32 currentFrame, RecordCallback recordCallback) override;
 
     virtual void BeginRendering(const TRef<IRHICommandBuffer>& cmd,
                                 const TRef<IRHITexture2D>& target, bool bClear) override;
-    // virtual void BeginRenderingToSwapchain(const TRef<IRHICommandBuffer>& cmd, uint32 imageIndex,
-    //                                        bool bClear) override;
-    virtual void EndRendering(const TRef<IRHICommandBuffer>& cmd) override;
 
-    // virtual void RecordCommandBuffer(const TRef<IRHICommandBuffer> cmd,
-    //                                  const TRef<IRHIPipeline> pipeline,
-    //                                  const uint32 imageIndex) override;
+    virtual void EndRendering(const TRef<IRHICommandBuffer>& cmd) override;
 
     virtual void PrepareTextureForSampling(const TRef<IRHICommandBuffer>& cmd,
                                            const TRef<IRHITexture2D>& texture) override;

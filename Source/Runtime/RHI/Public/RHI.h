@@ -29,9 +29,8 @@ public:
     // virtual void RecordCommandBuffer(const TRef<IRHICommandBuffer>& cmd,
     //                                  const TRef<IRHIPipeline>& pipeline,
     //                                  const uint32 imageIndex) = 0;
-    virtual void DrawFrame(const TRef<IRHICommandBuffer>& cmd,
-                           const TRef<IRHISyncObject>& syncObject,
-                           RecordCallback recordCallback) = 0;
+    virtual void DrawFrame(const TRef<IRHICommandBuffer>& cmd, TRef<IRHISyncObject>& syncObject,
+                           uint32 currentFrame, RecordCallback recordCallback) = 0;
     virtual TRef<IRHIDevice> CreateDevice(const FRHIDeviceCreateInfo& info) = 0;
     virtual TRef<IRHISwapchain> CreateSwapchain(const FRHISwapchainSpecification& spec) = 0;
     virtual TRef<IRHISyncObject> CreateSyncObject() = 0;

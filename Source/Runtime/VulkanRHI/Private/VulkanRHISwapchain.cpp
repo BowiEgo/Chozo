@@ -16,21 +16,25 @@ CVulkanRHISwapchain::~CVulkanRHISwapchain() {
     CZ_LOG(LogVulkanRHISwapchain, Trace, "VulkanRHISwapchain destroying...");
 }
 
-const uint32 CVulkanRHISwapchain::AcquireNextImage(TRef<IRHISyncObject> syncObject) {
-    auto vkSync = syncObject.As<CVulkanRHISyncObject>();
-    vk::Semaphore semaphore = vkSync->GetPresentCompleteSemaphore();
+const uint32 CVulkanRHISwapchain::AcquireNextImage(vk::Semaphore semaphore) {
+    try {
+        auto resultValue =
+            m_VKSwapchain.acquireNextImage((std::numeric_limits<uint64_t>::max)(), semaphore);
 
-    auto resultValue =
-        m_VKSwapchain.acquireNextImage((std::numeric_limits<uint64_t>::max)(), semaphore);
+        if (resultValue.result == vk::Result::eSuboptimalKHR) {
+            m_NeedsRecreation = true; // Mark for later to avoid breaking RAII flow
+        }
+        return resultValue.value;
 
-    if (resultValue.result == vk::Result::eErrorOutOfDateKHR ||
-        resultValue.result == vk::Result::eSuboptimalKHR) {
-
-        RecreateSwapchain();
+    } catch (const vk::OutOfDateKHRError& e) {
+        m_NeedsRecreation = true;
         return INVALID_IMAGE_INDEX;
     }
+}
 
-    return resultValue.value;
+void CVulkanRHISwapchain::SetPresentMode(const EPresentMode mode) {
+    m_PresentMode = mode;
+    m_NeedsRecreation = true;
 }
 
 void CVulkanRHISwapchain::RecreateSwapchain(const FExtent2D& frameBufferSize) {
@@ -41,6 +45,17 @@ void CVulkanRHISwapchain::RecreateSwapchain(const FExtent2D& frameBufferSize) {
     m_Spec.FrameBufferSize = frameBufferSize;
 
     Init();
+
+    m_NeedsRecreation = false;
+}
+
+bool CVulkanRHISwapchain::RecreateSwapchainIfNeeded() {
+    if (m_NeedsRecreation) {
+        RecreateSwapchain();
+        return true;
+    }
+
+    return false;
 }
 
 void CVulkanRHISwapchain::Init() {
@@ -48,11 +63,11 @@ void CVulkanRHISwapchain::Init() {
     CZ_CORE_ASSERT(device, "Device is no longer valid during Swapchain initialization!");
     CZ_CORE_ASSERT(*m_VKSurface, "Surface handle is null before Swapchain initialization!");
 
-    const vk::raii::PhysicalDevice& physicalDevice = device->GetRAIIPhysicalDevice();
+    const vk::raii::PhysicalDevice& raiihysicalDevice = device->GetRAIIPhysicalDevice();
     const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
 
     ChozoUtils::Vulkan::SwapchainSupportDetails details =
-        ChozoUtils::Vulkan::QuerySwapchainSupport(physicalDevice, m_VKSurface);
+        ChozoUtils::Vulkan::QuerySwapchainSupport(raiihysicalDevice, m_VKSurface);
 
     int pixelWidth = m_Spec.FrameBufferSize.Width, pixelHeight = m_Spec.FrameBufferSize.Height;
 
@@ -60,7 +75,7 @@ void CVulkanRHISwapchain::Init() {
         ChozoUtils::Vulkan::ChooseSwapSurfaceFormat(details.formats);
 
     vk::PresentModeKHR presentMode =
-        ChozoUtils::Vulkan::ChooseSwapPresentMode(details.presentModes);
+        ChozoUtils::Vulkan::ChooseSwapPresentMode(m_PresentMode, details.presentModes);
     vk::Extent2D extent =
         ChozoUtils::Vulkan::ChooseSwapExtent(details.capabilities, pixelWidth, pixelHeight);
 
@@ -82,7 +97,7 @@ void CVulkanRHISwapchain::Init() {
 
     // If indices are different, use Concurrent mode; otherwise use Exclusive
     FQueueFamilyIndices indices =
-        ChozoUtils::Vulkan::FindQueueFamilies(physicalDevice, m_VKSurface);
+        ChozoUtils::Vulkan::FindQueueFamilies(raiihysicalDevice, m_VKSurface);
     uint32_t queueFamilyIndices[] = { indices.Graphics.value(), indices.Present.value() };
     if (indices.Graphics != indices.Present) {
         createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
@@ -103,10 +118,9 @@ void CVulkanRHISwapchain::Init() {
     createInfo.presentMode = presentMode;
     createInfo.clipped = true;
 
-    if (*m_VKSwapchain) {
-        createInfo.oldSwapchain = *m_VKSwapchain;
-    } else {
-        createInfo.oldSwapchain = nullptr;
+    vk::raii::SwapchainKHR oldSwapchain = std::move(m_VKSwapchain);
+    if (*oldSwapchain) {
+        createInfo.oldSwapchain = *oldSwapchain;
     }
     m_VKSwapchain = vk::raii::SwapchainKHR(raiiDevice, createInfo);
     m_VKImageFormat = surfaceFormat.format;
@@ -115,9 +129,14 @@ void CVulkanRHISwapchain::Init() {
 
     // Retrieve the images created by the swapchain
     auto images = m_VKSwapchain.getImages();
+    vk::SemaphoreCreateInfo semiInfo;
 
     m_ColorAttachments.clear();
     m_ColorAttachments.reserve(images.size());
+
+    m_ImageAvailableSemaphores.clear();
+    m_RenderFinishedSemaphores.clear();
+
     for (auto rawImage : images) {
         // Wrap each VkImage into RHI Texture object
         FTextureSpecification texSpec;
@@ -130,5 +149,8 @@ void CVulkanRHISwapchain::Init() {
             false); // Here m_IsOwned will be false because Swapchain owns the Image lifecycle
 
         m_ColorAttachments.push_back(texture);
+
+        m_ImageAvailableSemaphores.emplace_back(raiiDevice, semiInfo);
+        m_RenderFinishedSemaphores.emplace_back(raiiDevice, semiInfo);
     }
 }

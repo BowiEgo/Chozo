@@ -146,50 +146,62 @@ void CVulkanRHI::CreateCommandPool() {
     m_MainCommandPool = CreateRef<CVulkanRHICommandPool>(info, m_Device);
 }
 
-void CVulkanRHI::DrawFrame(const TRef<IRHICommandBuffer>& cmd,
-                           const TRef<IRHISyncObject>& syncObject, RecordCallback recordCallback) {
+void CVulkanRHI::DrawFrame(const TRef<IRHICommandBuffer>& cmd, TRef<IRHISyncObject>& syncObject,
+                           uint32 currentFrame, RecordCallback recordCallback) {
     const auto queue = m_Device->GetGraphicsQueue();
-    const auto vkSync = syncObject.As<CVulkanRHISyncObject>();
+    auto vkSync = syncObject.As<CVulkanRHISyncObject>();
     vk::CommandBuffer vkCmd = cmd.As<CVulkanRHICommandBuffer>()->GetVKCommandBuffer();
+
+    if (m_Swapchain.As<CVulkanRHISwapchain>()->RecreateSwapchainIfNeeded()) {
+        vkSync->RecreateSemaphores(m_Device);
+        return;
+    }
     auto vkSwapchain = m_Swapchain->GetVKSwapchain();
 
     // 1. CPU waits for GPU to ensure resource safety
     vkSync->WaitAndResetFence(m_Device);
 
+    // 2. accuireNextImage
+    uint32 inFlightIndex = currentFrame % m_Swapchain->GetImageCount();
+    vk::Semaphore acquireWaitSem = m_Swapchain->GetImageAvailableSemaphore(inFlightIndex);
+
+    m_ImageIndex = m_Swapchain->AcquireNextImage(acquireWaitSem);
+    if (m_ImageIndex == INVALID_IMAGE_INDEX) return;
+
+    // 3. extute the external recording logic (no longer decided by RHI what to draw)
+    if (recordCallback) {
+        recordCallback(m_ImageIndex);
+    }
+
+    // 4. submit draw command buffer and signal the renderFinishedSemaphore when done
+    vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    vk::SubmitInfo submitInfo;
+
+    vk::Semaphore imageSigSem = m_Swapchain->GetRenderFinishedSemaphore(m_ImageIndex);
+    vk::Fence drawFence = vkSync->GetDrawFence();
+
+    submitInfo.setWaitSemaphores(acquireWaitSem)
+        .setWaitDstStageMask(waitStages)
+        .setCommandBuffers(vkCmd)
+        .setSignalSemaphores(imageSigSem);
+
+    queue.submit({ submitInfo }, drawFence);
+
+    // 5. present the image, waiting on the renderFinishedSemaphore to ensure rendering is
+    // complete
+    vk::PresentInfoKHR presentInfo;
+    presentInfo.setWaitSemaphores(imageSigSem)
+        .setSwapchains(vkSwapchain)
+        .setPImageIndices(&m_ImageIndex);
+
+    vk::Result result;
     try {
-        // 2. accuireNextImage
-        m_ImageIndex = m_Swapchain->AcquireNextImage(vkSync);
-
-        // 3. extute the external recording logic (no longer decided by RHI what to draw)
-        if (recordCallback) {
-            recordCallback(m_ImageIndex);
-        }
-
-        // 4. submit draw command buffer and signal the renderFinishedSemaphore when done
-        vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-        vk::SubmitInfo submitInfo;
-
-        vk::Semaphore waitSemaphore = vkSync->GetPresentCompleteSemaphore();
-        vk::Semaphore signalSemaphore = vkSync->GetRenderFinishedSemaphore();
-        vk::Fence drawFence = vkSync->GetDrawFence();
-
-        submitInfo.setWaitSemaphores(waitSemaphore)
-            .setWaitDstStageMask(waitStages)
-            .setCommandBuffers(vkCmd)
-            .setSignalSemaphores(signalSemaphore);
-
-        queue.submit({ submitInfo }, drawFence);
-
-        // 5. present the image, waiting on the renderFinishedSemaphore to ensure rendering is
-        // complete
-        vk::PresentInfoKHR presentInfo;
-        presentInfo.setWaitSemaphores(signalSemaphore)
-            .setSwapchains(vkSwapchain)
-            .setPImageIndices(&m_ImageIndex);
-
-        vk::Result result = queue.presentKHR(presentInfo);
-
+        result = queue.presentKHR(presentInfo);
     } catch (const vk::OutOfDateKHRError& e) {
+        result = vk::Result::eErrorOutOfDateKHR;
+    }
+
+    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
         m_Swapchain->RecreateSwapchain();
     }
 }

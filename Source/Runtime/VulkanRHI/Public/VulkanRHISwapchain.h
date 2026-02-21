@@ -9,15 +9,14 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanRHISwapchain, Info);
 
-class VULKAN_RHI_API CVulkanRHISwapchain : public IRHISwapchain {
-    static constexpr uint32 INVALID_IMAGE_INDEX = 0xFFFFFFFF;
+static constexpr uint32 INVALID_IMAGE_INDEX = 0xFFFFFFFF;
 
+class VULKAN_RHI_API CVulkanRHISwapchain : public IRHISwapchain {
 public:
     CVulkanRHISwapchain(const FRHISwapchainSpecification& spec,
                         const TRef<CVulkanRHIDevice>& device, const vk::raii::SurfaceKHR& surface);
     virtual ~CVulkanRHISwapchain();
 
-    virtual const uint32 AcquireNextImage(TRef<IRHISyncObject> syncObject) override;
     virtual const EPixelFormat GetImageFormat() const override {
         return ChozoUtils::Vulkan::FromVKFormat(m_VKImageFormat);
     }
@@ -28,12 +27,14 @@ public:
         return FExtent2D(m_VKExtent.width, m_VKExtent.height);
     }
 
+    virtual void SetPresentMode(const EPresentMode mode) override;
     virtual void RecreateSwapchain(const FExtent2D& frameBufferSize) override;
 
 private:
     void Init();
 
 public:
+    bool RecreateSwapchainIfNeeded();
     void RecreateSwapchain() { RecreateSwapchain(m_Spec.FrameBufferSize); }
 
     void SetLayout(uint32_t index, vk::ImageLayout layout) {
@@ -48,6 +49,14 @@ public:
     const uint32 GetImageCount() const { return m_ImageCount; }
     const vk::Format GetVKImageFormat() const { return m_VKImageFormat; }
     const vk::Format GetVKDepthFormat() const { return m_VKDepthFormat; }
+    vk::Semaphore GetImageAvailableSemaphore(uint32 index) const {
+        return *m_ImageAvailableSemaphores[index];
+    }
+    vk::Semaphore GetRenderFinishedSemaphore(uint32 index) const {
+        return *m_RenderFinishedSemaphores[index];
+    }
+
+    const uint32 AcquireNextImage(vk::Semaphore semaphore);
 
 private:
     WeakRef<CVulkanRHIDevice> m_Device;
@@ -57,4 +66,9 @@ private:
     vk::Format m_VKImageFormat, m_VKDepthFormat;
     vk::Extent2D m_VKExtent;
     uint32 m_ImageCount;
+
+    std::vector<vk::raii::Semaphore> m_ImageAvailableSemaphores;
+    std::vector<vk::raii::Semaphore> m_RenderFinishedSemaphores;
+
+    bool m_NeedsRecreation = false;
 };

@@ -117,14 +117,30 @@ vk::SurfaceFormatKHR
     return availableFormats[0];
 }
 
-vk::PresentModeKHR
-    ChooseSwapPresentMode(const std::vector<vk::PresentModeKHR>& availablePresentModes) {
-    for (const auto& availablePresentMode : availablePresentModes) {
-        if (availablePresentMode == vk::PresentModeKHR::eMailbox) {
-            return availablePresentMode;
-        }
+vk::PresentModeKHR ChooseSwapPresentMode(const EPresentMode inMode,
+                                         const std::vector<vk::PresentModeKHR>& availableVKModes) {
+    vk::PresentModeKHR targetVKMode = vk::PresentModeKHR::eFifo;
+
+    switch (inMode) {
+    case EPresentMode::Immediate:
+        targetVKMode = vk::PresentModeKHR::eImmediate; // VSync OFF
+        break;
+    case EPresentMode::Mailbox:
+        targetVKMode = vk::PresentModeKHR::eMailbox; // VSync OFF (Triple Buffering)
+        break;
+    case EPresentMode::FIFO:
+        targetVKMode = vk::PresentModeKHR::eFifo; // VSync ON
+        break;
+    default:
+        targetVKMode = vk::PresentModeKHR::eFifo;
+        break;
     }
-    return vk::PresentModeKHR::eFifo;
+
+    for (const auto& available : availableVKModes) {
+        if (available == targetVKMode) return targetVKMode;
+    }
+
+    return targetVKMode;
 }
 
 vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities, int pixelWidth,

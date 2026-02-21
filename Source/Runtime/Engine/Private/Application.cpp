@@ -1,5 +1,13 @@
 ﻿#include "Application.h"
+
 #include "RendererAPI.h"
+
+#ifdef CZ_PLATFORM_WINDOWS
+    #include <Windows.h>
+    #include <timeapi.h>
+    // Link the WinMM library for timer functions
+    #pragma comment(lib, "Winmm.lib")
+#endif
 
 DEFINE_LOG_CATEGORY(LogApplication);
 
@@ -11,8 +19,21 @@ CApplication::CApplication(const std::string& name) {
     Init(name);
 }
 
+CApplication::~CApplication() {
+#ifdef CZ_PLATFORM_WINDOWS
+    timeEndPeriod(1);
+#endif
+}
+
 void CApplication::Init(const std::string& name) {
     CZ_LOG(LogApplication, Trace, "Engine Loop Initializing...");
+
+    m_Profiler = CreateScope<PerformanceProfiler>();
+
+#ifdef CZ_PLATFORM_WINDOWS
+    // Set the timer resolution to 1ms for high-precision sleep
+    timeBeginPeriod(1);
+#endif
 
     std::filesystem::path projectRoot = ChozoUtils::File::GetProjectRoot();
     CZ_LOG(LogApplication, Info, "Project Root set from environment variable: {0}",
@@ -42,14 +63,35 @@ void CApplication::Init(const std::string& name) {
     PushLayer(m_ImGuiLayer);
 
     m_RenderEngine->GetRenderer()->SetUICallback([this](const TRef<IRHICommandBuffer>& cmdBuffer) {
-        if (m_ImGuiLayer)
-            m_ImGuiLayer->Render(cmdBuffer);
+        if (m_ImGuiLayer) m_ImGuiLayer->Render(cmdBuffer);
     });
 
     CZ_LOG(LogApplication, Info, "Engine Loop Initialized");
 }
 
 void CApplication::Run() {
+    float targetFrameTime = 0.0f;
+
+    if (m_IsMinimized) {
+        targetFrameTime = 1000.0f / 15.0f;
+    } else {
+        switch (m_PowerMode) {
+        case EAppPowerMode::Performance:
+            targetFrameTime = 0.0f; // Run as fast as possible
+            break;
+        case EAppPowerMode::Balanced:
+            targetFrameTime = 1000.0f / 60.0f; // Standard 60 FPS
+            break;
+        case EAppPowerMode::PowerSaving:
+            targetFrameTime = 1000.0f / 30.0f; // Low power 30 FPS
+            break;
+        }
+    }
+
+    Timer frameTimer;
+
+    frameTimer.Reset();
+
     m_Window->OnUpdate();
 
     m_ImGuiLayer->Begin();
@@ -58,6 +100,16 @@ void CApplication::Run() {
     m_ImGuiLayer->End();
 
     m_RenderEngine->Tick();
+
+    float elapsed = frameTimer.ElapsedMillis();
+    float timeToWait = targetFrameTime - elapsed;
+
+    if (timeToWait > 0) {
+        // This is where we prevent the CPU from outrunning the VSync queue.
+        Timer::Wait(timeToWait);
+    }
+
+    m_Profiler->SetPerFrameTiming("Total FrameTime", frameTimer.ElapsedMillis());
 }
 
 void CApplication::Exit() {

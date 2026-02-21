@@ -138,3 +138,12 @@ enum class ETextureUsage {
     DepthAttachment, // For rendering targets
     Storage          // For Compute Shader read/write (RWTexture)
 };
+
+enum class EPresentMode {
+    Immediate = 0, // VSync OFF. Minimal latency, high tearing.
+    Mailbox,       // VSync OFF (Fast). No tearing, but heavy GPU load.
+    FIFO,          // VSync ON. Standard synchronized presentation.
+    FIFO_Relaxed,  // VSync ON (Adaptive). Latency-optimized.
+
+    Unkown
+};

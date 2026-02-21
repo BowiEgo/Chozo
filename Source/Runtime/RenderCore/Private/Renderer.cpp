@@ -22,8 +22,6 @@ void CRenderer::Init() {
     TRef<CShader> vertShader = CShaderManager::Get()->Load(vertShaderInfo);
     TRef<CShader> fragShader = CShaderManager::Get()->Load(fagShaderInfo);
 
-    // m_Context->SetPipeline(m_ScenePipeline);
-
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         m_SyncObjects[i] = RHI->CreateSyncObject();
         m_CommandBuffers[i] = RHI->CreateCommandBuffer();
@@ -49,8 +47,7 @@ void CRenderer::Tick() {
     auto& syncObject = m_SyncObjects[m_CurrentFrame];
     auto RHI = m_Context->GetRHI();
 
-    // m_Context->DrawFrame(cmdBuffer, syncObject);
-    RHI->DrawFrame(cmdBuffer, syncObject, [&](uint32 imageIndex) {
+    RHI->DrawFrame(cmdBuffer, syncObject, m_CurrentFrame, [&](uint32 imageIndex) {
         cmdBuffer->Begin();
 
         // draw scene using RHI interface

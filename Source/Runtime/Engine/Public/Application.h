@@ -7,14 +7,21 @@
 #include "LayerStack.h"
 #include "RenderEngine.h"
 #include "Scope.h"
+#include "Timer.h"
 #include "Window.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogApplication, Info);
 
+enum class EAppPowerMode {
+    Performance, // No waiting, run as fast as possible
+    Balanced,    // Cap at monitor refresh rate (e.g., 60/144 fps)
+    PowerSaving  // Cap at low framerate (e.g., 30 fps) or when inactive
+};
+
 class ENGINE_API CApplication {
 public:
     explicit CApplication(const std::string& name = "Chozo Engine");
-    virtual ~CApplication() {};
+    virtual ~CApplication();
 
     void Init(const std::string& name);
     void Run();
@@ -23,8 +30,11 @@ public:
     bool ShouldClose() const;
     void PushLayer(ILayer* layer);
 
+    void SetPowerMode(EAppPowerMode mode) { m_PowerMode = mode; }
+
     CWindow* GetWindow() const { return m_Window.get(); }
     CRenderEngine* GetRenderEngine() const { return m_RenderEngine.get(); }
+    PerformanceProfiler* GetPerformanceProfiler() { return m_Profiler.get(); }
 
     static CApplication* Get() { return s_Instance; }
 
@@ -33,6 +43,10 @@ private:
 
 private:
     static CApplication* s_Instance;
+
+    EAppPowerMode m_PowerMode = EAppPowerMode::Balanced;
+    bool m_IsMinimized = false;
+    TScope<PerformanceProfiler> m_Profiler;
 
     TScope<CWindow> m_Window;
     TScope<CRenderEngine> m_RenderEngine;

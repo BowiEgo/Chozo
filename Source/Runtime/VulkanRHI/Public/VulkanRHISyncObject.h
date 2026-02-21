@@ -23,7 +23,8 @@ public:
     }
     virtual ~CVulkanRHISyncObject() = default;
 
-    void WaitAndResetFence(TRef<CVulkanRHIDevice> device) const;
+    void WaitAndResetFence(const TRef<CVulkanRHIDevice>& device) const;
+    void RecreateSemaphores(const TRef<CVulkanRHIDevice>& device);
 
     const vk::Semaphore GetPresentCompleteSemaphore() const { return *m_PresentCompleteSemaphore; }
     const vk::Semaphore GetRenderFinishedSemaphore() const { return *m_RenderFinishedSemaphore; }
