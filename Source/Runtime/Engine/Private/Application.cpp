@@ -26,90 +26,94 @@ CApplication::~CApplication() {
 }
 
 void CApplication::Init(const std::string& name) {
-    CZ_LOG(LogApplication, Trace, "Engine Loop Initializing...");
+    CZ_LOG(LogApplication, Trace, "Applicatin Initializing...");
 
     m_Profiler = CreateScope<PerformanceProfiler>();
+    {
+        CZ_SCOPE_PERF("Application_Init_Time");
 
 #ifdef CZ_PLATFORM_WINDOWS
-    // Set the timer resolution to 1ms for high-precision sleep
-    timeBeginPeriod(1);
+        // Set the timer resolution to 1ms for high-precision sleep
+        timeBeginPeriod(1);
 #endif
 
-    std::filesystem::path projectRoot = ChozoUtils::File::GetProjectRoot();
-    CZ_LOG(LogApplication, Info, "Project Root set from environment variable: {0}",
-           projectRoot.string());
-    std::filesystem::path resourcesDir = projectRoot / "Resources";
-    VFS::Mount("engine", projectRoot);
-    VFS::Mount("shaders", projectRoot / "Shaders");
-    VFS::Mount("resources", resourcesDir);
-    VFS::Mount("fonts", resourcesDir / "Fonts");
+        // Setup VFS
+        std::filesystem::path projectRoot = ChozoUtils::File::GetProjectRoot();
+        CZ_LOG(LogApplication, Info, "Project Root set from environment variable: {0}",
+               projectRoot.string());
+        std::filesystem::path resourcesDir = projectRoot / "Resources";
+        VFS::Mount("engine", projectRoot);
+        VFS::Mount("shaders", projectRoot / "Shaders");
+        VFS::Mount("resources", resourcesDir);
+        VFS::Mount("fonts", resourcesDir / "Fonts");
 
-    FRendererAPI::SetType(FRendererAPI::EType::Vulkan);
+        FRendererAPI::SetType(FRendererAPI::EType::Vulkan);
 
-    FWindowDefinition def;
-    def.Title = name;
-    def.Width = WINDOW_WIDTH;
-    def.Height = WINDOW_HEIGHT;
+        // Setup Window
+        FWindowDefinition def;
+        def.Title = name;
+        def.Width = WINDOW_WIDTH;
+        def.Height = WINDOW_HEIGHT;
 
-    m_Window = CWindow::Create(def);
-    CZ_CORE_ASSERT(m_Window, "App: Failed to create window!");
-    m_Window->Init();
-    m_Window->SetEventCallback(CZ_BIND_EVENT_FN(OnEvent));
+        m_Window = CWindow::Create(def);
+        CZ_CORE_ASSERT(m_Window, "App: Failed to create window!");
+        m_Window->Init();
+        m_Window->SetEventCallback(CZ_BIND_EVENT_FN(OnEvent));
 
-    m_RenderEngine = CreateScope<CRenderEngine>(m_Window.get());
-    m_RenderEngine->Init();
+        // Setup RenderEngine
+        m_RenderEngine = CreateScope<CRenderEngine>(m_Window.get());
+        m_RenderEngine->Init();
 
-    m_ImGuiLayer = new CImGuiLayer(m_Window.get(), m_RenderEngine->GetRenderer());
-    PushLayer(m_ImGuiLayer);
+        m_ImGuiLayer = new CImGuiLayer(m_Window.get(), m_RenderEngine->GetRenderer());
+        PushLayer(m_ImGuiLayer);
 
-    m_RenderEngine->GetRenderer()->SetUICallback([this](const TRef<IRHICommandBuffer>& cmdBuffer) {
-        if (m_ImGuiLayer) m_ImGuiLayer->Render(cmdBuffer);
-    });
+        m_RenderEngine->GetRenderer()->SetUICallback(
+            [this](const TRef<IRHICommandBuffer>& cmdBuffer) {
+                if (m_ImGuiLayer) m_ImGuiLayer->Render(cmdBuffer);
+            });
+    }
 
-    CZ_LOG(LogApplication, Info, "Engine Loop Initialized");
+    CZ_LOG(LogApplication, Info, "Applicatin Initialized");
 }
 
 void CApplication::Run() {
-    float targetFrameTime = 0.0f;
+    CZ_SCOPE_PERF("Total FrameTime");
 
+    float targetFrameTime = 0.0f;
     if (m_IsMinimized) {
         targetFrameTime = 1000.0f / 15.0f;
     } else {
         switch (m_PowerMode) {
         case EAppPowerMode::Performance:
-            targetFrameTime = 0.0f; // Run as fast as possible
+            targetFrameTime = 0.0f;
             break;
         case EAppPowerMode::Balanced:
-            targetFrameTime = 1000.0f / 60.0f; // Standard 60 FPS
-            break;
+            targetFrameTime = 16.67f;
+            break; // 60 FPS
         case EAppPowerMode::PowerSaving:
-            targetFrameTime = 1000.0f / 30.0f; // Low power 30 FPS
-            break;
+            targetFrameTime = 33.33f;
+            break; // 30 FPS
         }
     }
 
     Timer frameTimer;
-
     frameTimer.Reset();
 
+    // Tick
     m_Window->OnUpdate();
-
     m_ImGuiLayer->Begin();
     for (ILayer* layer : m_LayerStack)
         layer->OnImGuiRender();
     m_ImGuiLayer->End();
-
     m_RenderEngine->Tick();
 
     float elapsed = frameTimer.ElapsedMillis();
     float timeToWait = targetFrameTime - elapsed;
-
     if (timeToWait > 0) {
-        // This is where we prevent the CPU from outrunning the VSync queue.
+        // Log wait time separately to see CPU headroom in Profiler
+        CZ_SCOPE_PERF("Wait Time");
         Timer::Wait(timeToWait);
     }
-
-    m_Profiler->SetPerFrameTiming("Total FrameTime", frameTimer.ElapsedMillis());
 }
 
 void CApplication::Exit() {

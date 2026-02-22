@@ -60,8 +60,14 @@ private:
     Timer m_Timer;
 };
 
+namespace ProfilerKeys {
+inline const std::string TotalFrame = "Total FrameTime";
+inline const std::string Render = "RenderPass";
+inline const std::string Logic = "LogicUpdate";
+inline const std::string Wait = "Wait Time";
+} // namespace ProfilerKeys
+
 class PerformanceProfiler {
-public:
     struct PerFrameData {
         float Time = 0.0f;
         uint32_t Samples = 0;
@@ -77,15 +83,28 @@ public:
         }
     };
 
+    using ProfilerMap = std::unordered_map<std::string, PerFrameData>;
+
 public:
-    void SetPerFrameTiming(const char* name, const float time) {
+    void SetPerFrameTiming(const std::string& key, const float time) {
         std::scoped_lock<std::mutex> lock(m_PerFrameDataMutex);
 
-        if (m_PerFrameData.find(name) == m_PerFrameData.end()) m_PerFrameData[name] = 0.0f;
-
-        PerFrameData& data = m_PerFrameData[name];
+        // operator[] will value-initialize PerFrameData if key doesn't exist
+        auto& data = m_PerFrameData[key];
         data.Time += time;
         data.Samples++;
+    }
+
+    /**
+     * @brief Encapsulated lookup method.
+     * @return Pointer to data if found, nullptr otherwise.
+     * * Using pointer return to avoid copying large structures.
+     */
+    const PerFrameData* GetEntry(const std::string& key) const {
+        // No lock here if you only call this from the main UI thread
+        // after all Ticks are done. Otherwise, keep the lock.
+        auto it = m_PerFrameData.find(key);
+        return (it != m_PerFrameData.end()) ? &it->second : nullptr;
     }
 
     void Clear() {
@@ -93,13 +112,11 @@ public:
         m_PerFrameData.clear();
     }
 
-    [[nodiscard]] const std::unordered_map<const char*, PerFrameData>& GetPerFrameData() const {
-        return m_PerFrameData;
-    }
+    [[nodiscard]] const ProfilerMap& GetPerFrameData() const { return m_PerFrameData; }
 
 private:
-    std::unordered_map<const char*, PerFrameData> m_PerFrameData;
-    inline static std::mutex m_PerFrameDataMutex;
+    ProfilerMap m_PerFrameData;
+    mutable std::mutex m_PerFrameDataMutex;
 };
 
 class ScopePerfTimer {
@@ -117,13 +134,3 @@ private:
     PerformanceProfiler* m_Profiler;
     Timer m_Timer;
 };
-
-// #if 1
-//     #define CZ_SCOPE_PERF(name) \
-//         ScopePerfTimer timer__LINE__(name, CApplication::Get().GetPerformanceProfiler());
-
-//     #define CZ_SCOPE_TIMER(name) ScopedTimer timer__LINE__(name);
-// #else
-//     #define CZ_SCOPE_PERF(name)
-//     #define CZ_SCOPE_TIMER(name)
-// #endif

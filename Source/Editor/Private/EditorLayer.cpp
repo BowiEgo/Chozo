@@ -16,6 +16,10 @@ void EditorLayer::OnDetach() {}
 void EditorLayer::OnUpdate(FTimeStep ts) {}
 
 void EditorLayer::OnImGuiRender() {
+    // ----------------------------------------------------------------------------
+    // [Section] Dockspace Configuration
+    // Set up a full-screen dockspace container for editor panels.
+    // ----------------------------------------------------------------------------
     ImGuiWindowFlags dock_space_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -27,10 +31,11 @@ void EditorLayer::OnImGuiRender() {
     dock_space_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 0.0f });
-    //-------------------- Dockspace begin -------------------------------------
+    // ----------------------------------------------------------------------------
     ImGui::Begin("DockSpace", nullptr, dock_space_flags);
     ImGui::PopStyleVar();
 
+    // Initialize Docking node if enabled in Config
     ImGuiIO& io = ImGui::GetIO();
     ImGuiStyle& style = ImGui::GetStyle();
     float minWinSizeX = style.WindowMinSize.x;
@@ -41,9 +46,10 @@ void EditorLayer::OnImGuiRender() {
     }
     style.WindowMinSize.x = minWinSizeX;
 
-    // --------------------
-    // Menu
-    // --------------------
+#pragma region Main Menu Bar
+    // ----------------------------------------------------------------------------
+    // [Sub-Section] Main Menu Bar
+    // ----------------------------------------------------------------------------
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("New", "Ctrl+N")) NewProject();
@@ -85,11 +91,27 @@ void EditorLayer::OnImGuiRender() {
 
         ImGui::EndMenuBar();
     }
+#pragma endregion
 
-    // ----------------------------------------------------------------------
-    // Viewport
-    // ----------------------------------------------------------------------
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+#pragma region Editor Panels
+    // ----------------------------------------------------------------------------
+    // [Sub-Section] Sub-Panels Update
+    // ----------------------------------------------------------------------------
+    m_ConsolePanel.Draw("Console", &m_IsConsoleOpen);
+    m_SceneHRCPanel.Draw("SceneHierarchy", &m_IsSceneHRCOpen);
+    m_PropertiesPanel.Draw("Properties", &m_IsPropertiesOpen);
+    m_ContentBrowserPanel.Draw("ContentBrowser", &m_IsContentBrowserOpen);
+    m_MaterialPanel.Draw("Material", &m_IsMaterialOpen);
+    m_TextureViewerPanel.Draw("TextureViewer", &m_IsTextureViewerOpen);
+    m_AssetsPanel.Draw("Assets", &m_IsAssetsOpen);
+#pragma endregion
+
+#pragma region Viewport Rendering
+    // ----------------------------------------------------------------------------
+    // [Sub-Section] Main Viewport
+    // Renders the final scene texture from the Framebuffer.
+    // ----------------------------------------------------------------------------
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 }); // Viewport begin
     ImGui::Begin("Viewport");
 
     // m_ViewportFocused = ImGui::IsWindowFocused();
@@ -99,22 +121,36 @@ void EditorLayer::OnImGuiRender() {
     auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
     m_ViewportSize = ImGui::GetContentRegionAvail();
 
+    // Get DescriptorSet from RHI Texture and draw it as ImGui image
     auto texture = m_ViewportRenderer->GetSceneFrameBuffer()->GetColorAttachment(0);
     ImTextureID textureID = (ImTextureID)texture->GetDescriptorSet();
     ImGui::Image(textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
-    // Overlay
-    m_Overlay.OnImGuiRender(&m_IsOverlayOpen, [io]() {
-        // auto& profilerData = CApplication::Get()->GetPerformanceProfiler()->GetPerFrameData();
-        // for (const auto& [name, data] : profilerData) {
-        //     // Calculate average if multiple samples were taken in one frame
-        //     float avgTime = data.Time / (data.Samples > 0 ? data.Samples : 1);
-        //     ImGui::Text("%s: %.3f ms", name, avgTime);
-        // }
-        // CApplication::Get()->GetPerformanceProfiler()->Clear();
+    // Integrated Debug Overlay
+    m_Overlay.Draw(&m_IsOverlayOpen, [io]() {
+        // Performance monitoring
+        auto profiler = CApplication::Get()->GetPerformanceProfiler();
+        auto& profilerData = profiler->GetPerFrameData();
 
-        ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                    ImGui::GetIO().Framerate);
+        if (auto* totalData = profiler->GetEntry(ProfilerKeys::TotalFrame)) {
+            float totalTime = totalData->Time;
+            float fps = (totalTime > 0.0f) ? (1000.0f / totalTime) : 0.0f;
+
+            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Engine FPS: %.1f", fps);
+            ImGui::TextDisabled("Latency: %.3f ms", totalTime);
+            ImGui::Separator();
+        }
+
+        for (const auto& [name, data] : profilerData) {
+            if (name == ProfilerKeys::TotalFrame) continue;
+
+            float avgTime = data.Time / (data.Samples > 0 ? data.Samples : 1);
+            ImGui::Text("%-20s: %.3f ms", name.c_str(), avgTime);
+        }
+
+        profiler->Clear();
+
+        // Mouse Position
         if (ImGui::IsMousePosValid())
             ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
         else
@@ -123,9 +159,9 @@ void EditorLayer::OnImGuiRender() {
 
     ImGui::End();
     ImGui::PopStyleVar();
+#pragma endregion
 
-    //-------------------- Dockspace end -------------------------------------
-    ImGui::End();
+    ImGui::End(); // End Dockspace
 }
 
 void EditorLayer::OnEvent(IEvent& e) {}

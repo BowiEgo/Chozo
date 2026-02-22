@@ -1,6 +1,6 @@
 #version 450
 
-// English Comment: Common structures or constants can be placed here
+// Common structures or constants can be placed here
 
 #ifdef VERTEX_SHADER
 layout(location = 0) out vec3 fragColor;

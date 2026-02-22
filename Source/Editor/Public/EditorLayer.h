@@ -3,6 +3,14 @@
 #include "Chozo.h"
 #include "Overlay.h"
 
+#include "AssetsPanel.h"
+#include "ConsolePanel.h"
+#include "ContentBrowserPanel.h"
+#include "MaterialPanel.h"
+#include "PropertiesPanel.h"
+#include "SceneHierarchyPanel.h"
+#include "TextureViewerPanel.h"
+
 class EditorLayer : public ILayer {
 public:
     EditorLayer();
@@ -27,4 +35,26 @@ private:
 
     Overlay m_Overlay;
     bool m_IsOverlayOpen = true;
+
+    // Panels
+    ConsolePanel m_ConsolePanel;
+    bool m_IsConsoleOpen = true;
+
+    SceneHierarchyPanel m_SceneHRCPanel;
+    bool m_IsSceneHRCOpen = true;
+
+    PropertiesPanel m_PropertiesPanel;
+    bool m_IsPropertiesOpen = true;
+
+    ContentBrowserPanel m_ContentBrowserPanel;
+    bool m_IsContentBrowserOpen = true;
+
+    MaterialPanel m_MaterialPanel;
+    bool m_IsMaterialOpen = true;
+
+    TextureViewerPanel m_TextureViewerPanel;
+    bool m_IsTextureViewerOpen = true;
+
+    AssetsPanel m_AssetsPanel;
+    bool m_IsAssetsOpen = true;
 };
