@@ -1,45 +1,64 @@
 #include "Logger.h"
 
+#include <spdlog/sinks/stdout_color_sinks.h>
+
 // Pimpl structure to hide spdlog headers from Public API
 struct FLogger::FImpl {
     std::shared_ptr<spdlog::logger> SpdLogger;
+    const std::string DefaultPattern =
+        "%^[%T] [%n] [%l]: %v%$"; // Pattern: [%Time] [%Category] [%Level]: %Message
 };
 
-FLogger &FLogger::Get() {
+FLogger& FLogger::Get() {
     static FLogger Instance;
     return Instance;
+}
+
+spdlog::sink_ptr FLogger::AddCallbackSink(LogCallbackSink_mt::LogCallback callback,
+                                          const std::string& pattern) {
+    if (!callback) return nullptr; // Avoid registering null callbacks to prevent crashes
+
+    auto& logger = FLogger::Get();
+    auto& sinks = logger.Impl->SpdLogger->sinks();
+
+    auto newSink = std::make_shared<LogCallbackSink_mt>(std::move(callback));
+    newSink->set_pattern(pattern);
+    sinks.push_back(newSink);
+
+    return newSink;
+}
+
+void FLogger::RemoveSink(spdlog::sink_ptr sinkHandle) {
+    if (!sinkHandle) return;
+
+    auto& logger = FLogger::Get();
+    auto& sinks = logger.Impl->SpdLogger->sinks();
+
+    // Standard way to remove a specific element from a vector.
+    // This is much safer than clearing everything.
+    sinks.erase(std::remove(sinks.begin(), sinks.end(), sinkHandle), sinks.end());
 }
 
 FLogger::FLogger() {
     Impl = std::make_unique<FImpl>();
 
     // Create a multi-threaded color stdout sink
-    auto ConsoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    consoleSink->set_pattern(Impl->DefaultPattern);
 
-    // Pattern: [%Time] [%Category] [%Level]: %Message
-    ConsoleSink->set_pattern("%^[%T] [%n] [%l]: %v%$");
-
-    Impl->SpdLogger = std::make_shared<spdlog::logger>("Chozo", ConsoleSink);
+    Impl->SpdLogger = std::make_shared<spdlog::logger>("Chozo", consoleSink);
     Impl->SpdLogger->set_level(spdlog::level::trace);
 }
 
 FLogger::~FLogger() = default;
 
-void FLogger::LogInternal(const std::string &Category, ELogVerbosity Verbosity,
-                          const std::string &Message) {
-    static constexpr spdlog::level::level_enum SpdLevels[] = {
-        spdlog::level::critical, // 0: Fatal
-        spdlog::level::err,      // 1: Error
-        spdlog::level::warn,     // 2: Warning
-        spdlog::level::info,     // 3: Info
-        spdlog::level::debug,    // 4: Debug
-        spdlog::level::trace     // 5: Trace
-    };
-    auto SpdLevel = SpdLevels[static_cast<uint32>(Verbosity)];
+void FLogger::LogInternal(const std::string& category, ELogVerbosity verbosity,
+                          const std::string& message) {
+    auto spdLevel = ChozoUtils::Log::ToSpdlogLevel(verbosity);
 
-    Impl->SpdLogger->log(SpdLevel, "[{}] {}", Category, Message);
+    Impl->SpdLogger->log(spdLevel, "[{}] {}", category, message);
 
-    if (Verbosity == ELogVerbosity::Fatal) {
+    if (verbosity == ELogVerbosity::Fatal) {
         Impl->SpdLogger->flush();
         CZ_DEBUGBREAK();
         abort();

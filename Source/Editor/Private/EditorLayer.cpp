@@ -4,11 +4,18 @@
 
 #include "imgui.h"
 
+DEFINE_LOG_CATEGORY(LogEditorLayer);
+
 EditorLayer::EditorLayer() : ILayer("Editor") {}
 
 void EditorLayer::OnAttach() {
     m_ViewportRenderer = CApplication::Get()->GetRenderEngine()->GetRenderer();
     m_Overlay.UpdateLocation(EOverlayLocation::BottomLeft);
+
+    CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
+    CZ_LOG(LogEditorLayer, Warning, "EditorLayer Attached.");
+    CZ_LOG(LogEditorLayer, Error, "EditorLayer Attached.");
+    CZ_LOG(LogEditorLayer, Debug, "EditorLayer Attached.");
 }
 
 void EditorLayer::OnDetach() {}

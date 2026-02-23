@@ -11,6 +11,8 @@
 #include "SceneHierarchyPanel.h"
 #include "TextureViewerPanel.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogEditorLayer, Info);
+
 class EditorLayer : public ILayer {
 public:
     EditorLayer();

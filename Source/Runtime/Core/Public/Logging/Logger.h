@@ -1,14 +1,46 @@
 #pragma once
 
 #include "LogMacros.h"
+#include "LogUtils.h"
 
+#include <functional>
+#include <mutex>
 #include <spdlog/fmt/fmt.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/base_sink.h>
 #include <spdlog/spdlog.h>
+#include <string>
+
+template <typename Mutex> class LogCallbackSink : public spdlog::sinks::base_sink<Mutex> {
+public:
+    using LogCallback = std::function<void(const std::string&, ELogVerbosity)>;
+    explicit LogCallbackSink(LogCallback callback) : m_Callback(std::move(callback)) {}
+
+protected:
+    void sink_it_(const spdlog::details::log_msg& msg) override {
+        if (!m_Callback) return;
+
+        // Format the message using the sink's formatter
+        spdlog::memory_buf_t formatted;
+        spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
+
+        // Invoke the UI-side callback
+        m_Callback(fmt::to_string(formatted), ChozoUtils::Log::FromSpdlogLevel(msg.level));
+    }
+
+    void flush_() override {}
+
+private:
+    LogCallback m_Callback;
+};
+
+using LogCallbackSink_mt = LogCallbackSink<std::mutex>;
 
 class CORE_API FLogger {
 public:
     static FLogger& Get();
+    static spdlog::sink_ptr AddCallbackSink(LogCallbackSink_mt::LogCallback callback,
+                                            const std::string& pattern);
+    static void RemoveSink(spdlog::sink_ptr SinkHandle);
 
     /**
      * The core log function that dispatches messages to sinks

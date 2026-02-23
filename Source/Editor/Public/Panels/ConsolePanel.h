@@ -2,6 +2,17 @@
 
 #include "Panel.h"
 
+#include "CoreMinimal.h"
+#include "LogScopedSink.h"
+#include "Scope.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogConsolePanel, Info);
+
+struct LogLine {
+    char* Text;
+    ELogVerbosity Level;
+};
+
 class ConsolePanel : public Panel {
 public:
     ConsolePanel();
@@ -10,19 +21,25 @@ public:
     virtual void Draw(const char* title, bool* p_open) override;
 
     void ClearLog();
-    void AddLog(const char* fmt, ...) IM_FMTARGS(2);
+    void AddLog(const char* message, ELogVerbosity level);
     void ExecCommand(const char* command_line);
     int TextEditCallback(ImGuiInputTextCallbackData* data);
 
     static int TextEditCallbackStub(ImGuiInputTextCallbackData* data);
 
 private:
+    ImVec4 GetColorForLevel(ELogVerbosity level);
+
+private:
     char m_InputBuf[256];
-    ImVector<char*> m_Items;
+    ImVector<LogLine> m_Items;
     ImVector<const char*> m_Commands;
     ImVector<char*> m_History;
     int m_HistoryPos; // -1: new line, 0..History.Size-1 browsing history.
     ImGuiTextFilter m_Filter;
     bool m_AutoScroll;
     bool m_ScrollToBottom;
+
+    std::mutex m_LogMutex;
+    TScope<FLogScopedSink> m_LogSink;
 };
