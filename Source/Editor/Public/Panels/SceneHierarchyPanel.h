@@ -67,6 +67,11 @@ static TreeNode* CreateDemoTree() {
     return node_L0;
 }
 
+struct FlattenedNode {
+    TreeNode* Node;
+    int Depth;
+};
+
 class SceneHierarchyPanel : public Panel {
 public:
     SceneHierarchyPanel() {}
@@ -74,10 +79,12 @@ public:
 
     virtual void Draw(const char* title, bool* p_open) override;
 
-    void DrawTreeNode(TreeNode* node);
+    void FlattenTree(TreeNode* node, int depth);
+    void DrawFlattenedNode(TreeNode* node, int depth);
 
 private:
     ImGuiTextFilter m_Filter;
     TreeNode* m_RootNode = CreateDemoTree();
     TreeNode* m_SelectedNode = nullptr;
+    std::vector<FlattenedNode> m_FlattenedView;
 };

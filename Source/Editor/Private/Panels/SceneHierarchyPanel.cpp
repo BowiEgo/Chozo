@@ -11,20 +11,30 @@ void SceneHierarchyPanel::Draw(const char* title, bool* p_open) {
         return;
     }
 
+    // Filter input
     ImGui::SetNextItemWidth(-FLT_MIN);
     ImGui::SetNextItemShortcut(ImGuiMod_Ctrl | ImGuiKey_F, ImGuiInputFlags_Tooltip);
     ImGui::PushItemFlag(ImGuiItemFlags_NoNavDefaultFocus, true);
 
     if (ImGui::InputTextWithHint("##Filter", "incl,-excl", m_Filter.InputBuf,
                                  IM_ARRAYSIZE(m_Filter.InputBuf),
-                                 ImGuiInputTextFlags_EscapeClearsAll))
+                                 ImGuiInputTextFlags_EscapeClearsAll)) {
         m_Filter.Build();
+    }
     ImGui::PopItemFlag();
 
+    // Flattern Tree
     if (ImGui::BeginTable("##bg", 1, ImGuiTableFlags_RowBg)) {
-        for (TreeNode* node : m_RootNode->Childs) {
-            if (m_Filter.PassFilter(node->Name)) {
-                DrawTreeNode(node);
+        m_FlattenedView.clear();
+        FlattenTree(m_RootNode, 0);
+
+        ImGuiListClipper clipper;
+        clipper.Begin((int)m_FlattenedView.size());
+
+        while (clipper.Step()) {
+            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
+                FlattenedNode& item = m_FlattenedView[i];
+                DrawFlattenedNode(item.Node, item.Depth);
             }
         }
         ImGui::EndTable();
@@ -33,27 +43,67 @@ void SceneHierarchyPanel::Draw(const char* title, bool* p_open) {
     ImGui::End();
 }
 
-void SceneHierarchyPanel::DrawTreeNode(TreeNode* node) {
+void SceneHierarchyPanel::FlattenTree(TreeNode* node, int depth) {
+    if (!node) return;
+
+    if (node != m_RootNode) {
+        m_FlattenedView.push_back({ node, depth });
+    }
+
+    ImGuiID node_id = ImGui::GetID((void*)(intptr_t)node->UID);
+    bool is_open = ImGui::GetStateStorage()->GetInt(node_id, 0) != 0;
+
+    if (is_open || node == m_RootNode) {
+        for (TreeNode* child : node->Childs) {
+            if (m_Filter.PassFilter(child->Name)) {
+                FlattenTree(child, depth + (node == m_RootNode ? 0 : 1));
+            }
+        }
+    }
+}
+
+void SceneHierarchyPanel::DrawFlattenedNode(TreeNode* node, int depth) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
+
+    // --- Node Lines Begin ---
+    ImVec2 screen_pos = ImGui::GetCursorScreenPos();
+    float indent_step = ImGui::GetStyle().IndentSpacing;
+    float row_height = ImGui::GetTextLineHeightWithSpacing();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImU32 line_color = ImGui::GetColorU32(ImGuiCol_TextDisabled, 0.8f);
+
+    for (int i = 0; i < depth; i++) {
+        // Draw vertical lines for each level of depth.
+        float line_x = screen_pos.x + (i + 0.5f) * indent_step + 10.0f;
+        float start_y = screen_pos.y - row_height * 0.5;
+        float end_y = screen_pos.y + row_height * 0.5;
+        draw_list->AddLine(ImVec2(line_x, start_y), ImVec2(line_x, end_y), line_color);
+    }
+    // Draw the horizontal "stub" for the current node's depth
+    float start_x = screen_pos.x + 0.5 * indent_step + 10.0f;
+    float end_x = start_x + depth * indent_step;
+    float stub_y = screen_pos.y + row_height * 0.5f;
+    draw_list->AddLine(ImVec2(start_x, stub_y), ImVec2(end_x, stub_y), line_color);
+    // --- Node Lines End ---
+
+    // --- TreeNode Begin ---
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (depth * indent_step));
 
     ImGuiID node_id = ImGui::GetID((void*)(intptr_t)node->UID);
     ImGui::PushID(node->UID);
 
-    ImGuiTreeNodeFlags tree_flags = ImGuiTreeNodeFlags_None;
-    tree_flags |= ImGuiTreeNodeFlags_OpenOnArrow |
-                  ImGuiTreeNodeFlags_OpenOnDoubleClick; // Standard opening mode as we are likely to
-                                                        // want to add selection afterwards
-    tree_flags |= ImGuiTreeNodeFlags_NavLeftJumpsToParent; // Left arrow support
-    tree_flags |= ImGuiTreeNodeFlags_SpanFullWidth;        // Span full width for easier mouse reach
-    tree_flags |= ImGuiTreeNodeFlags_DrawLinesToNodes;     // Always draw hierarchy outlines
+    ImGuiTreeNodeFlags tree_flags =
+        ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick |
+        ImGuiTreeNodeFlags_SpanFullWidth |
+        ImGuiTreeNodeFlags_NoTreePushOnOpen; // IMPORTANT: Use ImGuiTreeNodeFlags_NoTreePushOnOpen
+                                             // because we are handling the "recursion" manually via
+                                             // flattening.
+
     if (node == m_SelectedNode) tree_flags |= ImGuiTreeNodeFlags_Selected;
     if (node->Childs.Size == 0) tree_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
 
-    if (node->DataMyBool == false)
-        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
-
-    bool node_open = ImGui::TreeNodeBehavior(node_id, tree_flags, node->Name);
+    bool is_open = ImGui::TreeNodeBehavior(node_id, tree_flags, node->Name);
 
     if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0)) {
         m_SelectedNode = node;
@@ -68,8 +118,8 @@ void SceneHierarchyPanel::DrawTreeNode(TreeNode* node) {
     if (ImGui::IsItemActivated() || ImGui::IsItemFocused()) {
         m_SelectedNode = node;
     }
+    // --- TreeNode End ---
 
-    if (node->DataMyBool == false) ImGui::PopStyleColor();
     // --- Context Menu Begin ---
 
     if (ImGui::BeginPopupContextItem()) {
@@ -87,10 +137,5 @@ void SceneHierarchyPanel::DrawTreeNode(TreeNode* node) {
     }
     // --- Context Menu End ---
 
-    if (node_open) {
-        for (TreeNode* child : node->Childs)
-            DrawTreeNode(child);
-        ImGui::TreePop();
-    }
     ImGui::PopID();
 }
