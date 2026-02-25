@@ -42,8 +42,8 @@ private:
     ConsolePanel m_ConsolePanel;
     bool m_IsConsoleOpen = true;
 
-    SceneHierarchyPanel m_SceneHRCPanel;
-    bool m_IsSceneHRCOpen = true;
+    SceneHierarchyPanel m_SceneHierarchyPanel;
+    bool m_IsSceneHierarchyOpen = true;
 
     PropertiesPanel m_PropertiesPanel;
     bool m_IsPropertiesOpen = true;

@@ -13,9 +13,6 @@ void EditorLayer::OnAttach() {
     m_Overlay.UpdateLocation(EOverlayLocation::BottomLeft);
 
     CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
-    CZ_LOG(LogEditorLayer, Warning, "EditorLayer Attached.");
-    CZ_LOG(LogEditorLayer, Error, "EditorLayer Attached.");
-    CZ_LOG(LogEditorLayer, Debug, "EditorLayer Attached.");
 }
 
 void EditorLayer::OnDetach() {}
@@ -105,7 +102,7 @@ void EditorLayer::OnImGuiRender() {
     // [Sub-Section] Sub-Panels Update
     // ----------------------------------------------------------------------------
     m_ConsolePanel.Draw("Console", &m_IsConsoleOpen);
-    m_SceneHRCPanel.Draw("SceneHierarchy", &m_IsSceneHRCOpen);
+    m_SceneHierarchyPanel.Draw("SceneHierarchy", &m_IsSceneHierarchyOpen);
     m_PropertiesPanel.Draw("Properties", &m_IsPropertiesOpen);
     m_ContentBrowserPanel.Draw("ContentBrowser", &m_IsContentBrowserOpen);
     m_MaterialPanel.Draw("Material", &m_IsMaterialOpen);
