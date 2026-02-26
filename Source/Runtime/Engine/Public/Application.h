@@ -3,8 +3,10 @@
 #include "Core.h"
 #include "EngineExport.h"
 #include "Event.h"
+#include "FPSCounter.h"
 #include "ImGuiLayer.h"
 #include "LayerStack.h"
+#include "Module.h"
 #include "RenderEngine.h"
 #include "Scope.h"
 #include "Timer.h"
@@ -45,11 +47,26 @@ public:
     bool ShouldClose() const;
     void PushLayer(ILayer* layer);
 
-    void SetPowerMode(EAppPowerMode mode) { m_PowerMode = mode; }
+    void SetPowerMode(EAppPowerMode mode) {
+        m_PowerMode = mode;
+        if (m_IsMinimized) {
+            m_TargetFrameTime = 1000.0f / 15.0f;
+        } else {
+            switch (m_PowerMode) {
+                case EAppPowerMode::Performance: m_TargetFrameTime = 0.0f; break;
+                case EAppPowerMode::Balanced: m_TargetFrameTime = 1000.0f / 60.0f; break; // 60 FPS
+                case EAppPowerMode::PowerSaving:
+                    m_TargetFrameTime = 1000.0f / 30.0f;
+                    break; // 30 FPS
+            }
+        }
+    }
 
     CWindow* GetWindow() const { return m_Window.get(); }
     CRenderEngine* GetRenderEngine() const { return m_RenderEngine.get(); }
     PerformanceProfiler* GetPerformanceProfiler() { return m_Profiler.get(); }
+    FPSCounter* GetFPSCounter() { return &m_FPSCounter; }
+    EAppPowerMode GetPowerMode() { return m_PowerMode; }
 
     static CApplication* Get() { return s_Instance; }
 
@@ -59,9 +76,16 @@ private:
 private:
     static CApplication* s_Instance;
 
+    CModule m_EditorModule;
+    CModule m_SandboxModule;
+
+    Timer m_AppTimer;
+    float m_LastFrameTime = 0.0f;
     EAppPowerMode m_PowerMode = EAppPowerMode::Balanced;
+    float m_TargetFrameTime = 0.0f;
     bool m_IsMinimized = false;
     TScope<PerformanceProfiler> m_Profiler;
+    FPSCounter m_FPSCounter;
 
     TScope<CWindow> m_Window;
     TScope<CRenderEngine> m_RenderEngine;
@@ -69,5 +93,3 @@ private:
     CImGuiLayer* m_ImGuiLayer;
     ILayerStack m_LayerStack;
 };
-
-CApplication* CreateApplication();

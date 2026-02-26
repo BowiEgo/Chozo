@@ -1,5 +1,7 @@
 #pragma once
 
+namespace ChozoUitls::Module {
+
 static std::string GetPlatformLibName(const std::string& name) {
 #if defined(CZ_PLATFORM_WINDOWS)
     return name + ".dll";
@@ -9,3 +11,4 @@ static std::string GetPlatformLibName(const std::string& name) {
     return "lib" + name + ".so";
 #endif
 }
+} // namespace ChozoUitls::Module

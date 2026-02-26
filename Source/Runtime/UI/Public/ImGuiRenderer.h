@@ -6,7 +6,7 @@
 #include "UIExport.h"
 #include "Window.h"
 
-#include "imgui.h"
+#include <imgui_internal.h>
 
 DECLARE_LOG_CATEGORY_EXTERN(LogImGuiRenderer, Info);
 
@@ -18,7 +18,7 @@ public:
     virtual void Init(ImGuiContext* ctx) = 0;
     virtual void Shutdown() = 0;
     virtual void NewFrame() = 0;
-    virtual void Render(ImDrawData* drawData, const TRef<IRHICommandBuffer>& cmdBuffer) = 0;
+    virtual void Draw(ImDrawData* drawData, const TRef<IRHICommandBuffer>& cmdBuffer) = 0;
 
 protected:
     CWindow* m_Window;

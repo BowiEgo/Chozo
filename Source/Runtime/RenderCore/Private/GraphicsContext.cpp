@@ -15,7 +15,7 @@ CGraphicsContext::~CGraphicsContext() {
 }
 
 void CGraphicsContext::Init() {
-    std::string libName = GetPlatformLibName("VulkanRHI");
+    std::string libName = ChozoUitls::Module::GetPlatformLibName("VulkanRHI");
     if (m_RHIModule.Load(libName)) {
         FRHICreateInfo RHIInfo;
         RHIInfo.NativeWindow = m_WindowInfo.NativeWindow;

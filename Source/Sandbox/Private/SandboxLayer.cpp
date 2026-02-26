@@ -1,25 +1,25 @@
-#include "EditorLayer.h"
+#include "SandboxLayer.h"
 
 #include "Application.h"
 
 #include "imgui.h"
 
-DEFINE_LOG_CATEGORY(LogEditorLayer);
+DEFINE_LOG_CATEGORY(LogSandboxLayer);
 
-EditorLayer::EditorLayer() : ILayer("Editor") {}
+SandboxLayer::SandboxLayer() : ILayer("Sandbox") {}
 
-void EditorLayer::OnAttach() {
+void SandboxLayer::OnAttach() {
     m_ViewportRenderer = CApplication::Get()->GetRenderEngine()->GetRenderer();
-    m_Overlay.UpdateLocation(EOverlayLocation::BottomLeft);
+    m_Overlay.UpdateLocation(EOverlayLocation::TopRight);
 
-    CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
+    CZ_LOG(LogSandboxLayer, Info, "SandboxLayer Attached.");
 }
 
-void EditorLayer::OnDetach() {}
+void SandboxLayer::OnDetach() {}
 
-void EditorLayer::OnUpdate(FTimeStep ts) {}
+void SandboxLayer::OnUpdate(FTimeStep ts) {}
 
-void EditorLayer::OnImGuiRender() {
+void SandboxLayer::OnImGuiRender() {
     ImGuiIO& io = ImGui::GetIO();
 
 #pragma region Main Menu Bar
@@ -71,19 +71,6 @@ void EditorLayer::OnImGuiRender() {
     }
 #pragma endregion
 
-#pragma region Editor Panels
-    // ----------------------------------------------------------------------------
-    // [Sub-Section] Sub-Panels Update
-    // ----------------------------------------------------------------------------
-    m_ConsolePanel.Draw("Console", &m_IsConsoleOpen);
-    m_SceneHierarchyPanel.Draw("SceneHierarchy", &m_IsSceneHierarchyOpen);
-    m_PropertiesPanel.Draw("Properties", &m_IsPropertiesOpen);
-    m_ContentBrowserPanel.Draw("ContentBrowser", &m_IsContentBrowserOpen);
-    m_MaterialPanel.Draw("Material", &m_IsMaterialOpen);
-    m_TextureViewerPanel.Draw("TextureViewer", &m_IsTextureViewerOpen);
-    m_AssetsPanel.Draw("Assets", &m_IsAssetsOpen);
-#pragma endregion
-
 #pragma region Viewport Rendering
     // ----------------------------------------------------------------------------
     // [Sub-Section] Main Viewport
@@ -92,7 +79,7 @@ void EditorLayer::OnImGuiRender() {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 }); // Viewport begin
     ImGuiWindowFlags viewportFlags =
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
-    ImGui::Begin("Viewport##Editor", nullptr, viewportFlags);
+    ImGui::Begin("Viewport##Sandbox", nullptr, viewportFlags);
 
     // m_ViewportFocused = ImGui::IsWindowFocused();
     // m_ViewportHovered = ImGui::IsWindowHovered();
@@ -107,7 +94,7 @@ void EditorLayer::OnImGuiRender() {
     ImGui::Image(textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
     // Integrated Debug Overlay
-    m_Overlay.Draw("Editor Overlay:", &m_IsOverlayOpen, [io]() {
+    m_Overlay.Draw("SandboxOverlay:", &m_IsOverlayOpen, [io]() {
         // Performance monitoring
         auto profiler = CApplication::Get()->GetPerformanceProfiler();
         float fps = CApplication::Get()->GetFPSCounter()->GetFPS();
@@ -122,12 +109,6 @@ void EditorLayer::OnImGuiRender() {
                 ImGui::Text("%-20s: %.3f ms", GProfileSlotNames[i], data.Time);
             }
         }
-
-        // Mouse Position
-        // if (ImGui::IsMousePosValid())
-        //     ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
-        // else
-        //     ImGui::Text("Mouse Position: <invalid>");
     });
 
     ImGui::End();
@@ -135,12 +116,12 @@ void EditorLayer::OnImGuiRender() {
 #pragma endregion
 }
 
-void EditorLayer::OnEvent(IEvent& e) {}
+void SandboxLayer::OnEvent(IEvent& e) {}
 
-void EditorLayer::NewProject() {}
+void SandboxLayer::NewProject() {}
 
-void EditorLayer::OpenProject() {}
+void SandboxLayer::OpenProject() {}
 
-void EditorLayer::OpenProject(const std::filesystem::path& path) {}
+void SandboxLayer::OpenProject(const std::filesystem::path& path) {}
 
-void EditorLayer::SaveProjectAs() {}
+void SandboxLayer::SaveProjectAs() {}

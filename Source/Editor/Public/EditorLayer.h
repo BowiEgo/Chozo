@@ -1,11 +1,14 @@
 #pragma once
 
-#include "Chozo.h"
+#include "Core.h"
+#include "Layer.h"
 #include "Overlay.h"
+#include "Renderer.h"
 
 #include "AssetsPanel.h"
 #include "ConsolePanel.h"
 #include "ContentBrowserPanel.h"
+#include "EditorExport.h"
 #include "MaterialPanel.h"
 #include "PropertiesPanel.h"
 #include "SceneHierarchyPanel.h"
@@ -60,3 +63,7 @@ private:
     AssetsPanel m_AssetsPanel;
     bool m_IsAssetsOpen = true;
 };
+
+extern "C" {
+EDITOR_API ILayer* CreateEditorLayer() { return new EditorLayer(); }
+}

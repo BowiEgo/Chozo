@@ -14,5 +14,5 @@ public:
     virtual void Init(ImGuiContext* ctx) override;
     virtual void Shutdown() override;
     virtual void NewFrame() override;
-    virtual void Render(ImDrawData* drawData, const TRef<IRHICommandBuffer>& cmdBuffer) override;
+    virtual void Draw(ImDrawData* drawData, const TRef<IRHICommandBuffer>& cmdBuffer) override;
 };

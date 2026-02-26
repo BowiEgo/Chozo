@@ -21,16 +21,16 @@ private:
 public:
     virtual void OnAttach() override;
     virtual void OnDetach() override;
-    virtual void OnImGuiRender() override;
     virtual void OnEvent(IEvent& e) override;
 
     void BlockEvents(bool block) { m_BlockEvents = block; }
     void Begin();
+    void Render(const std::function<void()>& renderCb);
     void End();
     void SetFont(std::string font);
     void SetDarkThemeColors();
 
-    void Render(const TRef<IRHICommandBuffer>& cmdBuffer);
+    void Draw(const TRef<IRHICommandBuffer>& cmdBuffer);
 
 private:
     CModule m_RHIModule;

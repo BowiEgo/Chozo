@@ -1,5 +1,6 @@
 ﻿#include "Application.h"
 
+#include "ModuleUtils.h"
 #include "RendererAPI.h"
 
 #ifdef CZ_PLATFORM_WINDOWS
@@ -30,8 +31,6 @@ void CApplication::Init(const std::string& name) {
 
     m_Profiler = CreateScope<PerformanceProfiler>();
     {
-        CZ_SCOPE_PERF("Application_Init_Time");
-
 #ifdef CZ_PLATFORM_WINDOWS
         // Set the timer resolution to 1ms for high-precision sleep
         timeBeginPeriod(1);
@@ -69,49 +68,53 @@ void CApplication::Init(const std::string& name) {
 
         m_RenderEngine->GetRenderer()->SetUICallback(
             [this](const TRef<IRHICommandBuffer>& cmdBuffer) {
-                if (m_ImGuiLayer) m_ImGuiLayer->Render(cmdBuffer);
+                if (m_ImGuiLayer) m_ImGuiLayer->Draw(cmdBuffer);
             });
+
+        if (m_EditorModule.Load(ChozoUitls::Module::GetPlatformLibName("Editor"))) {
+            auto EditorLayer = m_EditorModule.Invoke<ILayer*()>("CreateEditorLayer");
+            PushLayer(EditorLayer);
+        }
+
+        // if (m_SandboxModule.Load(ChozoUitls::Module::GetPlatformLibName("Sandbox"))) {
+        //     auto SandLayer = m_SandboxModule.Invoke<ILayer*()>("CreateSandboxLayer");
+        //     PushLayer(SandLayer);
+        // }
     }
+
+    SetPowerMode(EAppPowerMode::Balanced);
 
     CZ_LOG(LogApplication, Info, "Applicatin Initialized");
 }
 
 void CApplication::Run() {
-    CZ_SCOPE_PERF("Total FrameTime");
+    m_Profiler->Flip();
+    CZ_SCOPE_PERF(EProfileSlot::TotalFrame);
 
-    float targetFrameTime = 0.0f;
-    if (m_IsMinimized) {
-        targetFrameTime = 1000.0f / 15.0f;
-    } else {
-        switch (m_PowerMode) {
-        case EAppPowerMode::Performance:
-            targetFrameTime = 0.0f;
-            break;
-        case EAppPowerMode::Balanced:
-            targetFrameTime = 16.67f;
-            break; // 60 FPS
-        case EAppPowerMode::PowerSaving:
-            targetFrameTime = 33.33f;
-            break; // 30 FPS
-        }
+    float time = m_AppTimer.ElapsedMillis();
+    float deltaTime = time - m_LastFrameTime;
+    m_LastFrameTime = time;
+
+    m_FPSCounter.Update(deltaTime);
+
+    {
+        CZ_SCOPE_PERF(EProfileSlot::Logic);
+        // Tick
+        m_Window->OnUpdate();
+        m_ImGuiLayer->Begin();
+        m_ImGuiLayer->Render([this]() {
+            for (ILayer* layer : m_LayerStack)
+                layer->OnImGuiRender();
+        });
+        m_ImGuiLayer->End();
+        m_RenderEngine->Tick();
     }
 
-    Timer frameTimer;
-    frameTimer.Reset();
-
-    // Tick
-    m_Window->OnUpdate();
-    m_ImGuiLayer->Begin();
-    for (ILayer* layer : m_LayerStack)
-        layer->OnImGuiRender();
-    m_ImGuiLayer->End();
-    m_RenderEngine->Tick();
-
-    float elapsed = frameTimer.ElapsedMillis();
-    float timeToWait = targetFrameTime - elapsed;
+    float workElapsed = m_AppTimer.ElapsedMillis() - time;
+    float timeToWait = m_TargetFrameTime - workElapsed;
     if (timeToWait > 0) {
         // Log wait time separately to see CPU headroom in Profiler
-        CZ_SCOPE_PERF("Wait Time");
+        CZ_SCOPE_PERF(EProfileSlot::Wait);
         Timer::Wait(timeToWait);
     }
 }

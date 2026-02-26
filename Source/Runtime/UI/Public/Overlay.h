@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UIExport.h"
 
 enum class EOverlayLocation {
     TopLeft = 0, // Default position, matches your current FPS counter.
@@ -11,14 +12,15 @@ enum class EOverlayLocation {
     Unknown
 };
 
-class Overlay {
+class UI_API Overlay {
 public:
     Overlay();
     ~Overlay();
 
-    void Draw(bool* bIsOpen, const std::function<void()>& contentRenderFn);
+    void Draw(const char* title, bool* bIsOpen, const std::function<void()>& contentRenderFn);
     void UpdateLocation(EOverlayLocation Location);
 
 private:
     int m_LocationIndex = 0;
+    ImVec2 m_LastSize = { 320.0f, 100.0f };
 };

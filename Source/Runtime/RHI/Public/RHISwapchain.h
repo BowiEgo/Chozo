@@ -30,5 +30,5 @@ public:
 protected:
     FRHISwapchainSpecification m_Spec;
     std::vector<TRef<IRHITexture2D>> m_ColorAttachments;
-    EPresentMode m_PresentMode = EPresentMode::FIFO_Relaxed;
+    EPresentMode m_PresentMode = EPresentMode::FIFO;
 };

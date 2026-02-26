@@ -3,8 +3,6 @@
 #include "LogMacros.h"
 #include "Logger.h"
 
-#include <unordered_map>
-
 class Timer {
 public:
     Timer() { Reset(); }
@@ -60,77 +58,82 @@ private:
     Timer m_Timer;
 };
 
-namespace ProfilerKeys {
-inline const std::string TotalFrame = "Total FrameTime";
-inline const std::string Render = "RenderPass";
-inline const std::string Logic = "LogicUpdate";
-inline const std::string Wait = "Wait Time";
-} // namespace ProfilerKeys
+enum class EProfileSlot : uint32_t {
+    TotalFrame = 0,
+    Render,
+    Logic,
+    Wait,
+    ImGui,
+    COUNT // Used for array sizing
+};
+
+// Keep human-readable names for UI display only
+const char* const GProfileSlotNames[] = { "Total FrameTime", "RenderPass", "LogicUpdate",
+                                          "Wait Time", "ImGui Render" };
+
+static_assert(sizeof(GProfileSlotNames) / sizeof(const char*) ==
+                  static_cast<uint32_t>(EProfileSlot::COUNT),
+              "Profiler slot names count mismatch!");
 
 class PerformanceProfiler {
-    struct PerFrameData {
+    struct SlotData {
         float Time = 0.0f;
         uint32_t Samples = 0;
 
-        PerFrameData() = default;
+        SlotData() = default;
 
-        PerFrameData(const float time) : Time(time) {} // NOLINT
+        SlotData(const float time) : Time(time) {} // NOLINT
 
         explicit operator float() const { return Time; }
-        inline PerFrameData& operator+=(const float time) {
+        inline SlotData& operator+=(const float time) {
             Time += time;
             return *this;
         }
+
+        void Reset() {
+            Time = 0.0f;
+            Samples = 0;
+        }
     };
 
-    using ProfilerMap = std::unordered_map<std::string, PerFrameData>;
-
 public:
-    void SetPerFrameTiming(const std::string& key, const float time) {
-        std::scoped_lock<std::mutex> lock(m_PerFrameDataMutex);
-
-        // operator[] will value-initialize PerFrameData if key doesn't exist
-        auto& data = m_PerFrameData[key];
-        data.Time += time;
-        data.Samples++;
+    void SetTiming(EProfileSlot slot, const float time) {
+        uint32_t index = static_cast<uint32_t>(slot);
+        if (index < static_cast<uint32_t>(EProfileSlot::COUNT)) {
+            m_Buffers[m_WriteIndex][index].Time += time;
+            m_Buffers[m_WriteIndex][index].Samples++;
+        }
     }
 
-    /**
-     * @brief Encapsulated lookup method.
-     * @return Pointer to data if found, nullptr otherwise.
-     * * Using pointer return to avoid copying large structures.
-     */
-    const PerFrameData* GetEntry(const std::string& key) const {
-        // No lock here if you only call this from the main UI thread
-        // after all Ticks are done. Otherwise, keep the lock.
-        auto it = m_PerFrameData.find(key);
-        return (it != m_PerFrameData.end()) ? &it->second : nullptr;
+    void Flip() {
+        uint32_t readIndex = m_WriteIndex;
+        m_WriteIndex = 1 - m_WriteIndex; // Toggle between 0 and 1
+        for (auto& slot : m_Buffers[m_WriteIndex])
+            slot.Reset();
     }
 
-    void Clear() {
-        std::scoped_lock<std::mutex> lock(m_PerFrameDataMutex);
-        m_PerFrameData.clear();
+    const SlotData& GetSlot(EProfileSlot slot) const {
+        uint32_t index = static_cast<uint32_t>(slot);
+        return m_Buffers[1 - m_WriteIndex][index];
     }
-
-    [[nodiscard]] const ProfilerMap& GetPerFrameData() const { return m_PerFrameData; }
 
 private:
-    ProfilerMap m_PerFrameData;
-    mutable std::mutex m_PerFrameDataMutex;
+    uint32_t m_WriteIndex = 0;
+    std::array<SlotData, static_cast<uint32_t>(EProfileSlot::COUNT)> m_Buffers[2];
 };
 
 class ScopePerfTimer {
 public:
-    ScopePerfTimer(const char* name, PerformanceProfiler* profiler)
-        : m_Name(name), m_Profiler(profiler) {}
+    ScopePerfTimer(const EProfileSlot slot, PerformanceProfiler* profiler)
+        : m_Slot(slot), m_Profiler(profiler) {}
 
     ~ScopePerfTimer() {
         float time = m_Timer.ElapsedMillis();
-        m_Profiler->SetPerFrameTiming(m_Name, time);
+        m_Profiler->SetTiming(m_Slot, time);
     }
 
 private:
-    const char* m_Name;
+    EProfileSlot m_Slot;
     PerformanceProfiler* m_Profiler;
     Timer m_Timer;
 };

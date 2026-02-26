@@ -104,7 +104,7 @@ void CVulkanImGuiRenderer::NewFrame() {
     ImGuiIO& io = ImGui::GetIO();
 }
 
-void CVulkanImGuiRenderer::Render(ImDrawData* drawData, const TRef<IRHICommandBuffer>& cmdBuffer) {
+void CVulkanImGuiRenderer::Draw(ImDrawData* drawData, const TRef<IRHICommandBuffer>& cmdBuffer) {
     if (!drawData || drawData->TotalVtxCount == 0) return;
 
     auto vlkCmdBuffer = cmdBuffer.As<CVulkanRHICommandBuffer>();
