@@ -97,8 +97,8 @@ void CVulkanImGuiRenderer::Shutdown() {
 }
 
 void CVulkanImGuiRenderer::NewFrame() {
-    ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
+    ImGui_ImplVulkan_NewFrame();
     ImGui::NewFrame();
 
     ImGuiIO& io = ImGui::GetIO();

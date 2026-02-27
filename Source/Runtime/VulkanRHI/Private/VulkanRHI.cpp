@@ -3,6 +3,10 @@
 #include "VulkanRHIPipeline.h"
 #include "VulkanUtils.h"
 
+#ifdef CZ_PLATFORM_MACOS
+    #include "MacUtils.h"
+#endif
+
 DEFINE_LOG_CATEGORY(LogVulkanRHI);
 
 extern "C" {
@@ -10,18 +14,18 @@ VULKAN_RHI_API IRHI* CreateVulkanRHI(const FRHICreateInfo& info) { return new CV
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
-    DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                  VkDebugUtilsMessageTypeFlagsEXT messageType,
-                  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+    DebugCallback(vk::DebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                  vk::DebugUtilsMessageTypeFlagsEXT messageType,
+                  const vk::DebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
 
-    // Log the validation layer message based on its severity
-    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+    // [Note] Access data using pCallbackData->pMessage (vulkan-hpp handles the pointer mapping)
+    if (messageSeverity >= vk::DebugUtilsMessageSeverityFlagBitsEXT::eError) {
         CZ_LOG(LogVulkanRHI, Error, "Validation Layer: {0}", pCallbackData->pMessage);
     } else {
         CZ_LOG(LogVulkanRHI, Warning, "Validation Layer: {0}", pCallbackData->pMessage);
     }
-    return VK_FALSE; // indicates that the Vulkan call that triggered the
-                     // validation layer message should not be aborted
+
+    return VK_FALSE;
 }
 
 CVulkanRHI::CVulkanRHI(const FRHICreateInfo& info) : m_Info(info) { Init(); }
@@ -50,6 +54,11 @@ void CVulkanRHI::CreateVKInstance() {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
 
+#ifdef CZ_PLATFORM_MACOS
+    extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+    extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+#endif
+
     // Check if the required GLFW extensions are supported by the Vulkan
     // implementation.
     if (!ChozoUtils::Vulkan::CheckInstanceExtensions(m_Context, extensions)) {
@@ -77,6 +86,10 @@ void CVulkanRHI::CreateVKInstance() {
                 static_cast<uint32_t>(ChozoUtils::Vulkan::ValidationLayers.size()))
             .setPpEnabledLayerNames(ChozoUtils::Vulkan::ValidationLayers.data());
     }
+
+#ifdef CZ_PLATFORM_MACOS
+    createInfo.setFlags(vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR);
+#endif
 
     // Create RAII Instance
     try {
@@ -129,6 +142,16 @@ void CVulkanRHI::CreateVKSurface() {
         // Implement Xlib/Wayland logic here...
 #elif defined(CZ_PLATFORM_MACOS)
         // Implement Metal/Cocoa logic here...
+        auto metalLayer = ChozoUtils::Mac::GetMetalLayerFromNSWindow(m_Info.NativeWindow);
+        vk::MetalSurfaceCreateInfoEXT createInfo;
+        createInfo.setPLayer(static_cast<const CAMetalLayer*>(metalLayer));
+
+        try {
+            m_Surface = vk::raii::SurfaceKHR(m_Instance, createInfo);
+            CZ_LOG(LogVulkanRHI, Info, "Vulkan Metal Surface created successfully.");
+        } catch (const std::exception& e) {
+            CZ_LOG(LogVulkanRHI, Fatal, "Failed to create Metal Surface: {0}", e.what());
+        }
 #endif
 
         CZ_LOG(LogVulkanRHI, Info, "Vulkan Surface created.");

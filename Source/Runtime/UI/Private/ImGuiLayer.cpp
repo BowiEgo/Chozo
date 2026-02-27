@@ -81,9 +81,8 @@ void CImGuiLayer::OnEvent(IEvent& e) {
 
     if (typeid(e) == typeid(FWindowContentScaledEvent)) {
         auto& scaledEvent = static_cast<FWindowContentScaledEvent&>(e);
-        auto dpi = scaledEvent.GetXScale();
 
-        // SetFont("/fonts/Titillium_Web/TitilliumWeb-Regular.ttf", dpi);
+        // SetFont("/fonts/Titillium_Web/TitilliumWeb-Regular.ttf");
         // ImGui_ImplOpenGL3_DestroyFontsTexture();
         // ImGui_ImplOpenGL3_CreateFontsTexture();
     }
@@ -95,8 +94,14 @@ void CImGuiLayer::Draw(const TRef<IRHICommandBuffer>& cmdBuffer) {
 
 void CImGuiLayer::Begin() {
     ImGuiIO& io = ImGui::GetIO();
-    auto fbSize = m_Window->GetFramebufferSize();
-    io.DisplaySize = ImVec2((float)fbSize.Width, (float)fbSize.Height);
+    auto logicalSize = m_Window->GetLogicalSize();
+    auto physicalSize = m_Window->GetPhysicalSize();
+    io.DisplaySize = ImVec2((float)physicalSize.Width, (float)physicalSize.Height);
+
+    if (logicalSize.Width > 0 && logicalSize.Height > 0) {
+        io.DisplayFramebufferScale = ImVec2((float)physicalSize.Width / logicalSize.Width,
+                                            (float)physicalSize.Height / logicalSize.Height);
+    }
 
     m_ImGuiRenderer->NewFrame();
 }
@@ -150,7 +155,6 @@ void CImGuiLayer::End() {
 }
 
 void CImGuiLayer::SetFont(std::string font) {
-    const auto dpi = m_Window->GetDPI();
     std::filesystem::path fontPath = VFS::Resolve("fonts://" + font);
 
     if (!std::filesystem::exists(fontPath)) {
@@ -159,10 +163,13 @@ void CImGuiLayer::SetFont(std::string font) {
     }
 
     ImGuiIO& io = ImGui::GetIO();
+    float fontSize = 18.0f;
+    float pixelRatio = m_Window->GetPixelRatio();
 
     io.Fonts->Clear();
-    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), 18.0f * dpi);
+    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * pixelRatio);
     io.FontDefault = io.Fonts->Fonts.back();
+    io.FontGlobalScale = 1.0f / pixelRatio;
 }
 
 void CImGuiLayer::SetDarkThemeColors() {

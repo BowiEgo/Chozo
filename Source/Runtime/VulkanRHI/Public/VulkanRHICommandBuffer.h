@@ -12,12 +12,12 @@ public:
                             const TRef<CVulkanRHIDevice>& device);
     virtual ~CVulkanRHICommandBuffer();
 
-    virtual void Begin() { m_Handle.begin({}); }
+    virtual void Begin() override { m_Handle.begin({}); }
     virtual void SetViewport(const FRHIViewport& viewport) override;
     virtual void SetScissor(const FRHIScissor& scissor) override;
     virtual void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex,
                       uint32_t firstInstance) override;
-    virtual void End() { m_Handle.end(); }
+    virtual void End() override { m_Handle.end(); }
     virtual void BindPipeline(TRef<IRHIPipeline> pipeline) override;
 
     const vk::CommandBuffer GetVKCommandBuffer() const { return *m_Handle; }

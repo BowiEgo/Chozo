@@ -7,7 +7,7 @@ CRenderer::~CRenderer() {}
 
 void CRenderer::Init() {
     FRHIWindowInfo windowInfo;
-    windowInfo.FrameBufferSize = m_Window->GetFramebufferSize();
+    windowInfo.FrameBufferSize = m_Window->GetPhysicalSize();
     windowInfo.NativeWindow = m_Window->GetNativeHandle();
     windowInfo.RequiredExtensions = m_Window->GetRequiredExtensions();
     m_Context = CreateScope<CGraphicsContext>(windowInfo);
@@ -29,7 +29,7 @@ void CRenderer::Init() {
 
     FFrameBufferSpecification fbSpec;
     fbSpec.Name = "SceneFrameBuffer";
-    fbSpec.Size = m_Window->GetFramebufferSize();
+    fbSpec.Size = m_Window->GetPhysicalSize();
     fbSpec.ColorFormats = { EPixelFormat::RGBA8_UNORM };
     fbSpec.DepthFormat = EPixelFormat::D32_SFLOAT;
 

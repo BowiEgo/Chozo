@@ -1,5 +1,3 @@
-#pragma once
-
 #include "StringUtils.h"
 
 #include <codecvt>
@@ -9,12 +7,12 @@ namespace ChozoUtils {
 
 namespace String {
 
-bool isNumeric(const std::string &str) {
+bool isNumeric(const std::string& str) {
     std::regex pattern(R"(^\d+$)");
     return std::regex_match(str, pattern);
 }
 
-std::string &ToLower(std::string &string) {
+std::string& ToLower(std::string& string) {
     std::transform(string.begin(), string.end(), string.begin(),
                    [](const unsigned char c) { return std::tolower(c); });
     return string;

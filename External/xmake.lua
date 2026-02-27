@@ -14,7 +14,11 @@ target("imgui")
     -- Crucial! Link against your system Vulkan and GLFW
     -- This resolves the LNK2019 errors once and for all.
     add_deps("VulkanSDK_Interface", {public = true})
-    add_links("vulkan-1", {public = true})
+    if is_plat("windows") then
+        add_links("vulkan-1", {public = true})
+    elseif is_plat("macosx") then
+        add_links("vulkan", {public = true})
+    end
 
     add_packages("glfw", {public = true})
 

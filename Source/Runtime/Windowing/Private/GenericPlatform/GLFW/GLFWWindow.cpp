@@ -47,7 +47,19 @@ void CGLFWWindow::SetVSync(bool enabled) { m_Definition.VSync = enabled; }
 
 bool CGLFWWindow::ShouldClose() const { return glfwWindowShouldClose(GetGLFWWindow()); }
 
-FExtent2D CGLFWWindow::GetFramebufferSize() const {
+FExtent2D CGLFWWindow::GetLogicalSize() const {
+    FExtent2D result;
+
+    int w, h;
+    glfwGetWindowSize(GetGLFWWindow(), &w, &h);
+
+    result.Width = w;
+    result.Height = h;
+
+    return result;
+}
+
+FExtent2D CGLFWWindow::GetPhysicalSize() const {
     FExtent2D result;
 
     int w, h;
@@ -81,9 +93,9 @@ FWindowHandle CGLFWWindow::GetNativeHandle() const {
 
 void CGLFWWindow::CreateGLFWWindow() {
     CZ_LOG(LogCGLFWWindow, Trace, "Creating window({1}, {2}) for {0}", m_Definition.Title,
-           m_Definition.Width, m_Definition.Height);
+           m_Definition.Size.Width, m_Definition.Size.Height);
 
-    const bool dimensionsInValid = m_Definition.Width <= 0 || m_Definition.Height <= 0;
+    const bool dimensionsInValid = m_Definition.Size.Width <= 0 || m_Definition.Size.Height <= 0;
     CZ_CORE_ASSERT(!dimensionsInValid, "CGLFWWindow: Invalid window dimensions!");
 
 #ifdef CZ_PLATFORM_WIN
@@ -99,47 +111,42 @@ void CGLFWWindow::CreateGLFWWindow() {
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    m_Window = glfwCreateWindow(m_Definition.Width, m_Definition.Height, m_Definition.Title.c_str(),
-                                nullptr, nullptr);
+    m_Window = glfwCreateWindow(m_Definition.Size.Width, m_Definition.Size.Height,
+                                m_Definition.Title.c_str(), nullptr, nullptr);
 
     // Set user pointer to access WindowData in callbacks
     auto glfwWindow = GetGLFWWindow();
     glfwSetWindowUserPointer(GetGLFWWindow(), &m_Definition);
 
     // Pixel ratio
-    int windowWidth, windowHeight;
-    int fbWidth, fbHeight;
-    glfwGetWindowSize(GetGLFWWindow(), &windowWidth, &windowHeight);
-    glfwGetFramebufferSize(GetGLFWWindow(), &fbWidth, &fbHeight);
-    m_Definition.PixelRatio = (float)fbWidth / (float)windowWidth;
+    int logicalWidth, logicalHeight;
+    int physicalWidth, physicalHeight;
+    glfwGetWindowSize(GetGLFWWindow(), &logicalWidth, &logicalHeight);
+    glfwGetFramebufferSize(GetGLFWWindow(), &physicalWidth, &physicalHeight);
+    m_Definition.Size.Width = logicalWidth;
+    m_Definition.Size.Height = logicalHeight;
+    m_Definition.PixelRatio = (float)physicalWidth / (float)logicalWidth;
 
-    // DPI Scaling
-    float xscale, yscale, factor = 1.0f;
-#ifdef CZ_PLATFORM_MACOS
-    factor = 0.5f;
-#endif
+    // Render Scaling
+    float xscale, yscale = 1.0f;
     glfwGetWindowContentScale(GetGLFWWindow(), &xscale, &yscale);
-    m_Definition.XScale = xscale * factor;
-    m_Definition.YScale = yscale * factor;
+    m_Definition.XScale = xscale;
+    m_Definition.YScale = yscale;
 
     CZ_LOG(LogCGLFWWindow, Info, "GLFW Window for Vulkan created.");
 
-    SetVSync(false);
+    SetVSync(false); // TODO: Remove
 }
 
 void CGLFWWindow::SetGLFWCallbacks() {
     glfwSetWindowContentScaleCallback(
         GetGLFWWindow(), [](GLFWwindow* window, float xscale, float yscale) {
-            float factor = 1.0f;
-#ifdef CZ_PLATFORM_MACOS
-            factor = 0.75f;
-#endif
-
             FWindowDefinition& def = *(FWindowDefinition*)glfwGetWindowUserPointer(window);
-            def.XScale = xscale * factor;
-            def.YScale = yscale * factor;
+            def.XScale = xscale;
+            def.YScale = yscale;
 
             FWindowContentScaledEvent event(def.XScale, def.YScale);
             def.EventCallback(event);
@@ -147,8 +154,7 @@ void CGLFWWindow::SetGLFWCallbacks() {
 
     glfwSetWindowSizeCallback(GetGLFWWindow(), [](GLFWwindow* window, int width, int height) {
         FWindowDefinition& def = *(FWindowDefinition*)glfwGetWindowUserPointer(window);
-        def.Width = width;
-        def.Height = height;
+        def.Size = { (unsigned int)width, (unsigned int)height };
 
         FWindowResizedEvent event(width, height);
         def.EventCallback(event);
@@ -168,24 +174,22 @@ void CGLFWWindow::SetGLFWCallbacks() {
             // ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 
             switch (action) {
-            case GLFW_PRESS: {
-                FKeyPressedEvent event((EKeyCode)key, 0);
-                def.EventCallback(event);
-                break;
-            }
-            case GLFW_RELEASE: {
-                FKeyReleasedEvent event((EKeyCode)key);
-                def.EventCallback(event);
-                break;
-            }
-            case GLFW_REPEAT: {
-                FKeyPressedEvent event((EKeyCode)key, 1);
-                def.EventCallback(event);
-                break;
-            }
-            default:
-                break;
-                ;
+                case GLFW_PRESS: {
+                    FKeyPressedEvent event((EKeyCode)key, 0);
+                    def.EventCallback(event);
+                    break;
+                }
+                case GLFW_RELEASE: {
+                    FKeyReleasedEvent event((EKeyCode)key);
+                    def.EventCallback(event);
+                    break;
+                }
+                case GLFW_REPEAT: {
+                    FKeyPressedEvent event((EKeyCode)key, 1);
+                    def.EventCallback(event);
+                    break;
+                }
+                default: break; ;
             }
         });
 
@@ -200,19 +204,17 @@ void CGLFWWindow::SetGLFWCallbacks() {
             FWindowDefinition& def = *(FWindowDefinition*)glfwGetWindowUserPointer(window);
 
             switch (action) {
-            case GLFW_PRESS: {
-                FMouseButtonPressedEvent event((EMouseButton)button);
-                def.EventCallback(event);
-                break;
-            }
-            case GLFW_RELEASE: {
-                FMouseButtonReleasedEvent event((EMouseButton)button);
-                def.EventCallback(event);
-                break;
-            }
-            default:
-                break;
-                ;
+                case GLFW_PRESS: {
+                    FMouseButtonPressedEvent event((EMouseButton)button);
+                    def.EventCallback(event);
+                    break;
+                }
+                case GLFW_RELEASE: {
+                    FMouseButtonReleasedEvent event((EMouseButton)button);
+                    def.EventCallback(event);
+                    break;
+                }
+                default: break; ;
             }
         });
 

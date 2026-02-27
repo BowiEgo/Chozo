@@ -39,8 +39,13 @@ void CVulkanRHIDevice::PickPhysicalDevice(const vk::raii::Instance& instance) {
             return !!(qfp.queueFlags & vk::QueueFlagBits::eGraphics);
         });
 
-        // Check if all required device extensions are available
+        // [Note] Get all available extensions for this specific physical device
         auto availableDeviceExtensions = device.enumerateDeviceExtensionProperties();
+        // [Note] Required check: If "VK_KHR_portability_subset" exists, it MUST be enabled
+        bool needsPortability = std::ranges::any_of(availableDeviceExtensions, [](auto const& ext) {
+            return strcmp(ext.extensionName, "VK_KHR_portability_subset") == 0;
+        });
+        // [Note] Update member variable m_RequiredDeviceExtension for this specific device
         bool supportsAllRequiredExtensions = std::ranges::all_of(
             m_RequiredDeviceExtension,
             [&availableDeviceExtensions](auto const& m_RequiredDeviceExtension) {
@@ -69,10 +74,17 @@ void CVulkanRHIDevice::PickPhysicalDevice(const vk::raii::Instance& instance) {
     });
     if (devIter != devices.end()) {
         m_PhysicalDevice = *devIter;
-        auto deviceProperties = m_PhysicalDevice.getProperties();
-        auto deviceFeatures = m_PhysicalDevice.getFeatures();
 
-        ChozoUtils::Vulkan::LogPhysicalDeviceInfo(deviceProperties);
+        // [Note] Finalize the extension list for the chosen device
+        auto availableExts = m_PhysicalDevice.enumerateDeviceExtensionProperties();
+        for (auto const& ext : availableExts) {
+            if (strcmp(ext.extensionName, "VK_KHR_portability_subset") == 0) {
+                m_RequiredDeviceExtension.push_back("VK_KHR_portability_subset");
+                break;
+            }
+        }
+
+        ChozoUtils::Vulkan::LogPhysicalDeviceInfo(m_PhysicalDevice.getProperties());
         ChozoUtils::Vulkan::LogMemoryBudget(m_PhysicalDevice);
     } else {
         CZ_LOG(LogVulkanRHIDevice, Fatal, "Failed to find GPUs with Vulkan support");
@@ -216,26 +228,37 @@ vk::DescriptorSetLayout CVulkanRHIDevice::GetDescriptorSetLayout(EDescriptorLayo
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
 
     switch (type) {
-    case EDescriptorLayoutType::CombinedImageSampler: {
-        // Standard binding for a texture and its sampler.
-        vk::DescriptorSetLayoutBinding binding;
-        binding.setBinding(0)
-            .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-            .setDescriptorCount(1)
-            .setStageFlags(vk::ShaderStageFlagBits::eFragment) // Typically for UI/Fragment
-            .setPImmutableSamplers(nullptr);
-        bindings.push_back(binding);
-        break;
-    }
-    case EDescriptorLayoutType::UniformBuffer: {
-        vk::DescriptorSetLayoutBinding binding;
-        binding.setBinding(0)
-            .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-            .setDescriptorCount(1)
-            .setStageFlags(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment);
-        bindings.push_back(binding);
-        break;
-    }
+        case EDescriptorLayoutType::CombinedImageSampler: {
+            // Standard binding for a texture and its sampler.
+            vk::DescriptorSetLayoutBinding binding;
+            binding.setBinding(0)
+                .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+                .setDescriptorCount(1)
+                .setStageFlags(vk::ShaderStageFlagBits::eFragment) // Typically for UI/Fragment
+                .setPImmutableSamplers(nullptr);
+            bindings.push_back(binding);
+            break;
+        }
+        case EDescriptorLayoutType::UniformBuffer: {
+            vk::DescriptorSetLayoutBinding binding;
+            binding.setBinding(0)
+                .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                .setDescriptorCount(1)
+                .setStageFlags(vk::ShaderStageFlagBits::eVertex |
+                               vk::ShaderStageFlagBits::eFragment);
+            bindings.push_back(binding);
+            break;
+        }
+        case EDescriptorLayoutType::StorageImage: {
+            // vk::DescriptorSetLayoutBinding binding;
+            // binding.setBinding(0)
+            //     .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+            //     .setDescriptorCount(1)
+            //     .setStageFlags(vk::ShaderStageFlagBits::eVertex |
+            //     vk::ShaderStageFlagBits::eFragment);
+            // bindings.push_back(binding);
+            break;
+        }
     }
 
     layoutInfo.setBindings(bindings);

@@ -20,20 +20,19 @@ public:
     virtual void SetEventCallback(const FEventCallback& callback) = 0;
 
     // from IRendererWindow
-    virtual FExtent2D GetFramebufferSize() const override = 0;
+    virtual FExtent2D GetLogicalSize() const override = 0;
+    virtual FExtent2D GetPhysicalSize() const override = 0;
     virtual std::vector<const char*> GetRequiredExtensions() const override = 0;
     virtual FWindowHandle GetWindowWrapper() const override { return m_Window; }
-    virtual FWindowHandle GetNativeHandle() const = 0;
+    virtual FWindowHandle GetNativeHandle() const override = 0;
 
-    unsigned int GetWidth() const { return m_Definition.Width; }
-    unsigned int GetHeight() const { return m_Definition.Height; }
+    FExtent2D GetSize() const { return m_Definition.Size; }
     float GetPixelRatio() const { return m_Definition.PixelRatio; }
     bool IsVSync() const { return m_Definition.VSync; }
-    float GetDPI() const { return m_Definition.XScale; }
 
     static TScope<CWindow> Create(const FWindowDefinition& windowDef);
 
 protected:
     FWindowDefinition m_Definition;
-    FWindowHandle m_Window{nullptr};
+    FWindowHandle m_Window{ nullptr };
 };

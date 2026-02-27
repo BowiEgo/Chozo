@@ -26,7 +26,8 @@ public:
     }
 
     // from IRendererWindow
-    virtual FExtent2D GetFramebufferSize() const override;
+    virtual FExtent2D GetLogicalSize() const override;
+    virtual FExtent2D GetPhysicalSize() const override;
     virtual std::vector<const char*> GetRequiredExtensions() const override;
     virtual FWindowHandle GetNativeHandle() const override;
 

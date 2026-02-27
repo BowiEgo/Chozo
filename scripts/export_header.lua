@@ -16,7 +16,7 @@ rule("export_header")
 
         local prefix = get_api_prefix(target:name())
         local header_name = target:name() .. "Export.h"
-        local gen_dir = path.join(vformat("$(builddir)"), ".gens", target:name(), "include")
+        local gen_dir = path.join(target:autogendir(), "include")
         local header_path = path.join(gen_dir, header_name)
 
         local lines = {

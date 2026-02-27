@@ -51,8 +51,7 @@ void CApplication::Init(const std::string& name) {
         // Setup Window
         FWindowDefinition def;
         def.Title = name;
-        def.Width = WINDOW_WIDTH;
-        def.Height = WINDOW_HEIGHT;
+        def.Size = { WINDOW_WIDTH, WINDOW_HEIGHT };
 
         m_Window = CWindow::Create(def);
         CZ_CORE_ASSERT(m_Window, "App: Failed to create window!");

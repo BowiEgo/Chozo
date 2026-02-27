@@ -55,8 +55,19 @@ includes("Source/Sandbox")
 target("VulkanSDK_Interface")
     set_kind("headeronly")
     if sdk_path then
-        add_includedirs(path.join(sdk_path, "Include"), {public = true})
-        add_linkdirs(path.join(sdk_path, "Lib"), {public = true})
+        -- add_includedirs(path.join(sdk_path, "Include"), {public = true})
+        -- add_linkdirs(path.join(sdk_path, "Lib"), {public = true})
+
+        if is_plat("windows") then
+            add_includedirs(path.join(sdk_path, "Include"), {public = true})
+            add_linkdirs(path.join(sdk_path, "Lib"), {public = true})
+            -- add_links("vulkan-1", {public = true})
+        else
+            add_includedirs(path.join(sdk_path, "include"), {public = true})
+            add_rpathdirs(path.join(sdk_path, "lib"), {public = true})
+            add_linkdirs(path.join(sdk_path, "lib"), {public = true})
+            -- add_links("vulkan", {public = true}) -- [Note] On Mac, link to libvulkan.dylib
+        end
     end
 
 target("CopyBinaries")
@@ -70,11 +81,15 @@ target("CopyBinaries")
         
         -- The directory where your final executable stays (e.g., bin/windows/x64/debug)
         local outdir = target:targetdir()
-        local dlls = {}
+        -- local dlls = {}
+        local bin_files = {}
+        local is_win = is_plat("windows")
 
         local vulkan_sdk_path = os.getenv("VULKAN_SDK")
         if vulkan_sdk_path then
-            table.insert(dlls, path.join(vulkan_sdk_path, "Bin/shaderc_shared.dll"))
+            local shaderc_name = is_win and "shaderc_shared.dll" or "libshaderc_shared.dylib"
+            local shaderc_path = path.join(sdk_path, is_win and "Bin" or "lib", shaderc_name)
+            table.insert(bin_files, shaderc_path)
         else
             cprint("${yellow}[CopyBinaries]:${clear} Warning - VULKAN_SDK environment variable not found!")
         end
@@ -83,25 +98,21 @@ target("CopyBinaries")
         if windowing then
             local glfw_pkg = windowing:pkg("glfw")
             if glfw_pkg then
-                local pkg_installdir = glfw_pkg:installdir()
-                -- Check both bin and lib for the dll
-                local possible_paths = {
-                    path.join(pkg_installdir, "bin/glfw3.dll"),
-                    path.join(pkg_installdir, "lib/glfw3.dll"),
-                    path.join(pkg_installdir, "glfw3.dll")
-                }
-                
+                local pkg_dir = glfw_pkg:installdir()
+                local lib_name = is_win and "glfw3.dll" or "libglfw.3.dylib"
+                local search_paths = {path.join(pkg_dir, "bin"), path.join(pkg_dir, "lib")}
                 local found = false
-                for _, p in ipairs(possible_paths) do
-                    if os.isfile(p) then
-                        table.insert(dlls, p)
+                for _, p in ipairs(search_paths) do
+                    local full_path = path.join(p, lib_name)
+                    if os.isfile(full_path) then
+                        table.insert(bin_files, full_path)
                         found = true
                         break
                     end
                 end
 
                 if not found then
-                    cprint("${yellow}[CopyBinaries]:${clear} Warning - glfw3.dll not found in pkg dir: %s", pkg_installdir)
+                    cprint("${yellow}[CopyBinaries]:${clear} Warning - glfw3.dll not found in pkg dir: %s", pkg_dir)
                 end
             end
         end

@@ -65,14 +65,27 @@ private:
                      const std::string& Message);
 };
 
+#if defined(__clang__)
+    #define CZ_DISABLE_TAUTOLOGICAL_WARNING                                                        \
+        _Pragma("clang diagnostic push")                                                           \
+            _Pragma("clang diagnostic ignored \"-Wtautological-compare\"")
+    #define CZ_ENABLE_TAUTOLOGICAL_WARNING _Pragma("clang diagnostic pop")
+#else
+    #define CZ_DISABLE_TAUTOLOGICAL_WARNING
+    #define CZ_ENABLE_TAUTOLOGICAL_WARNING
+#endif
+
 #define CZ_LOG(Category, Verbosity, Format, ...)                                                   \
     do {                                                                                           \
-        if (ELogVerbosity::Verbosity <= CZ_LOG_LEVEL) {                                            \
+        CZ_DISABLE_TAUTOLOGICAL_WARNING                                                            \
+        if (static_cast<uint8_t>(ELogVerbosity::Verbosity) <=                                      \
+            static_cast<uint8_t>(CZ_LOG_LEVEL)) {                                                  \
             FLogger::Get().Log(#Category, ELogVerbosity::Verbosity, Format, ##__VA_ARGS__);        \
             if (ELogVerbosity::Verbosity == ELogVerbosity::Fatal) {                                \
                 CZ_DEBUGBREAK();                                                                   \
             }                                                                                      \
         }                                                                                          \
+        CZ_ENABLE_TAUTOLOGICAL_WARNING                                                             \
     } while (0)
 
 #define CZ_CORE_LOG(Verbosity, Format, ...) CZ_LOG(Core, Verbosity, Format, ##__VA_ARGS__)
