@@ -1,15 +1,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GraphicsContext.h"
 #include "Module.h"
+#include "RHICommandList.h"
+#include "RHIContext.h"
+#include "RHIFrameBuffer.h"
 #include "RenderCoreExport.h"
 #include "RendererWindow.h"
 #include "Scope.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRenderer, Info);
 
-using FOnRenderUI = std::function<void(const TRef<IRHICommandBuffer>&)>;
+struct FFrameResource {
+    TRef<IRHICommandPool> CommandPool;
+    TRef<IRHICommandList> CommandBuffer;
+    TRef<IRHISyncObject> RenderFence;
+};
+
+using FOnRenderUI = std::function<void(const TRef<IRHICommandList>&)>;
 
 class RENDER_CORE_API CRenderer {
     static const int MAX_FRAMES_IN_FLIGHT = 3;
@@ -23,20 +31,28 @@ public:
     void Shutdown();
 
     void SetUICallback(FOnRenderUI callback) { m_UICallback = std::move(callback); }
+    void SetPresentMode(const EPresentMode mode) {
+        m_GraphicContext->GetSwapchain()->SetPresentMode(mode);
+    }
+    void RecreateSwapchain(const FExtent2D& frameBufferSize) {
+        m_GraphicContext->GetSwapchain()->Recreate(frameBufferSize);
+    }
 
-    CGraphicsContext* GetGraphicsContext() const { return m_Context.get(); }
-    TRef<IRHICommandBuffer> GetCommandBuffer() const { return m_CommandBuffers[m_CurrentFrame]; }
+    IRendererWindow* GetWindow() const { return m_Window; }
+    IRHIContext* GetGraphicContext() const { return m_GraphicContext.get(); }
+    TRef<IRHICommandList> GetCommandBuffer() const {
+        return m_Frames[m_CurrentFrameIndex].CommandBuffer;
+    }
     TRef<IRHIFrameBuffer> GetSceneFrameBuffer() const { return m_SceneFrameBuffer; }
 
 private:
     CModule m_RHIModule;
 
     IRendererWindow* m_Window;
-    TScope<CGraphicsContext> m_Context;
+    TScope<IRHIContext> m_GraphicContext;
 
-    TRef<IRHISyncObject> m_SyncObjects[MAX_FRAMES_IN_FLIGHT];
-    TRef<IRHICommandBuffer> m_CommandBuffers[MAX_FRAMES_IN_FLIGHT];
-    uint32_t m_CurrentFrame = 0;
+    FFrameResource m_Frames[MAX_FRAMES_IN_FLIGHT];
+    uint32_t m_CurrentFrameIndex = 0;
 
     TRef<IRHIPipeline> m_ScenePipeline;
 

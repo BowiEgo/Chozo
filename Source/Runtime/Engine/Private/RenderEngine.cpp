@@ -1,5 +1,7 @@
 #include "RenderEngine.h"
 
+#include "RHIContext.h"
+
 DEFINE_LOG_CATEGORY(LogRenderEngine);
 
 CRenderEngine::~CRenderEngine() {}
@@ -32,5 +34,5 @@ void CRenderEngine::OnWindowResize(FWindowResizedEvent& e) {
     FExtent2D frameBufferSize;
     frameBufferSize.Width = e.GetWidth();
     frameBufferSize.Height = e.GetHeight();
-    m_Renderer->GetGraphicsContext()->GetRHI()->GetSwapchain()->RecreateSwapchain(frameBufferSize);
+    m_Renderer->RecreateSwapchain(frameBufferSize);
 }

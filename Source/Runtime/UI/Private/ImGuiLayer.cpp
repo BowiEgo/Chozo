@@ -17,19 +17,18 @@ DEFINE_LOG_CATEGORY(LogImGuiLayer);
 //     return FImVec2(lhs.x - rhs.x, lhs.y - rhs.y);
 // }
 
-CImGuiLayer::CImGuiLayer(CWindow* window, CRenderer* renderer)
-    : ILayer("ImGuiLayer"), m_Window(window), m_Renderer(renderer) {
-    m_ImGuiRenderer = CreateRenderer(window, m_Renderer->GetGraphicsContext());
+CImGuiLayer::CImGuiLayer(CWindow* window, IRHIContext* rhiContext)
+    : ILayer("ImGuiLayer"), m_Window(window) {
+    m_ImGuiRenderer = CreateRenderer(window, rhiContext);
 }
 
 CImGuiLayer::~CImGuiLayer() {}
 
-TScope<IImGuiRenderer> CImGuiLayer::CreateRenderer(CWindow* window, CGraphicsContext* context) {
+TScope<IImGuiRenderer> CImGuiLayer::CreateRenderer(CWindow* window, IRHIContext* rhiContext) {
 
     if (m_RHIModule.Load(ChozoUitls::Module::GetPlatformLibName("VulkanImGui"))) {
-        return TScope<IImGuiRenderer>(
-            m_RHIModule.Invoke<IImGuiRenderer*(CWindow*, CGraphicsContext*)>(
-                "CreateVulkanImGuiRenderer", window, context));
+        return TScope<IImGuiRenderer>(m_RHIModule.Invoke<IImGuiRenderer*(CWindow*, IRHIContext*)>(
+            "CreateVulkanImGuiRenderer", window, rhiContext));
     }
 
     CZ_LOG(LogImGuiLayer, Error, "Unsupported RendererAPI for ImGuiRenderer!");
@@ -88,20 +87,20 @@ void CImGuiLayer::OnEvent(IEvent& e) {
     }
 }
 
-void CImGuiLayer::Draw(const TRef<IRHICommandBuffer>& cmdBuffer) {
+void CImGuiLayer::Draw(const TRef<IRHICommandList>& cmdBuffer) {
     m_ImGuiRenderer->Draw(ImGui::GetDrawData(), cmdBuffer);
 }
 
 void CImGuiLayer::Begin() {
     ImGuiIO& io = ImGui::GetIO();
-    auto logicalSize = m_Window->GetLogicalSize();
-    auto physicalSize = m_Window->GetPhysicalSize();
-    io.DisplaySize = ImVec2((float)physicalSize.Width, (float)physicalSize.Height);
+    auto logicalSize = m_Window->GetSize();
+    // auto physicalSize = m_Window->GetFrameBufferSize();
+    io.DisplaySize = ImVec2((float)logicalSize.Width, (float)logicalSize.Height);
 
-    if (logicalSize.Width > 0 && logicalSize.Height > 0) {
-        io.DisplayFramebufferScale = ImVec2((float)physicalSize.Width / logicalSize.Width,
-                                            (float)physicalSize.Height / logicalSize.Height);
-    }
+    // if (logicalSize.Width > 0 && logicalSize.Height > 0) {
+    //     io.DisplayFramebufferScale = ImVec2((float)physicalSize.Width / logicalSize.Width,
+    //                                         (float)physicalSize.Height / logicalSize.Height);
+    // }
 
     m_ImGuiRenderer->NewFrame();
 }
@@ -164,12 +163,12 @@ void CImGuiLayer::SetFont(std::string font) {
 
     ImGuiIO& io = ImGui::GetIO();
     float fontSize = 18.0f;
-    float pixelRatio = m_Window->GetPixelRatio();
+    // float pixelRatio = m_Window->GetPixelRatio();
 
     io.Fonts->Clear();
-    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * pixelRatio);
+    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * 2.0f); // TODO: Adjust
     io.FontDefault = io.Fonts->Fonts.back();
-    io.FontGlobalScale = 1.0f / pixelRatio;
+    // io.FontGlobalScale = 1.0f / pixelRatio;
 }
 
 void CImGuiLayer::SetDarkThemeColors() {

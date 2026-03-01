@@ -78,7 +78,7 @@ private:
     std::map<std::string, std::string> m_Macros;
 };
 
-struct FUniformInfo {
+struct FUniformSpecification {
     std::string type;
     std::string name;
     std::string resourceName;
@@ -96,7 +96,7 @@ struct FAttributeInfo {
 };
 
 struct FShaderReflection {
-    std::vector<FUniformInfo> uniforms;
+    std::vector<FUniformSpecification> uniforms;
     std::vector<FAttributeInfo> attributes;
     std::unordered_map<std::string, uint32_t> uniformLocations;
 };
@@ -147,3 +147,34 @@ enum class EPresentMode {
 
     Unkown
 };
+
+/**
+ * ECommandPoolFlags - Maps to underlying API flags (e.g., VkCommandPoolCreateFlagBits).
+ * Defines the memory allocation behavior and reset capabilities of the pool.
+ */
+enum class ECommandPoolFlags : uint32_t {
+    None = 0,
+
+    /** * Indicates that command buffers allocated from the pool are short-lived
+     * and will be reset or freed in a relatively short period.
+     * Maps to VK_COMMAND_POOL_CREATE_TRANSIENT_BIT.
+     */
+    Transient = 1 << 0,
+
+    /** * Allows command buffers allocated from this pool to be reset individually.
+     * Without this flag, the entire pool must be reset to reuse memory.
+     * Maps to VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT.
+     */
+    ResetCommandBuffer = 1 << 1,
+
+    /** * Allocated command buffers will be protected from unauthorized access.
+     * Maps to VK_COMMAND_POOL_CREATE_PROTECTED_BIT.
+     */
+    Protected = 1 << 2,
+
+    // Default configuration for most rendering scenarios
+    Default = ResetCommandBuffer
+};
+
+// Enable bitwise operations for the enum class
+ENUM_CLASS_FLAGS(ECommandPoolFlags);

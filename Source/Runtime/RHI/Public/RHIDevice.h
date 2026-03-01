@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RHICommandPool.h"
 #include "RHIExport.h"
 #include "RHIPipeline.h"
 #include "RHISyncObject.h"
@@ -8,9 +9,9 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogRHIDevice, Info);
 
 class IRHIShader;
-struct FRHIShaderCreateInfo;
+struct FShaderSpecification;
 
-struct FRHIDeviceCreateInfo {
+struct FDeviceSpecification {
     // --- Debugging ---
     bool bEnableValidationLayers = true;
     bool bEnableGPUProfiling = false;
@@ -27,16 +28,8 @@ struct FRHIDeviceCreateInfo {
 
 class RHI_API IRHIDevice : public FRefCounted {
 public:
-    IRHIDevice(const FRHIDeviceCreateInfo& info);
+    IRHIDevice(const FDeviceSpecification& spec);
     virtual ~IRHIDevice();
-
-    // --- Shader Resource Factory ---
-    virtual TRef<IRHIShader> CreateShader(const FRHIShaderCreateInfo& info,
-                                          const std::vector<uint32_t>* binary) const = 0;
-
-    virtual TRef<IRHIPipeline> CreatePipeline(const FRHIPipelineCreateInfo& info) const = 0;
-
-    virtual TRef<IRHISyncObject> CreateSyncObject() const = 0;
 
     // --- Future extensions ---
     // virtual TRef<IRHIBuffer> CreateBuffer(const FRHIBufferDesc& desc) = 0;
@@ -47,6 +40,8 @@ public:
      */
     virtual void WaitIdle() = 0;
 
+    virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec) = 0;
+
 protected:
-    FRHIDeviceCreateInfo m_Info;
+    FDeviceSpecification m_Spec;
 };

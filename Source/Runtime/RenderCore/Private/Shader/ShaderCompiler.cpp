@@ -19,24 +19,12 @@ static const std::string GetSPIRType(const spirv_cross::SPIRType& type) {
     std::string result;
 
     switch (type.basetype) {
-    case spirv_cross::SPIRType::BaseType::Boolean:
-        result = "bool";
-        break;
-    case spirv_cross::SPIRType::BaseType::Int:
-        result = "int";
-        break;
-    case spirv_cross::SPIRType::BaseType::UInt:
-        result = "uint";
-        break;
-    case spirv_cross::SPIRType::BaseType::Float:
-        result = "float";
-        break;
-    case spirv_cross::SPIRType::BaseType::Double:
-        result = "double";
-        break;
-    default:
-        result = "unknown";
-        break;
+        case spirv_cross::SPIRType::BaseType::Boolean: result = "bool"; break;
+        case spirv_cross::SPIRType::BaseType::Int: result = "int"; break;
+        case spirv_cross::SPIRType::BaseType::UInt: result = "uint"; break;
+        case spirv_cross::SPIRType::BaseType::Float: result = "float"; break;
+        case spirv_cross::SPIRType::BaseType::Double: result = "double"; break;
+        default: result = "unknown"; break;
     }
 
     // If it's a vector or matrix, print the dimensions
@@ -90,15 +78,15 @@ static void ReflectSPIRReSource(const spirv_cross::Compiler& compiler,
         // CZ_LOG(LogShaderCompiler, Trace, "    Size: {0}", memberSize);
         // CZ_LOG(LogShaderCompiler, Trace, "    Offset: {0}", memberOffset);
 
-        FUniformInfo info;
-        info.name = memberName;
-        info.resourceName = bufferName;
-        info.type = SPIRType;
-        info.size = memberSize;
-        info.location = memberOffset;
+        FUniformSpecification spec;
+        spec.name = memberName;
+        spec.resourceName = bufferName;
+        spec.type = SPIRType;
+        spec.size = memberSize;
+        spec.location = memberOffset;
 
-        reflection.uniforms.emplace_back(info);
-        reflection.uniformLocations[info.name] = memberOffset;
+        reflection.uniforms.emplace_back(spec);
+        reflection.uniformLocations[spec.name] = memberOffset;
     }
 }
 } // namespace ShaderUtils
@@ -138,21 +126,21 @@ void CShaderCompiler::PreProcess(const FShaderCompilerInput& input,
 
 FShaderReflection CShaderCompiler::Reflect() { return FShaderReflection{}; }
 
-bool CShaderCompiler::Compile(const FShaderCreateInfo& info, FShaderCompilerOutput& output) {
-    CZ_LOG(LogShaderCompiler, Trace, "Compiling Shader: {} in Stage: {}", info.Name,
-           ChozoUtils::Shader::StageToString(info.Stage));
+bool CShaderCompiler::Compile(const FShaderSpecification& spec, FShaderCompilerOutput& output) {
+    CZ_LOG(LogShaderCompiler, Trace, "Compiling Shader: {} in Stage: {}", spec.Name,
+           ChozoUtils::Shader::StageToString(spec.Stage));
 
     FShaderCompilerInput input;
-    input.VirtualPath = info.VirtualPath;
-    input.Stage = info.Stage;
-    input.Macros.Add(info.Definitions);
+    input.VirtualPath = spec.VirtualPath;
+    input.Stage = spec.Stage;
+    input.Macros.Add(spec.Definitions);
 
     bool success = CompileInternal(input, output);
 
     if (success) {
-        CZ_LOG(LogShaderCompiler, Info, "Shader: {} Compiled", info.Name);
+        CZ_LOG(LogShaderCompiler, Info, "Shader: {} Compiled", spec.Name);
     } else {
-        CZ_LOG(LogShaderCompiler, Error, "Failed to Compile Shader: {}", info.Name);
+        CZ_LOG(LogShaderCompiler, Error, "Failed to Compile Shader: {}", spec.Name);
     }
 
     return success;
@@ -179,8 +167,7 @@ bool CShaderCompiler::CompileInternal(const FShaderCompilerInput& input,
                                       FShaderCompilerOutput& output) {
     const std::filesystem::path sourcePath = VFS::Resolve(input.VirtualPath);
     std::string source = GetOrLoadSource(sourcePath);
-    if (source.empty())
-        return false;
+    if (source.empty()) return false;
 
     PreProcess(input, source);
 
@@ -208,7 +195,7 @@ bool CShaderCompiler::CompileInternal(const FShaderCompilerInput& input,
         return false;
     }
 
-    output.Binary = {result.cbegin(), result.cend()};
+    output.Binary = { result.cbegin(), result.cend() };
     // Perform Reflection (Optional: use SPIRV-Reflect library)
     // output.Reflection = Reflect(output.Binary);
     output.bSucceeded = true;

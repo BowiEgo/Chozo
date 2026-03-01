@@ -11,8 +11,12 @@ class RENDER_CORE_API IRendererWindow {
 public:
     virtual ~IRendererWindow() = default;
 
-    virtual FExtent2D GetLogicalSize() const = 0;
-    virtual FExtent2D GetPhysicalSize() const = 0;
+    virtual void SetVSync(bool enabled) = 0;
+    virtual bool IsVSyncEnabled() const = 0;
+    virtual bool CheckAndResetVSyncDirty() = 0;
+
+    virtual FExtent2D GetSize() const = 0;
+    virtual FExtent2D GetFrameBufferSize() const = 0;
     virtual std::vector<const char*> GetRequiredExtensions() const = 0;
     virtual FWindowHandle GetWindowWrapper() const = 0;
     virtual FWindowHandle

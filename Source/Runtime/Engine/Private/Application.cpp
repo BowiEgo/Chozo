@@ -62,11 +62,12 @@ void CApplication::Init(const std::string& name) {
         m_RenderEngine = CreateScope<CRenderEngine>(m_Window.get());
         m_RenderEngine->Init();
 
-        m_ImGuiLayer = new CImGuiLayer(m_Window.get(), m_RenderEngine->GetRenderer());
+        m_ImGuiLayer =
+            new CImGuiLayer(m_Window.get(), m_RenderEngine->GetRenderer()->GetGraphicContext());
         PushLayer(m_ImGuiLayer);
 
         m_RenderEngine->GetRenderer()->SetUICallback(
-            [this](const TRef<IRHICommandBuffer>& cmdBuffer) {
+            [this](const TRef<IRHICommandList>& cmdBuffer) {
                 if (m_ImGuiLayer) m_ImGuiLayer->Draw(cmdBuffer);
             });
 

@@ -1,12 +1,13 @@
 #pragma once
 
+#include "Buffer.h"
 #include "RHIExport.h"
 #include "RHITypes.h"
 #include "Ref.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHITexture2D, Info);
 
-struct FTextureSpecification {
+struct FTexture2DSpecification {
     std::string Name;
 
     FExtent2D Size{ 1, 1 };
@@ -18,8 +19,11 @@ struct FTextureSpecification {
 
 class RHI_API IRHITexture2D : public FRefCounted {
 public:
-    IRHITexture2D(const FTextureSpecification& spec);
+    IRHITexture2D(const FTexture2DSpecification& spec);
+    IRHITexture2D(const FTexture2DSpecification& spec, FBuffer& data);
     virtual ~IRHITexture2D();
+
+    virtual void SetData(const FBuffer& data) = 0;
 
     virtual void* GetDescriptorSet() = 0;
 
@@ -29,5 +33,5 @@ public:
     ETextureUsage GetUsage() const { return m_Spec.Usage; }
 
 protected:
-    FTextureSpecification m_Spec;
+    FTexture2DSpecification m_Spec;
 };

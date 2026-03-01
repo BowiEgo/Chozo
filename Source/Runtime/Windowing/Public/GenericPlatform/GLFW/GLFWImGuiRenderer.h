@@ -4,7 +4,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogCGLFWImGuiRenderer, Info);
 
-class CVulkanRHICommandBuffer;
+class CVulkanCommandBuffer;
 
 class WINDOWING_API CGLFWImGuiRenderer : public IImGuiRenderer {
 public:
@@ -14,5 +14,5 @@ public:
     virtual void Init() override;
     virtual void Shutdown() override;
     virtual void NewFrame() override;
-    virtual void Render(ImDrawData* drawData, const TRef<IRHICommandBuffer> cmdBuffer) override;
+    virtual void Render(ImDrawData* drawData, const TRef<IRHICommandList> cmdBuffer) override;
 }

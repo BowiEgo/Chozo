@@ -4,8 +4,20 @@
 #include "Event.h"
 #include "Platform.h"
 #include "RendererWindow.h"
-#include "WindowDefinition.h"
 #include "WindowingExport.h"
+
+#include <atomic>
+
+struct WINDOWING_API FWindowDefinition {
+    std::string Title;
+    float XScale, YScale = 1.0f;
+    FExtent2D Size;
+    float PixelRatio;
+    bool VSync;
+    FEventCallback EventCallback;
+
+    FWindowDefinition() : Title("Chozo Engine"), Size({ 1280, 720 }) {}
+};
 
 class WINDOWING_API CWindow : public IRendererWindow {
 public:
@@ -15,18 +27,25 @@ public:
     virtual void Init() = 0;
     virtual void Shutdown() = 0;
     virtual void OnUpdate() = 0;
-    virtual void SetVSync(bool enabled) = 0;
     virtual bool ShouldClose() const = 0;
     virtual void SetEventCallback(const FEventCallback& callback) = 0;
 
     // from IRendererWindow
-    virtual FExtent2D GetLogicalSize() const override = 0;
-    virtual FExtent2D GetPhysicalSize() const override = 0;
+    virtual void SetVSync(bool enabled) override {
+        if (m_Definition.VSync != enabled) {
+            m_Definition.VSync = enabled;
+            m_VSyncDirty.store(true);
+        }
+    }
+    virtual bool IsVSyncEnabled() const override { return m_Definition.VSync; }
+    virtual bool CheckAndResetVSyncDirty() { return m_VSyncDirty.exchange(false); }
+
+    virtual FExtent2D GetSize() const override = 0;
+    virtual FExtent2D GetFrameBufferSize() const override = 0;
     virtual std::vector<const char*> GetRequiredExtensions() const override = 0;
     virtual FWindowHandle GetWindowWrapper() const override { return m_Window; }
     virtual FWindowHandle GetNativeHandle() const override = 0;
 
-    FExtent2D GetSize() const { return m_Definition.Size; }
     float GetPixelRatio() const { return m_Definition.PixelRatio; }
     bool IsVSync() const { return m_Definition.VSync; }
 
@@ -35,4 +54,5 @@ public:
 protected:
     FWindowDefinition m_Definition;
     FWindowHandle m_Window{ nullptr };
+    std::atomic_bool m_VSyncDirty{ false };
 };

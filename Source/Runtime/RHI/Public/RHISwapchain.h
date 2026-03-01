@@ -7,7 +7,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHISwapchain, Info);
 
-struct FRHISwapchainSpecification {
+struct FSwapchainSpecification {
     std::string Name;
     FExtent2D FrameBufferSize;
     void* NativeWindow = nullptr;
@@ -15,7 +15,7 @@ struct FRHISwapchainSpecification {
 
 class RHI_API IRHISwapchain : public FRefCounted {
 public:
-    IRHISwapchain(const FRHISwapchainSpecification& spec);
+    IRHISwapchain(const FSwapchainSpecification& spec);
     virtual ~IRHISwapchain();
 
     virtual const EPixelFormat GetImageFormat() const = 0;
@@ -23,12 +23,12 @@ public:
     virtual const FExtent2D GetExtent() const = 0;
 
     virtual void SetPresentMode(const EPresentMode mode) = 0;
-    virtual void RecreateSwapchain(const FExtent2D& frameBufferSize) = 0;
+    virtual void Recreate(const FExtent2D& frameBufferSize) = 0;
 
     TRef<IRHITexture2D> GetColorAttachment(uint32 index) { return m_ColorAttachments[index]; }
 
 protected:
-    FRHISwapchainSpecification m_Spec;
+    FSwapchainSpecification m_Spec;
     std::vector<TRef<IRHITexture2D>> m_ColorAttachments;
     EPresentMode m_PresentMode = EPresentMode::FIFO;
 };

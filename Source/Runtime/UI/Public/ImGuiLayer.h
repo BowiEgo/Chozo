@@ -12,11 +12,11 @@ DECLARE_LOG_CATEGORY_EXTERN(LogImGuiLayer, Info);
 
 class UI_API CImGuiLayer : public ILayer {
 public:
-    CImGuiLayer(CWindow* window, CRenderer* renderer);
+    CImGuiLayer(CWindow* window, IRHIContext* rhiContext);
     ~CImGuiLayer();
 
 private:
-    TScope<IImGuiRenderer> CreateRenderer(CWindow* window, CGraphicsContext* context);
+    TScope<IImGuiRenderer> CreateRenderer(CWindow* window, IRHIContext* rhiContext);
 
 public:
     virtual void OnAttach() override;
@@ -30,13 +30,12 @@ public:
     void SetFont(std::string font);
     void SetDarkThemeColors();
 
-    void Draw(const TRef<IRHICommandBuffer>& cmdBuffer);
+    void Draw(const TRef<IRHICommandList>& cmdBuffer);
 
 private:
     CModule m_RHIModule;
 
     CWindow* m_Window;
-    CRenderer* m_Renderer;
 
     bool m_BlockEvents = false;
     TScope<IImGuiRenderer> m_ImGuiRenderer;

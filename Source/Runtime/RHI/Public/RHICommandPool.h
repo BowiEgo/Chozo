@@ -1,28 +1,25 @@
 #pragma once
 
-#include "RHICommandList.h"
-#include "RHIDevice.h"
 #include "RHIExport.h"
+#include "RHITypes.h"
 #include "Ref.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHICommandPool, Info);
 
-struct FRHICommandPoolCreateInfo {
+struct FCommandPoolSpecification {
     uint32 QueueIndex;
+    ECommandPoolFlags Flags;
 };
 
-class IRHICommandBuffer;
+class IRHICommandList;
 
 class RHI_API IRHICommandPool : public FRefCounted {
 public:
-    IRHICommandPool(const FRHICommandPoolCreateInfo& info);
+    IRHICommandPool(const FCommandPoolSpecification& spec);
     virtual ~IRHICommandPool();
 
-    virtual TRef<IRHICommandList> AllocateCommandList(const FRHICommandListCreateInfo& info,
-                                                      const TRef<IRHICommandBuffer> cmdBuffer) = 0;
+    virtual TRef<IRHICommandList> AllocateCommandBuffer() = 0;
 
 protected:
-    TRef<IRHICommandList> m_CommandList;
-
-    FRHICommandPoolCreateInfo m_Info;
+    FCommandPoolSpecification m_Spec;
 };

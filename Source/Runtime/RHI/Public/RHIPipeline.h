@@ -6,7 +6,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHIPipeline, Info);
 
-struct FRHIPipelineCreateInfo {
+struct FPipelineSpecification {
     std::string Name;
     std::vector<TRef<IRHIShader>> RHIShaders;
 
@@ -16,9 +16,9 @@ struct FRHIPipelineCreateInfo {
 
 class RHI_API IRHIPipeline : public FRefCounted {
 public:
-    IRHIPipeline(const FRHIPipelineCreateInfo& info);
+    IRHIPipeline(const FPipelineSpecification& spec);
     virtual ~IRHIPipeline();
 
 protected:
-    FRHIPipelineCreateInfo m_Info;
+    FPipelineSpecification m_Spec;
 };

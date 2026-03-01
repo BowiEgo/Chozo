@@ -44,10 +44,7 @@ void SandboxLayer::OnImGuiRender() {
 
         if (ImGui::BeginMenu("Settings")) {
             if (ImGui::MenuItem("Vertical Sync (VSync)", nullptr, &m_VSyncEnabled)) {
-                EPresentMode Mode = m_VSyncEnabled ? EPresentMode::FIFO : EPresentMode::Immediate;
-
-                m_ViewportRenderer->GetGraphicsContext()->GetRHI()->GetSwapchain()->SetPresentMode(
-                    Mode);
+                m_ViewportRenderer->GetWindow()->SetVSync(m_VSyncEnabled);
             }
 
             if (ImGui::BeginMenu("PowerMode")) {

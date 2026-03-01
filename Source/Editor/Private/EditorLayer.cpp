@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 
 #include "Application.h"
+#include "ImGuiFileDialog.h"
 
 #include "imgui.h"
 
@@ -43,12 +44,8 @@ void EditorLayer::OnImGuiRender() {
         }
 
         if (ImGui::BeginMenu("Settings")) {
-            if (ImGui::MenuItem("Vertical Sync (VSync)", nullptr, &m_VSyncEnabled)) {
-                EPresentMode Mode = m_VSyncEnabled ? EPresentMode::FIFO : EPresentMode::Immediate;
-
-                m_ViewportRenderer->GetGraphicsContext()->GetRHI()->GetSwapchain()->SetPresentMode(
-                    Mode);
-            }
+            if (ImGui::MenuItem("Vertical Sync (VSync)", nullptr, &m_VSyncEnabled))
+                m_ViewportRenderer->GetWindow()->SetVSync(m_VSyncEnabled);
 
             if (ImGui::BeginMenu("PowerMode")) {
                 EAppPowerMode appPowerMode = CApplication::Get()->GetPowerMode();
@@ -133,13 +130,25 @@ void EditorLayer::OnImGuiRender() {
     ImGui::End();
     ImGui::PopStyleVar();
 #pragma endregion
+
+    // if (ImGuiFileDialog::Instance().IsDone("TextureOpenDialog")) {
+    //     if (ImGuiFileDialog::Instance().HasResult()) {
+    //         std::string res = ImGuiFileDialog::Instance().GetResult().string();
+    //         printf("OPEN[%s]\n", res.c_str());
+    //     }
+    //     ImGuiFileDialog::Instance().Close();
+    // }
 }
 
 void EditorLayer::OnEvent(IEvent& e) {}
 
 void EditorLayer::NewProject() {}
 
-void EditorLayer::OpenProject() {}
+void EditorLayer::OpenProject() {
+    // ImGuiFileDialog::Instance().Open(
+    //     "TextureOpenDialog", "Open a texture",
+    //     "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+}
 
 void EditorLayer::OpenProject(const std::filesystem::path& path) {}
 

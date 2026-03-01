@@ -19,9 +19,9 @@ public:
                        "ShaderManager instance is null! Did you forget to call Init()?");
         return s_Instance;
     }
-    // static const CGraphicsContext *GetGraphicsContext() { return m_Context; }
+    // static const CGraphicsContext *GetGraphicContext() { return m_Context; }
 
-    TRef<CShader> Load(const FShaderCreateInfo& info);
+    TRef<CShader> Load(const FShaderSpecification& spec);
 
 private:
     static CShaderManager* s_Instance;

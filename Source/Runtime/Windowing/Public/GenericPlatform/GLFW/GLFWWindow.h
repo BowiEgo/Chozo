@@ -19,15 +19,14 @@ public:
     virtual void Init() override;
     virtual void Shutdown() override;
     virtual void OnUpdate() override;
-    virtual void SetVSync(bool enabled) override;
     virtual bool ShouldClose() const override;
     virtual void SetEventCallback(const FEventCallback& callback) override {
         m_Definition.EventCallback = callback;
     }
 
     // from IRendererWindow
-    virtual FExtent2D GetLogicalSize() const override;
-    virtual FExtent2D GetPhysicalSize() const override;
+    virtual FExtent2D GetSize() const override;
+    virtual FExtent2D GetFrameBufferSize() const override;
     virtual std::vector<const char*> GetRequiredExtensions() const override;
     virtual FWindowHandle GetNativeHandle() const override;
 

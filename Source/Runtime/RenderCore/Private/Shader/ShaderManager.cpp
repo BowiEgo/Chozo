@@ -17,10 +17,10 @@ void CShaderManager::Init(const TRef<IRHIDevice>& device) {
     }
 }
 
-TRef<CShader> CShaderManager::Load(const FShaderCreateInfo& info) {
-    CZ_LOG(LogShaderManager, Trace, "Loading Shader: {}", info.Name);
+TRef<CShader> CShaderManager::Load(const FShaderSpecification& spec) {
+    CZ_LOG(LogShaderManager, Trace, "Loading Shader: {}", spec.Name);
 
-    FShaderID id = info.GenHash();
+    FShaderID id = spec.GenHash();
 
     // if (m_ShaderCache.contains(id)) {
     //     return m_ShaderCache[id];
@@ -28,15 +28,15 @@ TRef<CShader> CShaderManager::Load(const FShaderCreateInfo& info) {
 
     FShaderCompilerOutput output;
 
-    if (bool success = m_Compiler->Compile(info, output)) {
-        auto shader = CreateRef<CShader>(info, output, m_Device);
+    if (bool success = m_Compiler->Compile(spec, output)) {
+        auto shader = CreateRef<CShader>(spec, output, m_Device);
         if (shader) {
             // m_ShaderCache[id] = shader;
-            CZ_LOG(LogShaderManager, Info, "Shader: {} Loaded", info.Name);
+            CZ_LOG(LogShaderManager, Info, "Shader: {} Loaded", spec.Name);
             return shader;
         }
     }
 
-    CZ_LOG(LogShaderManager, Error, "Failed to load Shader: {0}", info.Name);
+    CZ_LOG(LogShaderManager, Error, "Failed to load Shader: {0}", spec.Name);
     return nullptr;
 }

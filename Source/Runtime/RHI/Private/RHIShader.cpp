@@ -2,8 +2,8 @@
 
 DEFINE_LOG_CATEGORY(LogRHIShader);
 
-IRHIShader::IRHIShader(const FRHIShaderCreateInfo& info) : m_Info(info) {}
+IRHIShader::IRHIShader(const FShaderSpecification& spec) : m_Spec(spec) {}
 
 IRHIShader::~IRHIShader() {
-    CZ_LOG(LogRHIShader, Trace, "RHIShader: {} destroying...", m_Info.Name);
+    CZ_LOG(LogRHIShader, Trace, "RHIShader: {} destroying...", m_Spec.Name);
 }

@@ -25,10 +25,17 @@ target("imgui")
     -- Windows DLL symbol export handling
     if is_plat("windows") then
         add_defines("IMGUI_API=__declspec(dllexport)", {public = true})
+        add_defines("IMGUI_API=__declspec(dllimport)", {interface = true})
     end
 
     -- Speed up build using Precompiled Headers
     set_pcxxheader("imgui/imgui.h")
 
     -- Prevent re-scanning and speed up linking if imgui doesn't change
+    set_policy("package.librarydeps.strict_compatibility", false)
+
+target("stb")
+    set_kind("static")
+    add_files("stb/stb_impl.cpp")
+    add_includedirs("stb", {public = true})
     set_policy("package.librarydeps.strict_compatibility", false)

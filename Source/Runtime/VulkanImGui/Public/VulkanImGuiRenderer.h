@@ -2,17 +2,18 @@
 
 #include "CoreMinimal.h"
 #include "ImGuiRenderer.h"
+#include "VulkanContext.h"
 #include "VulkanImGuiExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanImGuiRenderer, Info);
 
 class VULKAN_IM_GUI_API CVulkanImGuiRenderer : public IImGuiRenderer {
 public:
-    CVulkanImGuiRenderer(CWindow* window, CGraphicsContext* context);
+    CVulkanImGuiRenderer(CWindow* window, IRHIContext* rhiContext);
     virtual ~CVulkanImGuiRenderer() override = default;
 
     virtual void Init(ImGuiContext* ctx) override;
     virtual void Shutdown() override;
     virtual void NewFrame() override;
-    virtual void Draw(ImDrawData* drawData, const TRef<IRHICommandBuffer>& cmdBuffer) override;
+    virtual void Draw(ImDrawData* drawData, const TRef<IRHICommandList>& cmdBuffer) override;
 };

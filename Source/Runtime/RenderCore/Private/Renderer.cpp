@@ -1,4 +1,7 @@
 #include "Renderer.h"
+
+#include "ModuleUtils.h"
+#include "RHIAPI.h"
 #include "ShaderManager.h"
 
 CRenderer::CRenderer(IRendererWindow* windowHandle) : m_Window(windowHandle) {}
@@ -6,96 +9,125 @@ CRenderer::CRenderer(IRendererWindow* windowHandle) : m_Window(windowHandle) {}
 CRenderer::~CRenderer() {}
 
 void CRenderer::Init() {
-    FRHIWindowInfo windowInfo;
-    windowInfo.FrameBufferSize = m_Window->GetPhysicalSize();
-    windowInfo.NativeWindow = m_Window->GetNativeHandle();
-    windowInfo.RequiredExtensions = m_Window->GetRequiredExtensions();
-    m_Context = CreateScope<CGraphicsContext>(windowInfo);
+    std::string libName = ChozoUitls::Module::GetPlatformLibName("Vulkan");
+    if (m_RHIModule.Load(libName)) {
+        FContextSpec spec;
+        spec.FrameBufferSize = m_Window->GetFrameBufferSize();
+        spec.NativeWindow = m_Window->GetNativeHandle();
+        spec.WindowRequiredExtensions = m_Window->GetRequiredExtensions();
 
-    auto RHI = m_Context->GetRHI();
-    auto device = RHI->GetDevice();
+        m_GraphicContext = TScope<IRHIContext>(
+            m_RHIModule.Invoke<IRHIContext*(const FContextSpec&)>("CreateVulkanContext", spec));
+    }
+
+    auto device = m_GraphicContext->GetDevice();
 
     CShaderManager::Init(device);
 
-    FShaderCreateInfo vertShaderInfo("Test", "shaders://Test.glsl", EShaderStage::Vertex, "main");
-    FShaderCreateInfo fagShaderInfo("Test", "shaders://Test.glsl", EShaderStage::Fragment, "main");
+    FShaderSpecification vertShaderInfo("Test", "shaders://Test.glsl", EShaderStage::Vertex,
+                                        "main");
+    FShaderSpecification fagShaderInfo("Test", "shaders://Test.glsl", EShaderStage::Fragment,
+                                       "main");
     TRef<CShader> vertShader = CShaderManager::Get()->Load(vertShaderInfo);
     TRef<CShader> fragShader = CShaderManager::Get()->Load(fagShaderInfo);
 
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        m_SyncObjects[i] = RHI->CreateSyncObject();
-        m_CommandBuffers[i] = RHI->CreateCommandBuffer();
+        FCommandPoolSpecification poolSpec;
+
+        poolSpec.Flags = ECommandPoolFlags::ResetCommandBuffer;
+        m_Frames[i].CommandPool = device->CreateCommandPool(poolSpec);
+
+        m_Frames[i].CommandBuffer = m_Frames[i].CommandPool->AllocateCommandBuffer();
+
+        m_Frames[i].RenderFence = IRHIAPI::CreateSyncObject(m_GraphicContext.get());
+
+        // m_SyncObjects[i] = IRHIAPI::CreateSyncObject(m_GraphicContext.get());
+        // m_CommandBuffers[i] = IRHIAPI::CreateCommandBuffer(m_GraphicContext.get());
     }
 
     FFrameBufferSpecification fbSpec;
     fbSpec.Name = "SceneFrameBuffer";
-    fbSpec.Size = m_Window->GetPhysicalSize();
+    fbSpec.Size = m_Window->GetFrameBufferSize();
     fbSpec.ColorFormats = { EPixelFormat::RGBA8_UNORM };
     fbSpec.DepthFormat = EPixelFormat::D32_SFLOAT;
 
-    m_SceneFrameBuffer = RHI->CreateFrameBuffer(fbSpec);
+    m_SceneFrameBuffer = IRHIAPI::CreateFrameBuffer(m_GraphicContext.get(), fbSpec);
 
-    FRHIPipelineCreateInfo pipelineInfo;
+    FPipelineSpecification pipelineInfo;
     pipelineInfo.Name = "Test";
-    pipelineInfo.RHIShaders = { vertShader->GetRHIShader(), fragShader->GetRHIShader() };
+    pipelineInfo.RHIShaders = { vertShader->GetShaderResource(m_GraphicContext.get()),
+                                fragShader->GetShaderResource(m_GraphicContext.get()) };
     pipelineInfo.ColorFormats = fbSpec.ColorFormats;
-    m_ScenePipeline = device->CreatePipeline(pipelineInfo);
+    m_ScenePipeline = IRHIAPI::CreatePipeline(m_GraphicContext.get(), pipelineInfo);
 }
 
 void CRenderer::Tick() {
-    auto& cmdBuffer = m_CommandBuffers[m_CurrentFrame];
-    auto& syncObject = m_SyncObjects[m_CurrentFrame];
-    auto RHI = m_Context->GetRHI();
+    if (m_Window->CheckAndResetVSyncDirty()) {
+        EPresentMode mode =
+            m_Window->IsVSyncEnabled() ? EPresentMode::FIFO : EPresentMode::Immediate;
 
-    RHI->DrawFrame(cmdBuffer, syncObject, m_CurrentFrame, [&](uint32 imageIndex) {
-        cmdBuffer->Begin();
+        m_GraphicContext->GetSwapchain()->SetPresentMode(mode);
+    }
 
-        // draw scene using RHI interface
-        {
-            auto target = m_SceneFrameBuffer->GetColorAttachment(0);
-            auto extent = RHI->GetSwapchain()->GetExtent();
-            RHI->BeginRendering(cmdBuffer, target, true);
+    auto& cmdBuffer = m_Frames[m_CurrentFrameIndex].CommandBuffer;
+    auto& syncObject = m_Frames[m_CurrentFrameIndex].RenderFence;
+
+    IRHIAPI::DrawFrame(
+        m_GraphicContext.get(), cmdBuffer, syncObject, m_CurrentFrameIndex, [&](uint32 imageIndex) {
+            cmdBuffer->Begin();
+
+            // draw scene using RHI interface
             {
-                cmdBuffer->BindPipeline(m_ScenePipeline);
-                cmdBuffer->SetViewport(
-                    { 0.0f, 0.0f, (float)extent.Width, (float)extent.Height, 0.0f, 1.0f });
-                cmdBuffer->SetScissor({ 0, 0, extent.Width, extent.Height });
-                cmdBuffer->Draw(3, 1, 0, 0);
-            }
-            RHI->EndRendering(cmdBuffer);
+                auto target = m_SceneFrameBuffer->GetColorAttachment(0);
+                auto extent = m_GraphicContext->GetSwapchain()->GetExtent();
+                m_GraphicContext->SetTarget(target);
 
-            RHI->PrepareTextureForSampling(cmdBuffer, target);
-        }
-
-        // draw UI on top of the scene
-        {
-            auto target = RHI->GetSwapchain()->GetColorAttachment(imageIndex);
-            RHI->BeginRendering(cmdBuffer, target, false); // bClear = false (to preserve the scene)
-            {
-                if (m_UICallback) {
-                    m_UICallback(cmdBuffer);
+                IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdBuffer, true);
+                {
+                    cmdBuffer->BindPipeline(m_ScenePipeline);
+                    cmdBuffer->SetViewport(
+                        { 0.0f, 0.0f, (float)extent.Width, (float)extent.Height, 0.0f, 1.0f });
+                    cmdBuffer->SetScissor({ 0, 0, extent.Width, extent.Height });
+                    cmdBuffer->Draw(3, 1, 0, 0);
                 }
+                IRHIAPI::EndRendering(m_GraphicContext.get(), cmdBuffer);
+
+                IRHIAPI::PrepareTextureForSampling(m_GraphicContext.get(), cmdBuffer, target);
             }
-            RHI->EndRendering(cmdBuffer);
-        }
 
-        cmdBuffer->End();
-    });
+            // draw UI on top of the scene
+            {
+                auto target = m_GraphicContext->GetSwapchain()->GetColorAttachment(imageIndex);
+                m_GraphicContext->SetTarget(target);
 
-    m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+                IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdBuffer,
+                                        false); // bClear = false (to preserve the scene)
+                {
+                    if (m_UICallback) {
+                        m_UICallback(cmdBuffer);
+                    }
+                }
+                IRHIAPI::EndRendering(m_GraphicContext.get(), cmdBuffer);
+            }
+
+            cmdBuffer->End();
+        });
+
+    m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void CRenderer::Shutdown() {
-    if (!m_Context) return;
+    if (!m_GraphicContext) return;
 
-    m_Context->GetRHI()->GetDevice()->WaitIdle();
+    m_GraphicContext->GetDevice()->WaitIdle();
     m_ScenePipeline = nullptr;
     m_SceneFrameBuffer = nullptr;
 
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        m_SyncObjects[i] = nullptr;
-        m_CommandBuffers[i] = nullptr;
+        m_Frames[i].RenderFence = nullptr;
+        m_Frames[i].CommandBuffer = nullptr;
+        m_Frames[i].CommandPool = nullptr;
     }
 
-    m_Context.reset();
+    m_GraphicContext.reset();
 }

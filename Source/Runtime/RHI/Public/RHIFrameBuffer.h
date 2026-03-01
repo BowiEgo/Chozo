@@ -1,5 +1,3 @@
-// A logical collection of textures that serve as render targets.
-
 #pragma once
 
 #include "RHIExport.h"
@@ -27,6 +25,7 @@ public:
 
 protected:
     FFrameBufferSpecification m_Spec;
+
     std::vector<TRef<IRHITexture2D>> m_ColorAttachments;
     TRef<IRHITexture2D> m_DepthAttachment;
 };

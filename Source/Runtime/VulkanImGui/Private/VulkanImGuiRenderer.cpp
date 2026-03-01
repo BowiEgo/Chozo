@@ -1,9 +1,10 @@
 #include "VulkanImGuiRenderer.h"
 
-#include "VulkanRHI.h"
-#include "VulkanRHICommandBuffer.h"
-#include "VulkanRHIDevice.h"
-#include "VulkanRHISwapchain.h"
+#include "RHIContext.h"
+#include "VulkanAPI.h"
+#include "VulkanCommandBuffer.h"
+#include "VulkanDevice.h"
+#include "VulkanSwapchain.h"
 
 #include "imgui_impl_glfw.h"
 #define IM_VULKAN_HAS_DYNAMIC_RENDERING
@@ -17,13 +18,13 @@ DEFINE_LOG_CATEGORY(LogVulkanImGuiRenderer);
 
 extern "C" {
 VULKAN_IM_GUI_API IImGuiRenderer* CreateVulkanImGuiRenderer(CWindow* window,
-                                                            CGraphicsContext* context) {
-    return new CVulkanImGuiRenderer(window, context);
+                                                            IRHIContext* rhiContext) {
+    return new CVulkanImGuiRenderer(window, rhiContext);
 }
 }
 
-CVulkanImGuiRenderer::CVulkanImGuiRenderer(CWindow* window, CGraphicsContext* context)
-    : IImGuiRenderer(window, context) {}
+CVulkanImGuiRenderer::CVulkanImGuiRenderer(CWindow* window, IRHIContext* rhiContext)
+    : IImGuiRenderer(window, rhiContext) {}
 
 static void CheckVKResult(VkResult err) {
     if (err == VK_SUCCESS) return;
@@ -40,9 +41,8 @@ static void CheckVKResult(VkResult err) {
 void CVulkanImGuiRenderer::Init(ImGuiContext* ctx) {
     ImGui::SetCurrentContext(ctx);
 
-    auto RHI = static_cast<CVulkanRHI*>(m_Context->GetRHI());
-    auto device = RHI->GetDevice().As<CVulkanRHIDevice>();
-    auto swapchain = RHI->GetSwapchain().As<CVulkanRHISwapchain>();
+    auto device = m_RHIContext->GetDevice().As<CVulkanDevice>();
+    auto swapchain = m_RHIContext->GetSwapchain().As<CVulkanSwapchain>();
     auto windowHandle = (GLFWwindow*)m_Window->GetWindowWrapper();
 
     static VkFormat colorFormats[1];
@@ -54,7 +54,7 @@ void CVulkanImGuiRenderer::Init(ImGuiContext* ctx) {
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.ApiVersion = VK_API_VERSION_1_4; // Pass in your value of
     // VkApplicationInfo::apiVersion, otherwise will default to header version.
-    init_info.Instance = RHI->GetVKInstance();
+    init_info.Instance = CVulkanAPI::GetVKInstance();
     init_info.PhysicalDevice = device->GetPhysicalDevice();
     init_info.Device = device->GetLogicalDevice();
     init_info.QueueFamily = device->GetGraphicsQueueIndex();
@@ -90,7 +90,9 @@ void CVulkanImGuiRenderer::Init(ImGuiContext* ctx) {
 }
 
 void CVulkanImGuiRenderer::Shutdown() {
-    m_Context->GetRHI()->GetDevice()->WaitIdle();
+    auto device = m_RHIContext->GetDevice().As<CVulkanDevice>();
+
+    device->WaitIdle();
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -104,10 +106,10 @@ void CVulkanImGuiRenderer::NewFrame() {
     ImGuiIO& io = ImGui::GetIO();
 }
 
-void CVulkanImGuiRenderer::Draw(ImDrawData* drawData, const TRef<IRHICommandBuffer>& cmdBuffer) {
+void CVulkanImGuiRenderer::Draw(ImDrawData* drawData, const TRef<IRHICommandList>& cmdBuffer) {
     if (!drawData || drawData->TotalVtxCount == 0) return;
 
-    auto vlkCmdBuffer = cmdBuffer.As<CVulkanRHICommandBuffer>();
+    auto vlkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>();
     vk::CommandBuffer cmd = vlkCmdBuffer->GetVKCommandBuffer();
 
     ImGui_ImplVulkan_RenderDrawData(drawData, cmd);

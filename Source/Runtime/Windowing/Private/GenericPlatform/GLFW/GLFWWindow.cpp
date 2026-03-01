@@ -43,11 +43,9 @@ void CGLFWWindow::OnUpdate() {
     glfwPollEvents();
 }
 
-void CGLFWWindow::SetVSync(bool enabled) { m_Definition.VSync = enabled; }
-
 bool CGLFWWindow::ShouldClose() const { return glfwWindowShouldClose(GetGLFWWindow()); }
 
-FExtent2D CGLFWWindow::GetLogicalSize() const {
+FExtent2D CGLFWWindow::GetSize() const {
     FExtent2D result;
 
     int w, h;
@@ -59,7 +57,7 @@ FExtent2D CGLFWWindow::GetLogicalSize() const {
     return result;
 }
 
-FExtent2D CGLFWWindow::GetPhysicalSize() const {
+FExtent2D CGLFWWindow::GetFrameBufferSize() const {
     FExtent2D result;
 
     int w, h;
@@ -92,9 +90,6 @@ FWindowHandle CGLFWWindow::GetNativeHandle() const {
 }
 
 void CGLFWWindow::CreateGLFWWindow() {
-    CZ_LOG(LogCGLFWWindow, Trace, "Creating window({1}, {2}) for {0}", m_Definition.Title,
-           m_Definition.Size.Width, m_Definition.Size.Height);
-
     const bool dimensionsInValid = m_Definition.Size.Width <= 0 || m_Definition.Size.Height <= 0;
     CZ_CORE_ASSERT(!dimensionsInValid, "CGLFWWindow: Invalid window dimensions!");
 
@@ -111,7 +106,7 @@ void CGLFWWindow::CreateGLFWWindow() {
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+    // glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     m_Window = glfwCreateWindow(m_Definition.Size.Width, m_Definition.Size.Height,
@@ -122,13 +117,9 @@ void CGLFWWindow::CreateGLFWWindow() {
     glfwSetWindowUserPointer(GetGLFWWindow(), &m_Definition);
 
     // Pixel ratio
-    int logicalWidth, logicalHeight;
-    int physicalWidth, physicalHeight;
-    glfwGetWindowSize(GetGLFWWindow(), &logicalWidth, &logicalHeight);
-    glfwGetFramebufferSize(GetGLFWWindow(), &physicalWidth, &physicalHeight);
-    m_Definition.Size.Width = logicalWidth;
-    m_Definition.Size.Height = logicalHeight;
-    m_Definition.PixelRatio = (float)physicalWidth / (float)logicalWidth;
+    auto fbSize = GetFrameBufferSize();
+    m_Definition.Size = GetSize();
+    m_Definition.PixelRatio = (float)fbSize.Width / (float)m_Definition.Size.Width;
 
     // Render Scaling
     float xscale, yscale = 1.0f;
@@ -136,9 +127,8 @@ void CGLFWWindow::CreateGLFWWindow() {
     m_Definition.XScale = xscale;
     m_Definition.YScale = yscale;
 
-    CZ_LOG(LogCGLFWWindow, Info, "GLFW Window for Vulkan created.");
-
-    SetVSync(false); // TODO: Remove
+    CZ_LOG(LogCGLFWWindow, Info, "GLFW Window({1}, {2}) for {0} for Vulkan created.",
+           m_Definition.Title, m_Definition.Size.Width, m_Definition.Size.Height);
 }
 
 void CGLFWWindow::SetGLFWCallbacks() {
