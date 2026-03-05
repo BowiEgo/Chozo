@@ -71,47 +71,48 @@ void CRenderer::Tick() {
 
     auto& cmdBuffer = m_Frames[m_CurrentFrameIndex].CommandBuffer;
     auto& syncObject = m_Frames[m_CurrentFrameIndex].RenderFence;
+    m_GraphicContext->SetCurrentFrameIndex(m_CurrentFrameIndex);
+    m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex, MAX_FRAMES_IN_FLIGHT);
 
-    IRHIAPI::DrawFrame(
-        m_GraphicContext.get(), cmdBuffer, syncObject, m_CurrentFrameIndex, [&](uint32 imageIndex) {
-            cmdBuffer->Begin();
+    IRHIAPI::DrawFrame(m_GraphicContext.get(), cmdBuffer, syncObject, [&](uint32 imageIndex) {
+        cmdBuffer->Begin();
 
-            // draw scene using RHI interface
+        // draw scene using RHI interface
+        {
+            auto target = m_SceneFrameBuffer->GetColorAttachment(0);
+            auto extent = m_GraphicContext->GetSwapchain()->GetExtent();
+            m_GraphicContext->SetTarget(target);
+
+            IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdBuffer, true);
             {
-                auto target = m_SceneFrameBuffer->GetColorAttachment(0);
-                auto extent = m_GraphicContext->GetSwapchain()->GetExtent();
-                m_GraphicContext->SetTarget(target);
-
-                IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdBuffer, true);
-                {
-                    cmdBuffer->BindPipeline(m_ScenePipeline);
-                    cmdBuffer->SetViewport(
-                        { 0.0f, 0.0f, (float)extent.Width, (float)extent.Height, 0.0f, 1.0f });
-                    cmdBuffer->SetScissor({ 0, 0, extent.Width, extent.Height });
-                    cmdBuffer->Draw(3, 1, 0, 0);
-                }
-                IRHIAPI::EndRendering(m_GraphicContext.get(), cmdBuffer);
-
-                IRHIAPI::PrepareTextureForSampling(m_GraphicContext.get(), cmdBuffer, target);
+                cmdBuffer->BindPipeline(m_ScenePipeline);
+                cmdBuffer->SetViewport(
+                    { 0.0f, 0.0f, (float)extent.Width, (float)extent.Height, 0.0f, 1.0f });
+                cmdBuffer->SetScissor({ 0, 0, extent.Width, extent.Height });
+                cmdBuffer->Draw(3, 1, 0, 0);
             }
+            IRHIAPI::EndRendering(m_GraphicContext.get(), cmdBuffer);
 
-            // draw UI on top of the scene
+            IRHIAPI::PrepareTextureForSampling(m_GraphicContext.get(), cmdBuffer, target);
+        }
+
+        // draw UI on top of the scene
+        {
+            auto target = m_GraphicContext->GetSwapchain()->GetColorAttachment(imageIndex);
+            m_GraphicContext->SetTarget(target);
+
+            IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdBuffer,
+                                    false); // bClear = false (to preserve the scene)
             {
-                auto target = m_GraphicContext->GetSwapchain()->GetColorAttachment(imageIndex);
-                m_GraphicContext->SetTarget(target);
-
-                IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdBuffer,
-                                        false); // bClear = false (to preserve the scene)
-                {
-                    if (m_UICallback) {
-                        m_UICallback(cmdBuffer);
-                    }
+                if (m_UICallback) {
+                    m_UICallback(cmdBuffer);
                 }
-                IRHIAPI::EndRendering(m_GraphicContext.get(), cmdBuffer);
             }
+            IRHIAPI::EndRendering(m_GraphicContext.get(), cmdBuffer);
+        }
 
-            cmdBuffer->End();
-        });
+        cmdBuffer->End();
+    });
 
     m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
 }

@@ -1,145 +1,160 @@
-// #pragma once
+#pragma once
 
-// #include "CoreMinimal.h"
-// #include "UIExport.h"
+#include "CoreMinimal.h"
+#include "RHIContext.h"
+#include "RHITexture2D.h"
+#include "UIExport.h"
 
-// #include <algorithm> // std::min, std::max
-// #include <ctime>
-// #include <filesystem>
-// #include <functional>
-// #include <stack>
-// #include <string>
-// #include <thread>
-// #include <unordered_map>
-// #include <vector>
+#include <algorithm> // std::min, std::max
+#include <ctime>
+#include <filesystem>
+#include <functional>
+#include <stack>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <vector>
 
-// #define IFD_DIALOG_FILE 0
-// #define IFD_DIALOG_DIRECTORY 1
-// #define IFD_DIALOG_SAVE 2
+DECLARE_LOG_CATEGORY_EXTERN(LogImGuiFileDialog, Info);
 
-// class UI_API ImGuiFileDialog {
-// public:
-//     static inline ImGuiFileDialog& Instance() {
-//         static ImGuiFileDialog ret;
-//         return ret;
-//     }
+#define IFD_DIALOG_FILE 0
+#define IFD_DIALOG_DIRECTORY 1
+#define IFD_DIALOG_SAVE 2
 
-//     ImGuiFileDialog();
-//     ~ImGuiFileDialog();
+class FileTreeNode {
+public:
+#ifdef CZ_PLATFORM_WINDOWS
+    FileTreeNode(const std::wstring& path) {
+        Path = std::filesystem::path(path);
+        Read = false;
+    }
+#endif
 
-//     bool Save(const std::string& key, const std::string& title, const std::string& filter,
-//               const std::string& startingDir = "");
+    FileTreeNode(const std::string& path) {
+        Path = std::filesystem::u8path(path);
+        Read = false;
+    }
 
-//     bool Open(const std::string& key, const std::string& title, const std::string& filter,
-//               bool isMultiselect = false, const std::string& startingDir = "");
+    std::filesystem::path Path;
+    bool Read;
+    std::vector<FileTreeNode*> Children;
+};
 
-//     bool IsDone(const std::string& key);
+class FileData {
+public:
+    FileData(const std::filesystem::path& path);
 
-//     inline bool HasResult() { return m_result.size(); }
-//     inline const std::filesystem::path& GetResult() { return m_result[0]; }
-//     inline const std::vector<std::filesystem::path>& GetResults() { return m_result; }
+    std::filesystem::path Path;
+    bool IsDirectory;
+    size_t Size;
+    time_t DateModified;
 
-//     void Close();
+    bool HasIconPreview;
+    TRef<IRHITexture2D> IconPreview;
+    uint8_t* IconPreviewData;
+    int IconPreviewWidth, IconPreviewHeight;
+};
 
-//     void RemoveFavorite(const std::string& path);
-//     void AddFavorite(const std::string& path);
-//     inline const std::vector<std::string>& GetFavorites() { return m_favorites; }
+class UI_API ImGuiFileDialog {
+public:
+    static inline ImGuiFileDialog& Get(IRHIContext* context) {
+        static ImGuiFileDialog ret(context);
+        return ret;
+    }
 
-//     inline void SetZoom(float z) {
-//         m_zoom = std::min<float>(25.0f, std::max<float>(1.0f, z));
-//         m_refreshIconPreview();
-//     }
-//     inline float GetZoom() { return m_zoom; }
+    ImGuiFileDialog(IRHIContext* context);
+    ~ImGuiFileDialog();
 
-//     std::function<void*(uint8_t*, int, int, char)>
-//         CreateTexture; // char -> fmt -> { 0 = BGRA, 1 = RGBA }
-//     std::function<void(void*)> DeleteTexture;
+    bool Save(const std::string& key, const std::string& title, const std::string& filter,
+              const std::string& startingDir = "");
 
-//     class FileTreeNode {
-//     public:
-// #ifdef _WIN32
-//         FileTreeNode(const std::wstring& path) {
-//             Path = std::filesystem::path(path);
-//             Read = false;
-//         }
-// #endif
+    bool Open(const std::string& key, const std::string& title, const std::string& filter,
+              bool isMultiselect = false, const std::string& startingDir = "");
 
-//         FileTreeNode(const std::string& path) {
-//             Path = std::filesystem::u8path(path);
-//             Read = false;
-//         }
+    bool IsDone(const std::string& key);
 
-//         std::filesystem::path Path;
-//         bool Read;
-//         std::vector<FileTreeNode*> Children;
-//     };
-//     class FileData {
-//     public:
-//         FileData(const std::filesystem::path& path);
+    inline bool HasResult() { return m_Result.size(); }
+    inline const std::filesystem::path& GetResult() { return m_Result[0]; }
+    inline const std::vector<std::filesystem::path>& GetResults() { return m_Result; }
 
-//         std::filesystem::path Path;
-//         bool IsDirectory;
-//         size_t Size;
-//         time_t DateModified;
+    void Close();
 
-//         bool HasIconPreview;
-//         void* IconPreview;
-//         uint8_t* IconPreviewData;
-//         int IconPreviewWidth, IconPreviewHeight;
-//     };
+    void RemoveFavorite(const std::string& path);
+    void AddFavorite(const std::string& path);
+    inline const std::vector<std::string>& GetFavorites() { return m_Favorites; }
 
-// private:
-//     std::string m_currentKey;
-//     std::string m_currentTitle;
-//     std::filesystem::path m_currentDirectory;
-//     bool m_isMultiselect;
-//     bool m_isOpen;
-//     uint8_t m_type;
-//     char m_inputTextbox[1024];
-//     char m_pathBuffer[1024];
-//     char m_newEntryBuffer[1024];
-//     char m_searchBuffer[128];
-//     std::vector<std::string> m_favorites;
-//     bool m_calledOpenPopup;
-//     std::stack<std::filesystem::path> m_backHistory, m_forwardHistory;
-//     float m_zoom;
+    inline void SetZoom(float z) {
+        m_Zoom = std::min<float>(25.0f, std::max<float>(1.0f, z));
+        RefreshIconPreview();
+    }
+    inline float GetZoom() { return m_Zoom; }
 
-//     std::vector<std::filesystem::path> m_selections;
-//     int m_selectedFileItem;
-//     void m_select(const std::filesystem::path& path, bool isCtrlDown = false);
+private:
+    TRef<IRHITexture2D> CreateTexture(uint8_t* data, int w, int h,
+                                      char fmt); // char -> fmt -> { 0 = BGRA, 1 = RGBA }
 
-//     std::vector<std::filesystem::path> m_result;
-//     bool m_finalize(const std::string& filename = "");
+    void Select(const std::filesystem::path& path, bool isCtrlDown = false);
 
-//     std::string m_filter;
-//     std::vector<std::vector<std::string>> m_filterExtensions;
-//     size_t m_filterSelection;
-//     void m_parseFilter(const std::string& filter);
+    bool Finalize(const std::string& filename = "");
 
-//     std::vector<int> m_iconIndices;
-//     std::vector<std::string> m_iconFilepaths; // m_iconIndices[x] <-> m_iconFilepaths[x]
-//     std::unordered_map<std::string, void*> m_icons;
-//     void* m_getIcon(const std::filesystem::path& path);
-//     void m_clearIcons();
-//     void m_refreshIconPreview();
-//     void m_clearIconPreview();
+    void ParseFilter(const std::string& filter);
 
-//     std::thread* m_previewLoader;
-//     bool m_previewLoaderRunning;
-//     void m_stopPreviewLoader();
-//     void m_loadPreview();
+    TRef<IRHITexture2D> GetIcon(const std::filesystem::path& path);
+    void ClearIcons();
+    void RefreshIconPreview();
+    void ClearIconPreview();
 
-//     std::vector<FileTreeNode*> m_treeCache;
-//     void m_clearTree(FileTreeNode* node);
-//     void m_renderTree(FileTreeNode* node);
+    void StopPreviewLoader();
+    void LoadPreview();
 
-//     unsigned int m_sortColumn;
-//     unsigned int m_sortDirection;
-//     std::vector<FileData> m_content;
-//     void m_setDirectory(const std::filesystem::path& p, bool addHistory = true);
-//     void m_sortContent(unsigned int column, unsigned int sortDirection);
-//     void m_renderContent();
+    void ClearTree(FileTreeNode* node);
+    void RenderTree(FileTreeNode* node);
 
-//     void m_renderPopups();
-//     void m_renderFileDialog();
-// };
+    void SetDirectory(const std::filesystem::path& p, bool addHistory = true);
+    void SortContent(unsigned int column, unsigned int sortDirection);
+    void RenderContent();
+
+    void RenderPopups();
+    void RenderFileDialog();
+
+private:
+    IRHIContext* m_GraphicContext;
+
+    std::string m_CurrentKey;
+    std::string m_CurrentTitle;
+    std::filesystem::path m_CurrentDirectory;
+    bool m_IsMultiselect;
+    bool m_IsOpen;
+    uint8_t m_Type;
+    char m_InputTextbox[1024];
+    char m_PathBuffer[1024];
+    char m_NewEntryBuffer[1024];
+    char m_SearchBuffer[128];
+    std::vector<std::string> m_Favorites;
+    bool m_CalledOpenPopup;
+    std::stack<std::filesystem::path> m_BackHistory, m_ForwardHistory;
+    float m_Zoom;
+
+    std::vector<std::filesystem::path> m_Selections;
+    int m_SelectedFileItem;
+
+    std::vector<std::filesystem::path> m_Result;
+
+    std::string m_Filter;
+    std::vector<std::vector<std::string>> m_FilterExtensions;
+    size_t m_FilterSelection;
+
+    std::vector<int> m_IconIndices;
+    std::vector<std::string> m_IconFilepaths; // m_IconIndices[x] <-> m_IconFilepaths[x]
+    std::unordered_map<std::string, TRef<IRHITexture2D>> m_Icons;
+    std::vector<TRef<IRHITexture2D>> m_IconsGarbage;
+
+    std::thread* m_PreviewLoader;
+    bool m_PreviewLoaderRunning;
+
+    std::vector<FileTreeNode*> m_TreeCache;
+
+    unsigned int m_SortColumn;
+    unsigned int m_SortDirection;
+    std::vector<FileData> m_Content;
+};

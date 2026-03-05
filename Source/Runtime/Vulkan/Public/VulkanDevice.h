@@ -17,8 +17,8 @@ class CVulkanCommandBuffer;
 
 class VULKAN_API CVulkanDevice : public IRHIDevice {
 public:
-    CVulkanDevice(const FDeviceSpecification& spec, const vk::raii::Instance& instance,
-                  const vk::raii::SurfaceKHR& surface);
+    CVulkanDevice(const IRHIContext* ctx, const FDeviceSpecification& spec,
+                  const vk::raii::Instance& instance, const vk::raii::SurfaceKHR& surface);
     virtual ~CVulkanDevice();
 
     virtual void WaitIdle() override;
@@ -30,6 +30,7 @@ private:
     void InitGlobalDescriptorPool();
 
 public:
+    void Init();
     void InitInternalResources();
     vk::raii::DescriptorPool
         CreateDescriptorPool(uint32 maxSets, const std::vector<vk::DescriptorPoolSize>& poolSizes);

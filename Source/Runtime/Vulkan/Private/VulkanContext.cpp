@@ -18,7 +18,7 @@ CVulkanContext::CVulkanContext(const FContextSpec& spec) : IRHIContext(spec) {
         FDeviceSpecification spec;
         spec.AppName = "ChozoEngine";
         spec.AppVersion = 1;
-        m_Device = IRHIAPI::CreateDevice(spec);
+        m_Device = IRHIAPI::CreateDevice(this, spec);
     }
 
     {

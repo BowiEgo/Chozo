@@ -3,28 +3,34 @@
 #include <codecvt>
 #include <windows.h>
 
-namespace ChozoPlatform {
+namespace ChozoUtils {
 
-namespace WChar {
+namespace String {
 
-std::string WStringToString(const std::wstring &wstr) {
-    if (wstr.empty())
-        return {};
-    int size_needed = WideCharToMultiByte(
-        CP_UTF8, 0, &wstr[0], (int)wstr.size(), nullptr, 0, nullptr, nullptr);
+std::string WStringToString(const std::wstring& wstr) {
+    if (wstr.empty()) return {};
+    int size_needed =
+        WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), nullptr, 0, nullptr, nullptr);
     std::string strTo(size_needed, 0);
-    WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0],
-                        size_needed, nullptr, nullptr);
+    WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, nullptr,
+                        nullptr);
     return strTo;
 }
 
-uint64_t WCharToUint64(const wchar_t *wchar_str) {
-    if (!wchar_str)
-        return 0;
+std::wstring StringToWString(const std::string& str) {
+    if (str.empty()) return std::wstring();
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+    std::wstring wstrTo(size_needed, 0);
+    MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
+    return wstrTo;
+}
+
+uint64_t WCharToUint64(const wchar_t* wchar_str) {
+    if (!wchar_str) return 0;
 
     std::wstring wstr(wchar_str);
     std::string str = WStringToString(wstr);
     return std::stoull(str);
 }
-} // namespace WChar
-} // namespace ChozoPlatform
+} // namespace String
+} // namespace ChozoUtils

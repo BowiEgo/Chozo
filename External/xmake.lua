@@ -20,7 +20,7 @@ target("imgui")
         add_links("vulkan", {public = true})
     end
 
-    add_packages("glfw", {public = true})
+    add_packages("glfw", {public = true, config = {shared = true}})
 
     -- Windows DLL symbol export handling
     if is_plat("windows") then

@@ -2,8 +2,8 @@
 
 #include <filesystem>
 
-namespace ChozoPlatform::File {
+namespace ChozoUtils::File {
 
 std::filesystem::path GetExecutablePath();
 
-} // namespace ChozoPlatform::File
+} // namespace ChozoUtils::File

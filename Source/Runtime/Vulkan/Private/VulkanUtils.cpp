@@ -211,35 +211,68 @@ void SetupBarrierSync(vk::ImageMemoryBarrier2& barrier, vk::ImageLayout oldLayou
         .setDstStageMask(vk::PipelineStageFlagBits2::eAllCommands)
         .setDstAccessMask(vk::AccessFlagBits2::eMemoryWrite | vk::AccessFlagBits2::eMemoryRead);
 
-    // 1. From Undefined/Pre-initialized to something
+    // --- Source Layout Transitions (Old Layout) ---
+
+    // Initial state or freshly allocated memory
     if (oldLayout == vk::ImageLayout::eUndefined) {
         barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eNone)
             .setSrcAccessMask(vk::AccessFlagBits2::eNone);
     }
-    // 2. From RenderTarget (Color Attachment)
+    // From RenderTarget (Color Attachment)
     else if (oldLayout == vk::ImageLayout::eColorAttachmentOptimal) {
         barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eColorAttachmentOutput)
             .setSrcAccessMask(vk::AccessFlagBits2::eColorAttachmentWrite);
     }
+    // Previous operation was a transfer (copy) write
+    else if (oldLayout == vk::ImageLayout::eTransferDstOptimal) {
+        barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eTransfer)
+            .setSrcAccessMask(vk::AccessFlagBits2::eTransferWrite);
+    }
+    // Previous operation was a transfer (copy) read
+    else if (oldLayout == vk::ImageLayout::eTransferSrcOptimal) {
+        barrier.setSrcStageMask(vk::PipelineStageFlagBits2::eTransfer)
+            .setSrcAccessMask(vk::AccessFlagBits2::eTransferRead);
+    }
 
-    // 3. To Present Source (The 1000001002 case)
+    // --- Destination Layout Transitions (New Layout) ---
+
+    // To Present Source (The 1000001002 case)
     if (newLayout == vk::ImageLayout::ePresentSrcKHR) {
         barrier.setDstStageMask(vk::PipelineStageFlagBits2::eBottomOfPipe)
             .setDstAccessMask(vk::AccessFlagBits2::eNone);
     }
-    // 4. To Shader Read Only (Combined Image Sampler)
+    // To Shader Read Only (Combined Image Sampler)
     else if (newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
         barrier.setDstStageMask(vk::PipelineStageFlagBits2::eFragmentShader)
             .setDstAccessMask(vk::AccessFlagBits2::eShaderRead);
     }
-    // 5. To RenderTarget (Color Attachment)
+    // Target for data upload (vkCmdCopyBufferToImage)
+    else if (newLayout == vk::ImageLayout::eTransferDstOptimal) {
+        barrier.setDstStageMask(vk::PipelineStageFlagBits2::eTransfer)
+            .setDstAccessMask(vk::AccessFlagBits2::eTransferWrite);
+    }
+    // Source for data download or blitting
+    else if (newLayout == vk::ImageLayout::eTransferSrcOptimal) {
+        barrier.setDstStageMask(vk::PipelineStageFlagBits2::eTransfer)
+            .setDstAccessMask(vk::AccessFlagBits2::eTransferRead);
+    }
+    // To RenderTarget (Color Attachment)
     else if (newLayout == vk::ImageLayout::eColorAttachmentOptimal) {
         barrier.setDstStageMask(vk::PipelineStageFlagBits2::eColorAttachmentOutput)
             .setDstAccessMask(vk::AccessFlagBits2::eColorAttachmentWrite);
-    } else {
-        // Handle other layout transitions as needed...
-        CZ_LOG(LogVulkanUtils, Warning, "Unsupported layout transition from {0} to {1}",
-               (uint32)oldLayout, (uint32)newLayout);
+    }
+    // Target for depth/stencil testing
+    else if (newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+        barrier
+            .setDstStageMask(vk::PipelineStageFlagBits2::eEarlyFragmentTests |
+                             vk::PipelineStageFlagBits2::eLateFragmentTests)
+            .setDstAccessMask(vk::AccessFlagBits2::eDepthStencilAttachmentWrite);
+    }
+    // Fallback for unhandled transitions using default masks
+    else {
+        CZ_LOG(LogVulkanUtils, Warning,
+               "General transition from {0} to {1} using AllCommands fallback.", (uint32)oldLayout,
+               (uint32)newLayout);
     }
 }
 

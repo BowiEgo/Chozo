@@ -144,8 +144,9 @@ void CVulkanSwapchain::Init() {
         texSpec.Size = FExtent2D(m_VKExtent.width, m_VKExtent.height);
         texSpec.Format = ChozoUtils::Vulkan::FromVKFormat(m_VKImageFormat);
         texSpec.Usage = ETextureUsage::ColorAttachment;
+
         TRef<CVulkanTexture2D> texture = CreateRef<CVulkanTexture2D>(
-            texSpec, device, rawImage,
+            WeakRef<IRHIDevice>(device), texSpec, rawImage,
             false); // Here m_IsOwned will be false because Swapchain owns the Image lifecycle
 
         m_ColorAttachments.push_back(texture);

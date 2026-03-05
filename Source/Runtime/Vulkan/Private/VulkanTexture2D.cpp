@@ -5,54 +5,52 @@
 
 DEFINE_LOG_CATEGORY(LogVulkanTexture2D);
 
-CVulkanTexture2D::CVulkanTexture2D(const FTexture2DSpecification& spec,
-                                   const WeakRef<CVulkanDevice> device, bool bIsOwned)
-    : IRHITexture2D(spec), m_Device(device), m_bIsOwned(bIsOwned) {
+CVulkanTexture2D::CVulkanTexture2D(const WeakRef<IRHIDevice> device,
+                                   const FTexture2DSpecification& spec, bool bIsOwned)
+    : IRHITexture2D(device, spec), m_bIsOwned(bIsOwned) {
     Init();
 }
 
-CVulkanTexture2D::CVulkanTexture2D(const FTexture2DSpecification& spec,
-                                   const WeakRef<CVulkanDevice> device, vk::Image image,
+CVulkanTexture2D::CVulkanTexture2D(const WeakRef<IRHIDevice> device,
+                                   const FTexture2DSpecification& spec, vk::Image image,
                                    bool bIsOwned)
-    : IRHITexture2D(spec), m_Device(device), m_VKImage(image), m_bIsOwned(bIsOwned) {
+    : IRHITexture2D(device, spec), m_VKImage(image), m_bIsOwned(bIsOwned) {
     Init();
 }
 
-CVulkanTexture2D::CVulkanTexture2D(const FTexture2DSpecification& spec,
-                                   const WeakRef<CVulkanDevice> device, FBuffer& data,
+CVulkanTexture2D::CVulkanTexture2D(const WeakRef<IRHIDevice> device,
+                                   const FTexture2DSpecification& spec, FBuffer& data,
                                    bool bIsOwned)
-    : IRHITexture2D(spec), m_Device(device), m_bIsOwned(bIsOwned) {
+    : IRHITexture2D(device, spec), m_bIsOwned(bIsOwned) {
     Init(data);
 }
 
 CVulkanTexture2D::~CVulkanTexture2D() {
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return;
 
     vk::Device logicalDevice = device->GetLogicalDevice();
 
-    if (m_VKImageView) {
-        logicalDevice.destroyImageView(m_VKImageView);
-        m_VKImageView = nullptr;
-    }
+    vk::ImageView view = m_VKImageView;
+    vk::Sampler sampler = m_VKSampler;
+    vk::Image image = m_VKImage;
+    vk::DeviceMemory memory = m_VKMemory;
+    bool bOwned = m_bIsOwned;
 
-    if (m_VKSampler) {
-        logicalDevice.destroySampler(m_VKSampler);
-        m_VKSampler = nullptr;
-    }
+    device->EnqueueCleanup([=] {
+        if (view) logicalDevice.destroyImageView(view);
 
-    if (m_bIsOwned) {
-        if (m_VKImage) {
-            logicalDevice.destroyImage(m_VKImage);
+        if (sampler) logicalDevice.destroySampler(sampler);
+
+        if (bOwned) {
+            if (image) logicalDevice.destroyImage(image);
+            if (memory) logicalDevice.freeMemory(memory);
         }
-        if (m_VKMemory) {
-            logicalDevice.freeMemory(m_VKMemory);
-        }
-    }
+    });
 }
 
 void CVulkanTexture2D::SetData(const FBuffer& data) {
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return;
 
     vk::Device logicalDevice = device->GetLogicalDevice();
@@ -129,7 +127,7 @@ void CVulkanTexture2D::Init(FBuffer& data) {
 }
 
 void CVulkanTexture2D::CreateImageResources() {
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) {
         CZ_LOG(LogVulkanTexture2D, Error,
                "Device is no longer valid during Image resource creation!");
@@ -175,7 +173,7 @@ void CVulkanTexture2D::CreateImageResources() {
 }
 
 void CVulkanTexture2D::CreateVKImageView() {
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) {
         CZ_LOG(LogVulkanTexture2D, Error, "Device is no longer valid during ImageView creation!");
         return;
@@ -198,7 +196,7 @@ void CVulkanTexture2D::CreateVKImageView() {
 }
 
 void CVulkanTexture2D::CreateVKSampler() {
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) {
         CZ_LOG(LogVulkanTexture2D, Error, "Device is no longer valid during Sampler creation!");
         return;
@@ -242,7 +240,7 @@ vk::DescriptorSet CVulkanTexture2D::GetVKDescriptorSet() {
     // Return immediately if already allocated and updated.
     if (m_VKDescriptorSet) return m_VKDescriptorSet;
 
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) {
         CZ_LOG(LogVulkanTexture2D, Error,
                "Device is no longer valid during DescriptorSet retrieval!");
@@ -278,7 +276,7 @@ vk::DescriptorSet CVulkanTexture2D::GetVKDescriptorSet() {
 }
 
 vk::DescriptorSet CVulkanTexture2D::AllocateDescriptorSet(vk::DescriptorSetLayout layout) {
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) {
         CZ_LOG(LogVulkanTexture2D, Error,
                "Device is no longer valid during DescriptorSet creation!");

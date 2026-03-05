@@ -9,8 +9,9 @@ CVulkanAPI::CVulkanAPI() {}
 CVulkanAPI::~CVulkanAPI() { CZ_LOG(LogVulkanAPI, Trace, "VulkanAPI destroying..."); }
 
 void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList>& cmdBuffer,
-                                    TRef<IRHISyncObject>& syncObject, uint32 currentFrame,
+                                    TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback) {
+    auto currentFrame = ctx->GetCurrentFrameIndex();
     auto device = ctx->GetDevice();
     auto swapchain = ctx->GetSwapchain().As<CVulkanSwapchain>();
     auto queue = device.As<CVulkanDevice>()->GetGraphicsQueue();
@@ -44,14 +45,14 @@ void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList
     vk::SubmitInfo submitInfo;
 
     vk::Semaphore imageSigSem = swapchain->GetRenderFinishedSemaphore(imgIdx);
-    vk::Fence drawFence = vkSync->GetDrawFence();
+    vk::Fence fence = vkSync->GetVKFence();
 
     submitInfo.setWaitSemaphores(acquireWaitSem)
         .setWaitDstStageMask(waitStages)
         .setCommandBuffers(vkCmdBuffer)
         .setSignalSemaphores(imageSigSem);
 
-    queue.submit({ submitInfo }, drawFence);
+    queue.submit({ submitInfo }, fence);
 
     // 5. present the image, waiting on the renderFinishedSemaphore to ensure rendering is
     // complete

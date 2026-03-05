@@ -33,12 +33,13 @@ public:
         return static_cast<CVulkanAPI*>(IRHIAPI::s_Instance)->m_Vulkan->GetVKSurface();
     }
 
-    virtual TRef<IRHIDevice> CreateDevice_Internal(const FDeviceSpecification& spec) override {
+    virtual TRef<IRHIDevice> CreateDevice_Internal(const IRHIContext* ctx,
+                                                   const FDeviceSpecification& spec) override {
         const auto& vkInstance = m_Vulkan->GetVKRAIIInstance();
         const auto& vkSurface = m_Vulkan->GetVKRAIISurface();
 
-        auto device = CreateRef<CVulkanDevice>(spec, vkInstance, vkSurface);
-        device->InitInternalResources();
+        auto device = CreateRef<CVulkanDevice>(ctx, spec, vkInstance, vkSurface);
+        device->Init();
 
         return device;
     }
@@ -85,21 +86,21 @@ public:
     virtual TRef<IRHITexture2D>
         CreateTexture2D_Internal(const IRHIContext* ctx,
                                  const FTexture2DSpecification& spec) override {
-        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+        auto RHIDevice = ctx->GetDevice();
 
-        return CreateRef<CVulkanTexture2D>(spec, WeakRef(RHIDevice));
+        return CreateRef<CVulkanTexture2D>(WeakRef(RHIDevice), spec);
     }
 
     virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const IRHIContext* ctx,
                                                          const FTexture2DSpecification& spec,
                                                          FBuffer& data) override {
-        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+        auto RHIDevice = ctx->GetDevice();
 
-        return CreateRef<CVulkanTexture2D>(spec, WeakRef(RHIDevice), data);
+        return CreateRef<CVulkanTexture2D>(WeakRef(RHIDevice), spec, data);
     }
 
     virtual void DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList>& cmdBuffer,
-                                    TRef<IRHISyncObject>& syncObject, uint32 currentFrame,
+                                    TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback) override;
     virtual void BeginRendering_Internal(const IRHIContext* ctx,
                                          const TRef<IRHICommandList>& cmdBuffer,

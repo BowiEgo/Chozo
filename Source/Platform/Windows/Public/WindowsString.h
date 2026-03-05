@@ -3,13 +3,15 @@
 #include <cstdint>
 #include <string>
 
-namespace ChozoPlatform {
+namespace ChozoUtils {
 
-namespace WChar {
+namespace String {
 
-std::string WStringToString(const std::wstring &wstr);
+std::string WStringToString(const std::wstring& wstr);
 
-uint64_t WCharToUint64(const wchar_t *wchar_str);
+std::wstring StringToWString(const std::string& str);
 
-} // namespace WChar
-} // namespace ChozoPlatform
+uint64_t WCharToUint64(const wchar_t* wchar_str);
+
+} // namespace String
+} // namespace ChozoUtils

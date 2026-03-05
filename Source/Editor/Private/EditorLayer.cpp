@@ -131,13 +131,15 @@ void EditorLayer::OnImGuiRender() {
     ImGui::PopStyleVar();
 #pragma endregion
 
-    // if (ImGuiFileDialog::Instance().IsDone("TextureOpenDialog")) {
-    //     if (ImGuiFileDialog::Instance().HasResult()) {
-    //         std::string res = ImGuiFileDialog::Instance().GetResult().string();
-    //         printf("OPEN[%s]\n", res.c_str());
-    //     }
-    //     ImGuiFileDialog::Instance().Close();
-    // }
+    auto context = m_ViewportRenderer->GetGraphicContext();
+    auto& fileDialog = ImGuiFileDialog::Get(context);
+    if (fileDialog.IsDone("TextureOpenDialog")) {
+        if (fileDialog.HasResult()) {
+            std::string res = fileDialog.GetResult().string();
+            CZ_LOG(LogEditorLayer, Trace, "OPEN[{}]", res);
+        }
+        fileDialog.Close();
+    }
 }
 
 void EditorLayer::OnEvent(IEvent& e) {}
@@ -145,9 +147,11 @@ void EditorLayer::OnEvent(IEvent& e) {}
 void EditorLayer::NewProject() {}
 
 void EditorLayer::OpenProject() {
-    // ImGuiFileDialog::Instance().Open(
-    //     "TextureOpenDialog", "Open a texture",
-    //     "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+    auto context = m_ViewportRenderer->GetGraphicContext();
+
+    ImGuiFileDialog::Get(context).Open(
+        "TextureOpenDialog", "Open a texture",
+        "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 }
 
 void EditorLayer::OpenProject(const std::filesystem::path& path) {}

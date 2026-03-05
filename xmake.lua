@@ -117,7 +117,7 @@ target("CopyBinaries")
             end
         end
 
-        for _, src in ipairs(dlls) do
+        for _, src in ipairs(bin_files) do
             local filename = path.filename(src)
             local dst = path.join(outdir, filename)
             

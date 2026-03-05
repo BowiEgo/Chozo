@@ -19,7 +19,7 @@ const std::regex s_ScenePattern(R"(\.(chozo)$)", std::regex::icase);
 
 } // namespace
 
-std::filesystem::path GetExecutablePath() { return ChozoPlatform::File::GetExecutablePath(); }
+std::filesystem::path GetExecutablePath() { return GetExecutablePath(); }
 
 const bool IsImage(std::string path) {
     std::filesystem::path filePath = std::filesystem::path(path);
@@ -32,7 +32,7 @@ std::filesystem::path GetAbsolutePath(const std::filesystem::path& path) {
 
     if (path.is_relative()) {
         std::filesystem::path exePath =
-            std::filesystem::absolute(ChozoUtils::File::GetExecutablePath()).parent_path();
+            std::filesystem::absolute(GetExecutablePath()).parent_path();
         result = (exePath / path).lexically_normal();
     }
 
@@ -45,8 +45,7 @@ std::filesystem::path GetAbsolutePath(const std::filesystem::path& path) {
 }
 
 bool CreateDirectoryIfNeeded(std::string directory) {
-    if (!std::filesystem::exists(directory))
-        return std::filesystem::create_directories(directory);
+    if (!std::filesystem::exists(directory)) return std::filesystem::create_directories(directory);
 
     return false;
 }

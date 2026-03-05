@@ -10,11 +10,11 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVulkanTexture2D, Info);
 
 class VULKAN_API CVulkanTexture2D : public IRHITexture2D {
 public:
-    CVulkanTexture2D(const FTexture2DSpecification& spec, const WeakRef<CVulkanDevice> device,
+    CVulkanTexture2D(const WeakRef<IRHIDevice> device, const FTexture2DSpecification& spec,
                      bool bIsOwned = true);
-    CVulkanTexture2D(const FTexture2DSpecification& spec, const WeakRef<CVulkanDevice> device,
+    CVulkanTexture2D(const WeakRef<IRHIDevice> device, const FTexture2DSpecification& spec,
                      vk::Image image, bool bIsOwned = true); // Wrap an existing VkImage
-    CVulkanTexture2D(const FTexture2DSpecification& spec, const WeakRef<CVulkanDevice> device,
+    CVulkanTexture2D(const WeakRef<IRHIDevice> device, const FTexture2DSpecification& spec,
                      FBuffer& data, bool bIsOwned = true);
 
     virtual ~CVulkanTexture2D();
@@ -43,7 +43,6 @@ private:
     vk::DescriptorSet AllocateDescriptorSet(vk::DescriptorSetLayout layout);
 
 private:
-    WeakRef<CVulkanDevice> m_Device;
     bool m_bIsOwned = true; // Whether this texture owns the VkImage (i.e. should destroy it)
 
     vk::Image m_VKImage;

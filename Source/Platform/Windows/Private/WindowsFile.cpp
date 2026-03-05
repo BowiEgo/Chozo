@@ -2,11 +2,11 @@
 
 #include <windows.h>
 
-namespace ChozoPlatform::File {
+namespace ChozoUtils::File {
 
 std::filesystem::path GetExecutablePath() {
-    wchar_t buffer[MAX_PATH] = {0};
+    wchar_t buffer[MAX_PATH] = { 0 };
     GetModuleFileNameW(nullptr, buffer, MAX_PATH);
     return std::filesystem::path(buffer).lexically_normal();
 }
-} // namespace ChozoPlatform::File
+} // namespace ChozoUtils::File

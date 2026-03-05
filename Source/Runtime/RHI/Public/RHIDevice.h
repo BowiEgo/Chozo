@@ -8,6 +8,8 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHIDevice, Info);
 
+class IRHIContext;
+class IRHIResource;
 class IRHIShader;
 struct FShaderSpecification;
 
@@ -26,9 +28,14 @@ struct FDeviceSpecification {
     bool bRequireRayTracing = false;
 };
 
+struct DeferredCleanup {
+    std::function<void()> CleanupFunc;
+    uint32_t RetireFrame;
+};
+
 class RHI_API IRHIDevice : public FRefCounted {
 public:
-    IRHIDevice(const FDeviceSpecification& spec);
+    IRHIDevice(const IRHIContext* ctx, const FDeviceSpecification& spec);
     virtual ~IRHIDevice();
 
     // --- Future extensions ---
@@ -42,6 +49,13 @@ public:
 
     virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec) = 0;
 
+    void EnqueueCleanup(std::function<void()>&& func);
+
+    void TickDeferredDeletion(uint32 currentFrame, uint32 maxFramesInFlight);
+
 protected:
     FDeviceSpecification m_Spec;
+
+    const IRHIContext* m_Context;
+    std::vector<DeferredCleanup> m_DeletionQueue;
 };

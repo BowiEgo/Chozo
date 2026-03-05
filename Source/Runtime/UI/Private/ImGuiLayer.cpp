@@ -48,6 +48,14 @@ void CImGuiLayer::OnAttach() {
 
     SetFont("Titillium_Web/TitilliumWeb-Regular.ttf");
 
+    ImFontConfig config;
+    config.MergeMode = true;
+    config.PixelSnapH = true;
+
+    const char* chineseFontPath = "C:\\Windows\\Fonts\\msyh.ttc";
+    io.Fonts->AddFontFromFileTTF(chineseFontPath, 18.0f * 1.5f, &config,
+                                 io.Fonts->GetGlyphRangesChineseFull());
+
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     // ImGui::StyleColorsLight();

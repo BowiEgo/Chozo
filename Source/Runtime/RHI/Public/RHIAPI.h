@@ -20,8 +20,8 @@ class RHI_API IRHIAPI {
 public:
     virtual ~IRHIAPI();
 
-    static TRef<IRHIDevice> CreateDevice(const FDeviceSpecification& spec) {
-        return s_Instance->CreateDevice_Internal(spec);
+    static TRef<IRHIDevice> CreateDevice(const IRHIContext* ctx, const FDeviceSpecification& spec) {
+        return s_Instance->CreateDevice_Internal(ctx, spec);
     }
 
     static TRef<IRHISwapchain> CreateSwapchain(const IRHIContext* ctx,
@@ -59,10 +59,8 @@ public:
     }
 
     static void DrawFrame(IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
-                          TRef<IRHISyncObject>& syncObject, uint32 currentFrame,
-                          RecordCallback recordCallback) {
-        return s_Instance->DrawFrame_Internal(ctx, cmdList, syncObject, currentFrame,
-                                              recordCallback);
+                          TRef<IRHISyncObject>& syncObject, RecordCallback recordCallback) {
+        return s_Instance->DrawFrame_Internal(ctx, cmdList, syncObject, recordCallback);
     }
 
     static void BeginRendering(const IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
@@ -81,7 +79,8 @@ public:
     }
 
 protected:
-    virtual TRef<IRHIDevice> CreateDevice_Internal(const FDeviceSpecification& spec) = 0;
+    virtual TRef<IRHIDevice> CreateDevice_Internal(const IRHIContext* ctx,
+                                                   const FDeviceSpecification& spec) = 0;
     virtual TRef<IRHISwapchain> CreateSwapchain_Internal(const IRHIContext* ctx,
                                                          const FSwapchainSpecification& spec) = 0;
     virtual TRef<IRHISyncObject> CreateSyncObject_Internal(const IRHIContext* ctx) = 0;
@@ -100,7 +99,7 @@ protected:
                                                          FBuffer& data) = 0;
 
     virtual void DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
-                                    TRef<IRHISyncObject>& syncObject, uint32 currentFrame,
+                                    TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback) = 0;
     virtual void BeginRendering_Internal(const IRHIContext* ctx,
                                          const TRef<IRHICommandList>& cmdList, bool bClear) = 0;

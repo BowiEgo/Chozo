@@ -3,11 +3,11 @@
 #include <cstdint>
 #include <string>
 
-namespace ChozoPlatform {
+namespace ChozoUtils {
 
-namespace WChar {
+namespace String {
 
-uint64_t WCharToUint64(const wchar_t *wchar_str);
+uint64_t WCharToUint64(const wchar_t* wchar_str);
 
-} // namespace WChar
-} // namespace ChozoPlatform
+} // namespace String
+} // namespace ChozoUtils

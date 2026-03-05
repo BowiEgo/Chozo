@@ -6,16 +6,17 @@
 
 DEFINE_LOG_CATEGORY(LogVulkanDevice);
 
-CVulkanDevice::CVulkanDevice(const FDeviceSpecification& spec, const vk::raii::Instance& instance,
+CVulkanDevice::CVulkanDevice(const IRHIContext* ctx, const FDeviceSpecification& spec,
+                             const vk::raii::Instance& instance,
                              const vk::raii::SurfaceKHR& surface)
-    : IRHIDevice(spec) {
+    : IRHIDevice(ctx, spec) {
     PickPhysicalDevice(instance);
     CreateLogicalDevice(surface);
-    InitGlobalDescriptorPool();
 }
 
 CVulkanDevice::~CVulkanDevice() {
     CZ_LOG(LogVulkanDevice, Trace, "Destroying Vulkan Device...");
+
     for (auto& [type, layout] : m_LayoutCache) {
         if (layout) {
             vk::Device rawDevice = *m_LogicalDevice;
@@ -23,6 +24,13 @@ CVulkanDevice::~CVulkanDevice() {
         }
     }
     m_LayoutCache.clear();
+
+    for (const auto& item : m_DeletionQueue) {
+        if (item.CleanupFunc) {
+            item.CleanupFunc();
+        }
+    }
+    m_DeletionQueue.clear();
 }
 
 void CVulkanDevice::WaitIdle() { m_LogicalDevice.waitIdle(); }
@@ -159,6 +167,11 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
     CZ_LOG(LogVulkanDevice, Info, "Vulkan Logical Device Created.");
 }
 
+void CVulkanDevice::Init() {
+    InitGlobalDescriptorPool();
+    InitInternalResources();
+}
+
 void CVulkanDevice::InitGlobalDescriptorPool() {
     std::vector<vk::DescriptorPoolSize> poolSizes = {
         { vk::DescriptorType::eCombinedImageSampler, 1000 },
@@ -238,6 +251,7 @@ TRef<CVulkanCommandBuffer> CVulkanDevice::BeginSingleTimeCommands() const {
     auto cmdBuffer = m_InternalTransientPool->AllocateCommandBuffer().As<CVulkanCommandBuffer>();
     vk::CommandBuffer vkCmdBuffer = cmdBuffer->GetVKCommandBuffer();
 
+    // m_SingleCommandSyncObject->WaitAndResetFence(TRef<CVulkanDevice>(this));
     // Begin recording with the 'OneTimeSubmit' flag for driver optimization
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
@@ -248,19 +262,24 @@ TRef<CVulkanCommandBuffer> CVulkanDevice::BeginSingleTimeCommands() const {
 }
 
 void CVulkanDevice::EndSingleTimeCommands(TRef<CVulkanCommandBuffer> cmdBuffer) const {
+    vk::Device rawDevice = *m_LogicalDevice;
+
     vk::CommandBuffer vkCmdBuffer = cmdBuffer->GetVKCommandBuffer();
 
     vkCmdBuffer.end();
 
+    vk::FenceCreateInfo fenceInfo;
+    vk::Fence fence = rawDevice.createFence(fenceInfo);
+
     vk::SubmitInfo submitInfo;
     submitInfo.setCommandBuffers(vkCmdBuffer);
 
-    m_GraphicsQueue.submit(submitInfo);
+    m_GraphicsQueue.submit(submitInfo, fence);
 
-    // Block the CPU until the GPU has finished all tasks in the queue
-    // This ensures data is fully transferred before we clean up staging resources
-    m_GraphicsQueue.waitIdle();
+    if (m_LogicalDevice.waitForFences(fence, VK_TRUE, UINT64_MAX) != vk::Result::eSuccess) {
+    }
 
+    rawDevice.destroyFence(fence);
     cmdBuffer = nullptr;
 }
 

@@ -2,7 +2,7 @@
 
 #include <mach-o/dyld.h>
 
-namespace ChozoPlatform::File {
+namespace ChozoUtils::File {
 
 std::filesystem::path GetExecutablePath() {
     char buffer[1024];
@@ -15,4 +15,4 @@ std::filesystem::path GetExecutablePath() {
         return std::filesystem::path(path).lexically_normal();
     }
 }
-} // namespace ChozoPlatform::File
+} // namespace ChozoUtils::File
