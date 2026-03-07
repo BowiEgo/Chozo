@@ -5,11 +5,11 @@
 #include "VulkanCommandPool.h"
 #include "VulkanDevice.h"
 
-#include "VulkanExport.h"
+#include "VulkanRHIExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanCommandBuffer, Info);
 
-class VULKAN_API CVulkanCommandBuffer : public IRHICommandList {
+class VULKAN_RHI_API CVulkanCommandBuffer : public IRHICommandList {
 public:
     CVulkanCommandBuffer(const TRef<CVulkanCommandPool>& cmdPool);
     virtual ~CVulkanCommandBuffer();

@@ -2,11 +2,11 @@
 
 #include "RHICommandPool.h"
 
-#include "VulkanExport.h"
+#include "VulkanRHIExport.h"
 
 class CVulkanDevice;
 
-class VULKAN_API CVulkanCommandPool : public IRHICommandPool {
+class VULKAN_RHI_API CVulkanCommandPool : public IRHICommandPool {
 public:
     CVulkanCommandPool(const FCommandPoolSpecification& spec, const TRef<CVulkanDevice>& device);
     virtual ~CVulkanCommandPool() = default;

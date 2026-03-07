@@ -2,11 +2,11 @@
 
 #include "RHIContext.h"
 
-#include "VulkanExport.h"
+#include "VulkanRHIExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanContext, Info);
 
-class VULKAN_API CVulkanContext : public IRHIContext {
+class VULKAN_RHI_API CVulkanContext : public IRHIContext {
 
 public:
     CVulkanContext(const FContextSpec& spec);

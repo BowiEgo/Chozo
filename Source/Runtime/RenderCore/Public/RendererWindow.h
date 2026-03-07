@@ -17,6 +17,7 @@ public:
 
     virtual FExtent2D GetSize() const = 0;
     virtual FExtent2D GetFrameBufferSize() const = 0;
+    virtual FExtent2D GetFrameBufferScale() const = 0;
     virtual std::vector<const char*> GetRequiredExtensions() const = 0;
     virtual FWindowHandle GetWindowWrapper() const = 0;
     virtual FWindowHandle

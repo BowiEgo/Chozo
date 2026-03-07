@@ -112,6 +112,33 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
     if (indices.Present.has_value()) uniqueQueueFamilies.insert(indices.Present.value());
     if (indices.Compute.has_value()) uniqueQueueFamilies.insert(indices.Compute.value());
 
+    // ===== Check and prepare extensions =====
+    bool hasSwapchainMaintenance =
+        IsExtensionSupported(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
+    bool hasSurfaceMaintenance = IsExtensionSupported(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME);
+
+    if (hasSwapchainMaintenance && hasSurfaceMaintenance) {
+        CZ_LOG(LogVulkanDevice, Info,
+               "VK_EXT_swapchain_maintenance1 and VK_EXT_surface_maintenance1 are supported");
+
+        // Ensure both extensions are in the enabled list
+        auto addExtensionIfNeeded = [this](const char* extName) {
+            bool found = false;
+            for (const auto& ext : m_RequiredDeviceExtension) {
+                if (strcmp(ext, extName) == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                m_RequiredDeviceExtension.push_back(extName);
+            }
+        };
+
+        addExtensionIfNeeded(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
+        addExtensionIfNeeded(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME);
+    }
+
     vk::PhysicalDeviceFeatures2 features2;
     vk::PhysicalDeviceVulkan11Features features11;
     features11.shaderDrawParameters = true;
@@ -123,10 +150,17 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
     vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT extendedFeatures;
     extendedFeatures.extendedDynamicState = true;
 
+    vk::PhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchainMaintenanceFeatures;
+    if (hasSwapchainMaintenance) {
+        swapchainMaintenanceFeatures.setSwapchainMaintenance1(VK_TRUE);
+    }
+
     vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features,
                        vk::PhysicalDeviceVulkan13Features,
-                       vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>
-        featureChain(features2, features11, features13, extendedFeatures);
+                       vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
+                       vk::PhysicalDeviceSwapchainMaintenance1FeaturesEXT>
+        featureChain(features2, features11, features13, extendedFeatures,
+                     swapchainMaintenanceFeatures);
 
     float queuePriority = 0.5f;
     vk::DeviceQueueCreateInfo deviceQueueCreateInfo;
@@ -334,4 +368,14 @@ vk::DescriptorSetLayout CVulkanDevice::GetDescriptorSetLayout(EDescriptorLayoutT
     m_LayoutCache[type] = newLayout;
 
     return newLayout;
+}
+
+bool CVulkanDevice::IsExtensionSupported(const std::string& extensionName) const {
+    auto extensions = m_PhysicalDevice.enumerateDeviceExtensionProperties();
+    for (const auto& ext : extensions) {
+        if (ext.extensionName == extensionName) {
+            return true;
+        }
+    }
+    return false;
 }

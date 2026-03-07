@@ -6,13 +6,13 @@
 #include "VulkanTexture2D.h"
 #include "VulkanUtils.h"
 
-#include "VulkanExport.h"
+#include "VulkanRHIExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanSwapchain, Info);
 
 static constexpr uint32 INVALID_IMAGE_INDEX = 0xFFFFFFFF;
 
-class VULKAN_API CVulkanSwapchain : public IRHISwapchain {
+class VULKAN_RHI_API CVulkanSwapchain : public IRHISwapchain {
 public:
     CVulkanSwapchain(const FSwapchainSpecification& spec, const TRef<CVulkanDevice>& device,
                      const vk::raii::SurfaceKHR& surface);
@@ -35,6 +35,7 @@ private:
     void Init();
 
 public:
+    void MarkNeedsRecreation();
     bool RecreateIfNeeded();
     void Recreate() { Recreate(m_Spec.FrameBufferSize); }
 

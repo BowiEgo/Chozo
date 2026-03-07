@@ -9,7 +9,7 @@ CRenderer::CRenderer(IRendererWindow* windowHandle) : m_Window(windowHandle) {}
 CRenderer::~CRenderer() {}
 
 void CRenderer::Init() {
-    std::string libName = ChozoUitls::Module::GetPlatformLibName("Vulkan");
+    std::string libName = ChozoUitls::Module::GetPlatformLibName("VulkanRHI");
     if (m_RHIModule.Load(libName)) {
         FContextSpec spec;
         spec.FrameBufferSize = m_Window->GetFrameBufferSize();

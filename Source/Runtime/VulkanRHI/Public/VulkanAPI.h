@@ -2,7 +2,7 @@
 
 #include "RHIAPI.h"
 
-#include "Vulkan.h"
+#include "VulkanCore.h"
 #include "VulkanDevice.h"
 #include "VulkanFrameBuffer.h"
 #include "VulkanPipeline.h"
@@ -10,11 +10,11 @@
 #include "VulkanSwapchain.h"
 #include "VulkanSyncObject.h"
 
-#include "VulkanExport.h"
+#include "VulkanRHIExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanAPI, Info);
 
-class VULKAN_API CVulkanAPI : public IRHIAPI {
+class VULKAN_RHI_API CVulkanAPI : public IRHIAPI {
 public:
     CVulkanAPI();
     virtual ~CVulkanAPI() override;

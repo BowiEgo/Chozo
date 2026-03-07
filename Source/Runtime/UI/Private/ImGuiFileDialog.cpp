@@ -43,7 +43,7 @@ bool IsHiddenOrSystem(const std::filesystem::path& p) {
         return (attributes & FILE_ATTRIBUTE_HIDDEN) || (attributes & FILE_ATTRIBUTE_SYSTEM);
     }
 #else
-    if (filename.size() > 0 && filename[0] == '.') return true;
+    if (p.string().size() > 0 && p.string()[0] == '.') return true;
 #endif
     return false;
 }

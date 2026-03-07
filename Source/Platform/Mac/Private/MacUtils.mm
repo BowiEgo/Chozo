@@ -4,7 +4,7 @@
 
 namespace ChozoUtils::Mac {
 
-    void* GetMetalLayerFromNSWindow(void* nsWindow) {
+    void* GetMetalLayerFromNSWindow(const void* nsWindow) {
         // [Note] Use __bridge to cast void* to Objective-C object without ownership change
         NSWindow* window = (__bridge NSWindow*)nsWindow;
         NSView* view = [window contentView];

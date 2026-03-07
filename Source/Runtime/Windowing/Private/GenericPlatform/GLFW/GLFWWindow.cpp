@@ -5,21 +5,19 @@
 
 #ifdef CZ_PLATFORM_WINDOWS
     #ifndef NOMINMAX
-        #define NOMINMAX // 必须在 windows.h 之前，防止 std::min/max 冲突
+        #define NOMINMAX
     #endif
     #define GLFW_EXPOSE_NATIVE_WIN32
     #include <windows.h>
-// 注意：SetProcessDpiAwarenessContext 需要包含 ShellScalingApi.h 或特定的 SDK
-// 版本
 #elif defined(CZ_PLATFORM_LINUX)
-    #define GLFW_EXPOSE_NATIVE_X11 // 或 WAYLAND
+    #define GLFW_EXPOSE_NATIVE_X11 // or WAYLAND
 #elif defined(CZ_PLATFORM_MACOS)
     #define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 
 #include <GLFW/glfw3native.h>
 
-DEFINE_LOG_CATEGORY(LogCGLFWWindow);
+DEFINE_LOG_CATEGORY(LogGLFWWindow);
 
 CGLFWWindow::~CGLFWWindow() {}
 
@@ -49,10 +47,10 @@ FExtent2D CGLFWWindow::GetSize() const {
     FExtent2D result;
 
     int w, h;
-    glfwGetWindowSize(GetGLFWWindow(), &w, &h);
+    glfwGetFramebufferSize(GetGLFWWindow(), &w, &h);
 
-    result.Width = w;
-    result.Height = h;
+    result.Width = w / m_Definition.FrameBufferScale.Width;
+    result.Height = h / m_Definition.FrameBufferScale.Height;
 
     return result;
 }
@@ -93,11 +91,17 @@ void CGLFWWindow::CreateGLFWWindow() {
     const bool dimensionsInValid = m_Definition.Size.Width <= 0 || m_Definition.Size.Height <= 0;
     CZ_CORE_ASSERT(!dimensionsInValid, "CGLFWWindow: Invalid window dimensions!");
 
-#ifdef CZ_PLATFORM_WIN
+#ifdef CZ_PLATFORM_WINDOWS
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 #endif
 
     // Initialize GLFW window
+    {
+        int major, minor, rev;
+        glfwGetVersion(&major, &minor, &rev);
+        CZ_LOG(LogGLFWWindow, Trace, "GLFW Version: {}.{}.{} (Need >= 3.3)\n", major, minor, rev);
+    }
+
     if (!s_GLFWInitialized) {
         const int success = glfwInit();
         CZ_CORE_ASSERT(success, "CGLFWWindow: Could not initialize GLFW!");
@@ -106,8 +110,12 @@ void CGLFWWindow::CreateGLFWWindow() {
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    // glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_SCALE_FRAMEBUFFER, GLFW_TRUE);
+#endif
 
     m_Window = glfwCreateWindow(m_Definition.Size.Width, m_Definition.Size.Height,
                                 m_Definition.Title.c_str(), nullptr, nullptr);
@@ -116,31 +124,33 @@ void CGLFWWindow::CreateGLFWWindow() {
     auto glfwWindow = GetGLFWWindow();
     glfwSetWindowUserPointer(GetGLFWWindow(), &m_Definition);
 
-    // Pixel ratio
-    auto fbSize = GetFrameBufferSize();
-    m_Definition.Size = GetSize();
-    m_Definition.PixelRatio = (float)fbSize.Width / (float)m_Definition.Size.Width;
-
     // Render Scaling
     float xscale, yscale = 1.0f;
     glfwGetWindowContentScale(GetGLFWWindow(), &xscale, &yscale);
-    m_Definition.XScale = xscale;
-    m_Definition.YScale = yscale;
+    m_Definition.FrameBufferScale.Width = xscale;
+    m_Definition.FrameBufferScale.Height = yscale;
 
-    CZ_LOG(LogCGLFWWindow, Info, "GLFW Window({1}, {2}) for {0} for Vulkan created.",
+    // Pixel ratio
+    int w, h;
+    auto fbSize = GetFrameBufferSize();
+    glfwGetWindowSize(GetGLFWWindow(), &w, &h);
+    m_Definition.PixelRatio = (float)fbSize.Width / (float)w;
+    m_Definition.Size = GetSize();
+
+    CZ_LOG(LogGLFWWindow, Info, "GLFW Window({1}, {2}) for {0} for Vulkan created.",
            m_Definition.Title, m_Definition.Size.Width, m_Definition.Size.Height);
 }
 
 void CGLFWWindow::SetGLFWCallbacks() {
-    glfwSetWindowContentScaleCallback(
-        GetGLFWWindow(), [](GLFWwindow* window, float xscale, float yscale) {
-            FWindowDefinition& def = *(FWindowDefinition*)glfwGetWindowUserPointer(window);
-            def.XScale = xscale;
-            def.YScale = yscale;
+    glfwSetWindowContentScaleCallback(GetGLFWWindow(), [](GLFWwindow* window, float xscale,
+                                                          float yscale) {
+        FWindowDefinition& def = *(FWindowDefinition*)glfwGetWindowUserPointer(window);
+        def.FrameBufferScale.Width = xscale;
+        def.FrameBufferScale.Height = yscale;
 
-            FWindowContentScaledEvent event(def.XScale, def.YScale);
-            def.EventCallback(event);
-        });
+        FWindowContentScaledEvent event(def.FrameBufferScale.Width, def.FrameBufferScale.Height);
+        def.EventCallback(event);
+    });
 
     glfwSetWindowSizeCallback(GetGLFWWindow(), [](GLFWwindow* window, int width, int height) {
         FWindowDefinition& def = *(FWindowDefinition*)glfwGetWindowUserPointer(window);
@@ -224,5 +234,5 @@ void CGLFWWindow::SetGLFWCallbacks() {
 }
 
 void CGLFWWindow::OnGLFWError(int error, const char* description) {
-    CZ_LOG(LogCGLFWWindow, Error, "GLFW Error ({0}):", error, description);
+    CZ_LOG(LogGLFWWindow, Error, "GLFW Error ({0}):", error, description);
 }

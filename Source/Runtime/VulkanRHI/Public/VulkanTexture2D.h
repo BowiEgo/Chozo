@@ -4,11 +4,11 @@
 
 #include "VulkanDevice.h"
 
-#include "VulkanExport.h"
+#include "VulkanRHIExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanTexture2D, Info);
 
-class VULKAN_API CVulkanTexture2D : public IRHITexture2D {
+class VULKAN_RHI_API CVulkanTexture2D : public IRHITexture2D {
 public:
     CVulkanTexture2D(const WeakRef<IRHIDevice> device, const FTexture2DSpecification& spec,
                      bool bIsOwned = true);

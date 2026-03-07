@@ -6,7 +6,7 @@
 
 #include <GLFW/glfw3.h>
 
-DECLARE_LOG_CATEGORY_EXTERN(LogCGLFWWindow, Info);
+DECLARE_LOG_CATEGORY_EXTERN(LogGLFWWindow, Info);
 
 static bool s_GLFWInitialized = false;
 
@@ -27,6 +27,7 @@ public:
     // from IRendererWindow
     virtual FExtent2D GetSize() const override;
     virtual FExtent2D GetFrameBufferSize() const override;
+    virtual FExtent2D GetFrameBufferScale() const override { return m_Definition.FrameBufferScale; }
     virtual std::vector<const char*> GetRequiredExtensions() const override;
     virtual FWindowHandle GetNativeHandle() const override;
 

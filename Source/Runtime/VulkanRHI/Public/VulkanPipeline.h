@@ -2,13 +2,13 @@
 
 #include "RHIPipeline.h"
 
-#include "VulkanExport.h"
+#include "VulkanRHIExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanPipeline, Info);
 
 class CVulkanDevice;
 
-class VULKAN_API CVulkanPipeline : public IRHIPipeline {
+class VULKAN_RHI_API CVulkanPipeline : public IRHIPipeline {
     friend class CVulkan;
     friend class CVulkanCommandBuffer;
 

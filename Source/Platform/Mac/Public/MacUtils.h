@@ -2,6 +2,6 @@
 
 namespace ChozoUtils::Mac {
 
-void* GetMetalLayerFromNSWindow(void* nsWindow);
+void* GetMetalLayerFromNSWindow(const void* nsWindow);
 
 }

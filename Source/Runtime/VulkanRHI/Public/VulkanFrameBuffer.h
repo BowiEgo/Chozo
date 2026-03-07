@@ -5,9 +5,9 @@
 
 #include "VulkanDevice.h"
 
-#include "VulkanExport.h"
+#include "VulkanRHIExport.h"
 
-class VULKAN_API CVulkanFrameBuffer : public IRHIFrameBuffer {
+class VULKAN_RHI_API CVulkanFrameBuffer : public IRHIFrameBuffer {
 public:
     CVulkanFrameBuffer(const FFrameBufferSpecification& spec, const TRef<CVulkanDevice>& device);
     virtual ~CVulkanFrameBuffer() = default;

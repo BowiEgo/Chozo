@@ -32,6 +32,7 @@ end
 
 add_requires("spdlog", "glm")
 add_requires("glfw", {configs = {shared = true}})
+add_requireconfs("*.glfw", {override = true, configs = {shared = true}})
 
 -- Load the custom module rule defined above
 includes("scripts/chozo_module.lua")
@@ -42,7 +43,7 @@ includes("External")
 includes("Source/Platform")
 includes("Source/Runtime/Core")
 includes("Source/Runtime/Windowing")
-includes("Source/Runtime/Vulkan")
+includes("Source/Runtime/VulkanRHI")
 includes("Source/Runtime/RHI")
 includes("Source/Runtime/VulkanImGui")
 includes("Source/Runtime/UI")

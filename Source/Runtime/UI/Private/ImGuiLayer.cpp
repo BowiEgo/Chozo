@@ -48,6 +48,7 @@ void CImGuiLayer::OnAttach() {
 
     SetFont("Titillium_Web/TitilliumWeb-Regular.ttf");
 
+#ifdef CZ_PLATFORM_WINDOWS
     ImFontConfig config;
     config.MergeMode = true;
     config.PixelSnapH = true;
@@ -55,7 +56,7 @@ void CImGuiLayer::OnAttach() {
     const char* chineseFontPath = "C:\\Windows\\Fonts\\msyh.ttc";
     io.Fonts->AddFontFromFileTTF(chineseFontPath, 18.0f * 1.5f, &config,
                                  io.Fonts->GetGlyphRangesChineseFull());
-
+#endif
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
     // ImGui::StyleColorsLight();
@@ -102,13 +103,12 @@ void CImGuiLayer::Draw(const TRef<IRHICommandList>& cmdBuffer) {
 void CImGuiLayer::Begin() {
     ImGuiIO& io = ImGui::GetIO();
     auto logicalSize = m_Window->GetSize();
-    // auto physicalSize = m_Window->GetFrameBufferSize();
-    io.DisplaySize = ImVec2((float)logicalSize.Width, (float)logicalSize.Height);
+    auto framebufferScale = m_Window->GetFrameBufferScale();
 
-    // if (logicalSize.Width > 0 && logicalSize.Height > 0) {
-    //     io.DisplayFramebufferScale = ImVec2((float)physicalSize.Width / logicalSize.Width,
-    //                                         (float)physicalSize.Height / logicalSize.Height);
-    // }
+    io.DisplaySize = ImVec2((float)logicalSize.Width, (float)logicalSize.Height);
+    if (logicalSize.Width > 0 && logicalSize.Height > 0) {
+        io.DisplayFramebufferScale = ImVec2(framebufferScale.Width, framebufferScale.Height);
+    }
 
     m_ImGuiRenderer->NewFrame();
 }
@@ -153,8 +153,6 @@ void CImGuiLayer::End() {
     // Rendering
     ImGui::Render();
 
-    auto drawData = ImGui::GetDrawData();
-
     if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
@@ -171,12 +169,13 @@ void CImGuiLayer::SetFont(std::string font) {
 
     ImGuiIO& io = ImGui::GetIO();
     float fontSize = 18.0f;
-    // float pixelRatio = m_Window->GetPixelRatio();
+    float pixleRatio = m_Window->GetPixelRatio();
+    float scale = m_Window->GetFrameBufferScale().Width;
 
     io.Fonts->Clear();
-    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * 2.0f); // TODO: Adjust
+    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * scale);
     io.FontDefault = io.Fonts->Fonts.back();
-    // io.FontGlobalScale = 1.0f / pixelRatio;
+    io.FontGlobalScale = 1.0f / pixleRatio;
 }
 
 void CImGuiLayer::SetDarkThemeColors() {

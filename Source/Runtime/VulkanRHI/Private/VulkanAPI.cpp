@@ -12,28 +12,62 @@ void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList
                                     TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback) {
     auto currentFrame = ctx->GetCurrentFrameIndex();
-    auto device = ctx->GetDevice();
+    auto device = ctx->GetDevice().As<CVulkanDevice>();
     auto swapchain = ctx->GetSwapchain().As<CVulkanSwapchain>();
-    auto queue = device.As<CVulkanDevice>()->GetGraphicsQueue();
+    auto queue = device->GetGraphicsQueue();
     auto vkSync = syncObject.As<CVulkanSyncObject>();
     vk::CommandBuffer vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
+
+    if (vkSync->WasJustRecreated()) {
+        CZ_LOG(LogVulkanAPI, Trace,
+               "Semaphores were just recreated, skipping one frame to stabilize");
+        vkSync->ClearRecreatedFlag();
+        return;
+    }
 
     if (swapchain->RecreateIfNeeded()) {
         vkSync->RecreateSemaphores(device);
         return;
     }
+
     auto vkSwapchain = swapchain->GetVKSwapchain();
 
     // 1. CPU waits for GPU to ensure resource safety
-    vkSync->WaitAndResetFence(device);
+    vk::Result waitResult = vkSync->WaitAndResetFence(device, UINT32_MAX);
+    if (waitResult != vk::Result::eSuccess) {
+        CZ_LOG(LogVulkanAPI, Error, "Failed to wait for fence: {}", vk::to_string(waitResult));
+        vkSync->RecreateSemaphores(device);
+        return;
+    }
 
     // 2. accuireNextImage
     uint32 inFlightIndex = currentFrame % swapchain->GetImageCount();
     vk::Semaphore acquireWaitSem = swapchain->GetImageAvailableSemaphore(inFlightIndex);
 
-    uint32 imgIdx = swapchain->AcquireNextImage(acquireWaitSem);
+    uint32 imgIdx = INVALID_IMAGE_INDEX;
+    int retryCount = 0;
+    const int maxRetries = 3;
+
+    while (retryCount < maxRetries) {
+        imgIdx = swapchain->AcquireNextImage(acquireWaitSem);
+
+        if (imgIdx != INVALID_IMAGE_INDEX) {
+            break;
+        }
+
+        CZ_LOG(LogVulkanAPI, Warning, "Failed to acquire image (attempt {}/{})", retryCount + 1,
+               maxRetries);
+        retryCount++;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    if (imgIdx == INVALID_IMAGE_INDEX) {
+        CZ_LOG(LogVulkanAPI, Error, "Failed to acquire image after {} attempts", maxRetries);
+        return;
+    }
+
     ctx->SetCurrentImageIndex(imgIdx);
-    if (imgIdx == INVALID_IMAGE_INDEX) return;
 
     // 3. extute the external recording logic (no longer decided by RHI what to draw)
     if (recordCallback) {
@@ -52,7 +86,13 @@ void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList
         .setCommandBuffers(vkCmdBuffer)
         .setSignalSemaphores(imageSigSem);
 
-    queue.submit({ submitInfo }, fence);
+    try {
+        queue.submit({ submitInfo }, fence);
+    } catch (const vk::Error& e) {
+        CZ_LOG(LogVulkanAPI, Error, "Submit failed: {}", e.what());
+        vkSync->RecreateSemaphores(device);
+        return;
+    }
 
     // 5. present the image, waiting on the renderFinishedSemaphore to ensure rendering is
     // complete
@@ -64,10 +104,20 @@ void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList
         result = queue.presentKHR(presentInfo);
     } catch (const vk::OutOfDateKHRError& e) {
         result = vk::Result::eErrorOutOfDateKHR;
+    } catch (const vk::Error& e) {
+        CZ_LOG(LogVulkanAPI, Error, "Present failed: {}", e.what());
+        result = vk::Result::eErrorUnknown;
     }
 
-    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
-        swapchain->Recreate();
+    if (result == vk::Result::eErrorOutOfDateKHR) {
+        CZ_LOG(LogVulkanAPI, Info, "Swapchain out of date, will recreate");
+        swapchain->MarkNeedsRecreation();
+    } else if (result == vk::Result::eSuboptimalKHR) {
+        CZ_LOG(LogVulkanAPI, Warning, "Swapchain suboptimal, may need recreation");
+        swapchain->MarkNeedsRecreation();
+    } else if (result != vk::Result::eSuccess) {
+        CZ_LOG(LogVulkanAPI, Error, "Present failed with unexpected result: {}",
+               vk::to_string(result));
     }
 }
 

@@ -6,7 +6,7 @@
 DEFINE_LOG_CATEGORY(LogVulkanContext);
 
 extern "C" {
-VULKAN_API IRHIContext* CreateVulkanContext(const FContextSpec& spec) {
+VULKAN_RHI_API IRHIContext* CreateVulkanContext(const FContextSpec& spec) {
     return new CVulkanContext(spec);
 }
 }

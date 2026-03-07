@@ -10,8 +10,8 @@
 
 struct WINDOWING_API FWindowDefinition {
     std::string Title;
-    float XScale, YScale = 1.0f;
     FExtent2D Size;
+    FExtent2D FrameBufferScale;
     float PixelRatio;
     bool VSync;
     FEventCallback EventCallback;
@@ -38,10 +38,11 @@ public:
         }
     }
     virtual bool IsVSyncEnabled() const override { return m_Definition.VSync; }
-    virtual bool CheckAndResetVSyncDirty() { return m_VSyncDirty.exchange(false); }
+    virtual bool CheckAndResetVSyncDirty() override { return m_VSyncDirty.exchange(false); }
 
     virtual FExtent2D GetSize() const override = 0;
     virtual FExtent2D GetFrameBufferSize() const override = 0;
+    virtual FExtent2D GetFrameBufferScale() const override = 0;
     virtual std::vector<const char*> GetRequiredExtensions() const override = 0;
     virtual FWindowHandle GetWindowWrapper() const override { return m_Window; }
     virtual FWindowHandle GetNativeHandle() const override = 0;

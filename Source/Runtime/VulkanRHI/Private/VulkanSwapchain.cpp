@@ -18,8 +18,7 @@ CVulkanSwapchain::~CVulkanSwapchain() {
 
 const uint32 CVulkanSwapchain::AcquireNextImage(vk::Semaphore semaphore) {
     try {
-        auto resultValue =
-            m_VKSwapchain.acquireNextImage((std::numeric_limits<uint64_t>::max)(), semaphore);
+        auto resultValue = m_VKSwapchain.acquireNextImage(UINT32_MAX, semaphore);
 
         if (resultValue.result == vk::Result::eSuboptimalKHR) {
             m_NeedsRecreation = true; // Mark for later to avoid breaking RAII flow
@@ -49,6 +48,13 @@ void CVulkanSwapchain::Recreate(const FExtent2D& frameBufferSize) {
     m_NeedsRecreation = false;
 }
 
+void CVulkanSwapchain::MarkNeedsRecreation() {
+    if (!m_NeedsRecreation) {
+        CZ_LOG(LogVulkanSwapchain, Trace, "Swapchain marked for recreation");
+        m_NeedsRecreation = true;
+    }
+}
+
 bool CVulkanSwapchain::RecreateIfNeeded() {
     if (m_NeedsRecreation) {
         Recreate();
@@ -69,6 +75,13 @@ void CVulkanSwapchain::Init() {
     ChozoUtils::Vulkan::SwapchainSupportDetails details =
         ChozoUtils::Vulkan::QuerySwapchainSupport(raiihysicalDevice, m_VKSurface);
 
+    CZ_LOG(LogVulkan, Info, "Vulkan surface current extent: {}x{}",
+           details.capabilities.currentExtent.width, details.capabilities.currentExtent.height);
+    CZ_LOG(LogVulkan, Info, "Vulkan surface min extent: {}x{}",
+           details.capabilities.minImageExtent.width, details.capabilities.minImageExtent.height);
+    CZ_LOG(LogVulkan, Info, "Vulkan surface max extent: {}x{}",
+           details.capabilities.maxImageExtent.width, details.capabilities.maxImageExtent.height);
+
     int pixelWidth = m_Spec.FrameBufferSize.Width, pixelHeight = m_Spec.FrameBufferSize.Height;
 
     vk::SurfaceFormatKHR surfaceFormat =
@@ -76,8 +89,24 @@ void CVulkanSwapchain::Init() {
 
     vk::PresentModeKHR presentMode =
         ChozoUtils::Vulkan::ChooseSwapPresentMode(m_PresentMode, details.presentModes);
-    vk::Extent2D extent =
-        ChozoUtils::Vulkan::ChooseSwapExtent(details.capabilities, pixelWidth, pixelHeight);
+    // vk::Extent2D extent =
+    //     ChozoUtils::Vulkan::ChooseSwapExtent(details.capabilities, pixelWidth, pixelHeight);
+
+    vk::Extent2D extent;
+    bool hasSwapchainMaintenance =
+        device->IsExtensionSupported(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
+
+    if (hasSwapchainMaintenance) {
+        CZ_LOG(LogVulkanSwapchain, Info,
+               "VK_EXT_swapchain_maintenance1 supported, using physical size");
+        extent.width = pixelWidth;
+        extent.height = pixelHeight;
+    } else {
+        CZ_LOG(LogVulkanSwapchain, Warning,
+               "VK_EXT_swapchain_maintenance1 not supported, falling back to surface extent");
+        extent =
+            ChozoUtils::Vulkan::ChooseSwapExtent(details.capabilities, pixelWidth, pixelHeight);
+    }
 
     // Determine image count (Minimum + 1 for triple buffering)
     m_ImageCount = details.capabilities.minImageCount + 1;
@@ -118,6 +147,18 @@ void CVulkanSwapchain::Init() {
     createInfo.presentMode = presentMode;
     createInfo.clipped = true;
 
+    vk::SwapchainPresentScalingCreateInfoEXT scalingInfo;
+    if (hasSwapchainMaintenance) {
+        // Use single scaling flag, cannot combine multiple bits
+        scalingInfo.setScalingBehavior(vk::PresentScalingFlagBitsEXT::eStretch
+                                       //  | vk::PresentScalingFlagBitsEXT::eAspectRatioStretch
+        );
+
+        createInfo.setPNext(&scalingInfo);
+
+        CZ_LOG(LogVulkanSwapchain, Info, "Added present scaling info to swapchain creation");
+    }
+
     vk::raii::SwapchainKHR oldSwapchain = std::move(m_VKSwapchain);
     if (*oldSwapchain) {
         createInfo.oldSwapchain = *oldSwapchain;
@@ -154,4 +195,12 @@ void CVulkanSwapchain::Init() {
         m_ImageAvailableSemaphores.emplace_back(raiiDevice, semiInfo);
         m_RenderFinishedSemaphores.emplace_back(raiiDevice, semiInfo);
     }
+
+    CZ_LOG(LogVulkanSwapchain, Info, "=== Swapchain Creation Debug ===");
+    CZ_LOG(LogVulkanSwapchain, Info, "Physical framebuffer size: {}x{}", pixelWidth, pixelHeight);
+    CZ_LOG(LogVulkanSwapchain, Info, "Vulkan surface current extent: {}x{}",
+           details.capabilities.currentExtent.width, details.capabilities.currentExtent.height);
+    CZ_LOG(LogVulkanSwapchain, Info, "Final chosen extent: {}x{}", extent.width, extent.height);
+    CZ_LOG(LogVulkanSwapchain, Info, "Swapchain created with {} images at {}x{}", images.size(),
+           extent.width, extent.height);
 }

@@ -2,7 +2,7 @@
 
 #include "RHIDevice.h"
 
-#include "VulkanExport.h"
+#include "VulkanRHIExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanDevice, Info);
 
@@ -15,7 +15,7 @@ enum class EDescriptorLayoutType {
 class CVulkanCommandPool;
 class CVulkanCommandBuffer;
 
-class VULKAN_API CVulkanDevice : public IRHIDevice {
+class VULKAN_RHI_API CVulkanDevice : public IRHIDevice {
 public:
     CVulkanDevice(const IRHIContext* ctx, const FDeviceSpecification& spec,
                   const vk::raii::Instance& instance, const vk::raii::SurfaceKHR& surface);
@@ -49,6 +49,8 @@ public:
     const uint32 GetGraphicsQueueIndex() const { return m_GraphicsQueueIndex; }
     const vk::DescriptorPool GetGlobalDescriptorPool() const { return *m_GlobalDescriptorPool; }
     vk::DescriptorSetLayout GetDescriptorSetLayout(EDescriptorLayoutType layoutType);
+
+    bool IsExtensionSupported(const std::string& extensionName) const;
 
 private:
     std::vector<const char*> m_RequiredDeviceExtension = { vk::KHRSwapchainExtensionName };
