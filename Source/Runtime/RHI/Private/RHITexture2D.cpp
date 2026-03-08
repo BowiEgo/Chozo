@@ -6,5 +6,5 @@ IRHITexture2D::IRHITexture2D(const WeakRef<IRHIDevice> device, const FTexture2DS
     : IRHIResource(device), m_Spec(spec) {}
 
 IRHITexture2D::~IRHITexture2D() {
-    CZ_LOG(LogRHITexture2D, Trace, "RHITexture2D: {} destroying...", m_Spec.Name);
+    // CZ_LOG(LogRHITexture2D, Trace, "RHITexture2D: {} destroying...", m_Spec.Name);
 }

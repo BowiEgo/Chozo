@@ -19,8 +19,6 @@ const std::regex s_ScenePattern(R"(\.(chozo)$)", std::regex::icase);
 
 } // namespace
 
-std::filesystem::path GetExecutablePath() { return GetExecutablePath(); }
-
 const bool IsImage(std::string path) {
     std::filesystem::path filePath = std::filesystem::path(path);
     std::string fileExtension = filePath.extension().string();

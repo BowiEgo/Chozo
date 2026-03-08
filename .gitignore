@@ -10,4 +10,5 @@ compile_commands.json
 
 *.exe
 .clangd
+.DS_Store
 

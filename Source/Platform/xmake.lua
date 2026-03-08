@@ -1,7 +1,11 @@
 target("Platform")
     set_kind("static")
     add_rules("chozo_module")
+
+    if is_plat("windows") then
+        add_syslinks("advapi32", "shell32", "user32", "gdi32")
+    end
     
     if is_plat("macosx") then
-        add_frameworks("AppKit", "QuartzCore")
+        add_frameworks("AppKit", "QuartzCore", "UniformTypeIdentifiers")
     end

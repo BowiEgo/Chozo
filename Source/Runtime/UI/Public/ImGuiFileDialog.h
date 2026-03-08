@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FileUtils.h"
 #include "RHIContext.h"
 #include "RHITexture2D.h"
 #include "UIExport.h"
@@ -31,7 +32,7 @@ public:
 #endif
 
     FileTreeNode(const std::string& path) {
-        Path = std::filesystem::u8path(path);
+        Path = std::filesystem::path(path);
         Read = false;
     }
 
@@ -100,6 +101,8 @@ private:
     void ParseFilter(const std::string& filter);
 
     TRef<IRHITexture2D> GetIcon(const std::filesystem::path& path);
+    FRawIcon GetDefaultIcon(const std::filesystem::path& path);
+
     void ClearIcons();
     void RefreshIconPreview();
     void ClearIconPreview();

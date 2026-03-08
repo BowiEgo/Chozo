@@ -1,19 +1,9 @@
 #include "ImGuiFileDialog.h"
 
 #include "RHIAPI.h"
+#include "SystemUtils.h"
 
-#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
-    #define _CRT_SECURE_NO_WARNINGS
-#endif
-
-#ifdef CZ_PLATFORM_WINDOWS
-    #include <windows.h> // MUST be included BEFORE shellapi.h
-
-    #include <shellapi.h>
-
-    #include <lmcons.h>
-    #pragma comment(lib, "Shell32.lib")
-#else
+#ifndef CZ_PLATFORM_WINDOWS
     #include <pwd.h>
     #include <unistd.h>
 #endif
@@ -35,18 +25,6 @@ DEFINE_LOG_CATEGORY(LogImGuiFileDialog);
 
 static const char* GetDefaultFolderIcon();
 static const char* GetDefaultFileIcon();
-
-bool IsHiddenOrSystem(const std::filesystem::path& p) {
-#ifdef CZ_PLATFORM_WINDOWS
-    DWORD attributes = GetFileAttributesW(p.c_str());
-    if (attributes != INVALID_FILE_ATTRIBUTES) {
-        return (attributes & FILE_ATTRIBUTE_HIDDEN) || (attributes & FILE_ATTRIBUTE_SYSTEM);
-    }
-#else
-    if (p.string().size() > 0 && p.string()[0] == '.') return true;
-#endif
-    return false;
-}
 
 /* UI CONTROLS */
 bool FolderNode(const char* label, ImTextureID icon, bool& clicked) {
@@ -204,7 +182,7 @@ bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, I
                     if (j != i) newPath += "/";
 #endif
                 }
-                path = std::filesystem::u8path(newPath);
+                path = std::filesystem::path(newPath);
                 ret = true;
             }
             anyOtherHC |= ImGui::IsItemHovered() | ImGui::IsItemClicked();
@@ -246,7 +224,7 @@ bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, I
         if (ImGui::InputTextEx("##pathbox_input", "", pathBuffer, 1024, size_arg,
                                ImGuiInputTextFlags_EnterReturnsTrue)) {
             std::string tempStr(pathBuffer);
-            if (std::filesystem::exists(tempStr)) path = std::filesystem::u8path(tempStr);
+            if (std::filesystem::exists(tempStr)) path = std::filesystem::path(tempStr);
             ret = true;
         }
         if (!skipActiveCheck && !ImGui::IsItemActive()) *state &= 0b010;
@@ -268,8 +246,8 @@ bool FavoriteButton(const char* label, bool isFavorite) {
     float size = g.LastItemData.Rect.Max.x - g.LastItemData.Rect.Min.x;
 
     int numPoints = 5;
-    float innerRadius = size / 4;
-    float outerRadius = size / 2;
+    float innerRadius = (size - 10.0f) / 4;
+    float outerRadius = (size - 10.0f) / 2;
     float angle = PI / numPoints;
     ImVec2 center = ImVec2(pos.x + size / 2, pos.y + size / 2);
 
@@ -420,71 +398,59 @@ ImGuiFileDialog::ImGuiFileDialog(IRHIContext* context) : m_GraphicContext(contex
     quickAccess->Read = true;
     m_TreeCache.push_back(quickAccess);
 
+    std::error_code ec;
+
+    const char* home = getenv("HOME");
+    if (!home) {
+        struct passwd* pw = getpwuid(geteuid());
+        if (pw) home = pw->pw_dir;
+    }
+
+    if (home) {
+        std::string homePath = home;
+
 #ifdef CZ_PLATFORM_WINDOWS
-    wchar_t username[UNLEN + 1] = { 0 };
-    DWORD username_len = UNLEN + 1;
-    GetUserNameW(username, &username_len);
+        const std::vector<std::string> commonDirs = { "Desktop",  "Documents", "Downloads",
+                                                      "Pictures", "Music",     "Videos",
+                                                      "OneDrive" };
+#elif CZ_PLATFORM_LINUX
+        const std::vector<std::string> commonDirs = { "Desktop",  "Documents", "Downloads",
+                                                      "Pictures", "Music",     "Videos",
+                                                      "Public",   "Templates" };
+#elif CZ_PLATFORM_MACOS
 
-    std::wstring userPath = L"C:\\Users\\" + std::wstring(username) + L"\\";
+        const std::vector<std::string> commonDirs = { "Desktop",  "Documents",   "Downloads",
+                                                      "Pictures", "Music",       "Movies",
+                                                      "Public",   "Applications" };
+#endif
 
-    // Quick Access / Bookmarks
-    quickAccess->Children.push_back(new FileTreeNode(userPath + L"Desktop"));
-    quickAccess->Children.push_back(new FileTreeNode(userPath + L"Documents"));
-    quickAccess->Children.push_back(new FileTreeNode(userPath + L"Downloads"));
-    quickAccess->Children.push_back(new FileTreeNode(userPath + L"Pictures"));
+        if (std::filesystem::exists(homePath, ec)) {
+            quickAccess->Children.push_back(new FileTreeNode(homePath));
+        }
 
-    // OneDrive
-    FileTreeNode* oneDrive = new FileTreeNode(userPath + L"OneDrive");
-    m_TreeCache.push_back(oneDrive);
+        for (const auto& dir : commonDirs) {
+            std::string fullPath = homePath + "/" + dir;
+            if (std::filesystem::exists(fullPath, ec)) {
+                quickAccess->Children.push_back(new FileTreeNode(fullPath));
+            }
+        }
+    }
 
-    // This PC
-    FileTreeNode* thisPC = new FileTreeNode("This PC");
+    // This Computer
+    FileTreeNode* thisPC = new FileTreeNode("This Computer");
     thisPC->Read = true;
-    if (std::filesystem::exists(userPath + L"3D Objects"))
-        thisPC->Children.push_back(new FileTreeNode(userPath + L"3D Objects"));
-    thisPC->Children.push_back(new FileTreeNode(userPath + L"Desktop"));
-    thisPC->Children.push_back(new FileTreeNode(userPath + L"Documents"));
-    thisPC->Children.push_back(new FileTreeNode(userPath + L"Downloads"));
-    thisPC->Children.push_back(new FileTreeNode(userPath + L"Music"));
-    thisPC->Children.push_back(new FileTreeNode(userPath + L"Pictures"));
-    thisPC->Children.push_back(new FileTreeNode(userPath + L"Videos"));
+
+#ifdef CZ_PLATFORM_WINDOWS
     DWORD d = GetLogicalDrives();
     for (int i = 0; i < 26; i++)
         if (d & (1 << i))
             thisPC->Children.push_back(new FileTreeNode(std::string(1, 'A' + i) + ":"));
-    m_TreeCache.push_back(thisPC);
-#else
-    std::error_code ec;
-
-    // Quick Access
-    struct passwd* pw;
-    uid_t uid;
-    uid = geteuid();
-    pw = getpwuid(uid);
-    if (pw) {
-        std::string homePath = "/home/" + std::string(pw->pw_name);
-
-        if (std::filesystem::exists(homePath, ec))
-            quickAccess->Children.push_back(new FileTreeNode(homePath));
-        if (std::filesystem::exists(homePath + "/Desktop", ec))
-            quickAccess->Children.push_back(new FileTreeNode(homePath + "/Desktop"));
-        if (std::filesystem::exists(homePath + "/Documents", ec))
-            quickAccess->Children.push_back(new FileTreeNode(homePath + "/Documents"));
-        if (std::filesystem::exists(homePath + "/Downloads", ec))
-            quickAccess->Children.push_back(new FileTreeNode(homePath + "/Downloads"));
-        if (std::filesystem::exists(homePath + "/Pictures", ec))
-            quickAccess->Children.push_back(new FileTreeNode(homePath + "/Pictures"));
-    }
-
-    // This PC
-    FileTreeNode* thisPC = new FileTreeNode("This PC");
-    thisPC->Read = true;
-    for (const auto& entry : std::filesystem::directory_iterator("/", ec)) {
+#elif CZ_PLATFORM_MACOS
+    for (const auto& entry : std::filesystem::directory_iterator("/", ec))
         if (std::filesystem::is_directory(entry, ec))
             thisPC->Children.push_back(new FileTreeNode(entry.path().string()));
-    }
-    m_TreeCache.push_back(thisPC);
 #endif
+    m_TreeCache.push_back(thisPC);
 }
 
 ImGuiFileDialog::~ImGuiFileDialog() {
@@ -514,7 +480,7 @@ bool ImGuiFileDialog::Save(const std::string& key, const std::string& title,
 
     ParseFilter(filter);
     if (!startingDir.empty())
-        SetDirectory(std::filesystem::u8path(startingDir), false);
+        SetDirectory(std::filesystem::path(startingDir), false);
     else
         SetDirectory(m_CurrentDirectory, false); // refresh contents
 
@@ -539,7 +505,7 @@ bool ImGuiFileDialog::Open(const std::string& key, const std::string& title,
 
     ParseFilter(filter);
     if (!startingDir.empty())
-        SetDirectory(std::filesystem::u8path(startingDir), false);
+        SetDirectory(std::filesystem::path(startingDir), false);
     else
         SetDirectory(m_CurrentDirectory, false); // refresh contents
 
@@ -618,7 +584,7 @@ void ImGuiFileDialog::RemoveFavorite(const std::string& path) {
 void ImGuiFileDialog::AddFavorite(const std::string& path) {
     if (std::count(m_Favorites.begin(), m_Favorites.end(), path) > 0) return;
 
-    if (!std::filesystem::exists(std::filesystem::u8path(path))) return;
+    if (!std::filesystem::exists(std::filesystem::path(path))) return;
 
     m_Favorites.push_back(path);
 
@@ -683,7 +649,7 @@ bool ImGuiFileDialog::Finalize(const std::string& filename) {
 
     if (hasResult) {
         if (!m_IsMultiselect || m_Selections.size() <= 1) {
-            std::filesystem::path path = std::filesystem::u8path(filename);
+            std::filesystem::path path = std::filesystem::path(filename);
             if (path.is_absolute())
                 m_Result.push_back(path);
             else
@@ -779,165 +745,65 @@ TRef<IRHITexture2D> ImGuiFileDialog::GetIcon(const std::filesystem::path& path) 
     std::error_code ec;
     m_Icons[pathU8] = nullptr;
 
-#ifdef CZ_PLATFORM_WINDOWS
-    std::wstring pathW = path.wstring();
-    // if (std::filesystem::is_directory(path) && !pathW.empty() && pathW.back() != L'\\') {
-    //     pathW += L'\\';
-    // } else {
-    std::replace(pathW.begin(), pathW.end(), L'/', L'\\');
-    // }
+    FRawIcon icon = ChozoUtils::File::GetIcon(path);
+    // CZ_LOG(LogImGuiFileDialog, Trace, "Get Icon: [PathU8]{} [Size]{} [Indice]{}", icon.PathU8,
+    //        icon.Size, icon.Indice);
+    if (!icon.Data) icon = GetDefaultIcon(path);
 
-    SHFILEINFOW fileInfo = { 0 };
-    UINT flags = SHGFI_ICON | SHGFI_LARGEICON;
-    DWORD attrs = FILE_ATTRIBUTE_NORMAL;
-
-    if (!std::filesystem::exists(path, ec)) {
-        flags |= SHGFI_USEFILEATTRIBUTES;
-        attrs = FILE_ATTRIBUTE_DIRECTORY;
-    }
-
-    // if (std::filesystem::is_directory(path, ec)) {
-    //     attrs = FILE_ATTRIBUTE_DIRECTORY;
-    // }
-
-    // if (!std::filesystem::exists(path, ec)) {
-    //     flags |= SHGFI_USEFILEATTRIBUTES;
-    // }
-
-    if (SHGetFileInfoW(pathW.c_str(), attrs, &fileInfo, sizeof(SHFILEINFOW), flags)) {
-        std::string narrowPath = std::filesystem::path(pathW).string();
-        CZ_LOG(LogImGuiFileDialog, Trace, "File: {}, Icon Index: {}", narrowPath, fileInfo.iIcon);
-
-        auto itr = std::find(m_IconIndices.begin(), m_IconIndices.end(), fileInfo.iIcon);
-        if (itr != m_IconIndices.end()) {
-            const std::string& existingPath = m_IconFilepaths[itr - m_IconIndices.begin()];
-            m_Icons[pathU8] = m_Icons[existingPath];
-            if (fileInfo.hIcon) DestroyIcon(fileInfo.hIcon);
-            return m_Icons[pathU8];
-        }
-
-        ICONINFO iconInfo = { 0 };
-        if (GetIconInfo(fileInfo.hIcon, &iconInfo)) {
-            if (iconInfo.hbmColor) {
-                DIBSECTION ds;
-                GetObject(iconInfo.hbmColor, sizeof(ds), &ds);
-                int byteSize = ds.dsBm.bmWidth * ds.dsBm.bmHeight * (ds.dsBm.bmBitsPixel / 8);
-
-                if (byteSize > 0) {
-                    uint8_t* data = (uint8_t*)malloc(byteSize);
-                    GetBitmapBits(iconInfo.hbmColor, byteSize, data);
-                    m_Icons[pathU8] =
-                        this->CreateTexture(data, ds.dsBm.bmWidth, ds.dsBm.bmHeight, 0);
-                    free(data);
-
-                    m_IconIndices.push_back(fileInfo.iIcon);
-                    m_IconFilepaths.push_back(pathU8);
-                }
-                DeleteObject(iconInfo.hbmColor);
-            }
-            if (iconInfo.hbmMask) DeleteObject(iconInfo.hbmMask);
-        }
-        if (fileInfo.hIcon) DestroyIcon(fileInfo.hIcon);
-    }
-
-    return m_Icons[pathU8];
-
-    // DWORD attrs = 0;
-    // UINT flags = SHGFI_ICON | SHGFI_LARGEICON;
-    // if (!std::filesystem::exists(path, ec)) {
-    //     flags |= SHGFI_USEFILEATTRIBUTES;
-    //     attrs = FILE_ATTRIBUTE_DIRECTORY;
-    // }
-
-    // SHFILEINFOW fileInfo = { 0 };
-    // std::wstring pathW = path.wstring();
-    // for (int i = 0; i < pathW.size(); i++)
-    //     if (pathW[i] == '/') pathW[i] = '\\';
-    // SHGetFileInfoW(pathW.c_str(), attrs, &fileInfo, sizeof(SHFILEINFOW), flags);
-
-    // if (fileInfo.hIcon == nullptr) return nullptr;
-
-    // // check if icon is already loaded
-    // auto itr = std::find(m_IconIndices.begin(), m_IconIndices.end(), fileInfo.iIcon);
-    // if (itr != m_IconIndices.end()) {
-    //     const std::string& existingIconFilepath = m_IconFilepaths[itr - m_IconIndices.begin()];
-    //     m_Icons[pathU8] = m_Icons[existingIconFilepath];
-    //     return m_Icons[pathU8];
-    // }
-
-    // m_IconIndices.push_back(fileInfo.iIcon);
-    // m_IconFilepaths.push_back(pathU8);
-
-    // ICONINFO iconInfo = { 0 };
-    // GetIconInfo(fileInfo.hIcon, &iconInfo);
-
-    // if (iconInfo.hbmColor == nullptr) return nullptr;
-
-    // DIBSECTION ds;
-    // GetObject(iconInfo.hbmColor, sizeof(ds), &ds);
-    // int byteSize = ds.dsBm.bmWidth * ds.dsBm.bmHeight * (ds.dsBm.bmBitsPixel / 8);
-
-    // if (byteSize == 0) return nullptr;
-
-    // uint8_t* data = (uint8_t*)malloc(byteSize);
-    // GetBitmapBits(iconInfo.hbmColor, byteSize, data);
-
-    // m_Icons[pathU8] = this->CreateTexture(data, ds.dsBm.bmWidth, ds.dsBm.bmHeight, 0);
-
-    // free(data);
-
-    // DeleteObject(iconInfo.hbmColor);
-    // if (iconInfo.hbmMask) {
-    //     DeleteObject(iconInfo.hbmMask);
-    // }
-    // DestroyIcon(fileInfo.hIcon);
-
-    // return m_Icons[pathU8];
-#else
-    int iconID = 1;
-    if (std::filesystem::is_directory(path, ec)) iconID = 0;
-
-    // check if icon is already loaded
-    auto itr = std::find(m_IconIndices.begin(), m_IconIndices.end(), iconID);
+    auto itr = std::find(m_IconIndices.begin(), m_IconIndices.end(), icon.Indice);
     if (itr != m_IconIndices.end()) {
-        const std::string& existingIconFilepath = m_IconFilepaths[itr - m_IconIndices.begin()];
-        m_Icons[pathU8] = m_Icons[existingIconFilepath];
+        const std::string& existingPath = m_IconFilepaths[itr - m_IconIndices.begin()];
+
+        free(icon.Data);
+        m_Icons[pathU8] = m_Icons[existingPath];
         return m_Icons[pathU8];
     }
 
-    m_IconIndices.push_back(iconID);
-    m_IconFilepaths.push_back(pathU8);
+    if (icon.Data) {
+        m_Icons[pathU8] = CreateTexture(icon.Data, icon.Width, icon.Height, icon.Format);
+        free(icon.Data);
 
-    ImVec4 wndBg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-
-    // light theme - load default icons
-    if ((wndBg.x + wndBg.y + wndBg.z) / 3.0f > 0.5f) {
-        uint8_t* data = (uint8_t*)GetDefaultFileIcon();
-        if (iconID == 0) data = (uint8_t*)GetDefaultFolderIcon();
-        m_Icons[pathU8] = this->CreateTexture(data, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, 0);
-    }
-    // dark theme - invert the colors
-    else {
-        uint8_t* data = (uint8_t*)GetDefaultFileIcon();
-        if (iconID == 0) data = (uint8_t*)GetDefaultFolderIcon();
-
-        uint8_t* invData = (uint8_t*)malloc(DEFAULT_ICON_SIZE * DEFAULT_ICON_SIZE * 4);
-        for (int y = 0; y < 32; y++) {
-            for (int x = 0; x < 32; x++) {
-                int index = (y * DEFAULT_ICON_SIZE + x) * 4;
-                invData[index + 0] = 255 - data[index + 0];
-                invData[index + 1] = 255 - data[index + 1];
-                invData[index + 2] = 255 - data[index + 2];
-                invData[index + 3] = data[index + 3];
-            }
-        }
-        m_Icons[pathU8] = this->CreateTexture(invData, DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE, 0);
-
-        free(invData);
+        m_IconIndices.push_back(icon.Indice);
+        m_IconFilepaths.push_back(pathU8);
     }
 
     return m_Icons[pathU8];
-#endif
+}
+
+FRawIcon ImGuiFileDialog::GetDefaultIcon(const std::filesystem::path& path) {
+    FRawIcon result;
+    result.PathU8 = path.string();
+    result.Indice = 1;
+
+    size_t dataSize = DEFAULT_ICON_SIZE * DEFAULT_ICON_SIZE * 4;
+    uint8_t* finalData = (uint8_t*)malloc(dataSize);
+
+    std::error_code ec;
+
+    if (std::filesystem::is_directory(path, ec)) result.Indice = 0;
+
+    uint8_t* staticData =
+        (result.Indice == 0) ? (uint8_t*)GetDefaultFolderIcon() : (uint8_t*)GetDefaultFileIcon();
+    ImVec4 wndBg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+
+    if ((wndBg.x + wndBg.y + wndBg.z) / 3.0f <= 0.5f) {
+        // Dark theme: Invert colors while copying
+        for (int i = 0; i < DEFAULT_ICON_SIZE * DEFAULT_ICON_SIZE; i++) {
+            int idx = i * 4;
+            finalData[idx + 0] = 255 - staticData[idx + 0];
+            finalData[idx + 1] = 255 - staticData[idx + 1];
+            finalData[idx + 2] = 255 - staticData[idx + 2];
+            finalData[idx + 3] = staticData[idx + 3]; // Alpha stays same
+        }
+    } else {
+        memcpy(finalData, staticData, dataSize);
+    }
+
+    result.Data = finalData;
+    result.Width = DEFAULT_ICON_SIZE;
+    result.Height = DEFAULT_ICON_SIZE;
+
+    return result;
 }
 
 void ImGuiFileDialog::ClearIcons() {
@@ -1039,7 +905,7 @@ void ImGuiFileDialog::SetDirectory(const std::filesystem::path& p, bool addHisto
 #ifdef CZ_PLATFORM_WINDOWS
     // drives don't work well without the backslash symbol
     if (p.string().size() == 2 && p.string()[1] == ':')
-        m_CurrentDirectory = std::filesystem::u8path(p.string() + "\\");
+        m_CurrentDirectory = std::filesystem::path(p.string() + "\\");
 #endif
 
     ClearIconPreview();
@@ -1060,7 +926,7 @@ void ImGuiFileDialog::SetDirectory(const std::filesystem::path& p, bool addHisto
                 for (auto& c : node->Children)
                     m_Content.push_back(FileData(c->Path));
         }
-    } else if (p.string() == "This PC") {
+    } else if (p.string() == "This Computer") {
         for (auto& node : m_TreeCache) {
             if (node->Path == p)
                 for (auto& c : node->Children)
@@ -1070,7 +936,7 @@ void ImGuiFileDialog::SetDirectory(const std::filesystem::path& p, bool addHisto
         std::error_code ec;
         if (std::filesystem::exists(m_CurrentDirectory, ec))
             for (const auto& entry : std::filesystem::directory_iterator(m_CurrentDirectory, ec)) {
-                if (IsHiddenOrSystem(entry.path())) continue;
+                if (ChozoUtils::File::IsHiddenOrSystem(entry.path())) continue;
                 FileData info(entry.path());
 
                 // skip files when IFD_DIALOG_DIRECTORY
@@ -1282,8 +1148,8 @@ void ImGuiFileDialog::RenderContent() {
         int fileId = 0;
         for (auto& entry : m_Content) {
             if (entry.HasIconPreview && entry.IconPreviewData != nullptr) {
-                entry.IconPreview = this->CreateTexture(
-                    entry.IconPreviewData, entry.IconPreviewWidth, entry.IconPreviewHeight, 1);
+                entry.IconPreview = CreateTexture(entry.IconPreviewData, entry.IconPreviewWidth,
+                                                  entry.IconPreviewHeight, 1);
                 stbi_image_free(entry.IconPreviewData);
                 entry.IconPreviewData = nullptr;
             }

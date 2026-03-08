@@ -207,14 +207,15 @@ void CVulkanDevice::Init() {
 }
 
 void CVulkanDevice::InitGlobalDescriptorPool() {
+    uint32_t poolCapacity = 10000;
     std::vector<vk::DescriptorPoolSize> poolSizes = {
-        { vk::DescriptorType::eCombinedImageSampler, 1000 },
-        { vk::DescriptorType::eSampledImage, 1000 },
-        { vk::DescriptorType::eStorageImage, 1000 },
-        { vk::DescriptorType::eUniformBuffer, 1000 }
+        { vk::DescriptorType::eCombinedImageSampler, poolCapacity },
+        { vk::DescriptorType::eSampledImage, poolCapacity },
+        { vk::DescriptorType::eStorageImage, poolCapacity },
+        { vk::DescriptorType::eUniformBuffer, poolCapacity }
     };
 
-    m_GlobalDescriptorPool = CreateDescriptorPool(1000, poolSizes);
+    m_GlobalDescriptorPool = CreateDescriptorPool(poolCapacity, poolSizes);
 }
 
 void CVulkanDevice::InitInternalResources() {

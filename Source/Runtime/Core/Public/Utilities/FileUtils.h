@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Platform.h"
+#include "PlatformFile.h"
 
 #include "LogMacros.h"
 #include "Logger.h"

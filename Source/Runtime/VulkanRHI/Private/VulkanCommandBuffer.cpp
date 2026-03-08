@@ -11,7 +11,7 @@ CVulkanCommandBuffer::CVulkanCommandBuffer(const TRef<CVulkanCommandPool>& cmdPo
 }
 
 CVulkanCommandBuffer::~CVulkanCommandBuffer() {
-    CZ_LOG(LogVulkanCommandBuffer, Trace, "VulkanCommandBuffer destroying...");
+    // CZ_LOG(LogVulkanCommandBuffer, Trace, "VulkanCommandBuffer destroying...");
 }
 
 void CVulkanCommandBuffer::Init() {

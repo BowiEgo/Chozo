@@ -23,6 +23,7 @@ elseif is_plat("linux") then
     add_defines("CZ_PLATFORM_LINUX")
 elseif is_plat("macosx") then
     add_defines("CZ_PLATFORM_MACOS")
+    add_cxflags("-Wno-parentheses-equality")
 end
 
 local sdk_path = os.getenv("VULKAN_SDK")
