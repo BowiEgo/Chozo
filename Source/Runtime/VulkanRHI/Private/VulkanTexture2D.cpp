@@ -253,9 +253,17 @@ vk::DescriptorSet CVulkanTexture2D::GetVKDescriptorSet() {
     vk::DescriptorSetLayout layout =
         device->GetDescriptorSetLayout(EDescriptorLayoutType::CombinedImageSampler);
 
+    if (!layout) {
+        CZ_LOG(LogVulkanTexture2D, Error, "DescriptorSetLayout is null");
+        return nullptr;
+    }
+
     // 2. Perform the allocation we defined above.
     m_VKDescriptorSet = AllocateDescriptorSet(layout);
-    if (!m_VKDescriptorSet) return nullptr;
+    if (!m_VKDescriptorSet) {
+        CZ_LOG(LogVulkanTexture2D, Error, "Failed to allocate DescriptorSet for: {}", m_Spec.Name);
+        return nullptr;
+    }
 
     // 3. Update the descriptor set to point to this texture's ImageView.
     vk::DescriptorImageInfo imageInfo;
@@ -270,7 +278,15 @@ vk::DescriptorSet CVulkanTexture2D::GetVKDescriptorSet() {
         .setDescriptorCount(1)
         .setPImageInfo(&imageInfo);
 
-    logicalDevice.updateDescriptorSets(descriptorWrite, nullptr);
+    try {
+        logicalDevice.updateDescriptorSets(descriptorWrite, nullptr);
+    } catch (const std::exception& e) {
+        CZ_LOG(LogVulkanTexture2D, Error, "Failed to update DescriptorSet: {}", e.what());
+        return nullptr;
+    }
+
+    // CZ_LOG(LogVulkanTexture2D, Info, "Created and updated DescriptorSet for: {}, set handle: {}",
+    //        m_Spec.Name, (uint64_t)static_cast<VkDescriptorSet>(m_VKDescriptorSet));
 
     return m_VKDescriptorSet;
 }

@@ -31,7 +31,7 @@ private:
 
     bool m_VSyncEnabled = true;
 
-    Overlay m_Overlay;
+    UOverlay m_Overlay;
     bool m_IsOverlayOpen = true;
 };
 

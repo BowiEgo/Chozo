@@ -12,10 +12,10 @@ enum class EOverlayLocation {
     Unknown
 };
 
-class UI_API Overlay {
+class UI_API UOverlay {
 public:
-    Overlay();
-    ~Overlay();
+    UOverlay();
+    ~UOverlay();
 
     void Draw(const char* title, bool* bIsOpen, const std::function<void()>& contentRenderFn);
     void UpdateLocation(EOverlayLocation Location);

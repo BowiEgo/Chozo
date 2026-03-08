@@ -6,17 +6,9 @@
 #include "RHITexture2D.h"
 #include "UIExport.h"
 
-#include <algorithm> // std::min, std::max
-#include <ctime>
-#include <filesystem>
-#include <functional>
 #include <stack>
-#include <string>
-#include <thread>
-#include <unordered_map>
-#include <vector>
 
-DECLARE_LOG_CATEGORY_EXTERN(LogImGuiFileDialog, Info);
+DECLARE_LOG_CATEGORY_EXTERN(LogFileDialog, Info);
 
 #define IFD_DIALOG_FILE 0
 #define IFD_DIALOG_DIRECTORY 1
@@ -50,21 +42,19 @@ public:
     size_t Size;
     time_t DateModified;
 
-    bool HasIconPreview;
-    TRef<IRHITexture2D> IconPreview;
-    uint8_t* IconPreviewData;
-    int IconPreviewWidth, IconPreviewHeight;
+    TRef<IRHITexture2D> Thumbnail;
+    int ThumbnailWidth, ThumbnailHeight;
 };
 
-class UI_API ImGuiFileDialog {
+class UI_API UFileDialog {
 public:
-    static inline ImGuiFileDialog& Get(IRHIContext* context) {
-        static ImGuiFileDialog ret(context);
+    static inline UFileDialog& Get(IRHIContext* context) {
+        static UFileDialog ret(context);
         return ret;
     }
 
-    ImGuiFileDialog(IRHIContext* context);
-    ~ImGuiFileDialog();
+    UFileDialog(IRHIContext* context);
+    ~UFileDialog();
 
     bool Save(const std::string& key, const std::string& title, const std::string& filter,
               const std::string& startingDir = "");
@@ -79,6 +69,7 @@ public:
     inline const std::vector<std::filesystem::path>& GetResults() { return m_Result; }
 
     void Close();
+    void Shutdown();
 
     void RemoveFavorite(const std::string& path);
     void AddFavorite(const std::string& path);
@@ -86,7 +77,7 @@ public:
 
     inline void SetZoom(float z) {
         m_Zoom = std::min<float>(25.0f, std::max<float>(1.0f, z));
-        RefreshIconPreview();
+        RefreshThumbnails();
     }
     inline float GetZoom() { return m_Zoom; }
 
@@ -101,14 +92,15 @@ private:
     void ParseFilter(const std::string& filter);
 
     TRef<IRHITexture2D> GetIcon(const std::filesystem::path& path);
-    FRawIcon GetDefaultIcon(const std::filesystem::path& path);
+    FRawFileImage GetDefaultIcon(const std::filesystem::path& path);
 
-    void ClearIcons();
-    void RefreshIconPreview();
-    void ClearIconPreview();
+    TRef<IRHITexture2D> GetThumbnail(FileData& fileData);
 
-    void StopPreviewLoader();
-    void LoadPreview();
+    void RefreshThumbnails();
+    void ClearThumbnails();
+
+    void StopThumbnailLoader();
+    void LoadThumbnails();
 
     void ClearTree(FileTreeNode* node);
     void RenderTree(FileTreeNode* node);
@@ -147,13 +139,11 @@ private:
     std::vector<std::vector<std::string>> m_FilterExtensions;
     size_t m_FilterSelection;
 
-    std::vector<int> m_IconIndices;
-    std::vector<std::string> m_IconFilepaths; // m_IconIndices[x] <-> m_IconFilepaths[x]
-    std::unordered_map<std::string, TRef<IRHITexture2D>> m_Icons;
-    std::vector<TRef<IRHITexture2D>> m_IconsGarbage;
+    std::vector<TRef<IRHITexture2D>> m_ThumbnailCaches;
+    std::vector<TRef<IRHITexture2D>> m_TextureGarbage;
 
-    std::thread* m_PreviewLoader;
-    bool m_PreviewLoaderRunning;
+    std::thread* m_ThumbnailLoader;
+    bool m_ThumbnailLoaderRunning;
 
     std::vector<FileTreeNode*> m_TreeCache;
 

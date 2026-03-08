@@ -39,3 +39,13 @@ target("stb")
     add_files("stb/stb_impl.cpp")
     add_includedirs("stb", {public = true})
     set_policy("package.librarydeps.strict_compatibility", false)
+
+target("nanosvg_header")
+    set_kind("headeronly")
+    add_headerfiles("nanosvg/nanosvg.h", "nanosvg/nanosvgrast.h")
+    add_includedirs("nanosvg", {public = true})
+
+target("nanosvg")
+    set_kind("static")
+    add_files("nanosvg/nanosvgImpl.cpp")
+    add_deps("nanosvg_header")

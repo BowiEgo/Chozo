@@ -4,8 +4,8 @@ namespace ChozoUtils::File {
 
 std::filesystem::path GetExecutablePath() { return std::filesystem::path(); }
 
-FRawIcon GetIcon(const std::filesystem::path& path) {
-    FRawIcon result;
+FRawFileImage GetIcon(const std::filesystem::path& path) {
+    FRawFileImage result;
 
     return result;
 }

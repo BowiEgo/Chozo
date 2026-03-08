@@ -8,7 +8,11 @@ namespace ChozoUtils::File {
 
 std::filesystem::path GetExecutablePath();
 
-FRawIcon GetIcon(const std::filesystem::path& path);
+int GetFileIconIndex(const std::filesystem::path& path);
+
+FRawFileImage GetFileIcon(const std::filesystem::path& path);
+
+FRawFileImage GetFileThumbnail(const std::filesystem::path& path, int size);
 
 bool IsHiddenOrSystem(const std::filesystem::path& p);
 

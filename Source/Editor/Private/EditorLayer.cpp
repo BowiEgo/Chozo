@@ -1,7 +1,6 @@
 #include "EditorLayer.h"
 
 #include "Application.h"
-#include "ImGuiFileDialog.h"
 
 #include "imgui.h"
 
@@ -16,7 +15,11 @@ void EditorLayer::OnAttach() {
     CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
 }
 
-void EditorLayer::OnDetach() {}
+void EditorLayer::OnDetach() {
+    auto context = m_ViewportRenderer->GetGraphicContext();
+    UFileDialog::Get(context).Shutdown();
+    CIconManager::Get(context).Shutdown();
+}
 
 void EditorLayer::OnUpdate(FTimeStep ts) {}
 
@@ -132,7 +135,7 @@ void EditorLayer::OnImGuiRender() {
 #pragma endregion
 
     auto context = m_ViewportRenderer->GetGraphicContext();
-    auto& fileDialog = ImGuiFileDialog::Get(context);
+    auto& fileDialog = UFileDialog::Get(context);
     if (fileDialog.IsDone("TextureOpenDialog")) {
         if (fileDialog.HasResult()) {
             std::string res = fileDialog.GetResult().string();
@@ -149,7 +152,7 @@ void EditorLayer::NewProject() {}
 void EditorLayer::OpenProject() {
     auto context = m_ViewportRenderer->GetGraphicContext();
 
-    ImGuiFileDialog::Get(context).Open(
+    UFileDialog::Get(context).Open(
         "TextureOpenDialog", "Open a texture",
         "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 }

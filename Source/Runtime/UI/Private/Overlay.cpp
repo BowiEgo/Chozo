@@ -1,10 +1,11 @@
 #include "Overlay.h"
 
-Overlay::Overlay() {}
+UOverlay::UOverlay() {}
 
-Overlay::~Overlay() {}
+UOverlay::~UOverlay() {}
 
-void Overlay::Draw(const char* title, bool* bIsOpen, const std::function<void()>& contentRenderFn) {
+void UOverlay::Draw(const char* title, bool* bIsOpen,
+                    const std::function<void()>& contentRenderFn) {
     if (!*bIsOpen) return;
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -54,7 +55,7 @@ void Overlay::Draw(const char* title, bool* bIsOpen, const std::function<void()>
     m_LastSize = ImGui::GetItemRectSize();
 }
 
-void Overlay::UpdateLocation(EOverlayLocation Location) {
+void UOverlay::UpdateLocation(EOverlayLocation Location) {
     switch (Location) {
         case EOverlayLocation::TopLeft: m_LocationIndex = 0; break;
         case EOverlayLocation::TopRight: m_LocationIndex = 1; break;

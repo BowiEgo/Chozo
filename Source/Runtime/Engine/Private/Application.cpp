@@ -45,6 +45,7 @@ void CApplication::Init(const std::string& name) {
         VFS::Mount("shaders", projectRoot / "Shaders");
         VFS::Mount("resources", resourcesDir);
         VFS::Mount("fonts", resourcesDir / "Fonts");
+        VFS::Mount("svgs", resourcesDir / "SVGs");
 
         FRendererAPI::SetType(FRendererAPI::EType::Vulkan);
 
