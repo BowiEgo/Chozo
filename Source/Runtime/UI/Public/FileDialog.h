@@ -4,6 +4,7 @@
 #include "FileUtils.h"
 #include "RHIContext.h"
 #include "RHITexture2D.h"
+#include "ThreadPool.h"
 #include "UIExport.h"
 
 #include <stack>
@@ -94,13 +95,12 @@ private:
     TRef<IRHITexture2D> GetIcon(const std::filesystem::path& path);
     FRawFileImage GetDefaultIcon(const std::filesystem::path& path);
 
-    TRef<IRHITexture2D> GetThumbnail(FileData& fileData);
+    TRef<IRHITexture2D> GetThumbnail(const std::filesystem::path& path);
 
+    void RequestThumbnails();
+    void ProcessPendingThumbs();
     void RefreshThumbnails();
     void ClearThumbnails();
-
-    void StopThumbnailLoader();
-    void LoadThumbnails();
 
     void ClearTree(FileTreeNode* node);
     void RenderTree(FileTreeNode* node);
@@ -139,7 +139,11 @@ private:
     std::vector<std::vector<std::string>> m_FilterExtensions;
     size_t m_FilterSelection;
 
-    std::vector<TRef<IRHITexture2D>> m_ThumbnailCaches;
+    CThreadPool m_ThumbPool{ 4 };
+    std::mutex m_ThumbMutex;
+
+    std::unordered_map<std::string, TRef<IRHITexture2D>> m_ThumbMap;
+    std::vector<FRawFileImage> m_PendingRawThumbs;
     std::vector<TRef<IRHITexture2D>> m_TextureGarbage;
 
     std::thread* m_ThumbnailLoader;

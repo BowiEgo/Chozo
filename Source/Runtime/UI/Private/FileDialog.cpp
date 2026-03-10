@@ -522,7 +522,7 @@ bool UFileDialog::IsDone(const std::string& key) {
     bool isMe = m_CurrentKey == key;
 
     if (!m_TextureGarbage.empty()) {
-        const int MAX_CLEANUP_PER_FRAME = 10;
+        const int MAX_CLEANUP_PER_FRAME = 20;
         int cleanedCount = 0;
 
         auto it = m_TextureGarbage.begin();
@@ -759,68 +759,66 @@ TRef<IRHITexture2D> UFileDialog::GetIcon(const std::filesystem::path& path) {
     return CIconManager::Get(m_GraphicContext).GetOrLoadFileIcon(path);
 }
 
-TRef<IRHITexture2D> UFileDialog::GetThumbnail(FileData& fileData) {
-    if (fileData.Thumbnail) return fileData.Thumbnail;
+TRef<IRHITexture2D> UFileDialog::GetThumbnail(const std::filesystem::path& path) {
+    {
+        std::lock_guard<std::mutex> lock(m_ThumbMutex);
+        auto itr = m_ThumbMap.find(path.string());
+        if (itr != m_ThumbMap.end()) {
+            return itr->second;
+        }
+    }
 
-    FRawFileImage thumb = ChozoUtils::File::GetFileThumbnail(fileData.Path, 128);
+    return GetIcon(path);
+}
 
-    CZ_LOG(LogUFileDialog, Trace, "Get Thumbnail: [PathU8]{} [Size]{} [Indice]{}", thumb.PathU8,
-           thumb.Size, thumb.Index);
+void UFileDialog::RequestThumbnails() {
+    if (!m_ThumbPool.IsIdle()) return;
 
-    if (!thumb.Data) return nullptr;
+    for (size_t i = 0; i < m_Content.size(); i++) {
+        auto& data = m_Content[i];
+        if (data.IsDirectory) continue;
 
-    auto texture = CreateTexture(thumb.Data, thumb.Width, thumb.Height, thumb.Format);
-    fileData.Thumbnail = texture;
-    fileData.ThumbnailWidth = thumb.Width;
-    fileData.ThumbnailHeight = thumb.Height;
-    m_ThumbnailCaches.push_back(texture);
+        auto path = data.Path;
 
-    free(thumb.Data);
+        m_ThumbPool.Submit([this, path] {
+            FRawFileImage thumb = ChozoUtils::File::GetFileThumbnail(path, 128);
 
-    return texture;
+            CZ_LOG(LogUFileDialog, Trace, "Get Thumbnail: [PathU8]{} [Size]{} [Indice]{}",
+                   thumb.PathU8, thumb.Size, thumb.Index);
+
+            if (!thumb.Data) return;
+
+            {
+                std::lock_guard<std::mutex> lock(m_ThumbMutex);
+                m_PendingRawThumbs.push_back(std::move(thumb));
+            }
+        });
+    }
+}
+
+void UFileDialog::ProcessPendingThumbs() {
+    std::lock_guard<std::mutex> lock(m_ThumbMutex);
+    for (auto& thumb : m_PendingRawThumbs) {
+        auto texture = CreateTexture(thumb.Data, thumb.Width, thumb.Height, thumb.Format);
+        free(thumb.Data);
+        if (texture) {
+            m_ThumbMap[thumb.PathU8] = texture;
+        }
+    }
+    m_PendingRawThumbs.clear();
 }
 
 void UFileDialog::RefreshThumbnails() {
     if (m_Zoom >= 5.0f) {
-        if (m_ThumbnailLoader == nullptr) {
-            m_ThumbnailLoaderRunning = true;
-            m_ThumbnailLoader = new std::thread(&UFileDialog::LoadThumbnails, this);
-        }
+        RequestThumbnails();
     }
 }
 
 void UFileDialog::ClearThumbnails() {
-    StopThumbnailLoader();
-
-    for (auto& data : m_Content) {
-        if (!data.Thumbnail) continue;
-        m_TextureGarbage.push_back(data.Thumbnail);
-        data.Thumbnail = nullptr;
+    for (const auto& [key, thumb] : m_ThumbMap) {
+        m_TextureGarbage.push_back(thumb);
     }
-    m_ThumbnailCaches.clear();
-}
-
-void UFileDialog::StopThumbnailLoader() {
-    if (m_ThumbnailLoader != nullptr) {
-        m_ThumbnailLoaderRunning = false;
-
-        if (m_ThumbnailLoader && m_ThumbnailLoader->joinable()) m_ThumbnailLoader->join();
-
-        delete m_ThumbnailLoader;
-        m_ThumbnailLoader = nullptr;
-    }
-}
-
-void UFileDialog::LoadThumbnails() {
-    for (size_t i = 0; m_ThumbnailLoaderRunning && i < m_Content.size(); i++) {
-        auto& data = m_Content[i];
-
-        if (data.IsDirectory) continue;
-
-        GetThumbnail(data);
-    }
-
-    m_ThumbnailLoaderRunning = false;
+    m_ThumbMap.clear();
 }
 
 void UFileDialog::ClearTree(FileTreeNode* node) {
@@ -1002,6 +1000,8 @@ void UFileDialog::RenderTree(FileTreeNode* node) {
 }
 
 void UFileDialog::RenderContent() {
+    ProcessPendingThumbs();
+
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) m_SelectedFileItem = -1;
 
     // table view
@@ -1090,11 +1090,12 @@ void UFileDialog::RenderContent() {
             if (filename.size() == 0) filename = entry.Path.string(); // drive
 
             bool isSelected = std::count(m_Selections.begin(), m_Selections.end(), entry.Path);
-            auto tex = entry.IsDirectory ? GetIcon(entry.Path) : GetThumbnail(entry);
+            auto tex = entry.IsDirectory ? GetIcon(entry.Path) : GetThumbnail(entry.Path);
+            auto texSize = tex->GetSize();
 
             if (FileIcon(filename.c_str(), isSelected, (ImTextureID)tex->GetDescriptorSet(),
                          ImVec2(32 + 16 * m_Zoom, 32 + 16 * m_Zoom), !entry.IsDirectory,
-                         entry.ThumbnailWidth, entry.ThumbnailHeight)) {
+                         texSize.Width, texSize.Height)) {
                 std::error_code ec;
                 bool isDir = std::filesystem::is_directory(entry.Path, ec);
 
