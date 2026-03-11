@@ -7,6 +7,16 @@
 
 #pragma comment(lib, "Shell32.lib")
 
+static bool ShouldUseUniqueIndex(const std::filesystem::path& path) {
+    std::error_code ec;
+    if (std::filesystem::is_directory(path, ec)) return true;
+
+    // std::string ext = path.extension().string();
+    // if (ext == ".jpg" || ext == ".png") return true;
+
+    return false;
+}
+
 static SHFILEINFOW GetFileInfo(const std::filesystem::path& path) {
     std::wstring pathW = path.wstring();
     std::replace(pathW.begin(), pathW.end(), L'/', L'\\');
@@ -69,35 +79,34 @@ static HBITMAP GetFileThumbnailBITMAP(const std::wstring& filePath, int size) {
 static void GetRawFileImageFromHBitmap(FRawFileImage& rawImage, HBITMAP hBitmap) {
     if (!hBitmap) return;
 
-    DIBSECTION ds = {};
-    BITMAP bm = {};
+    BITMAP bm;
+    if (GetObject(hBitmap, sizeof(BITMAP), &bm)) {
+        // [Note] Forces 32-bit (BGRA) regardless of source HBITMAP format
+        int width = bm.bmWidth;
+        int height = bm.bmHeight;
+        int byteSize = width * height * 4;
 
-    int width, height, bpp, byteSize;
-    if (GetObject(hBitmap, sizeof(DIBSECTION), &ds) == sizeof(DIBSECTION)) {
-        width = ds.dsBm.bmWidth;
-        height = ds.dsBm.bmHeight;
-        bpp = ds.dsBm.bmBitsPixel;
-    }
-
-    if (GetObject(hBitmap, sizeof(BITMAP), &bm) == sizeof(BITMAP)) {
-        width = bm.bmWidth;
-        height = bm.bmHeight;
-        bpp = bm.bmBitsPixel;
-    }
-
-    byteSize = width * height * (bpp / 8);
-    if (byteSize > 0) {
         uint8_t* data = (uint8_t*)malloc(byteSize);
-        if (data) {
-            if (GetBitmapBits(hBitmap, byteSize, data) == byteSize) {
-                rawImage.Data = data;
-                rawImage.Size = byteSize;
-                rawImage.Width = width;
-                rawImage.Height = height;
-            } else {
-                free(data);
-            }
+        if (!data) return;
+
+        BITMAPINFO bmi = {};
+        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmi.bmiHeader.biWidth = width;
+        bmi.bmiHeader.biHeight = -height; // [Note] Negative height for top-down DIB
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = 32;
+        bmi.bmiHeader.biCompression = BI_RGB;
+
+        HDC hdc = GetDC(NULL);
+        if (GetDIBits(hdc, hBitmap, 0, height, data, &bmi, DIB_RGB_COLORS)) {
+            rawImage.Data = data;
+            rawImage.Width = width;
+            rawImage.Height = height;
+            rawImage.Size = byteSize;
+        } else {
+            free(data);
         }
+        ReleaseDC(NULL, hdc);
     }
 }
 
@@ -110,31 +119,118 @@ std::filesystem::path GetExecutablePath() {
 }
 
 int GetFileIconIndex(const std::filesystem::path& path) {
-    SHFILEINFOW fileInfo = GetFileInfo(path);
+    if (path.empty()) return -1;
 
+    // [Note] If it's a "Live" item, return the path hash to ensure uniqueness in Vulkan
+    if (ShouldUseUniqueIndex(path)) {
+        return static_cast<int>(std::hash<std::string>{}(path.string()));
+    }
+
+    // [Note] For regular files, return the shared system shell index
+    SHFILEINFOW fileInfo = GetFileInfo(path);
     return fileInfo.iIcon;
 }
+
+// FRawFileImage GetFileIcon(const std::filesystem::path& path) {
+//     FRawFileImage result = {};
+//     result.PathU8 = path.string();
+
+//     SHFILEINFOW fileInfo = GetFileInfo(path);
+
+//     ICONINFO iconInfo = { 0 };
+//     if (GetIconInfo(fileInfo.hIcon, &iconInfo)) {
+//         if (iconInfo.hbmColor) {
+//             GetRawFileImageFromHBitmap(result, iconInfo.hbmColor);
+//             result.Index = fileInfo.iIcon;
+
+//             DeleteObject(iconInfo.hbmColor);
+//             if (iconInfo.hbmMask) DeleteObject(iconInfo.hbmMask);
+//         }
+//     }
+//     DestroyIcon(fileInfo.hIcon);
+
+//     return result;
+// }
 
 FRawFileImage GetFileIcon(const std::filesystem::path& path) {
     FRawFileImage result = {};
     result.PathU8 = path.string();
+    result.Index = GetFileIconIndex(path);
 
-    SHFILEINFOW fileInfo = GetFileInfo(path);
+    std::wstring pathW = path.wstring();
+    std::replace(pathW.begin(), pathW.end(), L'/', L'\\');
 
-    ICONINFO iconInfo = { 0 };
-    if (GetIconInfo(fileInfo.hIcon, &iconInfo)) {
-        if (iconInfo.hbmColor) {
-            GetRawFileImageFromHBitmap(result, iconInfo.hbmColor);
-            result.Index = fileInfo.iIcon;
+    // [Note] COM Initialization must be balanced
+    HRESULT hrCo = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    HBITMAP hThumbnail = NULL;
 
-            DeleteObject(iconInfo.hbmColor);
-            if (iconInfo.hbmMask) DeleteObject(iconInfo.hbmMask);
+    if (ShouldUseUniqueIndex(path)) {
+        IShellItem* pItem = NULL;
+        if (SUCCEEDED(SHCreateItemFromParsingName(pathW.c_str(), NULL, IID_PPV_ARGS(&pItem)))) {
+            IShellItemImageFactory* pFactory = NULL;
+            if (SUCCEEDED(pItem->QueryInterface(IID_PPV_ARGS(&pFactory)))) {
+                pFactory->GetImage({ 256, 256 }, SIIGBF_BIGGERSIZEOK, &hThumbnail);
+                pFactory->Release();
+            }
+            pItem->Release();
         }
     }
-    DestroyIcon(fileInfo.hIcon);
 
+    if (hThumbnail) {
+        GetRawFileImageFromHBitmap(result, hThumbnail);
+        DeleteObject(hThumbnail); // [Critical] Delete immediately after conversion
+    } else {
+        // Fallback to static shell icon
+        SHFILEINFOW sfi = { 0 };
+        if (SHGetFileInfoW(pathW.c_str(), 0, &sfi, sizeof(sfi), SHGFI_ICON | SHGFI_LARGEICON)) {
+            ICONINFO iconInfo = { 0 };
+            if (GetIconInfo(sfi.hIcon, &iconInfo)) {
+                // GetIconInfo creates NEW bitmaps, must delete both!
+                if (iconInfo.hbmColor) {
+                    GetRawFileImageFromHBitmap(result, iconInfo.hbmColor);
+                    DeleteObject(iconInfo.hbmColor);
+                }
+                if (iconInfo.hbmMask) DeleteObject(iconInfo.hbmMask);
+            }
+            DestroyIcon(sfi.hIcon); // [Critical] Destroy the icon handle
+        }
+    }
+
+    if (SUCCEEDED(hrCo)) CoUninitialize();
     return result;
 }
+
+// FRawFileImage GetFileIcon(const std::filesystem::path& path) {
+//     FRawFileImage result = {};
+//     result.PathU8 = path.string();
+//     result.Index = GetFileIconIndex(path);
+
+//     std::wstring pathW = path.wstring();
+//     std::replace(pathW.begin(), pathW.end(), L'/', L'\\');
+
+//     // [Note] Try ImageFactory first for folders to get "live" content previews
+//     HBITMAP hBitmap = GetFileThumbnailBITMAP(pathW, 256);
+
+//     if (hBitmap) {
+//         GetRawFileImageFromHBitmap(result, hBitmap);
+//         DeleteObject(hBitmap);
+//     }
+//     // [Note] Fallback to traditional Shell Icon if it's a file or ImageFactory failed
+//     else {
+//         SHFILEINFOW fileInfo = GetFileInfo(path);
+//         ICONINFO iconInfo = { 0 };
+//         if (GetIconInfo(fileInfo.hIcon, &iconInfo)) {
+//             if (iconInfo.hbmColor) {
+//                 GetRawFileImageFromHBitmap(result, iconInfo.hbmColor);
+//                 DeleteObject(iconInfo.hbmColor);
+//             }
+//             if (iconInfo.hbmMask) DeleteObject(iconInfo.hbmMask);
+//         }
+//         DestroyIcon(fileInfo.hIcon);
+//     }
+
+//     return result;
+// }
 
 FRawFileImage GetFileThumbnail(const std::filesystem::path& path, int size) {
     FRawFileImage result = {};

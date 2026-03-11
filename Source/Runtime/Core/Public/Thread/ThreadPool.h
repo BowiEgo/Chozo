@@ -50,15 +50,18 @@ public:
         return results;
     }
 
+private:
+    void Start(size_t threadCount);
+
+public:
+    void Restart(size_t threadCount);
+    void Stop();
+
     void WaitAll();
     size_t PendingTaskCount();
 
     size_t GetThreadCount() const { return m_Workers.size(); }
     bool IsIdle() const { return m_Tasks.empty() && m_ActiveTasks == 0; }
-
-private:
-    void Start(size_t threadCount);
-    void Stop();
 
 private:
     std::vector<std::thread> m_Workers;

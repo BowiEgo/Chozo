@@ -566,6 +566,7 @@ void UFileDialog::Close() {
     }
 
     ClearThumbnails();
+    CIconManager::Get(m_GraphicContext).ClearCaches();
 }
 
 void UFileDialog::Shutdown() {
@@ -756,6 +757,7 @@ TRef<IRHITexture2D> UFileDialog::GetIcon(const std::filesystem::path& path) {
     if (pathU8 == "This Computer")
         return CIconManager::Get(m_GraphicContext).GetOrLoadSVGIcon("computer");
 
+    CIconManager::Get(m_GraphicContext).RestartLoading();
     return CIconManager::Get(m_GraphicContext).GetOrLoadFileIcon(path);
 }
 
@@ -772,7 +774,9 @@ TRef<IRHITexture2D> UFileDialog::GetThumbnail(const std::filesystem::path& path)
 }
 
 void UFileDialog::RequestThumbnails() {
-    if (!m_ThumbPool.IsIdle()) return;
+    if (!m_ThumbMap.empty()) return;
+
+    m_ThumbPool.Restart(4);
 
     for (size_t i = 0; i < m_Content.size(); i++) {
         auto& data = m_Content[i];
@@ -798,6 +802,7 @@ void UFileDialog::RequestThumbnails() {
 
 void UFileDialog::ProcessPendingThumbs() {
     std::lock_guard<std::mutex> lock(m_ThumbMutex);
+
     for (auto& thumb : m_PendingRawThumbs) {
         auto texture = CreateTexture(thumb.Data, thumb.Width, thumb.Height, thumb.Format);
         free(thumb.Data);
@@ -809,6 +814,8 @@ void UFileDialog::ProcessPendingThumbs() {
 }
 
 void UFileDialog::RefreshThumbnails() {
+    m_ThumbPool.Stop();
+
     if (m_Zoom >= 5.0f) {
         RequestThumbnails();
     }
@@ -909,6 +916,7 @@ void UFileDialog::SetDirectory(const std::filesystem::path& p, bool addHistory) 
     SortContent(m_SortColumn, m_SortDirection);
     ClearThumbnails();
     RefreshThumbnails();
+    CIconManager::Get(m_GraphicContext).StopLoading();
 }
 
 void UFileDialog::SortContent(unsigned int column, unsigned int sortDirection) {
@@ -1000,12 +1008,13 @@ void UFileDialog::RenderTree(FileTreeNode* node) {
 }
 
 void UFileDialog::RenderContent() {
+    CIconManager::Get(m_GraphicContext).ProcessRawIcons();
     ProcessPendingThumbs();
 
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) m_SelectedFileItem = -1;
 
     // table view
-    if (m_Zoom == 1.0f) {
+    if (m_Zoom < 5.0f) {
         if (ImGui::BeginTable("##contentTable", 3,
                               /*ImGuiTableFlags_Resizable |*/ ImGuiTableFlags_Sortable,
                               ImVec2(0, -FLT_MIN))) {
@@ -1037,16 +1046,23 @@ void UFileDialog::RenderContent() {
 
                 bool isSelected = std::count(m_Selections.begin(), m_Selections.end(), entry.Path);
                 auto tex = GetIcon(entry.Path);
+                float iconTotalSize = ICON_SIZE + 16 * (m_Zoom - 1.0f);
+                float lineHeight = ImGui::GetTextLineHeight();
+                float verticalTextOffset = (iconTotalSize - lineHeight) * 0.5f;
 
                 ImGui::TableNextRow();
+                float rowStartY = ImGui::GetCursorPosY();
 
-                // file name
+                // icon
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Image((ImTextureID)tex->GetDescriptorSet(), ImVec2(ICON_SIZE, ICON_SIZE));
+                ImGui::Image((ImTextureID)tex->GetDescriptorSet(),
+                             ImVec2(iconTotalSize, iconTotalSize));
                 ImGui::SameLine();
-                if (ImGui::Selectable(filename.c_str(), isSelected,
+
+                if (ImGui::Selectable(("##" + filename).c_str(), isSelected,
                                       ImGuiSelectableFlags_SpanAllColumns |
-                                          ImGuiSelectableFlags_AllowDoubleClick)) {
+                                          ImGuiSelectableFlags_AllowDoubleClick,
+                                      ImVec2(0, iconTotalSize))) {
                     std::error_code ec;
                     bool isDir = std::filesystem::is_directory(entry.Path, ec);
 
@@ -1064,17 +1080,22 @@ void UFileDialog::RenderContent() {
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) m_SelectedFileItem = fileId;
                 fileId++;
 
-                // date
+                ImGui::SameLine();
+                ImGui::SetCursorPosY(rowStartY + verticalTextOffset);
+                ImGui::Text("%s", filename.c_str());
+
                 ImGui::TableSetColumnIndex(1);
+                ImGui::SetCursorPosY(rowStartY + verticalTextOffset);
                 auto tm = std::localtime(&entry.DateModified);
-                if (tm != nullptr)
+                if (tm) {
                     ImGui::Text("%d/%d/%d %02d:%02d", tm->tm_mon + 1, tm->tm_mday,
                                 1900 + tm->tm_year, tm->tm_hour, tm->tm_min);
-                else
+                } else {
                     ImGui::Text("---");
+                }
 
-                // size
                 ImGui::TableSetColumnIndex(2);
+                ImGui::SetCursorPosY(rowStartY + verticalTextOffset);
                 ImGui::Text("%.3f KiB", entry.Size / 1024.0f);
             }
 

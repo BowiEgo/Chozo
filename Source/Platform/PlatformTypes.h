@@ -4,6 +4,7 @@
 #include <string>
 
 struct FRawFileImage {
+    std::string Name;
     std::string PathU8;
     uint8_t* Data = nullptr;
     int Size = 0;

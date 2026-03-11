@@ -192,88 +192,85 @@ FRawFileImage GetFileIcon(const std::filesystem::path& path) {
     result.PathU8 = path.string();
     result.Index = GetFileIconIndex(path);
 
-    BOOL exists = result.Index != -1;
-    if (!exists) {
+    if (result.Index == -1) {
         result.Data = nullptr;
-        result.Width = 0;
-        result.Height = 0;
-        result.Index = -1;
+        result.Width = result.Height = 0;
         return result;
     }
 
     @autoreleasepool {
         NSString* nspath = [NSString stringWithUTF8String:result.PathU8.c_str()];
-        NSWorkspace* ws = [NSWorkspace sharedWorkspace];
-        NSImage* iconImage = nil;
-
-        BOOL isDirectory = NO;
-        BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:nspath isDirectory:&isDirectory];
-        // Get file attributes to determine type
-        NSDictionary* attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:nspath error:nil];
-        NSString* fileType = attributes[NSFileType];
+        NSURL* fileURL = [NSURL fileURLWithPath:nspath];
         
-        // Determine if directory (using multiple methods for accuracy)
-        BOOL isDir = isDirectory;  // From fileExistsAtPath
-        if ([fileType isEqualToString:NSFileTypeDirectory]) {
-            isDir = YES;
+        BOOL isDirectory = NO;
+        [[NSFileManager defaultManager] fileExistsAtPath:nspath isDirectory:&isDirectory];
+        BOOL isAppBundle = [[nspath pathExtension].lowercaseString isEqualToString:@"app"];
+
+        int targetDim = 256;
+        CGFloat scale = [[NSScreen mainScreen] backingScaleFactor];
+        __block CGImageRef finalCGImage = NULL;
+
+        // ===== 1. 获取 CGImage 源 =====
+        // 只有当它是真正的文件夹（且不是 .app）时，才尝试 QuickLook 内容预览
+        if (isDirectory && !isAppBundle) {
+            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+            QLThumbnailGenerationRequest* request = [[QLThumbnailGenerationRequest alloc] 
+                initWithFileAtURL:fileURL
+                size:CGSizeMake(targetDim, targetDim)
+                scale:scale
+                representationTypes:QLThumbnailGenerationRequestRepresentationTypeAll];
+            
+            [[QLThumbnailGenerator sharedGenerator] generateBestRepresentationForRequest:request
+                completionHandler:^(QLThumbnailRepresentation* rep, NSError* error) {
+                    if (rep && !error) finalCGImage = CGImageRetain(rep.CGImage);
+                    dispatch_semaphore_signal(semaphore);
+                }];
+            dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC));
         }
 
-        // Get icon
-        if (isDir) {
-            iconImage = [ws iconForFile:nspath];
-        } else {
-            NSString* ext = [nspath pathExtension];
-            
-            if (@available(macOS 11.0, *)) {
-                UTType* contentType = [UTType typeWithFilenameExtension:ext];
-                iconImage = [ws iconForContentType:contentType ?: UTTypeData];
-            } else {
-                // Fallback for older macOS versions (pre-11.0)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-                iconImage = [ws iconForFileType:ext];
-#pragma clang diagnostic pop
+        // 如果 QuickLook 没拿到，或者是文件/App，则使用 NSWorkspace 的标准图标
+        if (!finalCGImage) {
+            NSImage* iconImage = [[NSWorkspace sharedWorkspace] iconForFile:nspath];
+            if (iconImage) {
+                NSRect targetRect = NSMakeRect(0, 0, targetDim, targetDim);
+                finalCGImage = [iconImage CGImageForProposedRect:&targetRect context:nil hints:nil];
+                if (finalCGImage) CGImageRetain(finalCGImage);
             }
         }
 
-        if (iconImage) {
-            CGFloat screenScale = [[NSScreen mainScreen] backingScaleFactor];
-            NSSize targetSize = NSMakeSize(128, 128);
-
+        // ===== 2. 将 CGImage 转换为 Raw Data (BGRA) =====
+        if (finalCGImage) {
+            size_t width = CGImageGetWidth(finalCGImage);
+            size_t height = CGImageGetHeight(finalCGImage);
+            
             NSBitmapImageRep* rep = [[NSBitmapImageRep alloc]
                 initWithBitmapDataPlanes:NULL
-                pixelsWide:targetSize.width
-                pixelsHigh:targetSize.height
+                pixelsWide:width
+                pixelsHigh:height
                 bitsPerSample:8
                 samplesPerPixel:4
                 hasAlpha:YES
                 isPlanar:NO
                 colorSpaceName:NSDeviceRGBColorSpace
-                bytesPerRow:targetSize.width * 4
+                bytesPerRow:width * 4
                 bitsPerPixel:32];
 
             [NSGraphicsContext saveGraphicsState];
-            NSGraphicsContext* context = [NSGraphicsContext graphicsContextWithBitmapImageRep:rep];
-            context.imageInterpolation = NSImageInterpolationHigh;
-            [context setShouldAntialias:YES];
-            [NSGraphicsContext setCurrentContext:context];
-
-            [iconImage drawInRect:NSMakeRect(0, 0, targetSize.width, targetSize.height)
-                         fromRect:NSZeroRect
-                        operation:NSCompositingOperationCopy
-                         fraction:1.0];
-
+            [NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithBitmapImageRep:rep]];
+            CGContextRef ctx = [[NSGraphicsContext currentContext] CGContext];
+            CGContextDrawImage(ctx, CGRectMake(0, 0, width, height), finalCGImage);
             [NSGraphicsContext restoreGraphicsState];
 
             if (rep) {
-                int byteSize = (int)targetSize.width * (int)targetSize.height * 4;
+                int byteSize = (int)width * (int)height * 4;
                 uint8_t* data = (uint8_t*)malloc(byteSize);
                 memcpy(data, [rep bitmapData], byteSize);
 
                 result.Data = data;
-                result.Width = (int)targetSize.width;
-                result.Height = (int)targetSize.height;
+                result.Width = (int)width;
+                result.Height = (int)height;
             }
+            CGImageRelease(finalCGImage);
         }
     }
     return result;
