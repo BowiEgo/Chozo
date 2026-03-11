@@ -17,21 +17,23 @@
 
 #include "stb_image.h"
 
+DEFINE_LOG_CATEGORY(LogFileDialog);
+
 #define ICON_SIZE (ImGui::GetFontSize() + 3)
 #define GUI_ELEMENT_SIZE ((std::max)(ImGui::GetFontSize() + 10.f, 24.f))
 #define PI 3.141592f
 
-DEFINE_LOG_CATEGORY(LogFileDialog);
+static std::unordered_map<std::string, std::vector<std::string>> s_WrappedFileNameMap;
 
 /* UI CONTROLS */
-bool FolderNode(const char* label, ImTextureID icon, bool& clicked) {
+bool FolderNode(const char* label, ImTextureID icon, bool& clicked, bool default_open = false) {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
     clicked = false;
 
     ImU32 id = window->GetID(label);
-    int opened = window->StateStorage.GetInt(id, 0);
+    int opened = window->StateStorage.GetInt(id, default_open ? 1 : 0);
     ImVec2 pos = window->DC.CursorPos;
     const bool is_mouse_x_over_arrow =
         (g.IO.MousePos.x >= pos.x && g.IO.MousePos.x < pos.x + g.FontSize);
@@ -314,7 +316,6 @@ bool FileIcon(const char* label, bool isSelected, ImTextureID icon, ImVec2 size,
 
     float iconSize = size.y - g.FontSize * 2;
     float iconPosX = pos.x + (size.x - iconSize) / 2.0f;
-    ImVec2 textSize = ImGui::CalcTextSize(label, 0, true, size.x);
 
     if (hovered || active || isSelected)
         window->DrawList->AddRectFilled(
@@ -340,9 +341,39 @@ bool FileIcon(const char* label, bool isSelected, ImTextureID icon, ImVec2 size,
         window->DrawList->AddImage(icon, ImVec2(iconPosX, pos.y),
                                    ImVec2(iconPosX + iconSize, pos.y + iconSize));
 
-    window->DrawList->AddText(
-        g.Font, g.FontSize, ImVec2(pos.x + (size.x - textSize.x) / 2.0f, pos.y + iconSize),
-        ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_Text]), label, 0, size.x);
+    float wrapWidth = size.x - g.Style.ItemSpacing.x;
+    float maxLineHeight = g.FontSize;
+    float rowSpacing = 2.0f;
+    ImVec2 rawTextSize = ImGui::CalcTextSize(label, nullptr, true, wrapWidth);
+
+    std::vector<std::string> lines;
+
+    auto itrCache = s_WrappedFileNameMap.find(label);
+    if (itrCache != s_WrappedFileNameMap.end()) {
+        lines = itrCache->second;
+    } else {
+        lines = ChozoUtils::UI::GetWrappedFileName(label, wrapWidth, maxLineHeight, rowSpacing,
+                                                   rawTextSize);
+        s_WrappedFileNameMap[label] = lines;
+    }
+
+    float totalTextHeight =
+        std::min((float)lines.size(), 2.0f) * maxLineHeight + (lines.size() > 1 ? rowSpacing : 0);
+    float textOffY = ((size.y - iconSize) - totalTextHeight) * 0.5f;
+    float currentY = pos.y + iconSize + textOffY;
+
+    window->DrawList->PushClipRect(g.LastItemData.Rect.Min, g.LastItemData.Rect.Max, true);
+    for (size_t i = 0; i < std::min(lines.size(), (size_t)2); ++i) {
+        ImVec2 lineSize = ImGui::CalcTextSize(lines[i].c_str());
+        // [Note] Calculate X for horizontal centering of THIS specific line
+        float lineX = pos.x + (size.x - lineSize.x) * 0.5f;
+
+        window->DrawList->AddText(g.Font, g.FontSize, ImVec2(lineX, currentY),
+                                  ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]),
+                                  lines[i].c_str());
+        currentY += maxLineHeight + rowSpacing;
+    }
+    window->DrawList->PopClipRect();
 
     float lastButtomPos = ImGui::GetItemRectMax().x;
     float thisButtonPos = lastButtomPos + style.ItemSpacing.x +
@@ -985,7 +1016,9 @@ void UFileDialog::RenderTree(FileTreeNode* node) {
     if (displayName.size() == 0) displayName = node->Path.string();
 
     auto tex = GetIcon(node->Path);
-    if (FolderNode(displayName.c_str(), (ImTextureID)tex->GetDescriptorSet(), isClicked)) {
+    bool isDefaultOpen = displayName == "Quick Access" || displayName == "This Computer";
+    if (FolderNode(displayName.c_str(), (ImTextureID)tex->GetDescriptorSet(), isClicked,
+                   isDefaultOpen)) {
         if (!node->Read) {
             // cache children if it's not already cached
             if (std::filesystem::exists(node->Path, ec))
@@ -1290,6 +1323,7 @@ void UFileDialog::RenderFileDialog() {
             m_Zoom =
                 std::min<float>(25.0f, std::max<float>(1.0f, m_Zoom + ImGui::GetIO().MouseWheel));
             RefreshThumbnails();
+            if (!s_WrappedFileNameMap.empty()) s_WrappedFileNameMap.clear();
         }
 
         // New file, New directory and Delete popups

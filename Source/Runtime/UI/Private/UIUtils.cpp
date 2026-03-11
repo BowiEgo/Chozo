@@ -6,12 +6,47 @@
 #include "nanosvg.h"
 #include "nanosvgrast.h"
 
+#include "imgui_internal.h"
+
 #include "stb_image.h"
 #include "stb_image_resize2.h"
 
 DEFINE_LOG_CATEGORY(LogUIUtils);
 
 static NSVGrasterizer* g_Rasterizer = nullptr;
+
+static std::string MiddleTruncateByChar(const std::string& filename, float maxWidth) {
+    std::string originName = filename;
+
+    float avgCharWidth = ImGui::CalcTextSize("A").x;
+    if (avgCharWidth <= 0) avgCharWidth = 8.0f;
+
+    size_t dotPos = filename.find_last_of('.');
+    std::string ext = (dotPos != std::string::npos) ? filename.substr(dotPos) : "";
+    std::string name = (dotPos != std::string::npos) ? filename.substr(0, dotPos) : filename;
+
+    float extWidth = ImGui::CalcTextSize(ext.c_str()).x;
+    float nameMaxWidth = maxWidth - extWidth;
+    if (nameMaxWidth <= 0) return "..." + ext;
+
+    int maxNameChars = (int)(nameMaxWidth / avgCharWidth);
+    int keepChars = maxNameChars - 3;
+    if (keepChars <= 0) return "..." + ext;
+
+    int nameLen = (int)name.length();
+    keepChars = std::min(keepChars, nameLen);
+
+    int leftChars = keepChars / 2;
+    int rightChars = keepChars - leftChars;
+    rightChars = std::min(rightChars, nameLen - leftChars);
+
+    std::string result;
+    if (leftChars > 0) result.append(name, 0, leftChars);
+    result.append("...");
+    if (rightChars > 0) result.append(name, name.length() - rightChars, rightChars);
+    result.append(ext);
+    return result;
+}
 
 namespace ChozoUtils::UI {
 
@@ -117,6 +152,34 @@ unsigned char* LoadImagePreview(const char* path, int max_size, int* out_w, int*
     *out_w = target_w;
     *out_h = target_h;
     return resized;
+}
+
+std::vector<std::string> GetWrappedFileName(const char* label, float WrapWidth, float MaxLineHeight,
+                                            float RowSpacing, ImVec2 RawTextSize) {
+    // CZ_LOG(LogUIUtils, Info, "GetWrappedFileName: {}", label);
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImGuiContext& g = *GImGui;
+
+    std::vector<std::string> lines;
+    if (RawTextSize.y <= MaxLineHeight * 1.5f) {
+        // [Note] Single line
+        lines.push_back(label);
+    } else {
+        // [Note] Multi-line logic: split into two lines
+        // Line 1: Fill as much as possible
+        const char* line1_end =
+            g.Font->CalcWordWrapPositionA(1.0f, label, label + strlen(label), WrapWidth);
+        lines.push_back(std::string(label, line1_end));
+
+        // Line 2: The rest, with middle truncation
+        std::string remaining = line1_end;
+        // Trim leading spaces for the second line
+        remaining.erase(0, remaining.find_first_not_of(' '));
+        lines.push_back(MiddleTruncateByChar(remaining, WrapWidth));
+    }
+
+    return lines;
 }
 
 } // namespace ChozoUtils::UI

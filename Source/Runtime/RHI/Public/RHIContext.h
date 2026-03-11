@@ -15,6 +15,8 @@ struct FContextSpec {
 };
 
 class RHI_API IRHIContext {
+    static const int MAX_FRAMES_IN_FLIGHT = 3;
+
 public:
     IRHIContext(const FContextSpec& spec);
     virtual ~IRHIContext();
@@ -23,6 +25,7 @@ public:
     TRef<IRHISwapchain> GetSwapchain() const { return m_Swapchain; }
     uint32 GetCurrentFrameIndex() const { return m_FrameIndex; }
     uint32 GetCurrentImageIndex() const { return m_ImageIndex; }
+    uint32 GetMaxFramesInFlight() const { return MAX_FRAMES_IN_FLIGHT; }
     TRef<IRHITexture2D> GetTarget() const { return m_Target; }
 
     void SetCurrentFrameIndex(const uint32 index) { m_FrameIndex = index; }

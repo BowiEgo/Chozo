@@ -51,7 +51,7 @@ public:
 
     void EnqueueCleanup(std::function<void()>&& func);
 
-    void TickDeferredDeletion(uint32 currentFrame, uint32 maxFramesInFlight);
+    void TickDeferredDeletion(uint32 currentFrame);
 
 protected:
     FDeviceSpecification m_Spec;

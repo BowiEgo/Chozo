@@ -16,10 +16,11 @@ void IRHIDevice::EnqueueCleanup(std::function<void()>&& func) {
     m_DeletionQueue.push_back({ func, frameIndex });
 }
 
-void IRHIDevice::TickDeferredDeletion(uint32 currentFrame, uint32 maxFramesInFlight) {
+void IRHIDevice::TickDeferredDeletion(uint32 currentFrame) {
     WaitIdle();
 
-    uint32 safeFrame = (currentFrame + maxFramesInFlight - 1) % maxFramesInFlight;
+    uint32 safeFrame =
+        (currentFrame + m_Context->GetMaxFramesInFlight() - 1) % m_Context->GetMaxFramesInFlight();
 
     auto it = m_DeletionQueue.begin();
     while (it != m_DeletionQueue.end()) {

@@ -279,6 +279,7 @@ FRawFileImage GetFileIcon(const std::filesystem::path& path) {
 FRawFileImage GetFileThumbnail(const std::filesystem::path& path, int size) {
     FRawFileImage result;
     result.PathU8 = path.string();
+    result.Format = 1;
     
     @autoreleasepool {
         NSURL* fileURL = [NSURL fileURLWithPath:[NSString stringWithUTF8String:path.string().c_str()]];

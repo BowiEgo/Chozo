@@ -20,6 +20,8 @@ void CRenderer::Init() {
             m_RHIModule.Invoke<IRHIContext*(const FContextSpec&)>("CreateVulkanContext", spec));
     }
 
+    m_Frames.reserve(m_GraphicContext->GetMaxFramesInFlight());
+
     auto device = m_GraphicContext->GetDevice();
 
     CShaderManager::Init(device);
@@ -31,7 +33,7 @@ void CRenderer::Init() {
     TRef<CShader> vertShader = CShaderManager::Get()->Load(vertShaderInfo);
     TRef<CShader> fragShader = CShaderManager::Get()->Load(fagShaderInfo);
 
-    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
         FCommandPoolSpecification poolSpec;
 
         poolSpec.Flags = ECommandPoolFlags::ResetCommandBuffer;
@@ -72,7 +74,7 @@ void CRenderer::Tick() {
     auto& cmdBuffer = m_Frames[m_CurrentFrameIndex].CommandBuffer;
     auto& syncObject = m_Frames[m_CurrentFrameIndex].RenderFence;
     m_GraphicContext->SetCurrentFrameIndex(m_CurrentFrameIndex);
-    m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex, MAX_FRAMES_IN_FLIGHT);
+    m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex);
 
     IRHIAPI::DrawFrame(m_GraphicContext.get(), cmdBuffer, syncObject, [&](uint32 imageIndex) {
         cmdBuffer->Begin();
@@ -114,7 +116,7 @@ void CRenderer::Tick() {
         cmdBuffer->End();
     });
 
-    m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+    m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_GraphicContext->GetMaxFramesInFlight();
 }
 
 void CRenderer::Shutdown() {
@@ -124,7 +126,7 @@ void CRenderer::Shutdown() {
     m_ScenePipeline = nullptr;
     m_SceneFrameBuffer = nullptr;
 
-    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
         m_Frames[i].RenderFence = nullptr;
         m_Frames[i].CommandBuffer = nullptr;
         m_Frames[i].CommandPool = nullptr;

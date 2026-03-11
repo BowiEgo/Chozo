@@ -22,4 +22,7 @@ TRef<IRHITexture2D> LoadSVGIcon(const IRHIContext* ctx, const std::string& name,
 
 unsigned char* LoadImagePreview(const char* path, int max_size, int* out_w, int* out_h);
 
+std::vector<std::string> GetWrappedFileName(const char* label, float WrapWidth, float MaxLineHeight,
+                                            float RowSpacing, ImVec2 RawTextSize);
+
 } // namespace ChozoUtils::UI

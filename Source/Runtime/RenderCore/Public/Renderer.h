@@ -20,7 +20,6 @@ struct FFrameResource {
 using FOnRenderUI = std::function<void(const TRef<IRHICommandList>&)>;
 
 class RENDER_CORE_API CRenderer {
-    static const int MAX_FRAMES_IN_FLIGHT = 3;
 
 public:
     CRenderer(IRendererWindow* windowHandle);
@@ -51,7 +50,7 @@ private:
     IRendererWindow* m_Window;
     TScope<IRHIContext> m_GraphicContext;
 
-    FFrameResource m_Frames[MAX_FRAMES_IN_FLIGHT];
+    std::vector<FFrameResource> m_Frames;
     uint32_t m_CurrentFrameIndex = 0;
 
     TRef<IRHIPipeline> m_ScenePipeline;

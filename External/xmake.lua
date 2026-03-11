@@ -28,6 +28,14 @@ target("imgui")
         add_defines("IMGUI_API=__declspec(dllimport)", {interface = true})
     end
 
+    if is_plat("macosx", "linux") then
+        add_defines("IMGUI_API=__attribute__((visibility(\"default\")))", {public = true})
+    end
+
+    if is_plat("macosx") then
+        add_cxflags("-fvisibility=default")
+    end
+
     -- Speed up build using Precompiled Headers
     set_pcxxheader("imgui/imgui.h")
 

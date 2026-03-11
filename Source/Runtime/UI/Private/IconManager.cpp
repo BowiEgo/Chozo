@@ -147,8 +147,9 @@ void CIconManager::ProcessRawIcons() {
 
         free(icon.Data);
 
-        CZ_LOG(LogIconManager, Trace, "Get File Icon: [PathU8]{} [Size]{} [Indice]{}", icon.PathU8,
-               icon.Size, icon.Index);
+        // CZ_LOG(LogIconManager, Trace, "Get File Icon: [PathU8]{} [Size]{} [Indice]{}",
+        // icon.PathU8,
+        //        icon.Size, icon.Index);
     }
 
     m_RawFileIconCaches.clear();
@@ -200,12 +201,14 @@ void CIconManager::ClearCaches() {
 
 void CIconManager::UpdateDeletionQueue() {
     // [Note] No lock needed if called within an already locked scope
-    uint32_t currentFrame = m_GraphicContext->GetCurrentFrameIndex();
+    uint32 currentFrame = m_GraphicContext->GetCurrentFrameIndex();
+    uint32 maxFrames = m_GraphicContext->GetMaxFramesInFlight();
+    uint32 safeFrame = (currentFrame + maxFrames - 1) % maxFrames;
 
     auto it = std::remove_if(m_DeletionQueue.begin(), m_DeletionQueue.end(),
-                             [currentFrame](const FPendingDeletion& pending) {
+                             [currentFrame, safeFrame](const FPendingDeletion& pending) {
                                  // [Note] Safely delete after 3 frames of grace period
-                                 return (currentFrame - pending.FrameIndex) >= 3;
+                                 return pending.FrameIndex == safeFrame;
                              });
     m_DeletionQueue.erase(it, m_DeletionQueue.end());
 }
