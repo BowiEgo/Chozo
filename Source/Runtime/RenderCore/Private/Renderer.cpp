@@ -9,10 +9,12 @@ CRenderer::CRenderer(IRendererWindow* windowHandle) : m_Window(windowHandle) {}
 CRenderer::~CRenderer() {}
 
 void CRenderer::Init() {
+    auto fbSize = m_Window->GetFrameBufferSize();
+
     std::string libName = ChozoUitls::Module::GetPlatformLibName("VulkanRHI");
     if (m_RHIModule.Load(libName)) {
         FContextSpec spec;
-        spec.FrameBufferSize = m_Window->GetFrameBufferSize();
+        spec.FrameBufferSize = fbSize;
         spec.NativeWindow = m_Window->GetNativeHandle();
         spec.WindowRequiredExtensions = m_Window->GetRequiredExtensions();
 
@@ -24,6 +26,12 @@ void CRenderer::Init() {
 
     auto device = m_GraphicContext->GetDevice();
 
+    // Camera
+    m_Camera.SetPerspective(60.0f, (float)fbSize.Width / fbSize.Height, 0.1f, 1000.0f);
+    m_Camera.SetPosition(FVector3(0, 0, 5));
+    m_CameraUniformManager = CreateScope<CCameraUniformManager>(m_GraphicContext.get());
+
+    // Shader
     CShaderManager::Init(device);
 
     FShaderSpecification vertShaderInfo("Test", "shaders://Test.glsl", EShaderStage::Vertex,
@@ -49,7 +57,7 @@ void CRenderer::Init() {
 
     FFrameBufferSpecification fbSpec;
     fbSpec.Name = "SceneFrameBuffer";
-    fbSpec.Size = m_Window->GetFrameBufferSize();
+    fbSpec.Size = fbSize;
     fbSpec.ColorFormats = { EPixelFormat::RGBA8_UNORM };
     fbSpec.DepthFormat = EPixelFormat::D32_SFLOAT;
 
@@ -63,7 +71,7 @@ void CRenderer::Init() {
     m_ScenePipeline = IRHIAPI::CreatePipeline(m_GraphicContext.get(), pipelineInfo);
 }
 
-void CRenderer::Tick() {
+void CRenderer::Tick(float deltaTime) {
     if (m_Window->CheckAndResetVSyncDirty()) {
         EPresentMode mode =
             m_Window->IsVSyncEnabled() ? EPresentMode::FIFO : EPresentMode::Immediate;
@@ -76,8 +84,12 @@ void CRenderer::Tick() {
     m_GraphicContext->SetCurrentFrameIndex(m_CurrentFrameIndex);
     m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex);
 
+    m_Camera.Update(deltaTime);
+
     IRHIAPI::DrawFrame(m_GraphicContext.get(), cmdBuffer, syncObject, [&](uint32 imageIndex) {
         cmdBuffer->Begin();
+
+        m_CameraUniformManager->UpdateCamera(m_Camera);
 
         // draw scene using RHI interface
         {
@@ -88,6 +100,7 @@ void CRenderer::Tick() {
             IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdBuffer, true);
             {
                 cmdBuffer->BindPipeline(m_ScenePipeline);
+                cmdBuffer->BindUniformBuffer(m_CameraUniformManager->GetBuffer(), 0, 0);
                 cmdBuffer->SetViewport(
                     { 0.0f, 0.0f, (float)extent.Width, (float)extent.Height, 0.0f, 1.0f });
                 cmdBuffer->SetScissor({ 0, 0, extent.Width, extent.Height });
@@ -125,6 +138,7 @@ void CRenderer::Shutdown() {
     m_GraphicContext->GetDevice()->WaitIdle();
     m_ScenePipeline = nullptr;
     m_SceneFrameBuffer = nullptr;
+    m_CameraUniformManager = nullptr;
 
     for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
         m_Frames[i].RenderFence = nullptr;

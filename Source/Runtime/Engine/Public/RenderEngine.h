@@ -15,7 +15,7 @@ public:
     ~CRenderEngine();
 
     void Init();
-    void Tick();
+    void Tick(float deltaTime);
     void Shutdown();
     bool OnEvent(IEvent& e);
     void OnWindowResize(FWindowResizedEvent& e);

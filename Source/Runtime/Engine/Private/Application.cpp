@@ -108,7 +108,7 @@ void CApplication::Run() {
                 layer->OnImGuiRender();
         });
         m_ImGuiLayer->End();
-        m_RenderEngine->Tick();
+        m_RenderEngine->Tick(deltaTime);
     }
 
     float workElapsed = m_AppTimer.ElapsedMillis() - time;

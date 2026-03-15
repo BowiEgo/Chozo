@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CameraUniformManager.h"
 #include "CoreMinimal.h"
 #include "Module.h"
 #include "RHICommandList.h"
@@ -26,7 +27,7 @@ public:
     ~CRenderer();
 
     void Init();
-    void Tick();
+    void Tick(float deltaTime);
     void Shutdown();
 
     void SetUICallback(FOnRenderUI callback) { m_UICallback = std::move(callback); }
@@ -58,4 +59,7 @@ private:
     FOnRenderUI m_UICallback = nullptr;
 
     TRef<IRHIFrameBuffer> m_SceneFrameBuffer;
+
+    CCamera m_Camera;
+    TScope<CCameraUniformManager> m_CameraUniformManager;
 };

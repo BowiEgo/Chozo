@@ -2,6 +2,7 @@
 
 #include "RHIAPI.h"
 
+#include "VulkanBuffer.h"
 #include "VulkanCore.h"
 #include "VulkanDevice.h"
 #include "VulkanFrameBuffer.h"
@@ -97,6 +98,19 @@ public:
         auto RHIDevice = ctx->GetDevice();
 
         return CreateRef<CVulkanTexture2D>(WeakRef(RHIDevice), spec, data);
+    }
+
+    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const IRHIContext* ctx,
+                                                   const FBufferSpecification& spec) override {
+        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+        return CreateRef<CVulkanBuffer>(WeakRef(RHIDevice), spec);
+    }
+
+    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const IRHIContext* ctx,
+                                                   const FBufferSpecification& spec,
+                                                   FBuffer& data) override {
+        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+        return CreateRef<CVulkanBuffer>(WeakRef(RHIDevice), spec, data);
     }
 
     virtual void DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList>& cmdBuffer,

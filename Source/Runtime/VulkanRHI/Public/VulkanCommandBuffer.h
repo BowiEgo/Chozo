@@ -4,6 +4,7 @@
 
 #include "VulkanCommandPool.h"
 #include "VulkanDevice.h"
+#include "VulkanPipeline.h"
 
 #include "VulkanRHIExport.h"
 
@@ -21,14 +22,20 @@ public:
                       uint32_t firstInstance) override;
     virtual void End() override { m_Handle.end(); }
     virtual void BindPipeline(TRef<IRHIPipeline> pipeline) override;
+    virtual void BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) override;
 
     const vk::CommandBuffer GetVKCommandBuffer() const { return *m_Handle; }
 
 private:
     void Init();
+    vk::DescriptorSet GetOrCreateDescriptorSet(int set, vk::DescriptorSetLayout layout);
 
 private:
     TRef<CVulkanCommandPool> m_CommandPool;
+    TRef<CVulkanPipeline> m_CurrentPipeline;
 
     vk::raii::CommandBuffer m_Handle = nullptr;
+
+    std::unordered_map<int, vk::DescriptorSet> m_DescriptorSetCache;
+    std::unordered_map<int, vk::DescriptorSet> m_BoundDescriptorSets;
 };

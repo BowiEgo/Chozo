@@ -1,7 +1,7 @@
 #include "VulkanCommandBuffer.h"
 
+#include "VulkanBuffer.h"
 #include "VulkanCommandPool.h"
-#include "VulkanPipeline.h"
 
 DEFINE_LOG_CATEGORY(LogVulkanCommandBuffer);
 
@@ -51,7 +51,65 @@ void CVulkanCommandBuffer::Draw(uint32_t vertexCount, uint32_t instanceCount, ui
 }
 
 void CVulkanCommandBuffer::BindPipeline(TRef<IRHIPipeline> pipeline) {
-    auto& vlkPipeline = pipeline.As<CVulkanPipeline>()->GetRAIIPipeline();
+    m_CurrentPipeline = pipeline.As<CVulkanPipeline>();
+    auto& vlkPipeline = m_CurrentPipeline->GetRAIIPipeline();
 
     m_Handle.bindPipeline(vk::PipelineBindPoint::eGraphics, vlkPipeline);
+}
+
+void CVulkanCommandBuffer::BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) {
+    auto device = m_CommandPool->GetDevice().lock();
+    auto vkCommandBuffer = GetVKCommandBuffer();
+    vk::PipelineLayout currentPipelineLayout = m_CurrentPipeline->GetPipelineLayout();
+
+    auto vkBuffer = buffer.As<CVulkanBuffer>();
+    if (!vkBuffer) {
+        CZ_LOG(LogVulkan, Error, "Invalid buffer type for Uniform Buffer binding");
+        return;
+    }
+
+    if (!HasFlag(vkBuffer->GetUsage(), EBufferUsage::UniformBuffer)) {
+        CZ_LOG(LogVulkan, Warning, "Binding non-uniform buffer as uniform buffer");
+    }
+
+    vk::DescriptorSetLayout layout =
+        device->GetDescriptorSetLayout(EDescriptorLayoutType::UniformBuffer);
+    vk::DescriptorSet descSet = GetOrCreateDescriptorSet(set, layout);
+
+    vk::DescriptorBufferInfo bufferInfo;
+    bufferInfo.setBuffer(vkBuffer->GetVKBuffer()).setOffset(0).setRange(vkBuffer->GetSize());
+
+    vk::WriteDescriptorSet descriptorWrite;
+    descriptorWrite.setDstSet(descSet)
+        .setDstBinding(binding)
+        .setDescriptorCount(1)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setPBufferInfo(&bufferInfo);
+
+    device->GetLogicalDevice().updateDescriptorSets({ descriptorWrite }, nullptr);
+
+    vkCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, currentPipelineLayout, set,
+                                       1, &descSet, 0, nullptr);
+
+    m_BoundDescriptorSets[set] = descSet;
+}
+
+vk::DescriptorSet CVulkanCommandBuffer::GetOrCreateDescriptorSet(int set,
+                                                                 vk::DescriptorSetLayout layout) {
+    auto device = m_CommandPool->GetDevice().lock();
+
+    auto it = m_DescriptorSetCache.find(set);
+    if (it != m_DescriptorSetCache.end()) {
+        return it->second;
+    }
+
+    vk::DescriptorSetAllocateInfo allocInfo;
+    allocInfo.setDescriptorPool(device->GetGlobalDescriptorPool())
+        .setDescriptorSetCount(1)
+        .setPSetLayouts(&layout);
+
+    auto descSet = device->GetLogicalDevice().allocateDescriptorSets(allocInfo)[0];
+    m_DescriptorSetCache[set] = descSet;
+
+    return descSet;
 }

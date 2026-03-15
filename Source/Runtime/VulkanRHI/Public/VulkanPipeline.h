@@ -20,6 +20,8 @@ private:
     void Init();
     const vk::Pipeline GetVKPipeline() const { return *m_Pipeline; }
     const vk::raii::Pipeline& GetRAIIPipeline() const { return m_Pipeline; }
+    const vk::PipelineLayout GetPipelineLayout() const { return *m_PipelineLayout; }
+    const vk::raii::PipelineLayout& GetRAIIPipelineLayout() const { return m_PipelineLayout; }
 
 private:
     WeakRef<CVulkanDevice> m_Device;

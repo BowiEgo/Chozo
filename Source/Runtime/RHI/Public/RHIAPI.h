@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Buffer.h"
+#include "RHIBuffer.h"
 #include "RHICommandList.h"
 #include "RHIContext.h"
 #include "RHIDevice.h"
@@ -58,6 +59,15 @@ public:
         return s_Instance->CreateTexture2D_Internal(ctx, spec, data);
     }
 
+    static TRef<IRHIBuffer> CreateBuffer(const IRHIContext* ctx, const FBufferSpecification& spec) {
+        return s_Instance->CreateBuffer_Internal(ctx, spec);
+    }
+
+    static TRef<IRHIBuffer> CreateBuffer(const IRHIContext* ctx, const FBufferSpecification& spec,
+                                         FBuffer& data) {
+        return s_Instance->CreateBuffer_Internal(ctx, spec, data);
+    }
+
     static void DrawFrame(IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
                           TRef<IRHISyncObject>& syncObject, RecordCallback recordCallback) {
         return s_Instance->DrawFrame_Internal(ctx, cmdList, syncObject, recordCallback);
@@ -97,6 +107,13 @@ protected:
     virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const IRHIContext* ctx,
                                                          const FTexture2DSpecification& spec,
                                                          FBuffer& data) = 0;
+
+    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const IRHIContext* ctx,
+                                                   const FBufferSpecification& spec) = 0;
+
+    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const IRHIContext* ctx,
+                                                   const FBufferSpecification& spec,
+                                                   FBuffer& data) = 0;
 
     virtual void DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
                                     TRef<IRHISyncObject>& syncObject,

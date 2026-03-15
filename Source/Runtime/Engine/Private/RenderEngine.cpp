@@ -17,7 +17,7 @@ void CRenderEngine::Init() {
     CZ_LOG(LogRenderEngine, Info, "Render Engine Initialized.");
 }
 
-void CRenderEngine::Tick() { m_Renderer->Tick(); }
+void CRenderEngine::Tick(float deltaTime) { m_Renderer->Tick(deltaTime); }
 
 void CRenderEngine::Shutdown() { m_Renderer->Shutdown(); }
 

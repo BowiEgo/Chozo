@@ -82,8 +82,8 @@ struct FUniformSpecification {
     std::string type;
     std::string name;
     std::string resourceName;
-    uint32_t size;
-    uint32_t location;
+    uint32 size;
+    uint32 location;
 
     std::string fullName() const { return resourceName + "." + name; }
 };
@@ -91,14 +91,14 @@ struct FUniformSpecification {
 struct FAttributeInfo {
     std::string type;
     std::string name;
-    uint32_t size;
-    uint32_t location;
+    uint32 size;
+    uint32 location;
 };
 
 struct FShaderReflection {
     std::vector<FUniformSpecification> uniforms;
     std::vector<FAttributeInfo> attributes;
-    std::unordered_map<std::string, uint32_t> uniformLocations;
+    std::unordered_map<std::string, uint32> uniformLocations;
 };
 
 // Define the environment and parameters for a single shader compilation task
@@ -110,7 +110,7 @@ struct FShaderCompilerInput {
 
 // The result of the compilation, including binaries and reflection data
 struct FShaderCompilerOutput {
-    std::vector<uint32_t> Binary;
+    std::vector<uint32> Binary;
     FShaderReflection Reflection;
     bool bSucceeded = false;
 };
@@ -152,7 +152,7 @@ enum class EPresentMode {
  * ECommandPoolFlags - Maps to underlying API flags (e.g., VkCommandPoolCreateFlagBits).
  * Defines the memory allocation behavior and reset capabilities of the pool.
  */
-enum class ECommandPoolFlags : uint32_t {
+enum class ECommandPoolFlags : uint32 {
     None = 0,
 
     /** * Indicates that command buffers allocated from the pool are short-lived
@@ -178,3 +178,61 @@ enum class ECommandPoolFlags : uint32_t {
 
 // Enable bitwise operations for the enum class
 ENUM_CLASS_FLAGS(ECommandPoolFlags);
+
+// ===== Buffer Usage Flags =====
+enum class EBufferUsage : uint32 {
+    None = 0,
+    TransferSrc = 1 << 0,        // VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+    TransferDst = 1 << 1,        // VK_BUFFER_USAGE_TRANSFER_DST_BIT
+    UniformTexelBuffer = 1 << 2, // VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT
+    StorageTexelBuffer = 1 << 3, // VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT
+    UniformBuffer = 1 << 4,      // VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
+    StorageBuffer = 1 << 5,      // VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+    IndexBuffer = 1 << 6,        // VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+    VertexBuffer = 1 << 7,       // VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+    IndirectBuffer = 1 << 8,     // VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT
+    AccelerationStructure =
+        1 << 9, // VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR
+    ShaderDeviceAddress = 1 << 10, // VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
+};
+
+inline EBufferUsage operator|(EBufferUsage a, EBufferUsage b) {
+    return static_cast<EBufferUsage>(static_cast<uint32>(a) | static_cast<uint32>(b));
+}
+
+inline EBufferUsage operator&(EBufferUsage a, EBufferUsage b) {
+    return static_cast<EBufferUsage>(static_cast<uint32>(a) & static_cast<uint32>(b));
+}
+
+inline EBufferUsage& operator|=(EBufferUsage& a, EBufferUsage b) {
+    a = a | b;
+    return a;
+}
+
+// ===== Memory Type Flags =====
+enum class EMemoryType : uint32 {
+    Unknown = 0,
+    DeviceLocal = 1 << 0,     // VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    HostVisible = 1 << 1,     // VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+    HostCoherent = 1 << 2,    // VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    HostCached = 1 << 3,      // VK_MEMORY_PROPERTY_HOST_CACHED_BIT
+    LazilyAllocated = 1 << 4, // VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT
+    Protected = 1 << 5,       // VK_MEMORY_PROPERTY_PROTECTED_BIT
+    DeviceAddress = 1 << 6,   // VK_MEMORY_PROPERTY_DEVICE_ADDRESS_BIT
+};
+
+inline EMemoryType operator|(EMemoryType a, EMemoryType b) {
+    return static_cast<EMemoryType>(static_cast<uint32>(a) | static_cast<uint32>(b));
+}
+
+inline EMemoryType operator&(EMemoryType a, EMemoryType b) {
+    return static_cast<EMemoryType>(static_cast<uint32>(a) & static_cast<uint32>(b));
+}
+
+inline bool HasFlag(EMemoryType value, EMemoryType flag) {
+    return (static_cast<uint32>(value) & static_cast<uint32>(flag)) != 0;
+}
+
+inline bool HasFlag(EBufferUsage value, EBufferUsage flag) {
+    return (static_cast<uint32>(value) & static_cast<uint32>(flag)) != 0;
+}

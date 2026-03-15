@@ -1,9 +1,12 @@
 #version 450
 
-// Common structures or constants can be placed here
+// ===== Uniform =====
+layout(set = 0, binding = 0) uniform CameraData {
+    mat4 view;
+    mat4 projection;
+} camera;
 
 #ifdef VERTEX_SHADER
-layout(location = 0) out vec3 fragColor;
 
 vec2 positions[3] = vec2[](
     vec2(0.0, -0.5),
@@ -17,18 +20,28 @@ vec3 colors[3] = vec3[](
     vec3(0.0, 0.0, 1.0)
 );
 
+layout(location = 0) out vec3 v_Color;
+
 void main() {
-    gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
-    fragColor = colors[gl_VertexIndex];
+    mat4 model = mat4(1.0);
+    
+    mat4 mvp = camera.projection * camera.view * model;
+    
+    gl_Position = mvp * vec4(positions[gl_VertexIndex], 0.0, 1.0);
+    
+    v_Color = colors[gl_VertexIndex];
 }
+
 #endif
 
 #ifdef FRAGMENT_SHADER
-layout(location = 0) in vec3 fragColor;
+
+layout(location = 0) in vec3 v_Color;
 
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    outColor = vec4(fragColor, 1.0);
+    outColor = vec4(v_Color, 1.0);
 }
+
 #endif

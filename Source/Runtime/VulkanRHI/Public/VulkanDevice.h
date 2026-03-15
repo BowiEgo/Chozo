@@ -45,6 +45,9 @@ public:
     const vk::Device GetLogicalDevice() const { return *m_LogicalDevice; }
     const vk::raii::PhysicalDevice& GetRAIIPhysicalDevice() const { return m_PhysicalDevice; }
     const vk::raii::Device& GetRAIILogicalDevice() const { return m_LogicalDevice; }
+    const vk::PhysicalDeviceProperties GetPhysicalDeviceProperties() const {
+        return m_PhysicalDevice.getProperties();
+    }
     const vk::Queue GetGraphicsQueue() const { return *m_GraphicsQueue; }
     const uint32 GetGraphicsQueueIndex() const { return m_GraphicsQueueIndex; }
     const vk::DescriptorPool GetGlobalDescriptorPool() const { return *m_GlobalDescriptorPool; }

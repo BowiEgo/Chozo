@@ -1,9 +1,11 @@
 #pragma once
 
+#include "RHIBuffer.h"
 #include "RHICommandPool.h"
-#include "RHIExport.h"
 #include "RHIPipeline.h"
 #include "Ref.h"
+
+#include "RHIExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHICommandBuffer, Info);
 
@@ -28,4 +30,5 @@ public:
                       uint32_t firstInstance) = 0;
     virtual void End() = 0;
     virtual void BindPipeline(TRef<IRHIPipeline> pipeline) = 0;
+    virtual void BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) = 0;
 };
