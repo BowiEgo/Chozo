@@ -10,6 +10,8 @@ SandboxLayer::SandboxLayer() : ILayer("Sandbox") {}
 
 void SandboxLayer::OnAttach() {
     m_ViewportRenderer = CApplication::Get()->GetRenderEngine()->GetRenderer();
+    m_Viewport = m_ViewportRenderer->CreateViewport("Sandbox", m_ViewportSize.x, m_ViewportSize.y);
+
     m_Overlay.UpdateLocation(EOverlayLocation::TopRight);
 
     CZ_LOG(LogSandboxLayer, Info, "SandboxLayer Attached.");
@@ -17,7 +19,7 @@ void SandboxLayer::OnAttach() {
 
 void SandboxLayer::OnDetach() {}
 
-void SandboxLayer::OnUpdate(FTimeStep ts) {}
+void SandboxLayer::OnUpdate(float deltaTime) {}
 
 void SandboxLayer::OnImGuiRender() {
     ImGuiIO& io = ImGui::GetIO();
@@ -86,8 +88,7 @@ void SandboxLayer::OnImGuiRender() {
     m_ViewportSize = ImGui::GetContentRegionAvail();
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
-    auto texture = m_ViewportRenderer->GetSceneFrameBuffer()->GetColorAttachment(0);
-    ImTextureID textureID = (ImTextureID)texture->GetDescriptorSet();
+    ImTextureID textureID = (ImTextureID)m_Viewport->GetTextureID(0);
     ImGui::Image(textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
     // Integrated Debug Overlay

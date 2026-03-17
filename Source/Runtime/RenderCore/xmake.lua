@@ -2,7 +2,7 @@ target("RenderCore")
     set_kind("shared")
     add_rules("chozo_module", "export_header")
     add_deps("Core", "RHI", "VulkanSDK_Interface")
-    add_packages("glm", {public = true})
+    add_packages("spdlog", "glm", { public = true })
 
     if is_plat("windows") then
         -- Use shaderc_combined (static) or shaderc_shared (DLL)

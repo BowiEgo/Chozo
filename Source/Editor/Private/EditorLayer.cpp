@@ -9,8 +9,17 @@ DEFINE_LOG_CATEGORY(LogEditorLayer);
 EditorLayer::EditorLayer() : ILayer("Editor") {}
 
 void EditorLayer::OnAttach() {
+    auto fbSize = CApplication::Get()->GetWindow()->GetFrameBufferSize();
+
     m_ViewportRenderer = CApplication::Get()->GetRenderEngine()->GetRenderer();
+    m_Viewport = m_ViewportRenderer->CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
+
     m_Overlay.UpdateLocation(EOverlayLocation::BottomLeft);
+
+    auto mainCamera = m_Viewport->GetCamera();
+    m_EditorCamera.SetActiveCamera(mainCamera);
+    mainCamera->SetPerspective(45.0f, (float)fbSize.Width / fbSize.Height, 0.1f, 1000.0f);
+    mainCamera->SetPosition(FVector3(0, 0, 5));
 
     CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
 }
@@ -21,7 +30,11 @@ void EditorLayer::OnDetach() {
     CIconManager::Get(context).Shutdown();
 }
 
-void EditorLayer::OnUpdate(FTimeStep ts) {}
+void EditorLayer::OnUpdate(float deltaTime) {
+    m_Viewport->Resize(m_ViewportSize.x, m_ViewportSize.y);
+    m_EditorCamera.OnUpdate(deltaTime);
+    // m_EditorCamera.CopyTo(m_Viewport->GetCamera());
+}
 
 void EditorLayer::OnImGuiRender() {
     ImGuiIO& io = ImGui::GetIO();
@@ -102,8 +115,7 @@ void EditorLayer::OnImGuiRender() {
     m_ViewportSize = ImGui::GetContentRegionAvail();
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
-    auto texture = m_ViewportRenderer->GetSceneFrameBuffer()->GetColorAttachment(0);
-    ImTextureID textureID = (ImTextureID)texture->GetDescriptorSet();
+    ImTextureID textureID = (ImTextureID)m_Viewport->GetTextureID(0);
     ImGui::Image(textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
     // Integrated Debug Overlay
@@ -145,7 +157,7 @@ void EditorLayer::OnImGuiRender() {
     }
 }
 
-void EditorLayer::OnEvent(IEvent& e) {}
+void EditorLayer::OnEvent(IEvent& e) { m_EditorCamera.OnEvent(e); }
 
 void EditorLayer::NewProject() {}
 

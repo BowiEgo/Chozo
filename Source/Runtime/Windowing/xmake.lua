@@ -3,4 +3,4 @@ target("Windowing")
     add_rules("chozo_module", "export_header")
     add_deps("Core", "RenderCore")
     add_packages("glfw", {public = true})
-    
+    add_files("Private/GenericPlatform/GLFW/GLFWInputImpl.cpp") 

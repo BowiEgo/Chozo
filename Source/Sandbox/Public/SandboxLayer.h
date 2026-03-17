@@ -15,7 +15,7 @@ public:
 
     void OnAttach() override;
     void OnDetach() override;
-    void OnUpdate(FTimeStep ts) override;
+    void OnUpdate(float deltaTime) override;
     void OnImGuiRender() override;
     void OnEvent(IEvent& e) override;
 
@@ -26,8 +26,9 @@ private:
     void SaveProjectAs();
 
 private:
+    CViewport* m_Viewport;
     CRenderer* m_ViewportRenderer;
-    ImVec2 m_ViewportSize;
+    ImVec2 m_ViewportSize{ 1080, 720 };
 
     bool m_VSyncEnabled = true;
 

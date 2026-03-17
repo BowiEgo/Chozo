@@ -1,5 +1,6 @@
 #include "Renderer.h"
 
+#include "CameraUniformManager.h"
 #include "ModuleUtils.h"
 #include "RHIAPI.h"
 #include "ShaderManager.h"
@@ -27,9 +28,7 @@ void CRenderer::Init() {
     auto device = m_GraphicContext->GetDevice();
 
     // Camera
-    m_Camera.SetPerspective(60.0f, (float)fbSize.Width / fbSize.Height, 0.1f, 1000.0f);
-    m_Camera.SetPosition(FVector3(0, 0, 5));
-    m_CameraUniformManager = CreateScope<CCameraUniformManager>(m_GraphicContext.get());
+    CCameraUniformManager::Get().Initialize(m_GraphicContext.get());
 
     // Shader
     CShaderManager::Init(device);
@@ -50,24 +49,13 @@ void CRenderer::Init() {
         m_Frames[i].CommandBuffer = m_Frames[i].CommandPool->AllocateCommandBuffer();
 
         m_Frames[i].RenderFence = IRHIAPI::CreateSyncObject(m_GraphicContext.get());
-
-        // m_SyncObjects[i] = IRHIAPI::CreateSyncObject(m_GraphicContext.get());
-        // m_CommandBuffers[i] = IRHIAPI::CreateCommandBuffer(m_GraphicContext.get());
     }
-
-    FFrameBufferSpecification fbSpec;
-    fbSpec.Name = "SceneFrameBuffer";
-    fbSpec.Size = fbSize;
-    fbSpec.ColorFormats = { EPixelFormat::RGBA8_UNORM };
-    fbSpec.DepthFormat = EPixelFormat::D32_SFLOAT;
-
-    m_SceneFrameBuffer = IRHIAPI::CreateFrameBuffer(m_GraphicContext.get(), fbSpec);
 
     FPipelineSpecification pipelineInfo;
     pipelineInfo.Name = "Test";
     pipelineInfo.RHIShaders = { vertShader->GetShaderResource(m_GraphicContext.get()),
                                 fragShader->GetShaderResource(m_GraphicContext.get()) };
-    pipelineInfo.ColorFormats = fbSpec.ColorFormats;
+    pipelineInfo.ColorFormats = { EPixelFormat::RGBA8_UNORM };
     m_ScenePipeline = IRHIAPI::CreatePipeline(m_GraphicContext.get(), pipelineInfo);
 }
 
@@ -83,32 +71,15 @@ void CRenderer::Tick(float deltaTime) {
     auto& syncObject = m_Frames[m_CurrentFrameIndex].RenderFence;
     m_GraphicContext->SetCurrentFrameIndex(m_CurrentFrameIndex);
     m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex);
-
-    m_Camera.Update(deltaTime);
+    CCameraUniformManager::Get().UpdateAllCameras();
 
     IRHIAPI::DrawFrame(m_GraphicContext.get(), cmdBuffer, syncObject, [&](uint32 imageIndex) {
         cmdBuffer->Begin();
 
-        m_CameraUniformManager->UpdateCamera(m_Camera);
-
-        // draw scene using RHI interface
-        {
-            auto target = m_SceneFrameBuffer->GetColorAttachment(0);
-            auto extent = m_GraphicContext->GetSwapchain()->GetExtent();
-            m_GraphicContext->SetTarget(target);
-
-            IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdBuffer, true);
-            {
-                cmdBuffer->BindPipeline(m_ScenePipeline);
-                cmdBuffer->BindUniformBuffer(m_CameraUniformManager->GetBuffer(), 0, 0);
-                cmdBuffer->SetViewport(
-                    { 0.0f, 0.0f, (float)extent.Width, (float)extent.Height, 0.0f, 1.0f });
-                cmdBuffer->SetScissor({ 0, 0, extent.Width, extent.Height });
-                cmdBuffer->Draw(3, 1, 0, 0);
-            }
-            IRHIAPI::EndRendering(m_GraphicContext.get(), cmdBuffer);
-
-            IRHIAPI::PrepareTextureForSampling(m_GraphicContext.get(), cmdBuffer, target);
+        for (auto& viewport : m_Viewports) {
+            viewport->BeginRender(cmdBuffer.get(), m_ScenePipeline);
+            cmdBuffer->Draw(3, 1, 0, 0);
+            viewport->EndRender(cmdBuffer.get());
         }
 
         // draw UI on top of the scene
@@ -136,9 +107,9 @@ void CRenderer::Shutdown() {
     if (!m_GraphicContext) return;
 
     m_GraphicContext->GetDevice()->WaitIdle();
+
+    m_Viewports.clear();
     m_ScenePipeline = nullptr;
-    m_SceneFrameBuffer = nullptr;
-    m_CameraUniformManager = nullptr;
 
     for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
         m_Frames[i].RenderFence = nullptr;
@@ -146,5 +117,20 @@ void CRenderer::Shutdown() {
         m_Frames[i].CommandPool = nullptr;
     }
 
+    CCameraUniformManager::Get().Shutdown();
+
     m_GraphicContext.reset();
+}
+
+CViewport* CRenderer::CreateViewport(const std::string name, uint32 width, uint32 height) {
+    FViewportSpecification spec;
+    spec.Name = name;
+    spec.Width = width;
+    spec.Height = height;
+
+    auto viewport = CreateScope<CViewport>(m_GraphicContext.get(), spec);
+    auto* ptr = viewport.get();
+    m_Viewports.push_back(std::move(viewport));
+
+    return ptr;
 }

@@ -2,7 +2,6 @@
 
 #include "CoreExport.h"
 #include "Event.h"
-#include "Timestep.h"
 
 class CORE_API ILayer {
 public:
@@ -11,7 +10,7 @@ public:
 
     virtual void OnAttach() {}
     virtual void OnDetach() {}
-    virtual void OnUpdate(FTimeStep timeStep) {}
+    virtual void OnUpdate(float deltaTime) {}
     virtual void OnImGuiRender() {}
     virtual void OnEvent(IEvent& event) {}
 

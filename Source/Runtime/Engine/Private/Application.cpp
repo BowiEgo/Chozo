@@ -1,5 +1,6 @@
 ﻿#include "Application.h"
 
+#include "Input.h"
 #include "ModuleUtils.h"
 #include "RendererAPI.h"
 
@@ -59,6 +60,8 @@ void CApplication::Init(const std::string& name) {
         m_Window->Init();
         m_Window->SetEventCallback(CZ_BIND_EVENT_FN(OnEvent));
 
+        SInput::Init(m_Window.get());
+
         // Setup RenderEngine
         m_RenderEngine = CreateScope<CRenderEngine>(m_Window.get());
         m_RenderEngine->Init();
@@ -100,14 +103,19 @@ void CApplication::Run() {
 
     {
         CZ_SCOPE_PERF(EProfileSlot::Logic);
-        // Tick
+
         m_Window->OnUpdate();
+        for (ILayer* layer : m_LayerStack)
+            layer->OnUpdate(deltaTime);
+
+        // TODO: execute this stuff on render thread.
         m_ImGuiLayer->Begin();
         m_ImGuiLayer->Render([this]() {
             for (ILayer* layer : m_LayerStack)
                 layer->OnImGuiRender();
         });
         m_ImGuiLayer->End();
+
         m_RenderEngine->Tick(deltaTime);
     }
 
@@ -133,4 +141,10 @@ void CApplication::PushLayer(ILayer* layer) {
     layer->OnAttach();
 }
 
-bool CApplication::OnEvent(IEvent& e) { return m_RenderEngine->OnEvent(e); }
+bool CApplication::OnEvent(IEvent& e) {
+    for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();) {
+        (*--it)->OnEvent(e);
+        if (e.isHandled()) break;
+    }
+    return m_RenderEngine->OnEvent(e);
+}

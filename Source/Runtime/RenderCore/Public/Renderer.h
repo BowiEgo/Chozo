@@ -1,14 +1,14 @@
 #pragma once
 
-#include "CameraUniformManager.h"
 #include "CoreMinimal.h"
 #include "Module.h"
 #include "RHICommandList.h"
 #include "RHIContext.h"
-#include "RHIFrameBuffer.h"
-#include "RenderCoreExport.h"
 #include "RendererWindow.h"
 #include "Scope.h"
+#include "Viewport.h"
+
+#include "RenderCoreExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRenderer, Info);
 
@@ -29,6 +29,7 @@ public:
     void Init();
     void Tick(float deltaTime);
     void Shutdown();
+    CViewport* CreateViewport(const std::string name, uint32 width, uint32 height);
 
     void SetUICallback(FOnRenderUI callback) { m_UICallback = std::move(callback); }
     void SetPresentMode(const EPresentMode mode) {
@@ -43,7 +44,6 @@ public:
     TRef<IRHICommandList> GetCommandBuffer() const {
         return m_Frames[m_CurrentFrameIndex].CommandBuffer;
     }
-    TRef<IRHIFrameBuffer> GetSceneFrameBuffer() const { return m_SceneFrameBuffer; }
 
 private:
     CModule m_RHIModule;
@@ -52,14 +52,11 @@ private:
     TScope<IRHIContext> m_GraphicContext;
 
     std::vector<FFrameResource> m_Frames;
-    uint32_t m_CurrentFrameIndex = 0;
+    uint32 m_CurrentFrameIndex = 0;
+
+    std::vector<TScope<CViewport>> m_Viewports;
 
     TRef<IRHIPipeline> m_ScenePipeline;
 
     FOnRenderUI m_UICallback = nullptr;
-
-    TRef<IRHIFrameBuffer> m_SceneFrameBuffer;
-
-    CCamera m_Camera;
-    TScope<CCameraUniformManager> m_CameraUniformManager;
 };

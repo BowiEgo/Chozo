@@ -1,8 +1,6 @@
 #pragma once
 
-#include "RenderCoreExport.h"
-
-class RENDER_CORE_API FRendererAPI {
+class FRendererAPI {
 public:
     enum class EType { None = 0, Vulkan = 1, OpenGL = 2, DirectX12 = 3 };
 

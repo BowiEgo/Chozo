@@ -14,15 +14,33 @@ struct CameraData {
 
 class RENDER_CORE_API CCameraUniformManager {
 public:
-    CCameraUniformManager(IRHIContext* context);
-    ~CCameraUniformManager() = default;
+    static CCameraUniformManager& Get() {
+        static CCameraUniformManager instance;
+        return instance;
+    }
 
-    void UpdateCamera(const CCamera& camera);
+    void Initialize(IRHIContext* context);
+    void Shutdown();
 
-    TRef<IRHIBuffer> GetBuffer() { return m_CameraBuffer; }
+    void RegisterCamera(CCamera* camera);
+    void UnregisterCamera(CCamera* camera);
+
+    void UpdateAllCameras();
+
+    TRef<IRHIBuffer> GetBufferForCamera(const CCamera* camera);
 
 private:
-    IRHIContext* m_Context;
-    TRef<IRHIBuffer> m_CameraBuffer;
-    CameraData m_CachedData;
+    CCameraUniformManager() = default;
+    ~CCameraUniformManager() = default;
+
+private:
+    struct CameraEntry {
+        CCamera* camera;
+        TRef<IRHIBuffer> buffer;
+        CameraData cachedData;
+    };
+
+    std::vector<CameraEntry> m_Cameras;
+    IRHIContext* m_Context = nullptr;
+    std::mutex m_Mutex;
 };

@@ -1,4 +1,3 @@
-// Vector3.h
 #pragma once
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -154,17 +153,26 @@ public:
 
 public:
     float x, y, z;
+
+    // ===== Common vector constants =====
+    static const FVector3 Zero;
+    static const FVector3 One;
+    static const FVector3 Up;
+    static const FVector3 Down;
+    static const FVector3 Right;
+    static const FVector3 Left;
+    static const FVector3 Forward;
+    static const FVector3 Backward;
 };
 
 // ===== Global operators =====
 inline FVector3 operator*(float s, const FVector3& v) { return v * s; }
 
-// ===== Common vector constants =====
-static const FVector3 Zero(0.0f, 0.0f, 0.0f);
-static const FVector3 One(1.0f, 1.0f, 1.0f);
-static const FVector3 Up(0.0f, 1.0f, 0.0f);
-static const FVector3 Down(0.0f, -1.0f, 0.0f);
-static const FVector3 Right(1.0f, 0.0f, 0.0f);
-static const FVector3 Left(-1.0f, 0.0f, 0.0f);
-static const FVector3 Forward(0.0f, 0.0f, -1.0f); // OpenGL/Vulkan convention
-static const FVector3 Backward(0.0f, 0.0f, 1.0f);
+inline const FVector3 FVector3::Zero(0.0f, 0.0f, 0.0f);
+inline const FVector3 FVector3::One(1.0f, 1.0f, 1.0f);
+inline const FVector3 FVector3::Up(0.0f, 1.0f, 0.0f);
+inline const FVector3 FVector3::Down(0.0f, -1.0f, 0.0f);
+inline const FVector3 FVector3::Right(1.0f, 0.0f, 0.0f);
+inline const FVector3 FVector3::Left(-1.0f, 0.0f, 0.0f);
+inline const FVector3 FVector3::Forward(0.0f, 0.0f, 1.0f); // OpenGL/Vulkan convention
+inline const FVector3 FVector3::Backward(0.0f, 0.0f, -1.0f);

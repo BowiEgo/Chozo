@@ -5,25 +5,73 @@
 
 DEFINE_LOG_CATEGORY(LogCameraUniformManager);
 
-CCameraUniformManager::CCameraUniformManager(IRHIContext* context) : m_Context(context) {
+void CCameraUniformManager::Initialize(IRHIContext* context) { m_Context = context; }
+
+void CCameraUniformManager::Shutdown() {
+    m_Cameras.clear();
+    m_Context = nullptr;
+}
+
+void CCameraUniformManager::RegisterCamera(CCamera* camera) {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+
+    for (auto& entry : m_Cameras) {
+        if (entry.camera == camera) return;
+    }
+
     FBufferSpecification spec;
     spec.Size = sizeof(CameraData);
     spec.Usage = EBufferUsage::UniformBuffer;
-    spec.MemoryType = EMemoryType::HostVisible | EMemoryType::HostCoherent; // update per frame
+    spec.MemoryType = EMemoryType::HostVisible | EMemoryType::HostCoherent;
+    spec.Name = "CameraUniformBuffer";
 
-    m_CameraBuffer = IRHIAPI::CreateBuffer(context, spec);
+    CameraEntry entry;
+    entry.camera = camera;
+    entry.buffer = IRHIAPI::CreateBuffer(m_Context, spec);
+
+    m_Cameras.push_back(std::move(entry));
+
+    CZ_LOG(LogCameraUniformManager, Info, "Camera registered: {}", (void*)camera);
 }
 
-void CCameraUniformManager::UpdateCamera(const CCamera& camera) {
-    m_CachedData.view = camera.GetViewMatrix();
-    m_CachedData.projection = camera.GetProjectionMatrix();
+void CCameraUniformManager::UnregisterCamera(CCamera* camera) {
+    std::lock_guard<std::mutex> lock(m_Mutex);
 
-    // CZ_LOG(LogCameraUniformManager, Trace, "View matrix: \n{}",
-    //        m_CachedData.view.ToString().c_str());
-    // CZ_LOG(LogCameraUniformManager, Trace, "Projection matrix : \n{} ",
-    //        m_CachedData.projection.ToString().c_str());
+    auto it = std::remove_if(m_Cameras.begin(), m_Cameras.end(),
+                             [camera](const CameraEntry& entry) { return entry.camera == camera; });
 
-    // Upload to GPU
-    FBuffer updateData(&m_CachedData, sizeof(CameraData));
-    m_CameraBuffer->SetData(updateData);
+    if (it != m_Cameras.end()) {
+        m_Cameras.erase(it, m_Cameras.end());
+        CZ_LOG(LogCameraUniformManager, Info, "Camera unregistered: {}", (void*)camera);
+    }
+}
+
+void CCameraUniformManager::UpdateAllCameras() {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+
+    for (auto& entry : m_Cameras) {
+        entry.cachedData.view = entry.camera->GetViewMatrix();
+        entry.cachedData.projection = entry.camera->GetProjectionMatrix();
+
+        // CZ_LOG(LogCameraUniformManager, Trace, "View matrix: \n{}",
+        //        entry.cachedData.view.ToString().c_str());
+        // CZ_LOG(LogCameraUniformManager, Trace, "Projection matrix : \n{} ",
+        //        entry.cachedData.projection.ToString().c_str());
+
+        FBuffer updateData(&entry.cachedData, sizeof(CameraData));
+        // Upload to GPU
+        entry.buffer->SetData(updateData);
+    }
+}
+
+TRef<IRHIBuffer> CCameraUniformManager::GetBufferForCamera(const CCamera* camera) {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+
+    for (auto& entry : m_Cameras) {
+        if (entry.camera == camera) {
+            return entry.buffer;
+        }
+    }
+
+    return nullptr;
 }
