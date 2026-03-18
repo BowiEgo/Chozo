@@ -7,11 +7,9 @@
 #include "SceneCamera.h"
 #include "Vector2.h"
 
-#include "RenderCoreExport.h"
-
 DECLARE_LOG_CATEGORY_EXTERN(LogEditorCamera, Info);
 
-class RENDER_CORE_API CEditorCamera {
+class CEditorCamera {
 public:
     CEditorCamera() = default;
     CEditorCamera(float fov, float aspectRatio, float nearClip, float farClip);

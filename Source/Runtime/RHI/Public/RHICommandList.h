@@ -14,8 +14,8 @@ struct FRHIViewport {
 };
 
 struct FRHIScissor {
-    int32_t x, y;
-    uint32_t width, height;
+    int32 x, y;
+    uint32 width, height;
 };
 
 class RHI_API IRHICommandList : public FRefCounted {
@@ -26,9 +26,15 @@ public:
     virtual void Begin() = 0;
     virtual void SetViewport(const FRHIViewport& viewport) = 0;
     virtual void SetScissor(const FRHIScissor& scissor) = 0;
-    virtual void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex,
-                      uint32_t firstInstance) = 0;
-    virtual void End() = 0;
+    virtual void SetPolygonMode(EPolygonMode mode) = 0;
     virtual void BindPipeline(TRef<IRHIPipeline> pipeline) = 0;
     virtual void BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) = 0;
+    virtual void BindVertexBuffer(TRef<IRHIBuffer> vertexBuffer, int binding) = 0;
+    virtual void BindIndexBuffer(TRef<IRHIBuffer> indexBuffer) = 0;
+    virtual void DrawIndexed(uint32 indexCount) = 0;
+    virtual void DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex,
+                             int32_t vertexOffset, uint32 firstInstance) = 0;
+    virtual void Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex,
+                      uint32 firstInstance) = 0;
+    virtual void End() = 0;
 };

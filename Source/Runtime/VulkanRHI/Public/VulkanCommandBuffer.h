@@ -18,11 +18,17 @@ public:
     virtual void Begin() override { m_Handle.begin({}); }
     virtual void SetViewport(const FRHIViewport& viewport) override;
     virtual void SetScissor(const FRHIScissor& scissor) override;
+    virtual void SetPolygonMode(EPolygonMode mode) override;
+    virtual void BindPipeline(TRef<IRHIPipeline> pipeline) override;
+    virtual void BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) override;
+    virtual void BindVertexBuffer(TRef<IRHIBuffer> vertexBuffer, int binding) override;
+    virtual void BindIndexBuffer(TRef<IRHIBuffer> indexBuffer) override;
+    virtual void DrawIndexed(uint32 indexCount) override;
+    virtual void DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex,
+                             int32_t vertexOffset, uint32 firstInstance) override;
     virtual void Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex,
                       uint32_t firstInstance) override;
     virtual void End() override { m_Handle.end(); }
-    virtual void BindPipeline(TRef<IRHIPipeline> pipeline) override;
-    virtual void BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) override;
 
     const vk::CommandBuffer GetVKCommandBuffer() const { return *m_Handle; }
 

@@ -116,30 +116,41 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
     bool hasSwapchainMaintenance =
         IsExtensionSupported(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
     bool hasSurfaceMaintenance = IsExtensionSupported(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME);
+    bool hasDynamicState3 = IsExtensionSupported(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+
+    auto addExtensionIfNeeded = [this](const char* extName) {
+        bool found = false;
+        for (const auto& ext : m_RequiredDeviceExtension) {
+            if (strcmp(ext, extName) == 0) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            m_RequiredDeviceExtension.push_back(extName);
+        }
+    };
 
     if (hasSwapchainMaintenance && hasSurfaceMaintenance) {
         CZ_LOG(LogVulkanDevice, Info,
                "VK_EXT_swapchain_maintenance1 and VK_EXT_surface_maintenance1 are supported");
 
         // Ensure both extensions are in the enabled list
-        auto addExtensionIfNeeded = [this](const char* extName) {
-            bool found = false;
-            for (const auto& ext : m_RequiredDeviceExtension) {
-                if (strcmp(ext, extName) == 0) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                m_RequiredDeviceExtension.push_back(extName);
-            }
-        };
-
         addExtensionIfNeeded(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
         addExtensionIfNeeded(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME);
     }
 
+    if (hasDynamicState3) {
+        CZ_LOG(LogVulkanDevice, Info, "VK_EXT_extended_dynamic_state_3 is supported");
+        addExtensionIfNeeded(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    }
+
+    vk::PhysicalDeviceFeatures deviceFeatures;
+    deviceFeatures.fillModeNonSolid = VK_TRUE; // [Note] This enables Wireframe/Point mode support
+
     vk::PhysicalDeviceFeatures2 features2;
+    features2.features = deviceFeatures;
+
     vk::PhysicalDeviceVulkan11Features features11;
     features11.shaderDrawParameters = true;
 
@@ -150,6 +161,13 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
     vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT extendedFeatures;
     extendedFeatures.extendedDynamicState = true;
 
+    vk::PhysicalDeviceExtendedDynamicState3FeaturesEXT dynamicState3Features;
+    if (hasDynamicState3) {
+        dynamicState3Features.setExtendedDynamicState3PolygonMode(VK_TRUE);
+        dynamicState3Features.setExtendedDynamicState3DepthClipEnable(VK_TRUE);
+        // dynamicState3Features.setExtendedDynamicState3LogicOp(VK_TRUE);
+    }
+
     vk::PhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchainMaintenanceFeatures;
     if (hasSwapchainMaintenance) {
         swapchainMaintenanceFeatures.setSwapchainMaintenance1(VK_TRUE);
@@ -158,8 +176,9 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
     vk::StructureChain<vk::PhysicalDeviceFeatures2, vk::PhysicalDeviceVulkan11Features,
                        vk::PhysicalDeviceVulkan13Features,
                        vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT,
+                       vk::PhysicalDeviceExtendedDynamicState3FeaturesEXT,
                        vk::PhysicalDeviceSwapchainMaintenance1FeaturesEXT>
-        featureChain(features2, features11, features13, extendedFeatures,
+        featureChain(features2, features11, features13, extendedFeatures, dynamicState3Features,
                      swapchainMaintenanceFeatures);
 
     float queuePriority = 0.5f;
@@ -171,6 +190,7 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
     // Link features to DeviceCreateInfo
     vk::DeviceCreateInfo deviceCreateInfo;
     deviceCreateInfo.pNext = &featureChain.get<vk::PhysicalDeviceFeatures2>();
+    deviceCreateInfo.pEnabledFeatures = nullptr;
     deviceCreateInfo.queueCreateInfoCount = 1;
     deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
     deviceCreateInfo.enabledExtensionCount = static_cast<uint32>(m_RequiredDeviceExtension.size());
@@ -189,6 +209,8 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
             m_PresentQueue = vk::raii::Queue(m_LogicalDevice, indices.Present.value(), 0);
         if (indices.Compute.has_value())
             m_ComputeQueue = vk::raii::Queue(m_LogicalDevice, indices.Compute.value(), 0);
+
+        LoadDynamicState3Functions();
 
         CZ_LOG(LogVulkanDevice, Info,
                "Queue Family Indices -> Graphics: {}, Present: {}, Compute: {}",
@@ -369,6 +391,40 @@ vk::DescriptorSetLayout CVulkanDevice::GetDescriptorSetLayout(EDescriptorLayoutT
     m_LayoutCache[type] = newLayout;
 
     return newLayout;
+}
+
+void CVulkanDevice::LoadDynamicState3Functions() {
+    if (IsExtensionSupported(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME)) {
+        VkDevice rawDevice = *m_LogicalDevice;
+#define LOAD_EXT_FUNC(name)                                                                        \
+    m_DynamicState3Functions.name = (PFN_##name)vkGetDeviceProcAddr(rawDevice, #name);
+
+        LOAD_EXT_FUNC(vkCmdSetPolygonModeEXT);
+        LOAD_EXT_FUNC(vkCmdSetCullModeEXT);
+        LOAD_EXT_FUNC(vkCmdSetDepthBoundsTestEnableEXT);
+        LOAD_EXT_FUNC(vkCmdSetDepthCompareOpEXT);
+        LOAD_EXT_FUNC(vkCmdSetDepthTestEnableEXT);
+        LOAD_EXT_FUNC(vkCmdSetDepthWriteEnableEXT);
+        LOAD_EXT_FUNC(vkCmdSetFrontFaceEXT);
+        LOAD_EXT_FUNC(vkCmdSetPrimitiveRestartEnableEXT);
+        LOAD_EXT_FUNC(vkCmdSetPrimitiveTopologyEXT);
+        LOAD_EXT_FUNC(vkCmdSetRasterizerDiscardEnableEXT);
+        LOAD_EXT_FUNC(vkCmdSetScissorWithCountEXT);
+        LOAD_EXT_FUNC(vkCmdSetStencilOpEXT);
+        LOAD_EXT_FUNC(vkCmdSetStencilTestEnableEXT);
+        LOAD_EXT_FUNC(vkCmdSetViewportWithCountEXT);
+        LOAD_EXT_FUNC(vkCmdSetColorBlendEnableEXT);
+        LOAD_EXT_FUNC(vkCmdSetColorBlendEquationEXT);
+        LOAD_EXT_FUNC(vkCmdSetColorWriteMaskEXT);
+        LOAD_EXT_FUNC(vkCmdSetDepthClampEnableEXT);
+        LOAD_EXT_FUNC(vkCmdSetLogicOpEXT);
+        LOAD_EXT_FUNC(vkCmdSetPatchControlPointsEXT);
+        LOAD_EXT_FUNC(vkCmdSetTessellationDomainOriginEXT);
+
+#undef LOAD_EXT_FUNC
+    } else {
+        CZ_LOG(LogVulkanDevice, Warning, "VK_EXT_extended_dynamic_state_3 not supported");
+    }
 }
 
 bool CVulkanDevice::IsExtensionSupported(const std::string& extensionName) const {

@@ -38,7 +38,7 @@ bool CEditorCamera::OnMouseScroll(FMouseScrolledEvent& e) {
     float delta = e.GetYOffset() * 0.1f;
     MouseZoom(delta);
     m_ActiveCamera->m_ViewDirty = true;
-    CZ_LOG(LogEditorCamera, Trace, e.ToString());
+    // CZ_LOG(LogEditorCamera, Trace, e.ToString());
 
     return false;
 }
@@ -52,10 +52,10 @@ void CEditorCamera::MousePan(const FVector2& delta) {
 }
 
 void CEditorCamera::MouseRotate(const FVector2& delta) {
-    float yawSign = m_ActiveCamera->GetUpDirection().y < 0 ? -1.0f : 1.0f;
+    m_ActiveCamera->m_Rotation.x += delta.y * RotationSpeed();
+    m_ActiveCamera->m_Rotation.y += delta.x * RotationSpeed();
 
-    m_ActiveCamera->m_Rotation.x += yawSign * delta.x * RotationSpeed();
-    m_ActiveCamera->m_Rotation.y += delta.y * RotationSpeed();
+    m_ActiveCamera->m_Rotation.x = std::clamp(m_ActiveCamera->m_Rotation.x, -89.0f, 89.0f);
 }
 
 void CEditorCamera::MouseZoom(float delta) {
@@ -76,7 +76,7 @@ std::pair<float, float> CEditorCamera::PanSpeed() const {
     return { xFactor, yFactor };
 }
 
-float CEditorCamera::RotationSpeed() const { return 0.8f; }
+float CEditorCamera::RotationSpeed() const { return 20.0f; }
 
 float CEditorCamera::ZoomSpeed() const {
     float distance = m_ActiveCamera->m_Distance * 0.2f;

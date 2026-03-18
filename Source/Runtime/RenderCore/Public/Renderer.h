@@ -10,11 +10,13 @@
 
 #include "RenderCoreExport.h"
 
+#include "Cube.h"
+
 DECLARE_LOG_CATEGORY_EXTERN(LogRenderer, Info);
 
 struct FFrameResource {
     TRef<IRHICommandPool> CommandPool;
-    TRef<IRHICommandList> CommandBuffer;
+    TRef<IRHICommandList> CommandList;
     TRef<IRHISyncObject> RenderFence;
 };
 
@@ -35,14 +37,21 @@ public:
     void SetPresentMode(const EPresentMode mode) {
         m_GraphicContext->GetSwapchain()->SetPresentMode(mode);
     }
+    void SetPolygonMode(const EPolygonMode mode) {
+        switch (mode) {
+            case EPolygonMode::Fill: m_CurrentPipeline = m_SolidPipeline; break;
+            case EPolygonMode::Line: m_CurrentPipeline = m_WireframePipeline; break;
+            default: break;
+        }
+    }
     void RecreateSwapchain(const FExtent2D& frameBufferSize) {
         m_GraphicContext->GetSwapchain()->Recreate(frameBufferSize);
     }
 
     IRendererWindow* GetWindow() const { return m_Window; }
     IRHIContext* GetGraphicContext() const { return m_GraphicContext.get(); }
-    TRef<IRHICommandList> GetCommandBuffer() const {
-        return m_Frames[m_CurrentFrameIndex].CommandBuffer;
+    TRef<IRHICommandList> GetCommandList() const {
+        return m_Frames[m_CurrentFrameIndex].CommandList;
     }
 
 private:
@@ -56,7 +65,9 @@ private:
 
     std::vector<TScope<CViewport>> m_Viewports;
 
-    TRef<IRHIPipeline> m_ScenePipeline;
+    TRef<IRHIPipeline> m_CurrentPipeline, m_SolidPipeline, m_WireframePipeline;
 
     FOnRenderUI m_UICallback = nullptr;
+
+    TRef<FCube> m_Cube;
 };

@@ -1,31 +1,21 @@
 #pragma once
 
+#include "InputImpl.h"
 #include "KeyCodes.h"
 
-class CWindow;
+#include "CoreExport.h"
+#include "CoreTypes.h"
 
-class SInput {
+class CORE_API SInput {
+    static IInputImpl* s_Impl;
+
 public:
-    static void Init(CWindow* window);
-
-    static bool IsKeyPressed(const EKeyCode keycode) { return IsKeyPressedImpl(keycode); }
-
-    static bool IsMouseButtonPressed(const EMouseButton button) {
-        return IsMouseButtonPressedImpl(button);
+    static void Init(IInputImpl* impl) { s_Impl = impl; }
+    static bool IsKeyPressed(EKeyCode keycode) { return s_Impl->IsKeyPressed(keycode); }
+    static bool IsMouseButtonPressed(EMouseButton button) {
+        return s_Impl->IsMouseButtonPressed(button);
     }
-    static std::pair<float, float> GetMousePosition() { return GetMousePositionImpl(); }
-    static float GetMouseX() { return GetMouseXImpl(); }
-    static float GetMouseY() { return GetMouseYImpl(); }
-
-protected:
-    static bool IsKeyPressedImpl(EKeyCode keycode);
-
-    static bool IsMouseButtonPressedImpl(EMouseButton button);
-    static std::pair<float, float> GetMousePositionImpl();
-    static float GetMouseXImpl();
-    static float GetMouseYImpl();
-
-private:
-    static SInput* s_Instance;
-    CWindow* m_Window;
+    static std::pair<float, float> GetMousePosition() { return s_Impl->GetMousePosition(); }
+    static float GetMouseX() { return s_Impl->GetMouseX(); }
+    static float GetMouseY() { return s_Impl->GetMouseY(); }
 };

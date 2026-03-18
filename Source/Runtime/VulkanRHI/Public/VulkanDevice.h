@@ -15,6 +15,30 @@ enum class EDescriptorLayoutType {
 class CVulkanCommandPool;
 class CVulkanCommandBuffer;
 
+struct DynamicState3Functions {
+    PFN_vkCmdSetPolygonModeEXT vkCmdSetPolygonModeEXT{ nullptr };
+    PFN_vkCmdSetCullModeEXT vkCmdSetCullModeEXT{ nullptr };
+    PFN_vkCmdSetDepthBoundsTestEnableEXT vkCmdSetDepthBoundsTestEnableEXT{ nullptr };
+    PFN_vkCmdSetDepthCompareOpEXT vkCmdSetDepthCompareOpEXT{ nullptr };
+    PFN_vkCmdSetDepthTestEnableEXT vkCmdSetDepthTestEnableEXT{ nullptr };
+    PFN_vkCmdSetDepthWriteEnableEXT vkCmdSetDepthWriteEnableEXT{ nullptr };
+    PFN_vkCmdSetFrontFaceEXT vkCmdSetFrontFaceEXT{ nullptr };
+    PFN_vkCmdSetPrimitiveRestartEnableEXT vkCmdSetPrimitiveRestartEnableEXT{ nullptr };
+    PFN_vkCmdSetPrimitiveTopologyEXT vkCmdSetPrimitiveTopologyEXT{ nullptr };
+    PFN_vkCmdSetRasterizerDiscardEnableEXT vkCmdSetRasterizerDiscardEnableEXT{ nullptr };
+    PFN_vkCmdSetScissorWithCountEXT vkCmdSetScissorWithCountEXT{ nullptr };
+    PFN_vkCmdSetStencilOpEXT vkCmdSetStencilOpEXT{ nullptr };
+    PFN_vkCmdSetStencilTestEnableEXT vkCmdSetStencilTestEnableEXT{ nullptr };
+    PFN_vkCmdSetViewportWithCountEXT vkCmdSetViewportWithCountEXT{ nullptr };
+    PFN_vkCmdSetColorBlendEnableEXT vkCmdSetColorBlendEnableEXT{ nullptr };
+    PFN_vkCmdSetColorBlendEquationEXT vkCmdSetColorBlendEquationEXT{ nullptr };
+    PFN_vkCmdSetColorWriteMaskEXT vkCmdSetColorWriteMaskEXT{ nullptr };
+    PFN_vkCmdSetDepthClampEnableEXT vkCmdSetDepthClampEnableEXT{ nullptr };
+    PFN_vkCmdSetLogicOpEXT vkCmdSetLogicOpEXT{ nullptr };
+    PFN_vkCmdSetPatchControlPointsEXT vkCmdSetPatchControlPointsEXT{ nullptr };
+    PFN_vkCmdSetTessellationDomainOriginEXT vkCmdSetTessellationDomainOriginEXT{ nullptr };
+};
+
 class VULKAN_RHI_API CVulkanDevice : public IRHIDevice {
 public:
     CVulkanDevice(const IRHIContext* ctx, const FDeviceSpecification& spec,
@@ -28,6 +52,7 @@ private:
     void PickPhysicalDevice(const vk::raii::Instance& instance);
     void CreateLogicalDevice(const vk::raii::SurfaceKHR& surface);
     void InitGlobalDescriptorPool();
+    void LoadDynamicState3Functions();
 
 public:
     void Init();
@@ -52,6 +77,9 @@ public:
     const uint32 GetGraphicsQueueIndex() const { return m_GraphicsQueueIndex; }
     const vk::DescriptorPool GetGlobalDescriptorPool() const { return *m_GlobalDescriptorPool; }
     vk::DescriptorSetLayout GetDescriptorSetLayout(EDescriptorLayoutType layoutType);
+    const DynamicState3Functions& GetDynamicState3Functions() const {
+        return m_DynamicState3Functions;
+    }
 
     bool IsExtensionSupported(const std::string& extensionName) const;
 
@@ -70,4 +98,6 @@ private:
 
     // Dedicated pool for one-time initialization/upload commands
     mutable TRef<CVulkanCommandPool> m_InternalTransientPool;
+
+    DynamicState3Functions m_DynamicState3Functions;
 };

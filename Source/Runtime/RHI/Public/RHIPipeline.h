@@ -12,12 +12,18 @@ struct FPipelineSpecification {
 
     std::vector<EPixelFormat> ColorFormats;
     EPixelFormat DepthFormat = EPixelFormat::D32_SFLOAT;
+
+    VertexBufferLayout VertexLayout;
+
+    EPolygonMode PolygonMode = EPolygonMode::Fill;
 };
 
 class RHI_API IRHIPipeline : public FRefCounted {
 public:
     IRHIPipeline(const FPipelineSpecification& spec);
     virtual ~IRHIPipeline();
+
+    EPolygonMode GetPolygonMode() const { return m_Spec.PolygonMode; }
 
 protected:
     FPipelineSpecification m_Spec;

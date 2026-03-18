@@ -16,7 +16,6 @@
 #include "TextureViewerPanel.h"
 
 #include "EditorCamera.h"
-#include "EditorExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogEditorLayer, Info);
 
@@ -29,6 +28,9 @@ public:
     void OnUpdate(float deltaTime) override;
     void OnImGuiRender() override;
     void OnEvent(IEvent& e) override;
+    bool OnKeyPressed(FKeyPressedEvent& e) override;
+    // bool OnMouseButtonPressed(FMouseButtonPressedEvent& e) override;
+    // bool OnMouseButtonReleased(FMouseButtonReleasedEvent& e) override;
 
 private:
     void NewProject();
@@ -44,6 +46,8 @@ private:
     bool m_VSyncEnabled = true;
 
     CEditorCamera m_EditorCamera;
+
+    EPolygonMode m_PolygonMode = EPolygonMode::Fill;
 
     UOverlay m_Overlay;
     bool m_IsOverlayOpen = true;

@@ -85,4 +85,10 @@ bool IsDepthFormat(EPixelFormat format);
 
 bool IsDepthFormat(vk::Format format);
 
+// Shader
+vk::Format ShaderDataTypeToVkFormat(EShaderDataType type);
+
+// Pipeline
+vk::PolygonMode GetVulkanPolygonMode(EPolygonMode mode);
+
 } // namespace ChozoUtils::Vulkan

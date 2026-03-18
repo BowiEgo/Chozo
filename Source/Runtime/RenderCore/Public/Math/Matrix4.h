@@ -2,6 +2,7 @@
 
 #include "RendererAPI.h"
 #include "Vector3.h"
+#include "Vector4.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -179,6 +180,13 @@ public:
     FVector3 operator*(const FVector3& v) const {
         glm::vec4 result = glm::mat4(*this) * glm::vec4(v.x, v.y, v.z, 1.0f);
         return FVector3(result.x, result.y, result.z);
+    }
+
+    FVector4 operator*(const FVector4& v) const {
+        return FVector4(m_Data[0] * v.x + m_Data[1] * v.y + m_Data[2] * v.z + m_Data[3] * v.w,
+                        m_Data[4] * v.x + m_Data[5] * v.y + m_Data[6] * v.z + m_Data[7] * v.w,
+                        m_Data[8] * v.x + m_Data[9] * v.y + m_Data[10] * v.z + m_Data[11] * v.w,
+                        m_Data[12] * v.x + m_Data[13] * v.y + m_Data[14] * v.z + m_Data[15] * v.w);
     }
 
     FMatrix4 operator*(const FMatrix4& other) const {

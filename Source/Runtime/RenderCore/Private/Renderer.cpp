@@ -23,9 +23,16 @@ void CRenderer::Init() {
             m_RHIModule.Invoke<IRHIContext*(const FContextSpec&)>("CreateVulkanContext", spec));
     }
 
-    m_Frames.reserve(m_GraphicContext->GetMaxFramesInFlight());
-
     auto device = m_GraphicContext->GetDevice();
+
+    m_Frames.resize(m_GraphicContext->GetMaxFramesInFlight());
+    for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
+        FCommandPoolSpecification poolSpec;
+        poolSpec.Flags = ECommandPoolFlags::ResetCommandBuffer;
+        m_Frames[i].CommandPool = device->CreateCommandPool(poolSpec);
+        m_Frames[i].CommandList = m_Frames[i].CommandPool->AllocateCommandBuffer();
+        m_Frames[i].RenderFence = IRHIAPI::CreateSyncObject(m_GraphicContext.get());
+    }
 
     // Camera
     CCameraUniformManager::Get().Initialize(m_GraphicContext.get());
@@ -33,30 +40,37 @@ void CRenderer::Init() {
     // Shader
     CShaderManager::Init(device);
 
-    FShaderSpecification vertShaderInfo("Test", "shaders://Test.glsl", EShaderStage::Vertex,
+    FShaderSpecification vertShaderInfo("Cube", "shaders://Cube.glsl", EShaderStage::Vertex,
                                         "main");
-    FShaderSpecification fagShaderInfo("Test", "shaders://Test.glsl", EShaderStage::Fragment,
+    FShaderSpecification fagShaderInfo("Cube", "shaders://Cube.glsl", EShaderStage::Fragment,
                                        "main");
     TRef<CShader> vertShader = CShaderManager::Get()->Load(vertShaderInfo);
     TRef<CShader> fragShader = CShaderManager::Get()->Load(fagShaderInfo);
 
-    for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
-        FCommandPoolSpecification poolSpec;
+    // Pipeline
+    {
+        FPipelineSpecification solidSpec;
+        solidSpec.Name = "Solid";
+        solidSpec.RHIShaders = { vertShader->GetShaderResource(m_GraphicContext.get()),
+                                 fragShader->GetShaderResource(m_GraphicContext.get()) };
+        solidSpec.ColorFormats = { EPixelFormat::RGBA8_UNORM };
+        solidSpec.VertexLayout = { { EShaderDataType::Float3, "a_Position" },
+                                   { EShaderDataType::Float3, "a_Normal" },
+                                   { EShaderDataType::Float2, "a_TexCoord" },
+                                   { EShaderDataType::Float3, "a_Tangent" },
+                                   { EShaderDataType::Float3, "a_Bitangent" } };
+        m_SolidPipeline = IRHIAPI::CreatePipeline(m_GraphicContext.get(), solidSpec);
 
-        poolSpec.Flags = ECommandPoolFlags::ResetCommandBuffer;
-        m_Frames[i].CommandPool = device->CreateCommandPool(poolSpec);
-
-        m_Frames[i].CommandBuffer = m_Frames[i].CommandPool->AllocateCommandBuffer();
-
-        m_Frames[i].RenderFence = IRHIAPI::CreateSyncObject(m_GraphicContext.get());
+        FPipelineSpecification wireSpec = solidSpec;
+        wireSpec.Name = "Wireframe";
+        wireSpec.PolygonMode = EPolygonMode::Line;
+        m_WireframePipeline = IRHIAPI::CreatePipeline(m_GraphicContext.get(), wireSpec);
     }
 
-    FPipelineSpecification pipelineInfo;
-    pipelineInfo.Name = "Test";
-    pipelineInfo.RHIShaders = { vertShader->GetShaderResource(m_GraphicContext.get()),
-                                fragShader->GetShaderResource(m_GraphicContext.get()) };
-    pipelineInfo.ColorFormats = { EPixelFormat::RGBA8_UNORM };
-    m_ScenePipeline = IRHIAPI::CreatePipeline(m_GraphicContext.get(), pipelineInfo);
+    SetPolygonMode(EPolygonMode::Fill);
+
+    m_Cube = CreateRef<FCube>();
+    m_Cube->Upload(m_GraphicContext.get());
 }
 
 void CRenderer::Tick(float deltaTime) {
@@ -67,19 +81,23 @@ void CRenderer::Tick(float deltaTime) {
         m_GraphicContext->GetSwapchain()->SetPresentMode(mode);
     }
 
-    auto& cmdBuffer = m_Frames[m_CurrentFrameIndex].CommandBuffer;
+    auto& cmdList = m_Frames[m_CurrentFrameIndex].CommandList;
     auto& syncObject = m_Frames[m_CurrentFrameIndex].RenderFence;
     m_GraphicContext->SetCurrentFrameIndex(m_CurrentFrameIndex);
     m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex);
     CCameraUniformManager::Get().UpdateAllCameras();
 
-    IRHIAPI::DrawFrame(m_GraphicContext.get(), cmdBuffer, syncObject, [&](uint32 imageIndex) {
-        cmdBuffer->Begin();
+    IRHIAPI::DrawFrame(m_GraphicContext.get(), cmdList, syncObject, [&](uint32 imageIndex) {
+        cmdList->Begin();
 
         for (auto& viewport : m_Viewports) {
-            viewport->BeginRender(cmdBuffer.get(), m_ScenePipeline);
-            cmdBuffer->Draw(3, 1, 0, 0);
-            viewport->EndRender(cmdBuffer.get());
+            viewport->BeginRender(cmdList.get(), m_CurrentPipeline);
+            // cmdList->Draw(3, 1, 0, 0);
+            m_Cube->Draw(cmdList.get());
+            // cmdList->BindVertexBuffer(m_Cube->GetVertexBuffer(), 0); // binding = 0
+            // cmdList->BindIndexBuffer(m_Cube->GetIndexBuffer());
+            // cmdList->DrawIndexed(m_Cube->GetIndexCount(), 1, 0, 0, 0);
+            viewport->EndRender(cmdList.get());
         }
 
         // draw UI on top of the scene
@@ -87,17 +105,17 @@ void CRenderer::Tick(float deltaTime) {
             auto target = m_GraphicContext->GetSwapchain()->GetColorAttachment(imageIndex);
             m_GraphicContext->SetTarget(target);
 
-            IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdBuffer,
+            IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdList,
                                     false); // bClear = false (to preserve the scene)
             {
                 if (m_UICallback) {
-                    m_UICallback(cmdBuffer);
+                    m_UICallback(cmdList);
                 }
             }
-            IRHIAPI::EndRendering(m_GraphicContext.get(), cmdBuffer);
+            IRHIAPI::EndRendering(m_GraphicContext.get(), cmdList);
         }
 
-        cmdBuffer->End();
+        cmdList->End();
     });
 
     m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_GraphicContext->GetMaxFramesInFlight();
@@ -108,12 +126,16 @@ void CRenderer::Shutdown() {
 
     m_GraphicContext->GetDevice()->WaitIdle();
 
+    m_Cube = nullptr;
+
     m_Viewports.clear();
-    m_ScenePipeline = nullptr;
+    m_SolidPipeline = nullptr;
+    m_WireframePipeline = nullptr;
+    m_CurrentPipeline = nullptr;
 
     for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
         m_Frames[i].RenderFence = nullptr;
-        m_Frames[i].CommandBuffer = nullptr;
+        m_Frames[i].CommandList = nullptr;
         m_Frames[i].CommandPool = nullptr;
     }
 

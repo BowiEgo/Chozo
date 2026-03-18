@@ -1,5 +1,6 @@
 ﻿#include "Application.h"
 
+#include "GLFWInputImpl.h"
 #include "Input.h"
 #include "ModuleUtils.h"
 #include "RendererAPI.h"
@@ -60,7 +61,8 @@ void CApplication::Init(const std::string& name) {
         m_Window->Init();
         m_Window->SetEventCallback(CZ_BIND_EVENT_FN(OnEvent));
 
-        SInput::Init(m_Window.get());
+        auto* inputImpl = new CGLFWInputImpl(m_Window.get());
+        SInput::Init(inputImpl);
 
         // Setup RenderEngine
         m_RenderEngine = CreateScope<CRenderEngine>(m_Window.get());

@@ -348,4 +348,32 @@ bool IsDepthFormat(vk::Format format) {
            format == vk::Format::eD16Unorm;
 }
 
+// Shader
+vk::Format ShaderDataTypeToVkFormat(EShaderDataType type) {
+    switch (type) {
+        case EShaderDataType::Float: return vk::Format::eR32Sfloat;
+        case EShaderDataType::Float2: return vk::Format::eR32G32Sfloat;
+        case EShaderDataType::Float3: return vk::Format::eR32G32B32Sfloat;
+        case EShaderDataType::Float4: return vk::Format::eR32G32B32A32Sfloat;
+        case EShaderDataType::Int: return vk::Format::eR32Sint;
+        case EShaderDataType::Int2: return vk::Format::eR32G32Sint;
+        case EShaderDataType::Int3: return vk::Format::eR32G32B32Sint;
+        case EShaderDataType::Int4: return vk::Format::eR32G32B32A32Sint;
+        case EShaderDataType::Bool: return vk::Format::eR32Sint;
+        default:
+            CZ_LOG(LogVulkanUtils, Error, "Unsupported shader data type");
+            return vk::Format::eUndefined;
+    }
+}
+
+// Pipeline
+vk::PolygonMode GetVulkanPolygonMode(EPolygonMode mode) {
+    switch (mode) {
+        case EPolygonMode::Fill: return vk::PolygonMode::eFill;
+        case EPolygonMode::Line: return vk::PolygonMode::eLine;
+        case EPolygonMode::Point: return vk::PolygonMode::ePoint;
+        default: return vk::PolygonMode::eFill;
+    }
+}
+
 } // namespace ChozoUtils::Vulkan

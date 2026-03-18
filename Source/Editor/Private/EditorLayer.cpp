@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 
 #include "Application.h"
+#include "Input.h"
 
 #include "imgui.h"
 
@@ -157,7 +158,61 @@ void EditorLayer::OnImGuiRender() {
     }
 }
 
-void EditorLayer::OnEvent(IEvent& e) { m_EditorCamera.OnEvent(e); }
+void EditorLayer::OnEvent(IEvent& e) {
+    m_EditorCamera.OnEvent(e);
+
+    FEventDispatcher dispatcher(e);
+    dispatcher.Dispatch<FKeyPressedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
+    // dispatcher.Dispatch<FMouseButtonPressedEvent>(
+    //     CZ_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
+    // dispatcher.Dispatch<FMouseButtonReleasedEvent>(
+    //     CZ_BIND_EVENT_FN(EditorLayer::OnMouseButtonReleased));
+}
+
+bool EditorLayer::OnKeyPressed(FKeyPressedEvent& e) {
+    // Shortcuts
+    if (e.GetRepeatCount() > 0) return false;
+
+    bool control =
+        SInput::IsKeyPressed(Key::LeftControl) || SInput::IsKeyPressed(Key::RightControl);
+    bool shift = SInput::IsKeyPressed(Key::LeftShift) || SInput::IsKeyPressed(Key::RightShift);
+    switch (e.GetKeyCode()) {
+        case Key::N: {
+            if (control) NewProject();
+            break;
+        }
+        case Key::O: {
+            if (control) OpenProject();
+            break;
+        }
+        case Key::S: {
+            if (control && shift) SaveProjectAs();
+            break;
+        }
+
+        // Gizmos
+        // case Key::Q: m_GizmoType = -1; break;
+        // case Key::W: m_GizmoType = ImGuizmo::OPERATION::TRANSLATE; break;
+        // case Key::E: m_GizmoType = ImGuizmo::OPERATION::ROTATE; break;
+        // case Key::R: m_GizmoType = ImGuizmo::OPERATION::SCALE; break;
+        case Key::F9: {
+            CZ_LOG(LogEditorLayer, Trace, "F9 Pressed");
+            if (m_PolygonMode == EPolygonMode::Fill) {
+                m_ViewportRenderer->SetPolygonMode(EPolygonMode::Line);
+                m_PolygonMode = EPolygonMode::Line;
+            } else {
+                m_ViewportRenderer->SetPolygonMode(EPolygonMode::Fill);
+                m_PolygonMode = EPolygonMode::Fill;
+            }
+        }
+        default: break;
+    }
+    return true;
+}
+
+// bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) { return false; }
+
+// bool EditorLayer::OnMouseButtonReleased(MouseButtonReleasedEvent& e) { return false; }
 
 void EditorLayer::NewProject() {}
 

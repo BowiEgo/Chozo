@@ -148,6 +148,8 @@ enum class EPresentMode {
     Unkown
 };
 
+enum class EPolygonMode { Fill, Line, Point };
+
 /**
  * ECommandPoolFlags - Maps to underlying API flags (e.g., VkCommandPoolCreateFlagBits).
  * Defines the memory allocation behavior and reset capabilities of the pool.
@@ -236,3 +238,106 @@ inline bool HasFlag(EMemoryType value, EMemoryType flag) {
 inline bool HasFlag(EBufferUsage value, EBufferUsage flag) {
     return (static_cast<uint32>(value) & static_cast<uint32>(flag)) != 0;
 }
+
+// ===== Shader =====
+enum class EShaderDataType {
+    None = 0,
+    Float,
+    Float2,
+    Float3,
+    Float4,
+    Mat3,
+    Mat4,
+    Int,
+    Int2,
+    Int3,
+    Int4,
+    Bool
+};
+
+static uint32 FShaderDataTypeSize(EShaderDataType type) {
+    switch (type) {
+        case EShaderDataType::None: return 0;
+        case EShaderDataType::Float: return 4;
+        case EShaderDataType::Float2: return 4 * 2;
+        case EShaderDataType::Float3: return 4 * 3;
+        case EShaderDataType::Float4: return 4 * 4;
+        case EShaderDataType::Mat3: return 4 * 3 * 3;
+        case EShaderDataType::Mat4: return 4 * 4 * 4;
+        case EShaderDataType::Int: return 4;
+        case EShaderDataType::Int2: return 4 * 2;
+        case EShaderDataType::Int3: return 4 * 3;
+        case EShaderDataType::Int4: return 4 * 4;
+        case EShaderDataType::Bool: return 1;
+    }
+
+    // CZ_CORE_ASSERT(false, "Unknown EShaderDataType!");
+    return 0;
+}
+
+struct FBufferElement {
+    std::string Name;
+    EShaderDataType Type;
+    uint32 Size;
+    uint32 Offset;
+    bool Normalized;
+
+    FBufferElement() {}
+
+    FBufferElement(EShaderDataType type, const std::string& name, bool normalized = false)
+        : Name(name), Type(type), Size(FShaderDataTypeSize(type)), Offset(0),
+          Normalized(normalized) {}
+
+    uint32 GetComponentCount() const {
+        switch (Type) {
+            case EShaderDataType::None: return 0;
+            case EShaderDataType::Float: return 1;
+            case EShaderDataType::Float2: return 2;
+            case EShaderDataType::Float3: return 3;
+            case EShaderDataType::Float4: return 4;
+            case EShaderDataType::Mat3: return 3 * 3;
+            case EShaderDataType::Mat4: return 4 * 4;
+            case EShaderDataType::Int: return 1;
+            case EShaderDataType::Int2: return 2;
+            case EShaderDataType::Int3: return 3;
+            case EShaderDataType::Int4: return 4;
+            case EShaderDataType::Bool: return 1;
+        }
+
+        // CZ_CORE_ASSERT(false, "Unknown EShaderDataType!");
+        return 0;
+    }
+};
+
+class VertexBufferLayout {
+private:
+    std::vector<FBufferElement> m_Elements;
+    uint32 m_Stride = 0;
+
+private:
+    void CalculateOffsetsAndStride() {
+        uint32 offset = 0;
+        m_Stride = 0;
+        for (auto& element : m_Elements) {
+            element.Offset = offset;
+            offset += element.Size;
+            m_Stride += element.Size;
+        }
+    }
+
+public:
+    VertexBufferLayout() {}
+
+    VertexBufferLayout(const std::initializer_list<FBufferElement>& elements)
+        : m_Elements(elements) {
+        CalculateOffsetsAndStride();
+    }
+
+    inline uint32 GetStride() const { return m_Stride; }
+    inline const std::vector<FBufferElement>& GetElements() const { return m_Elements; }
+
+    std::vector<FBufferElement>::iterator begin() { return m_Elements.begin(); }
+    std::vector<FBufferElement>::iterator end() { return m_Elements.end(); }
+    std::vector<FBufferElement>::const_iterator begin() const { return m_Elements.begin(); }
+    std::vector<FBufferElement>::const_iterator end() const { return m_Elements.end(); }
+};

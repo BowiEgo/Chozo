@@ -2,6 +2,7 @@
 
 #include "VulkanBuffer.h"
 #include "VulkanCommandPool.h"
+#include "VulkanUtils.h"
 
 DEFINE_LOG_CATEGORY(LogVulkanCommandBuffer);
 
@@ -44,15 +45,21 @@ void CVulkanCommandBuffer::SetScissor(const FRHIScissor& sc) {
     m_Handle.setScissor(0, s);
 }
 
-void CVulkanCommandBuffer::Draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex,
-                                uint32_t firstInstance) {
-    // [Note] Ensure a pipeline is bound before this call to avoid the previous error
-    m_Handle.draw(vertexCount, instanceCount, firstVertex, firstInstance);
+void CVulkanCommandBuffer::SetPolygonMode(EPolygonMode mode) {
+    auto device = m_CommandPool->GetDevice().lock();
+
+    vk::CommandBuffer vkBuffer = GetVKCommandBuffer();
+    vk::PolygonMode vkMode = ChozoUtils::Vulkan::GetVulkanPolygonMode(mode);
+
+    device->GetDynamicState3Functions().vkCmdSetPolygonModeEXT(vkBuffer,
+                                                               static_cast<VkPolygonMode>(vkMode));
 }
 
 void CVulkanCommandBuffer::BindPipeline(TRef<IRHIPipeline> pipeline) {
     m_CurrentPipeline = pipeline.As<CVulkanPipeline>();
     auto& vlkPipeline = m_CurrentPipeline->GetRAIIPipeline();
+
+    SetPolygonMode(pipeline->GetPolygonMode());
 
     m_Handle.bindPipeline(vk::PipelineBindPoint::eGraphics, vlkPipeline);
 }
@@ -92,6 +99,67 @@ void CVulkanCommandBuffer::BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, i
                                        1, &descSet, 0, nullptr);
 
     m_BoundDescriptorSets[set] = descSet;
+}
+
+void CVulkanCommandBuffer::BindVertexBuffer(TRef<IRHIBuffer> vertexBuffer, int binding) {
+    auto vkBuffer = vertexBuffer.As<CVulkanBuffer>();
+    if (!vkBuffer) {
+        CZ_LOG(LogVulkanCommandBuffer, Error, "Invalid buffer type for Vertex Buffer binding");
+        return;
+    }
+
+    if (!HasFlag(vkBuffer->GetUsage(), EBufferUsage::VertexBuffer)) {
+        CZ_LOG(LogVulkanCommandBuffer, Warning,
+               "Binding non-vertex buffer as vertex buffer (flags: 0x%x)",
+               static_cast<uint32>(vkBuffer->GetUsage()));
+    }
+
+    std::array<vk::Buffer, 1> buffers = { vkBuffer->GetVKBuffer() };
+    std::array<vk::DeviceSize, 1> offsets = { 0 };
+
+    m_Handle.bindVertexBuffers(binding, buffers, offsets);
+
+    // CZ_LOG(LogVulkanCommandBuffer, Trace, "Bound vertex buffer: {}",
+    //    (void*)vkBuffer->GetVKBuffer());
+}
+
+void CVulkanCommandBuffer::BindIndexBuffer(TRef<IRHIBuffer> indexBuffer) {
+    auto vkBuffer = indexBuffer.As<CVulkanBuffer>();
+    if (!vkBuffer) {
+        CZ_LOG(LogVulkanCommandBuffer, Error, "Invalid buffer type for Index Buffer binding");
+        return;
+    }
+
+    if (!HasFlag(vkBuffer->GetUsage(), EBufferUsage::IndexBuffer)) {
+        CZ_LOG(LogVulkanCommandBuffer, Warning,
+               "Binding non-index buffer as index buffer (flags: 0x%x)",
+               static_cast<uint32>(vkBuffer->GetUsage()));
+    }
+
+    m_Handle.bindIndexBuffer(vkBuffer->GetVKBuffer(), 0, vk::IndexType::eUint32);
+
+    // CZ_LOG(LogVulkanCommandBuffer, Trace, "Bound index buffer: {}",
+    // (void*)vkBuffer->GetVKBuffer());
+}
+
+void CVulkanCommandBuffer::DrawIndexed(uint32 indexCount) {
+    m_Handle.drawIndexed(indexCount, 1, 0, 0, 0);
+
+    // CZ_LOG(LogVulkanCommandBuffer, Trace, "DrawIndexed: {} indices", indexCount);
+}
+
+void CVulkanCommandBuffer::DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex,
+                                       int32_t vertexOffset, uint32 firstInstance) {
+    m_Handle.drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
+
+    // CZ_LOG(LogVulkanCommandBuffer, Trace, "DrawIndexed: {} indices, {} instances", indexCount,
+    //        instanceCount);
+}
+
+void CVulkanCommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex,
+                                uint32 firstInstance) {
+    // [Note] Ensure a pipeline is bound before this call to avoid the previous error
+    m_Handle.draw(vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
 vk::DescriptorSet CVulkanCommandBuffer::GetOrCreateDescriptorSet(int set,

@@ -1,7 +1,9 @@
 #pragma once
 
-#include "CoreExport.h"
 #include "Event.h"
+#include "KeyEvent.h"
+
+#include "CoreExport.h"
 
 class CORE_API ILayer {
 public:
@@ -13,6 +15,9 @@ public:
     virtual void OnUpdate(float deltaTime) {}
     virtual void OnImGuiRender() {}
     virtual void OnEvent(IEvent& event) {}
+    virtual bool OnKeyPressed(FKeyPressedEvent& e) { return false; }
+    // virtual bool OnMouseButtonPressed(FMouseButtonPressedEvent& e) { return false; }
+    // virtual bool OnMouseButtonReleased(FMouseButtonReleasedEvent& e) { return false; }
 
     const std::string& GetName() const { return m_DebugName; } // NOLINT
 protected:

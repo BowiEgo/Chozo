@@ -50,27 +50,32 @@ void CVulkanPipeline::Init() {
     }
 
     // ===== 3. Vertex Input =====
-    // vk::VertexInputBindingDescription bindingDescription(
-    //     0,                 // binding index
-    //     sizeof(float) * 6, // stride (example: vec3 pos + vec3 color)
-    //     vk::VertexInputRate::eVertex);
+    std::vector<vk::VertexInputBindingDescription> bindingDescs;
+    std::vector<vk::VertexInputAttributeDescription> attributeDescs;
 
-    // std::vector<vk::VertexInputAttributeDescription> attributeDescriptions = {
-    //     // Location 0: Position (vec3)
-    //     {0, 0, vk::Format::eR32G32B32Sfloat, 0},
-    //     // Location 1: Color/Extra (vec3)
-    //     {1, 0, vk::Format::eR32G32B32Sfloat, sizeof(float) * 3}};
+    if (m_Spec.VertexLayout.GetElements().size() > 0) {
+        vk::VertexInputBindingDescription bindingDesc;
+        bindingDesc.setBinding(0)
+            .setStride(m_Spec.VertexLayout.GetStride())
+            .setInputRate(vk::VertexInputRate::eVertex);
+        bindingDescs.push_back(bindingDesc);
 
-    // vk::PipelineVertexInputStateCreateInfo vertexInputInfo(
-    //     {}, 1, &bindingDescription,                          // Bindings
-    //     static_cast<uint32_t>(attributeDescriptions.size()), // Attributes
-    //     attributeDescriptions.data());
+        uint32_t location = 0;
+        for (const auto& element : m_Spec.VertexLayout) {
+            vk::VertexInputAttributeDescription attrDesc;
+            attrDesc.setLocation(location++)
+                .setBinding(0)
+                .setFormat(ChozoUtils::Vulkan::ShaderDataTypeToVkFormat(element.Type))
+                .setOffset(element.Offset);
+            attributeDescs.push_back(attrDesc);
+        }
+    }
 
     vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+    vertexInputInfo.setVertexBindingDescriptionCount(bindingDescs.size())
+        .setPVertexBindingDescriptions(bindingDescs.data())
+        .setVertexAttributeDescriptionCount(attributeDescs.size())
+        .setPVertexAttributeDescriptions(attributeDescs.data());
 
     // ===== 4. Input Assembly =====
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly({}, vk::PrimitiveTopology::eTriangleList,
@@ -106,7 +111,8 @@ void CVulkanPipeline::Init() {
 
     // ===== 10. Dynamic States =====
     std::vector<vk::DynamicState> dynamicStates = { vk::DynamicState::eViewport,
-                                                    vk::DynamicState::eScissor };
+                                                    vk::DynamicState::eScissor,
+                                                    vk::DynamicState::ePolygonModeEXT };
     vk::PipelineDynamicStateCreateInfo dynamicStateInfo({}, dynamicStates);
 
     // ===== 11. Dynamic Rendering Setup (Vulkan 1.3+) =====
