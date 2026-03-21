@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CoreAssert.h"
+
 #include <functional>
 
 #if defined(_WIN32)
@@ -54,26 +56,6 @@ static constexpr bool GIsDebug = false;
     #define CZ_DEBUGBREAK()
 #else
     #define CZ_DEBUGBREAK()
-#endif
-
-// --- Assertion System ---
-#ifdef CZ_DEBUG
-    // Internal assertion implementation
-    #define CZ_INTERNAL_ASSERT_IMPL(type, condition, ...)                                          \
-        do {                                                                                       \
-            if (!(condition)) {                                                                    \
-                CZ_##type##_LOG(Fatal, "Assertion Failed: {0}\n\tat {1}:{2}\n\tMessage: {3}",      \
-                                #condition, __FILE__, __LINE__, __VA_ARGS__);                      \
-                CZ_DEBUGBREAK();                                                                   \
-            }                                                                                      \
-        } while (0)
-
-    #define CZ_CORE_ASSERT(condition, ...) CZ_INTERNAL_ASSERT_IMPL(CORE, condition, __VA_ARGS__)
-    #define CZ_ASSERT(condition, ...) CZ_INTERNAL_ASSERT_IMPL(APP, condition, __VA_ARGS__)
-#else
-    // Stripped in Release builds
-    #define CZ_CORE_ASSERT(condition, ...)
-    #define CZ_ASSERT(condition, ...)
 #endif
 
 ////////////////////////////////////////////////////////////////////////////

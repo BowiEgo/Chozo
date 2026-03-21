@@ -6,6 +6,7 @@
 #include "RHIContext.h"
 #include "RendererWindow.h"
 #include "Scope.h"
+#include "Sphere.h"
 #include "Viewport.h"
 
 #include "RenderCoreExport.h"
@@ -70,4 +71,5 @@ private:
     FOnRenderUI m_UICallback = nullptr;
 
     TRef<FCube> m_Cube;
+    TRef<FSphere> m_Sphere;
 };

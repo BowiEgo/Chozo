@@ -20,6 +20,8 @@ rule("chozo_module")
             end
         end
 
+        blacklisted_dirs["Tests"] = true
+
         -- Setup PCH
         -- Looks for TargetNamePCH.h in the target root folder
         local pch_name = target:name() .. "PCH.h"

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Matrix3.h"
 #include "Matrix4.h"
 #include "Vector3.h"
 
@@ -57,6 +58,18 @@ public:
     static FQuaternion FromTo(const FVector3& from, const FVector3& to) {
         return FQuaternion(glm::rotation(from.ToGLM(), to.ToGLM()));
     }
+
+    static FQuaternion FromMatrix(const FMatrix3& matrix) {
+        glm::mat3 glmMat = matrix;
+        return FQuaternion(glm::quat_cast(glmMat));
+    }
+
+    static FQuaternion FromMatrix(const FMatrix4& matrix) {
+        glm::mat4 glmMat = matrix;
+        return FQuaternion(glm::quat_cast(glmMat));
+    }
+
+    FMatrix3 ToMatrix3() const { return FMatrix3(glm::mat3_cast(glm::quat(w, x, y, z))); }
 
     // ===== Basic operations =====
     FQuaternion Conjugated() const { return FQuaternion(-x, -y, -z, w); }
@@ -120,7 +133,7 @@ public:
         return FVector3(glm::degrees(euler.x), glm::degrees(euler.y), glm::degrees(euler.z));
     }
 
-    FMatrix4 ToMatrix() const { return FMatrix4(glm::mat4_cast(glm::quat(w, x, y, z))); }
+    FMatrix4 ToMatrix4() const { return FMatrix4(glm::mat4_cast(glm::quat(w, x, y, z))); }
 
     // ===== Interpolation =====
     FQuaternion Slerp(const FQuaternion& target, float t) const {

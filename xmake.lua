@@ -31,9 +31,19 @@ if sdk_path then
     sdk_path = path.translate(sdk_path)
 end
 
-add_requires("spdlog", "glm")
+add_requires("glm", "entt")
+add_requires("spdlog", {configs = {header_only = false}})
 add_requires("glfw", {configs = {shared = true}})
 add_requireconfs("*.glfw", {override = true, configs = {shared = true}})
+
+option("tests")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Build and run tests")
+
+function is_test_mode()
+    return get_config("tests") or false
+end
 
 -- Load the custom module rule defined above
 includes("scripts/chozo_module.lua")
@@ -43,6 +53,7 @@ includes("scripts/export_header.lua")
 includes("External")
 includes("Source/Platform")
 includes("Source/Runtime/Core")
+includes("Source/Runtime/Asset")
 includes("Source/Runtime/Windowing")
 includes("Source/Runtime/VulkanRHI")
 includes("Source/Runtime/RHI")
@@ -133,3 +144,7 @@ target("CopyBinaries")
             end
         end
     end)
+
+if is_test_mode() then
+    includes("Source/Test")
+end

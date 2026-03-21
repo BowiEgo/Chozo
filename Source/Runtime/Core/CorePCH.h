@@ -1,7 +1,12 @@
 ﻿#pragma once
 
+#include <chrono>
 #include <cstdint>
+#include <cstring>
+#include <ctime>
 #include <filesystem>
+#include <iomanip>
+#include <random>
 #include <regex>
 #include <sstream>
 #include <string>

@@ -37,11 +37,23 @@ public:
     FVector3 operator-() const { return FVector3(-x, -y, -z); }
 
     FVector3 operator+(const FVector3& v) const { return FVector3(x + v.x, y + v.y, z + v.z); }
-
     FVector3 operator-(const FVector3& v) const { return FVector3(x - v.x, y - v.y, z - v.z); }
+    FVector3 operator*(const FVector3& v) const { return FVector3(x * v.x, y * v.y, z * v.z); }
+    FVector3 operator/(const FVector3& v) const { return FVector3(x / v.x, y / v.y, z / v.z); }
+    FVector3& operator*=(const FVector3& v) {
+        x *= v.x;
+        y *= v.y;
+        z *= v.z;
+        return *this;
+    }
+    FVector3& operator/=(const FVector3& v) {
+        x /= v.x;
+        y /= v.y;
+        z /= v.z;
+        return *this;
+    }
 
     FVector3 operator*(float s) const { return FVector3(x * s, y * s, z * s); }
-
     FVector3 operator/(float s) const {
         float inv = 1.0f / s;
         return FVector3(x * inv, y * inv, z * inv);
@@ -54,7 +66,6 @@ public:
         z += v.z;
         return *this;
     }
-
     FVector3& operator-=(const FVector3& v) {
         x -= v.x;
         y -= v.y;
@@ -68,7 +79,6 @@ public:
         z *= s;
         return *this;
     }
-
     FVector3& operator/=(float s) {
         float inv = 1.0f / s;
         x *= inv;
@@ -79,7 +89,6 @@ public:
 
     // ===== Comparison operators =====
     bool operator==(const FVector3& v) const { return x == v.x && y == v.y && z == v.z; }
-
     bool operator!=(const FVector3& v) const { return !(*this == v); }
 
     // Comparison with tolerance

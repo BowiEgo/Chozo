@@ -22,6 +22,11 @@ void EditorLayer::OnAttach() {
     mainCamera->SetPerspective(45.0f, (float)fbSize.Width / fbSize.Height, 0.1f, 1000.0f);
     mainCamera->SetPosition(FVector3(0, 0, 5));
 
+    m_Scene = CreateScope<FScene>();
+    m_RootNode = new FEditorNode("Scene");
+    m_SyncLayer = CreateScope<FSyncLayer>(m_Scene.get());
+    m_SyncLayer->RegisterNode(m_RootNode);
+
     CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
 }
 

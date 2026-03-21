@@ -5,5 +5,6 @@
 #include <cstdio>  // Required for vsnprintf
 #include <cstring> // Required for memcpy, strlen, strstr
 #include <mutex>
+#include <unordered_map>
 
 #include "imgui.h"

@@ -1,11 +1,14 @@
 #pragma once
 
 #include "Core.h"
+#include "EditorNode.h"
 #include "FileDialog.h"
 #include "IconManager.h"
 #include "Layer.h"
 #include "Overlay.h"
 #include "Renderer.h"
+#include "Scene.h"
+#include "SyncLayer.h"
 
 #include "AssetsPanel.h"
 #include "ConsolePanel.h"
@@ -49,6 +52,11 @@ private:
 
     EPolygonMode m_PolygonMode = EPolygonMode::Fill;
 
+    TScope<FScene> m_Scene;
+    FEditorNode* m_RootNode = nullptr;
+    TScope<FSyncLayer> m_SyncLayer;
+
+    // UI
     UOverlay m_Overlay;
     bool m_IsOverlayOpen = true;
 

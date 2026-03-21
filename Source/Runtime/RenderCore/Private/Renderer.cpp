@@ -71,6 +71,9 @@ void CRenderer::Init() {
 
     m_Cube = CreateRef<FCube>();
     m_Cube->Upload(m_GraphicContext.get());
+
+    m_Sphere = CreateRef<FSphere>();
+    m_Sphere->Upload(m_GraphicContext.get());
 }
 
 void CRenderer::Tick(float deltaTime) {
@@ -93,7 +96,8 @@ void CRenderer::Tick(float deltaTime) {
         for (auto& viewport : m_Viewports) {
             viewport->BeginRender(cmdList.get(), m_CurrentPipeline);
             // cmdList->Draw(3, 1, 0, 0);
-            m_Cube->Draw(cmdList.get());
+            // m_Cube->Draw(cmdList.get());
+            m_Sphere->Draw(cmdList.get());
             // cmdList->BindVertexBuffer(m_Cube->GetVertexBuffer(), 0); // binding = 0
             // cmdList->BindIndexBuffer(m_Cube->GetIndexBuffer());
             // cmdList->DrawIndexed(m_Cube->GetIndexCount(), 1, 0, 0, 0);
@@ -127,6 +131,7 @@ void CRenderer::Shutdown() {
     m_GraphicContext->GetDevice()->WaitIdle();
 
     m_Cube = nullptr;
+    m_Sphere = nullptr;
 
     m_Viewports.clear();
     m_SolidPipeline = nullptr;

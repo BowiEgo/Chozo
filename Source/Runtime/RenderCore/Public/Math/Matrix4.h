@@ -198,6 +198,10 @@ public:
         return *this;
     }
 
+    float* operator[](int col) { return &m_Data[col * 4]; }
+
+    const float* operator[](int col) const { return &m_Data[col * 4]; }
+
 private:
     void SetIdentity() {
         memset(m_Data, 0, 64);
