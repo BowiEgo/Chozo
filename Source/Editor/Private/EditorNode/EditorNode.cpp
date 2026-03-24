@@ -2,29 +2,54 @@
 
 DEFINE_LOG_CATEGORY(LogEditorNode);
 
+std::atomic<uint32_t> FEditorNode::s_NextID{ 1 };
+
 // ===== Constructor & Destructor =====
-FEditorNode::FEditorNode(const std::string& name, ENodeType type) : m_Name(name), m_Type(type) {}
+FEditorNode::FEditorNode(const std::string& name, uint32_t type)
+    : m_ID(s_NextID.fetch_add(1)), m_Name(name), m_Type(type) {
+
+    if (HasTransform()) {
+        SetTransformParams(FTransformParams());
+    }
+
+    if (HasMesh()) {
+        auto regManager = FRegistryManager::Get();
+
+        auto cubeBit = regManager.GetBit("Mesh_Cube");
+        auto sphereBit = regManager.GetBit("Mesh_Sphere");
+
+        if ((m_Type & cubeBit) != 0)
+            SetMeshParams("Cube");
+        else if ((m_Type & sphereBit) != 0)
+            SetMeshParams("Sphere");
+    }
+
+    CZ_LOG(LogEditorNode, Trace, "Created node '{}' with ID {}", name, m_ID);
+}
 
 FEditorNode::~FEditorNode() {
-    for (auto* child : m_Children) {
-        delete child;
+    while (!m_Children.empty()) {
+        delete m_Children.back();
     }
-    m_Children.clear();
 
     if (m_Parent) {
         m_Parent->RemoveChild(this);
     }
+
+    CZ_LOG(LogEditorNode, Trace, "Destroyed node '{}' with ID {}", m_Name, m_ID);
 }
 
 // ===== Hierarchy Management =====
 void FEditorNode::AddChild(FEditorNode* child) {
     if (!child) {
-        CZ_LOG(LogEditorNode, Warning, "Attempted to add null child to node '{}'", m_Name);
+        CZ_LOG(LogEditorNode, Warning, "Attempted to add null child to node '{}' with ID {}",
+               m_Name, m_ID);
         return;
     }
 
     if (child == this) {
-        CZ_LOG(LogEditorNode, Warning, "Attempted to add node to itself: '{}'", m_Name);
+        CZ_LOG(LogEditorNode, Warning, "Attempted to add node to itself: '{}' with ID {}", m_Name,
+               m_ID);
         return;
     }
 
@@ -52,7 +77,8 @@ void FEditorNode::AddChild(FEditorNode* child) {
 
 void FEditorNode::RemoveChild(FEditorNode* child) {
     if (!child) {
-        CZ_LOG(LogEditorNode, Warning, "Attempted to remove null child from node '{}'", m_Name);
+        CZ_LOG(LogEditorNode, Warning, "Attempted to remove null child from node '{}' with ID {}",
+               m_Name, m_ID);
         return;
     }
 
@@ -147,29 +173,6 @@ int FEditorNode::GetDepth() const {
     }
     return depth;
 }
-
-// ===== Component Management =====
-// void FEditorNode::SetMesh(const FMeshComponent& mesh) {
-//     m_Mesh = mesh;
-//     m_HasMesh = true;
-//     MarkDirty();
-// }
-
-// void FEditorNode::ClearMesh() {
-//     m_HasMesh = false;
-//     MarkDirty();
-// }
-
-// void FEditorNode::SetMaterial(const FMaterialComponent& material) {
-//     m_Material = material;
-//     m_HasMaterial = true;
-//     MarkDirty();
-// }
-
-// void FEditorNode::ClearMaterial() {
-//     m_HasMaterial = false;
-//     MarkDirty();
-// }
 
 // ===== Serialization =====
 // void FEditorNode::Serialize(FArchive& ar) {

@@ -185,3 +185,15 @@ inline const FVector3 FVector3::Right(1.0f, 0.0f, 0.0f);
 inline const FVector3 FVector3::Left(-1.0f, 0.0f, 0.0f);
 inline const FVector3 FVector3::Forward(0.0f, 0.0f, 1.0f); // OpenGL/Vulkan convention
 inline const FVector3 FVector3::Backward(0.0f, 0.0f, -1.0f);
+
+namespace std {
+template <> struct hash<FVector3> {
+    size_t operator()(const FVector3& v) const noexcept {
+        size_t seed = 0;
+        seed ^= hash<float>{}(v.x) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hash<float>{}(v.y) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hash<float>{}(v.z) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        return seed;
+    }
+};
+} // namespace std

@@ -26,6 +26,7 @@ public:
 
     virtual void SetData(const FBuffer& data) = 0;
     virtual void* GetDescriptorSet() = 0;
+    virtual void* GetDescriptorSet() const = 0;
 
     std::string GetName() const { return m_Spec.Name; }
     FExtent2D GetSize() const { return m_Spec.Size; }

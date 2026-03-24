@@ -71,10 +71,10 @@ private:
     void SyncComponents(FEditorNode* node, FEntity entity);
 
     // ===== Component Creation Helpers =====
-    void AddTransformComponent(FEntity entity, const FTransformComponent& transform);
-    // void AddMeshComponent(FEntity entity, const FMeshComponent& mesh);
-    // void AddMaterialComponent(FEntity entity, const FMaterialComponent& material);
-    void AddRelationshipComponent(FEntity entity, FEntity parent);
+    void SyncTransformComponent(FEntity entity, const FTransformParams* transformParams);
+    void SyncMeshComponent(FEntity entity, const FMeshParams* mesh);
+    // void SyncMaterialComponent(FEntity entity, const FMaterialComponent& material);
+    void SyncRelationshipComponent(FEntity entity, FEntity parent);
 
     // ===== Validation =====
     bool ValidateMapping(FEditorNode* node) const;

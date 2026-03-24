@@ -5,15 +5,19 @@
 
 #include "Asset.h"
 #include "Entity.h"
+#include "RHICommandList.h"
+#include "RHIContext.h"
 
 #include "entt/entt.hpp"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogScene, Info);
 
-class RENDER_CORE_API FScene : public FAsset {
+class RENDER_CORE_API FScene : public IAsset {
 public:
     FScene() = default;
     ~FScene() = default;
+
+    void Draw(IRHIContext* ctx, IRHICommandList* cmdList);
 
     // ----- Entity Management -----
     FEntity CreateEntity(const std::string& name = "");
@@ -69,5 +73,4 @@ public:
 private:
     entt::registry m_Registry;
     std::string m_Name;
-    UUID m_ID;
 };

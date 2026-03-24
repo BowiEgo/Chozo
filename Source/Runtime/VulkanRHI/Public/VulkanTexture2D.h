@@ -22,6 +22,7 @@ public:
     virtual void SetData(const FBuffer& data) override;
 
     virtual void* GetDescriptorSet() override { return (void*)GetVKDescriptorSet(); }
+    virtual void* GetDescriptorSet() const override { return (void*)GetVKDescriptorSet(); }
 
     void SetCurrentLayout(vk::ImageLayout layout) { m_VKCurrentLayout = layout; }
 
@@ -31,6 +32,9 @@ public:
     const vk::Sampler GetVKSampler() const { return m_VKSampler; }
     const vk::Format GetVKFormat() const { return m_VKFormat; }
     vk::DescriptorSet GetVKDescriptorSet();
+    vk::DescriptorSet GetVKDescriptorSet() const {
+        return const_cast<CVulkanTexture2D*>(this)->GetVKDescriptorSet();
+    }
     vk::RenderingAttachmentInfo GetColorAttachmentInfo(const vk::ClearValue clearColor,
                                                        const bool bClear);
 

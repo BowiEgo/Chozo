@@ -12,6 +12,7 @@
 static_assert(sizeof(glm::mat4) == 64, "glm::mat4 should be 64 bytes");
 
 class FQuaternion;
+class FMatrix3;
 
 class FMatrix4 {
 public:
@@ -134,6 +135,8 @@ public:
     FMatrix4 Inverse() { return FMatrix4(glm::inverse(glm::mat4(*this))); }
 
     FMatrix4 Transpose() { return FMatrix4(glm::transpose(glm::mat4(*this))); }
+
+    FMatrix3 ToMatrix3() const;
 
     // ===== Decomposition (useful for extracting translation/rotation/scale) =====
     FVector3 GetTranslation() const { return FVector3(m_Data[12], m_Data[13], m_Data[14]); }

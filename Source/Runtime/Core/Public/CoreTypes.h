@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreAssert.h"
+#include "PlatformTypes.h"
 
 #include <functional>
 
@@ -74,6 +75,7 @@ static constexpr bool GIsDebug = false;
 ////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename... Args> using TCallback = std::function<T(Args&&... args)>;
+using CallbackHandle = uint32_t;
 
 ////////////////////////////////////////////////////////////////////////////
 //========================== Basic Type Aliases ==========================//

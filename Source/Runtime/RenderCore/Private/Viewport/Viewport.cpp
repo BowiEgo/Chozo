@@ -34,6 +34,8 @@ void CViewport::BeginRender(IRHICommandList* cmdList, TRef<IRHIPipeline> pipelin
     cmdList->BindUniformBuffer(uniformBuffer, 0, 0);
     cmdList->SetViewport({ 0, 0, (float)m_Spec.Width, (float)m_Spec.Height, 0, 1 });
     cmdList->SetScissor({ 0, 0, m_Spec.Width, m_Spec.Height });
+
+    m_Scene->Draw(m_Context, cmdList);
 }
 
 void CViewport::EndRender(IRHICommandList* cmdList) {

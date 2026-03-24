@@ -17,6 +17,10 @@ constexpr float TWO_PI = PI * 2.0f;
 constexpr float ToRadians(float degrees) { return degrees * (PI / 180.0f); }
 constexpr float ToDegrees(float radians) { return radians * (180.0f / PI); }
 
+inline float Clamp(float value, float minValue = 0.0f, float maxValue = 1.0f) {
+    return glm::clamp(value, minValue, maxValue);
+}
+
 inline float Sin(float angle) { return std::sin(angle); }
 inline float Cos(float angle) { return std::cos(angle); }
 inline float Tan(float angle) { return std::tan(angle); }

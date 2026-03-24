@@ -5,37 +5,42 @@
 
 #include <algorithm>
 
-class CORE_API UUID {
+class CORE_API FUUID {
 public:
     // ===== Constructors =====
-    UUID();
-    explicit UUID(uint64_t low, uint64_t high);
-    explicit UUID(const std::string& str);
-    ~UUID() = default;
+    FUUID();
+    explicit FUUID(uint64_t low, uint64_t high);
+    explicit FUUID(const std::string& str);
+    ~FUUID() = default;
 
     // ===== Copy & Move =====
-    UUID(const UUID& other) = default;
-    UUID(UUID&& other) noexcept = default;
-    UUID& operator=(const UUID& other) = default;
-    UUID& operator=(UUID&& other) noexcept = default;
+    FUUID(const FUUID& other) = default;
+    FUUID(FUUID&& other) noexcept = default;
+    FUUID& operator=(const FUUID& other) = default;
+    FUUID& operator=(FUUID&& other) noexcept = default;
 
     // ===== Comparison =====
-    bool operator==(const UUID& other) const;
-    bool operator!=(const UUID& other) const;
-    bool operator<(const UUID& other) const;
+    bool operator==(const FUUID& other) const;
+    bool operator!=(const FUUID& other) const;
+    bool operator<(const FUUID& other) const;
+
+    // ===== Accessors =====
+    uint64_t GetLow() const { return m_Low; }
+    uint64_t GetHigh() const { return m_High; }
 
     // ===== Conversion =====
     std::string ToString() const;
     explicit operator std::string() const { return ToString(); }
-    explicit operator uint64_t() const { return m_Low; }
+
+    std::pair<uint64_t, uint64_t> ToPair() const { return { m_Low, m_High }; }
 
     // ===== Validation =====
     bool IsValid() const { return m_Low != 0 || m_High != 0; }
-    static UUID Invalid() { return UUID(0, 0); }
+    static FUUID Invalid() { return FUUID(0, 0); }
 
     // ===== Static generators =====
-    static UUID Generate();
-    static UUID FromString(const std::string& str);
+    static FUUID Generate();
+    static FUUID FromString(const std::string& str);
 
 private:
     uint64_t m_Low;
@@ -44,10 +49,10 @@ private:
 
 // Hash support for unordered containers
 namespace std {
-template <> struct hash<UUID> {
-    size_t operator()(const UUID& uuid) const {
-        return hash<uint64_t>()(static_cast<uint64_t>(uuid)) ^
-               hash<uint64_t>()(static_cast<uint64_t>(uuid) >> 32);
+template <> struct hash<FUUID> {
+    size_t operator()(const FUUID& uuid) const {
+        uint64_t combined = uuid.GetLow() ^ uuid.GetHigh();
+        return hash<uint64_t>()(combined);
     }
 };
 } // namespace std

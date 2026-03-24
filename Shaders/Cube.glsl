@@ -2,9 +2,9 @@
 
 // ===== Uniform =====
 layout(set = 0, binding = 0) uniform CameraData {
-    mat4 view;
-    mat4 projection;
-} camera;
+    mat4 View;
+    mat4 Projection;
+} u_Camera;
 
 #ifdef VERTEX_SHADER
 
@@ -14,9 +14,15 @@ layout(location = 2) in vec2 a_TexCoord;
 layout(location = 3) in vec3 a_Tangent;
 layout(location = 4) in vec3 a_Bitangent;
 
+layout(push_constant) uniform VertexContant
+{
+    mat4 ModelMatrix;
+    mat3 NormalMatrix;
+} u_VertContant;
+
 void main() {
-    mat4 model = mat4(1.0);
-    mat4 mvp = camera.projection * camera.view * model;
+    mat4 model = u_VertContant.ModelMatrix;
+    mat4 mvp = u_Camera.Projection * u_Camera.View * model;
     
     gl_Position = mvp * vec4(a_Position, 1.0);
 }

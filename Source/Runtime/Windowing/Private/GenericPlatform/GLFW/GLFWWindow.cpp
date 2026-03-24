@@ -3,18 +3,6 @@
 #include "KeyEvent.h"
 #include "MouseEvent.h"
 
-#ifdef CZ_PLATFORM_WINDOWS
-    #ifndef NOMINMAX
-        #define NOMINMAX
-    #endif
-    #define GLFW_EXPOSE_NATIVE_WIN32
-    #include <windows.h>
-#elif defined(CZ_PLATFORM_LINUX)
-    #define GLFW_EXPOSE_NATIVE_X11 // or WAYLAND
-#elif defined(CZ_PLATFORM_MACOS)
-    #define GLFW_EXPOSE_NATIVE_COCOA
-#endif
-
 #include <GLFW/glfw3native.h>
 
 DEFINE_LOG_CATEGORY(LogGLFWWindow);

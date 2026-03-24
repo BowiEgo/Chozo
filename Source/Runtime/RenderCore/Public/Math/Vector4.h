@@ -185,3 +185,16 @@ inline const FVector4 FVector4::UnitX(1.0f, 0.0f, 0.0f, 0.0f);
 inline const FVector4 FVector4::UnitY(0.0f, 1.0f, 0.0f, 0.0f);
 inline const FVector4 FVector4::UnitZ(0.0f, 0.0f, 1.0f, 0.0f);
 inline const FVector4 FVector4::UnitW(0.0f, 0.0f, 0.0f, 1.0f);
+
+namespace std {
+template <> struct hash<FVector4> {
+    size_t operator()(const FVector4& v) const noexcept {
+        size_t seed = 0;
+        seed ^= hash<float>{}(v.x) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hash<float>{}(v.y) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hash<float>{}(v.z) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hash<float>{}(v.w) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        return seed;
+    }
+};
+} // namespace std

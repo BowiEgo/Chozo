@@ -1,13 +1,15 @@
 #pragma once
 
 #include "Core.h"
-#include "EditorNode.h"
 #include "FileDialog.h"
 #include "IconManager.h"
 #include "Layer.h"
 #include "Overlay.h"
 #include "Renderer.h"
 #include "Scene.h"
+
+#include "EditorNode.h"
+#include "EditorNodeTree.h"
 #include "SyncLayer.h"
 
 #include "AssetsPanel.h"
@@ -53,7 +55,7 @@ private:
     EPolygonMode m_PolygonMode = EPolygonMode::Fill;
 
     TScope<FScene> m_Scene;
-    FEditorNode* m_RootNode = nullptr;
+    CEditorNodeTree m_NodeTree;
     TScope<FSyncLayer> m_SyncLayer;
 
     // UI

@@ -10,10 +10,25 @@ DEFINE_LOG_CATEGORY(LogEditorLayer);
 EditorLayer::EditorLayer() : ILayer("Editor") {}
 
 void EditorLayer::OnAttach() {
+    // FPluginManager::Get().Initialize("bin/plugins");
+    // // FPluginManager::Get().LoadPlugin("Cube");
+
+    // for (const auto& pluginName : pluginMgr.GetAvailablePlugins()) {
+    //     pluginMgr.LoadPlugin(pluginName);
+    // }
+
+    // // Get all available mesh types
+    // auto& registry = FMeshRegistry::Get();
+    // for (const auto& typeName : registry.GetMeshTypeNames()) {
+    //     CZ_LOG(LogEditorLayer, Info, "Available mesh type: {}", typeName);
+    // }
+
     auto fbSize = CApplication::Get()->GetWindow()->GetFrameBufferSize();
 
+    m_Scene = CreateScope<FScene>();
     m_ViewportRenderer = CApplication::Get()->GetRenderEngine()->GetRenderer();
     m_Viewport = m_ViewportRenderer->CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
+    m_Viewport->SetScene(m_Scene.get());
 
     m_Overlay.UpdateLocation(EOverlayLocation::BottomLeft);
 
@@ -22,10 +37,41 @@ void EditorLayer::OnAttach() {
     mainCamera->SetPerspective(45.0f, (float)fbSize.Width / fbSize.Height, 0.1f, 1000.0f);
     mainCamera->SetPosition(FVector3(0, 0, 5));
 
-    m_Scene = CreateScope<FScene>();
-    m_RootNode = new FEditorNode("Scene");
     m_SyncLayer = CreateScope<FSyncLayer>(m_Scene.get());
-    m_SyncLayer->RegisterNode(m_RootNode);
+    m_SyncLayer->RegisterNode(m_NodeTree.GetRoot());
+
+    CallbackHandle handle = m_NodeTree.RegisterEventCallback([this](const FNodeEvent& event) {
+        switch (event.GetType()) {
+            case ENodeEventType::Created:
+                m_SyncLayer->RegisterNode(event.GetNode());
+                CZ_LOG(LogEditorLayer, Trace, "Node created: {}", event.GetNode()->GetName());
+                break;
+            case ENodeEventType::Deleted:
+                CZ_LOG(LogEditorLayer, Trace, "Node deleted: {}", event.GetNode()->GetName());
+                break;
+            case ENodeEventType::Renamed:
+                CZ_LOG(LogEditorLayer, Trace, "Node renamed: {} -> {}", event.GetOldName(),
+                       event.GetNode()->GetName());
+                break;
+            case ENodeEventType::Moved:
+                CZ_LOG(LogEditorLayer, Trace, "Node parent changed: {}",
+                       event.GetNode()->GetName());
+                break;
+            case ENodeEventType::Selected:
+                CZ_LOG(LogEditorLayer, Trace, "Node selected: {}", event.GetNode()->GetName());
+                break;
+            case ENodeEventType::DirtyChanged:
+                CZ_LOG(LogEditorLayer, Trace, "Node dirty changed: {}", event.GetNode()->GetName());
+                break;
+            default:
+                CZ_LOG(LogEditorLayer, Warning, "Unknown event type: {}",
+                       static_cast<int>(event.GetType()));
+                break;
+        }
+    });
+
+    m_SceneHierarchyPanel.SetNodeTree(&m_NodeTree);
+    m_PropertiesPanel.SetNodeTree(&m_NodeTree);
 
     CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
 }
@@ -34,12 +80,16 @@ void EditorLayer::OnDetach() {
     auto context = m_ViewportRenderer->GetGraphicContext();
     UFileDialog::Get(context).Shutdown();
     CIconManager::Get(context).Shutdown();
+
+    // m_NodeTree->UnregisterEventCallback(handle);
 }
 
 void EditorLayer::OnUpdate(float deltaTime) {
     m_Viewport->Resize(m_ViewportSize.x, m_ViewportSize.y);
     m_EditorCamera.OnUpdate(deltaTime);
     // m_EditorCamera.CopyTo(m_Viewport->GetCamera());
+
+    m_SyncLayer->SyncAllNodesToEntities();
 }
 
 void EditorLayer::OnImGuiRender() {
@@ -95,11 +145,11 @@ void EditorLayer::OnImGuiRender() {
     // [Sub-Section] Sub-Panels Update
     // ----------------------------------------------------------------------------
     m_ConsolePanel.Draw("Console", &m_IsConsoleOpen);
-    m_SceneHierarchyPanel.Draw("SceneHierarchy", &m_IsSceneHierarchyOpen);
+    m_SceneHierarchyPanel.Draw("Scene Hierarchy", &m_IsSceneHierarchyOpen);
     m_PropertiesPanel.Draw("Properties", &m_IsPropertiesOpen);
-    m_ContentBrowserPanel.Draw("ContentBrowser", &m_IsContentBrowserOpen);
+    m_ContentBrowserPanel.Draw("Content Browser", &m_IsContentBrowserOpen);
     m_MaterialPanel.Draw("Material", &m_IsMaterialOpen);
-    m_TextureViewerPanel.Draw("TextureViewer", &m_IsTextureViewerOpen);
+    m_TextureViewerPanel.Draw("Texture Viewer", &m_IsTextureViewerOpen);
     m_AssetsPanel.Draw("Assets", &m_IsAssetsOpen);
 #pragma endregion
 

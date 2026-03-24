@@ -182,3 +182,16 @@ template <> struct fmt::formatter<FQuaternion> {
         return fmt::format_to(ctx.out(), "{}", q.ToString());
     }
 };
+
+namespace std {
+template <> struct hash<FQuaternion> {
+    size_t operator()(const FQuaternion& q) const noexcept {
+        size_t seed = 0;
+        seed ^= hash<float>{}(q.x) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hash<float>{}(q.y) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hash<float>{}(q.z) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hash<float>{}(q.w) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        return seed;
+    }
+};
+} // namespace std

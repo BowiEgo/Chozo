@@ -25,7 +25,7 @@ void CVulkanPipeline::Init() {
 
     const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
 
-    // ===== 1. Get Descriptor Set Layouts =====
+    // ===== Get Descriptor Set Layouts =====
     std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
 
     // Get Uniform Buffer Layout (set 0)
@@ -36,7 +36,7 @@ void CVulkanPipeline::Init() {
     // If have another set，keep on pushing
     // descriptorSetLayouts.push_back(anotherLayout);
 
-    // ===== 2. Shader Stages =====
+    // ===== Shader Stages =====
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
     shaderStages.reserve(m_Spec.RHIShaders.size());
 
@@ -49,7 +49,15 @@ void CVulkanPipeline::Init() {
                                  RHIShader->GetEntryPoint().c_str() });
     }
 
-    // ===== 3. Vertex Input =====
+    // ===== Push Constant Range =====
+    std::vector<vk::PushConstantRange> pushConstantRanges;
+    vk::PushConstantRange vertPushRange(vk::ShaderStageFlagBits::eVertex,    // stageFlags
+                                        m_Spec.PushConstantRanges[0].Offset, // offset
+                                        m_Spec.PushConstantRanges[0].Size    // size
+    );
+    pushConstantRanges.push_back(vertPushRange);
+
+    // ===== Vertex Input =====
     std::vector<vk::VertexInputBindingDescription> bindingDescs;
     std::vector<vk::VertexInputAttributeDescription> attributeDescs;
 
@@ -77,29 +85,29 @@ void CVulkanPipeline::Init() {
         .setVertexAttributeDescriptionCount(attributeDescs.size())
         .setPVertexAttributeDescriptions(attributeDescs.data());
 
-    // ===== 4. Input Assembly =====
+    // ===== Input Assembly =====
     vk::PipelineInputAssemblyStateCreateInfo inputAssembly({}, vk::PrimitiveTopology::eTriangleList,
                                                            vk::False);
 
-    // ===== 5. Viewport & Scissor (Dynamic States) =====
+    // ===== Viewport & Scissor (Dynamic States) =====
     vk::PipelineViewportStateCreateInfo viewportState({}, 1, nullptr, 1, nullptr);
 
-    // ===== 6. Rasterizer =====
+    // ===== Rasterizer =====
     vk::PipelineRasterizationStateCreateInfo rasterizer{};
     rasterizer.setPolygonMode(vk::PolygonMode::eFill);
     rasterizer.setLineWidth(1.0f);
     rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
     rasterizer.setFrontFace(vk::FrontFace::eClockwise);
 
-    // ===== 7. Multisampling (Disabled) =====
+    // ===== Multisampling (Disabled) =====
     vk::PipelineMultisampleStateCreateInfo multisampling({}, vk::SampleCountFlagBits::e1);
 
-    // ===== 8. Depth Stencil =====
+    // ===== Depth Stencil =====
     vk::Format vkDepthFormat = ChozoUtils::Vulkan::ToVKFormat(m_Spec.DepthFormat);
     vk::PipelineDepthStencilStateCreateInfo depthStencil({}, vk::True, vk::True,
                                                          vk::CompareOp::eLess);
 
-    // ===== 9. Color Blending (Standard opaque) =====
+    // ===== Color Blending (Standard opaque) =====
     vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
     colorBlendAttachment.setColorWriteMask(
         vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
@@ -109,30 +117,30 @@ void CVulkanPipeline::Init() {
     vk::PipelineColorBlendStateCreateInfo colorBlending({}, vk::False, vk::LogicOp::eCopy, 1,
                                                         &colorBlendAttachment);
 
-    // ===== 10. Dynamic States =====
+    // ===== Dynamic States =====
     std::vector<vk::DynamicState> dynamicStates = { vk::DynamicState::eViewport,
                                                     vk::DynamicState::eScissor,
                                                     vk::DynamicState::ePolygonModeEXT };
     vk::PipelineDynamicStateCreateInfo dynamicStateInfo({}, dynamicStates);
 
-    // ===== 11. Dynamic Rendering Setup (Vulkan 1.3+) =====
+    // ===== Dynamic Rendering Setup (Vulkan 1.3+) =====
     std::vector<vk::Format> vkColorFormats;
     for (auto f : m_Spec.ColorFormats) {
         vkColorFormats.push_back(ChozoUtils::Vulkan::ToVKFormat(f));
     }
     vk::PipelineRenderingCreateInfo renderingInfo(0, vkColorFormats, vkDepthFormat);
 
-    // ===== 12. Pipeline Layout =====
+    // ===== Pipeline Layout =====
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo(
         {},                                                 // flags
         static_cast<uint32_t>(descriptorSetLayouts.size()), // setLayoutCount
         descriptorSetLayouts.data(),                        // pSetLayouts
-        0,                                                  // pushConstantRangeCount
-        nullptr                                             // pPushConstantRanges
+        static_cast<uint32_t>(pushConstantRanges.size()),   // pushConstantRangeCount
+        pushConstantRanges.data()                           // pPushConstantRanges
     );
     m_PipelineLayout = vk::raii::PipelineLayout(raiiDevice, pipelineLayoutInfo);
 
-    // ===== 13. Final Assembly =====
+    // ===== Final Assembly =====
     vk::GraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo
         .setPNext(&renderingInfo) // [Note] Link to dynamic rendering info
@@ -148,7 +156,7 @@ void CVulkanPipeline::Init() {
         .setLayout(*m_PipelineLayout) // [Note] Use * for RAII objects
         .setRenderPass(nullptr);      // [Note] Must be null when using pNext renderingInfo
 
-    // ===== 14. Create Pipeline =====
+    // ===== Create Pipeline =====
     m_Pipeline = raiiDevice.createGraphicsPipeline(nullptr, pipelineInfo);
 
     m_Spec.RHIShaders.clear();

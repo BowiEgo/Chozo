@@ -70,6 +70,6 @@ private:
 
     FOnRenderUI m_UICallback = nullptr;
 
-    TRef<FCube> m_Cube;
-    TRef<FSphere> m_Sphere;
+    // TRef<FCube> m_Cube;
+    // TRef<FSphere> m_Sphere;
 };

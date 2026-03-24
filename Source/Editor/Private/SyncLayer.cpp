@@ -6,7 +6,6 @@ FSyncLayer::FSyncLayer(FScene* scene) : m_Scene(scene) {
 }
 
 // ===== Node Registration =====
-
 void FSyncLayer::RegisterNode(FEditorNode* node) {
     if (!node) return;
 
@@ -21,26 +20,21 @@ void FSyncLayer::RegisterNode(FEditorNode* node) {
     // Create Entity in Scene
     FEntity entity = m_Scene->CreateEntity(node->GetName());
 
-    // Add Name component
-    // if (m_Scene->HasComponent<FNameComponent>(entity)) {
-    //     m_Scene->GetComponent<FNameComponent>(entity).Name = node->GetName();
-    // }
-
     // Add Mesh component if applicable
     // if (node->HasMesh()) {
-    // AddMeshComponent(entity, node->GetMesh());
+    // SyncMeshComponent(entity, node->GetMesh());
     // }
 
     // Add Material component if applicable
     // if (node->HasMaterial()) {
-    //     AddMaterialComponent(entity, node->GetMaterial());
+    //     SyncMaterialComponent(entity, node->GetMaterial());
     // }
 
     // Add Relationship component if parent exists
     if (node->GetParent()) {
         auto parentIt = m_NodeToEntity.find(node->GetParent());
         if (parentIt != m_NodeToEntity.end()) {
-            AddRelationshipComponent(entity, parentIt->second);
+            SyncRelationshipComponent(entity, parentIt->second);
         }
     }
 
@@ -86,7 +80,6 @@ void FSyncLayer::UnregisterNode(FEditorNode* node) {
 }
 
 // ===== Synchronization =====
-
 void FSyncLayer::SyncAll() {
     std::lock_guard<std::mutex> lock(m_Mutex);
 
@@ -104,7 +97,7 @@ void FSyncLayer::SyncAll() {
 }
 
 void FSyncLayer::SyncNodeToEntity(FEditorNode* node) {
-    if (!node) return;
+    if (!node || node->IsRoot()) return;
 
     auto it = m_NodeToEntity.find(node);
     if (it == m_NodeToEntity.end()) {
@@ -114,11 +107,8 @@ void FSyncLayer::SyncNodeToEntity(FEditorNode* node) {
 
     FEntity entity = it->second;
 
-    // Sync Transform
-    SyncTransform(node, entity);
-
-    // Sync Name
-    SyncName(node, entity);
+    // // Sync Name
+    // SyncName(node, entity);
 
     // Sync Components
     SyncComponents(node, entity);
@@ -127,6 +117,8 @@ void FSyncLayer::SyncNodeToEntity(FEditorNode* node) {
     if (m_OnNodeSynced) {
         m_OnNodeSynced(node, entity);
     }
+
+    node->ClearDirty();
 }
 
 void FSyncLayer::SyncEntityToNode(FEntity entity) {
@@ -154,7 +146,6 @@ void FSyncLayer::SyncEntityToNode(FEntity entity) {
 }
 
 // ===== Dirty Tracking =====
-
 void FSyncLayer::MarkDirty(FEditorNode* node) {
     if (node) {
         std::lock_guard<std::mutex> lock(m_Mutex);
@@ -176,7 +167,6 @@ void FSyncLayer::ClearDirty() {
 }
 
 // ===== Mapping Queries =====
-
 FEntity FSyncLayer::GetEntityFromNode(FEditorNode* node) const {
     std::lock_guard<std::mutex> lock(m_Mutex);
     auto it = m_NodeToEntity.find(node);
@@ -210,7 +200,6 @@ bool FSyncLayer::HasMapping(FEntity entity) const {
 }
 
 // ===== Batch Operations =====
-
 void FSyncLayer::SyncAllNodesToEntities() {
     std::lock_guard<std::mutex> lock(m_Mutex);
 
@@ -228,30 +217,9 @@ void FSyncLayer::SyncAllEntitiesToNodes() {
 }
 
 // ===== Internal Sync Helpers =====
+void FSyncLayer::SyncTransform(FEditorNode* node, FEntity entity) {}
 
-void FSyncLayer::SyncTransform(FEditorNode* node, FEntity entity) {
-    if (!m_Scene->HasComponent<FTransformComponent>(entity)) {
-        AddTransformComponent(entity, node->GetTransform());
-    } else {
-        auto& transform = m_Scene->GetComponent<FTransformComponent>(entity);
-        const auto& nodeTransform = node->GetTransform();
-
-        // Check if transform changed
-        if (transform.Translation != nodeTransform.Translation ||
-            transform.Rotation != nodeTransform.Rotation ||
-            transform.Scale != nodeTransform.Scale) {
-            transform = nodeTransform;
-            transform.Revision++;
-        }
-    }
-}
-
-void FSyncLayer::SyncTransform(FEntity entity, FEditorNode* node) {
-    if (m_Scene->HasComponent<FTransformComponent>(entity)) {
-        const auto& transform = m_Scene->GetComponent<FTransformComponent>(entity);
-        node->GetTransform() = transform;
-    }
-}
+void FSyncLayer::SyncTransform(FEntity entity, FEditorNode* node) {}
 
 void FSyncLayer::SyncName(FEditorNode* node, FEntity entity) {
     if (!m_Scene->HasComponent<FNameComponent>(entity)) {
@@ -274,49 +242,38 @@ void FSyncLayer::SyncName(FEntity entity, FEditorNode* node) {
 }
 
 void FSyncLayer::SyncComponents(FEditorNode* node, FEntity entity) {
-    // Handle Mesh Component
-    // if (node->HasMesh()) {
-    //     if (!m_Scene->HasComponent<FMeshComponent>(entity)) {
-    //         AddMeshComponent(entity, node->GetMesh());
-    //     } else {
-    //         auto& mesh = m_Scene->GetComponent<FMeshComponent>(entity);
-    //         if (mesh != node->GetMesh()) {
-    //             mesh = node->GetMesh();
-    //         }
-    //     }
-    // } else if (m_Scene->HasComponent<FMeshComponent>(entity)) {
-    //     m_Scene->RemoveComponent<FMeshComponent>(entity);
-    // }
+    if (!node->IsDirty()) return;
 
-    // Handle Material Component
-    // if (node->HasMaterial()) {
-    //     if (!m_Scene->HasComponent<FMaterialComponent>(entity)) {
-    //         AddMaterialComponent(entity, node->GetMaterial());
-    //     } else {
-    //         auto& material = m_Scene->GetComponent<FMaterialComponent>(entity);
-    //         if (material != node->GetMaterial()) {
-    //             material = node->GetMaterial();
-    //         }
-    //     }
-    // } else if (m_Scene->HasComponent<FMaterialComponent>(entity)) {
-    //     m_Scene->RemoveComponent<FMaterialComponent>(entity);
-    // }
+    if (node->HasTransform()) {
+        SyncTransformComponent(entity, node->GetTransformParams());
+    } else {
+        m_Scene->RemoveComponent<FTransformComponent>(entity);
+    }
+
+    // Handle Mesh Component - store only parameters
+    if (node->HasMesh()) {
+        SyncMeshComponent(entity, node->GetMeshParams());
+    } else if (m_Scene->HasComponent<FMeshComponent>(entity)) {
+        m_Scene->RemoveComponent<FMeshComponent>(entity);
+    }
 }
 
 // ===== Component Creation Helpers =====
-void FSyncLayer::AddTransformComponent(FEntity entity, const FTransformComponent& transform) {
-    m_Scene->AddComponent<FTransformComponent>(entity, transform);
+void FSyncLayer::SyncTransformComponent(FEntity entity, const FTransformParams* transformParams) {
+    bool hasTransformComp = m_Scene->HasComponent<FTransformComponent>(entity);
+    auto& comp = hasTransformComp ? m_Scene->GetComponent<FTransformComponent>(entity)
+                                  : m_Scene->AddComponent<FTransformComponent>(entity);
+    comp.SetTransformParams(*transformParams);
 }
 
-// void FSyncLayer::AddMeshComponent(FEntity entity, const FMeshComponent& mesh) {
-//     m_Scene->AddComponent<FMeshComponent>(entity, mesh);
-// }
+void FSyncLayer::SyncMeshComponent(FEntity entity, const FMeshParams* meshParams) {
+    bool hasMeshComp = m_Scene->HasComponent<FMeshComponent>(entity);
+    auto& comp = hasMeshComp ? m_Scene->GetComponent<FMeshComponent>(entity)
+                             : m_Scene->AddComponent<FMeshComponent>(entity);
+    comp.SetMeshParams(*meshParams);
+}
 
-// void FSyncLayer::AddMaterialComponent(FEntity entity, const FMaterialComponent& material) {
-//     m_Scene->AddComponent<FMaterialComponent>(entity, material);
-// }
-
-void FSyncLayer::AddRelationshipComponent(FEntity entity, FEntity parent) {
+void FSyncLayer::SyncRelationshipComponent(FEntity entity, FEntity parent) {
     if (!m_Scene->HasComponent<FRelationshipComponent>(entity)) {
         m_Scene->AddComponent<FRelationshipComponent>(entity);
     }
@@ -334,7 +291,6 @@ void FSyncLayer::AddRelationshipComponent(FEntity entity, FEntity parent) {
 }
 
 // ===== Validation =====
-
 bool FSyncLayer::ValidateMapping(FEditorNode* node) const {
     auto it = m_NodeToEntity.find(node);
     if (it == m_NodeToEntity.end()) return false;

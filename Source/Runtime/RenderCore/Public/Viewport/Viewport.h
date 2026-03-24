@@ -4,6 +4,7 @@
 #include "RHICommandList.h"
 #include "RHIContext.h"
 #include "RHIFrameBuffer.h"
+#include "Scene.h"
 #include "SceneCamera.h"
 #include "Scope.h"
 
@@ -23,9 +24,11 @@ public:
     void EndRender(IRHICommandList* cmdList);
     void Resize(uint32_t width, uint32_t height);
 
+    void SetScene(FScene* scene) { m_Scene = scene; }
+
+    FScene* GetScene() const { return m_Scene; }
     TRef<CSceneCamera> GetCamera() { return m_Camera; }
     const TRef<CSceneCamera> GetCamera() const { return m_Camera; }
-
     TRef<IRHIFrameBuffer> GetFrameBuffer() const { return m_FrameBuffer; }
     void* GetTextureID(int index) const {
         return m_FrameBuffer->GetColorAttachment(index)->GetDescriptorSet();
@@ -43,6 +46,7 @@ private:
     IRHIContext* m_Context;
     FViewportSpecification m_Spec;
 
+    FScene* m_Scene;
     TRef<CSceneCamera> m_Camera;
     TRef<IRHIFrameBuffer> m_FrameBuffer;
 

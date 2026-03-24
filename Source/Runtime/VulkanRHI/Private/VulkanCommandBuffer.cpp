@@ -64,6 +64,23 @@ void CVulkanCommandBuffer::BindPipeline(TRef<IRHIPipeline> pipeline) {
     m_Handle.bindPipeline(vk::PipelineBindPoint::eGraphics, vlkPipeline);
 }
 
+void CVulkanCommandBuffer::PushConstants(const void* data, uint32_t size, uint32_t offset) {
+    PushConstants(VK_SHADER_STAGE_VERTEX_BIT, data, size, offset);
+}
+
+void CVulkanCommandBuffer::PushConstants(VkShaderStageFlags stageFlags, const void* data,
+                                         uint32_t size, uint32_t offset) {
+    auto vkCommandBuffer = GetVKCommandBuffer();
+    vk::PipelineLayout pipelineLayout = m_CurrentPipeline->GetPipelineLayout();
+    if (!pipelineLayout) {
+        CZ_LOG(LogVulkan, Error, "Invalid pipeline layout");
+        return;
+    }
+
+    vkCommandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlags(stageFlags), offset, size,
+                                  data);
+}
+
 void CVulkanCommandBuffer::BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) {
     auto device = m_CommandPool->GetDevice().lock();
     auto vkCommandBuffer = GetVKCommandBuffer();

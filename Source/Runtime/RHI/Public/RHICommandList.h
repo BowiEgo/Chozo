@@ -28,6 +28,7 @@ public:
     virtual void SetScissor(const FRHIScissor& scissor) = 0;
     virtual void SetPolygonMode(EPolygonMode mode) = 0;
     virtual void BindPipeline(TRef<IRHIPipeline> pipeline) = 0;
+    virtual void PushConstants(const void* data, uint32_t size, uint32_t offset) = 0;
     virtual void BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) = 0;
     virtual void BindVertexBuffer(TRef<IRHIBuffer> vertexBuffer, int binding) = 0;
     virtual void BindIndexBuffer(TRef<IRHIBuffer> indexBuffer) = 0;

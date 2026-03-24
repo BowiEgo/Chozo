@@ -168,3 +168,14 @@ inline const FVector2 FVector2::Up(0.0f, 1.0f);
 inline const FVector2 FVector2::Down(0.0f, -1.0f);
 inline const FVector2 FVector2::Right(1.0f, 0.0f);
 inline const FVector2 FVector2::Left(-1.0f, 0.0f);
+
+namespace std {
+template <> struct hash<FVector2> {
+    size_t operator()(const FVector2& v) const noexcept {
+        size_t seed = 0;
+        seed ^= hash<float>{}(v.x) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= hash<float>{}(v.y) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        return seed;
+    }
+};
+} // namespace std

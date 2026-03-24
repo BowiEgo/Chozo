@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 #include "CameraUniformManager.h"
+#include "MeshManager.h"
 #include "ModuleUtils.h"
 #include "RHIAPI.h"
 #include "ShaderManager.h"
@@ -59,6 +60,7 @@ void CRenderer::Init() {
                                    { EShaderDataType::Float2, "a_TexCoord" },
                                    { EShaderDataType::Float3, "a_Tangent" },
                                    { EShaderDataType::Float3, "a_Bitangent" } };
+        solidSpec.PushConstantRanges = { { 0, sizeof(FMatrix4) + sizeof(FMatrix3) } };
         m_SolidPipeline = IRHIAPI::CreatePipeline(m_GraphicContext.get(), solidSpec);
 
         FPipelineSpecification wireSpec = solidSpec;
@@ -69,11 +71,11 @@ void CRenderer::Init() {
 
     SetPolygonMode(EPolygonMode::Fill);
 
-    m_Cube = CreateRef<FCube>();
-    m_Cube->Upload(m_GraphicContext.get());
+    // m_Cube = CreateRef<FCube>();
+    // m_Cube->Upload(m_GraphicContext.get());
 
-    m_Sphere = CreateRef<FSphere>();
-    m_Sphere->Upload(m_GraphicContext.get());
+    // m_Sphere = CreateRef<FSphere>();
+    // m_Sphere->Upload(m_GraphicContext.get());
 }
 
 void CRenderer::Tick(float deltaTime) {
@@ -97,7 +99,7 @@ void CRenderer::Tick(float deltaTime) {
             viewport->BeginRender(cmdList.get(), m_CurrentPipeline);
             // cmdList->Draw(3, 1, 0, 0);
             // m_Cube->Draw(cmdList.get());
-            m_Sphere->Draw(cmdList.get());
+            // m_Sphere->Draw(cmdList.get());
             // cmdList->BindVertexBuffer(m_Cube->GetVertexBuffer(), 0); // binding = 0
             // cmdList->BindIndexBuffer(m_Cube->GetIndexBuffer());
             // cmdList->DrawIndexed(m_Cube->GetIndexCount(), 1, 0, 0, 0);
@@ -130,8 +132,8 @@ void CRenderer::Shutdown() {
 
     m_GraphicContext->GetDevice()->WaitIdle();
 
-    m_Cube = nullptr;
-    m_Sphere = nullptr;
+    // m_Cube = nullptr;
+    // m_Sphere = nullptr;
 
     m_Viewports.clear();
     m_SolidPipeline = nullptr;
@@ -145,6 +147,7 @@ void CRenderer::Shutdown() {
     }
 
     CCameraUniformManager::Get().Shutdown();
+    FMeshManager::Get().Shutdown();
 
     m_GraphicContext.reset();
 }

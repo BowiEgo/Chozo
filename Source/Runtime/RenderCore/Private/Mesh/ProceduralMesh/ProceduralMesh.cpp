@@ -4,24 +4,22 @@
 
 DEFINE_LOG_CATEGORY(LogProceduralMesh);
 
-FProceduralMesh::~FProceduralMesh() { delete m_Buffer; }
+FProceduralMesh::~FProceduralMesh() {}
 
 void FProceduralMesh::Upload(IRHIContext* ctx) {
-    if (m_Buffer->Vertexs.empty() || m_Buffer->Indices.empty()) {
+    if (!m_Buffer.IsValid()) {
         CZ_LOG(LogProceduralMesh, Error, "No vertex or index data to upload");
         return;
     }
 
-    m_Buffer->IndexCount = m_Buffer->Indices.size() * 3;
-
     {
         FBufferSpecification spec;
-        spec.Size = m_Buffer->Vertexs.size() * sizeof(FVertex);
+        spec.Size = m_Buffer.GetVertexBufferSize();
         spec.Usage = EBufferUsage::VertexBuffer;
         spec.MemoryType = EMemoryType::HostVisible | EMemoryType::HostCoherent;
         spec.Name = "ProceduralMesh_VertexBuffer";
 
-        FBuffer data(m_Buffer->Vertexs.data(), spec.Size);
+        FBuffer data(m_Buffer.Vertices.data(), spec.Size);
 
         m_VertexBuffer = IRHIAPI::CreateBuffer(ctx, spec, data);
         if (!m_VertexBuffer) {
@@ -32,8 +30,8 @@ void FProceduralMesh::Upload(IRHIContext* ctx) {
 
     {
         std::vector<uint32> flatIndices;
-        flatIndices.reserve(m_Buffer->Indices.size() * 3);
-        for (const auto& idx : m_Buffer->Indices) {
+        flatIndices.reserve(m_Buffer.GetIndexCount());
+        for (const auto& idx : m_Buffer.Indices) {
             flatIndices.push_back(idx.V1);
             flatIndices.push_back(idx.V2);
             flatIndices.push_back(idx.V3);
@@ -55,7 +53,7 @@ void FProceduralMesh::Upload(IRHIContext* ctx) {
     }
 
     CZ_LOG(LogProceduralMesh, Info, "Uploaded mesh with {} vertices, {} indices",
-           m_Buffer->Vertexs.size(), m_Buffer->IndexCount);
+           m_Buffer.GetVertexCount(), m_Buffer.GetIndexCount());
 }
 
 void FProceduralMesh::Draw(IRHICommandList* cmdList) {
@@ -66,13 +64,13 @@ void FProceduralMesh::Draw(IRHICommandList* cmdList) {
 
     cmdList->BindVertexBuffer(m_VertexBuffer, 0);
     cmdList->BindIndexBuffer(m_IndexBuffer);
-    cmdList->DrawIndexed(m_Buffer->IndexCount);
+    cmdList->DrawIndexed(m_Buffer.GetIndexCount());
 }
 
-void FProceduralMesh::Backup() {
-    CZ_LOG(LogProceduralMesh, Trace, "Backup called - no implementation");
-}
+// void FProceduralMesh::Backup() {
+//     CZ_LOG(LogProceduralMesh, Trace, "Backup called - no implementation");
+// }
 
-void FProceduralMesh::Backtrace() {
-    CZ_LOG(LogProceduralMesh, Trace, "Backtrace called - no implementation");
-}
+// void FProceduralMesh::Backtrace() {
+//     CZ_LOG(LogProceduralMesh, Trace, "Backtrace called - no implementation");
+// }

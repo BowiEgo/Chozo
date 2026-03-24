@@ -1,7 +1,6 @@
 #include "Scene.h"
-#include "NameComponent.h"
-#include "RelationshipComponent.h"
-#include "TransformComponent.h"
+
+#include "Components.h"
 
 DEFINE_LOG_CATEGORY(LogScene);
 
@@ -132,6 +131,38 @@ std::vector<FEntity> FScene::GetChildren(FEntity entity) {
         return {};
     }
     return GetComponent<FRelationshipComponent>(entity).Children;
+}
+
+void FScene::Draw(IRHIContext* ctx, IRHICommandList* cmdList) {
+    auto view = View<FMeshComponent, FTransformComponent>();
+
+    for (auto entity : view) {
+        auto& meshComp = view.get<FMeshComponent>(entity);
+
+        FEntity fentity(entity);
+
+        if (meshComp.IsValid()) {
+            auto mesh = FMeshManager::Get().GetMesh(meshComp.MeshHandle);
+            if (meshComp.IsDirty()) {
+                meshComp.UpdateMesh();
+                mesh->Upload(ctx);
+                CZ_LOG(LogScene, Trace, "UpdateMesh");
+            }
+
+            auto& transformComp = view.get<FTransformComponent>(entity);
+
+            struct {
+                FMatrix4 ModelMatrix;
+                FMatrix3 NormalMatrix;
+            } pushConstants;
+
+            pushConstants.ModelMatrix = transformComp.GetModel();
+            pushConstants.NormalMatrix = transformComp.GetNormal(pushConstants.ModelMatrix);
+            cmdList->PushConstants(&pushConstants, sizeof(pushConstants), 0);
+
+            mesh->Draw(cmdList);
+        }
+    }
 }
 
 // ===== Serialization =====
