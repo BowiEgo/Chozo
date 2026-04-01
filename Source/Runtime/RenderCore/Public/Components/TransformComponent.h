@@ -8,6 +8,8 @@
 
 struct FTransformComponent {
     FTransformParams TransformParams;
+    FMatrix4 WorldMatrix = FMatrix4::Identity();
+    FMatrix3 WorldNormalMatrix = FMatrix3::Identity();
 
     // ===== State =====
     mutable uint32_t Revision = 0;
@@ -38,7 +40,7 @@ struct FTransformComponent {
     FVector3 GetRight() const { return TransformParams.Rotation * FVector3::Right; }
     FVector3 GetUp() const { return TransformParams.Rotation * FVector3::Up; }
     FVector3 GetRotationEuler() const { return TransformParams.Rotation.ToEuler(); }
-    FMatrix4 GetModel() const {
+    FMatrix4 GetLocalMatrix() const {
         // T * R * S
         FMatrix4 translationMatrix = FMatrix4::Translate(GetTranslation());
         FMatrix4 rotationMatrix = GetRotation().ToMatrix4();
@@ -47,8 +49,7 @@ struct FTransformComponent {
         return translationMatrix * rotationMatrix * scaleMatrix;
     }
 
-    FMatrix3 GetNormal(const FMatrix4& model) const {
-
+    FMatrix3 GetNormalMatrix(const FMatrix4& model) const {
         // glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
         return model.ToMatrix3().Inverse().Transpose();
     }

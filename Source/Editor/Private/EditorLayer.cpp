@@ -38,7 +38,6 @@ void EditorLayer::OnAttach() {
     mainCamera->SetPosition(FVector3(0, 0, 5));
 
     m_SyncLayer = CreateScope<FSyncLayer>(m_Scene.get());
-    m_SyncLayer->RegisterNode(m_NodeTree.GetRoot());
 
     CallbackHandle handle = m_NodeTree.RegisterEventCallback([this](const FNodeEvent& event) {
         switch (event.GetType()) {

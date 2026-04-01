@@ -247,7 +247,7 @@ void SceneHierarchyPanel::DrawFlattenedNode(FEditorNode* node, int depth) {
 
 void SceneHierarchyPanel::CreateNode(const std::string name, const uint32_t typeBit,
                                      FEditorNode* parent) {
-    auto newNode = m_NodeTree->CreateNode(name, typeBit);
+    auto newNode = m_NodeTree->CreateNode(name, typeBit, parent);
 
     if (parent) {
         newNode->SetParent(parent);

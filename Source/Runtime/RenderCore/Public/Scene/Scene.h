@@ -5,8 +5,11 @@
 
 #include "Asset.h"
 #include "Entity.h"
+#include "MeshParams.h"
 #include "RHICommandList.h"
 #include "RHIContext.h"
+#include "TransformParams.h"
+#include "TransformSystem.h"
 
 #include "entt/entt.hpp"
 
@@ -28,6 +31,12 @@ public:
     FEntity GetParent(FEntity entity);
     void SetParent(FEntity child, FEntity parent);
     std::vector<FEntity> GetChildren(FEntity entity);
+
+    // ----- Transform -----
+    void SetTransform(FEntity entity, const FTransformParams& params);
+
+    // ----- Mesh -----
+    void SetMesh(FEntity entity, const FMeshParams& params);
 
     // ===== Component Operations =====
     template <typename T, typename... Args> T& AddComponent(FEntity entity, Args&&... args) {
@@ -73,4 +82,6 @@ public:
 private:
     entt::registry m_Registry;
     std::string m_Name;
+
+    FTransformSystem m_TransformSystem{ this };
 };

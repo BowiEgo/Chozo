@@ -31,8 +31,9 @@ void FSyncLayer::RegisterNode(FEditorNode* node) {
     // }
 
     // Add Relationship component if parent exists
-    if (node->GetParent()) {
-        auto parentIt = m_NodeToEntity.find(node->GetParent());
+    FEditorNode* parentNode = node->GetParent();
+    if (parentNode) {
+        auto parentIt = m_NodeToEntity.find(parentNode);
         if (parentIt != m_NodeToEntity.end()) {
             SyncRelationshipComponent(entity, parentIt->second);
         }
@@ -260,34 +261,15 @@ void FSyncLayer::SyncComponents(FEditorNode* node, FEntity entity) {
 
 // ===== Component Creation Helpers =====
 void FSyncLayer::SyncTransformComponent(FEntity entity, const FTransformParams* transformParams) {
-    bool hasTransformComp = m_Scene->HasComponent<FTransformComponent>(entity);
-    auto& comp = hasTransformComp ? m_Scene->GetComponent<FTransformComponent>(entity)
-                                  : m_Scene->AddComponent<FTransformComponent>(entity);
-    comp.SetTransformParams(*transformParams);
+    m_Scene->SetTransform(entity, *transformParams);
 }
 
 void FSyncLayer::SyncMeshComponent(FEntity entity, const FMeshParams* meshParams) {
-    bool hasMeshComp = m_Scene->HasComponent<FMeshComponent>(entity);
-    auto& comp = hasMeshComp ? m_Scene->GetComponent<FMeshComponent>(entity)
-                             : m_Scene->AddComponent<FMeshComponent>(entity);
-    comp.SetMeshParams(*meshParams);
+    m_Scene->SetMesh(entity, *meshParams);
 }
 
 void FSyncLayer::SyncRelationshipComponent(FEntity entity, FEntity parent) {
-    if (!m_Scene->HasComponent<FRelationshipComponent>(entity)) {
-        m_Scene->AddComponent<FRelationshipComponent>(entity);
-    }
-    auto& rel = m_Scene->GetComponent<FRelationshipComponent>(entity);
-    rel.Parent = parent;
-
-    // Add child to parent's relationship component
-    if (parent.IsValid()) {
-        if (!m_Scene->HasComponent<FRelationshipComponent>(parent)) {
-            m_Scene->AddComponent<FRelationshipComponent>(parent);
-        }
-        auto& parentRel = m_Scene->GetComponent<FRelationshipComponent>(parent);
-        parentRel.Children.push_back(entity);
-    }
+    m_Scene->SetParent(entity, parent);
 }
 
 // ===== Validation =====
