@@ -103,9 +103,14 @@ public:
     int GetDepth() const;
 
     // ===== State =====
-    void MarkDirty() { m_Dirty = true; }
-    void ClearDirty() { m_Dirty = false; }
-    bool IsDirty() const { return m_Dirty; }
+    void Open() { m_bOpen = true; }
+    void Close() { m_bOpen = false; }
+    void ToggleOpen() { m_bOpen = !m_bOpen; }
+    bool IsOpen() const { return m_bOpen; }
+
+    void MarkDirty() { m_bDirty = true; }
+    void ClearDirty() { m_bDirty = false; }
+    bool IsDirty() const { return m_bDirty; }
 
     // ===== Tags =====
     bool HasTags() const { return !m_Tags.empty(); }
@@ -172,5 +177,6 @@ private:
     FMeshParams m_MeshParams;
 
     // State
-    bool m_Dirty = false;
+    bool m_bDirty = false;
+    bool m_bOpen = false;
 };

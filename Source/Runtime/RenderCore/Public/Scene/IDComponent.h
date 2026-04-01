@@ -4,7 +4,7 @@
 #include "UUID.h"
 
 struct FIDComponent {
-    UUID ID;
+    FUUID ID;
 
     FIDComponent() = default;
     FIDComponent(const FIDComponent&) = default;

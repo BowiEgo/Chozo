@@ -23,7 +23,11 @@ public:
     virtual void Draw(const char* title, bool* p_open) override;
 
     void FlattenTree(FEditorNode* node, int depth);
+    void FlattenTreeFiltered(FEditorNode* node, int depth);
     void DrawFlattenedNode(FEditorNode* node, int depth);
+
+private:
+    void CreateNode(const std::string name, const uint32_t typeBit, FEditorNode* parent);
 
 private:
     ImGuiTextFilter m_Filter;

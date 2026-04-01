@@ -48,18 +48,19 @@ void SceneHierarchyPanel::Draw(const char* title, bool* p_open) {
     // ===== Popup =====
     if (ImGui::BeginPopup("CreateNodePopup")) {
         auto nodeBit = FRegistryManager::Get().GetBit("Node_Regular");
+        auto selectedNode = m_NodeTree->GetSelectedNode();
 
         if (ImGui::MenuItem("Empty Node")) {
             auto emptyBit = FRegistryManager::Get().GetBit("Node_Empty");
-            m_NodeTree->CreateNode("Empty", emptyBit);
+            CreateNode("Empty", nodeBit |= emptyBit, selectedNode);
         }
         if (ImGui::MenuItem("Sphere")) {
             auto sphereBit = FRegistryManager::Get().GetBit("Mesh_Sphere");
-            m_NodeTree->CreateNode("Sphere", nodeBit |= sphereBit);
+            CreateNode("Sphere", nodeBit |= sphereBit, selectedNode);
         }
         if (ImGui::MenuItem("Cube")) {
             auto cubeBit = FRegistryManager::Get().GetBit("Mesh_Cube");
-            m_NodeTree->CreateNode("Cube", nodeBit |= cubeBit);
+            CreateNode("Cube", nodeBit |= cubeBit, selectedNode);
         }
         if (ImGui::MenuItem("Cylinder")) {
         }
@@ -91,17 +92,37 @@ void SceneHierarchyPanel::FlattenTree(FEditorNode* node, int depth) {
 
     bool isRoot = node->IsRoot();
 
-    if (!isRoot) m_FlattenedView.push_back({ node, depth });
+    if (m_Filter.IsActive()) {
+        if (!isRoot && m_Filter.PassFilter(node->GetName().c_str()))
+            m_FlattenedView.push_back({ node, depth });
 
-    ImGuiID node_id = ImGui::GetID((void*)(intptr_t)node->GetID());
-    bool is_open = ImGui::GetStateStorage()->GetInt(node_id, 0) != 0;
-
-    if (is_open || isRoot) {
         for (FEditorNode* child : node->GetChildren()) {
-            if (m_Filter.PassFilter(child->GetName().c_str())) {
-                FlattenTree(child, depth + (isRoot ? 0 : 1));
+            FlattenTree(child, depth + (isRoot ? 0 : 1));
+        }
+    } else {
+        if (!isRoot) m_FlattenedView.push_back({ node, depth });
+
+        if (node->IsOpen() || isRoot) {
+            for (FEditorNode* child : node->GetChildren()) {
+                if (m_Filter.PassFilter(child->GetName().c_str())) {
+                    FlattenTree(child, depth + (isRoot ? 0 : 1));
+                }
             }
         }
+    }
+}
+
+void SceneHierarchyPanel::FlattenTreeFiltered(FEditorNode* node, int depth) {
+    if (!node) return;
+
+    bool isRoot = node->IsRoot();
+
+    if (!isRoot && m_Filter.PassFilter(node->GetName().c_str())) {
+        m_FlattenedView.push_back({ node, depth });
+    }
+
+    for (FEditorNode* child : node->GetChildren()) {
+        FlattenTreeFiltered(child, depth + (isRoot ? 0 : 1));
     }
 }
 
@@ -147,21 +168,20 @@ void SceneHierarchyPanel::DrawFlattenedNode(FEditorNode* node, int depth) {
     if (node->GetChildren().empty())
         tree_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
 
-    bool is_open = ImGui::TreeNodeBehavior(node_id, tree_flags, node->GetName().c_str());
+    ImGui::SetNextItemOpen(node->IsOpen(), ImGuiCond_Always);
+    ImGui::TreeNodeBehavior(node_id, tree_flags, node->GetName().c_str());
 
-    if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0)) {
+    if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0) && !ImGui::IsItemToggledOpen()) {
         m_NodeTree->SelectNode(node);
         ImGui::SetKeyboardFocusHere(-1);
     }
 
-    if (ImGui::IsItemFocused() && ImGui::IsKeyPressed(ImGuiKey_Enter) &&
-        !ImGui::IsItemActivated()) {
-        ImGui::ActivateItemByID(node_id);
+    if (ImGui::IsItemToggledOpen() || ImGui::IsItemFocused() &&
+                                          ImGui::IsKeyPressed(ImGuiKey_Enter) &&
+                                          !ImGui::IsItemActivated()) {
+        node->ToggleOpen();
     }
 
-    if (ImGui::IsItemActivated() || ImGui::IsItemFocused()) {
-        m_NodeTree->SelectNode(node);
-    }
     // --- TreeNode End ---
 
     // --- Context Menu Begin ---
@@ -196,12 +216,14 @@ void SceneHierarchyPanel::DrawFlattenedNode(FEditorNode* node, int depth) {
                 }
                 if (ImGui::MenuItem("Sphere")) {
                     auto sphereBit = FRegistryManager::Get().GetBit("Mesh_Sphere");
-                    m_NodeTree->CreateNode("Sphere", nodeBit |= sphereBit);
+                    CreateNode("Sphere", nodeBit |= sphereBit, node);
+
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("Cube")) {
                     auto cubeBit = FRegistryManager::Get().GetBit("Mesh_Cube");
-                    m_NodeTree->CreateNode("Cube", nodeBit |= cubeBit);
+                    CreateNode("Cube", nodeBit |= cubeBit, node);
+
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::MenuItem("Cylinder")) {
@@ -221,4 +243,15 @@ void SceneHierarchyPanel::DrawFlattenedNode(FEditorNode* node, int depth) {
     }
     ImGui::PopID();
     // --- Context Menu End ---
+}
+
+void SceneHierarchyPanel::CreateNode(const std::string name, const uint32_t typeBit,
+                                     FEditorNode* parent) {
+    auto newNode = m_NodeTree->CreateNode(name, typeBit);
+
+    if (parent) {
+        newNode->SetParent(parent);
+        parent->Open(); // Ensure parent is open to show the new child
+    }
+    m_NodeTree->SelectNode(newNode);
 }
