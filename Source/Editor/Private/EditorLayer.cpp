@@ -85,7 +85,7 @@ void EditorLayer::OnDetach() {
 
 void EditorLayer::OnUpdate(float deltaTime) {
     m_Viewport->Resize(m_ViewportSize.x, m_ViewportSize.y);
-    m_EditorCamera.OnUpdate(deltaTime);
+    m_EditorCamera.OnUpdate(deltaTime, m_ViewportFocused);
     // m_EditorCamera.CopyTo(m_Viewport->GetCamera());
 
     m_SyncLayer->SyncAllNodesToEntities();
@@ -162,9 +162,13 @@ void EditorLayer::OnImGuiRender() {
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
     ImGui::Begin("Viewport##Editor", nullptr, viewportFlags);
 
-    // m_ViewportFocused = ImGui::IsWindowFocused();
-    // m_ViewportHovered = ImGui::IsWindowHovered();
-    // Application::Get().GetImGuiLayer().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+    // Block event pass-through to the underlying scene when the viewport window is neither focused
+    // nor hovered.
+    // This ensures that ImGui handles input when interacting with other UI elements, while allowing
+    // the scene to receive input when the viewport is active.
+    m_ViewportFocused = ImGui::IsWindowFocused();
+    m_ViewportHovered = ImGui::IsWindowHovered();
+    CApplication::Get()->GetImGuiLayer().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
     auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
     m_ViewportSize = ImGui::GetContentRegionAvail();
@@ -213,7 +217,7 @@ void EditorLayer::OnImGuiRender() {
 }
 
 void EditorLayer::OnEvent(IEvent& e) {
-    m_EditorCamera.OnEvent(e);
+    if (m_ViewportFocused && m_ViewportHovered) m_EditorCamera.OnEvent(e);
 
     FEventDispatcher dispatcher(e);
     dispatcher.Dispatch<FKeyPressedEvent>(CZ_BIND_EVENT_FN(EditorLayer::OnKeyPressed));

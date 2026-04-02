@@ -67,6 +67,7 @@ public:
     PerformanceProfiler* GetPerformanceProfiler() { return m_Profiler.get(); }
     FPSCounter* GetFPSCounter() { return &m_FPSCounter; }
     EAppPowerMode GetPowerMode() { return m_PowerMode; }
+    CImGuiLayer& GetImGuiLayer() const { return *m_ImGuiLayer; }
 
     static CApplication* Get() { return s_Instance; }
 

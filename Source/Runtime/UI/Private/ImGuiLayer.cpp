@@ -86,14 +86,6 @@ void CImGuiLayer::OnEvent(IEvent& e) {
         handled |= e.isInCategory(EventCategory_Keyboard) & io.WantCaptureKeyboard;
         e.SetHandled(handled);
     }
-
-    if (typeid(e) == typeid(FWindowContentScaledEvent)) {
-        auto& scaledEvent = static_cast<FWindowContentScaledEvent&>(e);
-
-        // SetFont("/fonts/Titillium_Web/TitilliumWeb-Regular.ttf");
-        // ImGui_ImplOpenGL3_DestroyFontsTexture();
-        // ImGui_ImplOpenGL3_CreateFontsTexture();
-    }
 }
 
 void CImGuiLayer::Draw(const TRef<IRHICommandList>& cmdBuffer) {

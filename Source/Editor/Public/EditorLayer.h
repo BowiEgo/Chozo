@@ -47,6 +47,7 @@ private:
     CViewport* m_Viewport;
     CRenderer* m_ViewportRenderer;
     ImVec2 m_ViewportSize{ 1080, 720 };
+    bool m_ViewportFocused{}, m_ViewportHovered{};
 
     bool m_VSyncEnabled = true;
 

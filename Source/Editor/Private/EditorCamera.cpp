@@ -12,11 +12,13 @@ CEditorCamera::CEditorCamera(float fov, float aspectRatio, float nearClip, float
     m_ActiveCamera = CreateRef<CSceneCamera>(fov, aspectRatio, nearClip, farClip);
 }
 
-void CEditorCamera::OnUpdate(float deltaTime) {
+void CEditorCamera::OnUpdate(float deltaTime, bool bUpdateInput) {
     if (SInput::IsKeyPressed(CZ_KEY(LeftAlt))) {
         const FVector2& mouse{ SInput::GetMouseX(), SInput::GetMouseY() };
         FVector2 delta = (mouse - m_InitialMousePosition) * 0.003f;
         m_InitialMousePosition = mouse;
+
+        if (!bUpdateInput) return;
 
         if (SInput::IsMouseButtonPressed(EMouseButton::Middle))
             MousePan(delta);

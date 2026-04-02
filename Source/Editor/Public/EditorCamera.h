@@ -14,7 +14,7 @@ public:
     CEditorCamera() = default;
     CEditorCamera(float fov, float aspectRatio, float nearClip, float farClip);
 
-    void OnUpdate(float deltaTime);
+    void OnUpdate(float deltaTime, bool bUpdateInput);
     void OnEvent(IEvent& e);
     void SetActiveCamera(TRef<CSceneCamera> camera) { m_ActiveCamera = camera; }
     void CopyTo(TRef<CSceneCamera> target) const {

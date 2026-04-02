@@ -71,7 +71,7 @@ void SceneHierarchyPanel::Draw(const char* title, bool* p_open) {
     }
 
     // Left-click on blank space
-    if (ImGui::GetIO().MouseClicked[0] && ImGui::IsWindowHovered()) {
+    if (ImGui::IsMouseClicked(0) && ImGui::IsWindowHovered()) {
         m_NodeTree->ClearSelection(); // Deselect when clicking on empty space
     }
 
