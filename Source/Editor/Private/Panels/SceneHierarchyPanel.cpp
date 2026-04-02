@@ -1,5 +1,7 @@
 #include "SceneHierarchyPanel.h"
 
+#include "UIUtils.h"
+
 #include <imgui_internal.h>
 
 DEFINE_LOG_CATEGORY(LogSceneHierarchyPanel);
@@ -30,7 +32,7 @@ void SceneHierarchyPanel::Draw(const char* title, bool* p_open) {
     ImGui::PopItemFlag();
 
     if (ImGui::Button("+")) {
-        ImGui::OpenPopup("CreateNodePopup");
+        ImGui::OpenPopup("CreatingPopup");
     }
 
     ImGui::SameLine();
@@ -45,25 +47,8 @@ void SceneHierarchyPanel::Draw(const char* title, bool* p_open) {
         ImGui::EndTooltip();
     }
 
-    // ===== Popup =====
-    if (ImGui::BeginPopup("CreateNodePopup")) {
-        auto nodeBit = FRegistryManager::Get().GetBit("Node_Regular");
-        auto selectedNode = m_NodeTree->GetSelectedNode();
-
-        if (ImGui::MenuItem("Empty Node")) {
-            auto emptyBit = FRegistryManager::Get().GetBit("Node_Empty");
-            CreateNode("Empty", nodeBit |= emptyBit, selectedNode);
-        }
-        if (ImGui::MenuItem("Sphere")) {
-            auto sphereBit = FRegistryManager::Get().GetBit("Mesh_Sphere");
-            CreateNode("Sphere", nodeBit |= sphereBit, selectedNode);
-        }
-        if (ImGui::MenuItem("Cube")) {
-            auto cubeBit = FRegistryManager::Get().GetBit("Mesh_Cube");
-            CreateNode("Cube", nodeBit |= cubeBit, selectedNode);
-        }
-        if (ImGui::MenuItem("Cylinder")) {
-        }
+    if (ImGui::BeginPopup("CreatingPopup")) {
+        DrawCreatingContextMenu(m_NodeTree->GetSelectedNode());
         ImGui::EndPopup();
     }
 
@@ -81,10 +66,84 @@ void SceneHierarchyPanel::Draw(const char* title, bool* p_open) {
                 DrawFlattenedNode(item.Node, item.Depth);
             }
         }
+
         ImGui::EndTable();
     }
 
+    // Left-click on blank space
+    if (ImGui::GetIO().MouseClicked[0] && ImGui::IsWindowHovered()) {
+        m_NodeTree->ClearSelection(); // Deselect when clicking on empty space
+    }
+
+    // Right-click on blank space
+    if (ImGui::BeginPopupContextWindow(nullptr, 1 | ImGuiPopupFlags_NoOpenOverItems)) {
+        m_NodeTree->ClearSelection();
+        DrawCreatingContextMenu(nullptr);
+        ImGui::EndPopup();
+    }
+
     ImGui::End();
+}
+
+void SceneHierarchyPanel::DrawCreatingContextMenu(FEditorNode* parent) {
+    auto nodeBit = FRegistryManager::Get().GetBit("Node_Regular");
+
+    if (ImGui::MenuItem("Empty Node")) {
+        auto emptyBit = FRegistryManager::Get().GetBit("Node_Empty");
+        CreateNode("Empty", nodeBit |= emptyBit, parent);
+    }
+    if (ImGui::MenuItem("Camera")) {
+    }
+    if (ImGui::BeginMenu("Light")) {
+        if (ImGui::MenuItem("Directional")) {
+        }
+        if (ImGui::MenuItem("Point")) {
+        }
+        if (ImGui::MenuItem("Spot")) {
+        }
+        ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Geometry")) {
+        if (ImGui::MenuItem("Plane")) {
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::MenuItem("Sphere")) {
+            auto sphereBit = FRegistryManager::Get().GetBit("Mesh_Sphere");
+            CreateNode("Sphere", nodeBit |= sphereBit, parent);
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::MenuItem("Cube")) {
+            auto cubeBit = FRegistryManager::Get().GetBit("Mesh_Cube");
+            CreateNode("Cube", nodeBit |= cubeBit, parent);
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::MenuItem("Cylinder")) {
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::MenuItem("Cone")) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndMenu();
+    }
+}
+
+void SceneHierarchyPanel::DrawNodeContextMenu(FEditorNode* node) {
+    m_NodeTree->SelectNode(node); // Right-click also selects the node
+    if (ImGui::MenuItem("Rename")) {
+        // Trigger rename logic (e.g., set an 'IsEditing' flag)
+    }
+    if (ImGui::MenuItem("Delete", "Delete Key", false, node != m_NodeTree->GetRoot())) {
+        // Logic to remove node from parent's Childs vector
+        // Note: Actual deletion should happen outside the rendering loop to avoid crash
+        // PendingDeleteNode = node;
+        m_NodeTree->DeleteNode(node);
+    }
+    ImGui::Separator();
+
+    if (ImGui::BeginMenu("Create")) {
+        DrawCreatingContextMenu(node);
+        ImGui::EndMenu();
+    }
 }
 
 void SceneHierarchyPanel::FlattenTree(FEditorNode* node, int depth) {
@@ -155,13 +214,15 @@ void SceneHierarchyPanel::DrawFlattenedNode(FEditorNode* node, int depth) {
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (depth * indent_step));
 
     ImGuiID node_id = ImGui::GetID((void*)(intptr_t)node->GetID());
-    ImGui::PushID(node->GetID());
+    // ImGui::PushID(node->GetID());
+    ChozoUtils::UI::ScopedID id(node_id);
 
     ImGuiTreeNodeFlags tree_flags =
         ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick |
         ImGuiTreeNodeFlags_SpanFullWidth |
-        ImGuiTreeNodeFlags_NoTreePushOnOpen; // IMPORTANT: Use ImGuiTreeNodeFlags_NoTreePushOnOpen
-                                             // because we are handling the "recursion" manually via
+        ImGuiTreeNodeFlags_NoTreePushOnOpen; // IMPORTANT: Use
+                                             // ImGuiTreeNodeFlags_NoTreePushOnOpen because
+                                             // we are handling the "recursion" manually via
                                              // flattening.
 
     if (node == m_NodeTree->GetSelectedNode()) tree_flags |= ImGuiTreeNodeFlags_Selected;
@@ -176,6 +237,11 @@ void SceneHierarchyPanel::DrawFlattenedNode(FEditorNode* node, int depth) {
         ImGui::SetKeyboardFocusHere(-1);
     }
 
+    if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1)) {
+        CZ_LOG(LogSceneHierarchyPanel, Trace, "Right-clicked Node: {} (ID: {})",
+               node->GetName().c_str(), node->GetID());
+    }
+
     if (ImGui::IsItemToggledOpen() || ImGui::IsItemFocused() &&
                                           ImGui::IsKeyPressed(ImGuiKey_Enter) &&
                                           !ImGui::IsItemActivated()) {
@@ -186,62 +252,9 @@ void SceneHierarchyPanel::DrawFlattenedNode(FEditorNode* node, int depth) {
 
     // --- Context Menu Begin ---
     if (ImGui::BeginPopupContextItem()) {
-        m_NodeTree->SelectNode(node); // Right-click also selects the node
-        if (ImGui::MenuItem("Rename")) {
-            // Trigger rename logic (e.g., set an 'IsEditing' flag)
-        }
-        if (ImGui::MenuItem("Delete", "Delete Key", false, node != m_NodeTree->GetRoot())) {
-            // Logic to remove node from parent's Childs vector
-            // Note: Actual deletion should happen outside the rendering loop to avoid crash
-            // PendingDeleteNode = node;
-        }
-        ImGui::Separator();
-        if (ImGui::BeginMenu("Create")) {
-            if (ImGui::MenuItem("Camera")) {
-            }
-            if (ImGui::BeginMenu("Light")) {
-                if (ImGui::MenuItem("Directional")) {
-                }
-                if (ImGui::MenuItem("Point")) {
-                }
-                if (ImGui::MenuItem("Spot")) {
-                }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Geometry")) {
-                auto nodeBit = FRegistryManager::Get().GetBit("Node_Regular");
-
-                if (ImGui::MenuItem("Plane")) {
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::MenuItem("Sphere")) {
-                    auto sphereBit = FRegistryManager::Get().GetBit("Mesh_Sphere");
-                    CreateNode("Sphere", nodeBit |= sphereBit, node);
-
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::MenuItem("Cube")) {
-                    auto cubeBit = FRegistryManager::Get().GetBit("Mesh_Cube");
-                    CreateNode("Cube", nodeBit |= cubeBit, node);
-
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::MenuItem("Cylinder")) {
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::MenuItem("Cone")) {
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::MenuItem("Cylinder")) {
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndMenu();
-            }
-            ImGui::EndMenu();
-        }
+        DrawNodeContextMenu(node);
         ImGui::EndPopup();
     }
-    ImGui::PopID();
     // --- Context Menu End ---
 }
 
