@@ -120,16 +120,45 @@ struct FExtent2D {
     uint32 Height;
 };
 
+// clang-format off
 enum class EPixelFormat {
-    Unknown,
-    RGBA8_UNORM,
-    RGBA8_SRGB,
-    BGRA8_UNORM,
-    BGRA8_SRGB,
-    D32_SFLOAT,
-    D24_UNORM_S8_UINT,
-    D16_UNORM
+    Unknown,   // Undefined or invalid format
+
+    // --- Single-channel (R) ---
+    R8_UNORM,   // 8-bit unsigned normalized
+    R16_UNORM,  // 16-bit unsigned normalized
+    R16F,       // 16-bit float
+    R32F,       // 32-bit float
+
+    // --- Dual-channel (RG) ---
+    RG8_UNORM,  // 8-bit unsigned normalized per channel
+    RG16_UNORM, // 16-bit unsigned normalized per channel
+    RG16F,      // 16-bit float per channel
+    RG32F,      // 32-bit float per channel
+
+    // --- 8-bit 4-channel (RGBA/BGRA) ---
+    RGBA8_UNORM, // 8-bit unsigned normalized, linear
+    RGBA8_SRGB,  // 8-bit sRGB (gamma-corrected)
+    BGRA8_UNORM, // 8-bit unsigned normalized, BGR order, linear
+    BGRA8_SRGB,  // 8-bit sRGB, BGR order
+
+    // --- 16-bit 4-channel ---
+    RGBA16_UNORM, // 16-bit unsigned normalized per channel
+    RGBA16F,      // 16-bit float per channel
+
+    // --- 32-bit 4-channel ---
+    RGBA32F,      // 32-bit float per channel
+
+    // --- Special packed RGB formats (no alpha) ---
+    RGB9E5,       // 9:9:9:5 shared exponent, RGB
+    R11G11B10F,   // 11:11:10 float, no sign, RGB
+
+    // --- Depth / Stencil formats ---
+    D16_UNORM,          // 16-bit unsigned normalized depth
+    D24_UNORM_S8_UINT,  // 24-bit depth + 8-bit stencil
+    D32_SFLOAT          // 32-bit float depth
 };
+// clang-format on
 
 enum class ETextureUsage {
     None = 0,

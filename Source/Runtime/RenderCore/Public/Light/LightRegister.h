@@ -1,8 +1,9 @@
 #pragma once
 
 #include "TypeRegister.h"
+#include "RenderCoreExport.h"
 
-class FLightRegister {
+class RENDER_CORE_API FLightRegister {
 public:
     static FLightRegister& Get();
     static void Init();

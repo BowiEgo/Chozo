@@ -313,27 +313,81 @@ void LogMemoryBudget(vk::raii::PhysicalDevice& physicalDevice) {
 
 vk::Format ToVKFormat(EPixelFormat format) {
     switch (format) {
+        // Single-channel
+        case EPixelFormat::R8_UNORM: return vk::Format::eR8Unorm;
+        case EPixelFormat::R16_UNORM: return vk::Format::eR16Unorm;
+        case EPixelFormat::R16F: return vk::Format::eR16Sfloat;
+        case EPixelFormat::R32F: return vk::Format::eR32Sfloat;
+
+        // Dual-channel
+        case EPixelFormat::RG8_UNORM: return vk::Format::eR8G8Unorm;
+        case EPixelFormat::RG16_UNORM: return vk::Format::eR16G16Unorm;
+        case EPixelFormat::RG16F: return vk::Format::eR16G16Sfloat;
+        case EPixelFormat::RG32F: return vk::Format::eR32G32Sfloat;
+
+        // 8-bit 4-channel
         case EPixelFormat::RGBA8_UNORM: return vk::Format::eR8G8B8A8Unorm;
         case EPixelFormat::RGBA8_SRGB: return vk::Format::eR8G8B8A8Srgb;
         case EPixelFormat::BGRA8_UNORM: return vk::Format::eB8G8R8A8Unorm;
         case EPixelFormat::BGRA8_SRGB: return vk::Format::eB8G8R8A8Srgb;
-        case EPixelFormat::D32_SFLOAT: return vk::Format::eD32Sfloat;
-        case EPixelFormat::D24_UNORM_S8_UINT: return vk::Format::eD24UnormS8Uint;
+
+        // 16-bit 4-channel
+        case EPixelFormat::RGBA16_UNORM: return vk::Format::eR16G16B16A16Unorm;
+        case EPixelFormat::RGBA16F: return vk::Format::eR16G16B16A16Sfloat;
+
+        // 32-bit 4-channel
+        case EPixelFormat::RGBA32F: return vk::Format::eR32G32B32A32Sfloat;
+
+        // Special packed RGB
+        case EPixelFormat::RGB9E5: return vk::Format::eE5B9G9R9UfloatPack32;
+        case EPixelFormat::R11G11B10F: return vk::Format::eB10G11R11UfloatPack32;
+
+        // Depth/stencil
         case EPixelFormat::D16_UNORM: return vk::Format::eD16Unorm;
+        case EPixelFormat::D24_UNORM_S8_UINT: return vk::Format::eD24UnormS8Uint;
+        case EPixelFormat::D32_SFLOAT: return vk::Format::eD32Sfloat;
+
         default: return vk::Format::eUndefined;
     }
 }
 
-// [Note] Reverse mapping might be useful for Swapchain -> RHI conversion
 EPixelFormat FromVKFormat(vk::Format format) {
     switch (format) {
+        // Single-channel
+        case vk::Format::eR8Unorm: return EPixelFormat::R8_UNORM;
+        case vk::Format::eR16Unorm: return EPixelFormat::R16_UNORM;
+        case vk::Format::eR16Sfloat: return EPixelFormat::R16F;
+        case vk::Format::eR32Sfloat: return EPixelFormat::R32F;
+
+        // Dual-channel
+        case vk::Format::eR8G8Unorm: return EPixelFormat::RG8_UNORM;
+        case vk::Format::eR16G16Unorm: return EPixelFormat::RG16_UNORM;
+        case vk::Format::eR16G16Sfloat: return EPixelFormat::RG16F;
+        case vk::Format::eR32G32Sfloat: return EPixelFormat::RG32F;
+
+        // 8-bit 4-channel
         case vk::Format::eR8G8B8A8Unorm: return EPixelFormat::RGBA8_UNORM;
         case vk::Format::eR8G8B8A8Srgb: return EPixelFormat::RGBA8_SRGB;
         case vk::Format::eB8G8R8A8Unorm: return EPixelFormat::BGRA8_UNORM;
         case vk::Format::eB8G8R8A8Srgb: return EPixelFormat::BGRA8_SRGB;
-        case vk::Format::eD32Sfloat: return EPixelFormat::D32_SFLOAT;
-        case vk::Format::eD24UnormS8Uint: return EPixelFormat::D24_UNORM_S8_UINT;
+
+        // 16-bit 4-channel
+        case vk::Format::eR16G16B16A16Unorm: return EPixelFormat::RGBA16_UNORM;
+        case vk::Format::eR16G16B16A16Sfloat: return EPixelFormat::RGBA16F;
+
+        // 32-bit 4-channel
+        case vk::Format::eR32G32B32A32Sfloat: return EPixelFormat::RGBA32F;
+
+        // Special packed RGB (note: Vulkan stores these as BGR order, but we map to our RGB-named
+        // enums)
+        case vk::Format::eE5B9G9R9UfloatPack32: return EPixelFormat::RGB9E5;
+        case vk::Format::eB10G11R11UfloatPack32: return EPixelFormat::R11G11B10F;
+
+        // Depth/stencil
         case vk::Format::eD16Unorm: return EPixelFormat::D16_UNORM;
+        case vk::Format::eD24UnormS8Uint: return EPixelFormat::D24_UNORM_S8_UINT;
+        case vk::Format::eD32Sfloat: return EPixelFormat::D32_SFLOAT;
+
         default: return EPixelFormat::Unknown;
     }
 }

@@ -1,5 +1,12 @@
 #include "ContentBrowserPanel.h"
 
+#include "FileDialog.h"
+#include "FileSystemUtils.h"
+#include "RHIAPI.h"
+#include "TextureImporter.h"
+
+DEFINE_LOG_CATEGORY(LogContentBrowserPanel);
+
 static void HelpMarker(const char* desc) {
     ImGui::TextDisabled("(?)");
     if (ImGui::BeginItemTooltip()) {
@@ -20,6 +27,12 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
     // Menu bar
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Import")) {
+                UFileDialog::Get(m_Context).Open(
+                    "ContentBrowserImportDialog", "Open a texture",
+                    "Image file "
+                    "(*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.hdr){.png,.jpg,.jpeg,.bmp,.tga,.hdr},.*");
+            }
             if (ImGui::MenuItem("Add 10000 items")) AddItems(10000);
             if (ImGui::MenuItem("Clear items")) ClearItems();
             ImGui::Separator();
@@ -68,7 +81,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
             ImGui::TableHeadersRow();
             if (ImGuiTableSortSpecs* sort_specs = ImGui::TableGetSortSpecs())
                 if (sort_specs->SpecsDirty || RequestSort) {
-                    ExampleAsset::SortWithSortSpecs(sort_specs, Items.Data, Items.Size);
+                    ExampleAsset::SortWithSortSpecs(sort_specs, m_Items.Data, m_Items.Size);
                     sort_specs->SpecsDirty = RequestSort = false;
                 }
             ImGui::EndTable();
@@ -110,13 +123,13 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
         // favor of the new system)
         ms_flags |= ImGuiMultiSelectFlags_NavWrapX;
 
-        ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(ms_flags, Selection.Size, Items.Size);
+        ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(ms_flags, Selection.Size, m_Items.Size);
 
         // Use custom selection adapter: store ID in selection (recommended)
         Selection.UserData = this;
         Selection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self_, int idx) {
             ContentBrowserPanel* self = (ContentBrowserPanel*)self_->UserData;
-            return self->Items[idx].ID;
+            return self->m_Items[idx].ID;
         };
         Selection.ApplyRequests(ms_io);
 
@@ -124,13 +137,13 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
             (ImGui::Shortcut(ImGuiKey_Delete, ImGuiInputFlags_Repeat) && (Selection.Size > 0)) ||
             RequestDelete;
         const int item_curr_idx_to_focus =
-            want_delete ? Selection.ApplyDeletionPreLoop(ms_io, Items.Size) : -1;
+            want_delete ? Selection.ApplyDeletionPreLoop(ms_io, m_Items.Size) : -1;
         RequestDelete = false;
 
         // Push LayoutSelectableSpacing (which is LayoutItemSpacing minus hit-spacing, if we decide
         // to have hit gaps between items) Altering style ItemSpacing may seem unnecessary as we
         // position every items using SetCursorScreenPos()... But it is necessary for two reasons:
-        // - Selectables uses it by default to visually fill the space between two items.
+        // - Selectables uses it by default to visually fill the space between two m_Items.
         // - The vertical spacing would be measured by Clipper to calculate line height if we didn't
         // provide it explicitly (here we do).
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
@@ -156,10 +169,10 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
             for (int line_idx = clipper.DisplayStart; line_idx < clipper.DisplayEnd; line_idx++) {
                 const int item_min_idx_for_current_line = line_idx * column_count;
                 const int item_max_idx_for_current_line =
-                    IM_MIN((line_idx + 1) * column_count, Items.Size);
+                    IM_MIN((line_idx + 1) * column_count, m_Items.Size);
                 for (int item_idx = item_min_idx_for_current_line;
                      item_idx < item_max_idx_for_current_line; ++item_idx) {
-                    ExampleAsset* item_data = &Items[item_idx];
+                    ExampleAsset* item_data = &m_Items[item_idx];
                     ImGui::PushID((int)item_data->ID);
 
                     // Position item
@@ -230,7 +243,9 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
                             ImU32 label_col = ImGui::GetColorU32(
                                 item_is_selected ? ImGuiCol_Text : ImGuiCol_TextDisabled);
                             char label[32];
-                            sprintf(label, "%d", item_data->ID);
+                            // CZ_LOG(LogContentBrowserPanel, Trace, "Drawing item {}:{} at ({},
+                            // {})",
+                            //    label, item_data->ID, pos.x, pos.y);
                             draw_list->AddText(ImVec2(box_min.x, box_max.y - ImGui::GetFontSize()),
                                                label_col, label);
                         }
@@ -253,7 +268,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
 
         ms_io = ImGui::EndMultiSelect();
         Selection.ApplyRequests(ms_io);
-        if (want_delete) Selection.ApplyDeletionPostLoop(ms_io, Items, item_curr_idx_to_focus);
+        if (want_delete) Selection.ApplyDeletionPostLoop(ms_io, m_Items, item_curr_idx_to_focus);
 
         // Zooming with Ctrl+Wheel
         if (ImGui::IsWindowAppearing()) ZoomWheelAccum = 0.0f;
@@ -294,8 +309,35 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
     }
     ImGui::EndChild();
 
-    ImGui::Text("Selected: %d/%d items", Selection.Size, Items.Size);
+    ImGui::Text("Selected: %d/%d items", Selection.Size, m_Items.Size);
     ImGui::End();
+
+    // ------ File Dialog ------
+    auto& fileDialog = UFileDialog::Get(m_Context);
+    if (fileDialog.IsDone("ContentBrowserImportDialog")) {
+        if (fileDialog.HasResult()) {
+            std::string res = fileDialog.GetResult().string();
+            CZ_LOG(LogContentBrowserPanel, Trace, "OPEN[{}]", res);
+
+            FImageFormatDesc desc;
+            uint32_t w, h;
+            auto buffer = FTextureImporter::ToBufferFromFile(res, desc, w, h);
+            CZ_LOG(LogContentBrowserPanel, Trace, "Import Texture Buffer: {}, {}", w, h);
+
+            FTexture2DSpecification spec;
+            spec.Name = "Texture";
+            spec.Size = { w, h };
+            spec.Format = ChozoUtils::FileSystem::PixelFormatFromDesc(desc);
+            spec.Usage = ETextureUsage::Texture;
+
+            TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(m_Context, spec, buffer);
+
+            const char* assetPath = res.c_str();
+            ImGuiID id = ImGui::GetID(assetPath);
+            m_Items.push_back(ExampleAsset(id, 0));
+        }
+        fileDialog.Close();
+    }
 }
 
 void ContentBrowserPanel::UpdateLayoutSizes(float avail_width) {
@@ -306,7 +348,7 @@ void ContentBrowserPanel::UpdateLayoutSizes(float avail_width) {
     // Layout: calculate number of icon per line and number of lines
     LayoutItemSize = ImVec2(floorf(IconSize), floorf(IconSize));
     LayoutColumnCount = IM_MAX((int)(avail_width / (LayoutItemSize.x + LayoutItemSpacing)), 1);
-    LayoutLineCount = (Items.Size + LayoutColumnCount - 1) / LayoutColumnCount;
+    LayoutLineCount = (m_Items.Size + LayoutColumnCount - 1) / LayoutColumnCount;
 
     // Layout: when stretching: allocate remaining space to more spacing. Round before division, so
     // item_spacing may be non-integer.

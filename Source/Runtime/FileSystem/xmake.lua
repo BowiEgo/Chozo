@@ -1,4 +1,4 @@
-target("Editor")
+target("FileSystem")
     set_kind("shared")
     add_rules("chozo_module", "export_header")
-    add_deps("Core", "Engine", "UI", "FileSystem")
+    add_deps("Core", "RHI", "stb")

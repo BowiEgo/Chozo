@@ -15,8 +15,6 @@
 #include <fstream>
 #include <sys/stat.h>
 
-#include "stb_image.h"
-
 DEFINE_LOG_CATEGORY(LogFileDialog);
 
 #define ICON_SIZE (ImGui::GetFontSize() + 3)

@@ -30,6 +30,9 @@ void EditorLayer::OnAttach() {
     m_Viewport = m_ViewportRenderer->CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
     m_Viewport->SetScene(m_Scene.get());
 
+    auto context = m_ViewportRenderer->GetGraphicContext();
+    m_ContentBrowserPanel.SetContext(context);
+
     m_Overlay.UpdateLocation(EOverlayLocation::BottomLeft);
 
     auto mainCamera = m_Viewport->GetCamera();
@@ -46,6 +49,7 @@ void EditorLayer::OnAttach() {
                 CZ_LOG(LogEditorLayer, Trace, "Node created: {}", event.GetNode()->GetName());
                 break;
             case ENodeEventType::Deleted:
+                m_SyncLayer->UnregisterNode(event.GetNode());
                 CZ_LOG(LogEditorLayer, Trace, "Node deleted: {}", event.GetNode()->GetName());
                 break;
             case ENodeEventType::Renamed:

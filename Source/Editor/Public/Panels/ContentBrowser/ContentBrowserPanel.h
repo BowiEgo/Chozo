@@ -4,6 +4,8 @@
 
 #include "imgui_internal.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogContentBrowserPanel, Info);
+
 #define IM_MIN(A, B) (((A) < (B)) ? (A) : (B))
 #define IM_MAX(A, B) (((A) >= (B)) ? (A) : (B))
 #define IM_CLAMP(V, MN, MX) ((V) < (MN) ? (MN) : (V) > (MX) ? (MX) : (V))
@@ -120,17 +122,17 @@ public:
     virtual void Draw(const char* title, bool* p_open) override;
 
     void AddItems(int count) {
-        if (Items.Size == 0) NextItemId = 0;
-        Items.reserve(Items.Size + count);
+        if (m_Items.Size == 0) NextItemId = 0;
+        m_Items.reserve(m_Items.Size + count);
         for (int n = 0; n < count; n++, NextItemId++)
-            Items.push_back(ExampleAsset(NextItemId, (NextItemId % 20) < 15   ? 0
-                                                     : (NextItemId % 20) < 18 ? 1
-                                                                              : 2));
+            m_Items.push_back(ExampleAsset(NextItemId, (NextItemId % 20) < 15   ? 0
+                                                       : (NextItemId % 20) < 18 ? 1
+                                                                                : 2));
         RequestSort = true;
     }
 
     void ClearItems() {
-        Items.clear();
+        m_Items.clear();
         Selection.Clear();
     }
 
@@ -150,7 +152,7 @@ private:
     bool StretchSpacing = true;
 
     // State
-    ImVector<ExampleAsset> Items; // Our items
+    ImVector<ExampleAsset> m_Items; // Our items
     ExampleSelectionWithDeletion
         Selection; // Our selection (ImGuiSelectionBasicStorage + helper funcs to handle deletion)
     ImGuiID NextItemId = 0;      // Unique identifier when creating new items
