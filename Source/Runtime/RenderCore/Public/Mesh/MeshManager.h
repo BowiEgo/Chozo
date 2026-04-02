@@ -1,11 +1,11 @@
 #pragma once
 
 #include "MeshParams.h"
-#include "MeshRegistry.h"
+#include "MeshRegister.h"
 #include "ProceduralMesh.h"
 #include "Ref.h"
-#include "RegistryManager.h"
 #include "Scope.h"
+#include "TypeRegister.h"
 
 #include "RenderCoreExport.h"
 
@@ -18,7 +18,7 @@ public:
     FMeshManager& operator=(const FMeshManager&) = delete;
 
     TRef<FProceduralMesh> CreateProceduralMesh(const IParams& params) {
-        TRef<FProceduralMesh> mesh = FMeshRegistry::Get().CreateMesh(params);
+        TRef<FProceduralMesh> mesh = FMeshRegister::Get().CreateMesh(params);
         FAssetHandle handle = FAssetHandle::Generate();
 
         mesh->SetHandle(handle);

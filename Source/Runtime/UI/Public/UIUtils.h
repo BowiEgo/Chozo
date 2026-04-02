@@ -725,6 +725,13 @@ bool DrawControl(T& value, const std::string& name, float speed = 0.01f, float m
             return true;
         }
         return false;
+    } else if constexpr (std::is_same_v<T, FAssetHandle>) {
+        char buffer[64];
+        if (ImGui::InputText(id.c_str(), buffer, sizeof(buffer))) {
+            // value = std::strtoull(buffer, nullptr, 10);
+            return true;
+        }
+        return false;
     } else {
         static_assert(sizeof(T) == 0, "Unsupported type for DrawControl");
         return false;
@@ -829,6 +836,10 @@ public:
 
     virtual void Visit(FQuaternion& value, const std::string& name) override {
         AddTableRow(name, [&]() { return DrawControl(value, name, 1.0f); });
+    }
+
+    virtual void Visit(FAssetHandle& value, const std::string& name) override {
+        AddTableRow(name, [&]() { return DrawControl(value, name); });
     }
 
 private:

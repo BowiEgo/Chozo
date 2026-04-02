@@ -6,6 +6,7 @@
 enum class ETypeCategory : uint8_t {
     None,
     Node,
+    Light,
     Mesh,
 };
 
@@ -21,9 +22,9 @@ struct FTypeInfo {
         : Name(name), Bit(bit), bBuiltin(builtin), Category(category) {}
 };
 
-class CORE_API FRegistryManager {
+class CORE_API FTypeRegister {
 public:
-    static FRegistryManager& Get();
+    static FTypeRegister& Get();
 
     FTypeInfo RegisterType(const std::string& name, bool bBuiltin = false,
                            ETypeCategory category = ETypeCategory::None) {
@@ -37,6 +38,7 @@ public:
 
         switch (category) {
             case ETypeCategory::Node: m_NodeTypesBit |= bit; break;
+            case ETypeCategory::Light: m_LightTypesBit |= bit; break;
             case ETypeCategory::Mesh: m_MeshTypesBit |= bit; break;
             default: break;
         }
@@ -82,16 +84,18 @@ public:
     }
 
     uint32_t GetNodeTypesMask() const { return m_NodeTypesBit; }
+    uint32_t GetLightTypesMask() const { return m_LightTypesBit; }
     uint32_t GetMeshTypesMask() const { return m_MeshTypesBit; }
     uint32_t GetAllTypesMask() const { return m_AllTypesBit; }
 
     bool IsValidType(uint32_t bit) const { return m_BitToInfo.find(bit) != m_BitToInfo.end(); }
 
     bool IsNodeType(uint32_t bit) const { return (bit & m_NodeTypesBit) != 0; }
+    bool IsLightType(uint32_t bit) const { return (bit & m_LightTypesBit) != 0; }
     bool IsMeshType(uint32_t bit) const { return (bit & m_MeshTypesBit) != 0; }
 
 private:
-    FRegistryManager() : m_NextBit(0) {
+    FTypeRegister() : m_NextBit(0) {
         // Register Built-in Types
         RegisterType("None", true, ETypeCategory::None);
     }
@@ -99,6 +103,7 @@ private:
     uint32_t m_NextBit = 0;
     uint32_t m_AllTypesBit = 0;
     uint32_t m_NodeTypesBit = 0;
+    uint32_t m_LightTypesBit = 0;
     uint32_t m_MeshTypesBit = 0;
 
     std::vector<FTypeInfo> m_Types;

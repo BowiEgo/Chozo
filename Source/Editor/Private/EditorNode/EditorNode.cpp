@@ -7,13 +7,16 @@ std::atomic<uint32_t> FEditorNode::s_NextID{ 1 };
 // ===== Constructor & Destructor =====
 FEditorNode::FEditorNode(const std::string& name, uint32_t type)
     : m_ID(s_NextID.fetch_add(1)), m_Name(name), m_Type(type) {
-
     if (HasTransform()) {
         SetTransformParams(FTransformParams());
     }
 
+    if (HasHDRIBackdrop()) {
+        SetHDRIBackdropParams(FHDRIBackdropParams());
+    }
+
     if (HasMesh()) {
-        auto regManager = FRegistryManager::Get();
+        auto regManager = FTypeRegister::Get();
 
         auto cubeBit = regManager.GetBit("Mesh_Cube");
         auto sphereBit = regManager.GetBit("Mesh_Sphere");

@@ -1,13 +1,14 @@
 #pragma once
 
-#include "RegistryManager.h"
+#include "TypeRegister.h"
 
-class FEditorNodeRegistry {
+class FEditorNodeRegister {
 public:
-    static FEditorNodeRegistry& Get();
+    static FEditorNodeRegister& Get();
+    static void Init();
 
     FTypeInfo RegisterNodeType(const std::string& name, bool bBuiltin = false) {
-        auto& manager = FRegistryManager::Get();
+        auto& manager = FTypeRegister::Get();
         FTypeInfo typeInfo = manager.RegisterType("Node_" + name, bBuiltin, ETypeCategory::Node);
 
         m_Types.push_back(typeInfo);
@@ -18,7 +19,7 @@ public:
     std::vector<FTypeInfo> GetAllTypes() const { return m_Types; }
 
 private:
-    FEditorNodeRegistry() {
+    FEditorNodeRegister() {
         // Register Built-in Types
         RegisterNodeType("Root", true);
         RegisterNodeType("Empty", true);

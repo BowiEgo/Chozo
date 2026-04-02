@@ -20,6 +20,7 @@ private:
     bool DrawColumnProperties(const std::string& name, IParams* params);
     void DrawInfoProperties(FEditorNode* node);
     void DrawTransformProperties(FEditorNode* node);
+    void DrawHDRIBackdropProperties(FEditorNode* node);
     void DrawMeshProperties(FEditorNode* node);
 
 private:

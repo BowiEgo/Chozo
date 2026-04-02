@@ -4,7 +4,7 @@
 #include "MeshManager.h"
 #include "MeshParams.h"
 #include "MeshReflection.h"
-#include "MeshRegistry.h"
+#include "MeshRegister.h"
 
 struct FMeshComponent {
     // ===== Core Data =====

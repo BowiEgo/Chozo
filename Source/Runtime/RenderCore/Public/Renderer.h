@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "LightRegister.h"
+#include "MeshManager.h"
 #include "Module.h"
 #include "RHICommandList.h"
 #include "RHIContext.h"

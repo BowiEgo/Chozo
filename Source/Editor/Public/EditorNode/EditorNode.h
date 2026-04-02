@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Components.h"
-#include "EditorNodeRegistry.h"
+#include "EditorNodeRegister.h"
 #include "Entity.h"
+#include "LightRegister.h"
 #include "Matrix4.h"
-#include "MeshRegistry.h"
+#include "MeshRegister.h"
 #include "Params.h"
 #include "Vector3.h"
 
@@ -131,7 +132,7 @@ public:
 
     // ===== Transform =====
     bool HasTransform() const {
-        auto regNodeBit = FRegistryManager::Get().GetBit("Node_Regular");
+        auto regNodeBit = FTypeRegister::Get().GetBit("Node_Regular");
         return (m_Type & regNodeBit) != 0;
     }
     void SetTransformParams(const FTransformParams& params) {
@@ -141,14 +142,26 @@ public:
     const FTransformParams* GetTransformParams() const { return &m_TransformParams; }
     FTransformParams* GetTransformParams() { return &m_TransformParams; }
 
+    // ===== HDRIBackdrop =====
+    bool HasHDRIBackdrop() const {
+        bool isHDRIBackdrop = FLightRegister::Get().IsHDRIBackdropType(m_Type);
+        return isHDRIBackdrop;
+    }
+    void SetHDRIBackdropParams(const FHDRIBackdropParams& params) {
+        m_HDRIBackdropParams = params;
+        MarkDirty();
+    }
+    const FHDRIBackdropParams* GetHDRIBackdropParams() const { return &m_HDRIBackdropParams; }
+    FHDRIBackdropParams* GetHDRIBackdropParams() { return &m_HDRIBackdropParams; }
+
     // ===== Mesh =====
-    bool HasMesh() const { return FRegistryManager::Get().IsMeshType(m_Type); }
+    bool HasMesh() const { return FTypeRegister::Get().IsMeshType(m_Type); }
     void SetMeshParams(const FMeshParams& params) {
         m_MeshParams = params;
         MarkDirty();
     }
     void SetMeshParams(const std::string& typeName) {
-        m_MeshParams = FMeshRegistry::Get().CreateParams(typeName);
+        m_MeshParams = FMeshRegister::Get().CreateParams(typeName);
         MarkDirty();
     }
     const FMeshParams* GetMeshParams() const { return &m_MeshParams; }
@@ -174,6 +187,7 @@ private:
 
     // Components
     FTransformParams m_TransformParams;
+    FHDRIBackdropParams m_HDRIBackdropParams;
     FMeshParams m_MeshParams;
 
     // State

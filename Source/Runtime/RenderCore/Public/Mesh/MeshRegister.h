@@ -3,8 +3,8 @@
 #include "MeshParams.h"
 #include "ProceduralMesh.h"
 #include "Ref.h"
-#include "RegistryManager.h"
 #include "Scope.h"
+#include "TypeRegister.h"
 
 #include "RenderCoreExport.h"
 
@@ -44,16 +44,17 @@ public:
     }
 };
 
-class RENDER_CORE_API FMeshRegistry {
+class RENDER_CORE_API FMeshRegister {
 public:
-    static FMeshRegistry& Get();
+    static FMeshRegister& Get();
+    static void Init();
 
-    FMeshRegistry(const FMeshRegistry&) = delete;
-    FMeshRegistry& operator=(const FMeshRegistry&) = delete;
+    FMeshRegister(const FMeshRegister&) = delete;
+    FMeshRegister& operator=(const FMeshRegister&) = delete;
 
     FTypeInfo RegisterMeshType(const std::string& name, bool bBuiltin = false) {
         FTypeInfo typeInfo =
-            FRegistryManager::Get().RegisterType("Mesh_" + name, bBuiltin, ETypeCategory::Mesh);
+            FTypeRegister::Get().RegisterType("Mesh_" + name, bBuiltin, ETypeCategory::Mesh);
 
         m_Types.push_back(typeInfo);
         return typeInfo;
@@ -132,12 +133,12 @@ public:
     }
 
 private:
-    FMeshRegistry() {
+    FMeshRegister() {
         RegisterMeshType("Regular", true);
         // Built-in types are registered externally to avoid circular dependencies
         // Call RegisterMeshType in MeshRegistry.cpp
     }
-    ~FMeshRegistry() = default;
+    ~FMeshRegister() = default;
 
     std::unordered_map<std::string, TScope<IParamsFactory>> m_Factories;
     std::unordered_map<std::string, TScope<IMeshGenerator>> m_Generators;

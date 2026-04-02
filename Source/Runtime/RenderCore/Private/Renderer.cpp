@@ -11,6 +11,9 @@ CRenderer::CRenderer(IRendererWindow* windowHandle) : m_Window(windowHandle) {}
 CRenderer::~CRenderer() {}
 
 void CRenderer::Init() {
+    FMeshRegister::Init();
+    FLightRegister::Init();
+
     auto fbSize = m_Window->GetFrameBufferSize();
 
     std::string libName = ChozoUitls::Module::GetPlatformLibName("VulkanRHI");

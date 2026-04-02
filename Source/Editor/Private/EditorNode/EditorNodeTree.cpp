@@ -1,7 +1,7 @@
 #include "EditorNodeTree.h"
 
-#include "EditorNodeRegistry.h"
-#include "RegistryManager.h"
+#include "EditorNodeRegister.h"
+#include "TypeRegister.h"
 
 #include <algorithm>
 
@@ -11,10 +11,10 @@ static FEditorNode* CreateDemoTree(CEditorNodeTree* tree) {
                                                   "Strawberry", "Watermelon" };
 
     const int multiplier = 2;
-    auto nodeBit = FRegistryManager::Get().GetBit("Node_Regular");
-    auto rootBit = FRegistryManager::Get().GetBit("Node_Root");
-    auto sphereBit = FRegistryManager::Get().GetBit("Mesh_Sphere");
-    auto cubeBit = FRegistryManager::Get().GetBit("Mesh_Cube");
+    auto nodeBit = FTypeRegister::Get().GetBit("Node_Regular");
+    auto rootBit = FTypeRegister::Get().GetBit("Node_Root");
+    auto sphereBit = FTypeRegister::Get().GetBit("Mesh_Sphere");
+    auto cubeBit = FTypeRegister::Get().GetBit("Mesh_Cube");
 
     FEditorNode* root = new FEditorNode("Root", rootBit);
 
@@ -38,8 +38,10 @@ static FEditorNode* CreateDemoTree(CEditorNodeTree* tree) {
 }
 
 CEditorNodeTree::CEditorNodeTree() {
-    auto nodeReg = FEditorNodeRegistry::Get();
-    auto rootBit = FRegistryManager::Get().GetBit("Node_Root");
+    FEditorNodeRegister::Init();
+
+    auto nodeReg = FEditorNodeRegister::Get();
+    auto rootBit = FTypeRegister::Get().GetBit("Node_Root");
 
     m_RootNode = new FEditorNode("Root", rootBit);
     // m_RootNode = CreateDemoTree(this);

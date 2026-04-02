@@ -2,6 +2,7 @@
 
 #include "Ref.h"
 
+#include "Asset.h"
 #include "Quaternion.h"
 #include "Vector2.h"
 #include "Vector3.h"
@@ -25,6 +26,7 @@ struct IParamsVisitor {
     virtual void Visit(FVector3& value, const std::string& name) = 0;
     virtual void Visit(FVector4& value, const std::string& name) = 0;
     virtual void Visit(FQuaternion& value, const std::string& name) = 0;
+    virtual void Visit(FAssetHandle& value, const std::string& name) = 0;
 };
 
 /**
@@ -45,6 +47,7 @@ struct IConstParamsVisitor {
     virtual void Visit(const FVector3& value, const std::string& name) = 0;
     virtual void Visit(const FVector4& value, const std::string& name) = 0;
     virtual void Visit(const FQuaternion& value, const std::string& name) = 0;
+    virtual void Visit(const FAssetHandle& value, const std::string& name) = 0;
 };
 
 /**

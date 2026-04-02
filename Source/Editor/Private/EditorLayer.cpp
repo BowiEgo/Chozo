@@ -18,7 +18,7 @@ void EditorLayer::OnAttach() {
     // }
 
     // // Get all available mesh types
-    // auto& registry = FMeshRegistry::Get();
+    // auto& registry = FMeshRegister::Get();
     // for (const auto& typeName : registry.GetMeshTypeNames()) {
     //     CZ_LOG(LogEditorLayer, Info, "Available mesh type: {}", typeName);
     // }
@@ -73,6 +73,19 @@ void EditorLayer::OnAttach() {
     m_PropertiesPanel.SetNodeTree(&m_NodeTree);
 
     CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
+
+    {
+        auto nodeBit = FTypeRegister::Get().GetBit("Node_Regular");
+        auto sphereBit = FTypeRegister::Get().GetBit("Mesh_Sphere");
+        auto newNode = m_NodeTree.CreateNode("Sphere", nodeBit |= sphereBit, nullptr);
+        m_NodeTree.SelectNode(newNode);
+    }
+
+    {
+        auto nodeBit = FTypeRegister::Get().GetBit("Node_Regular");
+        auto hdriBit = FTypeRegister::Get().GetBit("Light_HDRIBackdrop");
+        m_NodeTree.CreateNode("HDRI Backdrop", nodeBit |= hdriBit, nullptr);
+    }
 }
 
 void EditorLayer::OnDetach() {

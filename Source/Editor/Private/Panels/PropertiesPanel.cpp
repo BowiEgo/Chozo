@@ -13,6 +13,7 @@ void PropertiesPanel::Draw(const char* title, bool* p_open) {
         if (node) {
             DrawInfoProperties(node);
             DrawTransformProperties(node);
+            DrawHDRIBackdropProperties(node);
             DrawMeshProperties(node);
         }
     }
@@ -70,7 +71,6 @@ bool PropertiesPanel::DrawColumnProperties(const std::string& name, IParams* par
 
 void PropertiesPanel::DrawInfoProperties(FEditorNode* node) {
     if (!node) return;
-    if (!node->HasMesh()) return;
 
     DrawComponentHeader("Info", true,
                         [this, node]() { ImGui::Text("%s", node->GetName().c_str()); });
@@ -78,11 +78,23 @@ void PropertiesPanel::DrawInfoProperties(FEditorNode* node) {
 
 void PropertiesPanel::DrawTransformProperties(FEditorNode* node) {
     if (!node) return;
-    if (!node->HasMesh()) return;
+    if (!node->HasTransform()) return;
 
     DrawComponentHeader("Transform", true, [this, node]() {
         auto params = node->GetTransformParams();
         if (DrawColumnProperties("Transform", params)) {
+            node->MarkDirty();
+        }
+    });
+}
+
+void PropertiesPanel::DrawHDRIBackdropProperties(FEditorNode* node) {
+    if (!node) return;
+    if (!node->HasHDRIBackdrop()) return;
+
+    DrawComponentHeader("HDRI Backdrop", true, [this, node]() {
+        auto params = node->GetHDRIBackdropParams();
+        if (DrawColumnProperties("HDRI Backdrop", params)) {
             node->MarkDirty();
         }
     });

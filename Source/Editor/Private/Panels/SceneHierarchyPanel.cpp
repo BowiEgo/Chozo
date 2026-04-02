@@ -86,20 +86,31 @@ void SceneHierarchyPanel::Draw(const char* title, bool* p_open) {
 }
 
 void SceneHierarchyPanel::DrawCreatingContextMenu(FEditorNode* parent) {
-    auto nodeBit = FRegistryManager::Get().GetBit("Node_Regular");
+    auto nodeBit = FTypeRegister::Get().GetBit("Node_Regular");
 
     if (ImGui::MenuItem("Empty Node")) {
-        auto emptyBit = FRegistryManager::Get().GetBit("Node_Empty");
+        auto emptyBit = FTypeRegister::Get().GetBit("Node_Empty");
         CreateNode("Empty", nodeBit |= emptyBit, parent);
     }
     if (ImGui::MenuItem("Camera")) {
     }
     if (ImGui::BeginMenu("Light")) {
+        if (ImGui::MenuItem("Skylight")) {
+            ImGui::CloseCurrentPopup();
+        }
         if (ImGui::MenuItem("Directional")) {
+            ImGui::CloseCurrentPopup();
         }
         if (ImGui::MenuItem("Point")) {
+            ImGui::CloseCurrentPopup();
         }
         if (ImGui::MenuItem("Spot")) {
+            ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::MenuItem("HDRI Backdrop")) {
+            auto hdriBit = FTypeRegister::Get().GetBit("Light_HDRIBackdrop");
+            CreateNode("HDRI Backdrop", nodeBit |= hdriBit, parent);
+            ImGui::CloseCurrentPopup();
         }
         ImGui::EndMenu();
     }
@@ -108,12 +119,12 @@ void SceneHierarchyPanel::DrawCreatingContextMenu(FEditorNode* parent) {
             ImGui::CloseCurrentPopup();
         }
         if (ImGui::MenuItem("Sphere")) {
-            auto sphereBit = FRegistryManager::Get().GetBit("Mesh_Sphere");
+            auto sphereBit = FTypeRegister::Get().GetBit("Mesh_Sphere");
             CreateNode("Sphere", nodeBit |= sphereBit, parent);
             ImGui::CloseCurrentPopup();
         }
         if (ImGui::MenuItem("Cube")) {
-            auto cubeBit = FRegistryManager::Get().GetBit("Mesh_Cube");
+            auto cubeBit = FTypeRegister::Get().GetBit("Mesh_Cube");
             CreateNode("Cube", nodeBit |= cubeBit, parent);
             ImGui::CloseCurrentPopup();
         }
