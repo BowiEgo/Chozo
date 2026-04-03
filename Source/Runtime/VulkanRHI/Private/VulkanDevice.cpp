@@ -2,6 +2,7 @@
 
 #include "VulkanCommandBuffer.h"
 #include "VulkanCommandPool.h"
+#include "VulkanImage.h"
 #include "VulkanUtils.h"
 
 DEFINE_LOG_CATEGORY(LogVulkanDevice);
@@ -37,7 +38,11 @@ void CVulkanDevice::WaitIdle() { m_LogicalDevice.waitIdle(); }
 
 TRef<IRHICommandPool> CVulkanDevice::CreateCommandPool(FCommandPoolSpecification& spec) {
     spec.QueueIndex = m_GraphicsQueueIndex;
-    return CreateRef<CVulkanCommandPool>(spec, TRef<CVulkanDevice>(this));
+    return CreateRef<CVulkanCommandPool>(TRef<CVulkanDevice>(this), spec);
+}
+
+TRef<IRHIImage> CVulkanDevice::CreateImage(const FImageSpecification& spec) {
+    return CreateRef<CVulkanImage>(WeakRef<IRHIDevice>(this), spec);
 }
 
 void CVulkanDevice::PickPhysicalDevice(const vk::raii::Instance& instance) {
@@ -47,7 +52,7 @@ void CVulkanDevice::PickPhysicalDevice(const vk::raii::Instance& instance) {
         bool supportsVulkan1_3 = device.getProperties().apiVersion >= VK_API_VERSION_1_3;
 
         // Check if any of the queue families support graphics operations
-        auto queueFamilies = device.getQueueFamilyProperties();
+        auto queueFamilies    = device.getQueueFamilyProperties();
         bool supportsGraphics = std::ranges::any_of(queueFamilies, [](auto const& qfp) {
             return !!(qfp.queueFlags & vk::QueueFlagBits::eGraphics);
         });
@@ -184,15 +189,15 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
     float queuePriority = 0.5f;
     vk::DeviceQueueCreateInfo deviceQueueCreateInfo;
     deviceQueueCreateInfo.queueFamilyIndex = indices.Graphics.value();
-    deviceQueueCreateInfo.queueCount = 1;
+    deviceQueueCreateInfo.queueCount       = 1;
     deviceQueueCreateInfo.pQueuePriorities = &queuePriority;
 
     // Link features to DeviceCreateInfo
     vk::DeviceCreateInfo deviceCreateInfo;
-    deviceCreateInfo.pNext = &featureChain.get<vk::PhysicalDeviceFeatures2>();
-    deviceCreateInfo.pEnabledFeatures = nullptr;
-    deviceCreateInfo.queueCreateInfoCount = 1;
-    deviceCreateInfo.pQueueCreateInfos = &deviceQueueCreateInfo;
+    deviceCreateInfo.pNext                 = &featureChain.get<vk::PhysicalDeviceFeatures2>();
+    deviceCreateInfo.pEnabledFeatures      = nullptr;
+    deviceCreateInfo.queueCreateInfoCount  = 1;
+    deviceCreateInfo.pQueueCreateInfos     = &deviceQueueCreateInfo;
     deviceCreateInfo.enabledExtensionCount = static_cast<uint32>(m_RequiredDeviceExtension.size());
     deviceCreateInfo.ppEnabledExtensionNames = m_RequiredDeviceExtension.data();
 
@@ -202,7 +207,7 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
 
         // Safely fetch queue handles
         if (indices.Graphics.has_value()) {
-            m_GraphicsQueue = vk::raii::Queue(m_LogicalDevice, indices.Graphics.value(), 0);
+            m_GraphicsQueue      = vk::raii::Queue(m_LogicalDevice, indices.Graphics.value(), 0);
             m_GraphicsQueueIndex = indices.Graphics.value();
         }
         if (indices.Present.has_value())
@@ -229,7 +234,7 @@ void CVulkanDevice::Init() {
 }
 
 void CVulkanDevice::InitGlobalDescriptorPool() {
-    uint32_t poolCapacity = 10000;
+    uint32_t poolCapacity                         = 10000;
     std::vector<vk::DescriptorPoolSize> poolSizes = {
         { vk::DescriptorType::eCombinedImageSampler, poolCapacity },
         { vk::DescriptorType::eSampledImage, poolCapacity },
@@ -242,7 +247,7 @@ void CVulkanDevice::InitGlobalDescriptorPool() {
 
 void CVulkanDevice::InitInternalResources() {
     FCommandPoolSpecification cmdPoolSpec;
-    cmdPoolSpec.Flags = ECommandPoolFlags::Transient | ECommandPoolFlags::ResetCommandBuffer;
+    cmdPoolSpec.Flags       = ECommandPoolFlags::Transient | ECommandPoolFlags::ResetCommandBuffer;
     m_InternalTransientPool = CreateCommandPool(cmdPoolSpec).As<CVulkanCommandPool>();
 }
 
@@ -252,7 +257,7 @@ vk::raii::DescriptorPool
     vk::raii::DescriptorPool result = nullptr;
 
     vk::DescriptorPoolCreateInfo poolInfo;
-    poolInfo.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
+    poolInfo.flags   = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
     poolInfo.maxSets = maxSets;
     poolInfo.setPoolSizes(poolSizes);
 
@@ -386,9 +391,9 @@ vk::DescriptorSetLayout CVulkanDevice::GetDescriptorSetLayout(EDescriptorLayoutT
     layoutInfo.setBindings(bindings);
 
     // Create the layout and store it in the cache.
-    vk::Device rawDevice = *m_LogicalDevice;
+    vk::Device rawDevice              = *m_LogicalDevice;
     vk::DescriptorSetLayout newLayout = rawDevice.createDescriptorSetLayout(layoutInfo);
-    m_LayoutCache[type] = newLayout;
+    m_LayoutCache[type]               = newLayout;
 
     return newLayout;
 }

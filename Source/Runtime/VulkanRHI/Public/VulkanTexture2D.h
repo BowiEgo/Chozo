@@ -3,7 +3,6 @@
 #include "RHITexture2D.h"
 
 #include "VulkanDevice.h"
-
 #include "VulkanRHIExport.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanTexture2D, Info);

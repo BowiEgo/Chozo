@@ -160,13 +160,28 @@ enum class EPixelFormat {
 };
 // clang-format on
 
-enum class ETextureUsage {
-    None = 0,
-    Texture,         // For shader reading (e.g., Albedo maps)
-    ColorAttachment, // For rendering targets
-    DepthAttachment, // For rendering targets
-    Storage          // For Compute Shader read/write (RWTexture)
+enum class EImageUsage : uint32_t {
+    Sampled             = 1 << 0, // For shader reading (e.g., texture sampling)
+    ColorAttachment     = 1 << 1, // For framebuffer color attachments
+    DepthStencil        = 1 << 2, // For framebuffer depth/stencil attachments
+    Storage             = 1 << 3, // For Compute Shader read/write (RWTexture)
+    TransferSrc         = 1 << 4, // For Copy Source (e.g., Readback or Mip Generation)
+    TransferDst         = 1 << 5, // For Copy Destination (e.g., Upload or Mip Generation)
+    TransientAttachment = 1 << 6  // For transient resources optimization
 };
+ENUM_CLASS_FLAGS(EImageUsage);
+
+enum class ETextureType { Texture2D, TextureCube };
+
+enum class ETextureUsage : uint32_t {
+    None       = 0,
+    Texture    = 1 << 0, // Regular sampled texture (e.g., Shader Resource like Albedo maps)
+    Attachment = 1 << 1, // Rendering target (Color/Depth/Stencil)
+    Storage    = 1 << 2, // Compute shader read/write (RWTexture)
+    Upload     = 1 << 3, // Needs to be updated from CPU
+    Readback   = 1 << 4  // Needs to be read back to CPU
+};
+ENUM_CLASS_FLAGS(ETextureUsage);
 
 enum class EPresentMode {
     Immediate = 0, // VSync OFF. Minimal latency, high tearing.
@@ -206,22 +221,21 @@ enum class ECommandPoolFlags : uint32 {
     // Default configuration for most rendering scenarios
     Default = ResetCommandBuffer
 };
-
 // Enable bitwise operations for the enum class
 ENUM_CLASS_FLAGS(ECommandPoolFlags);
 
 // ===== Buffer Usage Flags =====
 enum class EBufferUsage : uint32 {
-    None = 0,
-    TransferSrc = 1 << 0,        // VK_BUFFER_USAGE_TRANSFER_SRC_BIT
-    TransferDst = 1 << 1,        // VK_BUFFER_USAGE_TRANSFER_DST_BIT
+    None               = 0,
+    TransferSrc        = 1 << 0, // VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+    TransferDst        = 1 << 1, // VK_BUFFER_USAGE_TRANSFER_DST_BIT
     UniformTexelBuffer = 1 << 2, // VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT
     StorageTexelBuffer = 1 << 3, // VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT
-    UniformBuffer = 1 << 4,      // VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
-    StorageBuffer = 1 << 5,      // VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
-    IndexBuffer = 1 << 6,        // VK_BUFFER_USAGE_INDEX_BUFFER_BIT
-    VertexBuffer = 1 << 7,       // VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
-    IndirectBuffer = 1 << 8,     // VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT
+    UniformBuffer      = 1 << 4, // VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
+    StorageBuffer      = 1 << 5, // VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+    IndexBuffer        = 1 << 6, // VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+    VertexBuffer       = 1 << 7, // VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+    IndirectBuffer     = 1 << 8, // VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT
     AccelerationStructure =
         1 << 9, // VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR
     ShaderDeviceAddress = 1 << 10, // VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
@@ -242,14 +256,14 @@ inline EBufferUsage& operator|=(EBufferUsage& a, EBufferUsage b) {
 
 // ===== Memory Type Flags =====
 enum class EMemoryType : uint32 {
-    Unknown = 0,
-    DeviceLocal = 1 << 0,     // VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-    HostVisible = 1 << 1,     // VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
-    HostCoherent = 1 << 2,    // VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-    HostCached = 1 << 3,      // VK_MEMORY_PROPERTY_HOST_CACHED_BIT
+    Unknown         = 0,
+    DeviceLocal     = 1 << 0, // VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    HostVisible     = 1 << 1, // VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+    HostCoherent    = 1 << 2, // VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    HostCached      = 1 << 3, // VK_MEMORY_PROPERTY_HOST_CACHED_BIT
     LazilyAllocated = 1 << 4, // VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT
-    Protected = 1 << 5,       // VK_MEMORY_PROPERTY_PROTECTED_BIT
-    DeviceAddress = 1 << 6,   // VK_MEMORY_PROPERTY_DEVICE_ADDRESS_BIT
+    Protected       = 1 << 5, // VK_MEMORY_PROPERTY_PROTECTED_BIT
+    DeviceAddress   = 1 << 6, // VK_MEMORY_PROPERTY_DEVICE_ADDRESS_BIT
 };
 
 inline EMemoryType operator|(EMemoryType a, EMemoryType b) {
@@ -346,7 +360,7 @@ private:
 private:
     void CalculateOffsetsAndStride() {
         uint32 offset = 0;
-        m_Stride = 0;
+        m_Stride      = 0;
         for (auto& element : m_Elements) {
             element.Offset = offset;
             offset += element.Size;

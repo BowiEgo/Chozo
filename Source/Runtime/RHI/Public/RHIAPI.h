@@ -90,23 +90,23 @@ public:
 
 protected:
     virtual TRef<IRHIDevice> CreateDevice_Internal(const IRHIContext* ctx,
-                                                   const FDeviceSpecification& spec) = 0;
+                                                   const FDeviceSpecification& spec)          = 0;
     virtual TRef<IRHISwapchain> CreateSwapchain_Internal(const IRHIContext* ctx,
                                                          const FSwapchainSpecification& spec) = 0;
-    virtual TRef<IRHISyncObject> CreateSyncObject_Internal(const IRHIContext* ctx) = 0;
+    virtual TRef<IRHISyncObject> CreateSyncObject_Internal(const IRHIContext* ctx)            = 0;
     virtual TRef<IRHIFrameBuffer>
         CreateFrameBuffer_Internal(const IRHIContext* ctx,
-                                   const FFrameBufferSpecification& spec) = 0;
+                                   const FFrameBufferSpecification& spec)                     = 0;
     virtual TRef<IRHIShader> CreateShader_Internal(const IRHIContext* ctx,
                                                    const FShaderSpecification& spec,
-                                                   const std::vector<uint32_t>* binary) = 0;
+                                                   const std::vector<uint32_t>* binary)       = 0;
     virtual TRef<IRHIPipeline> CreatePipeline_Internal(const IRHIContext* ctx,
-                                                       const FPipelineSpecification& spec) = 0;
+                                                       const FPipelineSpecification& spec)    = 0;
     virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const IRHIContext* ctx,
                                                          const FTexture2DSpecification& spec) = 0;
     virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const IRHIContext* ctx,
                                                          const FTexture2DSpecification& spec,
-                                                         FBuffer& data) = 0;
+                                                         FBuffer& data)                       = 0;
 
     virtual TRef<IRHIBuffer> CreateBuffer_Internal(const IRHIContext* ctx,
                                                    const FBufferSpecification& spec) = 0;
@@ -117,14 +117,14 @@ protected:
 
     virtual void DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
                                     TRef<IRHISyncObject>& syncObject,
-                                    RecordCallback recordCallback) = 0;
+                                    RecordCallback recordCallback)                          = 0;
     virtual void BeginRendering_Internal(const IRHIContext* ctx,
                                          const TRef<IRHICommandList>& cmdList, bool bClear) = 0;
     virtual void EndRendering_Internal(const IRHIContext* ctx,
-                                       const TRef<IRHICommandList>& cmdList) = 0;
+                                       const TRef<IRHICommandList>& cmdList)                = 0;
     virtual void PrepareTextureForSampling_Internal(const IRHIContext* ctx,
                                                     const TRef<IRHICommandList>& cmdList,
-                                                    const TRef<IRHITexture2D>& texture) = 0;
+                                                    const TRef<IRHITexture2D>& texture)     = 0;
 
 protected:
     static IRHIAPI* s_Instance;

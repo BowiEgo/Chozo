@@ -47,6 +47,7 @@ public:
 
     virtual void WaitIdle() override;
     virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec) override;
+    virtual TRef<IRHIImage> CreateImage(const FImageSpecification& spec) override;
 
 private:
     void PickPhysicalDevice(const vk::raii::Instance& instance);
@@ -85,12 +86,12 @@ public:
 
 private:
     std::vector<const char*> m_RequiredDeviceExtension = { vk::KHRSwapchainExtensionName };
-    vk::raii::PhysicalDevice m_PhysicalDevice = nullptr;
-    vk::raii::Device m_LogicalDevice = nullptr;
+    vk::raii::PhysicalDevice m_PhysicalDevice          = nullptr;
+    vk::raii::Device m_LogicalDevice                   = nullptr;
 
     vk::raii::Queue m_GraphicsQueue = nullptr;
-    vk::raii::Queue m_PresentQueue = nullptr;
-    vk::raii::Queue m_ComputeQueue = nullptr;
+    vk::raii::Queue m_PresentQueue  = nullptr;
+    vk::raii::Queue m_ComputeQueue  = nullptr;
     uint32 m_GraphicsQueueIndex;
 
     vk::raii::DescriptorPool m_GlobalDescriptorPool = nullptr;

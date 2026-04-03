@@ -36,11 +36,11 @@ struct FHDRIBackdropParams : public IParams {
     }
 
     virtual size_t GetHash() const override {
-        size_t seed = 0;
-        seed ^= std::hash<FAssetHandle>{}(Cubemap) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<float>{}(Intensity) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<float>{}(Lod) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        return seed;
+        size_t h = 0;
+        HashCombine(h, std::hash<FAssetHandle>{}(Cubemap));
+        HashCombine(h, std::hash<float>{}(Intensity));
+        HashCombine(h, std::hash<float>{}(Lod));
+        return h;
     }
 
     virtual std::string GetTypeName() const override { return "HDRIBackdrop"; }

@@ -8,7 +8,7 @@ class CVulkanDevice;
 
 class VULKAN_RHI_API CVulkanCommandPool : public IRHICommandPool {
 public:
-    CVulkanCommandPool(const FCommandPoolSpecification& spec, const TRef<CVulkanDevice>& device);
+    CVulkanCommandPool(const TRef<CVulkanDevice>& device, const FCommandPoolSpecification& spec);
     virtual ~CVulkanCommandPool() = default;
 
     virtual TRef<IRHICommandList> AllocateCommandBuffer() override;

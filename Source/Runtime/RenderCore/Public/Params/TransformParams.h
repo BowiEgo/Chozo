@@ -42,11 +42,11 @@ struct FTransformParams : public IParams {
     }
 
     virtual size_t GetHash() const override {
-        size_t seed = 0;
-        seed ^= std::hash<FVector3>{}(Translation) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<FQuaternion>{}(Rotation) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<FVector3>{}(Scale) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        return seed;
+        size_t h = 0;
+        HashCombine(h, std::hash<FVector3>{}(Translation));
+        HashCombine(h, std::hash<FQuaternion>{}(Rotation));
+        HashCombine(h, std::hash<FVector3>{}(Scale));
+        return h;
     }
 
     virtual std::string GetTypeName() const override { return "Transform"; }

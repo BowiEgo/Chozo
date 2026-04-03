@@ -42,15 +42,15 @@ struct FSphereParams : public IParams {
     }
 
     virtual size_t GetHash() const override {
-        size_t seed = 0;
-        seed ^= std::hash<float>{}(Radius) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<uint32_t>{}(WidthSegments) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<uint32_t>{}(HeightSegments) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<float>{}(PhiStart) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<float>{}(PhiLength) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<float>{}(ThetaStart) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<float>{}(ThetaLength) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        return seed;
+        size_t h = 0;
+        HashCombine(h, std::hash<float>{}(Radius));
+        HashCombine(h, std::hash<uint32_t>{}(WidthSegments));
+        HashCombine(h, std::hash<uint32_t>{}(HeightSegments));
+        HashCombine(h, std::hash<float>{}(PhiStart));
+        HashCombine(h, std::hash<float>{}(PhiLength));
+        HashCombine(h, std::hash<float>{}(ThetaStart));
+        HashCombine(h, std::hash<float>{}(ThetaLength));
+        return h;
     }
 
     virtual std::string GetTypeName() const override { return "Sphere"; }

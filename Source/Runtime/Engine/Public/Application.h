@@ -30,7 +30,10 @@ DECLARE_LOG_CATEGORY_EXTERN(LogApplication, Info);
 #endif
 
 enum class EAppPowerMode {
-    Performance, // No waiting, run as fast as possible
+    NoLimit,     // Run as fast as possible with no frame cap
+    Extreme,     // Cap at very high framerate (e.g., 500 fps)
+    Performance, // Cap at moderate framerate (e.g., 200 fps) for good performance without
+                 // overheating
     Balanced,    // Cap at monitor refresh rate (e.g., 60/144 fps)
     PowerSaving  // Cap at low framerate (e.g., 30 fps) or when inactive
 };
@@ -53,7 +56,13 @@ public:
             m_TargetFrameTime = 1000.0f / 15.0f;
         } else {
             switch (m_PowerMode) {
-                case EAppPowerMode::Performance: m_TargetFrameTime = 0.0f; break;
+                case EAppPowerMode::NoLimit: m_TargetFrameTime = 0.0f; break;
+                case EAppPowerMode::Extreme:
+                    m_TargetFrameTime = 1000.0f / 500.0f;
+                    break; // 500 FPS cap to prevent extreme CPU usage
+                case EAppPowerMode::Performance:
+                    m_TargetFrameTime = 1000.0f / 200.0f;
+                    break;                                                                // 200 FPS
                 case EAppPowerMode::Balanced: m_TargetFrameTime = 1000.0f / 60.0f; break; // 60 FPS
                 case EAppPowerMode::PowerSaving:
                     m_TargetFrameTime = 1000.0f / 30.0f;

@@ -4,12 +4,12 @@
 #include "Params.h"
 
 struct FCubeParams : public IParams {
-    float Width = 1.0f;
-    float Height = 1.0f;
-    float Depth = 1.0f;
-    uint32_t WidthSegments = 1;
+    float Width             = 1.0f;
+    float Height            = 1.0f;
+    float Depth             = 1.0f;
+    uint32_t WidthSegments  = 1;
     uint32_t HeightSegments = 1;
-    uint32_t DepthSegments = 1;
+    uint32_t DepthSegments  = 1;
 
     FCubeParams() = default;
 
@@ -37,14 +37,14 @@ struct FCubeParams : public IParams {
     }
 
     virtual size_t GetHash() const override {
-        size_t seed = 0;
-        seed ^= std::hash<float>{}(Width) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<float>{}(Height) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<float>{}(Depth) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<uint32_t>{}(WidthSegments) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<uint32_t>{}(HeightSegments) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= std::hash<uint32_t>{}(DepthSegments) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        return seed;
+        size_t h = 0;
+        HashCombine(h, std::hash<float>{}(Width));
+        HashCombine(h, std::hash<float>{}(Height));
+        HashCombine(h, std::hash<float>{}(Depth));
+        HashCombine(h, std::hash<uint32_t>{}(WidthSegments));
+        HashCombine(h, std::hash<uint32_t>{}(HeightSegments));
+        HashCombine(h, std::hash<uint32_t>{}(DepthSegments));
+        return h;
     }
 
     virtual std::string GetTypeName() const override { return "Cube"; }

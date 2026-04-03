@@ -81,8 +81,6 @@ vk::Format ToVKFormat(EPixelFormat format);
 
 EPixelFormat FromVKFormat(vk::Format format);
 
-bool IsDepthFormat(EPixelFormat format);
-
 bool IsDepthFormat(vk::Format format);
 
 // Shader

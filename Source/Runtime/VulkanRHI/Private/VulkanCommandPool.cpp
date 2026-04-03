@@ -4,8 +4,8 @@
 #include "VulkanDevice.h"
 #include "VulkanUtils.h"
 
-CVulkanCommandPool::CVulkanCommandPool(const FCommandPoolSpecification& spec,
-                                       const TRef<CVulkanDevice>& device)
+CVulkanCommandPool::CVulkanCommandPool(const TRef<CVulkanDevice>& device,
+                                       const FCommandPoolSpecification& spec)
     : IRHICommandPool(spec), m_Device(device) {
     Init();
 }
@@ -25,7 +25,7 @@ void CVulkanCommandPool::Init() {
     const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
 
     vk::CommandPoolCreateInfo poolInfo;
-    poolInfo.flags = ChozoUtils::Vulkan::MapCommandPoolFlags(m_Spec.Flags);
+    poolInfo.flags            = ChozoUtils::Vulkan::MapCommandPoolFlags(m_Spec.Flags);
     poolInfo.queueFamilyIndex = m_Spec.QueueIndex;
 
     m_Handle = vk::raii::CommandPool(raiiDevice, poolInfo);

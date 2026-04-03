@@ -1,0 +1,47 @@
+#include "ImagePool.h"
+
+#include "RHIDevice.h"
+
+DEFINE_LOG_CATEGORY(LogImagePool);
+
+CImagePool::~CImagePool() {
+    // CZ_LOG(LogImagePool, Trace, "ImagePool destroying... Releasing {} images.",
+    // m_AvailableImages.size());
+    m_AvailableImages.clear();
+}
+
+TRef<IRHIImage> CImagePool::RequestImage(const FImageSpecification& spec) {
+    for (auto it = m_AvailableImages.begin(); it != m_AvailableImages.end(); ++it) {
+        if (it->Image->GetSpec() == spec) {
+            TRef<IRHIImage> foundImage = it->Image;
+            m_AvailableImages.erase(it); // Remove from idle pool, now owned by RenderGraph
+            return foundImage;
+        }
+    }
+
+    // If no matching image is found, create a new physical image
+    auto device = m_Device.lock();
+    if (!device) {
+        CZ_LOG(LogImagePool, Error, "Device is no longer valid!");
+        return nullptr;
+    }
+    return device->CreateImage(spec);
+}
+
+void CImagePool::ReleaseImage(TRef<IRHIImage> image) {
+    if (!image) return;
+
+    // Add the image back to the pool with the current frame index
+    m_AvailableImages.push_back({ image, 0 });
+}
+
+void CImagePool::Tick(uint32_t currentFrame) {
+    auto it = m_AvailableImages.begin();
+    while (it != m_AvailableImages.end()) {
+        if (currentFrame - it->LastUsedFrame > m_MaxIdleFrames) {
+            it = m_AvailableImages.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}

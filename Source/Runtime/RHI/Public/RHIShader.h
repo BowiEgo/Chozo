@@ -22,16 +22,12 @@ struct FShaderSpecification {
     size_t GenHash() const {
         size_t h = std::hash<std::string>{}(VirtualPath);
 
-        auto hashCombine = [](size_t& seed, size_t value) {
-            seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        };
-
-        hashCombine(h, static_cast<size_t>(Stage));
-        hashCombine(h, std::hash<std::string>{}(EntryPoint));
+        HashCombine(h, static_cast<size_t>(Stage));
+        HashCombine(h, std::hash<std::string>{}(EntryPoint));
 
         for (const auto& [key, value] : Definitions) {
-            hashCombine(h, std::hash<std::string>{}(key));
-            hashCombine(h, std::hash<std::string>{}(value));
+            HashCombine(h, std::hash<std::string>{}(key));
+            HashCombine(h, std::hash<std::string>{}(value));
         }
 
         return h;

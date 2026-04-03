@@ -148,8 +148,8 @@ vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities, in
     vk::Extent2D actualExtent = { static_cast<uint32>(pixelWidth),
                                   static_cast<uint32>(pixelHeight) };
 
-    actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width,
-                                    capabilities.maxImageExtent.width);
+    actualExtent.width  = std::clamp(actualExtent.width, capabilities.minImageExtent.width,
+                                     capabilities.maxImageExtent.width);
     actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height,
                                      capabilities.maxImageExtent.height);
 
@@ -293,7 +293,7 @@ void LogMemoryBudget(vk::raii::PhysicalDevice& physicalDevice) {
 
     for (uint32 i = 0; i < memProperties.memoryHeapCount; i++) {
         const auto& heap = memProperties.memoryHeaps[i];
-        float sizeGB = static_cast<float>(heap.size) / (1024.0f * 1024.0f * 1024.0f);
+        float sizeGB     = static_cast<float>(heap.size) / (1024.0f * 1024.0f * 1024.0f);
 
         bool isDeviceLocal = (heap.flags & vk::MemoryHeapFlagBits::eDeviceLocal) ==
                              vk::MemoryHeapFlagBits::eDeviceLocal;
@@ -390,11 +390,6 @@ EPixelFormat FromVKFormat(vk::Format format) {
 
         default: return EPixelFormat::Unknown;
     }
-}
-
-bool IsDepthFormat(EPixelFormat format) {
-    return format == EPixelFormat::D32_SFLOAT || format == EPixelFormat::D24_UNORM_S8_UINT ||
-           format == EPixelFormat::D16_UNORM;
 }
 
 bool IsDepthFormat(vk::Format format) {

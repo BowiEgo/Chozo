@@ -42,7 +42,7 @@ public:
     }
 
     template <typename T2> TRef(TRef<T2>&& other) {
-        m_Instance = (T*)other.m_Instance;
+        m_Instance       = (T*)other.m_Instance;
         other.m_Instance = nullptr;
     }
 
@@ -63,8 +63,7 @@ public:
     }
 
     TRef& operator=(const TRef<T>& other) {
-        if (this == &other)
-            return *this;
+        if (this == &other) return *this;
 
         other.IncRef();
         DecRef();
@@ -84,7 +83,7 @@ public:
     template <typename T2> TRef& operator=(TRef<T2>&& other) {
         DecRef();
 
-        m_Instance = other.m_Instance;
+        m_Instance       = other.m_Instance;
         other.m_Instance = nullptr;
         return *this;
     }
@@ -124,8 +123,7 @@ public:
     bool operator!=(const TRef<T>& other) const { return !(*this == other); }
 
     bool EqualsObject(const TRef<T>& other) {
-        if (!m_Instance || !other.m_Instance)
-            return false;
+        if (!m_Instance || !other.m_Instance) return false;
 
         return *m_Instance == *other.m_Instance;
     }
@@ -187,6 +185,8 @@ public:
         // If the object is still in s_LiveReferences, upgrade to TRef.
         return IsValid() ? TRef<T>(m_Instance) : TRef<T>(nullptr);
     }
+
+    [[nodiscard]] T* GetRawUnsafe() const { return m_Instance; }
 
 private:
     T* m_Instance = nullptr;

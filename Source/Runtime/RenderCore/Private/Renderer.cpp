@@ -4,6 +4,7 @@
 #include "MeshManager.h"
 #include "ModuleUtils.h"
 #include "RHIAPI.h"
+#include "RenderGraph.h"
 #include "ShaderManager.h"
 
 CRenderer::CRenderer(IRendererWindow* windowHandle) : m_Window(windowHandle) {}
@@ -94,6 +95,30 @@ void CRenderer::Tick(float deltaTime) {
     m_GraphicContext->SetCurrentFrameIndex(m_CurrentFrameIndex);
     m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex);
     CCameraUniformManager::Get().UpdateAllCameras();
+
+    // ------ Render Graph ------
+    // CRenderGraph graph(m_GraphicContext.get());
+
+    // TRef<IRHITextureCubemap> myStaticSkybox = AssetMgr.LoadSkybox("sky.hdr");
+    // FRDGTexture* SkyboxHandle = graph.ImportExternal(myStaticSkybox);
+
+    // // Request a transient texture for storing the skybox pass result,
+    // // lifetime managed by the render graph
+    // FRDGTexture* SceneColorHandle = graph.CreateTexture(spec, "SceneColor");
+
+    // graph.AddPass("SkyboxPass", { SkyboxHandle }, { SceneColorHandle },
+    //               [=](CRenderGraphExecuteContext& ctx) {
+    //                   // 在这里，不管是外部的还是申请的，都统一通过 ctx 获取
+    //                   TRef<IRHITextureCubemap> skyTex = ctx.GetTextureCube(SkyboxHandle);
+    //                   TRef<IRHITexture2D> rtTex = ctx.GetTexture2D(SceneColorHandle);
+
+    //                   // 执行绘制...
+    //                   DrawSkybox(cmd, skybox);
+    //               });
+
+    // graph.Compile(); // Request physical resources from the global singleton ImagePool
+    // graph.Execute(cmdList.get());
+    // ------ Render Graph End ------
 
     IRHIAPI::DrawFrame(m_GraphicContext.get(), cmdList, syncObject, [&](uint32 imageIndex) {
         cmdList->Begin();

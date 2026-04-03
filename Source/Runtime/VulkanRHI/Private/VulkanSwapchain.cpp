@@ -32,7 +32,7 @@ const uint32 CVulkanSwapchain::AcquireNextImage(vk::Semaphore semaphore) {
 }
 
 void CVulkanSwapchain::SetPresentMode(const EPresentMode mode) {
-    m_PresentMode = mode;
+    m_PresentMode     = mode;
     m_NeedsRecreation = true;
 }
 
@@ -70,7 +70,7 @@ void CVulkanSwapchain::Init() {
     CZ_CORE_ASSERT(*m_VKSurface, "Surface handle is null before Swapchain initialization!");
 
     const vk::raii::PhysicalDevice& raiihysicalDevice = device->GetRAIIPhysicalDevice();
-    const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
+    const vk::raii::Device& raiiDevice                = device->GetRAIILogicalDevice();
 
     ChozoUtils::Vulkan::SwapchainSupportDetails details =
         ChozoUtils::Vulkan::QuerySwapchainSupport(raiihysicalDevice, m_VKSurface);
@@ -99,7 +99,7 @@ void CVulkanSwapchain::Init() {
     if (hasSwapchainMaintenance) {
         CZ_LOG(LogVulkanSwapchain, Info,
                "VK_EXT_swapchain_maintenance1 supported, using physical size");
-        extent.width = pixelWidth;
+        extent.width  = pixelWidth;
         extent.height = pixelHeight;
     } else {
         CZ_LOG(LogVulkanSwapchain, Warning,
@@ -116,22 +116,22 @@ void CVulkanSwapchain::Init() {
     }
 
     vk::SwapchainCreateInfoKHR createInfo;
-    createInfo.surface = *m_VKSurface;
-    createInfo.minImageCount = m_ImageCount;
-    createInfo.imageFormat = surfaceFormat.format;
-    createInfo.imageColorSpace = surfaceFormat.colorSpace;
-    createInfo.imageExtent = extent;
+    createInfo.surface          = *m_VKSurface;
+    createInfo.minImageCount    = m_ImageCount;
+    createInfo.imageFormat      = surfaceFormat.format;
+    createInfo.imageColorSpace  = surfaceFormat.colorSpace;
+    createInfo.imageExtent      = extent;
     createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+    createInfo.imageUsage       = vk::ImageUsageFlagBits::eColorAttachment;
 
     // If indices are different, use Concurrent mode; otherwise use Exclusive
     FQueueFamilyIndices indices =
         ChozoUtils::Vulkan::FindQueueFamilies(raiihysicalDevice, m_VKSurface);
     uint32_t queueFamilyIndices[] = { indices.Graphics.value(), indices.Present.value() };
     if (indices.Graphics != indices.Present) {
-        createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
+        createInfo.imageSharingMode      = vk::SharingMode::eConcurrent;
         createInfo.queueFamilyIndexCount = 2;
-        createInfo.pQueueFamilyIndices = queueFamilyIndices;
+        createInfo.pQueueFamilyIndices   = queueFamilyIndices;
     } else {
         createInfo.imageSharingMode = vk::SharingMode::eExclusive;
     }
@@ -144,8 +144,8 @@ void CVulkanSwapchain::Init() {
     }
 
     createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-    createInfo.presentMode = presentMode;
-    createInfo.clipped = true;
+    createInfo.presentMode    = presentMode;
+    createInfo.clipped        = true;
 
     vk::SwapchainPresentScalingCreateInfoEXT scalingInfo;
     if (hasSwapchainMaintenance) {
@@ -163,10 +163,10 @@ void CVulkanSwapchain::Init() {
     if (*oldSwapchain) {
         createInfo.oldSwapchain = *oldSwapchain;
     }
-    m_VKSwapchain = vk::raii::SwapchainKHR(raiiDevice, createInfo);
+    m_VKSwapchain   = vk::raii::SwapchainKHR(raiiDevice, createInfo);
     m_VKImageFormat = surfaceFormat.format;
     m_VKDepthFormat = vk::Format::eD32Sfloat;
-    m_VKExtent = extent;
+    m_VKExtent      = extent;
 
     // Retrieve the images created by the swapchain
     auto images = m_VKSwapchain.getImages();
@@ -181,10 +181,10 @@ void CVulkanSwapchain::Init() {
     for (auto rawImage : images) {
         // Wrap each VkImage into RHI Texture object
         FTexture2DSpecification texSpec;
-        texSpec.Name = "Swapchain_ColorAttachment_" + std::to_string(m_ColorAttachments.size());
-        texSpec.Size = FExtent2D(m_VKExtent.width, m_VKExtent.height);
+        texSpec.Name   = "Swapchain_ColorAttachment_" + std::to_string(m_ColorAttachments.size());
+        texSpec.Size   = FExtent2D(m_VKExtent.width, m_VKExtent.height);
         texSpec.Format = ChozoUtils::Vulkan::FromVKFormat(m_VKImageFormat);
-        texSpec.Usage = ETextureUsage::ColorAttachment;
+        texSpec.Usage  = ETextureUsage::Attachment; // Swapchain images are used as render targets
 
         TRef<CVulkanTexture2D> texture = CreateRef<CVulkanTexture2D>(
             WeakRef<IRHIDevice>(device), texSpec, rawImage,

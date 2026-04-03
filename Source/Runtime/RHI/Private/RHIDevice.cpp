@@ -6,7 +6,7 @@
 DEFINE_LOG_CATEGORY(LogRHIDevice);
 
 IRHIDevice::IRHIDevice(const IRHIContext* ctx, const FDeviceSpecification& spec)
-    : m_Spec(spec), m_Context(ctx) {}
+    : m_Spec(spec), m_Context(ctx), m_ImagePool(WeakRef<IRHIDevice>(this)) {}
 
 IRHIDevice::~IRHIDevice() { CZ_LOG(LogRHIDevice, Trace, "RHIDevice destroying..."); }
 

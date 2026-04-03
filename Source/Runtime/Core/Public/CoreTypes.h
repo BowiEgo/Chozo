@@ -21,7 +21,6 @@
 ////////////////////////////////////////////////////////////////////////////
 //============================ Debug =====================================//
 ////////////////////////////////////////////////////////////////////////////
-
 #ifdef CZ_DEBUG
 static constexpr bool GIsDebug = true;
 #else
@@ -62,7 +61,6 @@ static constexpr bool GIsDebug = false;
 ////////////////////////////////////////////////////////////////////////////
 //=========================== Global Macros ==============================//
 ////////////////////////////////////////////////////////////////////////////
-
 // Use 1ULL to ensure we support up to 64-bit flags safely
 #define BIT(x) (1ULL << (x))
 
@@ -73,14 +71,12 @@ static constexpr bool GIsDebug = false;
 ////////////////////////////////////////////////////////////////////////////
 //============================ Global Scope ==============================//
 ////////////////////////////////////////////////////////////////////////////
-
 template <typename T, typename... Args> using TCallback = std::function<T(Args&&... args)>;
 using CallbackHandle = uint32_t;
 
 ////////////////////////////////////////////////////////////////////////////
 //========================== Basic Type Aliases ==========================//
 ////////////////////////////////////////////////////////////////////////////
-
 // Stick to explicit sizes for global basic types to avoid ambiguity
 using uint8 = std::uint8_t;
 using uint16 = std::uint16_t;
@@ -101,7 +97,6 @@ using FUint = uint32;
 ////////////////////////////////////////////////////////////////////////////
 //================================ Enum ==================================//
 ////////////////////////////////////////////////////////////////////////////
-
 /**
  * ENUM_CLASS_FLAGS - Macro to enable bitwise operations for enum classes.
  * Includes: |, &, ^, ~, |=, &=, ^=
@@ -147,4 +142,11 @@ template <typename TEnum> [[nodiscard]] inline bool EnumHasAllFlags(TEnum flags,
     using UnderlyingType = typename std::underlying_type<TEnum>::type;
     return (static_cast<UnderlyingType>(flags) & static_cast<UnderlyingType>(contains)) ==
            static_cast<UnderlyingType>(contains);
+}
+
+////////////////////////////////////////////////////////////////////////////
+//================================ Hash ==================================//
+////////////////////////////////////////////////////////////////////////////
+inline void HashCombine(size_t& seed, size_t value) {
+    seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
