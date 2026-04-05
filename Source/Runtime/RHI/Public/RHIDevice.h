@@ -1,17 +1,23 @@
 #pragma once
 
+#include "RHIExport.h"
+#include "Ref.h"
+
+#include "DescriptorSetCache.h"
 #include "ImagePool.h"
 #include "RHICommandPool.h"
-#include "RHIExport.h"
 #include "RHIPipeline.h"
 #include "RHISyncObject.h"
-#include "Ref.h"
+#include "SamplerCache.h"
+#include "SetLayoutCache.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHIDevice, Info);
 
 class IRHIContext;
 class IRHIResource;
 class IRHIImage;
+class IRHISampler;
+class IRHITexture2D;
 class IRHIShader;
 struct FShaderSpecification;
 
@@ -45,15 +51,46 @@ public:
      */
     virtual void WaitIdle() = 0;
 
-    virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec) = 0;
-    virtual TRef<IRHIImage> CreateImage(const FImageSpecification& spec)             = 0;
+    virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec)  = 0;
+    virtual TRef<IRHIImage> CreateImage(const FImageSpecification& spec)              = 0;
+    virtual TRef<IRHISampler> CreateSampler(const FSamplerSpecification& spec)        = 0;
+    virtual TRef<IRHISetLayout> CreateSetLayout(const FRHISetLayoutDescription& desc) = 0;
+    virtual TRef<IRHITexture2D> CreateTexture2D(const FTextureSpecification& spec)    = 0;
+    virtual TRef<IRHIDescriptorSet> CreateDescriptorSet(const FTextureDescriptorInfo& info,
+                                                        TRef<IRHISetLayout> setLayout,
+                                                        uint32 bindingSlot)           = 0;
 
-    CImagePool& GetImagePool() { return m_ImagePool; }
+    void ReleaseImage(TRef<IRHIImage> image) { return m_ImagePool.ReleaseImage(image); }
+    TRef<IRHIImage> GetImage(const FImageSpecification& spec) {
+        return m_ImagePool.RequestPersistentImage(spec);
+    }
+    TRef<IRHISampler> GetSampler(const FSamplerSpecification& spec) {
+        return m_SamplerCache.GetOrCreateSampler(spec);
+    }
+    TRef<IRHISetLayout> GetOrCreateLayout(const FRHISetLayoutDescription& desc) {
+        return m_SetLayoutCache.GetOrCreateLayout(desc);
+    }
+    TRef<IRHISetLayout> GetEmptySetLayout() { return m_SetLayoutCache.GetEmptySetLayout(); }
+    TRef<IRHISetLayout> GetStaticSetLayout() { return m_SetLayoutCache.GetStaticSetLayout(); }
+    TRef<IRHIDescriptorSet> GetOrCreateDescriptorSet(const FTextureDescriptorInfo& info,
+                                                     TRef<IRHISetLayout> setLayout,
+                                                     uint32 bindingSlot) {
+        return m_DescriptorSetCache.GetOrCreateDescriptorSet(info, setLayout, bindingSlot);
+    }
 
     // Enqueue a cleanup function to be called after it's safe to delete the resource (e.g., after
     // GPU is done with it)
     void EnqueueCleanup(std::function<void()>&& func);
     void TickDeferredDeletion(uint32 currentFrame);
+    std::vector<TRef<IRHISetLayout>>
+        CreateDescriptorSetLayout(const FRHIPipelineLayoutDescription& desc);
+
+    void Shutdown() {
+        m_SamplerCache.Clear();
+        m_SetLayoutCache.Clear();
+        m_ImagePool.Clear();
+        m_DescriptorSetCache.Clear();
+    }
 
 protected:
     FDeviceSpecification m_Spec;
@@ -62,4 +99,7 @@ protected:
     std::vector<DeferredCleanup> m_DeletionQueue;
 
     CImagePool m_ImagePool;
+    CSamplerCache m_SamplerCache;
+    CSetLayoutCache m_SetLayoutCache;
+    CDescriptorSetCache m_DescriptorSetCache;
 };

@@ -23,7 +23,7 @@ public:
     static void Init(const std::vector<const char*>& windowRequiredExtensions,
                      const void* nativeWindowHandle) {
         CVulkanAPI* api = new CVulkanAPI();
-        api->m_Vulkan = new CVulkan(windowRequiredExtensions, nativeWindowHandle);
+        api->m_Vulkan   = new CVulkan(windowRequiredExtensions, nativeWindowHandle);
         if (!IRHIAPI::s_Instance) IRHIAPI::s_Instance = api;
     }
 
@@ -37,7 +37,7 @@ public:
     virtual TRef<IRHIDevice> CreateDevice_Internal(const IRHIContext* ctx,
                                                    const FDeviceSpecification& spec) override {
         const auto& vkInstance = m_Vulkan->GetVKRAIIInstance();
-        const auto& vkSurface = m_Vulkan->GetVKRAIISurface();
+        const auto& vkSurface  = m_Vulkan->GetVKRAIISurface();
 
         auto device = CreateRef<CVulkanDevice>(ctx, spec, vkInstance, vkSurface);
         device->Init();
@@ -48,7 +48,7 @@ public:
     virtual TRef<IRHISwapchain>
         CreateSwapchain_Internal(const IRHIContext* ctx,
                                  const FSwapchainSpecification& spec) override {
-        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+        auto RHIDevice        = ctx->GetDevice().As<CVulkanDevice>();
         const auto& vkSurface = m_Vulkan->GetVKRAIISurface();
 
         return CreateRef<CVulkanSwapchain>(spec, RHIDevice, vkSurface);
@@ -78,22 +78,23 @@ public:
 
     virtual TRef<IRHIShader> CreateShader_Internal(const IRHIContext* ctx,
                                                    const FShaderSpecification& spec,
-                                                   const std::vector<uint32_t>* binary) override {
+                                                   const std::vector<uint32_t>* binary,
+                                                   const FShaderReflection reflection) override {
         auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
 
-        return CreateRef<CVulkanShader>(spec, RHIDevice, binary);
+        return CreateRef<CVulkanShader>(spec, RHIDevice, binary, reflection);
     }
 
     virtual TRef<IRHITexture2D>
         CreateTexture2D_Internal(const IRHIContext* ctx,
-                                 const FTexture2DSpecification& spec) override {
-        auto RHIDevice = ctx->GetDevice();
+                                 const FTextureSpecification& spec) override {
+        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
 
-        return CreateRef<CVulkanTexture2D>(WeakRef(RHIDevice), spec);
+        return RHIDevice->CreateTexture2D(spec);
     }
 
     virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const IRHIContext* ctx,
-                                                         const FTexture2DSpecification& spec,
+                                                         const FTextureSpecification& spec,
                                                          FBuffer& data) override {
         auto RHIDevice = ctx->GetDevice();
 

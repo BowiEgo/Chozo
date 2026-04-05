@@ -1,6 +1,7 @@
 #include "VulkanAPI.h"
 
 #include "VulkanCommandBuffer.h"
+#include "VulkanImage.h"
 
 DEFINE_LOG_CATEGORY(LogVulkanAPI);
 
@@ -11,11 +12,11 @@ CVulkanAPI::~CVulkanAPI() { CZ_LOG(LogVulkanAPI, Trace, "VulkanAPI destroying...
 void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList>& cmdBuffer,
                                     TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback) {
-    auto currentFrame = ctx->GetCurrentFrameIndex();
-    auto device = ctx->GetDevice().As<CVulkanDevice>();
-    auto swapchain = ctx->GetSwapchain().As<CVulkanSwapchain>();
-    auto queue = device->GetGraphicsQueue();
-    auto vkSync = syncObject.As<CVulkanSyncObject>();
+    auto currentFrame             = ctx->GetCurrentFrameIndex();
+    auto device                   = ctx->GetDevice().As<CVulkanDevice>();
+    auto swapchain                = ctx->GetSwapchain().As<CVulkanSwapchain>();
+    auto queue                    = device->GetGraphicsQueue();
+    auto vkSync                   = syncObject.As<CVulkanSyncObject>();
     vk::CommandBuffer vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
 
     if (vkSync->WasJustRecreated()) {
@@ -41,11 +42,11 @@ void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList
     }
 
     // 2. accuireNextImage
-    uint32 inFlightIndex = currentFrame % swapchain->GetImageCount();
+    uint32 inFlightIndex         = currentFrame % swapchain->GetImageCount();
     vk::Semaphore acquireWaitSem = swapchain->GetImageAvailableSemaphore(inFlightIndex);
 
-    uint32 imgIdx = INVALID_IMAGE_INDEX;
-    int retryCount = 0;
+    uint32 imgIdx        = INVALID_IMAGE_INDEX;
+    int retryCount       = 0;
     const int maxRetries = 3;
 
     while (retryCount < maxRetries) {
@@ -79,7 +80,7 @@ void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList
     vk::SubmitInfo submitInfo;
 
     vk::Semaphore imageSigSem = swapchain->GetRenderFinishedSemaphore(imgIdx);
-    vk::Fence fence = vkSync->GetVKFence();
+    vk::Fence fence           = vkSync->GetVKFence();
 
     submitInfo.setWaitSemaphores(acquireWaitSem)
         .setWaitDstStageMask(waitStages)
@@ -123,21 +124,22 @@ void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList
 
 void CVulkanAPI::BeginRendering_Internal(const IRHIContext* ctx,
                                          const TRef<IRHICommandList>& cmdBuffer, bool bClear) {
-    auto target = ctx->GetTarget().As<CVulkanTexture2D>();
-    auto oldLayout = target->GetCurrentLayout();
-    auto newLayout = vk::ImageLayout::eColorAttachmentOptimal;
+    auto target      = ctx->GetTarget().As<CVulkanTexture2D>();
+    auto targetImage = target->GetImage().As<CVulkanImage>();
+    auto oldLayout   = targetImage->GetCurrentLayout();
+    auto newLayout   = vk::ImageLayout::eColorAttachmentOptimal;
 
-    auto vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
-    auto swapchain = ctx->GetSwapchain().As<CVulkanSwapchain>();
+    auto vkCmdBuffer     = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
+    auto swapchain       = ctx->GetSwapchain().As<CVulkanSwapchain>();
     FExtent2D targetSize = target->GetSize();
 
     vk::Extent2D extent(targetSize.Width, targetSize.Height);
     vk::ClearValue clearColor = vk::ClearColorValue(0.1f, 0.1f, 0.1f, 1.0f);
 
     // Check layout and transition if necessary
-    ChozoUtils::Vulkan::TransitionTextureLayout(vkCmdBuffer, target->GetVKImage(), oldLayout,
-                                                newLayout);
-    target->SetCurrentLayout(newLayout);
+    ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, targetImage->GetVKImage(), oldLayout,
+                                              newLayout);
+    targetImage->SetCurrentLayout(newLayout);
 
     // Setup rendering attachment
     auto colorAttachmentInfo = target->GetColorAttachmentInfo(clearColor, bClear);
@@ -154,20 +156,27 @@ void CVulkanAPI::BeginRendering_Internal(const IRHIContext* ctx,
 
 void CVulkanAPI::EndRendering_Internal(const IRHIContext* ctx,
                                        const TRef<IRHICommandList>& cmdBuffer) {
-    auto swapchain = ctx->GetSwapchain().As<CVulkanSwapchain>();
-    auto target = ctx->GetTarget().As<CVulkanTexture2D>();
+    auto swapchain   = ctx->GetSwapchain().As<CVulkanSwapchain>();
+    auto target      = ctx->GetTarget().As<CVulkanTexture2D>();
+    auto targetImage = target->GetImage().As<CVulkanImage>();
     auto vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
 
     vkCmdBuffer.endRendering();
     uint32 imgIdx = ctx->GetCurrentImageIndex();
 
     // After rendering, transition the swapchain image to PRESENT_SRC
-    if (target == swapchain->GetColorAttachment(imgIdx)) {
-        auto oldLayout = target->GetCurrentLayout();
+    auto targetVKImage = targetImage->GetVKImage();
+    auto swapchainVKImage =
+        swapchain->GetColorAttachment(imgIdx)->GetImage().As<CVulkanImage>()->GetVKImage();
+
+    uint64_t h1 = (uint64_t)(VkImage)targetVKImage;
+    uint64_t h2 = (uint64_t)(VkImage)swapchainVKImage;
+
+    if (targetVKImage == swapchainVKImage) {
+        auto oldLayout = targetImage->GetCurrentLayout();
         auto newLayout = vk::ImageLayout::ePresentSrcKHR;
-        ChozoUtils::Vulkan::TransitionTextureLayout(vkCmdBuffer, target->GetVKImage(), oldLayout,
-                                                    newLayout);
-        target->SetCurrentLayout(newLayout);
+        ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, targetVKImage, oldLayout, newLayout);
+        targetImage->SetCurrentLayout(newLayout);
     }
 }
 
@@ -175,14 +184,14 @@ void CVulkanAPI::PrepareTextureForSampling_Internal(const IRHIContext* ctx,
                                                     const TRef<IRHICommandList>& cmdBuffer,
                                                     const TRef<IRHITexture2D>& texture) {
     auto vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
-    auto vulkanTexture = texture.As<CVulkanTexture2D>();
-    auto oldLayout = vulkanTexture->GetCurrentLayout();
-    auto newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    auto image       = texture->GetImage().As<CVulkanImage>();
+    auto oldLayout   = image->GetCurrentLayout();
+    auto newLayout   = vk::ImageLayout::eShaderReadOnlyOptimal;
 
     // Perform the barrier here while we have access to the command buffer.
     if (oldLayout != vk::ImageLayout::eShaderReadOnlyOptimal) {
-        ChozoUtils::Vulkan::TransitionTextureLayout(vkCmdBuffer, vulkanTexture->GetVKImage(),
-                                                    oldLayout, newLayout);
-        vulkanTexture->SetCurrentLayout(newLayout);
+        ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, image->GetVKImage(), oldLayout,
+                                                  newLayout);
+        image->SetCurrentLayout(newLayout);
     }
 }

@@ -5,21 +5,34 @@
         - [ ] DAG Builder & Pass Sorting
         - [ ] Automatic Barrier Insertion (Scheme 4/6)
         - [ ] Resource Aliasing (Memory Reuse)
+
     - [ ] **Scene Rendering**
         - [ ] Basic PBR Lighting
         - [ ] Mesh Loading (Assimp/gltf)
+
+    - [ ] **Advanced Rendering Features**
+        - [ ] Bindless material system integration.
+        - [ ] Designed a global BindlessIndex system for textures.
+        - [ ] Optimized ImGui integration to utilize bindless indexing, significantly reducing draw call overhead and descriptor set switching.
+        - [ ] Shader reflection system for automated pipeline layout generation.
+        - [ ] Support for compute-based post-processing effects.
+
 - [ ] **RHI (Vulkan Implementation)**
     - [x] Device & Swapchain Initialization
     - [x] Descriptor Set Layout Cache
     - [x] Basic Synchronization (Layout Transitions)
     - [ ] Pipeline State Object (PSO) Caching
+
 - [ ] **Editor**
     - [x] Viewport Render Output (Off-screen)
+
     - [ ] **Viewport Polish**
         - [ ] Window Resize Logic (FBE Recreations)
         - [ ] Aspect Ratio Correction
-    - [ ] Content Browser
-    - [ ] Property Inspector (ImGui Integration)
+
+    - [ ] **Content Browser**
+
+    - [ ] **Property Inspector (ImGui Integration)**
 
 ### 🏷️ Naming Conventions
 

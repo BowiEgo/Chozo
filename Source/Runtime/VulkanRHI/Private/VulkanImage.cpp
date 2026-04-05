@@ -10,8 +10,8 @@ CVulkanImage::CVulkanImage(const WeakRef<IRHIDevice> device, const FImageSpecifi
 }
 
 CVulkanImage::CVulkanImage(const WeakRef<IRHIDevice> device, const FImageSpecification& spec,
-                           vk::Image image, bool bIsOwned)
-    : IRHIImage(device, spec), m_VKImage(image), m_bIsOwned(bIsOwned) {
+                           vk::Image image, bool bIsExternal)
+    : IRHIImage(device, spec), m_VKImage(image), m_bIsExternal(bIsExternal) {
     // Assume the provided image is already in a valid layout and has memory bound.
     // We will query its format and set the current layout to undefined (caller should set it).
     // In a more robust implementation, we might want to allow passing the current layout as well.
@@ -21,28 +21,51 @@ CVulkanImage::CVulkanImage(const WeakRef<IRHIDevice> device, const FImageSpecifi
 }
 
 CVulkanImage::~CVulkanImage() {
+    CZ_LOG(LogVulkanImage, Trace, "VulkanImage destroying...");
+
+    // auto device = m_Device.lock().As<CVulkanDevice>();
+    // if (!device) return;
+
+    // vk::Device logicalDevice = device->GetLogicalDevice();
+
+    // auto viewCacheCopy      = m_ViewCache;
+    // vk::Image image         = m_VKImage;
+    // vk::DeviceMemory memory = m_VKMemory;
+    // bool bIsExternal        = m_bIsExternal;
+
+    // device->EnqueueCleanup([=] {
+    //     if (!bIsExternal) {
+    //         for (auto& [spec, view] : viewCacheCopy) {
+    //             logicalDevice.destroyImageView(view);
+    //         }
+
+    //         if (image) logicalDevice.destroyImage(image);
+    //         if (memory) logicalDevice.freeMemory(memory);
+    //     }
+    // });
+}
+
+void CVulkanImage::Init() {
+    m_VKFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format);
+
+    if (!m_bIsExternal) {
+        CreateImageResources();
+    }
+}
+
+void CVulkanImage::Destroy() {
     auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return;
 
     vk::Device logicalDevice = device->GetLogicalDevice();
 
-    vk::Image image         = m_VKImage;
-    vk::DeviceMemory memory = m_VKMemory;
-    bool bOwned             = m_bIsOwned;
+    for (auto& [spec, view] : m_ViewCache) {
+        logicalDevice.destroyImageView(view);
+    }
 
-    device->EnqueueCleanup([=] {
-        if (bOwned) {
-            if (image) logicalDevice.destroyImage(image);
-            if (memory) logicalDevice.freeMemory(memory);
-        }
-    });
-}
-
-void CVulkanImage::Init() {
-    m_VKFormat = ChozoUtils::Vulkan::ToVKFormat(m_Spec.Format);
-
-    if (m_bIsOwned) {
-        CreateImageResources();
+    if (!m_bIsExternal) {
+        if (m_VKImage) logicalDevice.destroyImage(m_VKImage);
+        if (m_VKMemory) logicalDevice.freeMemory(m_VKMemory);
     }
 }
 
@@ -102,4 +125,48 @@ void CVulkanImage::CreateImageResources() {
 
     m_VKMemory = logicalDevice.allocateMemory(allocInfo);
     logicalDevice.bindImageMemory(m_VKImage, m_VKMemory, 0);
+}
+
+vk::ImageView CVulkanImage::GetOrCreateView(const FImageViewSpecification& spec) {
+    if (m_ViewCache.contains(spec)) {
+        return m_ViewCache[spec];
+    }
+
+    auto device              = m_Device.lock().As<CVulkanDevice>();
+    vk::Device logicalDevice = device->GetLogicalDevice();
+
+    // vk::ImageViewCreateInfo viewInfo{};
+    // viewInfo.image    = m_VKImage;
+    // viewInfo.viewType = ChozoUtils::Vulkan::ToVkViewType(spec.ViewType);
+
+    // // viewInfo.format = (spec.Format == EShaderDataFormat::None)
+    // //                       ? ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format)
+    // //                       : ChozoUtils::Vulkan::ShaderDataTypeToVkFormat(spec.Format);
+
+    // viewInfo.format = ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format);
+
+    // viewInfo.subresourceRange.aspectMask =
+    // ChozoUtils::Vulkan::GetImageAspectFlags(viewInfo.format);
+    // viewInfo.subresourceRange.baseMipLevel = spec.BaseMipLevel;
+    // viewInfo.subresourceRange.levelCount = (spec.MipCount == 0) ? m_Spec.MipLevels :
+    // spec.MipCount; viewInfo.subresourceRange.baseArrayLayer = spec.BaseArrayLayer;
+    // viewInfo.subresourceRange.layerCount = (spec.LayerCount == 0) ? m_Spec.Layers :
+    // spec.LayerCount;
+
+    vk::Format vkFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format);
+    bool isDepth        = ChozoUtils::Vulkan::IsDepthFormat(vkFormat);
+
+    vk::ImageViewCreateInfo viewInfo;
+    viewInfo.setImage(m_VKImage)
+        .setViewType(vk::ImageViewType::e2D)
+        .setFormat(vkFormat)
+        .setSubresourceRange(vk::ImageSubresourceRange(isDepth ? vk::ImageAspectFlagBits::eDepth
+                                                               : vk::ImageAspectFlagBits::eColor,
+                                                       0, 1, 0, 1));
+
+    vk::ImageView view = logicalDevice.createImageView(viewInfo);
+
+    m_ViewCache[spec] = view;
+
+    return view;
 }

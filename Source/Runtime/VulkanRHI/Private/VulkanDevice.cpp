@@ -2,7 +2,11 @@
 
 #include "VulkanCommandBuffer.h"
 #include "VulkanCommandPool.h"
+#include "VulkanDescriptorSet.h"
 #include "VulkanImage.h"
+#include "VulkanSampler.h"
+#include "VulkanSetLayout.h"
+#include "VulkanTexture2D.h"
 #include "VulkanUtils.h"
 
 DEFINE_LOG_CATEGORY(LogVulkanDevice);
@@ -44,6 +48,43 @@ TRef<IRHICommandPool> CVulkanDevice::CreateCommandPool(FCommandPoolSpecification
 TRef<IRHIImage> CVulkanDevice::CreateImage(const FImageSpecification& spec) {
     return CreateRef<CVulkanImage>(WeakRef<IRHIDevice>(this), spec);
 }
+
+TRef<IRHISampler> CVulkanDevice::CreateSampler(const FSamplerSpecification& spec) {
+    return CreateRef<CVulkanSampler>(WeakRef<IRHIDevice>(this), spec);
+}
+
+TRef<IRHISetLayout> CVulkanDevice::CreateSetLayout(const FRHISetLayoutDescription& desc) {
+    return CreateRef<CVulkanSetLayout>(WeakRef<IRHIDevice>(this), desc);
+}
+
+TRef<IRHITexture2D> CVulkanDevice::CreateTexture2D(const FTextureSpecification& spec) {
+    auto image   = m_ImagePool.RequestPersistentImage(spec.ToImageSpec());
+    auto sampler = m_SamplerCache.GetOrCreateSampler(spec.SamplerSpec);
+
+    auto tex = CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(this), spec);
+
+    return tex;
+}
+
+TRef<IRHIDescriptorSet> CVulkanDevice::CreateDescriptorSet(const FTextureDescriptorInfo& info,
+                                                           TRef<IRHISetLayout> setLayout,
+                                                           uint32 bindingSlot) {
+    return CreateRef<CVulkanDescriptorSet>(WeakRef<IRHIDevice>(this), info, setLayout, bindingSlot);
+}
+
+// void* CVulkanDevice::GetDescriptorSet(const FTextureDescriptorInfo& info,
+//                                       TRef<IRHISetLayout> setLayout, uint32 bindingSlot) {
+//     FDescriptorSetKey key{ (void*)info.Sampler.get(), (void*)info.Image.get(),
+//                            (void*)setLayout.get() };
+
+//     auto it = m_DescriptorSetCache.find(key);
+//     if (it != m_DescriptorSetCache.end()) {
+//         return (void*)(VkDescriptorSet)(*it->second);
+//     }
+
+//     m_DescriptorSetCache.emplace(key, CreateDescriptorSet(info, setLayout, bindingSlot));
+//     return (void*)(VkDescriptorSet)(*m_DescriptorSetCache[key]);
+// }
 
 void CVulkanDevice::PickPhysicalDevice(const vk::raii::Instance& instance) {
     std::vector<vk::raii::PhysicalDevice> devices = instance.enumeratePhysicalDevices();
@@ -440,4 +481,15 @@ bool CVulkanDevice::IsExtensionSupported(const std::string& extensionName) const
         }
     }
     return false;
+}
+
+vk::raii::DescriptorSet CVulkanDevice::AllocateSetFromPool(vk::DescriptorSetLayout layout) {
+    vk::DescriptorSetAllocateInfo allocInfo;
+    allocInfo.setDescriptorPool(*m_GlobalDescriptorPool)
+        .setDescriptorSetCount(1)
+        .setPSetLayouts(&layout);
+
+    auto sets = m_LogicalDevice.allocateDescriptorSets(allocInfo);
+
+    return std::move(sets[0]);
 }

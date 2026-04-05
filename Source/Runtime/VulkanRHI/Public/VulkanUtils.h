@@ -65,26 +65,41 @@ vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities, in
 // Command
 vk::CommandPoolCreateFlags MapCommandPoolFlags(ECommandPoolFlags rhiFlags);
 
+// Samper
+vk::Filter ToVKFilter(EFilter filter);
+
+vk::SamplerAddressMode ToVKAddressMode(EAddressMode mode);
+
+vk::SamplerMipmapMode ToVKMipmapMode(EMipmapMode mode);
+
 // Image
-void TransitionTextureLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image vkImage,
-                             vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
+vk::ImageLayout ToVkImageLayout(EImageLayout layout);
+
+void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image vkImage,
+                           vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
 
 void SetupBarrierSync(vk::ImageMemoryBarrier2& barrier, vk::ImageLayout oldLayout,
                       vk::ImageLayout newLayout);
+
+vk::ImageViewType ToVkViewType(EImageViewType type);
+
+vk::ImageAspectFlags GetImageAspectFlags(vk::Format format);
 
 // Log
 void LogPhysicalDeviceInfo(const vk::PhysicalDeviceProperties& properties);
 
 void LogMemoryBudget(vk::raii::PhysicalDevice& physicalDevice);
 
-vk::Format ToVKFormat(EPixelFormat format);
+vk::Format ToVkFormat(EPixelFormat format);
 
 EPixelFormat FromVKFormat(vk::Format format);
 
 bool IsDepthFormat(vk::Format format);
 
 // Shader
-vk::Format ShaderDataTypeToVkFormat(EShaderDataType type);
+vk::DescriptorType ToVkDescType(EUniformType type);
+
+vk::Format ShaderDataTypeToVkFormat(EShaderDataFormat type);
 
 // Pipeline
 vk::PolygonMode GetVulkanPolygonMode(EPolygonMode mode);

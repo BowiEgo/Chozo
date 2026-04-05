@@ -85,17 +85,18 @@ void SandboxLayer::OnImGuiRender() {
     // Application::Get().GetImGuiLayer().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
     auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
-    m_ViewportSize = ImGui::GetContentRegionAvail();
+    m_ViewportSize      = ImGui::GetContentRegionAvail();
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
-    ImTextureID textureID = (ImTextureID)m_Viewport->GetTextureID(0);
+    auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
+    ImTextureID textureID = (ImTextureID)tex->GetDescriptorSet();
     ImGui::Image(textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
     // Integrated Debug Overlay
     m_Overlay.Draw("SandboxOverlay:", &m_IsOverlayOpen, [io]() {
         // Performance monitoring
         auto profiler = CApplication::Get()->GetPerformanceProfiler();
-        float fps = CApplication::Get()->GetFPSCounter()->GetFPS();
+        float fps     = CApplication::Get()->GetFPSCounter()->GetFPS();
         float latency = CApplication::Get()->GetFPSCounter()->GetAvgLatency();
 
         ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Engine FPS: %.1f", fps);

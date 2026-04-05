@@ -16,6 +16,11 @@ public:
     CVulkanPipeline(const FPipelineSpecification& spec, const TRef<CVulkanDevice>& device);
     virtual ~CVulkanPipeline();
 
+    vk::DescriptorSetLayout GetSetLayout(uint32_t set) {
+        if (set < m_DescriptorSetLayouts.size()) return m_DescriptorSetLayouts[set];
+        return nullptr;
+    }
+
 private:
     void Init();
     const vk::Pipeline GetVKPipeline() const { return *m_Pipeline; }
@@ -23,9 +28,15 @@ private:
     const vk::PipelineLayout GetPipelineLayout() const { return *m_PipelineLayout; }
     const vk::raii::PipelineLayout& GetRAIIPipelineLayout() const { return m_PipelineLayout; }
 
+    void GenerateSetLayouts(
+        std::map<uint32_t, std::vector<vk::DescriptorSetLayoutBinding>>& setLayoutBindings,
+        std::vector<vk::PushConstantRange>& pushConstantRanges,
+        std::vector<vk::PipelineShaderStageCreateInfo>& shaderStages);
+
 private:
     WeakRef<CVulkanDevice> m_Device;
 
     vk::raii::PipelineLayout m_PipelineLayout = nullptr;
-    vk::raii::Pipeline m_Pipeline = nullptr;
+    vk::raii::Pipeline m_Pipeline             = nullptr;
+    std::vector<vk::DescriptorSetLayout> m_DescriptorSetLayouts;
 };

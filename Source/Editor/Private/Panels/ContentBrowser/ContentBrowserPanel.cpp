@@ -126,7 +126,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
         ImGuiMultiSelectIO* ms_io = ImGui::BeginMultiSelect(ms_flags, Selection.Size, m_Items.Size);
 
         // Use custom selection adapter: store ID in selection (recommended)
-        Selection.UserData = this;
+        Selection.UserData                = this;
         Selection.AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage* self_, int idx) {
             ContentBrowserPanel* self = (ContentBrowserPanel*)self_->UserData;
             return self->m_Items[idx].ID;
@@ -152,8 +152,8 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
         // Rendering parameters
         const ImU32 icon_type_overlay_colors[3] = { 0, IM_COL32(200, 70, 70, 255),
                                                     IM_COL32(70, 170, 70, 255) };
-        const ImU32 icon_bg_color = ImGui::GetColorU32(IM_COL32(35, 35, 35, 220));
-        const ImVec2 icon_type_overlay_size = ImVec2(4.0f, 4.0f);
+        const ImU32 icon_bg_color               = ImGui::GetColorU32(IM_COL32(35, 35, 35, 220));
+        const ImVec2 icon_type_overlay_size     = ImVec2(4.0f, 4.0f);
         const bool display_label = (LayoutItemSize.x >= ImGui::CalcTextSize("999").x);
 
         const int column_count = LayoutColumnCount;
@@ -182,7 +182,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
 
                     ImGui::SetNextItemSelectionUserData(item_idx);
                     bool item_is_selected = Selection.Contains((ImGuiID)item_data->ID);
-                    bool item_is_visible = ImGui::IsRectVisible(LayoutItemSize);
+                    bool item_is_visible  = ImGui::IsRectVisible(LayoutItemSize);
                     ImGui::Selectable("", item_is_selected, ImGuiSelectableFlags_None,
                                       LayoutItemSize);
 
@@ -200,7 +200,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
                         // ImGuiMultiSelectFlags_SelectOnClickRelease)
                         if (ImGui::GetDragDropPayload() == NULL) {
                             ImVector<ImGuiID> payload_items;
-                            void* it = NULL;
+                            void* it   = NULL;
                             ImGuiID id = 0;
                             if (!item_is_selected)
                                 payload_items.push_back(item_data->ID);
@@ -215,7 +215,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
                         // data (we could read from selection, but it is more correct and reusable
                         // to read from payload)
                         const ImGuiPayload* payload = ImGui::GetDragDropPayload();
-                        const int payload_count = (int)payload->DataSize / (int)sizeof(ImGuiID);
+                        const int payload_count     = (int)payload->DataSize / (int)sizeof(ImGuiID);
                         ImGui::Text("%d assets", payload_count);
 
                         ImGui::EndDragDropSource();
@@ -324,16 +324,16 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
             auto buffer = FTextureImporter::ToBufferFromFile(res, desc, w, h);
             CZ_LOG(LogContentBrowserPanel, Trace, "Import Texture Buffer: {}, {}", w, h);
 
-            FTexture2DSpecification spec;
-            spec.Name = "Texture";
-            spec.Size = { w, h };
+            FTextureSpecification spec;
+            spec.Name   = "Texture";
+            spec.Size   = { w, h };
             spec.Format = ChozoUtils::FileSystem::PixelFormatFromDesc(desc);
-            spec.Usage = ETextureUsage::Texture;
+            spec.Usage  = ETextureUsage::Texture;
 
             TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(m_Context, spec, buffer);
 
             const char* assetPath = res.c_str();
-            ImGuiID id = ImGui::GetID(assetPath);
+            ImGuiID id            = ImGui::GetID(assetPath);
             m_Items.push_back(ExampleAsset(id, 0));
         }
         fileDialog.Close();
@@ -346,9 +346,9 @@ void ContentBrowserPanel::UpdateLayoutSizes(float avail_width) {
     if (StretchSpacing == false) avail_width += floorf(LayoutItemSpacing * 0.5f);
 
     // Layout: calculate number of icon per line and number of lines
-    LayoutItemSize = ImVec2(floorf(IconSize), floorf(IconSize));
+    LayoutItemSize    = ImVec2(floorf(IconSize), floorf(IconSize));
     LayoutColumnCount = IM_MAX((int)(avail_width / (LayoutItemSize.x + LayoutItemSpacing)), 1);
-    LayoutLineCount = (m_Items.Size + LayoutColumnCount - 1) / LayoutColumnCount;
+    LayoutLineCount   = (m_Items.Size + LayoutColumnCount - 1) / LayoutColumnCount;
 
     // Layout: when stretching: allocate remaining space to more spacing. Round before division, so
     // item_spacing may be non-integer.
@@ -359,5 +359,5 @@ void ContentBrowserPanel::UpdateLayoutSizes(float avail_width) {
     LayoutItemStep =
         ImVec2(LayoutItemSize.x + LayoutItemSpacing, LayoutItemSize.y + LayoutItemSpacing);
     LayoutSelectableSpacing = IM_MAX(floorf(LayoutItemSpacing) - IconHitSpacing, 0.0f);
-    LayoutOuterPadding = floorf(LayoutItemSpacing * 0.5f);
+    LayoutOuterPadding      = floorf(LayoutItemSpacing * 0.5f);
 }

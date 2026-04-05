@@ -21,24 +21,24 @@ static std::string MiddleTruncateByChar(const std::string& filename, float maxWi
     float avgCharWidth = ImGui::CalcTextSize("A").x;
     if (avgCharWidth <= 0) avgCharWidth = 8.0f;
 
-    size_t dotPos = filename.find_last_of('.');
-    std::string ext = (dotPos != std::string::npos) ? filename.substr(dotPos) : "";
+    size_t dotPos    = filename.find_last_of('.');
+    std::string ext  = (dotPos != std::string::npos) ? filename.substr(dotPos) : "";
     std::string name = (dotPos != std::string::npos) ? filename.substr(0, dotPos) : filename;
 
-    float extWidth = ImGui::CalcTextSize(ext.c_str()).x;
+    float extWidth     = ImGui::CalcTextSize(ext.c_str()).x;
     float nameMaxWidth = maxWidth - extWidth;
     if (nameMaxWidth <= 0) return "..." + ext;
 
     int maxNameChars = (int)(nameMaxWidth / avgCharWidth);
-    int keepChars = maxNameChars - 3;
+    int keepChars    = maxNameChars - 3;
     if (keepChars <= 0) return "..." + ext;
 
     int nameLen = (int)name.length();
-    keepChars = std::min(keepChars, nameLen);
+    keepChars   = std::min(keepChars, nameLen);
 
-    int leftChars = keepChars / 2;
+    int leftChars  = keepChars / 2;
     int rightChars = keepChars - leftChars;
-    rightChars = std::min(rightChars, nameLen - leftChars);
+    rightChars     = std::min(rightChars, nameLen - leftChars);
 
     std::string result;
     if (leftChars > 0) result.append(name, 0, leftChars);
@@ -70,7 +70,7 @@ TRef<IRHITexture2D> LoadSVGIcon(const IRHIContext* ctx, const std::string& name,
     }
 
     std::filesystem::path svgPath = VFS::Resolve("svgs://" + name + ".svg");
-    std::string pathString = svgPath.string();
+    std::string pathString        = svgPath.string();
 
     NSVGimage* svg = nsvgParseFromFile(pathString.c_str(), "px", 96.0f);
     if (!svg) {
@@ -79,7 +79,7 @@ TRef<IRHITexture2D> LoadSVGIcon(const IRHIContext* ctx, const std::string& name,
     }
 
     for (NSVGshape* shape = svg->shapes; shape; shape = shape->next) {
-        shape->stroke.type = NSVG_PAINT_COLOR;
+        shape->stroke.type  = NSVG_PAINT_COLOR;
         shape->stroke.color = strokeColor;
 
         if (shape->strokeWidth == 0) {
@@ -88,8 +88,8 @@ TRef<IRHITexture2D> LoadSVGIcon(const IRHIContext* ctx, const std::string& name,
     }
 
     float scale = (float)targetSize / (float)svg->width;
-    int w = (int)(svg->width * scale);
-    int h = (int)(svg->height * scale);
+    int w       = (int)(svg->width * scale);
+    int h       = (int)(svg->height * scale);
 
     unsigned char* data = (unsigned char*)malloc(w * h * 4);
     if (!data) {
@@ -100,11 +100,11 @@ TRef<IRHITexture2D> LoadSVGIcon(const IRHIContext* ctx, const std::string& name,
 
     nsvgRasterize(g_Rasterizer, svg, 0, 0, scale, data, w, h, w * 4);
 
-    FTexture2DSpecification spec;
-    spec.Name = name;
-    spec.Size = { (uint32)w, (uint32)h };
+    FTextureSpecification spec;
+    spec.Name   = name;
+    spec.Size   = { (uint32)w, (uint32)h };
     spec.Format = EPixelFormat::RGBA8_UNORM;
-    spec.Usage = ETextureUsage::Texture;
+    spec.Usage  = ETextureUsage::Texture;
 
     FBuffer imageData(data, w * h * 4);
     TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(ctx, spec, imageData);
@@ -130,8 +130,8 @@ unsigned char* LoadImagePreview(const char* path, int max_size, int* out_w, int*
 
     if (w > max_size || h > max_size) {
         float scale = (float)max_size / std::max(w, h);
-        target_w = (int)(w * scale);
-        target_h = (int)(h * scale);
+        target_w    = (int)(w * scale);
+        target_h    = (int)(h * scale);
     }
 
     target_w = std::min(target_w, 16384);
@@ -159,7 +159,7 @@ std::vector<std::string> GetWrappedFileName(const char* label, float WrapWidth, 
     // CZ_LOG(LogUIUtils, Info, "GetWrappedFileName: {}", label);
 
     ImGuiStyle& style = ImGui::GetStyle();
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g   = *GImGui;
 
     std::vector<std::string> lines;
     if (RawTextSize.y <= MaxLineHeight * 1.5f) {

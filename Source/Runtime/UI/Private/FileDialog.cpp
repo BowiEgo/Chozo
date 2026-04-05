@@ -17,20 +17,20 @@
 
 DEFINE_LOG_CATEGORY(LogFileDialog);
 
-#define ICON_SIZE (ImGui::GetFontSize() + 3)
+#define ICON_SIZE        (ImGui::GetFontSize() + 3)
 #define GUI_ELEMENT_SIZE ((std::max)(ImGui::GetFontSize() + 10.f, 24.f))
-#define PI 3.141592f
+#define PI               3.141592f
 
 static std::unordered_map<std::string, std::vector<std::string>> s_WrappedFileNameMap;
 
 /* UI CONTROLS */
 bool FolderNode(const char* label, ImTextureID icon, bool& clicked, bool default_open = false) {
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g     = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
     clicked = false;
 
-    ImU32 id = window->GetID(label);
+    ImU32 id   = window->GetID(label);
     int opened = window->StateStorage.GetInt(id, default_open ? 1 : 0);
     ImVec2 pos = window->DC.CursorPos;
     const bool is_mouse_x_over_arrow =
@@ -43,13 +43,13 @@ bool FolderNode(const char* label, ImTextureID icon, bool& clicked, bool default
             clicked = true;
         }
     }
-    bool hovered = ImGui::IsItemHovered();
-    bool active = ImGui::IsItemActive();
+    bool hovered     = ImGui::IsItemHovered();
+    bool active      = ImGui::IsItemActive();
     bool doubleClick = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
     if (doubleClick && hovered) {
         int* p_opened = window->StateStorage.GetIntRef(id, 0);
         opened = *p_opened = !*p_opened;
-        clicked = false;
+        clicked            = false;
     }
     if (hovered || active)
         window->DrawList->AddRectFilled(
@@ -74,7 +74,7 @@ bool FolderNode(const char* label, ImTextureID icon, bool& clicked, bool default
 }
 
 bool FileNode(const char* label, ImTextureID icon) {
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g     = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
     // ImU32 id = window->GetID(label);
@@ -83,7 +83,7 @@ bool FileNode(const char* label, ImTextureID icon) {
         ImGui::InvisibleButton(label, ImVec2(-FLT_MIN, g.FontSize + g.Style.FramePadding.y * 2));
 
     bool hovered = ImGui::IsItemHovered();
-    bool active = ImGui::IsItemActive();
+    bool active  = ImGui::IsItemActive();
     if (hovered || active)
         window->DrawList->AddRectFilled(
             g.LastItemData.Rect.Min, g.LastItemData.Rect.Max,
@@ -103,17 +103,17 @@ bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, I
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     if (window->SkipItems) return false;
 
-    bool ret = false;
+    bool ret         = false;
     const ImGuiID id = window->GetID(label);
-    int* state = window->StateStorage.GetIntRef(id, 0);
+    int* state       = window->StateStorage.GetIntRef(id, 0);
 
     ImGui::SameLine();
 
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g         = *GImGui;
     const ImGuiStyle& style = g.Style;
-    ImVec2 pos = window->DC.CursorPos;
-    ImVec2 uiPos = ImGui::GetCursorPos();
-    ImVec2 size = ImGui::CalcItemSize(size_arg, 200.0f, GUI_ELEMENT_SIZE);
+    ImVec2 pos              = window->DC.CursorPos;
+    ImVec2 uiPos            = ImGui::GetCursorPos();
+    ImVec2 size             = ImGui::CalcItemSize(size_arg, 200.0f, GUI_ELEMENT_SIZE);
     const ImRect bb(pos, pos + size);
 
     // buttons
@@ -121,9 +121,9 @@ bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, I
         ImGui::PushClipRect(bb.Min, bb.Max, false);
 
         // background
-        bool hovered = g.IO.MousePos.x >= bb.Min.x && g.IO.MousePos.x <= bb.Max.x &&
-                       g.IO.MousePos.y >= bb.Min.y && g.IO.MousePos.y <= bb.Max.y;
-        bool clicked = hovered && ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+        bool hovered    = g.IO.MousePos.x >= bb.Min.x && g.IO.MousePos.x <= bb.Max.x &&
+                          g.IO.MousePos.y >= bb.Min.y && g.IO.MousePos.y <= bb.Max.y;
+        bool clicked    = hovered && ImGui::IsMouseReleased(ImGuiMouseButton_Left);
         bool anyOtherHC = false; // are any other items hovered or clicked?
         window->DrawList->AddRectFilled(
             pos, pos + size,
@@ -180,7 +180,7 @@ bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, I
 #endif
                 }
                 path = std::filesystem::path(newPath);
-                ret = true;
+                ret  = true;
             }
             anyOtherHC |= ImGui::IsItemHovered() | ImGui::IsItemClicked();
             ImGui::SameLine();
@@ -231,22 +231,22 @@ bool PathBox(const char* label, std::filesystem::path& path, char* pathBuffer, I
 }
 
 bool FavoriteButton(const char* label, bool isFavorite) {
-    ImGuiContext& g = *GImGui;
+    ImGuiContext& g     = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
     ImVec2 pos = window->DC.CursorPos;
-    bool ret = ImGui::InvisibleButton(label, ImVec2(GUI_ELEMENT_SIZE, GUI_ELEMENT_SIZE));
+    bool ret   = ImGui::InvisibleButton(label, ImVec2(GUI_ELEMENT_SIZE, GUI_ELEMENT_SIZE));
 
     bool hovered = ImGui::IsItemHovered();
-    bool active = ImGui::IsItemActive();
+    bool active  = ImGui::IsItemActive();
 
     float size = g.LastItemData.Rect.Max.x - g.LastItemData.Rect.Min.x;
 
-    int numPoints = 5;
+    int numPoints     = 5;
     float innerRadius = (size - 10.0f) / 4;
     float outerRadius = (size - 10.0f) / 2;
-    float angle = PI / numPoints;
-    ImVec2 center = ImVec2(pos.x + size / 2, pos.y + size / 2);
+    float angle       = PI / numPoints;
+    ImVec2 center     = ImVec2(pos.x + size / 2, pos.y + size / 2);
 
     // fill
     if (isFavorite || hovered || active) {
@@ -297,18 +297,18 @@ bool FavoriteButton(const char* label, bool isFavorite) {
 
 bool FileIcon(const char* label, bool isSelected, ImTextureID icon, ImVec2 size, bool hasPreview,
               int previewWidth, int previewHeight) {
-    ImGuiStyle& style = ImGui::GetStyle();
-    ImGuiContext& g = *GImGui;
+    ImGuiStyle& style   = ImGui::GetStyle();
+    ImGuiContext& g     = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
     float windowSpace = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
-    ImVec2 pos = window->DC.CursorPos;
-    bool ret = false;
+    ImVec2 pos        = window->DC.CursorPos;
+    bool ret          = false;
 
     if (ImGui::InvisibleButton(label, size)) ret = true;
 
-    bool hovered = ImGui::IsItemHovered();
-    bool active = ImGui::IsItemActive();
+    bool hovered     = ImGui::IsItemHovered();
+    bool active      = ImGui::IsItemActive();
     bool doubleClick = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
     if (doubleClick && hovered) ret = true;
 
@@ -339,10 +339,10 @@ bool FileIcon(const char* label, bool isSelected, ImTextureID icon, ImVec2 size,
         window->DrawList->AddImage(icon, ImVec2(iconPosX, pos.y),
                                    ImVec2(iconPosX + iconSize, pos.y + iconSize));
 
-    float wrapWidth = size.x - g.Style.ItemSpacing.x;
+    float wrapWidth     = size.x - g.Style.ItemSpacing.x;
     float maxLineHeight = g.FontSize;
-    float rowSpacing = 2.0f;
-    ImVec2 rawTextSize = ImGui::CalcTextSize(label, nullptr, true, wrapWidth);
+    float rowSpacing    = 2.0f;
+    ImVec2 rawTextSize  = ImGui::CalcTextSize(label, nullptr, true, wrapWidth);
 
     std::vector<std::string> lines;
 
@@ -364,7 +364,7 @@ bool FileIcon(const char* label, bool isSelected, ImTextureID icon, ImVec2 size,
     for (size_t i = 0; i < std::min(lines.size(), (size_t)2); ++i) {
         ImVec2 lineSize = ImGui::CalcTextSize(lines[i].c_str());
         // [Note] Calculate X for horizontal centering of THIS specific line
-        float lineX = pos.x + (size.x - lineSize.x) * 0.5f;
+        float lineX     = pos.x + (size.x - lineSize.x) * 0.5f;
 
         window->DrawList->AddText(g.Font, g.FontSize, ImVec2(lineX, currentY),
                                   ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_Text]),
@@ -383,9 +383,9 @@ bool FileIcon(const char* label, bool isSelected, ImTextureID icon, ImVec2 size,
 
 FileData::FileData(const std::filesystem::path& path) {
     std::error_code ec;
-    Path = path;
+    Path        = path;
     IsDirectory = std::filesystem::is_directory(path, ec);
-    Size = std::filesystem::file_size(path, ec);
+    Size        = std::filesystem::file_size(path, ec);
 
     std::string pathStr = path.string();
 
@@ -393,33 +393,33 @@ FileData::FileData(const std::filesystem::path& path) {
     stat(pathStr.c_str(), &attr);
     DateModified = attr.st_ctime;
 
-    Thumbnail = nullptr;
+    Thumbnail       = nullptr;
     ThumbnailHeight = 0;
-    ThumbnailWidth = 0;
+    ThumbnailWidth  = 0;
 }
 
 UFileDialog::UFileDialog(IRHIContext* context) : m_GraphicContext(context) {
-    m_IsOpen = false;
-    m_Type = 0;
-    m_CalledOpenPopup = false;
-    m_SortColumn = 0;
-    m_SortDirection = ImGuiSortDirection_Ascending;
-    m_FilterSelection = 0;
-    m_InputTextbox[0] = 0;
-    m_PathBuffer[0] = 0;
-    m_SearchBuffer[0] = 0;
+    m_IsOpen            = false;
+    m_Type              = 0;
+    m_CalledOpenPopup   = false;
+    m_SortColumn        = 0;
+    m_SortDirection     = ImGuiSortDirection_Ascending;
+    m_FilterSelection   = 0;
+    m_InputTextbox[0]   = 0;
+    m_PathBuffer[0]     = 0;
+    m_SearchBuffer[0]   = 0;
     m_NewEntryBuffer[0] = 0;
-    m_SelectedFileItem = -1;
-    m_Zoom = 1.0f;
+    m_SelectedFileItem  = -1;
+    m_Zoom              = 1.0f;
 
-    m_ThumbnailLoader = nullptr;
+    m_ThumbnailLoader        = nullptr;
     m_ThumbnailLoaderRunning = false;
 
     SetDirectory(std::filesystem::current_path(), false);
 
     // favorites are available on every OS
     FileTreeNode* quickAccess = new FileTreeNode("Quick Access");
-    quickAccess->Read = true;
+    quickAccess->Read         = true;
     m_TreeCache.push_back(quickAccess);
 
     std::error_code ec;
@@ -433,7 +433,7 @@ UFileDialog::UFileDialog(IRHIContext* context) : m_GraphicContext(context) {
         homePath = home;
     } else {
         const char* drive = std::getenv("HOMEDRIVE");
-        const char* path = std::getenv("HOMEPATH");
+        const char* path  = std::getenv("HOMEPATH");
         if (drive && path) {
             homePath = std::string(drive) + std::string(path);
         } else {
@@ -482,7 +482,7 @@ UFileDialog::UFileDialog(IRHIContext* context) : m_GraphicContext(context) {
 
     // This Computer
     FileTreeNode* thisPC = new FileTreeNode("This Computer");
-    thisPC->Read = true;
+    thisPC->Read         = true;
 
 #ifdef CZ_PLATFORM_WINDOWS
     DWORD d = GetLogicalDrives();
@@ -503,16 +503,16 @@ bool UFileDialog::Save(const std::string& key, const std::string& title, const s
                        const std::string& startingDir) {
     if (!m_CurrentKey.empty()) return false;
 
-    m_CurrentKey = key;
-    m_CurrentTitle = title + "###" + key;
-    m_IsOpen = true;
+    m_CurrentKey      = key;
+    m_CurrentTitle    = title + "###" + key;
+    m_IsOpen          = true;
     m_CalledOpenPopup = false;
     m_Result.clear();
     m_InputTextbox[0] = 0;
     m_Selections.clear();
     m_SelectedFileItem = -1;
-    m_IsMultiselect = false;
-    m_Type = IFD_DIALOG_SAVE;
+    m_IsMultiselect    = false;
+    m_Type             = IFD_DIALOG_SAVE;
 
     ParseFilter(filter);
     if (!startingDir.empty())
@@ -527,16 +527,16 @@ bool UFileDialog::Open(const std::string& key, const std::string& title, const s
                        bool isMultiselect, const std::string& startingDir) {
     if (!m_CurrentKey.empty()) return false;
 
-    m_CurrentKey = key;
-    m_CurrentTitle = title + "###" + key;
-    m_IsOpen = true;
+    m_CurrentKey      = key;
+    m_CurrentTitle    = title + "###" + key;
+    m_IsOpen          = true;
     m_CalledOpenPopup = false;
     m_Result.clear();
     m_InputTextbox[0] = 0;
     m_Selections.clear();
     m_SelectedFileItem = -1;
-    m_IsMultiselect = isMultiselect;
-    m_Type = filter.empty() ? IFD_DIALOG_DIRECTORY : IFD_DIALOG_FILE;
+    m_IsMultiselect    = isMultiselect;
+    m_Type             = filter.empty() ? IFD_DIALOG_DIRECTORY : IFD_DIALOG_FILE;
 
     ParseFilter(filter);
     if (!startingDir.empty())
@@ -552,7 +552,7 @@ bool UFileDialog::IsDone(const std::string& key) {
 
     if (!m_TextureGarbage.empty()) {
         const int MAX_CLEANUP_PER_FRAME = 20;
-        int cleanedCount = 0;
+        int cleanedCount                = 0;
 
         auto it = m_TextureGarbage.begin();
         while (it != m_TextureGarbage.end() && cleanedCount < MAX_CLEANUP_PER_FRAME) {
@@ -581,7 +581,7 @@ bool UFileDialog::IsDone(const std::string& key) {
 
 void UFileDialog::Close() {
     m_CurrentKey.clear();
-    m_BackHistory = std::stack<std::filesystem::path>();
+    m_BackHistory    = std::stack<std::filesystem::path>();
     m_ForwardHistory = std::stack<std::filesystem::path>();
 
     // clear the tree
@@ -640,11 +640,11 @@ void UFileDialog::AddFavorite(const std::string& path) {
 }
 
 TRef<IRHITexture2D> UFileDialog::CreateTexture(uint8_t* data, int w, int h, char fmt) {
-    FTexture2DSpecification spec;
-    spec.Name = "UFileDialog_Preview";
-    spec.Size = { (uint32_t)w, (uint32_t)h };
+    FTextureSpecification spec;
+    spec.Name   = "UFileDialog_Preview";
+    spec.Size   = { (uint32_t)w, (uint32_t)h };
     spec.Format = (fmt == 0) ? EPixelFormat::BGRA8_UNORM : EPixelFormat::RGBA8_UNORM;
-    spec.Usage = ETextureUsage::Texture;
+    spec.Usage  = ETextureUsage::Texture;
 
     FBuffer imageData(data, w * h * 4);
     TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(m_GraphicContext, spec, imageData);
@@ -759,7 +759,7 @@ void UFileDialog::ParseFilter(const std::string& filter) {
             } else
                 m_Filter += std::string((filterName + "\0").c_str(), filterName.size() + 1);
             inExtList = true;
-            lastExt = i + 1;
+            lastExt   = i + 1;
         } else if (filter[i] == '}') {
             exts.push_back(filter.substr(lastExt, i - lastExt));
             m_FilterExtensions.push_back(exts);
@@ -950,7 +950,7 @@ void UFileDialog::SetDirectory(const std::filesystem::path& p, bool addHistory) 
 
 void UFileDialog::SortContent(unsigned int column, unsigned int sortDirection) {
     // 0 -> name, 1 -> date, 2 -> size
-    m_SortColumn = column;
+    m_SortColumn    = column;
     m_SortDirection = sortDirection;
 
     // split into directories and files
@@ -1009,11 +1009,11 @@ void UFileDialog::RenderTree(FileTreeNode* node) {
     // directory
     std::error_code ec;
     ImGui::PushID(node);
-    bool isClicked = false;
+    bool isClicked          = false;
     std::string displayName = node->Path.stem().string();
     if (displayName.size() == 0) displayName = node->Path.string();
 
-    auto tex = GetIcon(node->Path);
+    auto tex           = GetIcon(node->Path);
     bool isDefaultOpen = displayName == "Quick Access" || displayName == "This Computer";
     if (FolderNode(displayName.c_str(), (ImTextureID)tex->GetDescriptorSet(), isClicked,
                    isDefaultOpen)) {
@@ -1076,9 +1076,9 @@ void UFileDialog::RenderContent() {
                 if (filename.size() == 0) filename = entry.Path.string(); // drive
 
                 bool isSelected = std::count(m_Selections.begin(), m_Selections.end(), entry.Path);
-                auto tex = GetIcon(entry.Path);
-                float iconTotalSize = ICON_SIZE + 16 * (m_Zoom - 1.0f);
-                float lineHeight = ImGui::GetTextLineHeight();
+                auto tex        = GetIcon(entry.Path);
+                float iconTotalSize      = ICON_SIZE + 16 * (m_Zoom - 1.0f);
+                float lineHeight         = ImGui::GetTextLineHeight();
                 float verticalTextOffset = (iconTotalSize - lineHeight) * 0.5f;
 
                 ImGui::TableNextRow();
@@ -1142,8 +1142,8 @@ void UFileDialog::RenderContent() {
             if (filename.size() == 0) filename = entry.Path.string(); // drive
 
             bool isSelected = std::count(m_Selections.begin(), m_Selections.end(), entry.Path);
-            auto tex = entry.IsDirectory ? GetIcon(entry.Path) : GetThumbnail(entry.Path);
-            auto texSize = tex->GetSize();
+            auto tex        = entry.IsDirectory ? GetIcon(entry.Path) : GetThumbnail(entry.Path);
+            auto texSize    = tex->GetSize();
 
             if (FileIcon(filename.c_str(), isSelected, (ImTextureID)tex->GetDescriptorSet(),
                          ImVec2(32 + 16 * m_Zoom, 32 + 16 * m_Zoom), !entry.IsDirectory,

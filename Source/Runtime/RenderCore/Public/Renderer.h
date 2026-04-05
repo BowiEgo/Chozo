@@ -71,7 +71,4 @@ private:
     TRef<IRHIPipeline> m_CurrentPipeline, m_SolidPipeline, m_WireframePipeline;
 
     FOnRenderUI m_UICallback = nullptr;
-
-    // TRef<FCube> m_Cube;
-    // TRef<FSphere> m_Sphere;
 };

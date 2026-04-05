@@ -36,16 +36,18 @@ struct FShaderSpecification {
 
 class RHI_API IRHIShader : public FRefCounted {
 public:
-    IRHIShader(const FShaderSpecification& spec);
+    IRHIShader(const FShaderSpecification& spec, const FShaderReflection reflection);
     virtual ~IRHIShader();
 
-    const EShaderStage GetStage() const { return m_Spec.Stage; };
-    const std::string& GetName() const { return m_Spec.Name; };
-    const std::string& GetEntryPoint() const { return m_Spec.EntryPoint; };
+    const EShaderStage GetStage() const { return m_Spec.Stage; }
+    const std::string& GetName() const { return m_Spec.Name; }
+    const std::string& GetEntryPoint() const { return m_Spec.EntryPoint; }
+    const FShaderReflection GetReflection() const { return m_Reflection; }
 
     static TRef<IRHIShader> Create(const FShaderSpecification& spec,
                                    const std::vector<uint32_t>* binary);
 
 protected:
     FShaderSpecification m_Spec;
+    FShaderReflection m_Reflection;
 };

@@ -65,7 +65,7 @@ public:
             // The pool will check if there's a matching
             // and expired Image available for reuse (Aliasing)
             FImageSpecification physSpec = tex->Spec.ToImageSpec();
-            tex->Image = m_Context->GetDevice()->GetImagePool().RequestImage(physSpec);
+            tex->Image                   = m_Context->GetDevice()->GetImage(physSpec);
         }
     }
 

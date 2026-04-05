@@ -20,8 +20,8 @@ void CRenderer::Init() {
     std::string libName = ChozoUitls::Module::GetPlatformLibName("VulkanRHI");
     if (m_RHIModule.Load(libName)) {
         FContextSpec spec;
-        spec.FrameBufferSize = fbSize;
-        spec.NativeWindow = m_Window->GetNativeHandle();
+        spec.FrameBufferSize          = fbSize;
+        spec.NativeWindow             = m_Window->GetNativeHandle();
         spec.WindowRequiredExtensions = m_Window->GetRequiredExtensions();
 
         m_GraphicContext = TScope<IRHIContext>(
@@ -33,7 +33,7 @@ void CRenderer::Init() {
     m_Frames.resize(m_GraphicContext->GetMaxFramesInFlight());
     for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
         FCommandPoolSpecification poolSpec;
-        poolSpec.Flags = ECommandPoolFlags::ResetCommandBuffer;
+        poolSpec.Flags          = ECommandPoolFlags::ResetCommandBuffer;
         m_Frames[i].CommandPool = device->CreateCommandPool(poolSpec);
         m_Frames[i].CommandList = m_Frames[i].CommandPool->AllocateCommandBuffer();
         m_Frames[i].RenderFence = IRHIAPI::CreateSyncObject(m_GraphicContext.get());
@@ -55,31 +55,25 @@ void CRenderer::Init() {
     // Pipeline
     {
         FPipelineSpecification solidSpec;
-        solidSpec.Name = "Solid";
-        solidSpec.RHIShaders = { vertShader->GetShaderResource(m_GraphicContext.get()),
-                                 fragShader->GetShaderResource(m_GraphicContext.get()) };
-        solidSpec.ColorFormats = { EPixelFormat::RGBA8_UNORM };
-        solidSpec.VertexLayout = { { EShaderDataType::Float3, "a_Position" },
-                                   { EShaderDataType::Float3, "a_Normal" },
-                                   { EShaderDataType::Float2, "a_TexCoord" },
-                                   { EShaderDataType::Float3, "a_Tangent" },
-                                   { EShaderDataType::Float3, "a_Bitangent" } };
+        solidSpec.Name               = "Solid";
+        solidSpec.RHIShaders         = { vertShader->GetShaderResource(m_GraphicContext.get()),
+                                         fragShader->GetShaderResource(m_GraphicContext.get()) };
+        solidSpec.ColorFormats       = { EPixelFormat::RGBA8_UNORM };
+        solidSpec.VertexLayout       = { { EShaderDataFormat::Float3, "a_Position" },
+                                         { EShaderDataFormat::Float3, "a_Normal" },
+                                         { EShaderDataFormat::Float2, "a_TexCoord" },
+                                         { EShaderDataFormat::Float3, "a_Tangent" },
+                                         { EShaderDataFormat::Float3, "a_Bitangent" } };
         solidSpec.PushConstantRanges = { { 0, sizeof(FMatrix4) + sizeof(FMatrix3) } };
-        m_SolidPipeline = IRHIAPI::CreatePipeline(m_GraphicContext.get(), solidSpec);
+        m_SolidPipeline              = IRHIAPI::CreatePipeline(m_GraphicContext.get(), solidSpec);
 
         FPipelineSpecification wireSpec = solidSpec;
-        wireSpec.Name = "Wireframe";
-        wireSpec.PolygonMode = EPolygonMode::Line;
-        m_WireframePipeline = IRHIAPI::CreatePipeline(m_GraphicContext.get(), wireSpec);
+        wireSpec.Name                   = "Wireframe";
+        wireSpec.PolygonMode            = EPolygonMode::Line;
+        m_WireframePipeline             = IRHIAPI::CreatePipeline(m_GraphicContext.get(), wireSpec);
     }
 
     SetPolygonMode(EPolygonMode::Fill);
-
-    // m_Cube = CreateRef<FCube>();
-    // m_Cube->Upload(m_GraphicContext.get());
-
-    // m_Sphere = CreateRef<FSphere>();
-    // m_Sphere->Upload(m_GraphicContext.get());
 }
 
 void CRenderer::Tick(float deltaTime) {
@@ -90,7 +84,7 @@ void CRenderer::Tick(float deltaTime) {
         m_GraphicContext->GetSwapchain()->SetPresentMode(mode);
     }
 
-    auto& cmdList = m_Frames[m_CurrentFrameIndex].CommandList;
+    auto& cmdList    = m_Frames[m_CurrentFrameIndex].CommandList;
     auto& syncObject = m_Frames[m_CurrentFrameIndex].RenderFence;
     m_GraphicContext->SetCurrentFrameIndex(m_CurrentFrameIndex);
     m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex);
@@ -160,18 +154,15 @@ void CRenderer::Shutdown() {
 
     m_GraphicContext->GetDevice()->WaitIdle();
 
-    // m_Cube = nullptr;
-    // m_Sphere = nullptr;
-
     m_Viewports.clear();
-    m_SolidPipeline = nullptr;
-    m_WireframePipeline = nullptr;
-    m_CurrentPipeline = nullptr;
+    m_SolidPipeline.Reset();
+    m_WireframePipeline.Reset();
+    m_CurrentPipeline.Reset();
 
     for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
-        m_Frames[i].RenderFence = nullptr;
-        m_Frames[i].CommandList = nullptr;
-        m_Frames[i].CommandPool = nullptr;
+        m_Frames[i].RenderFence.Reset();
+        m_Frames[i].CommandList.Reset();
+        m_Frames[i].CommandPool.Reset();
     }
 
     CCameraUniformManager::Get().Shutdown();
@@ -182,12 +173,12 @@ void CRenderer::Shutdown() {
 
 CViewport* CRenderer::CreateViewport(const std::string name, uint32 width, uint32 height) {
     FViewportSpecification spec;
-    spec.Name = name;
-    spec.Width = width;
+    spec.Name   = name;
+    spec.Width  = width;
     spec.Height = height;
 
     auto viewport = CreateScope<CViewport>(m_GraphicContext.get(), spec);
-    auto* ptr = viewport.get();
+    auto* ptr     = viewport.get();
     m_Viewports.push_back(std::move(viewport));
 
     return ptr;

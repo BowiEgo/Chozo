@@ -8,6 +8,7 @@
 #include "RHIImage.h"
 #include "RHIResource.h"
 #include "RHISampler.h"
+#include "RHISetLayout.h"
 #include "RHITypes.h"
 #include "RHIUtils.h"
 
@@ -70,6 +71,8 @@ struct FTextureSpecification {
 
     bool bGenerateMips = false;
 
+    FSamplerSpecification SamplerSpec;
+
     FImageSpecification ToImageSpec() const {
         FImageSpecification imgSpec;
 
@@ -86,8 +89,9 @@ struct FTextureSpecification {
 
 class RHI_API IRHITexture : public IRHIResource {
 public:
-    IRHITexture(const FTextureSpecification& spec);
-
+    IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec);
+    IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec,
+                const TRef<IRHIImage> image);
     virtual ~IRHITexture();
 
     std::string GetName() const { return m_Spec.Name; }
@@ -95,13 +99,15 @@ public:
     EPixelFormat GetFormat() const { return m_Spec.Format; }
     ETextureUsage GetUsage() const { return m_Spec.Usage; }
 
-    void BindImage(const TRef<IRHIImage>& image) { m_Image = image; }
-    TRef<IRHIImage> GetImage() const { return m_Image; }
-    TRef<IRHISampler> GetSampler() const { return m_Sampler; }
+    TRef<IRHIImage> GetImage() const;
+
+    TRef<IRHISampler>
+        GetSampler(const FSamplerSpecification spec = FSamplerSpecification::LinearClamp()) const;
+
+    void* GetDescriptorSet(TRef<IRHISetLayout> setLayout = nullptr, uint32_t bindingSlot = 0) const;
 
 protected:
     FTextureSpecification m_Spec;
 
-    TRef<IRHIImage> m_Image;
-    TRef<IRHISampler> m_Sampler;
+    TRef<IRHIImage> m_Image = nullptr;
 };

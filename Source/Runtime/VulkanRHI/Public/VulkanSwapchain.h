@@ -3,6 +3,7 @@
 #include "RHISwapchain.h"
 
 #include "VulkanDevice.h"
+#include "VulkanImage.h"
 #include "VulkanTexture2D.h"
 #include "VulkanUtils.h"
 
@@ -40,10 +41,10 @@ public:
     void Recreate() { Recreate(m_Spec.FrameBufferSize); }
 
     void SetLayout(uint32_t index, vk::ImageLayout layout) {
-        m_ColorAttachments[index].As<CVulkanTexture2D>()->SetCurrentLayout(layout);
+        m_ColorAttachments[index]->GetImage().As<CVulkanImage>()->SetCurrentLayout(layout);
     }
     vk::ImageLayout GetLayout(uint32_t index) const {
-        return m_ColorAttachments[index].As<CVulkanTexture2D>()->GetCurrentLayout();
+        return m_ColorAttachments[index]->GetImage().As<CVulkanImage>()->GetCurrentLayout();
     }
 
     const vk::SwapchainKHR GetVKSwapchain() const { return *m_VKSwapchain; }

@@ -14,11 +14,6 @@ target("imgui")
     -- Crucial! Link against your system Vulkan and GLFW
     -- This resolves the LNK2019 errors once and for all.
     add_deps("VulkanSDK_Interface", {public = true})
-    if is_plat("windows") then
-        add_links("vulkan-1", {public = true})
-    elseif is_plat("macosx") then
-        add_links("vulkan", {public = true})
-    end
 
     add_packages("glfw", {public = true, config = {shared = true}})
 
@@ -41,6 +36,11 @@ target("imgui")
 
     -- Prevent re-scanning and speed up linking if imgui doesn't change
     set_policy("package.librarydeps.strict_compatibility", false)
+
+target("spirv-reflect")
+    set_kind("static")
+    add_files("spirv-reflect/spirv_reflect.c")
+    add_includedirs("spirv-reflect", {public = true})
 
 target("stb")
     set_kind("static")

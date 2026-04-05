@@ -5,8 +5,9 @@
 DEFINE_LOG_CATEGORY(LogVulkanShader);
 
 CVulkanShader::CVulkanShader(const FShaderSpecification& spec, const TRef<CVulkanDevice>& device,
-                             const std::vector<uint32_t>* binary)
-    : IRHIShader(spec), m_Device(device) {
+                             const std::vector<uint32_t>* binary,
+                             const FShaderReflection reflection)
+    : IRHIShader(spec, reflection), m_Device(device) {
 
     if (!device) {
         CZ_LOG(LogVulkanShader, Error, "Invalid Device handle for shader creation");
@@ -17,7 +18,7 @@ CVulkanShader::CVulkanShader(const FShaderSpecification& spec, const TRef<CVulka
 
     vk::ShaderModuleCreateInfo createInfo{};
     createInfo.codeSize = binary->size() * sizeof(uint32_t);
-    createInfo.pCode = binary->data();
+    createInfo.pCode    = binary->data();
 
     try {
         m_Module = raiiDevice.createShaderModule(createInfo);

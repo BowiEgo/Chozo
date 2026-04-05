@@ -2,7 +2,6 @@
 
 #include "CoreTypes.h"
 #include "RHIPCH.h"
-#include <map>
 
 ////////////////////////////////////////////////////////////////////////////
 //============================= Shader ===================================//
@@ -20,14 +19,35 @@ using FShaderID = uint32;
     TYPE(Hull, hull, HULL, tesc, tess_control, TessellationControl)                                \
     TYPE(Domain, domain, DOMAIN, tese, tess_evaluation, TessellationEvaluation)
 
-enum class EShaderStage : uint16 {
-#define GENERATE_ENUM(ENUM, ...) ENUM,
-    FOREACH_SHADER_STAGE(GENERATE_ENUM)
-#undef GENERATE_ENUM
-        None
+// enum class EShaderStage : uint16 {
+// #define GENERATE_ENUM(ENUM, ...) ENUM,
+//     FOREACH_SHADER_STAGE(GENERATE_ENUM)
+// #undef GENERATE_ENUM
+//         None
+// };
+
+// static constexpr size_t kShaderStageCount = static_cast<size_t>(EShaderStage::None);
+
+enum class EShaderStageIndex : uint16 {
+#define GENERATE_INDEX(ENUM, ...) ENUM,
+    FOREACH_SHADER_STAGE(GENERATE_INDEX)
+#undef GENERATE_INDEX
+        Count
 };
 
-static constexpr size_t kShaderStageCount = static_cast<size_t>(EShaderStage::None);
+enum class EShaderStage : uint16 {
+    None = 0,
+#define GENERATE_BIT(ENUM, ...) ENUM = 1 << static_cast<uint16>(EShaderStageIndex::ENUM),
+    FOREACH_SHADER_STAGE(GENERATE_BIT)
+#undef GENERATE_BIT
+    // clang-format off
+    AllGraphics = (Vertex | Fragment | Geometry | Hull | Domain)
+    // clang-format on
+
+};
+ENUM_CLASS_FLAGS(EShaderStage);
+
+static constexpr size_t kShaderStageCount = static_cast<size_t>(EShaderStageIndex::Count);
 
 // -- ShaderMacro --
 struct ShaderMacro {
@@ -78,27 +98,224 @@ private:
     std::map<std::string, std::string> m_Macros;
 };
 
-struct FUniformSpecification {
-    std::string type;
-    std::string name;
-    std::string resourceName;
-    uint32 size;
-    uint32 location;
+enum class EShaderDataFormat {
+    None = 0,
+    Float,
+    Float2,
+    Float3,
+    Float4,
+    Mat3,
+    Mat4,
+    Int,
+    Int2,
+    Int3,
+    Int4,
+    UInt,
+    UInt2,
+    UInt3,
+    UInt4,
+    Bool
+};
 
-    std::string fullName() const { return resourceName + "." + name; }
+inline const char* ShaderDataFormatToString(EShaderDataFormat format) {
+    switch (format) {
+        case EShaderDataFormat::Float: return "Float";
+        case EShaderDataFormat::Float2: return "Float2";
+        case EShaderDataFormat::Float3: return "Float3";
+        case EShaderDataFormat::Float4: return "Float4";
+        case EShaderDataFormat::Mat3: return "Mat3";
+        case EShaderDataFormat::Mat4: return "Mat4";
+        case EShaderDataFormat::Int: return "Int";
+        case EShaderDataFormat::Int2: return "Int2";
+        case EShaderDataFormat::Int3: return "Int3";
+        case EShaderDataFormat::Int4: return "Int4";
+        case EShaderDataFormat::UInt: return "UInt";
+        case EShaderDataFormat::UInt2: return "UInt2";
+        case EShaderDataFormat::UInt3: return "UInt3";
+        case EShaderDataFormat::UInt4: return "UInt4";
+        case EShaderDataFormat::Bool: return "Bool";
+        case EShaderDataFormat::None:
+        default: return "None/Unknown";
+    }
+}
+
+static uint32 FShaderDataTypeSize(EShaderDataFormat type) {
+    switch (type) {
+        case EShaderDataFormat::None: return 0;
+
+        // --- Floating Point ---
+        case EShaderDataFormat::Float: return 4;
+        case EShaderDataFormat::Float2: return 4 * 2;
+        case EShaderDataFormat::Float3: return 4 * 3;
+        case EShaderDataFormat::Float4: return 4 * 4;
+
+        // --- Matrices (Logical size) ---
+        case EShaderDataFormat::Mat3: return 4 * 3 * 3; // 36 bytes
+        case EShaderDataFormat::Mat4:
+            return 4 * 4 * 4; // 64 bytes
+
+        // --- Signed Integers ---
+        case EShaderDataFormat::Int: return 4;
+        case EShaderDataFormat::Int2: return 4 * 2;
+        case EShaderDataFormat::Int3: return 4 * 3;
+        case EShaderDataFormat::Int4: return 4 * 4;
+
+        // --- Unsigned Integers ---
+        case EShaderDataFormat::UInt: return 4;
+        case EShaderDataFormat::UInt2: return 4 * 2;
+        case EShaderDataFormat::UInt3: return 4 * 3;
+        case EShaderDataFormat::UInt4: return 4 * 4;
+
+        // --- Boolean ---
+        case EShaderDataFormat::Bool: return 1;
+    }
+
+    // CZ_CORE_ASSERT(false, "Unknown EShaderDataFormat!");
+    return 0;
+}
+
+enum class EUniformType : uint8_t {
+    None = 0,
+    Sampler,
+    Image,
+    CombinedImageSampler,
+    UniformBuffer,
+    StorageImage,
+    StorageBuffer,
+    PushConstant,
+    InputAttachment // subpassInput (use for deferred rendering)
+};
+
+struct FUniformSpecification {
+    EUniformType Type;
+    EShaderDataFormat Format;
+    std::string Name;         // 成员名 (如 "u_Color")
+    std::string ResourceName; // 容器名 (如 "u_MaterialData")
+    uint32 Size      = 0;     // 字节大小
+    uint32 Offset    = 0;
+    uint32 Binding   = 0; // 绑定点
+    uint32 Set       = 0; // 所在的 DescriptorSet 编号
+    uint32 ArraySize = 1; // 数组长度 (1 表示非数组，0 可能表示运行时数组)
+
+    std::string fullName() const {
+        return ResourceName.empty() ? Name : (ResourceName + "." + Name);
+    }
+
+    std::string ToString() const {
+        std::stringstream ss;
+        if (Type == EUniformType::PushConstant) {
+            ss << "[PushConstant] " << Name << " (Size: " << Size << ")";
+        } else {
+            ss << "[Set " << Set << ", Binding " << Binding << "] " << Name
+               << " (Type: " << (uint32)Type << ", Size: " << Size << ", Offset: " << Offset
+               << ", Array: " << ArraySize << ")";
+        }
+        return ss.str();
+    }
 };
 
 struct FAttributeInfo {
-    std::string type;
-    std::string name;
-    uint32 size;
-    uint32 location;
+    std::string Name;
+    uint32 Location = 0;
+    uint32 Size     = 0;
+    EShaderDataFormat Format;
+
+    FAttributeInfo() = default;
+
+    // Logic-driven constructor
+    FAttributeInfo(const std::string& name, uint32 loc, EShaderDataFormat format)
+        : Name(name), Location(loc), Format(format) {
+        Size = FShaderDataTypeSize(format);
+    }
+
+    std::string ToString() const {
+        std::stringstream ss;
+        ss << "[Loc " << Location << "] " << Name
+           << " (Format: " << ShaderDataFormatToString(Format) << ", Size: " << Size << " bytes)";
+        return ss.str();
+    }
 };
 
 struct FShaderReflection {
-    std::vector<FUniformSpecification> uniforms;
-    std::vector<FAttributeInfo> attributes;
-    std::unordered_map<std::string, uint32> uniformLocations;
+    std::vector<FUniformSpecification> Uniforms;
+    std::vector<FAttributeInfo> Attributes;
+    std::unordered_map<std::string, uint32> UniformLocations;
+
+    std::string ToString() const {
+        std::stringstream ss;
+        ss << "--- Shader Reflection Report ---\n";
+
+        ss << " [Input Attributes]\n";
+        if (Attributes.empty()) ss << "   (None)\n";
+        for (const auto& attr : Attributes) {
+            ss << "   " << attr.ToString() << "\n";
+        }
+
+        ss << " [Resource Bindings]\n";
+        if (Uniforms.empty()) ss << "   (None)\n";
+        for (const auto& uni : Uniforms) {
+            ss << "   " << uni.ToString() << "\n";
+        }
+
+        // Optional: Only show the map if it's not redundant
+        if (!UniformLocations.empty()) {
+            ss << " [Name-to-Location Map]\n";
+            for (const auto& [name, loc] : UniformLocations) {
+                ss << "   " << name << " -> " << loc << "\n";
+            }
+        }
+
+        ss << "--------------------------------";
+        return ss.str();
+    }
+};
+
+struct FRHIShaderResourceBinding {
+    uint32_t Binding;
+    EUniformType Type;
+    uint32_t DescriptorCount;
+    EShaderStage StageFlags;
+
+    bool operator==(const FRHIShaderResourceBinding& other) const {
+        return Binding == other.Binding && Type == other.Type &&
+               DescriptorCount == other.DescriptorCount && StageFlags == other.StageFlags;
+    }
+};
+
+struct FRHISetLayoutDescription {
+    std::vector<FRHIShaderResourceBinding> Bindings;
+
+    void AddBinding(const uint32_t binding, const EUniformType type, const uint32_t descriptorCount,
+                    const EShaderStage stage) {
+        Bindings.push_back(FRHIShaderResourceBinding(binding, type, descriptorCount, stage));
+    }
+
+    size_t GetHash() const {
+        size_t h = 0;
+        for (const auto& b : Bindings) {
+            HashCombine(h, std::hash<uint32_t>{}(b.Binding));
+            HashCombine(h, std::hash<uint32_t>{}(static_cast<uint32_t>(b.Type)));
+            HashCombine(h, std::hash<uint32_t>{}(static_cast<uint32_t>(b.StageFlags)));
+        }
+        return h;
+    }
+
+    bool operator==(const FRHISetLayoutDescription& other) const {
+        return Bindings == other.Bindings;
+    }
+};
+
+struct FRHIPushConstantRange {
+    EShaderStage StageFlags;
+    uint32_t Offset;
+    uint32_t Size;
+};
+
+struct FRHIPipelineLayoutDescription {
+    std::map<uint32_t, FRHISetLayoutDescription> SetLayouts;
+    std::vector<FRHIPushConstantRange> PushConstantRanges;
+
+    bool operator==(const FRHIPipelineLayoutDescription& other) const;
 };
 
 // Define the environment and parameters for a single shader compilation task
@@ -113,6 +330,86 @@ struct FShaderCompilerOutput {
     std::vector<uint32> Binary;
     FShaderReflection Reflection;
     bool bSucceeded = false;
+};
+
+struct FBufferElement {
+    std::string Name;
+    EShaderDataFormat Type;
+    uint32 Size;
+    uint32 Offset;
+    bool Normalized;
+
+    FBufferElement() {}
+
+    FBufferElement(EShaderDataFormat type, const std::string& name, bool normalized = false)
+        : Name(name), Type(type), Size(FShaderDataTypeSize(type)), Offset(0),
+          Normalized(normalized) {}
+
+    uint32 GetComponentCount() const {
+        switch (Type) {
+            case EShaderDataFormat::None: return 0;
+
+            // --- Floats & Mats ---
+            case EShaderDataFormat::Float: return 1;
+            case EShaderDataFormat::Float2: return 2;
+            case EShaderDataFormat::Float3: return 3;
+            case EShaderDataFormat::Float4: return 4;
+            case EShaderDataFormat::Mat3: return 3 * 3; // 9
+            case EShaderDataFormat::Mat4:
+                return 4 * 4; // 16
+
+            // --- Signed Integers ---
+            case EShaderDataFormat::Int: return 1;
+            case EShaderDataFormat::Int2: return 2;
+            case EShaderDataFormat::Int3: return 3;
+            case EShaderDataFormat::Int4: return 4;
+
+            // --- Unsigned Integers ---
+            case EShaderDataFormat::UInt: return 1;
+            case EShaderDataFormat::UInt2: return 2;
+            case EShaderDataFormat::UInt3: return 3;
+            case EShaderDataFormat::UInt4: return 4;
+
+            // --- Boolean ---
+            case EShaderDataFormat::Bool: return 1;
+        }
+
+        // CZ_CORE_ASSERT(false, "Unknown EShaderDataFormat!");
+        return 0;
+    }
+};
+
+class VertexBufferLayout {
+private:
+    std::vector<FBufferElement> m_Elements;
+    uint32 m_Stride = 0;
+
+private:
+    void CalculateOffsetsAndStride() {
+        uint32 offset = 0;
+        m_Stride      = 0;
+        for (auto& element : m_Elements) {
+            element.Offset = offset;
+            offset += element.Size;
+            m_Stride += element.Size;
+        }
+    }
+
+public:
+    VertexBufferLayout() {}
+
+    VertexBufferLayout(const std::initializer_list<FBufferElement>& elements)
+        : m_Elements(elements) {
+        CalculateOffsetsAndStride();
+    }
+
+    inline uint32 GetStride() const { return m_Stride; }
+    inline const std::vector<FBufferElement>& GetElements() const { return m_Elements; }
+
+    std::vector<FBufferElement>::iterator begin() { return m_Elements.begin(); }
+    std::vector<FBufferElement>::iterator end() { return m_Elements.end(); }
+    std::vector<FBufferElement>::const_iterator begin() const { return m_Elements.begin(); }
+    std::vector<FBufferElement>::const_iterator end() const { return m_Elements.end(); }
 };
 
 struct FExtent2D {
@@ -160,6 +457,33 @@ enum class EPixelFormat {
 };
 // clang-format on
 
+enum class EFilter : uint8_t {
+    Nearest = 0,
+    Linear  = 1,
+
+    Default = Linear
+};
+
+enum class EAddressMode : uint8_t {
+    Repeat            = 0,
+    MirroredRepeat    = 1,
+    ClampToEdge       = 2,
+    ClampToBorder     = 3,
+    MirrorClampToEdge = 4,
+
+    Default = Repeat
+};
+
+/**
+ * @brief Defines how the sampler interpolates between mipmap levels.
+ */
+enum class EMipmapMode : uint8_t {
+    Nearest = 0,
+    Linear  = 1,
+
+    Default = Linear
+};
+
 enum class EImageUsage : uint32_t {
     Sampled             = 1 << 0, // For shader reading (e.g., texture sampling)
     ColorAttachment     = 1 << 1, // For framebuffer color attachments
@@ -170,6 +494,31 @@ enum class EImageUsage : uint32_t {
     TransientAttachment = 1 << 6  // For transient resources optimization
 };
 ENUM_CLASS_FLAGS(EImageUsage);
+
+enum class EImageLayout {
+    Undefined,
+    General,
+    ColorAttachmentOptimal,
+    DepthStencilAttachmentOptimal,
+    DepthStencilReadOnlyOptimal,
+    ShaderReadOnlyOptimal,
+    TransferSrcOptimal,
+    TransferDstOptimal,
+    PresentSrc,
+
+    // Add more as needed for specific APIs (e.g., Vulkan has many more)
+    Unknown
+};
+
+enum class EImageViewType {
+    View1D = 0,
+    View2D,
+    View3D,
+    ViewCube,
+    View1DArray,
+    View2DArray,
+    ViewCubeArray
+};
 
 enum class ETextureType { Texture2D, TextureCube };
 
@@ -281,106 +630,3 @@ inline bool HasFlag(EMemoryType value, EMemoryType flag) {
 inline bool HasFlag(EBufferUsage value, EBufferUsage flag) {
     return (static_cast<uint32>(value) & static_cast<uint32>(flag)) != 0;
 }
-
-// ===== Shader =====
-enum class EShaderDataType {
-    None = 0,
-    Float,
-    Float2,
-    Float3,
-    Float4,
-    Mat3,
-    Mat4,
-    Int,
-    Int2,
-    Int3,
-    Int4,
-    Bool
-};
-
-static uint32 FShaderDataTypeSize(EShaderDataType type) {
-    switch (type) {
-        case EShaderDataType::None: return 0;
-        case EShaderDataType::Float: return 4;
-        case EShaderDataType::Float2: return 4 * 2;
-        case EShaderDataType::Float3: return 4 * 3;
-        case EShaderDataType::Float4: return 4 * 4;
-        case EShaderDataType::Mat3: return 4 * 3 * 3;
-        case EShaderDataType::Mat4: return 4 * 4 * 4;
-        case EShaderDataType::Int: return 4;
-        case EShaderDataType::Int2: return 4 * 2;
-        case EShaderDataType::Int3: return 4 * 3;
-        case EShaderDataType::Int4: return 4 * 4;
-        case EShaderDataType::Bool: return 1;
-    }
-
-    // CZ_CORE_ASSERT(false, "Unknown EShaderDataType!");
-    return 0;
-}
-
-struct FBufferElement {
-    std::string Name;
-    EShaderDataType Type;
-    uint32 Size;
-    uint32 Offset;
-    bool Normalized;
-
-    FBufferElement() {}
-
-    FBufferElement(EShaderDataType type, const std::string& name, bool normalized = false)
-        : Name(name), Type(type), Size(FShaderDataTypeSize(type)), Offset(0),
-          Normalized(normalized) {}
-
-    uint32 GetComponentCount() const {
-        switch (Type) {
-            case EShaderDataType::None: return 0;
-            case EShaderDataType::Float: return 1;
-            case EShaderDataType::Float2: return 2;
-            case EShaderDataType::Float3: return 3;
-            case EShaderDataType::Float4: return 4;
-            case EShaderDataType::Mat3: return 3 * 3;
-            case EShaderDataType::Mat4: return 4 * 4;
-            case EShaderDataType::Int: return 1;
-            case EShaderDataType::Int2: return 2;
-            case EShaderDataType::Int3: return 3;
-            case EShaderDataType::Int4: return 4;
-            case EShaderDataType::Bool: return 1;
-        }
-
-        // CZ_CORE_ASSERT(false, "Unknown EShaderDataType!");
-        return 0;
-    }
-};
-
-class VertexBufferLayout {
-private:
-    std::vector<FBufferElement> m_Elements;
-    uint32 m_Stride = 0;
-
-private:
-    void CalculateOffsetsAndStride() {
-        uint32 offset = 0;
-        m_Stride      = 0;
-        for (auto& element : m_Elements) {
-            element.Offset = offset;
-            offset += element.Size;
-            m_Stride += element.Size;
-        }
-    }
-
-public:
-    VertexBufferLayout() {}
-
-    VertexBufferLayout(const std::initializer_list<FBufferElement>& elements)
-        : m_Elements(elements) {
-        CalculateOffsetsAndStride();
-    }
-
-    inline uint32 GetStride() const { return m_Stride; }
-    inline const std::vector<FBufferElement>& GetElements() const { return m_Elements; }
-
-    std::vector<FBufferElement>::iterator begin() { return m_Elements.begin(); }
-    std::vector<FBufferElement>::iterator end() { return m_Elements.end(); }
-    std::vector<FBufferElement>::const_iterator begin() const { return m_Elements.begin(); }
-    std::vector<FBufferElement>::const_iterator end() const { return m_Elements.end(); }
-};

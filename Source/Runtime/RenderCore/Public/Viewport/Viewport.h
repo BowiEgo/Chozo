@@ -30,9 +30,9 @@ public:
     TRef<CSceneCamera> GetCamera() { return m_Camera; }
     const TRef<CSceneCamera> GetCamera() const { return m_Camera; }
     TRef<IRHIFrameBuffer> GetFrameBuffer() const { return m_FrameBuffer; }
-    void* GetTextureID(int index) const {
-        return m_FrameBuffer->GetColorAttachment(index)->GetDescriptorSet();
-    }
+    // void* GetTextureID(int index) const {
+    //     return m_FrameBuffer->GetColorAttachment(index)->GetDescriptorSet();
+    // }
 
     const std::string& GetName() const { return m_Spec.Name; }
     uint32_t GetWidth() const { return m_Spec.Width; }

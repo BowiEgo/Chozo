@@ -29,7 +29,6 @@ protected:
     FShaderSpecification m_Spec;
 
     FShaderID m_ID{};
-    FShaderReflection m_Reflection;
     FShaderCompilerOutput m_Data;
     WeakRef<IRHIDevice> m_Device;
     TRef<IRHIShader> m_ShaderResource;

@@ -45,17 +45,18 @@ public:
     }
 
     static TRef<IRHIShader> CreateShader(const IRHIContext* ctx, const FShaderSpecification& spec,
-                                         const std::vector<uint32_t>* binary) {
-        return s_Instance->CreateShader_Internal(ctx, spec, binary);
+                                         const std::vector<uint32_t>* binary,
+                                         const FShaderReflection reflection) {
+        return s_Instance->CreateShader_Internal(ctx, spec, binary, reflection);
     }
 
     static TRef<IRHITexture2D> CreateTexture2D(const IRHIContext* ctx,
-                                               const FTexture2DSpecification& spec) {
+                                               const FTextureSpecification& spec) {
         return s_Instance->CreateTexture2D_Internal(ctx, spec);
     }
 
     static TRef<IRHITexture2D> CreateTexture2D(const IRHIContext* ctx,
-                                               const FTexture2DSpecification& spec, FBuffer& data) {
+                                               const FTextureSpecification& spec, FBuffer& data) {
         return s_Instance->CreateTexture2D_Internal(ctx, spec, data);
     }
 
@@ -96,17 +97,18 @@ protected:
     virtual TRef<IRHISyncObject> CreateSyncObject_Internal(const IRHIContext* ctx)            = 0;
     virtual TRef<IRHIFrameBuffer>
         CreateFrameBuffer_Internal(const IRHIContext* ctx,
-                                   const FFrameBufferSpecification& spec)                     = 0;
+                                   const FFrameBufferSpecification& spec)                   = 0;
     virtual TRef<IRHIShader> CreateShader_Internal(const IRHIContext* ctx,
                                                    const FShaderSpecification& spec,
-                                                   const std::vector<uint32_t>* binary)       = 0;
+                                                   const std::vector<uint32_t>* binary,
+                                                   const FShaderReflection reflection)      = 0;
     virtual TRef<IRHIPipeline> CreatePipeline_Internal(const IRHIContext* ctx,
-                                                       const FPipelineSpecification& spec)    = 0;
+                                                       const FPipelineSpecification& spec)  = 0;
     virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const IRHIContext* ctx,
-                                                         const FTexture2DSpecification& spec) = 0;
+                                                         const FTextureSpecification& spec) = 0;
     virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const IRHIContext* ctx,
-                                                         const FTexture2DSpecification& spec,
-                                                         FBuffer& data)                       = 0;
+                                                         const FTextureSpecification& spec,
+                                                         FBuffer& data)                     = 0;
 
     virtual TRef<IRHIBuffer> CreateBuffer_Internal(const IRHIContext* ctx,
                                                    const FBufferSpecification& spec) = 0;

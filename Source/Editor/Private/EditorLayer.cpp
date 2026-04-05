@@ -25,7 +25,7 @@ void EditorLayer::OnAttach() {
 
     auto fbSize = CApplication::Get()->GetWindow()->GetFrameBufferSize();
 
-    m_Scene = CreateScope<FScene>();
+    m_Scene            = CreateScope<FScene>();
     m_ViewportRenderer = CApplication::Get()->GetRenderEngine()->GetRenderer();
     m_Viewport = m_ViewportRenderer->CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
     m_Viewport->SetScene(m_Scene.get());
@@ -79,9 +79,9 @@ void EditorLayer::OnAttach() {
     CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
 
     {
-        auto nodeBit = FTypeRegister::Get().GetBit("Node_Regular");
+        auto nodeBit   = FTypeRegister::Get().GetBit("Node_Regular");
         auto sphereBit = FTypeRegister::Get().GetBit("Mesh_Sphere");
-        auto newNode = m_NodeTree.CreateNode("Sphere", nodeBit |= sphereBit, nullptr);
+        auto newNode   = m_NodeTree.CreateNode("Sphere", nodeBit |= sphereBit, nullptr);
         m_NodeTree.SelectNode(newNode);
     }
 
@@ -188,17 +188,18 @@ void EditorLayer::OnImGuiRender() {
     CApplication::Get()->GetImGuiLayer().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
     auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
-    m_ViewportSize = ImGui::GetContentRegionAvail();
+    m_ViewportSize      = ImGui::GetContentRegionAvail();
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
-    ImTextureID textureID = (ImTextureID)m_Viewport->GetTextureID(0);
+    auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
+    ImTextureID textureID = (ImTextureID)tex->GetDescriptorSet();
     ImGui::Image(textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
     // Integrated Debug Overlay
     m_Overlay.Draw("Editor Overlay:", &m_IsOverlayOpen, [io]() {
         // Performance monitoring
         auto profiler = CApplication::Get()->GetPerformanceProfiler();
-        float fps = CApplication::Get()->GetFPSCounter()->GetFPS();
+        float fps     = CApplication::Get()->GetFPSCounter()->GetFPS();
         float latency = CApplication::Get()->GetFPSCounter()->GetAvgLatency();
 
         ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Engine FPS: %.1f", fps);
@@ -222,7 +223,7 @@ void EditorLayer::OnImGuiRender() {
     ImGui::PopStyleVar();
 #pragma endregion
 
-    auto context = m_ViewportRenderer->GetGraphicContext();
+    auto context     = m_ViewportRenderer->GetGraphicContext();
     auto& fileDialog = UFileDialog::Get(context);
     if (fileDialog.IsDone("TextureOpenDialog")) {
         if (fileDialog.HasResult()) {

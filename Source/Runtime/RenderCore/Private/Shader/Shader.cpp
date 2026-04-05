@@ -26,7 +26,7 @@ TRef<IRHIShader> CShader::CreateRHIDeviceResource(const IRHIContext* ctx,
 
     if (data.bSucceeded && !data.Binary.empty()) {
         // Use the Device to create the actual hardware resource
-        auto RHIShader = IRHIAPI::CreateShader(ctx, m_Spec, &data.Binary);
+        auto RHIShader = IRHIAPI::CreateShader(ctx, m_Spec, &data.Binary, data.Reflection);
 
         CZ_LOG(LogShader, Info, "RHI shader: {} created.", m_Spec.Name);
 

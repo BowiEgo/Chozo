@@ -74,12 +74,12 @@ target("VulkanSDK_Interface")
         if is_plat("windows") then
             add_includedirs(path.join(sdk_path, "Include"), {public = true})
             add_linkdirs(path.join(sdk_path, "Lib"), {public = true})
-            -- add_links("vulkan-1", {public = true})
+            add_links("vulkan-1", {public = true})
         else
             add_includedirs(path.join(sdk_path, "include"), {public = true})
             add_rpathdirs(path.join(sdk_path, "lib"), {public = true})
             add_linkdirs(path.join(sdk_path, "lib"), {public = true})
-            -- add_links("vulkan", {public = true}) -- [Note] On Mac, link to libvulkan.dylib
+            add_links("vulkan", {public = true})
         end
     end
 

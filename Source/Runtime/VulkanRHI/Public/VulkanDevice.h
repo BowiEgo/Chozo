@@ -14,6 +14,9 @@ enum class EDescriptorLayoutType {
 
 class CVulkanCommandPool;
 class CVulkanCommandBuffer;
+class CVulkanImage;
+class CVulkanSampler;
+class CVulkanTexture2D;
 
 struct DynamicState3Functions {
     PFN_vkCmdSetPolygonModeEXT vkCmdSetPolygonModeEXT{ nullptr };
@@ -48,6 +51,12 @@ public:
     virtual void WaitIdle() override;
     virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec) override;
     virtual TRef<IRHIImage> CreateImage(const FImageSpecification& spec) override;
+    virtual TRef<IRHISampler> CreateSampler(const FSamplerSpecification& spec) override;
+    virtual TRef<IRHISetLayout> CreateSetLayout(const FRHISetLayoutDescription& desc) override;
+    virtual TRef<IRHITexture2D> CreateTexture2D(const FTextureSpecification& spec) override;
+    virtual TRef<IRHIDescriptorSet> CreateDescriptorSet(const FTextureDescriptorInfo& info,
+                                                        TRef<IRHISetLayout> setLayout,
+                                                        uint32 bindingSlot) override;
 
 private:
     void PickPhysicalDevice(const vk::raii::Instance& instance);
@@ -83,6 +92,8 @@ public:
     }
 
     bool IsExtensionSupported(const std::string& extensionName) const;
+
+    vk::raii::DescriptorSet AllocateSetFromPool(vk::DescriptorSetLayout layout);
 
 private:
     std::vector<const char*> m_RequiredDeviceExtension = { vk::KHRSwapchainExtensionName };

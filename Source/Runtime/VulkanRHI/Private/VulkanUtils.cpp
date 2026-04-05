@@ -178,9 +178,57 @@ vk::CommandPoolCreateFlags MapCommandPoolFlags(ECommandPoolFlags rhiFlags) {
     return vkFlags;
 }
 
+// Samper
+vk::Filter ToVKFilter(EFilter filter) {
+    switch (filter) {
+        case EFilter::Nearest: return vk::Filter::eNearest;
+        case EFilter::Linear: return vk::Filter::eLinear;
+        default: return vk::Filter::eNearest;
+    }
+}
+
+vk::SamplerAddressMode ToVKAddressMode(EAddressMode mode) {
+    switch (mode) {
+        case EAddressMode::Repeat: return vk::SamplerAddressMode::eRepeat;
+        case EAddressMode::MirroredRepeat: return vk::SamplerAddressMode::eMirroredRepeat;
+        case EAddressMode::ClampToEdge: return vk::SamplerAddressMode::eClampToEdge;
+        case EAddressMode::ClampToBorder: return vk::SamplerAddressMode::eClampToBorder;
+        default: return vk::SamplerAddressMode::eRepeat;
+    }
+}
+
+vk::SamplerMipmapMode ToVKMipmapMode(EMipmapMode mode) {
+    switch (mode) {
+        case EMipmapMode::Nearest: return vk::SamplerMipmapMode::eNearest;
+        case EMipmapMode::Linear: return vk::SamplerMipmapMode::eLinear;
+        default: return vk::SamplerMipmapMode::eNearest;
+    }
+}
+
 // Image
-void TransitionTextureLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image vkImage,
-                             vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
+vk::ImageLayout ToVkImageLayout(EImageLayout layout) {
+    switch (layout) {
+        case EImageLayout::Undefined: return vk::ImageLayout::eUndefined;
+        case EImageLayout::General: return vk::ImageLayout::eGeneral;
+        case EImageLayout::ColorAttachmentOptimal: return vk::ImageLayout::eColorAttachmentOptimal;
+        case EImageLayout::DepthStencilAttachmentOptimal:
+            return vk::ImageLayout::eDepthStencilAttachmentOptimal;
+        case EImageLayout::DepthStencilReadOnlyOptimal:
+            return vk::ImageLayout::eDepthStencilReadOnlyOptimal;
+        case EImageLayout::ShaderReadOnlyOptimal: return vk::ImageLayout::eShaderReadOnlyOptimal;
+        case EImageLayout::TransferSrcOptimal: return vk::ImageLayout::eTransferSrcOptimal;
+        case EImageLayout::TransferDstOptimal: return vk::ImageLayout::eTransferDstOptimal;
+        case EImageLayout::PresentSrc: return vk::ImageLayout::ePresentSrcKHR;
+
+        case EImageLayout::Unknown:
+        default:
+            CZ_CORE_ASSERT(false, "Unknown or unsupported EImageLayout!");
+            return vk::ImageLayout::eUndefined;
+    }
+}
+
+void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image vkImage,
+                           vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
     if (oldLayout == newLayout) return;
 
     vk::ImageMemoryBarrier2 barrier;
@@ -276,6 +324,37 @@ void SetupBarrierSync(vk::ImageMemoryBarrier2& barrier, vk::ImageLayout oldLayou
     }
 }
 
+vk::ImageViewType ToVkViewType(EImageViewType type) {
+    switch (type) {
+        case EImageViewType::View1D: return vk::ImageViewType::e1D;
+        case EImageViewType::View2D: return vk::ImageViewType::e2D;
+        case EImageViewType::View3D: return vk::ImageViewType::e3D;
+        case EImageViewType::ViewCube: return vk::ImageViewType::eCube;
+        case EImageViewType::View1DArray: return vk::ImageViewType::e1DArray;
+        case EImageViewType::View2DArray: return vk::ImageViewType::e2DArray;
+        case EImageViewType::ViewCubeArray: return vk::ImageViewType::eCubeArray;
+        default: CZ_CORE_ASSERT(false, "Unknown EImageViewType"); return vk::ImageViewType::e2D;
+    }
+}
+
+vk::ImageAspectFlags GetImageAspectFlags(vk::Format format) {
+    switch (format) {
+        // --- Depth & Stencil Formats ---
+        case vk::Format::eD16Unorm:
+        case vk::Format::eD32Sfloat: return vk::ImageAspectFlagBits::eDepth;
+
+        case vk::Format::eD16UnormS8Uint:
+        case vk::Format::eD24UnormS8Uint:
+        case vk::Format::eD32SfloatS8Uint:
+            return vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+
+        case vk::Format::eS8Uint: return vk::ImageAspectFlagBits::eStencil;
+
+        // --- Everything else is Color ---
+        default: return vk::ImageAspectFlagBits::eColor;
+    }
+}
+
 // Log
 void LogPhysicalDeviceInfo(const vk::PhysicalDeviceProperties& properties) {
 
@@ -311,7 +390,7 @@ void LogMemoryBudget(vk::raii::PhysicalDevice& physicalDevice) {
     CZ_LOG(LogVulkanUtils, Info, "---------------------------------");
 }
 
-vk::Format ToVKFormat(EPixelFormat format) {
+vk::Format ToVkFormat(EPixelFormat format) {
     switch (format) {
         // Single-channel
         case EPixelFormat::R8_UNORM: return vk::Format::eR8Unorm;
@@ -398,17 +477,33 @@ bool IsDepthFormat(vk::Format format) {
 }
 
 // Shader
-vk::Format ShaderDataTypeToVkFormat(EShaderDataType type) {
+vk::DescriptorType ToVkDescType(EUniformType type) {
     switch (type) {
-        case EShaderDataType::Float: return vk::Format::eR32Sfloat;
-        case EShaderDataType::Float2: return vk::Format::eR32G32Sfloat;
-        case EShaderDataType::Float3: return vk::Format::eR32G32B32Sfloat;
-        case EShaderDataType::Float4: return vk::Format::eR32G32B32A32Sfloat;
-        case EShaderDataType::Int: return vk::Format::eR32Sint;
-        case EShaderDataType::Int2: return vk::Format::eR32G32Sint;
-        case EShaderDataType::Int3: return vk::Format::eR32G32B32Sint;
-        case EShaderDataType::Int4: return vk::Format::eR32G32B32A32Sint;
-        case EShaderDataType::Bool: return vk::Format::eR32Sint;
+        case EUniformType::Sampler: return vk::DescriptorType::eSampler;
+        case EUniformType::Image: return vk::DescriptorType::eSampledImage;
+        case EUniformType::CombinedImageSampler: return vk::DescriptorType::eCombinedImageSampler;
+        case EUniformType::UniformBuffer: return vk::DescriptorType::eUniformBuffer;
+        case EUniformType::StorageImage: return vk::DescriptorType::eStorageImage;
+        case EUniformType::StorageBuffer: return vk::DescriptorType::eStorageBuffer;
+        case EUniformType::InputAttachment: return vk::DescriptorType::eInputAttachment;
+        case EUniformType::PushConstant:
+        default:
+            CZ_LOG(LogVulkanUtils, Error, "Unsupported uniform type");
+            return vk::DescriptorType::eUniformBuffer;
+    }
+}
+
+vk::Format ShaderDataTypeToVkFormat(EShaderDataFormat type) {
+    switch (type) {
+        case EShaderDataFormat::Float: return vk::Format::eR32Sfloat;
+        case EShaderDataFormat::Float2: return vk::Format::eR32G32Sfloat;
+        case EShaderDataFormat::Float3: return vk::Format::eR32G32B32Sfloat;
+        case EShaderDataFormat::Float4: return vk::Format::eR32G32B32A32Sfloat;
+        case EShaderDataFormat::Int: return vk::Format::eR32Sint;
+        case EShaderDataFormat::Int2: return vk::Format::eR32G32Sint;
+        case EShaderDataFormat::Int3: return vk::Format::eR32G32B32Sint;
+        case EShaderDataFormat::Int4: return vk::Format::eR32G32B32A32Sint;
+        case EShaderDataFormat::Bool: return vk::Format::eR32Sint;
         default:
             CZ_LOG(LogVulkanUtils, Error, "Unsupported shader data type");
             return vk::Format::eUndefined;

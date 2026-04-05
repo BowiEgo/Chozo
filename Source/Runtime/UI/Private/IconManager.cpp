@@ -13,17 +13,17 @@ static const char* GetDefaultFileIcon();
 CIconManager::CIconManager(IRHIContext* context) : m_GraphicContext(context) {
     FRawFileImage folderIconImage, fileIconImage;
 
-    size_t dataSize = DEFAULT_ICON_SIZE * DEFAULT_ICON_SIZE * 4;
+    size_t dataSize         = DEFAULT_ICON_SIZE * DEFAULT_ICON_SIZE * 4;
     uint8_t* folderIconData = (uint8_t*)malloc(dataSize);
-    uint8_t* fileIconData = (uint8_t*)malloc(dataSize);
+    uint8_t* fileIconData   = (uint8_t*)malloc(dataSize);
 
     uint8_t* staticFolderIconData = (uint8_t*)GetDefaultFolderIcon();
-    uint8_t* staticFileIconData = (uint8_t*)GetDefaultFileIcon();
+    uint8_t* staticFileIconData   = (uint8_t*)GetDefaultFileIcon();
 
     if (bool isDarkTheme = true) {
         // Dark theme: Invert colors while copying
         for (int i = 0; i < DEFAULT_ICON_SIZE * DEFAULT_ICON_SIZE; i++) {
-            int idx = i * 4;
+            int idx                 = i * 4;
             folderIconData[idx + 0] = 255 - staticFolderIconData[idx + 0];
             folderIconData[idx + 1] = 255 - staticFolderIconData[idx + 1];
             folderIconData[idx + 2] = 255 - staticFolderIconData[idx + 2];
@@ -39,20 +39,20 @@ CIconManager::CIconManager(IRHIContext* context) : m_GraphicContext(context) {
         memcpy(fileIconData, staticFileIconData, dataSize);
     }
 
-    folderIconImage.Data = folderIconData;
-    folderIconImage.Size = dataSize;
-    folderIconImage.Width = DEFAULT_ICON_SIZE;
+    folderIconImage.Data   = folderIconData;
+    folderIconImage.Size   = dataSize;
+    folderIconImage.Width  = DEFAULT_ICON_SIZE;
     folderIconImage.Height = DEFAULT_ICON_SIZE;
 
-    fileIconImage.Data = fileIconData;
-    fileIconImage.Size = dataSize;
-    fileIconImage.Width = DEFAULT_ICON_SIZE;
+    fileIconImage.Data   = fileIconData;
+    fileIconImage.Size   = dataSize;
+    fileIconImage.Width  = DEFAULT_ICON_SIZE;
     fileIconImage.Height = DEFAULT_ICON_SIZE;
 
-    FTexture2DSpecification spec;
-    spec.Size = { (uint32_t)DEFAULT_ICON_SIZE, (uint32_t)DEFAULT_ICON_SIZE };
+    FTextureSpecification spec;
+    spec.Size   = { (uint32_t)DEFAULT_ICON_SIZE, (uint32_t)DEFAULT_ICON_SIZE };
     spec.Format = EPixelFormat::BGRA8_UNORM;
-    spec.Usage = ETextureUsage::Texture;
+    spec.Usage  = ETextureUsage::Texture;
 
     {
         spec.Name = "DefaultFolderIcon";
@@ -77,14 +77,14 @@ TRef<IRHITexture2D> CIconManager::GetOrLoadSVGIcon(const std::string& name) {
         return itr->second;
     }
 
-    auto icon = ChozoUtils::UI::LoadSVGIcon(m_GraphicContext, name);
+    auto icon             = ChozoUtils::UI::LoadSVGIcon(m_GraphicContext, name);
     m_SVGIconCaches[name] = icon;
 
     return icon;
 }
 
 TRef<IRHITexture2D> CIconManager::GetOrLoadFileIcon(const std::filesystem::path& path) {
-    auto normPath = path.lexically_normal();
+    auto normPath          = path.lexically_normal();
     std::string pathString = normPath.string();
 
     auto itrIndex = m_FileIconIndices.find(pathString);
@@ -129,11 +129,11 @@ void CIconManager::ProcessRawIcons() {
     uint32_t currentFrame = m_GraphicContext->GetCurrentFrameIndex();
 
     for (auto& icon : m_RawFileIconCaches) {
-        FTexture2DSpecification spec;
-        spec.Name = icon.Name;
-        spec.Size = { (uint32_t)icon.Width, (uint32_t)icon.Height };
+        FTextureSpecification spec;
+        spec.Name   = icon.Name;
+        spec.Size   = { (uint32_t)icon.Width, (uint32_t)icon.Height };
         spec.Format = (icon.Format == 0) ? EPixelFormat::BGRA8_UNORM : EPixelFormat::RGBA8_UNORM;
-        spec.Usage = ETextureUsage::Texture;
+        spec.Usage  = ETextureUsage::Texture;
 
         FBuffer imageData(icon.Data, icon.Width * icon.Height * 4);
         auto texture = IRHIAPI::CreateTexture2D(m_GraphicContext, spec, imageData);
@@ -142,7 +142,7 @@ void CIconManager::ProcessRawIcons() {
             m_DeletionQueue.push_back({ m_FileIconCaches[icon.Index], currentFrame });
         }
 
-        m_FileIconCaches[icon.Index] = texture;
+        m_FileIconCaches[icon.Index]   = texture;
         m_FileIconIndices[icon.PathU8] = icon.Index;
 
         free(icon.Data);
@@ -177,7 +177,7 @@ void CIconManager::ClearCaches() {
 
     for (auto& [name, texture] : m_SVGIconCaches) {
         FPendingDeletion pending;
-        pending.Texture = texture;
+        pending.Texture    = texture;
         pending.FrameIndex = currentFrame;
         m_DeletionQueue.push_back(std::move(pending));
     }
@@ -186,7 +186,7 @@ void CIconManager::ClearCaches() {
     // [Note] Move all active textures to the deletion queue instead of destroying them immediately
     for (auto& [index, texture] : m_FileIconCaches) {
         FPendingDeletion pending;
-        pending.Texture = texture;
+        pending.Texture    = texture;
         pending.FrameIndex = currentFrame;
         m_DeletionQueue.push_back(std::move(pending));
     }
@@ -202,8 +202,8 @@ void CIconManager::ClearCaches() {
 void CIconManager::UpdateDeletionQueue() {
     // [Note] No lock needed if called within an already locked scope
     uint32 currentFrame = m_GraphicContext->GetCurrentFrameIndex();
-    uint32 maxFrames = m_GraphicContext->GetMaxFramesInFlight();
-    uint32 safeFrame = (currentFrame + maxFrames - 1) % maxFrames;
+    uint32 maxFrames    = m_GraphicContext->GetMaxFramesInFlight();
+    uint32 safeFrame    = (currentFrame + maxFrames - 1) % maxFrames;
 
     auto it = std::remove_if(m_DeletionQueue.begin(), m_DeletionQueue.end(),
                              [currentFrame, safeFrame](const FPendingDeletion& pending) {
@@ -215,7 +215,7 @@ void CIconManager::UpdateDeletionQueue() {
 
 void CIconManager::Shutdown() {
     m_DefaultFolderIcon = nullptr;
-    m_DefaultFileIcon = nullptr;
+    m_DefaultFileIcon   = nullptr;
     ClearCaches();
     m_DeletionQueue.clear();
 }

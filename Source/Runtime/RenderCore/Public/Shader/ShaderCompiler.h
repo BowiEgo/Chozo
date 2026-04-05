@@ -11,7 +11,7 @@ public:
     virtual ~CShaderCompiler() = default;
 
     void PreProcess(const FShaderCompilerInput& input, std::string& outProcessedSource);
-    FShaderReflection Reflect();
+    FShaderReflection Reflect(const std::vector<uint32_t>& spirvBinary);
     bool Compile(const FShaderSpecification& spec, FShaderCompilerOutput& output);
 
 private:

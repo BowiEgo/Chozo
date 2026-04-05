@@ -180,15 +180,18 @@ void CVulkanSwapchain::Init() {
 
     for (auto rawImage : images) {
         // Wrap each VkImage into RHI Texture object
-        FTexture2DSpecification texSpec;
+        FTextureSpecification texSpec;
         texSpec.Name   = "Swapchain_ColorAttachment_" + std::to_string(m_ColorAttachments.size());
         texSpec.Size   = FExtent2D(m_VKExtent.width, m_VKExtent.height);
         texSpec.Format = ChozoUtils::Vulkan::FromVKFormat(m_VKImageFormat);
         texSpec.Usage  = ETextureUsage::Attachment; // Swapchain images are used as render targets
 
-        TRef<CVulkanTexture2D> texture = CreateRef<CVulkanTexture2D>(
-            WeakRef<IRHIDevice>(device), texSpec, rawImage,
-            false); // Here m_IsOwned will be false because Swapchain owns the Image lifecycle
+        TRef<CVulkanImage> image = CreateRef<CVulkanImage>(
+            WeakRef<IRHIDevice>(device), texSpec.ToImageSpec(), rawImage,
+            true); // Here bIsExternal will be true because Swapchain owns the Image lifecycle
+
+        TRef<CVulkanTexture2D> texture =
+            CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), texSpec, image);
 
         m_ColorAttachments.push_back(texture);
 

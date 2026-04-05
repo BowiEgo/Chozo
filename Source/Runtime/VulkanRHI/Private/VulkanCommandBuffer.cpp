@@ -26,8 +26,8 @@ void CVulkanCommandBuffer::Init() {
     const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
 
     vk::CommandBufferAllocateInfo allocInfo;
-    allocInfo.commandPool = m_CommandPool->GetRAIICommandPool();
-    allocInfo.level = vk::CommandBufferLevel::ePrimary;
+    allocInfo.commandPool        = m_CommandPool->GetRAIICommandPool();
+    allocInfo.level              = vk::CommandBufferLevel::ePrimary;
     allocInfo.commandBufferCount = 1;
 
     vk::raii::CommandBuffers cmdBuffers(raiiDevice, allocInfo);
@@ -49,7 +49,7 @@ void CVulkanCommandBuffer::SetPolygonMode(EPolygonMode mode) {
     auto device = m_CommandPool->GetDevice().lock();
 
     vk::CommandBuffer vkBuffer = GetVKCommandBuffer();
-    vk::PolygonMode vkMode = ChozoUtils::Vulkan::GetVulkanPolygonMode(mode);
+    vk::PolygonMode vkMode     = ChozoUtils::Vulkan::GetVulkanPolygonMode(mode);
 
     device->GetDynamicState3Functions().vkCmdSetPolygonModeEXT(vkBuffer,
                                                                static_cast<VkPolygonMode>(vkMode));
@@ -70,7 +70,7 @@ void CVulkanCommandBuffer::PushConstants(const void* data, uint32_t size, uint32
 
 void CVulkanCommandBuffer::PushConstants(VkShaderStageFlags stageFlags, const void* data,
                                          uint32_t size, uint32_t offset) {
-    auto vkCommandBuffer = GetVKCommandBuffer();
+    auto vkCommandBuffer              = GetVKCommandBuffer();
     vk::PipelineLayout pipelineLayout = m_CurrentPipeline->GetPipelineLayout();
     if (!pipelineLayout) {
         CZ_LOG(LogVulkan, Error, "Invalid pipeline layout");
@@ -82,8 +82,8 @@ void CVulkanCommandBuffer::PushConstants(VkShaderStageFlags stageFlags, const vo
 }
 
 void CVulkanCommandBuffer::BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) {
-    auto device = m_CommandPool->GetDevice().lock();
-    auto vkCommandBuffer = GetVKCommandBuffer();
+    auto device                              = m_CommandPool->GetDevice().lock();
+    auto vkCommandBuffer                     = GetVKCommandBuffer();
     vk::PipelineLayout currentPipelineLayout = m_CurrentPipeline->GetPipelineLayout();
 
     auto vkBuffer = buffer.As<CVulkanBuffer>();
@@ -96,8 +96,10 @@ void CVulkanCommandBuffer::BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, i
         CZ_LOG(LogVulkan, Warning, "Binding non-uniform buffer as uniform buffer");
     }
 
-    vk::DescriptorSetLayout layout =
-        device->GetDescriptorSetLayout(EDescriptorLayoutType::UniformBuffer);
+    // vk::DescriptorSetLayout layout =
+    //     device->GetDescriptorSetLayout(EDescriptorLayoutType::UniformBuffer);
+    vk::DescriptorSetLayout layout = m_CurrentPipeline->GetSetLayout(0);
+
     vk::DescriptorSet descSet = GetOrCreateDescriptorSet(set, layout);
 
     vk::DescriptorBufferInfo bufferInfo;
@@ -131,7 +133,7 @@ void CVulkanCommandBuffer::BindVertexBuffer(TRef<IRHIBuffer> vertexBuffer, int b
                static_cast<uint32>(vkBuffer->GetUsage()));
     }
 
-    std::array<vk::Buffer, 1> buffers = { vkBuffer->GetVKBuffer() };
+    std::array<vk::Buffer, 1> buffers     = { vkBuffer->GetVKBuffer() };
     std::array<vk::DeviceSize, 1> offsets = { 0 };
 
     m_Handle.bindVertexBuffers(binding, buffers, offsets);
@@ -193,7 +195,7 @@ vk::DescriptorSet CVulkanCommandBuffer::GetOrCreateDescriptorSet(int set,
         .setDescriptorSetCount(1)
         .setPSetLayouts(&layout);
 
-    auto descSet = device->GetLogicalDevice().allocateDescriptorSets(allocInfo)[0];
+    auto descSet              = device->GetLogicalDevice().allocateDescriptorSets(allocInfo)[0];
     m_DescriptorSetCache[set] = descSet;
 
     return descSet;

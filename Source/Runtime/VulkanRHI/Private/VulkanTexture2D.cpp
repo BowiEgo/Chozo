@@ -1,52 +1,51 @@
 #include "VulkanTexture2D.h"
 
 #include "VulkanCommandBuffer.h"
+#include "VulkanImage.h"
 #include "VulkanUtils.h"
 
 DEFINE_LOG_CATEGORY(LogVulkanTexture2D);
 
 CVulkanTexture2D::CVulkanTexture2D(const WeakRef<IRHIDevice> device,
-                                   const FTexture2DSpecification& spec, bool bIsOwned)
-    : IRHITexture2D(device, spec), m_bIsOwned(bIsOwned) {
-    Init();
+                                   const FTextureSpecification& spec)
+    : IRHITexture2D(device, spec) {
+    // Init();
 }
 
 CVulkanTexture2D::CVulkanTexture2D(const WeakRef<IRHIDevice> device,
-                                   const FTexture2DSpecification& spec, vk::Image image,
-                                   bool bIsOwned)
-    : IRHITexture2D(device, spec), m_VKImage(image), m_bIsOwned(bIsOwned) {
-    Init();
+                                   const FTextureSpecification& spec, const TRef<IRHIImage> image)
+    : IRHITexture2D(device, spec, image) {
+    // Init();
 }
 
 CVulkanTexture2D::CVulkanTexture2D(const WeakRef<IRHIDevice> device,
-                                   const FTexture2DSpecification& spec, FBuffer& data,
-                                   bool bIsOwned)
-    : IRHITexture2D(device, spec), m_bIsOwned(bIsOwned) {
-    Init(data);
+                                   const FTextureSpecification& spec, FBuffer& data)
+    : IRHITexture2D(device, spec) {
+    // Init(data);
 }
 
 CVulkanTexture2D::~CVulkanTexture2D() {
-    auto device = m_Device.lock().As<CVulkanDevice>();
-    if (!device) return;
+    // auto device = m_Device.lock().As<CVulkanDevice>();
+    // if (!device) return;
 
-    vk::Device logicalDevice = device->GetLogicalDevice();
+    // vk::Device logicalDevice = device->GetLogicalDevice();
 
-    vk::ImageView view = m_VKImageView;
-    vk::Sampler sampler = m_VKSampler;
-    vk::Image image = m_VKImage;
-    vk::DeviceMemory memory = m_VKMemory;
-    bool bOwned = m_bIsOwned;
+    // vk::ImageView view      = m_VKImageView;
+    // vk::Sampler sampler     = m_VKSampler;
+    // vk::Image image         = m_VKImage;
+    // vk::DeviceMemory memory = m_VKMemory;
+    // bool bOwned             = m_bIsOwned;
 
-    device->EnqueueCleanup([=] {
-        if (view) logicalDevice.destroyImageView(view);
+    // device->EnqueueCleanup([=] {
+    //     if (view) logicalDevice.destroyImageView(view);
 
-        if (sampler) logicalDevice.destroySampler(sampler);
+    //     if (sampler) logicalDevice.destroySampler(sampler);
 
-        if (bOwned) {
-            if (image) logicalDevice.destroyImage(image);
-            if (memory) logicalDevice.freeMemory(memory);
-        }
-    });
+    //     if (bOwned) {
+    //         if (image) logicalDevice.destroyImage(image);
+    //         if (memory) logicalDevice.freeMemory(memory);
+    //     }
+    // });
 }
 
 void CVulkanTexture2D::SetData(const FBuffer& data) {
@@ -54,7 +53,7 @@ void CVulkanTexture2D::SetData(const FBuffer& data) {
     if (!device) return;
 
     vk::Device logicalDevice = device->GetLogicalDevice();
-    vk::DeviceSize size = data.Size;
+    vk::DeviceSize size      = data.Size;
 
     // Create staging buffer
     vk::Buffer stagingBuffer;
@@ -70,24 +69,24 @@ void CVulkanTexture2D::SetData(const FBuffer& data) {
     logicalDevice.unmapMemory(stagingMemory);
 
     TRef<CVulkanCommandBuffer> cmdBuffer = device->BeginSingleTimeCommands();
-    vk::CommandBuffer vkCmdBuffer = cmdBuffer->GetVKCommandBuffer();
+    vk::CommandBuffer vkCmdBuffer        = cmdBuffer->GetVKCommandBuffer();
 
     // Transition Undefined -> TransferDst
-    ChozoUtils::Vulkan::TransitionTextureLayout(vkCmdBuffer, m_VKImage, vk::ImageLayout::eUndefined,
-                                                vk::ImageLayout::eTransferDstOptimal);
+    ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, m_VKImage, vk::ImageLayout::eUndefined,
+                                              vk::ImageLayout::eTransferDstOptimal);
 
     // Copy Buffer to Image
     vk::BufferImageCopy region;
     region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
     region.imageSubresource.layerCount = 1;
-    region.imageExtent = vk::Extent3D(m_Spec.Size.Width, m_Spec.Size.Height, 1);
+    region.imageExtent                 = vk::Extent3D(m_Spec.Size.Width, m_Spec.Size.Height, 1);
     vkCmdBuffer.copyBufferToImage(stagingBuffer, m_VKImage, vk::ImageLayout::eTransferDstOptimal,
                                   region);
 
     // Transition TransferDst -> ShaderReadOnly
-    ChozoUtils::Vulkan::TransitionTextureLayout(vkCmdBuffer, m_VKImage,
-                                                vk::ImageLayout::eTransferDstOptimal,
-                                                vk::ImageLayout::eShaderReadOnlyOptimal);
+    ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, m_VKImage,
+                                              vk::ImageLayout::eTransferDstOptimal,
+                                              vk::ImageLayout::eShaderReadOnlyOptimal);
 
     device->EndSingleTimeCommands(cmdBuffer);
 
@@ -97,33 +96,33 @@ void CVulkanTexture2D::SetData(const FBuffer& data) {
 }
 
 void CVulkanTexture2D::Init() {
-    m_VKFormat = ChozoUtils::Vulkan::ToVKFormat(m_Spec.Format);
+    // m_VKFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format);
 
-    if (m_bIsOwned) {
-        CreateImageResources();
-    }
+    // if (m_bIsOwned) {
+    //     CreateImageResources();
+    // }
 
-    if (m_VKImage) {
-        CreateVKImageView();
-        CreateVKSampler();
-    } else {
-        CZ_LOG(LogVulkanTexture2D, Error, "Cannot create ImageView: m_VKImage is null!");
-    }
+    // if (m_VKImage) {
+    //     CreateVKImageView();
+    //     CreateVKSampler();
+    // } else {
+    //     CZ_LOG(LogVulkanTexture2D, Error, "Cannot create ImageView: m_VKImage is null!");
+    // }
 }
 
 void CVulkanTexture2D::Init(FBuffer& data) {
-    m_VKFormat = ChozoUtils::Vulkan::ToVKFormat(m_Spec.Format);
+    // m_VKFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format);
 
-    if (m_bIsOwned) CreateImageResources();
+    // if (m_bIsOwned) CreateImageResources();
 
-    if (data) SetData(data);
+    // if (data) SetData(data);
 
-    if (m_VKImage) {
-        CreateVKImageView();
-        CreateVKSampler();
-    } else {
-        CZ_LOG(LogVulkanTexture2D, Error, "Cannot create ImageView: m_VKImage is null!");
-    }
+    // if (m_VKImage) {
+    //     CreateVKImageView();
+    //     CreateVKSampler();
+    // } else {
+    //     CZ_LOG(LogVulkanTexture2D, Error, "Cannot create ImageView: m_VKImage is null!");
+    // }
 }
 
 void CVulkanTexture2D::CreateImageResources() {
@@ -134,9 +133,9 @@ void CVulkanTexture2D::CreateImageResources() {
         return;
     }
 
-    vk::Device logicalDevice = device->GetLogicalDevice();
+    vk::Device logicalDevice          = device->GetLogicalDevice();
     vk::PhysicalDevice physicalDevice = device->GetPhysicalDevice();
-    bool isDepth = ChozoUtils::Vulkan::IsDepthFormat(m_VKFormat);
+    bool isDepth                      = ChozoUtils::Vulkan::IsDepthFormat(m_VKFormat);
 
     vk::ImageCreateInfo imageInfo;
     imageInfo.setImageType(vk::ImageType::e2D)
@@ -180,7 +179,7 @@ void CVulkanTexture2D::CreateVKImageView() {
     }
 
     vk::Device logicalDevice = device->GetLogicalDevice();
-    bool isDepth = ChozoUtils::Vulkan::IsDepthFormat(m_VKFormat);
+    bool isDepth             = ChozoUtils::Vulkan::IsDepthFormat(m_VKFormat);
 
     vk::ImageViewCreateInfo viewInfo;
     viewInfo.setImage(m_VKImage)
@@ -221,98 +220,101 @@ void CVulkanTexture2D::CreateVKSampler() {
 
     // Use the raw logical device to create the sampler to avoid RAII lifetime issues.
     vk::Device logicalDevice = device->GetLogicalDevice();
-    m_VKSampler = logicalDevice.createSampler(samplerInfo);
+    m_VKSampler              = logicalDevice.createSampler(samplerInfo);
 
     CZ_CORE_ASSERT(m_VKSampler, "Failed to create texture sampler!");
 }
 
 vk::RenderingAttachmentInfo
     CVulkanTexture2D::GetColorAttachmentInfo(const vk::ClearValue clearColor, const bool bClear) {
+    vk::ImageView imageView = GetImage().As<CVulkanImage>()->GetVKView();
+
     return vk::RenderingAttachmentInfo()
-        .setImageView(m_VKImageView)
+        .setImageView(imageView)
         .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
         .setLoadOp(bClear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eLoad)
         .setStoreOp(vk::AttachmentStoreOp::eStore)
         .setClearValue(clearColor);
 }
 
-vk::DescriptorSet CVulkanTexture2D::GetVKDescriptorSet() {
-    // Return immediately if already allocated and updated.
-    if (m_VKDescriptorSet) return m_VKDescriptorSet;
+// vk::DescriptorSet CVulkanTexture2D::GetVKDescriptorSet() {
+//     // Return immediately if already allocated and updated.
+//     if (m_VKDescriptorSet) return m_VKDescriptorSet;
 
-    auto device = m_Device.lock().As<CVulkanDevice>();
-    if (!device) {
-        CZ_LOG(LogVulkanTexture2D, Error,
-               "Device is no longer valid during DescriptorSet retrieval!");
-        return nullptr;
-    }
+//     auto device = m_Device.lock().As<CVulkanDevice>();
+//     if (!device) {
+//         CZ_LOG(LogVulkanTexture2D, Error,
+//                "Device is no longer valid during DescriptorSet retrieval!");
+//         return nullptr;
+//     }
 
-    vk::Device logicalDevice = device->GetLogicalDevice();
+//     vk::Device logicalDevice = device->GetLogicalDevice();
 
-    // 1. Get the layout (e.g., from a global Layout cache in the Device).
-    vk::DescriptorSetLayout layout =
-        device->GetDescriptorSetLayout(EDescriptorLayoutType::CombinedImageSampler);
+//     // 1. Get the layout (e.g., from a global Layout cache in the Device).
+//     vk::DescriptorSetLayout layout =
+//         device->GetDescriptorSetLayout(EDescriptorLayoutType::CombinedImageSampler);
 
-    if (!layout) {
-        CZ_LOG(LogVulkanTexture2D, Error, "DescriptorSetLayout is null");
-        return nullptr;
-    }
+//     if (!layout) {
+//         CZ_LOG(LogVulkanTexture2D, Error, "DescriptorSetLayout is null");
+//         return nullptr;
+//     }
 
-    // 2. Perform the allocation we defined above.
-    m_VKDescriptorSet = AllocateDescriptorSet(layout);
-    if (!m_VKDescriptorSet) {
-        CZ_LOG(LogVulkanTexture2D, Error, "Failed to allocate DescriptorSet for: {}", m_Spec.Name);
-        return nullptr;
-    }
+//     // 2. Perform the allocation we defined above.
+//     m_VKDescriptorSet = AllocateDescriptorSet(layout);
+//     if (!m_VKDescriptorSet) {
+//         CZ_LOG(LogVulkanTexture2D, Error, "Failed to allocate DescriptorSet for: {}",
+//         m_Spec.Name); return nullptr;
+//     }
 
-    // 3. Update the descriptor set to point to this texture's ImageView.
-    vk::DescriptorImageInfo imageInfo;
-    imageInfo.setSampler(m_VKSampler)
-        .setImageView(m_VKImageView)
-        .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
+//     // 3. Update the descriptor set to point to this texture's ImageView.
+//     vk::DescriptorImageInfo imageInfo;
+//     imageInfo.setSampler(m_VKSampler)
+//         .setImageView(m_VKImageView)
+//         .setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
 
-    vk::WriteDescriptorSet descriptorWrite;
-    descriptorWrite.setDstSet(m_VKDescriptorSet)
-        .setDstBinding(0)
-        .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-        .setDescriptorCount(1)
-        .setPImageInfo(&imageInfo);
+//     vk::WriteDescriptorSet descriptorWrite;
+//     descriptorWrite.setDstSet(m_VKDescriptorSet)
+//         .setDstBinding(0)
+//         .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+//         .setDescriptorCount(1)
+//         .setPImageInfo(&imageInfo);
 
-    try {
-        logicalDevice.updateDescriptorSets(descriptorWrite, nullptr);
-    } catch (const std::exception& e) {
-        CZ_LOG(LogVulkanTexture2D, Error, "Failed to update DescriptorSet: {}", e.what());
-        return nullptr;
-    }
+//     try {
+//         logicalDevice.updateDescriptorSets(descriptorWrite, nullptr);
+//     } catch (const std::exception& e) {
+//         CZ_LOG(LogVulkanTexture2D, Error, "Failed to update DescriptorSet: {}", e.what());
+//         return nullptr;
+//     }
 
-    // CZ_LOG(LogVulkanTexture2D, Info, "Created and updated DescriptorSet for: {}, set handle: {}",
-    //        m_Spec.Name, (uint64_t)static_cast<VkDescriptorSet>(m_VKDescriptorSet));
+//     // CZ_LOG(LogVulkanTexture2D, Info, "Created and updated DescriptorSet for: {}, set handle:
+//     {}",
+//     //        m_Spec.Name, (uint64_t)static_cast<VkDescriptorSet>(m_VKDescriptorSet));
 
-    return m_VKDescriptorSet;
-}
+//     return m_VKDescriptorSet;
+// }
 
-vk::DescriptorSet CVulkanTexture2D::AllocateDescriptorSet(vk::DescriptorSetLayout layout) {
-    auto device = m_Device.lock().As<CVulkanDevice>();
-    if (!device) {
-        CZ_LOG(LogVulkanTexture2D, Error,
-               "Device is no longer valid during DescriptorSet creation!");
-        return nullptr;
-    }
+// vk::DescriptorSet CVulkanTexture2D::AllocateDescriptorSet(vk::DescriptorSetLayout layout) {
+//     auto device = m_Device.lock().As<CVulkanDevice>();
+//     if (!device) {
+//         CZ_LOG(LogVulkanTexture2D, Error,
+//                "Device is no longer valid during DescriptorSet creation!");
+//         return nullptr;
+//     }
 
-    vk::Device logicalDevice = device->GetLogicalDevice();
-    vk::DescriptorPool pool = device->GetGlobalDescriptorPool();
+//     vk::Device logicalDevice = device->GetLogicalDevice();
+//     vk::DescriptorPool pool  = device->GetGlobalDescriptorPool();
 
-    vk::DescriptorSetAllocateInfo allocInfo;
-    allocInfo.setDescriptorPool(pool).setDescriptorSetCount(1).setPSetLayouts(&layout);
+//     vk::DescriptorSetAllocateInfo allocInfo;
+//     allocInfo.setDescriptorPool(pool).setDescriptorSetCount(1).setPSetLayouts(&layout);
 
-    vk::DescriptorSet newSet;
+//     vk::DescriptorSet newSet;
 
-    vk::Result result = logicalDevice.allocateDescriptorSets(&allocInfo, &newSet);
-    if (result != vk::Result::eSuccess) {
-        CZ_LOG(LogVulkanTexture2D, Error, "Failed to allocate DescriptorSet: {}",
-               vk::to_string(result));
-        return nullptr;
-    }
+//     vk::Result result = logicalDevice.allocateDescriptorSets(&allocInfo, &newSet);
+//     if (result != vk::Result::eSuccess) {
+//         CZ_LOG(LogVulkanTexture2D, Error, "Failed to allocate DescriptorSet: {}",
+//                vk::to_string(result));
+//         return nullptr;
+//     }
 
-    return newSet;
-}
+//     return newSet;
+// }
