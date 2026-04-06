@@ -16,17 +16,17 @@ CViewport::CViewport(IRHIContext* ctx, const FViewportSpecification& spec)
 
 void CViewport::CreateFrameBuffer() {
     FFrameBufferSpecification fbSpec;
-    fbSpec.Name = m_Spec.Name + "_Framebuffer";
-    fbSpec.Size = { m_Spec.Width, m_Spec.Height };
+    fbSpec.Name         = m_Spec.Name + "_Framebuffer";
+    fbSpec.Size         = { m_Spec.Width, m_Spec.Height };
     fbSpec.ColorFormats = { EPixelFormat::RGBA8_UNORM };
-    fbSpec.DepthFormat = EPixelFormat::D32_SFLOAT;
+    fbSpec.DepthFormat  = EPixelFormat::D32_SFLOAT;
 
     m_FrameBuffer = IRHIAPI::CreateFrameBuffer(m_Context, fbSpec);
 }
 
 void CViewport::BeginRender(IRHICommandList* cmdList, TRef<IRHIPipeline> pipeline) {
     auto uniformBuffer = CCameraUniformManager::Get().GetBufferForCamera(m_Camera.get());
-    auto target = m_FrameBuffer->GetColorAttachment(0);
+    auto target        = m_FrameBuffer->GetColorAttachment(0);
     m_Context->SetTarget(target);
 
     IRHIAPI::BeginRendering(m_Context, cmdList, true);
@@ -49,7 +49,7 @@ void CViewport::Resize(uint32 width, uint32 height) {
     if (width == 0 || height == 0) return;
     if (m_Spec.Width == width && m_Spec.Height == height) return;
 
-    m_Spec.Width = width;
+    m_Spec.Width  = width;
     m_Spec.Height = height;
     m_Camera->SetViewportSize(width, height);
     CreateFrameBuffer();

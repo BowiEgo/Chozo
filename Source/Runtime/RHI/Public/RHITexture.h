@@ -94,6 +94,7 @@ public:
                 const TRef<IRHIImage> image);
     virtual ~IRHITexture();
 
+    const FTextureSpecification& GetSpec() const { return m_Spec; }
     std::string GetName() const { return m_Spec.Name; }
     FExtent2D GetSize() const { return m_Spec.Size; }
     EPixelFormat GetFormat() const { return m_Spec.Format; }

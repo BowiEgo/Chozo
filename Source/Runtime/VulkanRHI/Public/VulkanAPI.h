@@ -122,6 +122,10 @@ public:
                                          bool bClear) override;
     virtual void EndRendering_Internal(const IRHIContext* ctx,
                                        const TRef<IRHICommandList>& cmdBuffer) override;
+    virtual void TransitionImageLayout_Internal(const IRHIContext* ctx,
+                                                const TRef<IRHICommandList>& cmdBuffer,
+                                                const TRef<IRHIImage> image,
+                                                const EImageLayout newLayout) override;
     virtual void PrepareTextureForSampling_Internal(const IRHIContext* ctx,
                                                     const TRef<IRHICommandList>& cmdBuffer,
                                                     const TRef<IRHITexture2D>& texture) override;

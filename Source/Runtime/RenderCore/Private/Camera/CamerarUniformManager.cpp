@@ -20,10 +20,10 @@ void CCameraUniformManager::RegisterCamera(CCamera* camera) {
     }
 
     FBufferSpecification spec;
-    spec.Size = sizeof(CameraData);
-    spec.Usage = EBufferUsage::UniformBuffer;
+    spec.Size       = sizeof(CameraData);
+    spec.Usage      = EBufferUsage::UniformBuffer;
     spec.MemoryType = EMemoryType::HostVisible | EMemoryType::HostCoherent;
-    spec.Name = "CameraUniformBuffer";
+    spec.Name       = "CameraUniformBuffer";
 
     CameraEntry entry;
     entry.camera = camera;
@@ -50,7 +50,7 @@ void CCameraUniformManager::UpdateAllCameras() {
     std::lock_guard<std::mutex> lock(m_Mutex);
 
     for (auto& entry : m_Cameras) {
-        entry.cachedData.view = entry.camera->GetViewMatrix();
+        entry.cachedData.view       = entry.camera->GetViewMatrix();
         entry.cachedData.projection = entry.camera->GetProjectionMatrix();
 
         // CZ_LOG(LogCameraUniformManager, Trace, "View matrix: \n{}",

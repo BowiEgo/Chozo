@@ -6,9 +6,10 @@ CVulkanBuffer::CVulkanBuffer(const WeakRef<CVulkanDevice>& device, const FBuffer
     : IRHIBuffer(spec), m_Device(device) {
     CreateBuffer();
 
-    CZ_LOG(LogVulkanBuffer, Info, "Created Vulkan buffer: {} (size: {}, usage: {}, memory: {})",
+    CZ_LOG(LogVulkanBuffer, Info,
+           "Created Vulkan buffer: {} (size: {}, usage: {}, memory: {}, address: {})",
            spec.Name.empty() ? "Unnamed" : spec.Name, spec.Size, static_cast<uint32_t>(spec.Usage),
-           static_cast<uint32_t>(spec.MemoryType));
+           static_cast<uint32_t>(spec.MemoryType), (void*)m_Buffer);
 }
 
 CVulkanBuffer::CVulkanBuffer(const WeakRef<CVulkanDevice>& device, const FBufferSpecification& spec,
@@ -17,12 +18,14 @@ CVulkanBuffer::CVulkanBuffer(const WeakRef<CVulkanDevice>& device, const FBuffer
     CreateBuffer();
     SetData(data, 0);
 
-    CZ_LOG(LogVulkanBuffer, Info, "Created Vulkan buffer: {} (size: {}, usage: {}, memory: {})",
+    CZ_LOG(LogVulkanBuffer, Info,
+           "Created Vulkan buffer: {} (size: {}, usage: {}, memory: {}, address: {})",
            spec.Name.empty() ? "Unnamed" : spec.Name, spec.Size, static_cast<uint32_t>(spec.Usage),
-           static_cast<uint32_t>(spec.MemoryType));
+           static_cast<uint32_t>(spec.MemoryType), (void*)m_Buffer);
 }
 
 CVulkanBuffer::~CVulkanBuffer() {
+    CZ_LOG(LogVulkanBuffer, Trace, "Destroyed Buffer: {} {}", (void*)m_Buffer, m_Spec.Name);
     auto device = m_Device.lock();
     if (!device) return;
 
@@ -30,8 +33,8 @@ CVulkanBuffer::~CVulkanBuffer() {
         Unmap();
     }
 
-    vk::Device vkDevice = device->GetLogicalDevice();
-    vk::Buffer buffer = m_Buffer;
+    vk::Device vkDevice     = device->GetLogicalDevice();
+    vk::Buffer buffer       = m_Buffer;
     vk::DeviceMemory memory = m_Memory;
 
     // Defer destruction to next frame (if device supports it)
@@ -80,7 +83,7 @@ void CVulkanBuffer::CreateBuffer() {
 
     // Get alignment requirements
     vk::DeviceSize alignment = GetAlignment();
-    m_AlignedSize = m_Spec.Size;
+    m_AlignedSize            = m_Spec.Size;
 
     if (alignment > 0 && m_Spec.Size % alignment != 0) {
         m_AlignedSize = ((m_Spec.Size + alignment - 1) / alignment) * alignment;
@@ -139,7 +142,7 @@ void CVulkanBuffer::CreateBuffer() {
     // Persistent mapping if needed
     if (HasFlag(m_Spec.MemoryType, EMemoryType::HostVisible)) {
         m_IsPersistentMapping = true;
-        m_MappedData = Map(0, m_AlignedSize);
+        m_MappedData          = Map(0, m_AlignedSize);
     }
 
     // Set debug name
@@ -237,7 +240,7 @@ uint32_t CVulkanBuffer::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFl
     auto device = m_Device.lock();
     if (!device) return ~0u;
 
-    vk::PhysicalDevice physicalDevice = device->GetPhysicalDevice();
+    vk::PhysicalDevice physicalDevice                = device->GetPhysicalDevice();
     vk::PhysicalDeviceMemoryProperties memProperties = physicalDevice.getMemoryProperties();
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {

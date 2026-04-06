@@ -83,6 +83,11 @@ public:
         return s_Instance->EndRendering_Internal(ctx, cmdList);
     }
 
+    static void TransitionImageLayout(const IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
+                                      const TRef<IRHIImage> image, const EImageLayout newLayout) {
+        return s_Instance->TransitionImageLayout_Internal(ctx, cmdList, image, newLayout);
+    }
+
     static void PrepareTextureForSampling(const IRHIContext* ctx,
                                           const TRef<IRHICommandList>& cmdList,
                                           const TRef<IRHITexture2D>& texture) {
@@ -124,9 +129,15 @@ protected:
                                          const TRef<IRHICommandList>& cmdList, bool bClear) = 0;
     virtual void EndRendering_Internal(const IRHIContext* ctx,
                                        const TRef<IRHICommandList>& cmdList)                = 0;
+
+    virtual void TransitionImageLayout_Internal(const IRHIContext* ctx,
+                                                const TRef<IRHICommandList>& cmdList,
+                                                const TRef<IRHIImage> image,
+                                                const EImageLayout newLayout) = 0;
+
     virtual void PrepareTextureForSampling_Internal(const IRHIContext* ctx,
                                                     const TRef<IRHICommandList>& cmdList,
-                                                    const TRef<IRHITexture2D>& texture)     = 0;
+                                                    const TRef<IRHITexture2D>& texture) = 0;
 
 protected:
     static IRHIAPI* s_Instance;
