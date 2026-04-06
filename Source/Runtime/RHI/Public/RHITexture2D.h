@@ -13,8 +13,4 @@ class RHI_API IRHITexture2D : public IRHITexture {
 public:
     using IRHITexture::IRHITexture;
     virtual ~IRHITexture2D();
-
-    virtual void SetData(const FBuffer& data) = 0;
-    // virtual void* GetDescriptorSet()          = 0;
-    // virtual void* GetDescriptorSet() const    = 0;
 };

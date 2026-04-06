@@ -1,10 +1,11 @@
 #pragma once
 
+#include "RHIExport.h"
 #include "RHITexture.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogSamplerCache, Info);
 
-class CSamplerCache {
+class RHI_API CSamplerCache {
 public:
     CSamplerCache(WeakRef<IRHIDevice> device) : m_Device(device) {}
     ~CSamplerCache() = default;

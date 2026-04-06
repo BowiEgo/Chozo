@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RHIExport.h"
 #include "RHIImage.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogImagePool, Info);
@@ -9,7 +10,7 @@ struct FPooledImage {
     uint32_t LastUsedFrame = 0;
 };
 
-class CImagePool {
+class RHI_API CImagePool {
 public:
     CImagePool(const WeakRef<IRHIDevice> device) : m_Device(device) {};
     ~CImagePool();

@@ -15,7 +15,7 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogRHITexture, Info);
 
 inline uint32_t CalculateMipLevels(FExtent2D size) {
-    uint32_t side = std::max(size.Width, size.Height);
+    uint32_t side = (std::max)(size.Width, size.Height);
     if (side == 0) return 1;
 
     // Simple version using logarithm, but can be less efficient due to floating-point operations

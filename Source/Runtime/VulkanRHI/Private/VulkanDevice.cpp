@@ -22,14 +22,6 @@ CVulkanDevice::CVulkanDevice(const IRHIContext* ctx, const FDeviceSpecification&
 CVulkanDevice::~CVulkanDevice() {
     CZ_LOG(LogVulkanDevice, Trace, "Destroying Vulkan Device...");
 
-    for (auto& [type, layout] : m_LayoutCache) {
-        if (layout) {
-            vk::Device rawDevice = *m_LogicalDevice;
-            rawDevice.destroyDescriptorSetLayout(layout);
-        }
-    }
-    m_LayoutCache.clear();
-
     for (const auto& item : m_DeletionQueue) {
         if (item.CleanupFunc) {
             item.CleanupFunc();
@@ -71,20 +63,6 @@ TRef<IRHIDescriptorSet> CVulkanDevice::CreateDescriptorSet(const FTextureDescrip
                                                            uint32 bindingSlot) {
     return CreateRef<CVulkanDescriptorSet>(WeakRef<IRHIDevice>(this), info, setLayout, bindingSlot);
 }
-
-// void* CVulkanDevice::GetDescriptorSet(const FTextureDescriptorInfo& info,
-//                                       TRef<IRHISetLayout> setLayout, uint32 bindingSlot) {
-//     FDescriptorSetKey key{ (void*)info.Sampler.get(), (void*)info.Image.get(),
-//                            (void*)setLayout.get() };
-
-//     auto it = m_DescriptorSetCache.find(key);
-//     if (it != m_DescriptorSetCache.end()) {
-//         return (void*)(VkDescriptorSet)(*it->second);
-//     }
-
-//     m_DescriptorSetCache.emplace(key, CreateDescriptorSet(info, setLayout, bindingSlot));
-//     return (void*)(VkDescriptorSet)(*m_DescriptorSetCache[key]);
-// }
 
 void CVulkanDevice::PickPhysicalDevice(const vk::raii::Instance& instance) {
     std::vector<vk::raii::PhysicalDevice> devices = instance.enumeratePhysicalDevices();
@@ -384,59 +362,6 @@ void CVulkanDevice::EndSingleTimeCommands(TRef<CVulkanCommandBuffer> cmdBuffer) 
 
     rawDevice.destroyFence(fence);
     cmdBuffer = nullptr;
-}
-
-vk::DescriptorSetLayout CVulkanDevice::GetDescriptorSetLayout(EDescriptorLayoutType type) {
-    // Return cached layout if available.
-    if (m_LayoutCache.contains(type)) {
-        return m_LayoutCache[type];
-    }
-
-    vk::DescriptorSetLayoutCreateInfo layoutInfo;
-    std::vector<vk::DescriptorSetLayoutBinding> bindings;
-
-    switch (type) {
-        case EDescriptorLayoutType::CombinedImageSampler: {
-            // Standard binding for a texture and its sampler.
-            vk::DescriptorSetLayoutBinding binding;
-            binding.setBinding(0)
-                .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-                .setDescriptorCount(1)
-                .setStageFlags(vk::ShaderStageFlagBits::eFragment) // Typically for UI/Fragment
-                .setPImmutableSamplers(nullptr);
-            bindings.push_back(binding);
-            break;
-        }
-        case EDescriptorLayoutType::UniformBuffer: {
-            vk::DescriptorSetLayoutBinding binding;
-            binding.setBinding(0)
-                .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                .setDescriptorCount(1)
-                .setStageFlags(vk::ShaderStageFlagBits::eVertex |
-                               vk::ShaderStageFlagBits::eFragment);
-            bindings.push_back(binding);
-            break;
-        }
-        case EDescriptorLayoutType::StorageImage: {
-            // vk::DescriptorSetLayoutBinding binding;
-            // binding.setBinding(0)
-            //     .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-            //     .setDescriptorCount(1)
-            //     .setStageFlags(vk::ShaderStageFlagBits::eVertex |
-            //     vk::ShaderStageFlagBits::eFragment);
-            // bindings.push_back(binding);
-            break;
-        }
-    }
-
-    layoutInfo.setBindings(bindings);
-
-    // Create the layout and store it in the cache.
-    vk::Device rawDevice              = *m_LogicalDevice;
-    vk::DescriptorSetLayout newLayout = rawDevice.createDescriptorSetLayout(layoutInfo);
-    m_LayoutCache[type]               = newLayout;
-
-    return newLayout;
 }
 
 void CVulkanDevice::LoadDynamicState3Functions() {

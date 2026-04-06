@@ -26,7 +26,6 @@ void CVulkanPipeline::Init() {
 
     const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
 
-#if 1
     FRHIPipelineLayoutDescription pipelineLayoutDesc =
         ChozoUtils::RHI::GeneratePipelineLayoutDesc(m_Spec.RHIShaders);
 
@@ -39,38 +38,13 @@ void CVulkanPipeline::Init() {
         m_DescriptorSetLayouts.push_back(rhiLayout.As<CVulkanSetLayout>()->GetVKSetLayout());
     }
 
-#else
-    // ===== Get Descriptor Set Layouts =====
-    std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
-
-    // Get Uniform Buffer Layout (set 0)
-    vk::DescriptorSetLayout uniformLayout =
-        device->GetDescriptorSetLayout(EDescriptorLayoutType::UniformBuffer);
-    descriptorSetLayouts.push_back(uniformLayout);
-
-    // If have another set，keep on pushing
-    // descriptorSetLayouts.push_back(anotherLayout);
-#endif
-
     // ===== Push Constant Range =====
     std::vector<vk::PushConstantRange> pushConstantRanges;
-#if 1
     vk::PushConstantRange vertPushRange(vk::ShaderStageFlagBits::eVertex,    // stageFlags
                                         m_Spec.PushConstantRanges[0].Offset, // offset
                                         m_Spec.PushConstantRanges[0].Size    // size
     );
     pushConstantRanges.push_back(vertPushRange);
-
-#else
-    for (const auto& range : pipelineLayoutDesc.PushConstantRanges) {
-        vk::PushConstantRange vkRange;
-        vkRange.setStageFlags(ChozoUtils::Vulkan::StageToFlagBits(range.StageFlags))
-            .setOffset(range.Offset)
-            .setSize(range.Size);
-
-        pushConstantRanges.push_back(vkRange);
-    }
-#endif
 
     // ===== Shader Stages =====
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
@@ -85,18 +59,8 @@ void CVulkanPipeline::Init() {
                                  RHIShader->GetEntryPoint().c_str() });
     }
 
-// ===== Pipeline Layout =====
-#if 1
+    // ===== Pipeline Layout =====
     vk::PipelineLayoutCreateInfo pipelineLayoutInfo({}, m_DescriptorSetLayouts, pushConstantRanges);
-#else
-    vk::PipelineLayoutCreateInfo pipelineLayoutInfo(
-        {},                                                 // flags
-        static_cast<uint32_t>(descriptorSetLayouts.size()), // setLayoutCount
-        descriptorSetLayouts.data(),                        // pSetLayouts
-        static_cast<uint32_t>(pushConstantRanges.size()),   // pushConstantRangeCount
-        pushConstantRanges.data()                           // pPushConstantRanges
-    );
-#endif
     m_PipelineLayout = vk::raii::PipelineLayout(raiiDevice, pipelineLayoutInfo);
 
     // ===== Vertex Input =====
@@ -195,58 +159,4 @@ void CVulkanPipeline::Init() {
 
     CZ_LOG(LogVulkanPipeline, Info, "Vulkan Pipeline created with {} descriptor set layouts",
            m_DescriptorSetLayouts.size());
-}
-
-void CVulkanPipeline::GenerateSetLayouts(
-    std::map<uint32_t, std::vector<vk::DescriptorSetLayoutBinding>>& setLayoutBindings,
-    std::vector<vk::PushConstantRange>& pushConstantRanges,
-    std::vector<vk::PipelineShaderStageCreateInfo>& shaderStages) {
-
-    for (auto RHIShader : m_Spec.RHIShaders) {
-        TRef<CVulkanShader> vulkanShader = RHIShader.As<CVulkanShader>();
-        const auto& reflection           = RHIShader->GetReflection();
-        vk::ShaderStageFlags stage = ChozoUtils::Vulkan::StageToFlagBits(RHIShader->GetStage());
-        uint32_t totalSize         = 0;
-
-        // FRHIPipelineLayoutDescription desc =
-        //     GeneratePipelineLayoutDesc(reflection, RHIShader->GetStage());
-
-        for (const auto& uniform : reflection.Uniforms) {
-            if (uniform.Type == EUniformType::PushConstant) {
-                totalSize += uniform.Size;
-                continue;
-            }
-
-            auto& bindings = setLayoutBindings[uniform.Set];
-
-            // 检查该 Binding 是否已经存在（处理多个 Shader 阶段共享同一个 Binding 的情况）
-            auto it = std::find_if(bindings.begin(), bindings.end(),
-                                   [&](const vk::DescriptorSetLayoutBinding& b) {
-                                       return b.binding == uniform.Binding;
-                                   });
-
-            if (it != bindings.end()) {
-                it->stageFlags |= stage; // Combine Stage
-            } else {
-                vk::DescriptorSetLayoutBinding b;
-                b.setBinding(uniform.Binding)
-                    .setDescriptorType(ChozoUtils::Vulkan::ToVkDescType(uniform.Type))
-                    .setDescriptorCount(uniform.ArraySize)
-                    .setStageFlags(stage);
-                bindings.push_back(b);
-            }
-        }
-
-        if (totalSize > 0) {
-            pushConstantRanges.push_back(
-                { ChozoUtils::Vulkan::StageToFlagBits(RHIShader->GetStage()),
-                  0, // Offset 通常从 0 开始，或者根据你的 UniformSpec 计算
-                  totalSize });
-        }
-
-        shaderStages.push_back({ {},
-                                 ChozoUtils::Vulkan::StageToFlagBits(RHIShader->GetStage()),
-                                 vulkanShader->GetModule(),
-                                 RHIShader->GetEntryPoint().c_str() });
-    }
 }

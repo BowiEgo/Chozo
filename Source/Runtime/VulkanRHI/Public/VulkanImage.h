@@ -16,6 +16,7 @@ public:
     virtual ~CVulkanImage();
 
     virtual void Destroy() override;
+    virtual void SetData(FBuffer& data) override;
 
     const vk::Image GetVKImage() const { return m_VKImage; }
     const vk::Format GetVKFormat() const { return m_VKFormat; }

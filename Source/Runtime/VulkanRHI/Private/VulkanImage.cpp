@@ -1,5 +1,7 @@
 #include "VulkanImage.h"
 
+#include "VulkanCommandBuffer.h"
+#include "VulkanDevice.h"
 #include "VulkanUtils.h"
 
 DEFINE_LOG_CATEGORY(LogVulkanImage);
@@ -20,30 +22,7 @@ CVulkanImage::CVulkanImage(const WeakRef<IRHIDevice> device, const FImageSpecifi
     m_VKCurrentLayout = vk::ImageLayout::eUndefined;
 }
 
-CVulkanImage::~CVulkanImage() {
-    CZ_LOG(LogVulkanImage, Trace, "VulkanImage destroying...");
-
-    // auto device = m_Device.lock().As<CVulkanDevice>();
-    // if (!device) return;
-
-    // vk::Device logicalDevice = device->GetLogicalDevice();
-
-    // auto viewCacheCopy      = m_ViewCache;
-    // vk::Image image         = m_VKImage;
-    // vk::DeviceMemory memory = m_VKMemory;
-    // bool bIsExternal        = m_bIsExternal;
-
-    // device->EnqueueCleanup([=] {
-    //     if (!bIsExternal) {
-    //         for (auto& [spec, view] : viewCacheCopy) {
-    //             logicalDevice.destroyImageView(view);
-    //         }
-
-    //         if (image) logicalDevice.destroyImage(image);
-    //         if (memory) logicalDevice.freeMemory(memory);
-    //     }
-    // });
-}
+CVulkanImage::~CVulkanImage() { CZ_LOG(LogVulkanImage, Trace, "VulkanImage destroying..."); }
 
 void CVulkanImage::Init() {
     m_VKFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format);
@@ -67,6 +46,53 @@ void CVulkanImage::Destroy() {
         if (m_VKImage) logicalDevice.destroyImage(m_VKImage);
         if (m_VKMemory) logicalDevice.freeMemory(m_VKMemory);
     }
+}
+
+void CVulkanImage::SetData(FBuffer& data) {
+    auto device = m_Device.lock().As<CVulkanDevice>();
+    if (!device) return;
+
+    vk::Device logicalDevice = device->GetLogicalDevice();
+    vk::DeviceSize size      = data.Size;
+
+    // Create staging buffer
+    vk::Buffer stagingBuffer;
+    vk::DeviceMemory stagingMemory;
+    device->CreateBuffer(size, vk::BufferUsageFlagBits::eTransferSrc,
+                         vk::MemoryPropertyFlagBits::eHostVisible |
+                             vk::MemoryPropertyFlagBits::eHostCoherent,
+                         stagingBuffer, stagingMemory);
+
+    // Copy to Staging Buffer
+    void* mappedData = logicalDevice.mapMemory(stagingMemory, 0, size);
+    memcpy(mappedData, data.Data, size);
+    logicalDevice.unmapMemory(stagingMemory);
+
+    TRef<CVulkanCommandBuffer> cmdBuffer = device->BeginSingleTimeCommands();
+    vk::CommandBuffer vkCmdBuffer        = cmdBuffer->GetVKCommandBuffer();
+
+    // Transition Undefined -> TransferDst
+    ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, m_VKImage, vk::ImageLayout::eUndefined,
+                                              vk::ImageLayout::eTransferDstOptimal);
+
+    // Copy Buffer to Image
+    vk::BufferImageCopy region;
+    region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+    region.imageSubresource.layerCount = 1;
+    region.imageExtent                 = vk::Extent3D(m_Spec.Size.Width, m_Spec.Size.Height, 1);
+    vkCmdBuffer.copyBufferToImage(stagingBuffer, m_VKImage, vk::ImageLayout::eTransferDstOptimal,
+                                  region);
+
+    // Transition TransferDst -> ShaderReadOnly
+    ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, m_VKImage,
+                                              vk::ImageLayout::eTransferDstOptimal,
+                                              vk::ImageLayout::eShaderReadOnlyOptimal);
+
+    device->EndSingleTimeCommands(cmdBuffer);
+
+    // Cleanup Staging Resources
+    logicalDevice.destroyBuffer(stagingBuffer);
+    logicalDevice.freeMemory(stagingMemory);
 }
 
 void CVulkanImage::CreateImageResources() {

@@ -88,12 +88,6 @@ public:
         return s_Instance->TransitionImageLayout_Internal(ctx, cmdList, image, newLayout);
     }
 
-    static void PrepareTextureForSampling(const IRHIContext* ctx,
-                                          const TRef<IRHICommandList>& cmdList,
-                                          const TRef<IRHITexture2D>& texture) {
-        return s_Instance->PrepareTextureForSampling_Internal(ctx, cmdList, texture);
-    }
-
 protected:
     virtual TRef<IRHIDevice> CreateDevice_Internal(const IRHIContext* ctx,
                                                    const FDeviceSpecification& spec)          = 0;
@@ -134,10 +128,6 @@ protected:
                                                 const TRef<IRHICommandList>& cmdList,
                                                 const TRef<IRHIImage> image,
                                                 const EImageLayout newLayout) = 0;
-
-    virtual void PrepareTextureForSampling_Internal(const IRHIContext* ctx,
-                                                    const TRef<IRHICommandList>& cmdList,
-                                                    const TRef<IRHITexture2D>& texture) = 0;
 
 protected:
     static IRHIAPI* s_Instance;

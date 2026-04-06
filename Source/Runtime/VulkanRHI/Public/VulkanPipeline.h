@@ -28,11 +28,6 @@ private:
     const vk::PipelineLayout GetPipelineLayout() const { return *m_PipelineLayout; }
     const vk::raii::PipelineLayout& GetRAIIPipelineLayout() const { return m_PipelineLayout; }
 
-    void GenerateSetLayouts(
-        std::map<uint32_t, std::vector<vk::DescriptorSetLayoutBinding>>& setLayoutBindings,
-        std::vector<vk::PushConstantRange>& pushConstantRanges,
-        std::vector<vk::PipelineShaderStageCreateInfo>& shaderStages);
-
 private:
     WeakRef<CVulkanDevice> m_Device;
 

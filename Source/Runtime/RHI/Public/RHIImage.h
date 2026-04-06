@@ -84,7 +84,8 @@ public:
     IRHIImage(const WeakRef<IRHIDevice> device, const FImageSpecification& spec);
     virtual ~IRHIImage();
 
-    virtual void Destroy() = 0;
+    virtual void Destroy()              = 0;
+    virtual void SetData(FBuffer& data) = 0;
 
     virtual const FImageSpecification& GetSpec() const { return m_Spec; }
 

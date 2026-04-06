@@ -13,28 +13,10 @@ public:
     CVulkanTexture2D(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec,
                      const TRef<IRHIImage> image);
     CVulkanTexture2D(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec,
-                     FBuffer& data);
+                     FBuffer& data); // TODO: Remove
 
     virtual ~CVulkanTexture2D();
 
-    virtual void SetData(const FBuffer& data) override;
-
-    // virtual void* GetDescriptorSet() override { return (void*)GetVKDescriptorSet(); }
-    // virtual void* GetDescriptorSet() const override { return (void*)GetVKDescriptorSet(); }
-
-    // void SetCurrentLayout(vk::ImageLayout layout) { m_VKCurrentLayout = layout; }
-
-    // const vk::ImageLayout GetCurrentLayout() const { return m_VKCurrentLayout; }
-    // const vk::Image GetVKImage() const { return m_VKImage; }
-    // const vk::ImageView GetVKImageView() const { return m_VKImageView; }
-    // const vk::Sampler GetVKSampler() const { return m_VKSampler; }
-    // const vk::Format GetVKFormat() const { return m_VKFormat; }
-    // vk::DescriptorSet GetVKDescriptorSet();
-    // vk::DescriptorSet GetVKDescriptorSet() const {
-    //     return const_cast<CVulkanTexture2D*>(this)->GetVKDescriptorSet();
-    //     // FTextureDescriptorInfo info = m_Device->GetDescriptorInfo(m_Spec, m_ImageLayout);
-    //     // return m_Device->GetDescriptorSet(info);
-    // }
     vk::RenderingAttachmentInfo GetColorAttachmentInfo(const vk::ClearValue clearColor,
                                                        const bool bClear);
 

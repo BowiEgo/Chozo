@@ -126,9 +126,6 @@ public:
                                                 const TRef<IRHICommandList>& cmdBuffer,
                                                 const TRef<IRHIImage> image,
                                                 const EImageLayout newLayout) override;
-    virtual void PrepareTextureForSampling_Internal(const IRHIContext* ctx,
-                                                    const TRef<IRHICommandList>& cmdBuffer,
-                                                    const TRef<IRHITexture2D>& texture) override;
 
 private:
     CVulkan* m_Vulkan;

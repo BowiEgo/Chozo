@@ -96,11 +96,8 @@ void CVulkanCommandBuffer::BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, i
         CZ_LOG(LogVulkan, Warning, "Binding non-uniform buffer as uniform buffer");
     }
 
-    // vk::DescriptorSetLayout layout =
-    //     device->GetDescriptorSetLayout(EDescriptorLayoutType::UniformBuffer);
     vk::DescriptorSetLayout layout = m_CurrentPipeline->GetSetLayout(0);
-
-    vk::DescriptorSet descSet = GetOrCreateDescriptorSet(set, layout);
+    vk::DescriptorSet descSet      = GetOrCreateDescriptorSet(set, layout);
 
     vk::DescriptorBufferInfo bufferInfo;
     bufferInfo.setBuffer(vkBuffer->GetVKBuffer()).setOffset(0).setRange(vkBuffer->GetSize());

@@ -139,6 +139,7 @@ void CRenderer::Tick(float deltaTime) {
                           });
         }
 
+        // // draw UI on top of the scene
         TRef<IRHITexture2D> backbuffer =
             m_GraphicContext->GetSwapchain()->GetColorAttachment(imageIndex);
 

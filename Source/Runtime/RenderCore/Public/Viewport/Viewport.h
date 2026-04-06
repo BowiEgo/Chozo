@@ -20,8 +20,6 @@ public:
     CViewport(IRHIContext* ctx, const FViewportSpecification& spec);
     ~CViewport() = default;
 
-    void BeginRender(IRHICommandList* cmdList, TRef<IRHIPipeline> pipeline);
-    void EndRender(IRHICommandList* cmdList);
     void Resize(uint32_t width, uint32_t height);
 
     void SetScene(FScene* scene) { m_Scene = scene; }
@@ -30,9 +28,6 @@ public:
     TRef<CSceneCamera> GetCamera() { return m_Camera; }
     const TRef<CSceneCamera> GetCamera() const { return m_Camera; }
     TRef<IRHIFrameBuffer> GetFrameBuffer() const { return m_FrameBuffer; }
-    // void* GetTextureID(int index) const {
-    //     return m_FrameBuffer->GetColorAttachment(index)->GetDescriptorSet();
-    // }
 
     const std::string& GetName() const { return m_Spec.Name; }
     uint32_t GetWidth() const { return m_Spec.Width; }
@@ -49,6 +44,4 @@ private:
     FScene* m_Scene;
     TRef<CSceneCamera> m_Camera;
     TRef<IRHIFrameBuffer> m_FrameBuffer;
-
-    // FMatrix4 m_ViewportMatrix;
 };

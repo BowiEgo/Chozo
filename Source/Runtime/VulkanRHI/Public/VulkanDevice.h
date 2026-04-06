@@ -86,7 +86,6 @@ public:
     const vk::Queue GetGraphicsQueue() const { return *m_GraphicsQueue; }
     const uint32 GetGraphicsQueueIndex() const { return m_GraphicsQueueIndex; }
     const vk::DescriptorPool GetGlobalDescriptorPool() const { return *m_GlobalDescriptorPool; }
-    vk::DescriptorSetLayout GetDescriptorSetLayout(EDescriptorLayoutType layoutType);
     const DynamicState3Functions& GetDynamicState3Functions() const {
         return m_DynamicState3Functions;
     }
@@ -106,7 +105,6 @@ private:
     uint32 m_GraphicsQueueIndex;
 
     vk::raii::DescriptorPool m_GlobalDescriptorPool = nullptr;
-    std::unordered_map<EDescriptorLayoutType, vk::DescriptorSetLayout> m_LayoutCache;
 
     // Dedicated pool for one-time initialization/upload commands
     mutable TRef<CVulkanCommandPool> m_InternalTransientPool;

@@ -38,7 +38,8 @@ FRHIPipelineLayoutDescription
             auto binding  = ToRHIBinding(uniform, stage);
             auto& setDesc = pipelineDesc.SetLayouts[uniform.Set];
 
-            // 检查该 Binding 是否已经存在（处理多个 Shader 阶段共享同一个 Binding 的情况）
+            // Check if the binding already exists (handles the case where multiple shader stages
+            // share the same binding)
             auto it = std::find_if(setDesc.Bindings.begin(), setDesc.Bindings.end(),
                                    [&](const auto& b) { return b.Binding == binding.Binding; });
 
