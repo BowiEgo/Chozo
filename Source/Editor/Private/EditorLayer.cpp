@@ -202,10 +202,8 @@ void EditorLayer::OnImGuiRender() {
         ImGui::TextDisabled("Latency: %.3f ms", latency);
 
         for (uint32_t i = 1; i < (uint32_t)EProfileSlot::COUNT; ++i) {
-            const auto& data = profiler->GetSlot((EProfileSlot)i);
-            if (data.Samples > 0) {
-                ImGui::Text("%-20s: %.3f ms", GProfileSlotNames[i], data.Time);
-            }
+            const float time = profiler->GetSmoothedAverage((EProfileSlot)i);
+            ImGui::Text("%-20s: %.3f ms", GProfileSlotNames[i], time);
         }
 
         // Mouse Position

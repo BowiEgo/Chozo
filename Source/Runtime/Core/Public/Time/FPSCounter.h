@@ -10,12 +10,12 @@ public:
 
         // Update the average every 100ms for better readability
         if (m_AccumulatedTime >= 100.0f) {
-            float seconds = m_AccumulatedTime / 1000.0f;
-            m_CurrentFPS = static_cast<float>(m_FrameCount) / seconds;
+            float seconds    = m_AccumulatedTime / 1000.0f;
+            m_CurrentFPS     = static_cast<float>(m_FrameCount) / seconds;
             m_AverageLatency = m_AccumulatedTime / static_cast<float>(m_FrameCount);
 
             m_AccumulatedTime = 0.0f;
-            m_FrameCount = 0;
+            m_FrameCount      = 0;
         }
     }
 
@@ -24,7 +24,7 @@ public:
 
 private:
     float m_AccumulatedTime = 0.0f;
-    uint32_t m_FrameCount = 0;
-    float m_CurrentFPS = 0.0f;
-    float m_AverageLatency = 0.0f;
+    uint32_t m_FrameCount   = 0;
+    float m_CurrentFPS      = 0.0f;
+    float m_AverageLatency  = 0.0f;
 };

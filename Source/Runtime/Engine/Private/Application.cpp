@@ -54,7 +54,7 @@ void CApplication::Init(const std::string& name) {
         // Setup Window
         FWindowDefinition def;
         def.Title = name;
-        def.Size = { WINDOW_WIDTH, WINDOW_HEIGHT };
+        def.Size  = { WINDOW_WIDTH, WINDOW_HEIGHT };
 
         m_Window = CWindow::Create(def);
         CZ_CORE_ASSERT(m_Window, "App: Failed to create window!");
@@ -97,7 +97,7 @@ void CApplication::Run() {
     m_Profiler->Flip();
     CZ_SCOPE_PERF(EProfileSlot::TotalFrame);
 
-    float time = m_AppTimer.ElapsedMillis();
+    float time      = m_AppTimer.ElapsedMillis();
     float deltaTime = time - m_LastFrameTime;
     m_LastFrameTime = time;
 
@@ -110,19 +110,25 @@ void CApplication::Run() {
         for (ILayer* layer : m_LayerStack)
             layer->OnUpdate(deltaTime);
 
-        // TODO: execute this stuff on render thread.
-        m_ImGuiLayer->Begin();
-        m_ImGuiLayer->Render([this]() {
-            for (ILayer* layer : m_LayerStack)
-                layer->OnImGuiRender();
-        });
-        m_ImGuiLayer->End();
+        {
+            // TODO: execute this stuff on render thread.
+            CZ_SCOPE_PERF(EProfileSlot::ImGui);
+            m_ImGuiLayer->Begin();
+            m_ImGuiLayer->Render([this]() {
+                for (ILayer* layer : m_LayerStack)
+                    layer->OnImGuiRender();
+            });
+            m_ImGuiLayer->End();
+        }
 
-        m_RenderEngine->Tick(deltaTime);
+        {
+            CZ_SCOPE_PERF(EProfileSlot::Render);
+            m_RenderEngine->Tick(deltaTime);
+        }
     }
 
     float workElapsed = m_AppTimer.ElapsedMillis() - time;
-    float timeToWait = m_TargetFrameTime - workElapsed;
+    float timeToWait  = m_TargetFrameTime - workElapsed;
     if (timeToWait > 0) {
         // Log wait time separately to see CPU headroom in Profiler
         CZ_SCOPE_PERF(EProfileSlot::Wait);
