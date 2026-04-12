@@ -5,6 +5,7 @@
 CVulkanFrameBuffer::CVulkanFrameBuffer(const FFrameBufferSpecification& spec,
                                        const TRef<CVulkanDevice>& device)
     : IRHIFrameBuffer(spec), m_Device(device) {
+
     m_ColorAttachments.reserve(spec.ColorFormats.size());
     for (const auto& format : spec.ColorFormats) {
         FTextureSpecification texSpec;
@@ -13,8 +14,9 @@ CVulkanFrameBuffer::CVulkanFrameBuffer(const FFrameBufferSpecification& spec,
         texSpec.Format = format;
         texSpec.Usage  = ETextureUsage::Attachment;
 
+        auto image = m_Device.lock()->GetImageFromPool(texSpec.ToImageSpec());
         m_ColorAttachments.push_back(
-            CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), texSpec));
+            CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), texSpec, image));
     }
 
     if (spec.DepthFormat != EPixelFormat::Unknown) {
@@ -24,6 +26,8 @@ CVulkanFrameBuffer::CVulkanFrameBuffer(const FFrameBufferSpecification& spec,
         depthSpec.Format = spec.DepthFormat;
         depthSpec.Usage  = ETextureUsage::Attachment;
 
-        m_DepthAttachment = CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), depthSpec);
+        auto image = m_Device.lock()->GetImageFromPool(depthSpec.ToImageSpec());
+        m_DepthAttachment =
+            CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), depthSpec, image);
     }
 }

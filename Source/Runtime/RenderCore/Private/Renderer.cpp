@@ -104,10 +104,10 @@ void CRenderer::Tick(float deltaTime) {
         // lifetime managed by the render graph
         for (auto& viewport : m_Viewports) {
             TRef<IRHITexture2D> viewportCanvas = viewport->GetFrameBuffer()->GetColorAttachment(0);
-            FRDGTexture* viewportHandle =
-                graph.ImportExternal(viewportCanvas, "ViewportCanvas_" + viewport->GetName(),
-                                     EImageLayout::ColorAttachmentOptimal, // initial usage
-                                     EImageLayout::ShaderReadOnlyOptimal); // final usage (for UI)
+            FRDGTexture* viewportHandle        = graph.ImportExternalRDGTexture(
+                viewportCanvas, "ViewportCanvas_" + viewport->GetName(),
+                EImageLayout::ColorAttachmentOptimal, // initial usage
+                EImageLayout::ShaderReadOnlyOptimal); // final usage (for UI)
 
             // graph.AddPass("SkyboxPass", { SkyboxHandle }, { viewportHandle },
             // ERenderPassLoadOp::Clear,
@@ -143,7 +143,7 @@ void CRenderer::Tick(float deltaTime) {
         TRef<IRHITexture2D> backbuffer =
             m_GraphicContext->GetSwapchain()->GetColorAttachment(imageIndex);
 
-        FRDGTexture* BackbufferHandle = graph.ImportExternal(
+        FRDGTexture* BackbufferHandle = graph.ImportExternalRDGTexture(
             backbuffer, "Backbuffer", EImageLayout::ColorAttachmentOptimal, // initial usage
             EImageLayout::PresentSrc);
 

@@ -188,6 +188,8 @@ public:
 
     [[nodiscard]] T* GetRawUnsafe() const { return m_Instance; }
 
+    template <typename T2> T2* As() const { return static_cast<T2*>(m_Instance); }
+
 private:
     T* m_Instance = nullptr;
 };

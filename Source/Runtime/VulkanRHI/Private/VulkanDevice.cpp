@@ -19,16 +19,7 @@ CVulkanDevice::CVulkanDevice(const IRHIContext* ctx, const FDeviceSpecification&
     CreateLogicalDevice(surface);
 }
 
-CVulkanDevice::~CVulkanDevice() {
-    CZ_LOG(LogVulkanDevice, Trace, "Destroying Vulkan Device...");
-
-    for (const auto& item : m_DeletionQueue) {
-        if (item.CleanupFunc) {
-            item.CleanupFunc();
-        }
-    }
-    m_DeletionQueue.clear();
-}
+CVulkanDevice::~CVulkanDevice() { CZ_LOG(LogVulkanDevice, Trace, "Destroying Vulkan Device..."); }
 
 void CVulkanDevice::WaitIdle() { m_LogicalDevice.waitIdle(); }
 
@@ -50,12 +41,7 @@ TRef<IRHISetLayout> CVulkanDevice::CreateSetLayout(const FRHISetLayoutDescriptio
 }
 
 TRef<IRHITexture2D> CVulkanDevice::CreateTexture2D(const FTextureSpecification& spec) {
-    auto image   = m_ImagePool.RequestPersistentImage(spec.ToImageSpec());
-    auto sampler = m_SamplerCache.GetOrCreateSampler(spec.SamplerSpec);
-
-    auto tex = CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(this), spec);
-
-    return tex;
+    return CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(this), spec);
 }
 
 TRef<IRHIDescriptorSet> CVulkanDevice::CreateDescriptorSet(const FTextureDescriptorInfo& info,

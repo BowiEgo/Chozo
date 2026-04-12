@@ -80,6 +80,8 @@ template <> struct hash<FImageViewSpecification> {
 } // namespace std
 
 class RHI_API IRHIImage : public IRHIResource {
+    friend class CImagePool;
+
 public:
     IRHIImage(const WeakRef<IRHIDevice> device, const FImageSpecification& spec);
     virtual ~IRHIImage();
@@ -89,6 +91,9 @@ public:
 
     virtual const FImageSpecification& GetSpec() const { return m_Spec; }
 
+    const bool IsFromImagePool() const { return m_bFromImagePool; }
+
 protected:
     FImageSpecification m_Spec;
+    bool m_bFromImagePool = false;
 };

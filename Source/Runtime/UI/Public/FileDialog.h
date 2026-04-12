@@ -11,9 +11,9 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogFileDialog, Info);
 
-#define IFD_DIALOG_FILE 0
+#define IFD_DIALOG_FILE      0
 #define IFD_DIALOG_DIRECTORY 1
-#define IFD_DIALOG_SAVE 2
+#define IFD_DIALOG_SAVE      2
 
 class FileTreeNode {
 public:

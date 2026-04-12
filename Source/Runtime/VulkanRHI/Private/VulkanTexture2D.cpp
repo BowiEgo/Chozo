@@ -21,8 +21,12 @@ CVulkanTexture2D::CVulkanTexture2D(const WeakRef<IRHIDevice> device,
 }
 
 CVulkanTexture2D::~CVulkanTexture2D() {
+    // CZ_LOG(LogVulkanTexture2D, Trace, "VulkanTexture2D: {} destroying...", m_Spec.Name);
+
     auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return;
+
+    if (m_Image->IsFromImagePool()) return;
 
     auto image = m_Image;
     device->EnqueueCleanup([=] {

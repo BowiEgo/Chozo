@@ -74,14 +74,17 @@ public:
     ~CRenderGraph();
 
     // Declare Logical Textures (no physical allocation yet)
-    FRDGTexture* CreateTexture(const FTextureSpecification& spec, std::string name) {
-        auto tex = new FRDGTexture{ name, spec };
+    FRDGTexture* CreateRDGTexture(const FTextureSpecification& spec, std::string name) {
+        auto tex = new FRDGTexture{ name, spec, nullptr,
+                                    CreateRef<IRHITexture>(
+                                        WeakRef<IRHIDevice>(m_Context->GetDevice()), spec) };
         m_Textures.push_back(tex);
         return tex;
     }
 
-    FRDGTexture* ImportExternal(const TRef<IRHITexture> texture, const std::string name,
-                                const EImageLayout initialLayout, const EImageLayout finalLayout) {
+    FRDGTexture* ImportExternalRDGTexture(const TRef<IRHITexture> texture, const std::string name,
+                                          const EImageLayout initialLayout,
+                                          const EImageLayout finalLayout) {
         for (auto* existingTex : m_Textures) {
             if (existingTex->bExternal && existingTex->Texture == texture) {
                 existingTex->FinalLayout = finalLayout;
@@ -118,7 +121,7 @@ public:
             // The pool will check if there's a matching
             // and expired Image available for reuse (Aliasing)
             FImageSpecification physSpec = tex->Spec.ToImageSpec();
-            tex->Image                   = m_Context->GetDevice()->GetImage(physSpec);
+            tex->Image                   = m_Context->GetDevice()->GetImageFromPool(physSpec);
         }
     }
 

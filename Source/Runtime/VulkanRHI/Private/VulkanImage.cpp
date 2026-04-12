@@ -22,7 +22,7 @@ CVulkanImage::CVulkanImage(const WeakRef<IRHIDevice> device, const FImageSpecifi
     m_VKCurrentLayout = vk::ImageLayout::eUndefined;
 }
 
-CVulkanImage::~CVulkanImage() { CZ_LOG(LogVulkanImage, Trace, "VulkanImage destroying..."); }
+CVulkanImage::~CVulkanImage() {}
 
 void CVulkanImage::Init() {
     m_VKFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format);
@@ -33,7 +33,9 @@ void CVulkanImage::Init() {
 }
 
 void CVulkanImage::Destroy() {
-    auto device = m_Device.lock().As<CVulkanDevice>();
+    // CZ_LOG(LogVulkanImage, Trace, "VulkanImage: destroying...");
+
+    auto device = m_Device.As<CVulkanDevice>();
     if (!device) return;
 
     vk::Device logicalDevice = device->GetLogicalDevice();
@@ -122,18 +124,20 @@ void CVulkanImage::CreateImageResources() {
 
     // Set correct usage bits based on the specified usage flags. This ensures the image is created
     // with the appropriate capabilities.
-    if ((m_Spec.Usage & EImageUsage::Sampled) == EImageUsage::Sampled) {
+    if (HasFlag(m_Spec.Usage, EImageUsage::Sampled))
         imageInfo.usage |= vk::ImageUsageFlagBits::eSampled;
-    }
-    if ((m_Spec.Usage & EImageUsage::ColorAttachment) == EImageUsage::ColorAttachment) {
+    if (HasFlag(m_Spec.Usage, EImageUsage::ColorAttachment))
         imageInfo.usage |= vk::ImageUsageFlagBits::eColorAttachment;
-    }
-    if ((m_Spec.Usage & EImageUsage::DepthStencil) == EImageUsage::DepthStencil) {
+    if (HasFlag(m_Spec.Usage, EImageUsage::DepthStencil))
         imageInfo.usage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
-    }
-    if ((m_Spec.Usage & EImageUsage::Storage) == EImageUsage::Storage) {
+    if (HasFlag(m_Spec.Usage, EImageUsage::Storage))
         imageInfo.usage |= vk::ImageUsageFlagBits::eStorage;
-    }
+    if (HasFlag(m_Spec.Usage, EImageUsage::TransferSrc))
+        imageInfo.usage |= vk::ImageUsageFlagBits::eTransferSrc;
+    if (HasFlag(m_Spec.Usage, EImageUsage::TransferDst))
+        imageInfo.usage |= vk::ImageUsageFlagBits::eTransferDst;
+    if (HasFlag(m_Spec.Usage, EImageUsage::TransientAttachment))
+        imageInfo.usage |= vk::ImageUsageFlagBits::eTransientAttachment;
 
     imageInfo.setSharingMode(vk::SharingMode::eExclusive);
 

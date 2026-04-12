@@ -93,10 +93,6 @@ void EditorLayer::OnAttach() {
 }
 
 void EditorLayer::OnDetach() {
-    auto context = m_ViewportRenderer->GetGraphicContext();
-    UFileDialog::Get(context).Shutdown();
-    CIconManager::Get(context).Shutdown();
-
     // m_NodeTree->UnregisterEventCallback(handle);
 }
 
@@ -271,8 +267,8 @@ bool EditorLayer::OnKeyPressed(FKeyPressedEvent& e) {
         // case Key::W: m_GizmoType = ImGuizmo::OPERATION::TRANSLATE; break;
         // case Key::E: m_GizmoType = ImGuizmo::OPERATION::ROTATE; break;
         // case Key::R: m_GizmoType = ImGuizmo::OPERATION::SCALE; break;
-        case Key::F9: {
-            CZ_LOG(LogEditorLayer, Trace, "F9 Pressed");
+        case Key::F: {
+            CZ_LOG(LogEditorLayer, Trace, "F Pressed");
             if (m_PolygonMode == EPolygonMode::Fill) {
                 m_ViewportRenderer->SetPolygonMode(EPolygonMode::Line);
                 m_PolygonMode = EPolygonMode::Line;

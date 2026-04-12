@@ -1039,7 +1039,6 @@ void UFileDialog::RenderTree(FileTreeNode* node) {
 }
 
 void UFileDialog::RenderContent() {
-    CIconManager::Get(m_GraphicContext).ProcessRawIcons();
     ProcessPendingThumbs();
 
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) m_SelectedFileItem = -1;

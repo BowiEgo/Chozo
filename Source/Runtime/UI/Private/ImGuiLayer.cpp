@@ -1,6 +1,8 @@
 #include "ImGuiLayer.h"
 
 #include "ApplicationEvent.h"
+#include "FileDialog.h"
+#include "IconManager.h"
 #include "ModuleUtils.h"
 #include "VFS.h"
 
@@ -18,7 +20,7 @@ DEFINE_LOG_CATEGORY(LogImGuiLayer);
 // }
 
 CImGuiLayer::CImGuiLayer(CWindow* window, IRHIContext* rhiContext)
-    : ILayer("ImGuiLayer"), m_Window(window) {
+    : ILayer("ImGuiLayer"), m_Window(window), m_Context(rhiContext) {
     m_ImGuiRenderer = CreateRenderer(window, rhiContext);
 }
 
@@ -50,7 +52,7 @@ void CImGuiLayer::OnAttach() {
 
 #ifdef CZ_PLATFORM_WINDOWS
     ImFontConfig config;
-    config.MergeMode = true;
+    config.MergeMode  = true;
     config.PixelSnapH = true;
 
     const char* chineseFontPath = "C:\\Windows\\Fonts\\msyh.ttc";
@@ -65,8 +67,8 @@ void CImGuiLayer::OnAttach() {
     // identical to regular ones.
     ImGuiStyle& style = ImGui::GetStyle();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        style.WindowRounding = 0.0f;
-        style.FrameRounding = 2.0f;
+        style.WindowRounding              = 0.0f;
+        style.FrameRounding               = 2.0f;
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
@@ -76,11 +78,15 @@ void CImGuiLayer::OnAttach() {
     m_ImGuiRenderer->Init(ImGui::GetCurrentContext());
 }
 
-void CImGuiLayer::OnDetach() { m_ImGuiRenderer->Shutdown(); }
+void CImGuiLayer::OnDetach() {
+    m_ImGuiRenderer->Shutdown();
+    CIconManager::Get(m_Context).Shutdown();
+    UFileDialog::Get(m_Context).Shutdown();
+}
 
 void CImGuiLayer::OnEvent(IEvent& e) {
     if (m_BlockEvents) {
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO& io  = ImGui::GetIO();
         bool handled = false;
         handled |= e.isInCategory(EventCategory_Mouse) & io.WantCaptureMouse;
         handled |= e.isInCategory(EventCategory_Keyboard) & io.WantCaptureKeyboard;
@@ -93,8 +99,8 @@ void CImGuiLayer::Draw(const TRef<IRHICommandList>& cmdBuffer) {
 }
 
 void CImGuiLayer::Begin() {
-    ImGuiIO& io = ImGui::GetIO();
-    auto logicalSize = m_Window->GetSize();
+    ImGuiIO& io           = ImGui::GetIO();
+    auto logicalSize      = m_Window->GetSize();
     auto framebufferScale = m_Window->GetFrameBufferScale();
 
     io.DisplaySize = ImVec2((float)logicalSize.Width, (float)logicalSize.Height);
@@ -103,6 +109,7 @@ void CImGuiLayer::Begin() {
     }
 
     m_ImGuiRenderer->NewFrame();
+    CIconManager::Get(m_Context).ProcessRawIcons();
 }
 
 void CImGuiLayer::Render(const std::function<void()>& renderCb) {
@@ -111,7 +118,7 @@ void CImGuiLayer::Render(const std::function<void()>& renderCb) {
     // Set up a full-screen dockspace container for editor panels.
     // ----------------------------------------------------------------------------
     ImGuiWindowFlags dock_space_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGuiViewport* viewport           = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
     ImGui::SetNextWindowSize(viewport->WorkSize);
     ImGui::SetNextWindowViewport(viewport->ID);
@@ -126,9 +133,9 @@ void CImGuiLayer::Render(const std::function<void()>& renderCb) {
     ImGui::PopStyleVar();
 
     // Initialize Docking node if enabled in Config
-    ImGuiIO& io = ImGui::GetIO();
-    ImGuiStyle& style = ImGui::GetStyle();
-    float minWinSizeX = style.WindowMinSize.x;
+    ImGuiIO& io           = ImGui::GetIO();
+    ImGuiStyle& style     = ImGui::GetStyle();
+    float minWinSizeX     = style.WindowMinSize.x;
     style.WindowMinSize.x = 300.0f;
     if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
         ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
@@ -159,45 +166,45 @@ void CImGuiLayer::SetFont(std::string font) {
         return;
     }
 
-    ImGuiIO& io = ImGui::GetIO();
-    float fontSize = 18.0f;
+    ImGuiIO& io      = ImGui::GetIO();
+    float fontSize   = 18.0f;
     float pixleRatio = m_Window->GetPixelRatio();
-    float scale = m_Window->GetFrameBufferScale().Width;
+    float scale      = m_Window->GetFrameBufferScale().Width;
 
     io.Fonts->Clear();
     io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * scale);
-    io.FontDefault = io.Fonts->Fonts.back();
+    io.FontDefault     = io.Fonts->Fonts.back();
     io.FontGlobalScale = 1.0f / pixleRatio;
 }
 
 void CImGuiLayer::SetDarkThemeColors() {
-    auto& colors = ImGui::GetStyle().Colors;
+    auto& colors              = ImGui::GetStyle().Colors;
     colors[ImGuiCol_WindowBg] = ImVec4{ 0.15f, 0.155f, 0.16f, 1.0f };
 
     // Headers
-    colors[ImGuiCol_Header] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
+    colors[ImGuiCol_Header]        = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
     colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.4f, 0.405f, 0.41f, 1.0f };
-    colors[ImGuiCol_HeaderActive] = ImVec4{ 0.35f, 0.35f, 0.35f, 1.0f };
+    colors[ImGuiCol_HeaderActive]  = ImVec4{ 0.35f, 0.35f, 0.35f, 1.0f };
 
     // Buttons
-    colors[ImGuiCol_Button] = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
+    colors[ImGuiCol_Button]        = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
     colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
-    colors[ImGuiCol_ButtonActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+    colors[ImGuiCol_ButtonActive]  = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
 
     // Frame BG
-    colors[ImGuiCol_FrameBg] = ImVec4{ 0.28f, 0.285f, 0.29f, 1.0f };
+    colors[ImGuiCol_FrameBg]        = ImVec4{ 0.28f, 0.285f, 0.29f, 1.0f };
     colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
-    colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.10f, 0.105f, 0.11f, 1.0f };
+    colors[ImGuiCol_FrameBgActive]  = ImVec4{ 0.10f, 0.105f, 0.11f, 1.0f };
 
     // Tabs
-    colors[ImGuiCol_Tab] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-    colors[ImGuiCol_TabHovered] = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
-    colors[ImGuiCol_TabActive] = ImVec4{ 0.28f, 0.285f, 0.29f, 1.0f };
-    colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+    colors[ImGuiCol_Tab]                = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+    colors[ImGuiCol_TabHovered]         = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
+    colors[ImGuiCol_TabActive]          = ImVec4{ 0.28f, 0.285f, 0.29f, 1.0f };
+    colors[ImGuiCol_TabUnfocused]       = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
     colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
 
     // Titles
-    colors[ImGuiCol_TitleBg] = ImVec4{ 0.15f, 0.155f, 0.16f, 1.0f };
-    colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+    colors[ImGuiCol_TitleBg]          = ImVec4{ 0.15f, 0.155f, 0.16f, 1.0f };
+    colors[ImGuiCol_TitleBgActive]    = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
     colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.95f, 0.155f, 0.91f, 1.0f };
 }

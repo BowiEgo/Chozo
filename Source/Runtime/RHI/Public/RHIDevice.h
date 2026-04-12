@@ -61,8 +61,8 @@ public:
                                                         uint32 bindingSlot)           = 0;
 
     void ReleaseImage(TRef<IRHIImage> image) { return m_ImagePool.ReleaseImage(image); }
-    TRef<IRHIImage> GetImage(const FImageSpecification& spec) {
-        return m_ImagePool.RequestPersistentImage(spec);
+    TRef<IRHIImage> GetImageFromPool(const FImageSpecification& spec) {
+        return m_ImagePool.RequestImage(spec);
     }
     TRef<IRHISampler> GetSampler(const FSamplerSpecification& spec) {
         return m_SamplerCache.GetOrCreateSampler(spec);
@@ -90,6 +90,13 @@ public:
         m_SetLayoutCache.Clear();
         m_ImagePool.Clear();
         m_DescriptorSetCache.Clear();
+
+        for (const auto& item : m_DeletionQueue) {
+            if (item.CleanupFunc) {
+                item.CleanupFunc();
+            }
+        }
+        m_DeletionQueue.clear();
     }
 
 protected:

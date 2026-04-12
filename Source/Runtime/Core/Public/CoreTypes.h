@@ -72,18 +72,18 @@ static constexpr bool GIsDebug = false;
 //============================ Global Scope ==============================//
 ////////////////////////////////////////////////////////////////////////////
 template <typename T, typename... Args> using TCallback = std::function<T(Args&&... args)>;
-using CallbackHandle = uint32_t;
+using CallbackHandle                                    = uint32_t;
 
 ////////////////////////////////////////////////////////////////////////////
 //========================== Basic Type Aliases ==========================//
 ////////////////////////////////////////////////////////////////////////////
 // Stick to explicit sizes for global basic types to avoid ambiguity
-using uint8 = std::uint8_t;
+using uint8  = std::uint8_t;
 using uint16 = std::uint16_t;
 using uint32 = std::uint32_t;
 using uint64 = std::uint64_t;
 
-using int8 = std::int8_t;
+using int8  = std::int8_t;
 using int16 = std::int16_t;
 using int32 = std::int32_t;
 using int64 = std::int64_t;
@@ -129,7 +129,7 @@ using FUint = uint32;
  * Checks if any of the specified flags are set in the given bitmask.
  * Works with any enum class that has an underlying uint32_t type.
  */
-template <typename TEnum> [[nodiscard]] inline bool EnumHasAnyFlags(TEnum flags, TEnum contains) {
+template <typename TEnum> [[nodiscard]] inline bool HasFlag(TEnum flags, TEnum contains) {
     // static_cast to the underlying type (usually uint32_t) for bitwise comparison
     using UnderlyingType = typename std::underlying_type<TEnum>::type;
     return (static_cast<UnderlyingType>(flags) & static_cast<UnderlyingType>(contains)) != 0;
@@ -138,7 +138,7 @@ template <typename TEnum> [[nodiscard]] inline bool EnumHasAnyFlags(TEnum flags,
 /**
  * Checks if all of the specified flags are set in the given bitmask.
  */
-template <typename TEnum> [[nodiscard]] inline bool EnumHasAllFlags(TEnum flags, TEnum contains) {
+template <typename TEnum> [[nodiscard]] inline bool HasAllFlags(TEnum flags, TEnum contains) {
     using UnderlyingType = typename std::underlying_type<TEnum>::type;
     return (static_cast<UnderlyingType>(flags) & static_cast<UnderlyingType>(contains)) ==
            static_cast<UnderlyingType>(contains);

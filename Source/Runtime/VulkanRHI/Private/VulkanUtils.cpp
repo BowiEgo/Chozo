@@ -160,20 +160,14 @@ vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR& capabilities, in
 vk::CommandPoolCreateFlags MapCommandPoolFlags(ECommandPoolFlags rhiFlags) {
     vk::CommandPoolCreateFlags vkFlags;
 
-    // Mapping: Transient -> VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
-    if (EnumHasAnyFlags(rhiFlags, ECommandPoolFlags::Transient)) {
+    if (HasFlag(rhiFlags, ECommandPoolFlags::Transient))
         vkFlags |= vk::CommandPoolCreateFlagBits::eTransient;
-    }
 
-    // Mapping: ResetCommandBuffer -> VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
-    if (EnumHasAnyFlags(rhiFlags, ECommandPoolFlags::ResetCommandBuffer)) {
+    if (HasFlag(rhiFlags, ECommandPoolFlags::ResetCommandBuffer))
         vkFlags |= vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
-    }
 
-    // Mapping: Protected -> VK_COMMAND_POOL_CREATE_PROTECTED_BIT
-    if (EnumHasAnyFlags(rhiFlags, ECommandPoolFlags::Protected)) {
+    if (HasFlag(rhiFlags, ECommandPoolFlags::Protected))
         vkFlags |= vk::CommandPoolCreateFlagBits::eProtected;
-    }
 
     return vkFlags;
 }

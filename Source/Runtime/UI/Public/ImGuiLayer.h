@@ -36,6 +36,7 @@ private:
     CModule m_RHIModule;
 
     CWindow* m_Window;
+    IRHIContext* m_Context;
 
     bool m_BlockEvents = false;
     TScope<IImGuiRenderer> m_ImGuiRenderer;

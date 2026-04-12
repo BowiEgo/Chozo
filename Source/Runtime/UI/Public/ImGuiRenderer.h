@@ -15,12 +15,12 @@ public:
     IImGuiRenderer(CWindow* window, IRHIContext* rhiContext);
     virtual ~IImGuiRenderer();
 
-    virtual void Init(ImGuiContext* ctx) = 0;
-    virtual void Shutdown() = 0;
-    virtual void NewFrame() = 0;
+    virtual void Init(ImGuiContext* ctx)                                          = 0;
+    virtual void Shutdown()                                                       = 0;
+    virtual void NewFrame()                                                       = 0;
     virtual void Draw(ImDrawData* drawData, const TRef<IRHICommandList>& cmdList) = 0;
 
 protected:
     CWindow* m_Window;
-    IRHIContext* m_RHIContext;
+    IRHIContext* m_Context;
 };

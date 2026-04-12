@@ -589,19 +589,7 @@ enum class EBufferUsage : uint32 {
         1 << 9, // VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR
     ShaderDeviceAddress = 1 << 10, // VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT
 };
-
-inline EBufferUsage operator|(EBufferUsage a, EBufferUsage b) {
-    return static_cast<EBufferUsage>(static_cast<uint32>(a) | static_cast<uint32>(b));
-}
-
-inline EBufferUsage operator&(EBufferUsage a, EBufferUsage b) {
-    return static_cast<EBufferUsage>(static_cast<uint32>(a) & static_cast<uint32>(b));
-}
-
-inline EBufferUsage& operator|=(EBufferUsage& a, EBufferUsage b) {
-    a = a | b;
-    return a;
-}
+ENUM_CLASS_FLAGS(EBufferUsage);
 
 // ===== Memory Type Flags =====
 enum class EMemoryType : uint32 {
@@ -614,19 +602,4 @@ enum class EMemoryType : uint32 {
     Protected       = 1 << 5, // VK_MEMORY_PROPERTY_PROTECTED_BIT
     DeviceAddress   = 1 << 6, // VK_MEMORY_PROPERTY_DEVICE_ADDRESS_BIT
 };
-
-inline EMemoryType operator|(EMemoryType a, EMemoryType b) {
-    return static_cast<EMemoryType>(static_cast<uint32>(a) | static_cast<uint32>(b));
-}
-
-inline EMemoryType operator&(EMemoryType a, EMemoryType b) {
-    return static_cast<EMemoryType>(static_cast<uint32>(a) & static_cast<uint32>(b));
-}
-
-inline bool HasFlag(EMemoryType value, EMemoryType flag) {
-    return (static_cast<uint32>(value) & static_cast<uint32>(flag)) != 0;
-}
-
-inline bool HasFlag(EBufferUsage value, EBufferUsage flag) {
-    return (static_cast<uint32>(value) & static_cast<uint32>(flag)) != 0;
-}
+ENUM_CLASS_FLAGS(EMemoryType);

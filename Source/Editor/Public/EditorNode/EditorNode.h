@@ -11,51 +11,6 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogEditorNode, Info);
 
-// enum class ENodeType : uint32_t {
-//     None = 0,
-//     Root = 1 << 0,     // 1
-//     Sphere = 1 << 1,   // 2
-//     Cube = 1 << 2,     // 4
-//     Cylinder = 1 << 3, // 8
-//     Plane = 1 << 4,    // 16
-//     Empty = 1 << 5,    // 32
-
-//     // Convenience combinations
-//     MeshTypes = Sphere | Cube | Cylinder | Plane,
-//     All = Root | MeshTypes | Empty
-// };
-
-// // Bitwise operators for ENodeType
-// inline ENodeType operator|(ENodeType a, ENodeType b) {
-//     return static_cast<ENodeType>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
-// }
-
-// inline ENodeType operator&(ENodeType a, ENodeType b) {
-//     return static_cast<ENodeType>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
-// }
-
-// inline ENodeType operator^(ENodeType a, ENodeType b) {
-//     return static_cast<ENodeType>(static_cast<uint32_t>(a) ^ static_cast<uint32_t>(b));
-// }
-
-// inline ENodeType operator~(ENodeType a) {
-//     return static_cast<ENodeType>(~static_cast<uint32_t>(a));
-// }
-
-// inline ENodeType& operator|=(ENodeType& a, ENodeType b) {
-//     a = a | b;
-//     return a;
-// }
-
-// inline ENodeType& operator&=(ENodeType& a, ENodeType b) {
-//     a = a & b;
-//     return a;
-// }
-
-// inline bool HasFlag(ENodeType value, ENodeType flag) {
-//     return (static_cast<uint32_t>(value) & static_cast<uint32_t>(flag)) != 0;
-// }
-
 class EDITOR_API FEditorNode {
 public:
     FEditorNode() = default;
@@ -72,19 +27,6 @@ public:
 
     // ===== Type Management =====
     uint32_t GetType() const { return m_Type; }
-    // void SetType(uint32_t type) {
-    //     m_Type = type;
-    //     MarkDirty();
-    // }
-    // void AddType(uint32_t type) {
-    //     m_Type = m_Type | type;
-    //     MarkDirty();
-    // }
-    // void RemoveType(uint32_t type) {
-    //     m_Type = m_Type & ~type;
-    //     MarkDirty();
-    // }
-    // bool HasType(uint32_t type) const { return HasFlag(m_Type, type); }
 
     // ===== Hierarchy =====
     void AddChild(FEditorNode* child);
@@ -192,5 +134,5 @@ private:
 
     // State
     bool m_bDirty = false;
-    bool m_bOpen = false;
+    bool m_bOpen  = false;
 };

@@ -100,7 +100,7 @@ public:
     EPixelFormat GetFormat() const { return m_Spec.Format; }
     ETextureUsage GetUsage() const { return m_Spec.Usage; }
 
-    TRef<IRHIImage> GetImage() const;
+    TRef<IRHIImage> GetImage() const { return m_Image; }
 
     TRef<IRHISampler>
         GetSampler(const FSamplerSpecification spec = FSamplerSpecification::LinearClamp()) const;
@@ -110,5 +110,5 @@ public:
 protected:
     FTextureSpecification m_Spec;
 
-    TRef<IRHIImage> m_Image = nullptr;
+    mutable TRef<IRHIImage> m_Image;
 };

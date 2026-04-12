@@ -16,7 +16,6 @@ public:
     ~CImagePool();
 
     TRef<IRHIImage> RequestImage(const FImageSpecification& spec);
-    TRef<IRHIImage> RequestPersistentImage(const FImageSpecification& spec);
 
     // Usually called when RenderGraph destructs, to return images back to the pool for potential
     // reuse or eventual cleanup
@@ -31,7 +30,6 @@ protected:
     WeakRef<IRHIDevice> m_Device;
     // Store idle images that can potentially be reused, along with their last used frame index
     std::vector<FPooledImage> m_AvailableImages;
-    std::vector<FPooledImage> m_PersistentImages;
 
     // Max idle frames before destruction, can be tuned based on typical frame times and resource
     // usage patterns

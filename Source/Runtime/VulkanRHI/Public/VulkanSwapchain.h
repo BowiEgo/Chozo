@@ -43,7 +43,7 @@ public:
     void SetLayout(uint32_t index, vk::ImageLayout layout) {
         m_ColorAttachments[index]->GetImage().As<CVulkanImage>()->SetCurrentLayout(layout);
     }
-    vk::ImageLayout GetLayout(uint32_t index) const {
+    vk::ImageLayout GetLayout(uint32_t index) {
         return m_ColorAttachments[index]->GetImage().As<CVulkanImage>()->GetCurrentLayout();
     }
 

@@ -200,6 +200,8 @@ void CIconManager::ClearCaches() {
 }
 
 void CIconManager::UpdateDeletionQueue() {
+    CZ_LOG(LogIconManager, Info, "UpdateDeletionQueue: {}", m_DeletionQueue.size());
+
     // [Note] No lock needed if called within an already locked scope
     uint32 currentFrame = m_GraphicContext->GetCurrentFrameIndex();
     uint32 maxFrames    = m_GraphicContext->GetMaxFramesInFlight();

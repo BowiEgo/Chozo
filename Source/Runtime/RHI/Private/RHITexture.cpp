@@ -5,7 +5,7 @@
 DEFINE_LOG_CATEGORY(LogRHITexture);
 
 IRHITexture::IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec)
-    : IRHIResource(device), m_Spec(spec) {}
+    : IRHIResource(device), m_Spec(spec), m_Image(device.lock()->CreateImage(spec.ToImageSpec())) {}
 
 IRHITexture::IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec,
                          const TRef<IRHIImage> image)
@@ -13,10 +13,6 @@ IRHITexture::IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecifi
 
 IRHITexture::~IRHITexture() {
     // CZ_LOG(LogRHITexture, Trace, "RHITexture: {} destroying...", m_Spec.Name);
-}
-
-TRef<IRHIImage> IRHITexture::GetImage() const {
-    return m_Image ? m_Image : m_Device.lock()->GetImage(m_Spec.ToImageSpec());
 }
 
 TRef<IRHISampler> IRHITexture::GetSampler(const FSamplerSpecification spec) const {
