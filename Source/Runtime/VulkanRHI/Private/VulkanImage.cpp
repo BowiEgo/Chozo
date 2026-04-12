@@ -14,6 +14,7 @@ CVulkanImage::CVulkanImage(const WeakRef<IRHIDevice> device, const FImageSpecifi
 CVulkanImage::CVulkanImage(const WeakRef<IRHIDevice> device, const FImageSpecification& spec,
                            vk::Image image, bool bIsExternal)
     : IRHIImage(device, spec), m_VKImage(image), m_bIsExternal(bIsExternal) {
+    CZ_LOG(LogVulkanImage, Trace, "CreateVulkanImage");
     // Assume the provided image is already in a valid layout and has memory bound.
     // We will query its format and set the current layout to undefined (caller should set it).
     // In a more robust implementation, we might want to allow passing the current layout as well.
@@ -33,7 +34,7 @@ void CVulkanImage::Init() {
 }
 
 void CVulkanImage::Destroy() {
-    // CZ_LOG(LogVulkanImage, Trace, "VulkanImage: destroying...");
+    CZ_LOG(LogVulkanImage, Trace, "VulkanImage: destroying...");
 
     auto device = m_Device.As<CVulkanDevice>();
     if (!device) return;

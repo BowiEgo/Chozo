@@ -49,6 +49,8 @@ public:
     virtual ~CVulkanDevice();
 
     virtual void WaitIdle() override;
+    virtual GPUProfiler GetProfiler() override;
+
     virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec) override;
     virtual TRef<IRHIImage> CreateImage(const FImageSpecification& spec) override;
     virtual TRef<IRHISampler> CreateSampler(const FSamplerSpecification& spec) override;

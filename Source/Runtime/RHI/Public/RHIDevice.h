@@ -41,6 +41,17 @@ struct DeferredCleanup {
     uint32_t RetireFrame;
 };
 
+struct HeapInfo {
+    std::string Type;
+    uint64_t Size;
+    uint64_t Budget;
+    uint64_t Usage;
+};
+
+struct GPUProfiler {
+    std::vector<HeapInfo> Heaps;
+};
+
 class RHI_API IRHIDevice : public FRefCounted {
 public:
     IRHIDevice(const IRHIContext* ctx, const FDeviceSpecification& spec);
@@ -49,7 +60,8 @@ public:
     /**
      * [Note] Wait for all GPU tasks to complete before destruction
      */
-    virtual void WaitIdle() = 0;
+    virtual void WaitIdle()           = 0;
+    virtual GPUProfiler GetProfiler() = 0;
 
     virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec)  = 0;
     virtual TRef<IRHIImage> CreateImage(const FImageSpecification& spec)              = 0;

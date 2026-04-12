@@ -206,6 +206,16 @@ void EditorLayer::OnImGuiRender() {
             ImGui::Text("%-20s: %.3f ms", GProfileSlotNames[i], time);
         }
 
+        auto gpuProfiler = CApplication::Get()->GetGPUProfiler();
+        float mbSize     = 1024.0 * 1024.0;
+
+        for (auto& heapInfo : gpuProfiler.Heaps) {
+            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "GPU: %s", heapInfo.Type.c_str());
+            ImGui::Text("Size: %.3f MB", heapInfo.Size / mbSize);
+            ImGui::Text("Budget: %.3f MB", heapInfo.Budget / mbSize);
+            ImGui::Text("Usage: %.3f MB", heapInfo.Usage / mbSize);
+        }
+
         // Mouse Position
         // if (ImGui::IsMousePosValid())
         //     ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);

@@ -15,7 +15,7 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogApplication, Info);
 
 #define CZ_CONCAT_IMPL(a, b) a##b
-#define CZ_CONCAT(a, b) CZ_CONCAT_IMPL(a, b)
+#define CZ_CONCAT(a, b)      CZ_CONCAT_IMPL(a, b)
 
 #if 1
     // Create a unique timer variable named e.g., timer123
@@ -74,6 +74,9 @@ public:
     CWindow* GetWindow() const { return m_Window.get(); }
     CRenderEngine* GetRenderEngine() const { return m_RenderEngine.get(); }
     PerformanceProfiler* GetPerformanceProfiler() { return m_Profiler.get(); }
+    GPUProfiler GetGPUProfiler() {
+        return m_RenderEngine->GetRenderer()->GetGraphicContext()->GetDevice()->GetProfiler();
+    }
     FPSCounter* GetFPSCounter() { return &m_FPSCounter; }
     EAppPowerMode GetPowerMode() { return m_PowerMode; }
     CImGuiLayer& GetImGuiLayer() const { return *m_ImGuiLayer; }
@@ -90,10 +93,10 @@ private:
     CModule m_SandboxModule;
 
     Timer m_AppTimer;
-    float m_LastFrameTime = 0.0f;
+    float m_LastFrameTime     = 0.0f;
     EAppPowerMode m_PowerMode = EAppPowerMode::Balanced;
-    float m_TargetFrameTime = 0.0f;
-    bool m_IsMinimized = false;
+    float m_TargetFrameTime   = 0.0f;
+    bool m_IsMinimized        = false;
     TScope<PerformanceProfiler> m_Profiler;
     FPSCounter m_FPSCounter;
 

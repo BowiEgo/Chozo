@@ -127,6 +127,7 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
         IsExtensionSupported(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
     bool hasSurfaceMaintenance = IsExtensionSupported(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME);
     bool hasDynamicState3 = IsExtensionSupported(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    bool hasMemoryBudget  = IsExtensionSupported(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 
     auto addExtensionIfNeeded = [this](const char* extName) {
         bool found = false;
@@ -153,6 +154,11 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
     if (hasDynamicState3) {
         CZ_LOG(LogVulkanDevice, Info, "VK_EXT_extended_dynamic_state_3 is supported");
         addExtensionIfNeeded(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
+    }
+
+    if (hasMemoryBudget) {
+        CZ_LOG(LogVulkanDevice, Info, "VK_EXT_memory_budget is supported");
+        addExtensionIfNeeded(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
     }
 
     vk::PhysicalDeviceFeatures deviceFeatures;
@@ -403,4 +409,38 @@ vk::raii::DescriptorSet CVulkanDevice::AllocateSetFromPool(vk::DescriptorSetLayo
     auto sets = m_LogicalDevice.allocateDescriptorSets(allocInfo);
 
     return std::move(sets[0]);
+}
+
+GPUProfiler CVulkanDevice::GetProfiler() {
+    GPUProfiler result;
+
+    vk::PhysicalDevice physicalDevice           = GetPhysicalDevice();
+    vk::PhysicalDeviceMemoryProperties memProps = physicalDevice.getMemoryProperties();
+
+    vk::PhysicalDeviceMemoryBudgetPropertiesEXT budgetProps;
+    vk::PhysicalDeviceMemoryProperties2 memProps2;
+    memProps2.sType = vk::StructureType::ePhysicalDeviceMemoryProperties2;
+    memProps2.pNext = &budgetProps;
+
+    physicalDevice.getMemoryProperties2(&memProps2);
+
+    for (uint32_t i = 0; i < memProps.memoryHeapCount; ++i) {
+        const auto& heap      = memProps.memoryHeaps[i];
+        vk::DeviceSize budget = budgetProps.heapBudget[i];
+        vk::DeviceSize usage  = budgetProps.heapUsage[i];
+
+        bool isDeviceLocal =
+            (heap.flags & vk::MemoryHeapFlagBits::eDeviceLocal) != vk::MemoryHeapFlags();
+        const char* heapType = isDeviceLocal ? "Device Local (VRAM)" : "System RAM";
+
+        HeapInfo heapInfo;
+        heapInfo.Type   = std::string("Heap ") + std::to_string(i) + " (" + heapType + "):";
+        heapInfo.Size   = heap.size;
+        heapInfo.Budget = budget;
+        heapInfo.Usage  = usage;
+
+        result.Heaps.push_back(heapInfo);
+    }
+
+    return result;
 }
