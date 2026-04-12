@@ -4,6 +4,8 @@
 
 #include "VulkanRHIExport.h"
 
+#include "vk_mem_alloc.h"
+
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanDevice, Info);
 
 enum class EDescriptorLayoutType {
@@ -96,6 +98,8 @@ public:
 
     vk::raii::DescriptorSet AllocateSetFromPool(vk::DescriptorSetLayout layout);
 
+    VmaAllocator GetVmaAllocator() const { return m_VmaAllocator; }
+
 private:
     std::vector<const char*> m_RequiredDeviceExtension = { vk::KHRSwapchainExtensionName };
     vk::raii::PhysicalDevice m_PhysicalDevice          = nullptr;
@@ -112,4 +116,6 @@ private:
     mutable TRef<CVulkanCommandPool> m_InternalTransientPool;
 
     DynamicState3Functions m_DynamicState3Functions;
+
+    VmaAllocator m_VmaAllocator = nullptr;
 };

@@ -22,8 +22,8 @@ static SHFILEINFOW GetFileInfo(const std::filesystem::path& path) {
     std::replace(pathW.begin(), pathW.end(), L'/', L'\\');
 
     SHFILEINFOW fileInfo = { 0 };
-    UINT flags = SHGFI_ICON | SHGFI_LARGEICON;
-    DWORD attrs = FILE_ATTRIBUTE_NORMAL;
+    UINT flags           = SHGFI_ICON | SHGFI_LARGEICON;
+    DWORD attrs          = FILE_ATTRIBUTE_NORMAL;
 
     if (!std::filesystem::exists(path)) {
         flags |= SHGFI_USEFILEATTRIBUTES;
@@ -40,7 +40,7 @@ static HBITMAP GetFileThumbnailBITMAP(const std::wstring& filePath, int size) {
     if (FAILED(hr)) return nullptr;
 
     IShellItem* pItem = nullptr;
-    HBITMAP hBitmap = nullptr;
+    HBITMAP hBitmap   = nullptr;
 
     std::wstring normalizedPath = filePath;
     std::replace(normalizedPath.begin(), normalizedPath.end(), L'/', L'\\');
@@ -53,10 +53,10 @@ static HBITMAP GetFileThumbnailBITMAP(const std::wstring& filePath, int size) {
     hr = SHCreateItemFromParsingName(normalizedPath.c_str(), nullptr, IID_PPV_ARGS(&pItem));
     if (SUCCEEDED(hr)) {
         IShellItemImageFactory* pFactory = nullptr;
-        hr = pItem->QueryInterface(IID_PPV_ARGS(&pFactory));
+        hr                               = pItem->QueryInterface(IID_PPV_ARGS(&pFactory));
         if (SUCCEEDED(hr)) {
             SIZE desiredSize = { size, size };
-            HBITMAP hThumb = nullptr;
+            HBITMAP hThumb   = nullptr;
 
             hr = pFactory->GetImage(desiredSize, SIIGBF_BIGGERSIZEOK | SIIGBF_RESIZETOFIT, &hThumb);
             if (SUCCEEDED(hr) && hThumb) {
@@ -82,27 +82,27 @@ static void GetRawFileImageFromHBitmap(FRawFileImage& rawImage, HBITMAP hBitmap)
     BITMAP bm;
     if (GetObject(hBitmap, sizeof(BITMAP), &bm)) {
         // [Note] Forces 32-bit (BGRA) regardless of source HBITMAP format
-        int width = bm.bmWidth;
-        int height = bm.bmHeight;
+        int width    = bm.bmWidth;
+        int height   = bm.bmHeight;
         int byteSize = width * height * 4;
 
         uint8_t* data = (uint8_t*)malloc(byteSize);
         if (!data) return;
 
-        BITMAPINFO bmi = {};
-        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        bmi.bmiHeader.biWidth = width;
-        bmi.bmiHeader.biHeight = -height; // [Note] Negative height for top-down DIB
-        bmi.bmiHeader.biPlanes = 1;
-        bmi.bmiHeader.biBitCount = 32;
+        BITMAPINFO bmi              = {};
+        bmi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
+        bmi.bmiHeader.biWidth       = width;
+        bmi.bmiHeader.biHeight      = -height; // [Note] Negative height for top-down DIB
+        bmi.bmiHeader.biPlanes      = 1;
+        bmi.bmiHeader.biBitCount    = 32;
         bmi.bmiHeader.biCompression = BI_RGB;
 
         HDC hdc = GetDC(NULL);
         if (GetDIBits(hdc, hBitmap, 0, height, data, &bmi, DIB_RGB_COLORS)) {
-            rawImage.Data = data;
-            rawImage.Width = width;
+            rawImage.Data   = data;
+            rawImage.Width  = width;
             rawImage.Height = height;
-            rawImage.Size = byteSize;
+            rawImage.Size   = byteSize;
         } else {
             free(data);
         }
@@ -154,14 +154,14 @@ int GetFileIconIndex(const std::filesystem::path& path) {
 
 FRawFileImage GetFileIcon(const std::filesystem::path& path) {
     FRawFileImage result = {};
-    result.PathU8 = path.string();
-    result.Index = GetFileIconIndex(path);
+    result.PathU8        = path.string();
+    result.Index         = GetFileIconIndex(path);
 
     std::wstring pathW = path.wstring();
     std::replace(pathW.begin(), pathW.end(), L'/', L'\\');
 
     // [Note] COM Initialization must be balanced
-    HRESULT hrCo = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    HRESULT hrCo       = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     HBITMAP hThumbnail = NULL;
 
     if (ShouldUseUniqueIndex(path)) {
@@ -169,7 +169,7 @@ FRawFileImage GetFileIcon(const std::filesystem::path& path) {
         if (SUCCEEDED(SHCreateItemFromParsingName(pathW.c_str(), NULL, IID_PPV_ARGS(&pItem)))) {
             IShellItemImageFactory* pFactory = NULL;
             if (SUCCEEDED(pItem->QueryInterface(IID_PPV_ARGS(&pFactory)))) {
-                pFactory->GetImage({ 256, 256 }, SIIGBF_BIGGERSIZEOK, &hThumbnail);
+                pFactory->GetImage({ 64, 64 }, SIIGBF_BIGGERSIZEOK, &hThumbnail);
                 pFactory->Release();
             }
             pItem->Release();
@@ -234,7 +234,7 @@ FRawFileImage GetFileIcon(const std::filesystem::path& path) {
 
 FRawFileImage GetFileThumbnail(const std::filesystem::path& path, int size) {
     FRawFileImage result = {};
-    result.PathU8 = path.string();
+    result.PathU8        = path.string();
 
     HBITMAP hBitmap = GetFileThumbnailBITMAP(path.wstring(), size);
     if (hBitmap) {

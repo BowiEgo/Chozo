@@ -204,15 +204,23 @@ void CIconManager::UpdateDeletionQueue() {
 
     // [Note] No lock needed if called within an already locked scope
     uint32 currentFrame = m_GraphicContext->GetCurrentFrameIndex();
-    uint32 maxFrames    = m_GraphicContext->GetMaxFramesInFlight();
-    uint32 safeFrame    = (currentFrame + maxFrames - 1) % maxFrames;
+    uint32 graceFrames  = 3;
 
     auto it = std::remove_if(m_DeletionQueue.begin(), m_DeletionQueue.end(),
-                             [currentFrame, safeFrame](const FPendingDeletion& pending) {
-                                 // [Note] Safely delete after 3 frames of grace period
-                                 return pending.FrameIndex == safeFrame;
+                             [currentFrame, graceFrames](const FPendingDeletion& pending) {
+                                 return true;
+                                 //  return currentFrame - pending.FrameIndex >= graceFrames;
                              });
+
+    uint32 size = 0;
+    for (auto itDel = it; itDel != m_DeletionQueue.end(); ++itDel) {
+        itDel->Texture.Reset();
+        size++;
+    }
+
     m_DeletionQueue.erase(it, m_DeletionQueue.end());
+    CZ_LOG(LogIconManager, Info, "UpdateDeletionQueue Finished: {} in {}", size,
+           m_DeletionQueue.size());
 }
 
 void CIconManager::Shutdown() {

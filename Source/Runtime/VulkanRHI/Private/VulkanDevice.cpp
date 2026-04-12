@@ -1,5 +1,6 @@
 #include "VulkanDevice.h"
 
+#include "VulkanAPI.h"
 #include "VulkanCommandBuffer.h"
 #include "VulkanCommandPool.h"
 #include "VulkanDescriptorSet.h"
@@ -9,6 +10,9 @@
 #include "VulkanTexture2D.h"
 #include "VulkanUtils.h"
 
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
+
 DEFINE_LOG_CATEGORY(LogVulkanDevice);
 
 CVulkanDevice::CVulkanDevice(const IRHIContext* ctx, const FDeviceSpecification& spec,
@@ -17,9 +21,21 @@ CVulkanDevice::CVulkanDevice(const IRHIContext* ctx, const FDeviceSpecification&
     : IRHIDevice(ctx, spec) {
     PickPhysicalDevice(instance);
     CreateLogicalDevice(surface);
+
+    VmaAllocatorCreateInfo allocatorInfo = {};
+    allocatorInfo.physicalDevice         = *m_PhysicalDevice;
+    allocatorInfo.device                 = *m_LogicalDevice;
+    allocatorInfo.instance               = CVulkanAPI::GetVKInstance();
+    allocatorInfo.flags                  = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+    vmaCreateAllocator(&allocatorInfo, &m_VmaAllocator);
 }
 
-CVulkanDevice::~CVulkanDevice() { CZ_LOG(LogVulkanDevice, Trace, "Destroying Vulkan Device..."); }
+CVulkanDevice::~CVulkanDevice() {
+    CZ_LOG(LogVulkanDevice, Trace, "Destroying Vulkan Device...");
+    if (m_VmaAllocator) {
+        vmaDestroyAllocator(m_VmaAllocator);
+    }
+}
 
 void CVulkanDevice::WaitIdle() { m_LogicalDevice.waitIdle(); }
 
@@ -414,7 +430,10 @@ vk::raii::DescriptorSet CVulkanDevice::AllocateSetFromPool(vk::DescriptorSetLayo
 GPUProfiler CVulkanDevice::GetProfiler() {
     GPUProfiler result;
 
-    vk::PhysicalDevice physicalDevice           = GetPhysicalDevice();
+    vk::PhysicalDevice physicalDevice = GetPhysicalDevice();
+
+    VmaBudget budgets[VK_MAX_MEMORY_HEAPS];
+    vmaGetHeapBudgets(m_VmaAllocator, budgets);
     vk::PhysicalDeviceMemoryProperties memProps = physicalDevice.getMemoryProperties();
 
     vk::PhysicalDeviceMemoryBudgetPropertiesEXT budgetProps;
@@ -425,9 +444,9 @@ GPUProfiler CVulkanDevice::GetProfiler() {
     physicalDevice.getMemoryProperties2(&memProps2);
 
     for (uint32_t i = 0; i < memProps.memoryHeapCount; ++i) {
-        const auto& heap      = memProps.memoryHeaps[i];
-        vk::DeviceSize budget = budgetProps.heapBudget[i];
-        vk::DeviceSize usage  = budgetProps.heapUsage[i];
+        const auto& heap = memProps.memoryHeaps[i];
+        // vk::DeviceSize budget = budgetProps.heapBudget[i];
+        // vk::DeviceSize usage  = budgetProps.heapUsage[i];
 
         bool isDeviceLocal =
             (heap.flags & vk::MemoryHeapFlagBits::eDeviceLocal) != vk::MemoryHeapFlags();
@@ -436,10 +455,15 @@ GPUProfiler CVulkanDevice::GetProfiler() {
         HeapInfo heapInfo;
         heapInfo.Type   = std::string("Heap ") + std::to_string(i) + " (" + heapType + "):";
         heapInfo.Size   = heap.size;
-        heapInfo.Budget = budget;
-        heapInfo.Usage  = usage;
+        heapInfo.Budget = budgets[i].budget;
+        heapInfo.Usage  = budgets[i].usage;
 
         result.Heaps.push_back(heapInfo);
+
+        // char* stats;
+        // vmaBuildStatsString(m_VmaAllocator, &stats, true);
+        // CZ_LOG(LogVulkanDevice, Info, "VMA Stats:\n {}", stats);
+        // vmaFreeStatsString(m_VmaAllocator, stats);
     }
 
     return result;

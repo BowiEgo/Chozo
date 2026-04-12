@@ -206,7 +206,7 @@ FRawFileImage GetFileIcon(const std::filesystem::path& path) {
         [[NSFileManager defaultManager] fileExistsAtPath:nspath isDirectory:&isDirectory];
         BOOL isAppBundle = [[nspath pathExtension].lowercaseString isEqualToString:@"app"];
 
-        int targetDim = 256;
+        int targetDim = 64;
         CGFloat scale = [[NSScreen mainScreen] backingScaleFactor];
         __block CGImageRef finalCGImage = NULL;
 

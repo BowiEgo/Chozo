@@ -57,3 +57,8 @@ target("nanosvg")
     set_kind("static")
     add_files("nanosvg/nanosvgImpl.cpp")
     add_deps("nanosvg_header")
+
+target("vma")
+    set_kind("headeronly")
+    add_headerfiles("vma/vk_mem_alloc.h")
+    add_includedirs("vma", {public = true})

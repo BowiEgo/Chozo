@@ -5,6 +5,8 @@
 #include "VulkanDevice.h"
 #include "VulkanRHIExport.h"
 
+#include "vk_mem_alloc.h"
+
 DECLARE_LOG_CATEGORY_EXTERN(LogVulkanImage, Info);
 
 class VULKAN_RHI_API CVulkanImage : public IRHIImage {
@@ -38,4 +40,6 @@ private:
     vk::Image m_VKImage;
     vk::DeviceMemory m_VKMemory = nullptr;
     std::unordered_map<FImageViewSpecification, vk::ImageView> m_ViewCache;
+
+    VmaAllocation m_VmaAllocation = VK_NULL_HANDLE;
 };

@@ -4,6 +4,8 @@
 #include "VulkanDevice.h"
 #include "VulkanUtils.h"
 
+#include "vk_mem_alloc.h"
+
 DEFINE_LOG_CATEGORY(LogVulkanImage);
 
 CVulkanImage::CVulkanImage(const WeakRef<IRHIDevice> device, const FImageSpecification& spec)
@@ -34,8 +36,7 @@ void CVulkanImage::Init() {
 }
 
 void CVulkanImage::Destroy() {
-    CZ_LOG(LogVulkanImage, Trace, "VulkanImage: destroying...");
-
+    // CZ_LOG(LogVulkanImage, Trace, "VulkanImage: destroying...");
     auto device = m_Device.As<CVulkanDevice>();
     if (!device) return;
 
@@ -46,8 +47,14 @@ void CVulkanImage::Destroy() {
     }
 
     if (!m_bIsExternal) {
-        if (m_VKImage) logicalDevice.destroyImage(m_VKImage);
-        if (m_VKMemory) logicalDevice.freeMemory(m_VKMemory);
+        if (m_VmaAllocation != VK_NULL_HANDLE) {
+            vmaDestroyImage(device->GetVmaAllocator(), m_VKImage, m_VmaAllocation);
+            m_VKImage       = VK_NULL_HANDLE;
+            m_VmaAllocation = VK_NULL_HANDLE;
+        } else {
+            if (m_VKImage) logicalDevice.destroyImage(m_VKImage);
+            if (m_VKMemory) logicalDevice.freeMemory(m_VKMemory);
+        }
     }
 }
 
@@ -142,20 +149,31 @@ void CVulkanImage::CreateImageResources() {
 
     imageInfo.setSharingMode(vk::SharingMode::eExclusive);
 
-    m_VKImage = logicalDevice.createImage(imageInfo);
-    if (!m_VKImage) {
-        CZ_LOG(LogVulkanImage, Error, "Failed to create Vulkan Image");
-        return;
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage                   = VMA_MEMORY_USAGE_AUTO;
+    if (HasFlag(m_Spec.Usage, EImageUsage::ColorAttachment) ||
+        HasFlag(m_Spec.Usage, EImageUsage::DepthStencil)) {
+        allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+        allocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+    }
+    if (HasFlag(m_Spec.Usage, EImageUsage::TransientAttachment)) {
+        allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+        // allocInfo.flags |= VMA_ALLOCATION_CREATE_CAN_ALIAS_BIT;
     }
 
-    vk::MemoryRequirements memRequirements = logicalDevice.getImageMemoryRequirements(m_VKImage);
-    vk::MemoryAllocateInfo allocInfo;
-    allocInfo.setAllocationSize(memRequirements.size)
-        .setMemoryTypeIndex(device->FindMemoryType(memRequirements.memoryTypeBits,
-                                                   vk::MemoryPropertyFlagBits::eDeviceLocal));
+    VkImage vkImageRaw = VK_NULL_HANDLE;
+    VkResult result =
+        vmaCreateImage(device->GetVmaAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo),
+                       &allocInfo, &vkImageRaw, &m_VmaAllocation, nullptr);
+    if (result != VK_SUCCESS) {
+        CZ_LOG(LogVulkanImage, Error, "vmaCreateImage failed");
+        return;
+    }
+    m_VKImage  = vkImageRaw;
+    m_VKMemory = VK_NULL_HANDLE;
 
-    m_VKMemory = logicalDevice.allocateMemory(allocInfo);
-    logicalDevice.bindImageMemory(m_VKImage, m_VKMemory, 0);
+    CZ_LOG(LogVulkanImage, Trace, "Created image via VMA: size={}x{}, layers={}, mips={}",
+           m_Spec.Size.Width, m_Spec.Size.Height, m_Spec.Layers, m_Spec.MipLevels);
 }
 
 vk::ImageView CVulkanImage::GetOrCreateView(const FImageViewSpecification& spec) {
