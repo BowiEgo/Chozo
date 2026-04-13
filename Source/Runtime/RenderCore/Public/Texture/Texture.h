@@ -1,0 +1,28 @@
+#pragma once
+
+#include "Asset.h"
+#include "RHITexture.h"
+#include "RenderCoreExport.h"
+#include "Scope.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogTexture, Info);
+
+class RENDER_CORE_API CTexture : public IAsset {
+public:
+    CTexture(const FTextureSpecification& spec);
+    CTexture(const FTextureSpecification& spec, const IRHITexture* texture);
+    virtual ~CTexture() = default;
+
+    const FTextureSpecification& GetSpec() const { return m_Spec; }
+    const std::string& GetName() const { return m_Spec.Name; }
+
+    IRHITexture* GetOrCreateResource();
+
+    void* GetDescriptorSet(TRef<IRHISetLayout> setLayout = nullptr, uint32_t bindingSlot = 0) {
+        return GetOrCreateResource()->GetDescriptorSet(setLayout, bindingSlot);
+    }
+
+protected:
+    FTextureSpecification m_Spec;
+    TScope<IRHITexture> m_Resource;
+};

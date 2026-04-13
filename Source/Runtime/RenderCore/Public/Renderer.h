@@ -68,7 +68,7 @@ private:
 
     std::vector<TScope<CViewport>> m_Viewports;
 
-    TRef<IRHIPipeline> m_CurrentPipeline, m_SolidPipeline, m_WireframePipeline;
+    TRef<IRHIPipeline> m_CurrentPipeline, m_SolidPipeline, m_WireframePipeline, m_SkyboxPipeline;
 
     FOnRenderUI m_UICallback = nullptr;
 };

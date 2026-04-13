@@ -10,13 +10,20 @@ class CShaderCompiler : public FRefCounted {
 public:
     virtual ~CShaderCompiler() = default;
 
-    void PreProcess(const FShaderCompilerInput& input, std::string& outProcessedSource);
+    bool Compile(const FShaderCompilerMultiInput& input,
+                 std::unordered_map<EShaderStage, FShaderCompilerOutput>& outputs);
+
     FShaderReflection Reflect(const std::vector<uint32_t>& spirvBinary);
-    bool Compile(const FShaderSpecification& spec, FShaderCompilerOutput& output);
 
 private:
     const std::string GetOrLoadSource(const std::filesystem::path& sourcePath);
-    bool CompileInternal(const FShaderCompilerInput& input, FShaderCompilerOutput& output);
+
+    bool PreProcess(const std::filesystem::path& sourcePath, const EShaderStage stage,
+                    std::string& outProcessedSource);
+
+    bool CompileFromSource(const std::string& source, const std::filesystem::path& sourcePath,
+                           const EShaderStage stage, const FShaderMacros& macros,
+                           FShaderCompilerOutput& output);
 
 protected:
     std::unordered_map<std::filesystem::path, std::string> m_SourceCache;

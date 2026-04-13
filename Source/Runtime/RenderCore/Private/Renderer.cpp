@@ -1,11 +1,11 @@
 #include "Renderer.h"
 
+#include "AssetManager.h"
 #include "CameraUniformManager.h"
 #include "MeshManager.h"
 #include "ModuleUtils.h"
 #include "RHIAPI.h"
 #include "RenderGraph.h"
-#include "ShaderManager.h"
 
 CRenderer::CRenderer(IRendererWindow* windowHandle) : m_Window(windowHandle) {}
 
@@ -26,6 +26,8 @@ void CRenderer::Init() {
 
         m_GraphicContext = TScope<IRHIContext>(
             m_RHIModule.Invoke<IRHIContext*(const FContextSpec&)>("CreateVulkanContext", spec));
+
+        IRHIAPI::SetContext(m_GraphicContext.get());
     }
 
     auto device = m_GraphicContext->GetDevice();
@@ -36,28 +38,27 @@ void CRenderer::Init() {
         poolSpec.Flags          = ECommandPoolFlags::ResetCommandBuffer;
         m_Frames[i].CommandPool = device->CreateCommandPool(poolSpec);
         m_Frames[i].CommandList = m_Frames[i].CommandPool->AllocateCommandBuffer();
-        m_Frames[i].RenderFence = IRHIAPI::CreateSyncObject(m_GraphicContext.get());
+        m_Frames[i].RenderFence = IRHIAPI::CreateSyncObject();
     }
 
     // Camera
-    CCameraUniformManager::Get().Initialize(m_GraphicContext.get());
+    CCameraUniformManager::Get().Initialize();
 
     // Shader
-    CShaderManager::Init(device);
+    const FShaderSpecification shaderSpec = {
+        "Cube", "shaders://Cube.glsl", { EShaderStage::Vertex, EShaderStage::Fragment }, "main"
+    };
+    TRef<CShader> cubeShader = CAssetManager::Get().GetOrLoadShader(shaderSpec);
 
-    FShaderSpecification vertShaderInfo("Cube", "shaders://Cube.glsl", EShaderStage::Vertex,
-                                        "main");
-    FShaderSpecification fagShaderInfo("Cube", "shaders://Cube.glsl", EShaderStage::Fragment,
-                                       "main");
-    TRef<CShader> vertShader = CShaderManager::Get()->Load(vertShaderInfo);
-    TRef<CShader> fragShader = CShaderManager::Get()->Load(fagShaderInfo);
+    // Texture
+    // auto skyboxTex = CAssetManager::Get().GetOrLoadTexture(
+    //     "/Volumes/WD My Passport/ChozoProjectReSources/Textures/HDRI/newport_loft.hdr");
 
     // Pipeline
     {
         FPipelineSpecification solidSpec;
         solidSpec.Name               = "Solid";
-        solidSpec.RHIShaders         = { vertShader->GetShaderResource(m_GraphicContext.get()),
-                                         fragShader->GetShaderResource(m_GraphicContext.get()) };
+        solidSpec.RHIShaders         = cubeShader->GetShaderResources();
         solidSpec.ColorFormats       = { EPixelFormat::RGBA8_UNORM };
         solidSpec.VertexLayout       = { { EShaderDataFormat::Float3, "a_Position" },
                                          { EShaderDataFormat::Float3, "a_Normal" },
@@ -65,12 +66,25 @@ void CRenderer::Init() {
                                          { EShaderDataFormat::Float3, "a_Tangent" },
                                          { EShaderDataFormat::Float3, "a_Bitangent" } };
         solidSpec.PushConstantRanges = { { 0, sizeof(FMatrix4) + sizeof(FMatrix3) } };
-        m_SolidPipeline              = IRHIAPI::CreatePipeline(m_GraphicContext.get(), solidSpec);
+        m_SolidPipeline              = IRHIAPI::CreatePipeline(solidSpec);
 
         FPipelineSpecification wireSpec = solidSpec;
         wireSpec.Name                   = "Wireframe";
         wireSpec.PolygonMode            = EPolygonMode::Line;
-        m_WireframePipeline             = IRHIAPI::CreatePipeline(m_GraphicContext.get(), wireSpec);
+        m_WireframePipeline             = IRHIAPI::CreatePipeline(wireSpec);
+
+        // FPipelineSpecification skyboxSpec;
+        // skyboxSpec.Name               = "Skybox";
+        // skyboxSpec.RHIShaders         = { vertShader->GetShaderResource(),
+        //                                   fragShader->GetShaderResource() };
+        // skyboxSpec.ColorFormats       = { EPixelFormat::RGBA8_UNORM };
+        // skyboxSpec.VertexLayout       = { { EShaderDataFormat::Float3, "a_Position" },
+        //                                   { EShaderDataFormat::Float3, "a_Normal" },
+        //                                   { EShaderDataFormat::Float2, "a_TexCoord" },
+        //                                   { EShaderDataFormat::Float3, "a_Tangent" },
+        //                                   { EShaderDataFormat::Float3, "a_Bitangent" } };
+        // skyboxSpec.PushConstantRanges = { { 0, sizeof(FMatrix4) + sizeof(FMatrix3) } };
+        // m_SkyboxPipeline              = IRHIAPI::CreatePipeline(skyboxSpec);
     }
 
     SetPolygonMode(EPolygonMode::Fill);
@@ -90,29 +104,30 @@ void CRenderer::Tick(float deltaTime) {
     m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex);
     CCameraUniformManager::Get().UpdateAllCameras();
 
-    IRHIAPI::DrawFrame(m_GraphicContext.get(), cmdList, syncObject, [&](uint32 imageIndex) {
+    IRHIAPI::DrawFrame(cmdList, syncObject, [&](uint32 imageIndex) {
         cmdList->Begin();
 
         // ------ Render Graph ------
         CRenderGraph graph(m_GraphicContext.get());
 
-        // TRef<IRHITextureCubemap> myStaticSkybox = AssetMgr.LoadSkybox("sky.hdr");
-        // FRDGTexture* SkyboxHandle               = graph.ImportExternal(myStaticSkybox,
-        // "SkyboxCubemap");
+        // FRDGTexture* skyboxHandle = graph.ImportExternalRDGTexture(
+        //     "SkyboxCubemap", skyboxTex, EImageLayout::ShaderReadOnlyOptimal,
+        //     EImageLayout::ShaderReadOnlyOptimal);
 
         // Request a transient texture for storing the skybox pass result,
         // lifetime managed by the render graph
         for (auto& viewport : m_Viewports) {
-            TRef<IRHITexture2D> viewportCanvas = viewport->GetFrameBuffer()->GetColorAttachment(0);
-            FRDGTexture* viewportHandle        = graph.ImportExternalRDGTexture(
-                viewportCanvas, "ViewportCanvas_" + viewport->GetName(),
+            IRHITexture2D* viewportCanvas = viewport->GetFrameBuffer()->GetColorAttachment(0).get();
+            auto tex = CreateRef<CTexture>(viewportCanvas->GetSpec(), viewportCanvas);
+
+            FRDGTexture* viewportHandle = graph.ImportExternalRDGTexture(
+                "ViewportCanvas_" + viewport->GetName(), tex,
                 EImageLayout::ColorAttachmentOptimal, // initial usage
                 EImageLayout::ShaderReadOnlyOptimal); // final usage (for UI)
 
-            // graph.AddPass("SkyboxPass", { SkyboxHandle }, { viewportHandle },
-            // ERenderPassLoadOp::Clear,
-            //               [=](CRenderGraphExecuteContext& ctx) {
-            //                   TRef<IRHITextureCubemap> st = ctx.GetTextureCube(SkyboxHandle);
+            // graph.AddPass("SkyboxPass", { skyboxHandle }, { viewportHandle },
+            //               ERenderPassLoadOp::Clear, [=](CRenderGraphExecuteContext& ctx) {
+            //                   TRef<IRHITextureCubemap> st = ctx.GetTextureCube(skyboxHandle);
             //                   TRef<IRHITexture2D> rt      = ctx.GetTexture2D(viewportHandle);
 
             //                   DrawSkybox(ctx.GetCommandBuffer(), st, rt);
@@ -120,7 +135,7 @@ void CRenderer::Tick(float deltaTime) {
 
             graph.AddPass("SceneCompositePass", {}, { viewportHandle }, ERenderPassLoadOp::Clear,
                           [this, &viewport, viewportHandle](CRenderGraphExecuteContext& ctx) {
-                              auto rt  = ctx.GetTexture2D(viewportHandle);
+                              auto rt  = ctx.GetTexture(viewportHandle);
                               auto cmd = ctx.GetCommandBuffer();
 
                               auto scene  = viewport->GetScene();
@@ -135,16 +150,17 @@ void CRenderer::Tick(float deltaTime) {
                               cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
                               cmd->SetScissor({ 0, 0, width, height });
 
-                              scene->Draw(m_GraphicContext.get(), cmd.get());
+                              scene->Draw(cmd.get());
                           });
         }
 
         // // draw UI on top of the scene
-        TRef<IRHITexture2D> backbuffer =
-            m_GraphicContext->GetSwapchain()->GetColorAttachment(imageIndex);
+        IRHITexture2D* backbuffer =
+            m_GraphicContext->GetSwapchain()->GetColorAttachment(imageIndex).get();
+        auto tex = CreateRef<CTexture>(backbuffer->GetSpec(), backbuffer);
 
         FRDGTexture* BackbufferHandle = graph.ImportExternalRDGTexture(
-            backbuffer, "Backbuffer", EImageLayout::ColorAttachmentOptimal, // initial usage
+            "Backbuffer", tex, EImageLayout::ColorAttachmentOptimal, // initial usage
             EImageLayout::PresentSrc);
 
         graph.AddPass("SwapchainPass", {}, { BackbufferHandle }, ERenderPassLoadOp::Clear,
@@ -157,32 +173,6 @@ void CRenderer::Tick(float deltaTime) {
         graph.Compile(); // Request physical resources from the global singleton ImagePool
         graph.Execute(cmdList.get());
         // ------ Render Graph End ------
-
-        // for (auto& viewport : m_Viewports) {
-        //     viewport->BeginRender(cmdList.get(), m_CurrentPipeline);
-        //     // cmdList->Draw(3, 1, 0, 0);
-        //     // m_Cube->Draw(cmdList.get());
-        //     // m_Sphere->Draw(cmdList.get());
-        //     // cmdList->BindVertexBuffer(m_Cube->GetVertexBuffer(), 0); // binding = 0
-        //     // cmdList->BindIndexBuffer(m_Cube->GetIndexBuffer());
-        //     // cmdList->DrawIndexed(m_Cube->GetIndexCount(), 1, 0, 0, 0);
-        //     viewport->EndRender(cmdList.get());
-        // }
-
-        // // draw UI on top of the scene
-        // {
-        //     auto target = m_GraphicContext->GetSwapchain()->GetColorAttachment(imageIndex);
-        //     m_GraphicContext->SetTarget(target);
-
-        //     IRHIAPI::BeginRendering(m_GraphicContext.get(), cmdList,
-        //                             false); // bClear = false (to preserve the scene)
-        //     {
-        //         if (m_UICallback) {
-        //             m_UICallback(cmdList);
-        //         }
-        //     }
-        //     IRHIAPI::EndRendering(m_GraphicContext.get(), cmdList);
-        // }
 
         cmdList->End();
     });
@@ -208,6 +198,7 @@ void CRenderer::Shutdown() {
 
     CCameraUniformManager::Get().Shutdown();
     FMeshManager::Get().Shutdown();
+    CAssetManager::Get().Shutdown();
 
     m_GraphicContext.reset();
 }
@@ -218,7 +209,7 @@ CViewport* CRenderer::CreateViewport(const std::string name, uint32 width, uint3
     spec.Width  = width;
     spec.Height = height;
 
-    auto viewport = CreateScope<CViewport>(m_GraphicContext.get(), spec);
+    auto viewport = CreateScope<CViewport>(spec);
     auto* ptr     = viewport.get();
     m_Viewports.push_back(std::move(viewport));
 

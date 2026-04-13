@@ -5,7 +5,6 @@
 CVulkanFrameBuffer::CVulkanFrameBuffer(const FFrameBufferSpecification& spec,
                                        const TRef<CVulkanDevice>& device)
     : IRHIFrameBuffer(spec), m_Device(device) {
-
     m_ColorAttachments.reserve(spec.ColorFormats.size());
     for (const auto& format : spec.ColorFormats) {
         FTextureSpecification texSpec;

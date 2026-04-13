@@ -6,7 +6,7 @@ DEFINE_LOG_CATEGORY(LogProceduralMesh);
 
 FProceduralMesh::~FProceduralMesh() {}
 
-void FProceduralMesh::Upload(IRHIContext* ctx) {
+void FProceduralMesh::Upload() {
     if (!m_Buffer.IsValid()) {
         CZ_LOG(LogProceduralMesh, Error, "No vertex or index data to upload");
         return;
@@ -14,14 +14,14 @@ void FProceduralMesh::Upload(IRHIContext* ctx) {
 
     {
         FBufferSpecification spec;
-        spec.Size = m_Buffer.GetVertexBufferSize();
-        spec.Usage = EBufferUsage::VertexBuffer;
+        spec.Size       = m_Buffer.GetVertexBufferSize();
+        spec.Usage      = EBufferUsage::VertexBuffer;
         spec.MemoryType = EMemoryType::HostVisible | EMemoryType::HostCoherent;
-        spec.Name = "ProceduralMesh_VertexBuffer";
+        spec.Name       = "ProceduralMesh_VertexBuffer";
 
         FBuffer data(m_Buffer.Vertices.data(), spec.Size);
 
-        m_VertexBuffer = IRHIAPI::CreateBuffer(ctx, spec, data);
+        m_VertexBuffer = IRHIAPI::CreateBuffer(spec, data);
         if (!m_VertexBuffer) {
             CZ_LOG(LogProceduralMesh, Error, "Failed to create vertex buffer");
             return;
@@ -38,14 +38,14 @@ void FProceduralMesh::Upload(IRHIContext* ctx) {
         }
 
         FBufferSpecification spec;
-        spec.Size = flatIndices.size() * sizeof(uint32);
-        spec.Usage = EBufferUsage::IndexBuffer;
+        spec.Size       = flatIndices.size() * sizeof(uint32);
+        spec.Usage      = EBufferUsage::IndexBuffer;
         spec.MemoryType = EMemoryType::HostVisible | EMemoryType::HostCoherent;
-        spec.Name = "ProceduralMesh_IndexBuffer";
+        spec.Name       = "ProceduralMesh_IndexBuffer";
 
         FBuffer data(flatIndices.data(), spec.Size);
 
-        m_IndexBuffer = IRHIAPI::CreateBuffer(ctx, spec, data);
+        m_IndexBuffer = IRHIAPI::CreateBuffer(spec, data);
         if (!m_IndexBuffer) {
             CZ_LOG(LogProceduralMesh, Error, "Failed to create index buffer");
             return;

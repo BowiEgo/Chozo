@@ -21,6 +21,8 @@ class RHI_API IRHIAPI {
 public:
     virtual ~IRHIAPI();
 
+    static void SetContext(IRHIContext* ctx) { s_Instance->m_Context = ctx; }
+
     static TRef<IRHIDevice> CreateDevice(const IRHIContext* ctx, const FDeviceSpecification& spec) {
         return s_Instance->CreateDevice_Internal(ctx, spec);
     }
@@ -30,62 +32,56 @@ public:
         return s_Instance->CreateSwapchain_Internal(ctx, spec);
     }
 
-    static TRef<IRHISyncObject> CreateSyncObject(const IRHIContext* ctx) {
-        return s_Instance->CreateSyncObject_Internal(ctx);
+    static TRef<IRHISyncObject> CreateSyncObject() {
+        return s_Instance->CreateSyncObject_Internal();
     }
 
-    static TRef<IRHIFrameBuffer> CreateFrameBuffer(const IRHIContext* ctx,
-                                                   const FFrameBufferSpecification& spec) {
-        return s_Instance->CreateFrameBuffer_Internal(ctx, spec);
+    static TRef<IRHIFrameBuffer> CreateFrameBuffer(const FFrameBufferSpecification& spec) {
+        return s_Instance->CreateFrameBuffer_Internal(spec);
     }
 
-    static TRef<IRHIPipeline> CreatePipeline(const IRHIContext* ctx,
-                                             const FPipelineSpecification& spec) {
-        return s_Instance->CreatePipeline_Internal(ctx, spec);
+    static TRef<IRHIPipeline> CreatePipeline(const FPipelineSpecification& spec) {
+        return s_Instance->CreatePipeline_Internal(spec);
     }
 
-    static TRef<IRHIShader> CreateShader(const IRHIContext* ctx, const FShaderSpecification& spec,
+    static TRef<IRHIShader> CreateShader(const FRHIShaderSpecification& spec,
                                          const std::vector<uint32_t>* binary,
                                          const FShaderReflection reflection) {
-        return s_Instance->CreateShader_Internal(ctx, spec, binary, reflection);
+        return s_Instance->CreateShader_Internal(spec, binary, reflection);
     }
 
-    static TRef<IRHITexture2D> CreateTexture2D(const IRHIContext* ctx,
-                                               const FTextureSpecification& spec) {
-        return s_Instance->CreateTexture2D_Internal(ctx, spec);
+    static TRef<IRHITexture2D> CreateTexture2D(const FTextureSpecification& spec) {
+        return s_Instance->CreateTexture2D_Internal(spec);
     }
 
-    static TRef<IRHITexture2D> CreateTexture2D(const IRHIContext* ctx,
-                                               const FTextureSpecification& spec, FBuffer& data) {
-        return s_Instance->CreateTexture2D_Internal(ctx, spec, data);
+    static TRef<IRHITexture2D> CreateTexture2D(const FTextureSpecification& spec, FBuffer& data) {
+        return s_Instance->CreateTexture2D_Internal(spec, data);
     }
 
-    static TRef<IRHIBuffer> CreateBuffer(const IRHIContext* ctx, const FBufferSpecification& spec) {
-        return s_Instance->CreateBuffer_Internal(ctx, spec);
+    static TRef<IRHIBuffer> CreateBuffer(const FBufferSpecification& spec) {
+        return s_Instance->CreateBuffer_Internal(spec);
     }
 
-    static TRef<IRHIBuffer> CreateBuffer(const IRHIContext* ctx, const FBufferSpecification& spec,
-                                         FBuffer& data) {
-        return s_Instance->CreateBuffer_Internal(ctx, spec, data);
+    static TRef<IRHIBuffer> CreateBuffer(const FBufferSpecification& spec, FBuffer& data) {
+        return s_Instance->CreateBuffer_Internal(spec, data);
     }
 
-    static void DrawFrame(IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
-                          TRef<IRHISyncObject>& syncObject, RecordCallback recordCallback) {
-        return s_Instance->DrawFrame_Internal(ctx, cmdList, syncObject, recordCallback);
+    static void DrawFrame(const TRef<IRHICommandList>& cmdList, TRef<IRHISyncObject>& syncObject,
+                          RecordCallback recordCallback) {
+        return s_Instance->DrawFrame_Internal(cmdList, syncObject, recordCallback);
     }
 
-    static void BeginRendering(const IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
-                               bool bClear) {
-        return s_Instance->BeginRendering_Internal(ctx, cmdList, bClear);
+    static void BeginRendering(const TRef<IRHICommandList>& cmdList, bool bClear) {
+        return s_Instance->BeginRendering_Internal(cmdList, bClear);
     }
 
-    static void EndRendering(const IRHIContext* ctx, const TRef<IRHICommandList>& cmdList) {
-        return s_Instance->EndRendering_Internal(ctx, cmdList);
+    static void EndRendering(const TRef<IRHICommandList>& cmdList) {
+        return s_Instance->EndRendering_Internal(cmdList);
     }
 
-    static void TransitionImageLayout(const IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
+    static void TransitionImageLayout(const TRef<IRHICommandList>& cmdList,
                                       const TRef<IRHIImage> image, const EImageLayout newLayout) {
-        return s_Instance->TransitionImageLayout_Internal(ctx, cmdList, image, newLayout);
+        return s_Instance->TransitionImageLayout_Internal(cmdList, image, newLayout);
     }
 
 protected:
@@ -93,42 +89,33 @@ protected:
                                                    const FDeviceSpecification& spec)          = 0;
     virtual TRef<IRHISwapchain> CreateSwapchain_Internal(const IRHIContext* ctx,
                                                          const FSwapchainSpecification& spec) = 0;
-    virtual TRef<IRHISyncObject> CreateSyncObject_Internal(const IRHIContext* ctx)            = 0;
+    virtual TRef<IRHISyncObject> CreateSyncObject_Internal()                                  = 0;
     virtual TRef<IRHIFrameBuffer>
-        CreateFrameBuffer_Internal(const IRHIContext* ctx,
-                                   const FFrameBufferSpecification& spec)                   = 0;
-    virtual TRef<IRHIShader> CreateShader_Internal(const IRHIContext* ctx,
-                                                   const FShaderSpecification& spec,
+        CreateFrameBuffer_Internal(const FFrameBufferSpecification& spec)                   = 0;
+    virtual TRef<IRHIShader> CreateShader_Internal(const FRHIShaderSpecification& spec,
                                                    const std::vector<uint32_t>* binary,
                                                    const FShaderReflection reflection)      = 0;
-    virtual TRef<IRHIPipeline> CreatePipeline_Internal(const IRHIContext* ctx,
-                                                       const FPipelineSpecification& spec)  = 0;
-    virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const IRHIContext* ctx,
-                                                         const FTextureSpecification& spec) = 0;
-    virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const IRHIContext* ctx,
-                                                         const FTextureSpecification& spec,
+    virtual TRef<IRHIPipeline> CreatePipeline_Internal(const FPipelineSpecification& spec)  = 0;
+    virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const FTextureSpecification& spec) = 0;
+    virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const FTextureSpecification& spec,
                                                          FBuffer& data)                     = 0;
 
-    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const IRHIContext* ctx,
-                                                   const FBufferSpecification& spec) = 0;
+    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const FBufferSpecification& spec) = 0;
 
-    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const IRHIContext* ctx,
-                                                   const FBufferSpecification& spec,
+    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const FBufferSpecification& spec,
                                                    FBuffer& data) = 0;
 
-    virtual void DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList>& cmdList,
+    virtual void DrawFrame_Internal(const TRef<IRHICommandList>& cmdList,
                                     TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback)                          = 0;
-    virtual void BeginRendering_Internal(const IRHIContext* ctx,
-                                         const TRef<IRHICommandList>& cmdList, bool bClear) = 0;
-    virtual void EndRendering_Internal(const IRHIContext* ctx,
-                                       const TRef<IRHICommandList>& cmdList)                = 0;
+    virtual void BeginRendering_Internal(const TRef<IRHICommandList>& cmdList, bool bClear) = 0;
+    virtual void EndRendering_Internal(const TRef<IRHICommandList>& cmdList)                = 0;
 
-    virtual void TransitionImageLayout_Internal(const IRHIContext* ctx,
-                                                const TRef<IRHICommandList>& cmdList,
+    virtual void TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmdList,
                                                 const TRef<IRHIImage> image,
                                                 const EImageLayout newLayout) = 0;
 
 protected:
     static IRHIAPI* s_Instance;
+    IRHIContext* m_Context;
 };

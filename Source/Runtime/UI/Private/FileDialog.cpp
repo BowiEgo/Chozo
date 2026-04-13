@@ -398,7 +398,7 @@ FileData::FileData(const std::filesystem::path& path) {
     ThumbnailWidth  = 0;
 }
 
-UFileDialog::UFileDialog(IRHIContext* context) : m_GraphicContext(context) {
+UFileDialog::UFileDialog() {
     m_IsOpen            = false;
     m_Type              = 0;
     m_CalledOpenPopup   = false;
@@ -595,7 +595,7 @@ void UFileDialog::Close() {
     }
 
     ClearThumbnails();
-    CIconManager::Get(m_GraphicContext).ClearCaches();
+    CIconManager::Get().ClearCaches();
 }
 
 void UFileDialog::Shutdown() {
@@ -647,7 +647,7 @@ TRef<IRHITexture2D> UFileDialog::CreateTexture(uint8_t* data, int w, int h, char
     spec.Usage  = ETextureUsage::Texture;
 
     FBuffer imageData(data, w * h * 4);
-    TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(m_GraphicContext, spec, imageData);
+    TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(spec, imageData);
 
     return texture;
 }
@@ -781,13 +781,11 @@ void UFileDialog::ParseFilter(const std::string& filter) {
 TRef<IRHITexture2D> UFileDialog::GetIcon(const std::filesystem::path& path) {
     std::string pathU8 = path.string();
 
-    if (pathU8 == "Quick Access")
-        return CIconManager::Get(m_GraphicContext).GetOrLoadSVGIcon("lightning");
-    if (pathU8 == "This Computer")
-        return CIconManager::Get(m_GraphicContext).GetOrLoadSVGIcon("computer");
+    if (pathU8 == "Quick Access") return CIconManager::Get().GetOrLoadSVGIcon("lightning");
+    if (pathU8 == "This Computer") return CIconManager::Get().GetOrLoadSVGIcon("computer");
 
-    CIconManager::Get(m_GraphicContext).RestartLoading();
-    return CIconManager::Get(m_GraphicContext).GetOrLoadFileIcon(path);
+    CIconManager::Get().RestartLoading();
+    return CIconManager::Get().GetOrLoadFileIcon(path);
 }
 
 TRef<IRHITexture2D> UFileDialog::GetThumbnail(const std::filesystem::path& path) {
@@ -814,7 +812,7 @@ void UFileDialog::RequestThumbnails() {
         auto path = data.Path;
 
         m_ThumbPool.Submit([this, path] {
-            FRawFileImage thumb = ChozoUtils::File::GetFileThumbnail(path, 128);
+            FRawFileImage thumb = ChozoUtils::File::GetFileThumbnail(path, 64);
 
             CZ_LOG(LogUFileDialog, Trace, "Get Thumbnail: [PathU8]{} [Size]{} [Indice]{}",
                    thumb.PathU8, thumb.Size, thumb.Index);
@@ -945,7 +943,7 @@ void UFileDialog::SetDirectory(const std::filesystem::path& p, bool addHistory) 
     SortContent(m_SortColumn, m_SortDirection);
     ClearThumbnails();
     RefreshThumbnails();
-    CIconManager::Get(m_GraphicContext).StopLoading();
+    CIconManager::Get().StopLoading();
 }
 
 void UFileDialog::SortContent(unsigned int column, unsigned int sortDirection) {

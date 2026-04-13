@@ -10,7 +10,7 @@ class CVulkanDevice;
 
 class VULKAN_RHI_API CVulkanShader : public IRHIShader {
 public:
-    CVulkanShader(const FShaderSpecification& spec, const TRef<CVulkanDevice>& device,
+    CVulkanShader(const FRHIShaderSpecification& spec, const TRef<CVulkanDevice>& device,
                   const std::vector<uint32_t>* binary, const FShaderReflection reflection);
     virtual ~CVulkanShader();
 

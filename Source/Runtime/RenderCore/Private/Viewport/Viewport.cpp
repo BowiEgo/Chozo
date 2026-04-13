@@ -6,8 +6,7 @@
 
 #include "CameraUniformManager.h"
 
-CViewport::CViewport(IRHIContext* ctx, const FViewportSpecification& spec)
-    : m_Context(ctx), m_Spec(spec) {
+CViewport::CViewport(const FViewportSpecification& spec) : m_Spec(spec) {
     m_Camera = CreateRef<CSceneCamera>();
     m_Camera->SetViewportSize(spec.Width, spec.Height);
 
@@ -21,7 +20,7 @@ void CViewport::CreateFrameBuffer() {
     fbSpec.ColorFormats = { EPixelFormat::RGBA8_UNORM };
     fbSpec.DepthFormat  = EPixelFormat::D32_SFLOAT;
 
-    m_FrameBuffer = IRHIAPI::CreateFrameBuffer(m_Context, fbSpec);
+    m_FrameBuffer = IRHIAPI::CreateFrameBuffer(fbSpec);
 }
 
 void CViewport::Resize(uint32 width, uint32 height) {

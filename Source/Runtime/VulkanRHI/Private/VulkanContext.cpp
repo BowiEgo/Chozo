@@ -16,16 +16,16 @@ CVulkanContext::CVulkanContext(const FContextSpec& spec) : IRHIContext(spec) {
 
     {
         FDeviceSpecification spec;
-        spec.AppName = "ChozoEngine";
+        spec.AppName    = "ChozoEngine";
         spec.AppVersion = 1;
-        m_Device = IRHIAPI::CreateDevice(this, spec);
+        m_Device        = IRHIAPI::CreateDevice(this, spec);
     }
 
     {
         FSwapchainSpecification spec;
         spec.FrameBufferSize = m_Spec.FrameBufferSize;
-        spec.NativeWindow = m_Spec.NativeWindow;
-        m_Swapchain = IRHIAPI::CreateSwapchain(this, spec);
+        spec.NativeWindow    = m_Spec.NativeWindow;
+        m_Swapchain          = IRHIAPI::CreateSwapchain(this, spec);
     }
 }
 

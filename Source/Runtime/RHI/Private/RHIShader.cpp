@@ -2,7 +2,7 @@
 
 DEFINE_LOG_CATEGORY(LogRHIShader);
 
-IRHIShader::IRHIShader(const FShaderSpecification& spec, const FShaderReflection reflection)
+IRHIShader::IRHIShader(const FRHIShaderSpecification& spec, const FShaderReflection reflection)
     : m_Spec(spec), m_Reflection(reflection) {}
 
 IRHIShader::~IRHIShader() {

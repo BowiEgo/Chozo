@@ -1,12 +1,9 @@
 #version 460
 
-// ===== Uniform =====
-layout(set = 0, binding = 0) uniform CameraData {
-    mat4 View;
-    mat4 Projection;
-} u_Camera;
-
 #ifdef VERTEX_SHADER
+
+// ===== Uniform =====
+#include "shaders://Camera.glsl"
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;

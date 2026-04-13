@@ -4,7 +4,7 @@
 
 DEFINE_LOG_CATEGORY(LogScene);
 
-void FScene::Draw(IRHIContext* ctx, IRHICommandList* cmdList) {
+void FScene::Draw(IRHICommandList* cmdList) {
     m_TransformSystem.Update();
 
     auto view = View<FMeshComponent, FTransformComponent>();
@@ -16,7 +16,7 @@ void FScene::Draw(IRHIContext* ctx, IRHICommandList* cmdList) {
             auto mesh = FMeshManager::Get().GetMesh(meshComp.MeshHandle);
             if (meshComp.IsDirty()) {
                 meshComp.UpdateMesh();
-                mesh->Upload(ctx);
+                mesh->Upload();
                 CZ_LOG(LogScene, Trace, "UpdateMesh");
             }
 
@@ -27,7 +27,7 @@ void FScene::Draw(IRHIContext* ctx, IRHICommandList* cmdList) {
                 FMatrix3 NormalMatrix;
             } pushConstants;
 
-            pushConstants.ModelMatrix = transformComp.WorldMatrix;
+            pushConstants.ModelMatrix  = transformComp.WorldMatrix;
             pushConstants.NormalMatrix = transformComp.WorldNormalMatrix;
             cmdList->PushConstants(&pushConstants, sizeof(pushConstants), 0);
 
@@ -78,7 +78,7 @@ void FScene::DestroyEntity(FEntity entity) {
         // Remove this entity from parent's children list
         if (rel.Parent.IsValid() && HasComponent<FRelationshipComponent>(rel.Parent)) {
             auto& parentRel = GetComponent<FRelationshipComponent>(rel.Parent);
-            auto& children = parentRel.Children;
+            auto& children  = parentRel.Children;
             children.erase(std::remove(children.begin(), children.end(), entity), children.end());
         }
 
@@ -124,7 +124,7 @@ void FScene::SetParent(FEntity child, FEntity parent) {
             // Remove from old parent's children list
             if (HasComponent<FRelationshipComponent>(childRel.Parent)) {
                 auto& parentRel = GetComponent<FRelationshipComponent>(childRel.Parent);
-                auto& children = parentRel.Children;
+                auto& children  = parentRel.Children;
                 children.erase(std::remove(children.begin(), children.end(), child),
                                children.end());
             }
@@ -141,7 +141,7 @@ void FScene::SetParent(FEntity child, FEntity parent) {
             AddComponent<FRelationshipComponent>(parent);
         }
 
-        auto& childRel = GetComponent<FRelationshipComponent>(child);
+        auto& childRel  = GetComponent<FRelationshipComponent>(child);
         auto& parentRel = GetComponent<FRelationshipComponent>(parent);
 
         childRel.Parent = parent;
@@ -167,8 +167,8 @@ std::vector<FEntity> FScene::GetChildren(FEntity entity) {
 
 void FScene::SetTransform(FEntity entity, const FTransformParams& params) {
     bool hasTransformComp = HasComponent<FTransformComponent>(entity);
-    auto& comp = hasTransformComp ? GetComponent<FTransformComponent>(entity)
-                                  : AddComponent<FTransformComponent>(entity);
+    auto& comp            = hasTransformComp ? GetComponent<FTransformComponent>(entity)
+                                             : AddComponent<FTransformComponent>(entity);
     comp.SetTransformParams(params);
 
     m_TransformSystem.MarkDirty(entity);

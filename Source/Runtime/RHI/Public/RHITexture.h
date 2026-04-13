@@ -85,6 +85,12 @@ struct FTextureSpecification {
         imgSpec.Usage     = ToImageUsage(Usage, Format, bGenerateMips);
         return imgSpec;
     }
+
+    bool operator==(const FTextureSpecification& other) const {
+        return Name == other.Name && Size == other.Size && Format == other.Format &&
+               Usage == other.Usage && Type == other.Type && bGenerateMips == other.bGenerateMips &&
+               SamplerSpec == other.SamplerSpec;
+    }
 };
 
 class RHI_API IRHITexture : public IRHIResource {

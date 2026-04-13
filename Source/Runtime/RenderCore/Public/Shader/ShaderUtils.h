@@ -8,7 +8,7 @@ namespace ChozoUtils::Shader {
 
 EShaderStage StringToStage(std::string_view shaderStage);
 
-const char* StageToString(EShaderStage shaderStage);
+const std::string StageToString(EShaderStage shaderStage, bool bUpper = false);
 
 EShaderStage GetStageFromExtension(const std::string& extension);
 

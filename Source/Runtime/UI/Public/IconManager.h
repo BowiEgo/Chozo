@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "FileUtils.h"
-#include "RHIContext.h"
 #include "RHITexture2D.h"
 #include "ThreadPool.h"
 #include "UIExport.h"
@@ -16,12 +15,12 @@ class UI_API CIconManager {
     };
 
 public:
-    static inline CIconManager& Get(IRHIContext* context) {
-        static CIconManager ret(context);
+    static inline CIconManager& Get() {
+        static CIconManager ret;
         return ret;
     }
 
-    CIconManager(IRHIContext* context);
+    CIconManager();
     ~CIconManager();
 
 private:
@@ -33,17 +32,18 @@ public:
     TRef<IRHITexture2D> GetOrLoadFileIcon(const std::filesystem::path& path);
     TRef<IRHITexture2D> GetDefaultIcon(const std::filesystem::path& path);
 
-    void ProcessRawIcons();
+    void Update();
+    void ProcessRawIcons(uint32 frameIndex);
     void StopLoading();
     void RestartLoading();
     void ClearCaches();
     void Shutdown();
 
 private:
-    IRHIContext* m_GraphicContext;
-
     CThreadPool m_ThreadPool{ 4 };
     std::mutex m_ThreadMutex;
+
+    uint32 m_CurrentFrame;
 
     std::vector<FPendingDeletion> m_DeletionQueue;
 

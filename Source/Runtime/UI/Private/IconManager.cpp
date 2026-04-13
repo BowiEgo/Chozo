@@ -10,7 +10,7 @@ DEFINE_LOG_CATEGORY(LogIconManager);
 static const char* GetDefaultFolderIcon();
 static const char* GetDefaultFileIcon();
 
-CIconManager::CIconManager(IRHIContext* context) : m_GraphicContext(context) {
+CIconManager::CIconManager() {
     FRawFileImage folderIconImage, fileIconImage;
 
     size_t dataSize         = DEFAULT_ICON_SIZE * DEFAULT_ICON_SIZE * 4;
@@ -57,13 +57,13 @@ CIconManager::CIconManager(IRHIContext* context) : m_GraphicContext(context) {
     {
         spec.Name = "DefaultFolderIcon";
         FBuffer imageData(folderIconImage.Data, folderIconImage.Width * folderIconImage.Height * 4);
-        m_DefaultFolderIcon = IRHIAPI::CreateTexture2D(m_GraphicContext, spec, imageData);
+        m_DefaultFolderIcon = IRHIAPI::CreateTexture2D(spec, imageData);
     }
 
     {
         spec.Name = "DefaultFileIcon";
         FBuffer imageData(fileIconImage.Data, fileIconImage.Width * fileIconImage.Height * 4);
-        m_DefaultFileIcon = IRHIAPI::CreateTexture2D(m_GraphicContext, spec, imageData);
+        m_DefaultFileIcon = IRHIAPI::CreateTexture2D(spec, imageData);
     }
 }
 
@@ -77,7 +77,7 @@ TRef<IRHITexture2D> CIconManager::GetOrLoadSVGIcon(const std::string& name) {
         return itr->second;
     }
 
-    auto icon             = ChozoUtils::UI::LoadSVGIcon(m_GraphicContext, name);
+    auto icon             = ChozoUtils::UI::LoadSVGIcon(name);
     m_SVGIconCaches[name] = icon;
 
     return icon;
@@ -106,6 +106,8 @@ TRef<IRHITexture2D> CIconManager::GetOrLoadFileIcon(const std::filesystem::path&
         return itrCache->second;
     }
 
+    // CZ_LOG(LogIconManager, Info, "Submit File Request: [PathU8]{}", pathString);
+
     m_ThreadPool.Submit([this, path] {
         FRawFileImage icon = ChozoUtils::File::GetFileIcon(path);
 
@@ -120,13 +122,14 @@ TRef<IRHITexture2D> CIconManager::GetOrLoadFileIcon(const std::filesystem::path&
 
     return GetDefaultIcon(path);
 }
+void CIconManager::Update() { UpdateDeletionQueue(); }
 
-void CIconManager::ProcessRawIcons() {
+void CIconManager::ProcessRawIcons(uint32 frameIndex) {
     std::lock_guard<std::mutex> lock(m_ThreadMutex);
 
-    if (m_RawFileIconCaches.empty()) return;
+    m_CurrentFrame = frameIndex;
 
-    uint32_t currentFrame = m_GraphicContext->GetCurrentFrameIndex();
+    if (m_RawFileIconCaches.empty()) return;
 
     for (auto& icon : m_RawFileIconCaches) {
         FTextureSpecification spec;
@@ -136,10 +139,10 @@ void CIconManager::ProcessRawIcons() {
         spec.Usage  = ETextureUsage::Texture;
 
         FBuffer imageData(icon.Data, icon.Width * icon.Height * 4);
-        auto texture = IRHIAPI::CreateTexture2D(m_GraphicContext, spec, imageData);
+        auto texture = IRHIAPI::CreateTexture2D(spec, imageData);
 
         if (m_FileIconCaches.contains(icon.Index)) {
-            m_DeletionQueue.push_back({ m_FileIconCaches[icon.Index], currentFrame });
+            m_DeletionQueue.push_back({ m_FileIconCaches[icon.Index], m_CurrentFrame });
         }
 
         m_FileIconCaches[icon.Index]   = texture;
@@ -153,8 +156,6 @@ void CIconManager::ProcessRawIcons() {
     }
 
     m_RawFileIconCaches.clear();
-
-    UpdateDeletionQueue();
 }
 
 TRef<IRHITexture2D> CIconManager::GetDefaultIcon(const std::filesystem::path& path) {
@@ -173,12 +174,10 @@ void CIconManager::RestartLoading() { m_ThreadPool.Restart(4); }
 void CIconManager::ClearCaches() {
     std::lock_guard<std::mutex> lock(m_ThreadMutex);
 
-    uint32_t currentFrame = m_GraphicContext->GetCurrentFrameIndex();
-
     for (auto& [name, texture] : m_SVGIconCaches) {
         FPendingDeletion pending;
         pending.Texture    = texture;
-        pending.FrameIndex = currentFrame;
+        pending.FrameIndex = m_CurrentFrame;
         m_DeletionQueue.push_back(std::move(pending));
     }
     m_SVGIconCaches.clear();
@@ -187,7 +186,7 @@ void CIconManager::ClearCaches() {
     for (auto& [index, texture] : m_FileIconCaches) {
         FPendingDeletion pending;
         pending.Texture    = texture;
-        pending.FrameIndex = currentFrame;
+        pending.FrameIndex = m_CurrentFrame;
         m_DeletionQueue.push_back(std::move(pending));
     }
     m_FileIconCaches.clear();
@@ -200,16 +199,16 @@ void CIconManager::ClearCaches() {
 }
 
 void CIconManager::UpdateDeletionQueue() {
-    CZ_LOG(LogIconManager, Info, "UpdateDeletionQueue: {}", m_DeletionQueue.size());
+    // CZ_LOG(LogIconManager, Info, "UpdateDeletionQueue: {}", m_DeletionQueue.size());
 
     // [Note] No lock needed if called within an already locked scope
-    uint32 currentFrame = m_GraphicContext->GetCurrentFrameIndex();
+    uint32 currentFrame = m_CurrentFrame;
     uint32 graceFrames  = 3;
 
     auto it = std::remove_if(m_DeletionQueue.begin(), m_DeletionQueue.end(),
                              [currentFrame, graceFrames](const FPendingDeletion& pending) {
-                                 return true;
-                                 //  return currentFrame - pending.FrameIndex >= graceFrames;
+                                 //  return true;
+                                 return currentFrame - pending.FrameIndex >= graceFrames;
                              });
 
     uint32 size = 0;
@@ -219,8 +218,8 @@ void CIconManager::UpdateDeletionQueue() {
     }
 
     m_DeletionQueue.erase(it, m_DeletionQueue.end());
-    CZ_LOG(LogIconManager, Info, "UpdateDeletionQueue Finished: {} in {}", size,
-           m_DeletionQueue.size());
+    // CZ_LOG(LogIconManager, Info, "UpdateDeletionQueue Finished: {} in {}", size,
+    //        m_DeletionQueue.size());
 }
 
 void CIconManager::Shutdown() {

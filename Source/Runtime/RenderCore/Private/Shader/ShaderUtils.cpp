@@ -25,10 +25,10 @@ EShaderStage StringToStage(std::string_view shaderStage) {
     return EShaderStage::None;
 }
 
-const char* StageToString(EShaderStage shaderStage) {
+const std::string StageToString(EShaderStage shaderStage, bool bUpper) {
     switch (shaderStage) {
 #define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL, VULKAN)                                     \
-    case EShaderStage::ENUM: return #ENUM;
+    case EShaderStage::ENUM: return bUpper ? #UPPER : #ENUM;
         FOREACH_SHADER_STAGE(GENERATE_CASE)
 #undef GENERATE_CASE
         default: return "Unknown";

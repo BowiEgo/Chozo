@@ -19,7 +19,7 @@ public:
         return instance;
     }
 
-    void Initialize(IRHIContext* context);
+    void Initialize();
     void Shutdown();
 
     void RegisterCamera(CCamera* camera);
@@ -30,7 +30,7 @@ public:
     TRef<IRHIBuffer> GetBufferForCamera(const CCamera* camera);
 
 private:
-    CCameraUniformManager() = default;
+    CCameraUniformManager()  = default;
     ~CCameraUniformManager() = default;
 
 private:
@@ -41,6 +41,5 @@ private:
     };
 
     std::vector<CameraEntry> m_Cameras;
-    IRHIContext* m_Context = nullptr;
     std::mutex m_Mutex;
 };

@@ -172,8 +172,8 @@ void CVulkanImage::CreateImageResources() {
     m_VKImage  = vkImageRaw;
     m_VKMemory = VK_NULL_HANDLE;
 
-    CZ_LOG(LogVulkanImage, Trace, "Created image via VMA: size={}x{}, layers={}, mips={}",
-           m_Spec.Size.Width, m_Spec.Size.Height, m_Spec.Layers, m_Spec.MipLevels);
+    // CZ_LOG(LogVulkanImage, Trace, "Created image via VMA: size={}x{}, layers={}, mips={}",
+    //        m_Spec.Size.Width, m_Spec.Size.Height, m_Spec.Layers, m_Spec.MipLevels);
 }
 
 vk::ImageView CVulkanImage::GetOrCreateView(const FImageViewSpecification& spec) {

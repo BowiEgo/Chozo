@@ -54,76 +54,66 @@ public:
         return CreateRef<CVulkanSwapchain>(spec, RHIDevice, vkSurface);
     }
 
-    virtual TRef<IRHISyncObject> CreateSyncObject_Internal(const IRHIContext* ctx) override {
-        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+    virtual TRef<IRHISyncObject> CreateSyncObject_Internal() override {
+        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
 
         return CreateRef<CVulkanSyncObject>(RHIDevice);
     }
 
     virtual TRef<IRHIPipeline>
-        CreatePipeline_Internal(const IRHIContext* ctx,
-                                const FPipelineSpecification& spec) override {
-        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+        CreatePipeline_Internal(const FPipelineSpecification& spec) override {
+        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
 
         return CreateRef<CVulkanPipeline>(spec, RHIDevice);
     }
 
     virtual TRef<IRHIFrameBuffer>
-        CreateFrameBuffer_Internal(const IRHIContext* ctx,
-                                   const FFrameBufferSpecification& spec) override {
-        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+        CreateFrameBuffer_Internal(const FFrameBufferSpecification& spec) override {
+        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
 
         return CreateRef<CVulkanFrameBuffer>(spec, RHIDevice);
     }
 
-    virtual TRef<IRHIShader> CreateShader_Internal(const IRHIContext* ctx,
-                                                   const FShaderSpecification& spec,
+    virtual TRef<IRHIShader> CreateShader_Internal(const FRHIShaderSpecification& spec,
                                                    const std::vector<uint32_t>* binary,
                                                    const FShaderReflection reflection) override {
-        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
 
         return CreateRef<CVulkanShader>(spec, RHIDevice, binary, reflection);
     }
 
     virtual TRef<IRHITexture2D>
-        CreateTexture2D_Internal(const IRHIContext* ctx,
-                                 const FTextureSpecification& spec) override {
-        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+        CreateTexture2D_Internal(const FTextureSpecification& spec) override {
+        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
 
         return RHIDevice->CreateTexture2D(spec);
     }
 
-    virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const IRHIContext* ctx,
-                                                         const FTextureSpecification& spec,
+    virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const FTextureSpecification& spec,
                                                          FBuffer& data) override {
-        auto RHIDevice = ctx->GetDevice();
+        auto RHIDevice = m_Context->GetDevice();
 
         return CreateRef<CVulkanTexture2D>(WeakRef(RHIDevice), spec, data);
     }
 
-    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const IRHIContext* ctx,
-                                                   const FBufferSpecification& spec) override {
-        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const FBufferSpecification& spec) override {
+        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
         return CreateRef<CVulkanBuffer>(WeakRef(RHIDevice), spec);
     }
 
-    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const IRHIContext* ctx,
-                                                   const FBufferSpecification& spec,
+    virtual TRef<IRHIBuffer> CreateBuffer_Internal(const FBufferSpecification& spec,
                                                    FBuffer& data) override {
-        auto RHIDevice = ctx->GetDevice().As<CVulkanDevice>();
+        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
         return CreateRef<CVulkanBuffer>(WeakRef(RHIDevice), spec, data);
     }
 
-    virtual void DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList>& cmdBuffer,
+    virtual void DrawFrame_Internal(const TRef<IRHICommandList>& cmdBuffer,
                                     TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback) override;
-    virtual void BeginRendering_Internal(const IRHIContext* ctx,
-                                         const TRef<IRHICommandList>& cmdBuffer,
+    virtual void BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer,
                                          bool bClear) override;
-    virtual void EndRendering_Internal(const IRHIContext* ctx,
-                                       const TRef<IRHICommandList>& cmdBuffer) override;
-    virtual void TransitionImageLayout_Internal(const IRHIContext* ctx,
-                                                const TRef<IRHICommandList>& cmdBuffer,
+    virtual void EndRendering_Internal(const TRef<IRHICommandList>& cmdBuffer) override;
+    virtual void TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmdBuffer,
                                                 const TRef<IRHIImage> image,
                                                 const EImageLayout newLayout) override;
 

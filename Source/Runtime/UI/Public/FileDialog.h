@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "FileUtils.h"
-#include "RHIContext.h"
 #include "RHITexture2D.h"
 #include "ThreadPool.h"
 #include "UIExport.h"
@@ -49,12 +48,12 @@ public:
 
 class UI_API UFileDialog {
 public:
-    static inline UFileDialog& Get(IRHIContext* context) {
-        static UFileDialog ret(context);
+    static inline UFileDialog& Get() {
+        static UFileDialog ret;
         return ret;
     }
 
-    UFileDialog(IRHIContext* context);
+    UFileDialog();
     ~UFileDialog();
 
     bool Save(const std::string& key, const std::string& title, const std::string& filter,
@@ -113,8 +112,6 @@ private:
     void RenderFileDialog();
 
 private:
-    IRHIContext* m_GraphicContext;
-
     std::string m_CurrentKey;
     std::string m_CurrentTitle;
     std::filesystem::path m_CurrentDirectory;

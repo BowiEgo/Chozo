@@ -4,7 +4,7 @@
 
 DEFINE_LOG_CATEGORY(LogVulkanShader);
 
-CVulkanShader::CVulkanShader(const FShaderSpecification& spec, const TRef<CVulkanDevice>& device,
+CVulkanShader::CVulkanShader(const FRHIShaderSpecification& spec, const TRef<CVulkanDevice>& device,
                              const std::vector<uint32_t>* binary,
                              const FShaderReflection reflection)
     : IRHIShader(spec, reflection), m_Device(device) {

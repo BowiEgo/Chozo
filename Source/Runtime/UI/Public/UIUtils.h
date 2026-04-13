@@ -2,7 +2,6 @@
 
 #include "CoreMinimal.h"
 #include "Params.h"
-#include "RHIContext.h"
 #include "RHITexture2D.h"
 #include "Ref.h"
 #include "StringUtils.h"
@@ -17,13 +16,13 @@ DECLARE_LOG_CATEGORY_EXTERN(LogUIUtils, Info);
 
 namespace ChozoUtils::UI {
 
-#define COLOR_WHITE 0xFFFFFFFF
-#define COLOR_BLACK 0xFF000000
-#define COLOR_RED 0xFF0000FF
-#define COLOR_GREEN 0xFF00FF00
-#define COLOR_BLUE 0xFFFF0000
-#define COLOR_YELLOW 0xFF00FFFF
-#define COLOR_CYAN 0xFFFFFF00
+#define COLOR_WHITE   0xFFFFFFFF
+#define COLOR_BLACK   0xFF000000
+#define COLOR_RED     0xFF0000FF
+#define COLOR_GREEN   0xFF00FF00
+#define COLOR_BLUE    0xFFFF0000
+#define COLOR_YELLOW  0xFF00FFFF
+#define COLOR_CYAN    0xFFFFFF00
 #define COLOR_MAGENTA 0xFFFF00FF
 
 enum class ImGuiStyleType {
@@ -200,7 +199,7 @@ struct ImGuiStyleExtended : public ImGuiStyle {
 
 class ScopedStyle {
 public:
-    ScopedStyle(const ScopedStyle&) = delete;
+    ScopedStyle(const ScopedStyle&)            = delete;
     ScopedStyle& operator=(const ScopedStyle&) = delete;
     template <typename T> ScopedStyle(ImGuiStyleVar styleVar, T value) {
         ImGui::PushStyleVar(styleVar, value);
@@ -210,16 +209,16 @@ public:
 
 template <typename T> class ScopedFrameStyle {
 public:
-    ScopedFrameStyle(const ScopedFrameStyle&) = delete;
+    ScopedFrameStyle(const ScopedFrameStyle&)            = delete;
     ScopedFrameStyle& operator=(const ScopedFrameStyle&) = delete;
     ScopedFrameStyle(ImGuiStyleType styleType, T value) {
-        ImGuiStyleExtended& style = static_cast<ImGuiStyleExtended&>(ImGui::GetStyle());
-        m_StyleType = styleType;
-        m_OldValue = style.GetStyleVar<T>(styleType);
+        ImGuiStyleExtended& style       = static_cast<ImGuiStyleExtended&>(ImGui::GetStyle());
+        m_StyleType                     = styleType;
+        m_OldValue                      = style.GetStyleVar<T>(styleType);
         style.GetStyleVar<T>(styleType) = value;
     }
     ~ScopedFrameStyle() {
-        ImGuiStyleExtended& style = static_cast<ImGuiStyleExtended&>(ImGui::GetStyle());
+        ImGuiStyleExtended& style         = static_cast<ImGuiStyleExtended&>(ImGui::GetStyle());
         style.GetStyleVar<T>(m_StyleType) = m_OldValue;
     }
 
@@ -230,7 +229,7 @@ private:
 
 class ScopedColor {
 public:
-    ScopedColor(const ScopedColor&) = delete;
+    ScopedColor(const ScopedColor&)            = delete;
     ScopedColor& operator=(const ScopedColor&) = delete;
     template <typename T> ScopedColor(ImGuiCol colourId, T colour) {
         ImGui::PushStyleColor(colourId, ImColor(colour).Value);
@@ -240,7 +239,7 @@ public:
 
 class ScopedFont {
 public:
-    ScopedFont(const ScopedFont&) = delete;
+    ScopedFont(const ScopedFont&)            = delete;
     ScopedFont& operator=(const ScopedFont&) = delete;
     ScopedFont(ImFont* font) { ImGui::PushFont(font); }
     ~ScopedFont() { ImGui::PopFont(); }
@@ -248,17 +247,17 @@ public:
 
 template <typename T> class ScopedFontStyle {
 public:
-    ScopedFontStyle(const ScopedFontStyle&) = delete;
+    ScopedFontStyle(const ScopedFontStyle&)            = delete;
     ScopedFontStyle& operator=(const ScopedFontStyle&) = delete;
     ScopedFontStyle(ImGuiFontStyle fontStyle, T value) {
-        ImGuiFontExtended* font = static_cast<ImGuiFontExtended*>(ImGui::GetFont());
-        m_FontStyle = fontStyle;
-        m_OldValue = font->GetStyleVar<T>(fontStyle);
+        ImGuiFontExtended* font         = static_cast<ImGuiFontExtended*>(ImGui::GetFont());
+        m_FontStyle                     = fontStyle;
+        m_OldValue                      = font->GetStyleVar<T>(fontStyle);
         font->GetStyleVar<T>(fontStyle) = value;
         ImGui::PushFont(font);
     }
     ~ScopedFontStyle() {
-        ImGuiFontExtended* font = static_cast<ImGuiFontExtended*>(ImGui::GetFont());
+        ImGuiFontExtended* font           = static_cast<ImGuiFontExtended*>(ImGui::GetFont());
         font->GetStyleVar<T>(m_FontStyle) = m_OldValue;
         ImGui::PopFont();
     }
@@ -270,7 +269,7 @@ private:
 
 class ScopedID {
 public:
-    ScopedID(const ScopedID&) = delete;
+    ScopedID(const ScopedID&)            = delete;
     ScopedID& operator=(const ScopedID&) = delete;
     template <typename T> ScopedID(T id) { ImGui::PushID(id); }
     ~ScopedID() { ImGui::PopID(); }
@@ -278,7 +277,7 @@ public:
 
 class ScopedColorStack {
 public:
-    ScopedColorStack(const ScopedColorStack&) = delete;
+    ScopedColorStack(const ScopedColorStack&)            = delete;
     ScopedColorStack& operator=(const ScopedColorStack&) = delete;
     template <typename ColorType, typename... OtherColors>
     ScopedColorStack(ImGuiCol firstColorID, ColorType firstColor, OtherColors&&... otherColorPairs)
@@ -329,7 +328,7 @@ inline ImColor ColourWithHue(const ImColor& color, float hue) {
 
 inline ImColor ColourWithAlpha(const ImColor& color, float multiplier) {
     ImVec4 colRaw = color.Value;
-    colRaw.w = multiplier;
+    colRaw.w      = multiplier;
     return colRaw;
 }
 
@@ -474,12 +473,12 @@ inline void DrawButtonImageByRatio(const TRef<IRHITexture2D>& image) {
     ImVec2 uv1(1.0f, 0.0f);
     if (imageAspectRatio <= 1.0f) {
         float offsetY = (1.0f - 1.0f / imageAspectRatio) / 2.0f;
-        uv0.y = 1.0f - offsetY;
-        uv1.y = offsetY;
+        uv0.y         = 1.0f - offsetY;
+        uv1.y         = offsetY;
     } else {
         float offsetX = (1.0f - imageAspectRatio) / 2.0f;
-        uv0.x = offsetX;
-        uv1.x = 1.0f - offsetX;
+        uv0.x         = offsetX;
+        uv1.x         = 1.0f - offsetX;
     }
 
     UI::DrawButtonImage(image, IM_COL32(255, 255, 255, 225),
@@ -562,8 +561,8 @@ static void DrawDashedRect(ImVec2 min, ImVec2 max, ImU32 color, float thickness 
     }
 }
 
-TRef<IRHITexture2D> LoadSVGIcon(const IRHIContext* ctx, const std::string& name,
-                                int targetSize = 32, uint32 strokeColor = COLOR_WHITE);
+TRef<IRHITexture2D> LoadSVGIcon(const std::string& name, int targetSize = 32,
+                                uint32 strokeColor = COLOR_WHITE);
 
 unsigned char* LoadImagePreview(const char* path, int max_size, int* out_w, int* out_h);
 
@@ -593,7 +592,7 @@ static void DrawAxis(const char* label, float* value, const ImVec2& buttonSize, 
         ImGui::SameLine();
 
         if (ImGui::Button("", buttonSize)) {
-            *value = resetValue;
+            *value       = resetValue;
             valueChanged = true;
         }
     }
@@ -614,7 +613,7 @@ static bool DrawVec3Control(const std::string& label, FVector3& values,
                             const float columnWidth = 100.0f) {
     bool valueChanged = false;
 
-    const ImGuiIO& io = ImGui::GetIO();
+    const ImGuiIO& io   = ImGui::GetIO();
     const auto boldFont = io.Fonts->Fonts[0];
 
     ChozoUtils::UI::ScopedID id(label.c_str());
@@ -622,7 +621,7 @@ static bool DrawVec3Control(const std::string& label, FVector3& values,
     ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
     ChozoUtils::UI::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
-    const float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+    const float lineHeight  = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
     const ImVec2 buttonSize = { 8.0f, lineHeight };
 
     DrawAxis<0>("X", &values.x, buttonSize, boldFont, valueSpeed, resetValue, valueChanged);
@@ -643,7 +642,7 @@ bool DrawControl(T& value, const std::string& name, float speed = 0.01f, float m
         }
         return ImGui::DragFloat(id.c_str(), &value, speed);
     } else if constexpr (std::is_same_v<T, double>) {
-        float temp = static_cast<float>(value);
+        float temp   = static_cast<float>(value);
         bool changed = ImGui::DragFloat(id.c_str(), &temp, static_cast<float>(speed));
         if (changed) {
             value = static_cast<double>(temp);
@@ -656,9 +655,9 @@ bool DrawControl(T& value, const std::string& name, float speed = 0.01f, float m
         }
         return ImGui::DragInt(id.c_str(), &value, static_cast<int>(speed));
     } else if constexpr (std::is_same_v<T, uint32_t>) {
-        int temp = static_cast<int>(value);
-        int minInt = static_cast<int>(min);
-        int maxInt = static_cast<int>(max);
+        int temp     = static_cast<int>(value);
+        int minInt   = static_cast<int>(min);
+        int maxInt   = static_cast<int>(max);
         bool changed = false;
 
         if (maxInt > minInt) {
@@ -673,14 +672,14 @@ bool DrawControl(T& value, const std::string& name, float speed = 0.01f, float m
         }
         return false;
     } else if constexpr (std::is_same_v<T, int64_t>) {
-        int temp = static_cast<int>(value);
+        int temp     = static_cast<int>(value);
         bool changed = ImGui::DragInt(id.c_str(), &temp, static_cast<int>(speed));
         if (changed) {
             value = static_cast<int64_t>(temp);
         }
         return changed;
     } else if constexpr (std::is_same_v<T, uint64_t>) {
-        int temp = static_cast<int>(value);
+        int temp     = static_cast<int>(value);
         bool changed = ImGui::DragInt(id.c_str(), &temp, static_cast<int>(speed));
         if (changed && temp >= 0) {
             value = static_cast<uint64_t>(temp);
@@ -713,7 +712,7 @@ bool DrawControl(T& value, const std::string& name, float speed = 0.01f, float m
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, FQuaternion>) {
         FVector3 euler = value.ToEuler();
-        bool changed = ImGui::DragFloat3(id.c_str(), &euler.x, speed);
+        bool changed   = ImGui::DragFloat3(id.c_str(), &euler.x, speed);
         if (changed) {
             value = FQuaternion::FromEuler(euler);
         }
@@ -860,7 +859,7 @@ private:
         ImGui::PopItemWidth();
     }
 
-    bool m_ReadOnly = false;
+    bool m_ReadOnly      = false;
     bool m_bValueChanged = false;
 };
 

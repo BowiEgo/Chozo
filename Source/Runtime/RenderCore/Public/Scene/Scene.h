@@ -7,7 +7,6 @@
 #include "Entity.h"
 #include "MeshParams.h"
 #include "RHICommandList.h"
-#include "RHIContext.h"
 #include "TransformParams.h"
 #include "TransformSystem.h"
 
@@ -17,10 +16,10 @@ DECLARE_LOG_CATEGORY_EXTERN(LogScene, Info);
 
 class RENDER_CORE_API FScene : public IAsset {
 public:
-    FScene() = default;
+    FScene()  = default;
     ~FScene() = default;
 
-    void Draw(IRHIContext* ctx, IRHICommandList* cmdList);
+    void Draw(IRHICommandList* cmdList);
 
     // ----- Entity Management -----
     FEntity CreateEntity(const std::string& name = "");

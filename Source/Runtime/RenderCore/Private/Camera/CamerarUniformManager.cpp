@@ -5,12 +5,9 @@
 
 DEFINE_LOG_CATEGORY(LogCameraUniformManager);
 
-void CCameraUniformManager::Initialize(IRHIContext* context) { m_Context = context; }
+void CCameraUniformManager::Initialize() {}
 
-void CCameraUniformManager::Shutdown() {
-    m_Cameras.clear();
-    m_Context = nullptr;
-}
+void CCameraUniformManager::Shutdown() { m_Cameras.clear(); }
 
 void CCameraUniformManager::RegisterCamera(CCamera* camera) {
     std::lock_guard<std::mutex> lock(m_Mutex);
@@ -27,7 +24,7 @@ void CCameraUniformManager::RegisterCamera(CCamera* camera) {
 
     CameraEntry entry;
     entry.camera = camera;
-    entry.buffer = IRHIAPI::CreateBuffer(m_Context, spec);
+    entry.buffer = IRHIAPI::CreateBuffer(spec);
 
     m_Cameras.push_back(std::move(entry));
 

@@ -5,33 +5,23 @@
 
 DEFINE_LOG_CATEGORY(LogShader);
 
-CShader::CShader(const FShaderSpecification& spec, const FShaderCompilerOutput& data,
-                 const WeakRef<IRHIDevice> device)
-    : m_Spec(spec), m_Data(data), m_Device(device) {
-    const std::string stageStr = ChozoUtils::Shader::StageToString(spec.Stage);
-
-    m_Spec.Name = spec.Name + "_" + stageStr; // e.g., MyShader_Vertex
-
+CShader::CShader(const FShaderSpecification& spec,
+                 const std::unordered_map<EShaderStage, FShaderCompilerOutput>& outputs)
+    : m_Spec(spec), m_Datas(outputs) {
     CZ_LOG(LogShader, Trace, "Creating shader {} ...", m_Spec.Name);
 }
 
-TRef<IRHIShader> CShader::CreateRHIDeviceResource(const IRHIContext* ctx,
-                                                  const FShaderCompilerOutput& data) {
-    // Only create RHI resources for stages that were actually compiled
-    auto device = m_Device.lock();
-    if (!device) {
-        CZ_LOG(LogShader, Error, "Device is no longer valid during shader creation!");
-        return nullptr;
+void CShader::CreateRHIDeviceResources() {
+    m_ShaderResources.reserve(m_Datas.size());
+
+    for (auto& [stage, output] : m_Datas) {
+        FRHIShaderSpecification spec;
+        spec.Name       = m_Spec.Name + "_" + ChozoUtils::Shader::StageToString(stage);
+        spec.Stage      = stage;
+        spec.EntryPoint = m_Spec.EntryPoint;
+
+        auto RHIShader = IRHIAPI::CreateShader(spec, &output.Binary, output.Reflection);
+
+        m_ShaderResources.push_back(RHIShader);
     }
-
-    if (data.bSucceeded && !data.Binary.empty()) {
-        // Use the Device to create the actual hardware resource
-        auto RHIShader = IRHIAPI::CreateShader(ctx, m_Spec, &data.Binary, data.Reflection);
-
-        CZ_LOG(LogShader, Info, "RHI shader: {} created.", m_Spec.Name);
-
-        return RHIShader;
-    }
-
-    return nullptr;
 }

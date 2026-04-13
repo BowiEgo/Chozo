@@ -17,7 +17,7 @@ struct FViewportSpecification {
 
 class RENDER_CORE_API CViewport {
 public:
-    CViewport(IRHIContext* ctx, const FViewportSpecification& spec);
+    CViewport(const FViewportSpecification& spec);
     ~CViewport() = default;
 
     void Resize(uint32_t width, uint32_t height);
@@ -38,7 +38,6 @@ private:
     void CreateFrameBuffer();
 
 private:
-    IRHIContext* m_Context;
     FViewportSpecification m_Spec;
 
     FScene* m_Scene;

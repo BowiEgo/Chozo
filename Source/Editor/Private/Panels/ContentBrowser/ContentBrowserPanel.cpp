@@ -28,7 +28,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Import")) {
-                UFileDialog::Get(m_Context).Open(
+                UFileDialog::Get().Open(
                     "ContentBrowserImportDialog", "Open a texture",
                     "Image file "
                     "(*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.hdr){.png,.jpg,.jpeg,.bmp,.tga,.hdr},.*");
@@ -313,7 +313,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
     ImGui::End();
 
     // ------ File Dialog ------
-    auto& fileDialog = UFileDialog::Get(m_Context);
+    auto& fileDialog = UFileDialog::Get();
     if (fileDialog.IsDone("ContentBrowserImportDialog")) {
         if (fileDialog.HasResult()) {
             std::string res = fileDialog.GetResult().string();
@@ -330,7 +330,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
             spec.Format = ChozoUtils::FileSystem::PixelFormatFromDesc(desc);
             spec.Usage  = ETextureUsage::Texture;
 
-            TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(m_Context, spec, buffer);
+            TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(spec, buffer);
 
             const char* assetPath = res.c_str();
             ImGuiID id            = ImGui::GetID(assetPath);

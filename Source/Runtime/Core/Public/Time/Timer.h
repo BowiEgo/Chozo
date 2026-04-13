@@ -60,16 +60,16 @@ private:
 
 enum class EProfileSlot : uint32_t {
     TotalFrame = 0,
-    Render,
     Logic,
-    Wait,
     ImGui,
+    Render,
+    Wait,
     COUNT // Used for array sizing
 };
 
 // Keep human-readable names for UI display only
-const char* const GProfileSlotNames[] = { "Total FrameTime", "Render", "LogicUpdate", "Wait Time",
-                                          "ImGui Render" };
+const char* const GProfileSlotNames[] = { "Total FrameTime", "LogicUpdate", "ImGui Render",
+                                          "Render", "Wait Time" };
 
 static_assert(sizeof(GProfileSlotNames) / sizeof(const char*) ==
                   static_cast<uint32_t>(EProfileSlot::COUNT),

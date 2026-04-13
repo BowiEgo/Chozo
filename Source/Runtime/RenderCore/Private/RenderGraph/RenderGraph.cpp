@@ -7,6 +7,6 @@ CRenderGraph::~CRenderGraph() {
         }
     }
 
-    m_Textures.clear();
+    // m_Textures.clear();
     m_Passes.clear();
 }

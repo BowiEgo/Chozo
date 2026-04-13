@@ -15,10 +15,10 @@ public:
     FProceduralMesh() = default;
     ~FProceduralMesh();
 
-    virtual FMeshBuffer* GenerateBuffer() = 0;
+    virtual FMeshBuffer* GenerateBuffer()         = 0;
     virtual void SetParams(const IParams& params) = 0;
 
-    void Upload(IRHIContext* context);
+    void Upload();
 
     TRef<IRHIBuffer> GetVertexBuffer() const { return m_VertexBuffer; }
     TRef<IRHIBuffer> GetIndexBuffer() const { return m_IndexBuffer; }

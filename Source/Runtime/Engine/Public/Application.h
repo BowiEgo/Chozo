@@ -80,6 +80,9 @@ public:
     FPSCounter* GetFPSCounter() { return &m_FPSCounter; }
     EAppPowerMode GetPowerMode() { return m_PowerMode; }
     CImGuiLayer& GetImGuiLayer() const { return *m_ImGuiLayer; }
+    uint32 GetCurrentFrameIndex() const {
+        return m_RenderEngine->GetRenderer()->GetGraphicContext()->GetCurrentFrameIndex();
+    }
 
     static CApplication* Get() { return s_Instance; }
 

@@ -228,7 +228,7 @@ void EditorLayer::OnImGuiRender() {
 #pragma endregion
 
     auto context     = m_ViewportRenderer->GetGraphicContext();
-    auto& fileDialog = UFileDialog::Get(context);
+    auto& fileDialog = UFileDialog::Get();
     if (fileDialog.IsDone("TextureOpenDialog")) {
         if (fileDialog.HasResult()) {
             std::string res = fileDialog.GetResult().string();
@@ -299,7 +299,7 @@ void EditorLayer::NewProject() {}
 void EditorLayer::OpenProject() {
     auto context = m_ViewportRenderer->GetGraphicContext();
 
-    UFileDialog::Get(context).Open(
+    UFileDialog::Get().Open(
         "TextureOpenDialog", "Open a texture",
         "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
 }

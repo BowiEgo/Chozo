@@ -32,9 +32,8 @@ struct FImageSpecification {
     EImageUsage Usage   = EImageUsage::Sampled | EImageUsage::ColorAttachment;
 
     bool operator==(const FImageSpecification& other) const {
-        return Size.Width == other.Size.Width && Size.Height == other.Size.Height &&
-               Depth == other.Depth && MipLevels == other.MipLevels && Layers == other.Layers &&
-               Format == other.Format && Usage == other.Usage;
+        return Size == other.Size && Depth == other.Depth && MipLevels == other.MipLevels &&
+               Layers == other.Layers && Format == other.Format && Usage == other.Usage;
     }
     bool operator!=(const FImageSpecification& other) const { return !(*this == other); }
 

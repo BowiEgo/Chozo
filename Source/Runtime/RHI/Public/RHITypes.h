@@ -325,6 +325,12 @@ struct FShaderCompilerInput {
     FShaderMacros Macros;
 };
 
+struct FShaderCompilerMultiInput {
+    std::string VirtualPath;
+    std::vector<EShaderStage> Stages;
+    FShaderMacros Macros;
+};
+
 // The result of the compilation, including binaries and reflection data
 struct FShaderCompilerOutput {
     std::vector<uint32> Binary;
@@ -415,6 +421,10 @@ public:
 struct FExtent2D {
     uint32 Width;
     uint32 Height;
+
+    bool operator==(const FExtent2D& other) const {
+        return Width == other.Width && Height == other.Height;
+    }
 };
 
 // clang-format off

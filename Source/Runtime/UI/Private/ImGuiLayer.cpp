@@ -80,8 +80,8 @@ void CImGuiLayer::OnAttach() {
 
 void CImGuiLayer::OnDetach() {
     m_ImGuiRenderer->Shutdown();
-    CIconManager::Get(m_Context).Shutdown();
-    UFileDialog::Get(m_Context).Shutdown();
+    CIconManager::Get().Shutdown();
+    UFileDialog::Get().Shutdown();
 }
 
 void CImGuiLayer::OnEvent(IEvent& e) {
@@ -109,7 +109,7 @@ void CImGuiLayer::Begin() {
     }
 
     m_ImGuiRenderer->NewFrame();
-    CIconManager::Get(m_Context).ProcessRawIcons();
+    CIconManager::Get().ProcessRawIcons(m_Context->GetCurrentFrameIndex());
 }
 
 void CImGuiLayer::Render(const std::function<void()>& renderCb) {

@@ -9,9 +9,8 @@ CVulkanAPI::CVulkanAPI() {}
 
 CVulkanAPI::~CVulkanAPI() { CZ_LOG(LogVulkanAPI, Trace, "VulkanAPI destroying..."); }
 
-void CVulkanAPI::BeginRendering_Internal(const IRHIContext* ctx,
-                                         const TRef<IRHICommandList>& cmdBuffer, bool bClear) {
-    const auto& targets = ctx->GetRenderTargets();
+void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer, bool bClear) {
+    const auto& targets = m_Context->GetRenderTargets();
     if (targets.empty()) return;
 
     auto vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
@@ -25,8 +24,9 @@ void CVulkanAPI::BeginRendering_Internal(const IRHIContext* ctx,
     colorAttachmentInfos.reserve(targets.size());
 
     for (const auto& target : targets) {
-        colorAttachmentInfos.push_back(target.As<CVulkanTexture2D>()->GetColorAttachmentInfo(
-            clearValue, bClear)); // TODO: target owns clearValue and get from it
+        colorAttachmentInfos.push_back(
+            static_cast<CVulkanTexture2D*>(target)->GetColorAttachmentInfo(
+                clearValue, bClear)); // TODO: target owns clearValue and get from it
     }
 
     vk::RenderingInfo renderingInfo;
@@ -41,12 +41,12 @@ void CVulkanAPI::BeginRendering_Internal(const IRHIContext* ctx,
     vkCmdBuffer.beginRendering(renderingInfo);
 }
 
-void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList>& cmdBuffer,
+void CVulkanAPI::DrawFrame_Internal(const TRef<IRHICommandList>& cmdBuffer,
                                     TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback) {
-    auto currentFrame             = ctx->GetCurrentFrameIndex();
-    auto device                   = ctx->GetDevice().As<CVulkanDevice>();
-    auto swapchain                = ctx->GetSwapchain().As<CVulkanSwapchain>();
+    auto currentFrame             = m_Context->GetCurrentFrameIndex();
+    auto device                   = m_Context->GetDevice().As<CVulkanDevice>();
+    auto swapchain                = m_Context->GetSwapchain().As<CVulkanSwapchain>();
     auto queue                    = device->GetGraphicsQueue();
     auto vkSync                   = syncObject.As<CVulkanSyncObject>();
     vk::CommandBuffer vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
@@ -100,7 +100,7 @@ void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList
         return;
     }
 
-    ctx->SetCurrentImageIndex(imgIdx);
+    m_Context->SetCurrentImageIndex(imgIdx);
 
     // 3. extute the external recording logic (no longer decided by RHI what to draw)
     if (recordCallback) {
@@ -154,14 +154,12 @@ void CVulkanAPI::DrawFrame_Internal(IRHIContext* ctx, const TRef<IRHICommandList
     }
 }
 
-void CVulkanAPI::EndRendering_Internal(const IRHIContext* ctx,
-                                       const TRef<IRHICommandList>& cmdBuffer) {
+void CVulkanAPI::EndRendering_Internal(const TRef<IRHICommandList>& cmdBuffer) {
     auto vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
     vkCmdBuffer.endRendering();
 }
 
-void CVulkanAPI::TransitionImageLayout_Internal(const IRHIContext* ctx,
-                                                const TRef<IRHICommandList>& cmdBuffer,
+void CVulkanAPI::TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmdBuffer,
                                                 const TRef<IRHIImage> image,
                                                 const EImageLayout newLayout) {
     auto vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
