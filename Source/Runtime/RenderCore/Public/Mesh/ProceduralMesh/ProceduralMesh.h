@@ -24,7 +24,7 @@ public:
     TRef<IRHIBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
     uint32 GetIndexCount() const { return m_Buffer.GetIndexCount(); }
 
-    void Draw(IRHICommandList* cmdList);
+    void Draw(IRHICommandList* cmdList) const;
 
 protected:
     FMeshBuffer m_Buffer;

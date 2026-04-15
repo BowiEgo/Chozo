@@ -56,7 +56,7 @@ void FProceduralMesh::Upload() {
            m_Buffer.GetVertexCount(), m_Buffer.GetIndexCount());
 }
 
-void FProceduralMesh::Draw(IRHICommandList* cmdList) {
+void FProceduralMesh::Draw(IRHICommandList* cmdList) const {
     if (!m_VertexBuffer || !m_IndexBuffer) {
         CZ_LOG(LogProceduralMesh, Error, "Buffers not uploaded");
         return;

@@ -4,11 +4,12 @@
 #include "RHITypes.h"
 
 namespace ChozoUtils::FileSystem {
+
 EPixelFormat PixelFormatFromDesc(const FImageFormatDesc& desc) {
     if (!desc.IsValid()) return EPixelFormat::Unknown;
 
-    bool isSRGB = (desc.Space == EColorSpace::sRGB);
-    bool isBGR = (desc.Layout == EChannelLayout::BGR || desc.Layout == EChannelLayout::BGRA);
+    bool isSRGB  = (desc.Space == EColorSpace::sRGB);
+    bool isBGR   = (desc.Layout == EChannelLayout::BGR || desc.Layout == EChannelLayout::BGRA);
     int channels = ChannelsFromLayout(desc.Layout);
 
     // Special handling for precision that doesn't require channel conversion

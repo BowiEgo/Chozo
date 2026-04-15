@@ -5,38 +5,22 @@
 
 DEFINE_LOG_CATEGORY(LogVulkanTexture2D);
 
-CVulkanTexture2D::CVulkanTexture2D(const WeakRef<IRHIDevice> device,
-                                   const FTextureSpecification& spec)
-    : IRHITexture2D(device, spec) {}
-
-CVulkanTexture2D::CVulkanTexture2D(const WeakRef<IRHIDevice> device,
-                                   const FTextureSpecification& spec, const TRef<IRHIImage> image)
-    : IRHITexture2D(device, spec, image) {}
-
-CVulkanTexture2D::CVulkanTexture2D(const WeakRef<IRHIDevice> device,
-                                   const FTextureSpecification& spec, FBuffer& data)
-    : IRHITexture2D(device, spec) {
-    auto image = GetImage();
-    image->SetData(data);
-}
-
 CVulkanTexture2D::~CVulkanTexture2D() {
     // CZ_LOG(LogVulkanTexture2D, Trace, "VulkanTexture2D: {} destroying...", m_Spec.Name);
 
     auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return;
 
-    if (m_Image->IsFromImagePool()) return;
-
-    auto image = m_Image;
-    device->EnqueueCleanup([=] {
-        if (image) image.As<CVulkanImage>()->Destroy();
-    });
+    IRHIImage* image = m_OwnedImage.release();
+    if (image) {
+        device->EnqueueCleanup([image]() { static_cast<CVulkanImage*>(image)->Destroy(); });
+    }
 }
 
 vk::RenderingAttachmentInfo
-    CVulkanTexture2D::GetColorAttachmentInfo(const vk::ClearValue clearColor, const bool bClear) {
-    vk::ImageView imageView = GetImage().As<CVulkanImage>()->GetVKView();
+    CVulkanTexture2D::GetColorAttachmentInfo(const vk::ClearValue clearColor, const bool bClear,
+                                             uint32_t face) {
+    vk::ImageView imageView = static_cast<CVulkanImage*>(GetImage())->GetVKView();
 
     return vk::RenderingAttachmentInfo()
         .setImageView(imageView)

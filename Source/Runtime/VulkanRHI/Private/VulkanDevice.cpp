@@ -8,6 +8,7 @@
 #include "VulkanSampler.h"
 #include "VulkanSetLayout.h"
 #include "VulkanTexture2D.h"
+#include "VulkanTextureCubemap.h"
 #include "VulkanUtils.h"
 
 #define VMA_IMPLEMENTATION
@@ -44,8 +45,8 @@ TRef<IRHICommandPool> CVulkanDevice::CreateCommandPool(FCommandPoolSpecification
     return CreateRef<CVulkanCommandPool>(TRef<CVulkanDevice>(this), spec);
 }
 
-TRef<IRHIImage> CVulkanDevice::CreateImage(const FImageSpecification& spec) {
-    return CreateRef<CVulkanImage>(WeakRef<IRHIDevice>(this), spec);
+TScope<IRHIImage> CVulkanDevice::CreateImage(const FImageSpecification& spec) {
+    return CreateScope<CVulkanImage>(WeakRef<IRHIDevice>(this), spec);
 }
 
 TRef<IRHISampler> CVulkanDevice::CreateSampler(const FSamplerSpecification& spec) {
@@ -56,8 +57,40 @@ TRef<IRHISetLayout> CVulkanDevice::CreateSetLayout(const FRHISetLayoutDescriptio
     return CreateRef<CVulkanSetLayout>(WeakRef<IRHIDevice>(this), desc);
 }
 
-TRef<IRHITexture2D> CVulkanDevice::CreateTexture2D(const FTextureSpecification& spec) {
-    return CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(this), spec);
+TScope<IRHITexture> CVulkanDevice::CreateTexture(const FTextureSpecification& spec) {
+    if (spec.Type == ETextureType::Texture2D) {
+        return CreateScope<CVulkanTexture2D>(WeakRef<IRHIDevice>(this), spec);
+    } else {
+        return CreateScope<CVulkanTextureCubemap>(WeakRef<IRHIDevice>(this), spec);
+    }
+}
+
+TScope<IRHITexture> CVulkanDevice::CreateTexture(const FTextureSpecification& spec,
+                                                 TScope<IRHIImage> ownedImage) {
+    if (spec.Type == ETextureType::Texture2D) {
+        return CreateScope<CVulkanTexture2D>(WeakRef<IRHIDevice>(this), spec,
+                                             std::move(ownedImage));
+    } else {
+        return CreateScope<CVulkanTextureCubemap>(WeakRef<IRHIDevice>(this), spec,
+                                                  std::move(ownedImage));
+    }
+}
+
+TScope<IRHITexture> CVulkanDevice::CreateTexture(const FTextureSpecification& spec,
+                                                 IRHIImage* borrowedImage) {
+    if (spec.Type == ETextureType::Texture2D) {
+        return CreateScope<CVulkanTexture2D>(WeakRef<IRHIDevice>(this), spec, borrowedImage);
+    } else {
+        return CreateScope<CVulkanTextureCubemap>(WeakRef<IRHIDevice>(this), spec, borrowedImage);
+    }
+}
+
+TScope<IRHITexture> CVulkanDevice::CreateTexture(const FTextureSpecification& spec, FBuffer& data) {
+    if (spec.Type == ETextureType::Texture2D) {
+        return CreateScope<CVulkanTexture2D>(WeakRef<IRHIDevice>(this), spec, data);
+    } else {
+        return CreateScope<CVulkanTextureCubemap>(WeakRef<IRHIDevice>(this), spec, data);
+    }
 }
 
 TRef<IRHIDescriptorSet> CVulkanDevice::CreateDescriptorSet(const FTextureDescriptorInfo& info,

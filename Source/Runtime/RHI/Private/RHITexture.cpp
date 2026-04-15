@@ -5,11 +5,23 @@
 DEFINE_LOG_CATEGORY(LogRHITexture);
 
 IRHITexture::IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec)
-    : IRHIResource(device), m_Spec(spec), m_Image(device.lock()->CreateImage(spec.ToImageSpec())) {}
+    : IRHIResource(device), m_Spec(spec),
+      m_OwnedImage(std::move(device.lock()->CreateImage(spec.ToImageSpec()))) {}
 
 IRHITexture::IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec,
-                         const TRef<IRHIImage> image)
-    : IRHIResource(device), m_Spec(spec), m_Image(image) {}
+                         TScope<IRHIImage> ownedImage)
+    : IRHIResource(device), m_Spec(spec), m_OwnedImage(std::move(ownedImage)) {}
+
+IRHITexture::IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec,
+                         IRHIImage* borrowedImage)
+    : IRHIResource(device), m_Spec(spec), m_BorrowedImage(borrowedImage) {}
+
+IRHITexture::IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec,
+                         FBuffer& data)
+    : IRHIResource(device), m_Spec(spec),
+      m_OwnedImage(std::move(device.lock()->CreateImage(spec.ToImageSpec()))) {
+    m_OwnedImage->SetData(data);
+}
 
 IRHITexture::~IRHITexture() {
     // CZ_LOG(LogRHITexture, Trace, "RHITexture: {} destroying...", m_Spec.Name);

@@ -182,8 +182,10 @@ bool CShaderCompiler::CompileFromSource(const std::string& source,
         compiler.CompileGlslToSpv(source, shadercKind, sourcePath.string().c_str(), options);
 
     if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
-        CZ_LOG(LogShaderCompiler, Error, "Failed to compile stage {} for {}",
-               ChozoUtils::Shader::StageToString(stage), sourcePath.string());
+        CZ_LOG(LogShaderCompiler, Error, "Failed to compile stage {} for {}: \n{}",
+               ChozoUtils::Shader::StageToString(stage), sourcePath.string(), source);
+        CZ_LOG(LogShaderCompiler, Error, "Vertex Shader Error: {}",
+               result.GetErrorMessage().c_str());
         output.bSucceeded = false;
         return false;
     }

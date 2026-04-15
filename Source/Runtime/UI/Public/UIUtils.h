@@ -2,9 +2,9 @@
 
 #include "CoreMinimal.h"
 #include "Params.h"
-#include "RHITexture2D.h"
 #include "Ref.h"
 #include "StringUtils.h"
+#include "Texture.h"
 #include "Vector2.h"
 #include "Vector3.h"
 #include "Vector4.h"
@@ -400,22 +400,21 @@ inline ImRect RectOffset(const ImRect& rect, ImVec2 xy) { return RectOffset(rect
 
 //=========================================================================================
 // Button Image
-inline void DrawButtonImage(const TRef<IRHITexture2D>& image, ImU32 tint, ImVec2 rectMin,
-                            ImVec2 rectMax, ImVec2 uv0, ImVec2 uv1) {
+inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tint, ImVec2 rectMin, ImVec2 rectMax,
+                            ImVec2 uv0, ImVec2 uv1) {
     auto* drawList = ImGui::GetWindowDrawList();
     drawList->AddImage((ImTextureID)image->GetDescriptorSet(), rectMin, rectMax, uv0, uv1, tint);
 };
 
-inline void DrawButtonImage(const TRef<IRHITexture2D>& image, ImU32 tint, ImRect rectangle,
-                            ImVec2 uv0, ImVec2 uv1) {
+inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tint, ImRect rectangle, ImVec2 uv0,
+                            ImVec2 uv1) {
     DrawButtonImage(image, tint, rectangle.Min, rectangle.Max, uv0, uv1);
 };
 
-inline void DrawButtonImage(const TRef<IRHITexture2D>& imageNormal,
-                            const TRef<IRHITexture2D>& imageHovered,
-                            const TRef<IRHITexture2D>& imagePressed, ImU32 tintNormal,
-                            ImU32 tintHovered, ImU32 tintPressed, ImVec2 rectMin, ImVec2 rectMax,
-                            ImVec2 uv0, ImVec2 uv1) {
+inline void DrawButtonImage(TRef<CTexture>& imageNormal, TRef<CTexture>& imageHovered,
+                            TRef<CTexture>& imagePressed, ImU32 tintNormal, ImU32 tintHovered,
+                            ImU32 tintPressed, ImVec2 rectMin, ImVec2 rectMax, ImVec2 uv0,
+                            ImVec2 uv1) {
     auto* drawList = ImGui::GetWindowDrawList();
     if (ImGui::IsItemActive())
         drawList->AddImage((ImTextureID)imagePressed->GetDescriptorSet(), rectMin, rectMax, uv0,
@@ -428,45 +427,42 @@ inline void DrawButtonImage(const TRef<IRHITexture2D>& imageNormal,
                            tintNormal);
 };
 
-inline void DrawButtonImage(const TRef<IRHITexture2D>& imageNormal,
-                            const TRef<IRHITexture2D>& imageHovered,
-                            const TRef<IRHITexture2D>& imagePressed, ImU32 tintNormal,
-                            ImU32 tintHovered, ImU32 tintPressed, ImRect rectangle,
-                            ImVec2 uv0 = { 0, 0 }, ImVec2 uv1 = { 1, 1 }) {
+inline void DrawButtonImage(TRef<CTexture>& imageNormal, TRef<CTexture>& imageHovered,
+                            TRef<CTexture>& imagePressed, ImU32 tintNormal, ImU32 tintHovered,
+                            ImU32 tintPressed, ImRect rectangle, ImVec2 uv0 = { 0, 0 },
+                            ImVec2 uv1 = { 1, 1 }) {
     DrawButtonImage(imageNormal, imageHovered, imagePressed, tintNormal, tintHovered, tintPressed,
                     rectangle.Min, rectangle.Max, uv0, uv1);
 };
 
-inline void DrawButtonImage(const TRef<IRHITexture2D>& image, ImU32 tintNormal, ImU32 tintHovered,
+inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tintNormal, ImU32 tintHovered,
                             ImU32 tintPressed, ImVec2 rectMin, ImVec2 rectMax,
                             ImVec2 uv0 = { 0, 0 }, ImVec2 uv1 = { 1, 1 }) {
     DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, rectMin, rectMax,
                     uv0, uv1);
 };
 
-inline void DrawButtonImage(const TRef<IRHITexture2D>& image, ImU32 tintNormal, ImU32 tintHovered,
+inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tintNormal, ImU32 tintHovered,
                             ImU32 tintPressed, ImRect rectangle, ImVec2 uv0 = { 0, 0 },
                             ImVec2 uv1 = { 1, 1 }) {
     DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, rectangle.Min,
                     rectangle.Max, uv0, uv1);
 };
 
-inline void DrawButtonImage(const TRef<IRHITexture2D>& imageNormal,
-                            const TRef<IRHITexture2D>& imageHovered,
-                            const TRef<IRHITexture2D>& imagePressed, ImU32 tintNormal,
-                            ImU32 tintHovered, ImU32 tintPressed, ImVec2 uv0 = { 0, 0 },
-                            ImVec2 uv1 = { 1, 1 }) {
+inline void DrawButtonImage(TRef<CTexture>& imageNormal, TRef<CTexture>& imageHovered,
+                            TRef<CTexture>& imagePressed, ImU32 tintNormal, ImU32 tintHovered,
+                            ImU32 tintPressed, ImVec2 uv0 = { 0, 0 }, ImVec2 uv1 = { 1, 1 }) {
     DrawButtonImage(imageNormal, imageHovered, imagePressed, tintNormal, tintHovered, tintPressed,
                     ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), uv0, uv1);
 };
 
-inline void DrawButtonImage(const TRef<IRHITexture2D>& image, ImU32 tintNormal, ImU32 tintHovered,
+inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tintNormal, ImU32 tintHovered,
                             ImU32 tintPressed) {
     DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed,
                     ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
 };
 
-inline void DrawButtonImageByRatio(const TRef<IRHITexture2D>& image) {
+inline void DrawButtonImageByRatio(TRef<CTexture>& image) {
     float imageAspectRatio =
         static_cast<float>(image->GetSize().Height) / static_cast<float>(image->GetSize().Width);
     ImVec2 uv0(0.0f, 1.0f);
@@ -561,8 +557,8 @@ static void DrawDashedRect(ImVec2 min, ImVec2 max, ImU32 color, float thickness 
     }
 }
 
-TRef<IRHITexture2D> LoadSVGIcon(const std::string& name, int targetSize = 32,
-                                uint32 strokeColor = COLOR_WHITE);
+TRef<CTexture> LoadSVGIcon(const std::string& name, int targetSize = 32,
+                           uint32 strokeColor = COLOR_WHITE);
 
 unsigned char* LoadImagePreview(const char* path, int max_size, int* out_w, int* out_h);
 

@@ -186,15 +186,18 @@ void CVulkanSwapchain::Init() {
         texSpec.Format = ChozoUtils::Vulkan::FromVKFormat(m_VKImageFormat);
         texSpec.Usage  = ETextureUsage::Attachment; // Swapchain images are used as render targets
 
-        TRef<CVulkanImage> image = CreateRef<CVulkanImage>(
+        // CVulkanImage image(
+        //     WeakRef<IRHIDevice>(device), texSpec.ToImageSpec(), rawImage,
+        //     true); // Here bIsExternal will be true because Swapchain owns the image lifecycle
+
+        TScope<CVulkanImage> image = CreateScope<CVulkanImage>(
             WeakRef<IRHIDevice>(device), texSpec.ToImageSpec(), rawImage,
-            true); // Here bIsExternal will be true because Swapchain owns the Image lifecycle
+            true); // Here bIsExternal will be true because Swapchain owns the image lifecycle
 
         TRef<CVulkanTexture2D> texture =
-            CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), texSpec, image);
+            CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), texSpec, std::move(image));
 
         m_ColorAttachments.push_back(texture);
-
         m_ImageAvailableSemaphores.emplace_back(raiiDevice, semiInfo);
         m_RenderFinishedSemaphores.emplace_back(raiiDevice, semiInfo);
     }

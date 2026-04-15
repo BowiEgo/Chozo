@@ -3,7 +3,7 @@
 #include "RHIFrameBuffer.h"
 #include "RenderCoreExport.h"
 #include "Scope.h"
-#include "Texture2D.h"
+#include "Texture.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogFrameBuffer, Info);
 
@@ -17,7 +17,7 @@ public:
 
     IRHIFrameBuffer* GetOrCreateResource();
 
-    TRef<CTexture2D> GetColorAttachment(uint32 index) {
+    TRef<CTexture> GetColorAttachment(uint32 index) {
         auto res    = GetOrCreateResource();
         auto rhiTex = res->GetColorAttachment(index);
         if (!rhiTex) return nullptr;

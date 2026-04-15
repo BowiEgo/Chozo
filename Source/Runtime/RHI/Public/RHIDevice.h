@@ -17,7 +17,7 @@ class IRHIContext;
 class IRHIResource;
 class IRHIImage;
 class IRHISampler;
-class IRHITexture2D;
+class IRHITexture;
 class IRHIShader;
 struct FShaderSpecification;
 
@@ -63,18 +63,23 @@ public:
     virtual void WaitIdle()           = 0;
     virtual GPUProfiler GetProfiler() = 0;
 
-    virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec)  = 0;
-    virtual TRef<IRHIImage> CreateImage(const FImageSpecification& spec)              = 0;
-    virtual TRef<IRHISampler> CreateSampler(const FSamplerSpecification& spec)        = 0;
-    virtual TRef<IRHISetLayout> CreateSetLayout(const FRHISetLayoutDescription& desc) = 0;
-    virtual TRef<IRHITexture2D> CreateTexture2D(const FTextureSpecification& spec)    = 0;
+    virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec)            = 0;
+    virtual TScope<IRHIImage> CreateImage(const FImageSpecification& spec)                      = 0;
+    virtual TRef<IRHISampler> CreateSampler(const FSamplerSpecification& spec)                  = 0;
+    virtual TRef<IRHISetLayout> CreateSetLayout(const FRHISetLayoutDescription& desc)           = 0;
+    virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec)                = 0;
+    virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec,
+                                              TScope<IRHIImage> ownedImage)                     = 0;
+    virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec,
+                                              IRHIImage* borrowedImage)                         = 0;
+    virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec, FBuffer& data) = 0;
     virtual TRef<IRHIDescriptorSet> CreateDescriptorSet(const FTextureDescriptorInfo& info,
                                                         TRef<IRHISetLayout> setLayout,
-                                                        uint32 bindingSlot)           = 0;
+                                                        uint32 bindingSlot)                     = 0;
 
-    void ReleaseImage(TRef<IRHIImage> image) { return m_ImagePool.ReleaseImage(image); }
-    TRef<IRHIImage> GetImageFromPool(const FImageSpecification& spec) {
-        return m_ImagePool.RequestImage(spec);
+    void ReturnImageToPool(IRHIImage* image) { return m_ImagePool.ReturnImage(image); }
+    IRHIImage* GetImageFromPool(const FImageSpecification& spec, uint32_t frameIndex) {
+        return m_ImagePool.RequestImage(spec, frameIndex);
     }
     TRef<IRHISampler> GetSampler(const FSamplerSpecification& spec) {
         return m_SamplerCache.GetOrCreateSampler(spec);

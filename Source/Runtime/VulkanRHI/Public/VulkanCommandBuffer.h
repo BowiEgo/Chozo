@@ -20,6 +20,7 @@ public:
     virtual void SetScissor(const FRHIScissor& scissor) override;
     virtual void SetPolygonMode(EPolygonMode mode) override;
     virtual void BindPipeline(TRef<IRHIPipeline> pipeline) override;
+    virtual void BindTexture(IRHITexture* texture, int set, int binding) override;
     virtual void PushConstants(const void* data, uint32_t size, uint32_t offset) override;
     virtual void BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) override;
     virtual void BindVertexBuffer(TRef<IRHIBuffer> vertexBuffer, int binding) override;

@@ -45,14 +45,21 @@ void CRenderer::Init() {
     CCameraUniformManager::Get().Initialize();
 
     // Shader
-    const FShaderSpecification shaderSpec = {
-        "Cube", "shaders://Cube.glsl", { EShaderStage::Vertex, EShaderStage::Fragment }, "main"
-    };
-    TRef<CShader> cubeShader = CAssetManager::Get().GetOrLoadShader(shaderSpec);
+    TRef<CShader> cubeShader =
+        CAssetManager::Get().GetOrLoadShader({ "Cube",
+                                               "shaders://Cube.glsl",
+                                               { EShaderStage::Vertex, EShaderStage::Fragment },
+                                               "main" });
+
+    TRef<CShader> cubemapSamplerShader =
+        CAssetManager::Get().GetOrLoadShader({ "CubemapSampler",
+                                               "shaders://CubemapSampler.glsl",
+                                               { EShaderStage::Vertex, EShaderStage::Fragment },
+                                               "main" });
 
     // Texture
-    // auto skyboxTex = CAssetManager::Get().GetOrLoadTexture(
-    //     "/Volumes/WD My Passport/ChozoProjectReSources/Textures/HDRI/newport_loft.hdr");
+    m_SkyboxTex = CAssetManager::Get().GetOrLoadTexture(
+        "/Volumes/WD My Passport/ChozoProjectReSources/Textures/HDRI/newport_loft.hdr");
 
     // Pipeline
     {
@@ -72,22 +79,24 @@ void CRenderer::Init() {
         wireSpec.Name                   = "Wireframe";
         wireSpec.PolygonMode            = EPolygonMode::Line;
         m_WireframePipeline             = IRHIAPI::CreatePipeline(wireSpec);
+    }
 
-        // FPipelineSpecification skyboxSpec;
-        // skyboxSpec.Name               = "Skybox";
-        // skyboxSpec.RHIShaders         = { vertShader->GetShaderResource(),
-        //                                   fragShader->GetShaderResource() };
-        // skyboxSpec.ColorFormats       = { EPixelFormat::RGBA8_UNORM };
-        // skyboxSpec.VertexLayout       = { { EShaderDataFormat::Float3, "a_Position" },
-        //                                   { EShaderDataFormat::Float3, "a_Normal" },
-        //                                   { EShaderDataFormat::Float2, "a_TexCoord" },
-        //                                   { EShaderDataFormat::Float3, "a_Tangent" },
-        //                                   { EShaderDataFormat::Float3, "a_Bitangent" } };
-        // skyboxSpec.PushConstantRanges = { { 0, sizeof(FMatrix4) + sizeof(FMatrix3) } };
-        // m_SkyboxPipeline              = IRHIAPI::CreatePipeline(skyboxSpec);
+    {
+
+        FPipelineSpecification spec;
+        spec.Name         = "CubemapSampler";
+        spec.RHIShaders   = { cubemapSamplerShader->GetShaderResources() };
+        spec.ColorFormats = { EPixelFormat::RGBA16F };
+        spec.VertexLayout = {
+            { EShaderDataFormat::Float3, "a_Position" },
+        };
+        m_CubemapSamplerPipeline = IRHIAPI::CreatePipeline(spec);
     }
 
     SetPolygonMode(EPolygonMode::Fill);
+
+    m_Cube = CreateRef<FCube>();
+    m_Cube->Upload();
 }
 
 void CRenderer::Tick(float deltaTime) {
@@ -110,32 +119,57 @@ void CRenderer::Tick(float deltaTime) {
         // ------ Render Graph ------
         CRenderGraph graph(m_GraphicContext.get());
 
-        // FRDGTexture* skyboxHandle = graph.ImportExternalRDGTexture(
-        //     "SkyboxCubemap", skyboxTex, EImageLayout::ShaderReadOnlyOptimal,
-        //     EImageLayout::ShaderReadOnlyOptimal);
+        FRDGTexture* skybox2DHandle = graph.ImportExternalRDGTexture(
+            "SkyboxTexture", m_SkyboxTex->GetOrCreateResource(),
+            EImageLayout::ShaderReadOnlyOptimal, EImageLayout::ShaderReadOnlyOptimal);
+
+        FTextureSpecification cubeSpec;
+        cubeSpec.Type   = ETextureType::TextureCube;
+        cubeSpec.Size   = { 512, 512 };
+        cubeSpec.Format = EPixelFormat::RGBA16F;
+        cubeSpec.Usage  = ETextureUsage::Texture | ETextureUsage::Attachment;
+
+        uint32_t faceSize = cubeSpec.Size.Width;
+
+        TScope<IRHITexture> skyboxCubemap = IRHIAPI::CreateTexture(cubeSpec, nullptr);
+        FRDGTexture* skyboxCubemapHandle =
+            graph.CreateRDGTexture("SkyboxCubemap", skyboxCubemap.get());
+
+        graph.AddPass("EquirectangularToCubemap", { skybox2DHandle }, { skyboxCubemapHandle },
+                      ERenderPassLoadOp::Clear, [this, faceSize, skybox2DHandle](CRDGContext& ctx) {
+                          auto st = ctx.GetTexture(skybox2DHandle);
+
+                          auto cmd = ctx.GetCommandBuffer();
+                          cmd->BindPipeline(m_CubemapSamplerPipeline);
+                          cmd->BindTexture(st, 0, 0);
+                          cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
+                          cmd->SetScissor({ 0, 0, faceSize, faceSize });
+
+                          m_Cube->Draw(cmd.get());
+                      });
 
         // Request a transient texture for storing the skybox pass result,
         // lifetime managed by the render graph
         for (auto& viewport : m_Viewports) {
-            IRHITexture2D* viewportCanvas = viewport->GetFrameBuffer()->GetColorAttachment(0).get();
-            auto tex = CreateRef<CTexture>(viewportCanvas->GetSpec(), viewportCanvas);
+            IRHITexture* viewportCanvas = viewport->GetFrameBuffer()->GetColorAttachment(0).get();
+            // auto tex = CreateRef<CTexture>(viewportCanvas->GetSpec(), viewportCanvas);
 
             FRDGTexture* viewportHandle = graph.ImportExternalRDGTexture(
-                "ViewportCanvas_" + viewport->GetName(), tex,
+                "ViewportCanvas_" + viewport->GetName(), viewportCanvas,
                 EImageLayout::ColorAttachmentOptimal, // initial usage
                 EImageLayout::ShaderReadOnlyOptimal); // final usage (for UI)
 
             // graph.AddPass("SkyboxPass", { skyboxHandle }, { viewportHandle },
-            //               ERenderPassLoadOp::Clear, [=](CRenderGraphExecuteContext& ctx) {
-            //                   TRef<IRHITextureCubemap> st = ctx.GetTextureCube(skyboxHandle);
-            //                   TRef<IRHITexture2D> rt      = ctx.GetTexture2D(viewportHandle);
+            //               ERenderPassLoadOp::Clear, [=](CRDGContext& ctx) {
+            //                   TRef<IRHITexture> st = ctx.GetTextureCube(skyboxHandle);
+            //                   TRef<IRHITexture> rt      = ctx.GetTexture2D(viewportHandle);
 
             //                   DrawSkybox(ctx.GetCommandBuffer(), st, rt);
             //               });
 
             graph.AddPass("SceneCompositePass", {}, { viewportHandle }, ERenderPassLoadOp::Clear,
-                          [this, &viewport, viewportHandle](CRenderGraphExecuteContext& ctx) {
-                              auto rt  = ctx.GetTexture(viewportHandle);
+                          [this, &viewport, viewportHandle](CRDGContext& ctx) {
+                              //   auto rt  = ctx.GetTexture(viewportHandle);
                               auto cmd = ctx.GetCommandBuffer();
 
                               auto scene  = viewport->GetScene();
@@ -155,16 +189,16 @@ void CRenderer::Tick(float deltaTime) {
         }
 
         // // draw UI on top of the scene
-        IRHITexture2D* backbuffer =
+        IRHITexture* backbuffer =
             m_GraphicContext->GetSwapchain()->GetColorAttachment(imageIndex).get();
-        auto tex = CreateRef<CTexture>(backbuffer->GetSpec(), backbuffer);
+        // auto tex = CreateRef<CTexture>(backbuffer->GetSpec(), backbuffer);
 
         FRDGTexture* BackbufferHandle = graph.ImportExternalRDGTexture(
-            "Backbuffer", tex, EImageLayout::ColorAttachmentOptimal, // initial usage
+            "Backbuffer", backbuffer, EImageLayout::ColorAttachmentOptimal, // initial usage
             EImageLayout::PresentSrc);
 
         graph.AddPass("SwapchainPass", {}, { BackbufferHandle }, ERenderPassLoadOp::Clear,
-                      [this](CRenderGraphExecuteContext& ctx) {
+                      [this](CRDGContext& ctx) {
                           if (m_UICallback) {
                               m_UICallback(ctx.GetCommandBuffer());
                           }
@@ -185,10 +219,14 @@ void CRenderer::Shutdown() {
 
     m_GraphicContext->GetDevice()->WaitIdle();
 
+    m_SkyboxTex.Reset(); // TODO: Remove
+
     m_Viewports.clear();
     m_SolidPipeline.Reset();
     m_WireframePipeline.Reset();
     m_CurrentPipeline.Reset();
+    m_CubemapSamplerPipeline.Reset();
+    m_SkyboxPipeline.Reset();
 
     for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
         m_Frames[i].RenderFence.Reset();

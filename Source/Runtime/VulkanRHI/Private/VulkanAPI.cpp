@@ -9,7 +9,8 @@ CVulkanAPI::CVulkanAPI() {}
 
 CVulkanAPI::~CVulkanAPI() { CZ_LOG(LogVulkanAPI, Trace, "VulkanAPI destroying..."); }
 
-void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer, bool bClear) {
+void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer, bool bClear,
+                                         uint32_t faceIndex) {
     const auto& targets = m_Context->GetRenderTargets();
     if (targets.empty()) return;
 
@@ -24,9 +25,16 @@ void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer,
     colorAttachmentInfos.reserve(targets.size());
 
     for (const auto& target : targets) {
-        colorAttachmentInfos.push_back(
-            static_cast<CVulkanTexture2D*>(target)->GetColorAttachmentInfo(
-                clearValue, bClear)); // TODO: target owns clearValue and get from it
+        vk::RenderingAttachmentInfo info;
+        if (target->GetSpec().Type == ETextureType::Texture2D) {
+            auto tex2D = static_cast<CVulkanTexture2D*>(target);
+            info       = tex2D->GetColorAttachmentInfo(clearValue, bClear, faceIndex);
+        } else {
+            auto texCube = static_cast<CVulkanTextureCubemap*>(target);
+            info         = texCube->GetColorAttachmentInfo(
+                clearValue, bClear, faceIndex); // TODO: target owns clearValue and get from it
+        }
+        colorAttachmentInfos.push_back(info);
     }
 
     vk::RenderingInfo renderingInfo;
@@ -160,13 +168,14 @@ void CVulkanAPI::EndRendering_Internal(const TRef<IRHICommandList>& cmdBuffer) {
 }
 
 void CVulkanAPI::TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmdBuffer,
-                                                const TRef<IRHIImage> image,
+                                                const IRHIImage* image,
                                                 const EImageLayout newLayout) {
+    auto rhiImage    = const_cast<CVulkanImage*>(static_cast<const CVulkanImage*>(image));
     auto vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
-    auto vkImage     = image.As<CVulkanImage>()->GetVKImage();
-    auto vkOldLayout = image.As<CVulkanImage>()->GetCurrentLayout();
+    auto vkImage     = rhiImage->GetVKImage();
+    auto vkOldLayout = rhiImage->GetCurrentLayout();
     auto vkNewLayout = ChozoUtils::Vulkan::ToVkImageLayout(newLayout);
 
     ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, vkImage, vkOldLayout, vkNewLayout);
-    image.As<CVulkanImage>()->SetCurrentLayout(vkNewLayout);
+    rhiImage->SetCurrentLayout(vkNewLayout);
 }

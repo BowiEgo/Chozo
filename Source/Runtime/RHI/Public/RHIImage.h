@@ -94,5 +94,5 @@ public:
 
 protected:
     FImageSpecification m_Spec;
-    bool m_bFromImagePool = false;
+    bool m_bFromImagePool = false; // TODO: Remove
 };

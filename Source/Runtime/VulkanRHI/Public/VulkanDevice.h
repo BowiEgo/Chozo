@@ -19,6 +19,7 @@ class CVulkanCommandBuffer;
 class CVulkanImage;
 class CVulkanSampler;
 class CVulkanTexture2D;
+class CVulkanTextureCubemap;
 
 struct DynamicState3Functions {
     PFN_vkCmdSetPolygonModeEXT vkCmdSetPolygonModeEXT{ nullptr };
@@ -45,6 +46,8 @@ struct DynamicState3Functions {
 };
 
 class VULKAN_RHI_API CVulkanDevice : public IRHIDevice {
+    friend class CVulkanAPI;
+
 public:
     CVulkanDevice(const IRHIContext* ctx, const FDeviceSpecification& spec,
                   const vk::raii::Instance& instance, const vk::raii::SurfaceKHR& surface);
@@ -53,11 +56,18 @@ public:
     virtual void WaitIdle() override;
     virtual GPUProfiler GetProfiler() override;
 
+private:
     virtual TRef<IRHICommandPool> CreateCommandPool(FCommandPoolSpecification& spec) override;
-    virtual TRef<IRHIImage> CreateImage(const FImageSpecification& spec) override;
+    virtual TScope<IRHIImage> CreateImage(const FImageSpecification& spec) override;
     virtual TRef<IRHISampler> CreateSampler(const FSamplerSpecification& spec) override;
     virtual TRef<IRHISetLayout> CreateSetLayout(const FRHISetLayoutDescription& desc) override;
-    virtual TRef<IRHITexture2D> CreateTexture2D(const FTextureSpecification& spec) override;
+    virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec) override;
+    virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec,
+                                              TScope<IRHIImage> ownedImage) override;
+    virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec,
+                                              IRHIImage* borrowedImage) override;
+    virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec,
+                                              FBuffer& data) override;
     virtual TRef<IRHIDescriptorSet> CreateDescriptorSet(const FTextureDescriptorInfo& info,
                                                         TRef<IRHISetLayout> setLayout,
                                                         uint32 bindingSlot) override;

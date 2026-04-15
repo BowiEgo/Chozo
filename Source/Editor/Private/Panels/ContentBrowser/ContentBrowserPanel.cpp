@@ -330,7 +330,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
             spec.Format = ChozoUtils::FileSystem::PixelFormatFromDesc(desc);
             spec.Usage  = ETextureUsage::Texture;
 
-            TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(spec, buffer);
+            auto texture = CreateRef<CTexture>(spec, buffer);
 
             const char* assetPath = res.c_str();
             ImGuiID id            = ImGui::GetID(assetPath);

@@ -11,7 +11,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogDescriptorSetCache, Info);
 
 struct FTextureDescriptorInfo {
     TRef<IRHISampler> Sampler;
-    TRef<IRHIImage> Image;
+    IRHIImage* Image;
     EImageLayout ImageLayout;
 
     bool operator==(const FTextureDescriptorInfo& other) const {

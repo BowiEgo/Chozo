@@ -57,13 +57,13 @@ CIconManager::CIconManager() {
     {
         spec.Name = "DefaultFolderIcon";
         FBuffer imageData(folderIconImage.Data, folderIconImage.Width * folderIconImage.Height * 4);
-        m_DefaultFolderIcon = IRHIAPI::CreateTexture2D(spec, imageData);
+        m_DefaultFolderIcon = CreateRef<CTexture>(spec, imageData);
     }
 
     {
         spec.Name = "DefaultFileIcon";
         FBuffer imageData(fileIconImage.Data, fileIconImage.Width * fileIconImage.Height * 4);
-        m_DefaultFileIcon = IRHIAPI::CreateTexture2D(spec, imageData);
+        m_DefaultFileIcon = CreateRef<CTexture>(spec, imageData);
     }
 }
 
@@ -71,7 +71,7 @@ CIconManager::~CIconManager() { Shutdown(); }
 
 void CIconManager::Init() {}
 
-TRef<IRHITexture2D> CIconManager::GetOrLoadSVGIcon(const std::string& name) {
+TRef<CTexture> CIconManager::GetOrLoadSVGIcon(const std::string& name) {
     auto itr = m_SVGIconCaches.find(name);
     if (itr != m_SVGIconCaches.end()) {
         return itr->second;
@@ -83,7 +83,7 @@ TRef<IRHITexture2D> CIconManager::GetOrLoadSVGIcon(const std::string& name) {
     return icon;
 }
 
-TRef<IRHITexture2D> CIconManager::GetOrLoadFileIcon(const std::filesystem::path& path) {
+TRef<CTexture> CIconManager::GetOrLoadFileIcon(const std::filesystem::path& path) {
     auto normPath          = path.lexically_normal();
     std::string pathString = normPath.string();
 
@@ -139,7 +139,8 @@ void CIconManager::ProcessRawIcons(uint32 frameIndex) {
         spec.Usage  = ETextureUsage::Texture;
 
         FBuffer imageData(icon.Data, icon.Width * icon.Height * 4);
-        auto texture = IRHIAPI::CreateTexture2D(spec, imageData);
+
+        TRef<CTexture> texture = CreateRef<CTexture>(spec, imageData);
 
         if (m_FileIconCaches.contains(icon.Index)) {
             m_DeletionQueue.push_back({ m_FileIconCaches[icon.Index], m_CurrentFrame });
@@ -158,7 +159,7 @@ void CIconManager::ProcessRawIcons(uint32 frameIndex) {
     m_RawFileIconCaches.clear();
 }
 
-TRef<IRHITexture2D> CIconManager::GetDefaultIcon(const std::filesystem::path& path) {
+TRef<CTexture> CIconManager::GetDefaultIcon(const std::filesystem::path& path) {
     std::error_code ec;
 
     if (std::filesystem::is_directory(path, ec))

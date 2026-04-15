@@ -4,6 +4,7 @@
 
 #include "Buffer.h"
 #include "Ref.h"
+#include "Scope.h"
 
 #include "RHIImage.h"
 #include "RHIResource.h"
@@ -97,7 +98,12 @@ class RHI_API IRHITexture : public IRHIResource {
 public:
     IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec);
     IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec,
-                const TRef<IRHIImage> image);
+                TScope<IRHIImage> ownedImage);
+    IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec,
+                IRHIImage* borrowedImage);
+    IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec,
+                FBuffer& data); // TODO: Remove
+
     virtual ~IRHITexture();
 
     const FTextureSpecification& GetSpec() const { return m_Spec; }
@@ -106,15 +112,27 @@ public:
     EPixelFormat GetFormat() const { return m_Spec.Format; }
     ETextureUsage GetUsage() const { return m_Spec.Usage; }
 
-    TRef<IRHIImage> GetImage() const { return m_Image; }
+    IRHIImage* GetImage() const {
+        if (m_OwnedImage) {
+            return m_OwnedImage.get();
+        } else {
+            return m_BorrowedImage.GetRawUnsafe();
+        }
+    }
 
     TRef<IRHISampler>
         GetSampler(const FSamplerSpecification spec = FSamplerSpecification::LinearClamp()) const;
 
     void* GetDescriptorSet(TRef<IRHISetLayout> setLayout = nullptr, uint32_t bindingSlot = 0) const;
 
+    void BorrowImage(IRHIImage* borrowedImage) {
+        if (m_OwnedImage) return;
+        m_BorrowedImage = WeakRef<IRHIImage>(borrowedImage);
+    }
+
 protected:
     FTextureSpecification m_Spec;
 
-    mutable TRef<IRHIImage> m_Image;
+    TScope<IRHIImage> m_OwnedImage;
+    WeakRef<IRHIImage> m_BorrowedImage;
 };

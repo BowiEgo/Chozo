@@ -10,6 +10,8 @@
 #include "VulkanShader.h"
 #include "VulkanSwapchain.h"
 #include "VulkanSyncObject.h"
+#include "VulkanTexture2D.h"
+#include "VulkanTextureCubemap.h"
 
 #include "VulkanRHIExport.h"
 
@@ -50,7 +52,6 @@ public:
                                  const FSwapchainSpecification& spec) override {
         auto RHIDevice        = ctx->GetDevice().As<CVulkanDevice>();
         const auto& vkSurface = m_Vulkan->GetVKRAIISurface();
-
         return CreateRef<CVulkanSwapchain>(spec, RHIDevice, vkSurface);
     }
 
@@ -63,14 +64,12 @@ public:
     virtual TRef<IRHIPipeline>
         CreatePipeline_Internal(const FPipelineSpecification& spec) override {
         auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
-
         return CreateRef<CVulkanPipeline>(spec, RHIDevice);
     }
 
     virtual TRef<IRHIFrameBuffer>
         CreateFrameBuffer_Internal(const FFrameBufferSpecification& spec) override {
         auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
-
         return CreateRef<CVulkanFrameBuffer>(spec, RHIDevice);
     }
 
@@ -78,22 +77,30 @@ public:
                                                    const std::vector<uint32_t>* binary,
                                                    const FShaderReflection reflection) override {
         auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
-
         return CreateRef<CVulkanShader>(spec, RHIDevice, binary, reflection);
     }
 
-    virtual TRef<IRHITexture2D>
-        CreateTexture2D_Internal(const FTextureSpecification& spec) override {
+    virtual TScope<IRHITexture> CreateTexture_Internal(const FTextureSpecification& spec) override {
         auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
-
-        return RHIDevice->CreateTexture2D(spec);
+        return RHIDevice->CreateTexture(spec);
     }
 
-    virtual TRef<IRHITexture2D> CreateTexture2D_Internal(const FTextureSpecification& spec,
-                                                         FBuffer& data) override {
-        auto RHIDevice = m_Context->GetDevice();
+    virtual TScope<IRHITexture> CreateTexture_Internal(const FTextureSpecification& spec,
+                                                       TScope<IRHIImage> ownedImage) override {
+        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
+        return RHIDevice->CreateTexture(spec, std::move(ownedImage));
+    }
 
-        return CreateRef<CVulkanTexture2D>(WeakRef(RHIDevice), spec, data);
+    virtual TScope<IRHITexture> CreateTexture_Internal(const FTextureSpecification& spec,
+                                                       IRHIImage* borrowedImage) override {
+        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
+        return RHIDevice->CreateTexture(spec, borrowedImage);
+    }
+
+    virtual TScope<IRHITexture> CreateTexture_Internal(const FTextureSpecification& spec,
+                                                       FBuffer& data) override {
+        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
+        return RHIDevice->CreateTexture(spec, data);
     }
 
     virtual TRef<IRHIBuffer> CreateBuffer_Internal(const FBufferSpecification& spec) override {
@@ -110,11 +117,11 @@ public:
     virtual void DrawFrame_Internal(const TRef<IRHICommandList>& cmdBuffer,
                                     TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback) override;
-    virtual void BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer,
-                                         bool bClear) override;
+    virtual void BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer, bool bClear,
+                                         uint32_t faceIndex = 0) override;
     virtual void EndRendering_Internal(const TRef<IRHICommandList>& cmdBuffer) override;
     virtual void TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmdBuffer,
-                                                const TRef<IRHIImage> image,
+                                                const IRHIImage* image,
                                                 const EImageLayout newLayout) override;
 
 private:

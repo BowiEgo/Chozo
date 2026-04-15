@@ -27,18 +27,24 @@ TRef<CTexture> CAssetManager::GetOrLoadTexture(const std::filesystem::path& path
 
     FImageFormatDesc desc;
     uint32_t w, h;
-    auto buffer = FTextureImporter::ToBufferFromFile(pathString, desc, w, h);
+    auto imageData = FTextureImporter::ToBufferFromFile(pathString, desc, w, h);
     CZ_LOG(LogAssetManager, Trace, "Import Texture Buffer: {}, {}", w, h);
+
+    std::string ext = path.extension().string();
+    bool isHDR      = (ext == ".hdr" || ext == ".HDR");
 
     FTextureSpecification spec;
     spec.Name   = "Texture";
     spec.Size   = { w, h };
     spec.Format = ChozoUtils::FileSystem::PixelFormatFromDesc(desc);
     spec.Usage  = ETextureUsage::Texture;
+    if (isHDR) {
+        // spec.Type = ETextureType::TextureCube;
+    } else {
+        spec.Type = ETextureType::Texture2D;
+    }
 
-    TRef<IRHITexture> texture = IRHIAPI::CreateTexture2D(spec, buffer);
-    TRef<CTexture> asset      = CreateRef<CTexture>(spec, texture.get());
-
+    TRef<CTexture> asset        = CreateRef<CTexture>(spec, imageData);
     m_TextureCaches[pathString] = asset;
 
     return asset;

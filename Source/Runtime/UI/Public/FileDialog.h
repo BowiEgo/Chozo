@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "FileUtils.h"
-#include "RHITexture2D.h"
+#include "Texture.h"
 #include "ThreadPool.h"
 #include "UIExport.h"
 
@@ -42,7 +42,7 @@ public:
     size_t Size;
     time_t DateModified;
 
-    TRef<IRHITexture2D> Thumbnail;
+    TRef<CTexture> Thumbnail;
     int ThumbnailWidth, ThumbnailHeight;
 };
 
@@ -82,8 +82,8 @@ public:
     inline float GetZoom() { return m_Zoom; }
 
 private:
-    TRef<IRHITexture2D> CreateTexture(uint8_t* data, int w, int h,
-                                      char fmt); // char -> fmt -> { 0 = BGRA, 1 = RGBA }
+    TRef<CTexture> CreateTexture(uint8_t* data, int w, int h,
+                                 char fmt); // char -> fmt -> { 0 = BGRA, 1 = RGBA }
 
     void Select(const std::filesystem::path& path, bool isCtrlDown = false);
 
@@ -91,10 +91,10 @@ private:
 
     void ParseFilter(const std::string& filter);
 
-    TRef<IRHITexture2D> GetIcon(const std::filesystem::path& path);
+    TRef<CTexture> GetIcon(const std::filesystem::path& path);
     FRawFileImage GetDefaultIcon(const std::filesystem::path& path);
 
-    TRef<IRHITexture2D> GetThumbnail(const std::filesystem::path& path);
+    TRef<CTexture> GetThumbnail(const std::filesystem::path& path);
 
     void RequestThumbnails();
     void ProcessPendingThumbs();
@@ -139,9 +139,9 @@ private:
     CThreadPool m_ThumbPool{ 4 };
     std::mutex m_ThumbMutex;
 
-    std::unordered_map<std::string, TRef<IRHITexture2D>> m_ThumbMap;
+    std::unordered_map<std::string, TRef<CTexture>> m_ThumbMap;
     std::vector<FRawFileImage> m_PendingRawThumbs;
-    std::vector<TRef<IRHITexture2D>> m_TextureGarbage;
+    std::vector<TRef<CTexture>> m_TextureGarbage;
 
     std::thread* m_ThumbnailLoader;
     bool m_ThumbnailLoaderRunning;

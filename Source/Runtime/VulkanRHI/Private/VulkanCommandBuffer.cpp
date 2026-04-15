@@ -2,6 +2,8 @@
 
 #include "VulkanBuffer.h"
 #include "VulkanCommandPool.h"
+#include "VulkanImage.h"
+#include "VulkanSampler.h"
 #include "VulkanUtils.h"
 
 DEFINE_LOG_CATEGORY(LogVulkanCommandBuffer);
@@ -62,6 +64,20 @@ void CVulkanCommandBuffer::BindPipeline(TRef<IRHIPipeline> pipeline) {
     SetPolygonMode(pipeline->GetPolygonMode());
 
     m_Handle.bindPipeline(vk::PipelineBindPoint::eGraphics, vlkPipeline);
+}
+
+void CVulkanCommandBuffer::BindTexture(IRHITexture* texture, int set, int binding) {
+    auto vkCommandBuffer       = GetVKCommandBuffer();
+    auto currentPipelineLayout = m_CurrentPipeline->GetPipelineLayout();
+
+    vk::DescriptorSet descSet =
+        vk::DescriptorSet(reinterpret_cast<VkDescriptorSet>(texture->GetDescriptorSet()));
+    std::array<vk::DescriptorSet, 1> descSets = { descSet };
+
+    vkCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, currentPipelineLayout, set,
+                                       descSets, nullptr);
+
+    m_BoundDescriptorSets[set] = descSet;
 }
 
 void CVulkanCommandBuffer::PushConstants(const void* data, uint32_t size, uint32_t offset) {

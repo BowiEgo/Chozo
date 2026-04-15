@@ -20,7 +20,7 @@ void CVulkanDescriptorSet::Init() {
 
     vk::DescriptorImageInfo imageInfo;
     imageInfo.setSampler(m_Info.Sampler.As<CVulkanSampler>()->GetVKSampler())
-        .setImageView(m_Info.Image.As<CVulkanImage>()->GetVKView())
+        .setImageView(static_cast<CVulkanImage*>(m_Info.Image)->GetVKView())
         .setImageLayout(ChozoUtils::Vulkan::ToVkImageLayout(m_Info.ImageLayout));
 
     vk::WriteDescriptorSet write{};

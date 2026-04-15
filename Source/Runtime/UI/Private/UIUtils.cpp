@@ -63,7 +63,7 @@ void ShutdownSVGLoader() {
     }
 }
 
-TRef<IRHITexture2D> LoadSVGIcon(const std::string& name, int targetSize, uint32 strokeColor) {
+TRef<CTexture> LoadSVGIcon(const std::string& name, int targetSize, uint32 strokeColor) {
     if (!g_Rasterizer) {
         InitSVGLoader();
     }
@@ -106,7 +106,7 @@ TRef<IRHITexture2D> LoadSVGIcon(const std::string& name, int targetSize, uint32 
     spec.Usage  = ETextureUsage::Texture;
 
     FBuffer imageData(data, w * h * 4);
-    TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(spec, imageData);
+    TRef<CTexture> texture = CreateRef<CTexture>(spec, imageData);
 
     free(data);
     nsvgDelete(svg);

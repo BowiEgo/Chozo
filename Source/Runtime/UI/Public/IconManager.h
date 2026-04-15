@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "FileUtils.h"
-#include "RHITexture2D.h"
+#include "Texture.h"
 #include "ThreadPool.h"
 #include "UIExport.h"
 
@@ -10,7 +10,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogIconManager, Info);
 
 class UI_API CIconManager {
     struct FPendingDeletion {
-        TRef<IRHITexture2D> Texture;
+        TRef<CTexture> Texture;
         uint32 FrameIndex;
     };
 
@@ -28,9 +28,9 @@ private:
     void UpdateDeletionQueue();
 
 public:
-    TRef<IRHITexture2D> GetOrLoadSVGIcon(const std::string& name);
-    TRef<IRHITexture2D> GetOrLoadFileIcon(const std::filesystem::path& path);
-    TRef<IRHITexture2D> GetDefaultIcon(const std::filesystem::path& path);
+    TRef<CTexture> GetOrLoadSVGIcon(const std::string& name);
+    TRef<CTexture> GetOrLoadFileIcon(const std::filesystem::path& path);
+    TRef<CTexture> GetDefaultIcon(const std::filesystem::path& path);
 
     void Update();
     void ProcessRawIcons(uint32 frameIndex);
@@ -47,10 +47,10 @@ private:
 
     std::vector<FPendingDeletion> m_DeletionQueue;
 
-    std::unordered_map<std::string, TRef<IRHITexture2D>> m_SVGIconCaches;
+    std::unordered_map<std::string, TRef<CTexture>> m_SVGIconCaches;
 
-    TRef<IRHITexture2D> m_DefaultFolderIcon, m_DefaultFileIcon;
+    TRef<CTexture> m_DefaultFolderIcon, m_DefaultFileIcon;
     std::vector<FRawFileImage> m_RawFileIconCaches;
-    std::unordered_map<int, TRef<IRHITexture2D>> m_FileIconCaches;
+    std::unordered_map<int, TRef<CTexture>> m_FileIconCaches;
     std::unordered_map<std::string, int> m_FileIconIndices;
 };

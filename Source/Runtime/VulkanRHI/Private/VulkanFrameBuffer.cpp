@@ -13,9 +13,8 @@ CVulkanFrameBuffer::CVulkanFrameBuffer(const FFrameBufferSpecification& spec,
         texSpec.Format = format;
         texSpec.Usage  = ETextureUsage::Attachment;
 
-        auto image = m_Device.lock()->GetImageFromPool(texSpec.ToImageSpec());
         m_ColorAttachments.push_back(
-            CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), texSpec, image));
+            CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), texSpec));
     }
 
     if (spec.DepthFormat != EPixelFormat::Unknown) {
@@ -25,8 +24,6 @@ CVulkanFrameBuffer::CVulkanFrameBuffer(const FFrameBufferSpecification& spec,
         depthSpec.Format = spec.DepthFormat;
         depthSpec.Usage  = ETextureUsage::Attachment;
 
-        auto image = m_Device.lock()->GetImageFromPool(depthSpec.ToImageSpec());
-        m_DepthAttachment =
-            CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), depthSpec, image);
+        m_DepthAttachment = CreateRef<CVulkanTexture2D>(WeakRef<IRHIDevice>(device), depthSpec);
     }
 }

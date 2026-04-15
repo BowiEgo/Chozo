@@ -41,10 +41,11 @@ public:
     void Recreate() { Recreate(m_Spec.FrameBufferSize); }
 
     void SetLayout(uint32_t index, vk::ImageLayout layout) {
-        m_ColorAttachments[index]->GetImage().As<CVulkanImage>()->SetCurrentLayout(layout);
+        static_cast<CVulkanImage*>(m_ColorAttachments[index]->GetImage())->SetCurrentLayout(layout);
     }
     vk::ImageLayout GetLayout(uint32_t index) {
-        return m_ColorAttachments[index]->GetImage().As<CVulkanImage>()->GetCurrentLayout();
+        return static_cast<CVulkanImage*>(m_ColorAttachments[index]->GetImage())
+            ->GetCurrentLayout();
     }
 
     const vk::SwapchainKHR GetVKSwapchain() const { return *m_VKSwapchain; }

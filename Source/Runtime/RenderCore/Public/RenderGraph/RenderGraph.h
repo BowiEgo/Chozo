@@ -5,8 +5,6 @@
 #include "RHICommandList.h"
 #include "RHIContext.h"
 #include "RHITexture.h"
-#include "RHITexture2D.h"
-#include "RHITextureCubemap.h"
 #include "Texture.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRenderGraph, Info);
@@ -14,8 +12,8 @@ DECLARE_LOG_CATEGORY_EXTERN(LogRenderGraph, Info);
 struct FRDGTexture {
     std::string Name;
     FTextureSpecification Spec;
-    TRef<IRHIImage> Image  = nullptr;
-    TRef<CTexture> Texture = nullptr;
+    IRHIImage* Image     = nullptr;
+    IRHITexture* Texture = nullptr;
     bool bExternal = false; // Whether this texture is externally provided (e.g., swapchain image,
     // skybox texture) and shouldn't be pooled
 
@@ -29,21 +27,19 @@ struct FRDGTexture {
 
 enum class ERenderPassLoadOp { Clear, Load };
 
-class CRenderGraphExecuteContext;
+class CRDGContext;
 
 struct FRDGPass {
     std::string Name;
     std::vector<FRDGTexture*> Inputs;
     std::vector<FRDGTexture*> Outputs;
     ERenderPassLoadOp LoadOp;
-    std::function<void(CRenderGraphExecuteContext& ctx)> ExecuteFunc;
+    std::function<void(CRDGContext& ctx)> ExecuteFunc;
 };
 
-class CRenderGraphExecuteContext {
+class CRDGContext {
 public:
-    CRenderGraphExecuteContext(TRef<IRHICommandList> cmd, FRDGPass* pass)
-        : m_Cmd(cmd), m_Pass(pass) {
-
+    CRDGContext(TRef<IRHICommandList> cmd, FRDGPass* pass) : m_Cmd(cmd), m_Pass(pass) {
         for (auto* input : m_Pass->Inputs) {
             m_Resources[input] = input->Texture;
         }
@@ -54,7 +50,7 @@ public:
 
     TRef<IRHICommandList> GetCommandBuffer() const { return m_Cmd; }
 
-    TRef<CTexture> GetTexture(FRDGTexture* handle) { return m_Resources[handle]; }
+    IRHITexture* GetTexture(FRDGTexture* handle) { return m_Resources[handle]; }
 
     const std::string& GetPassName() const { return m_Pass->Name; }
 
@@ -62,7 +58,7 @@ private:
     TRef<IRHICommandList> m_Cmd;
     FRDGPass* m_Pass;
 
-    std::unordered_map<FRDGTexture*, TRef<CTexture>> m_Resources;
+    std::unordered_map<FRDGTexture*, IRHITexture*> m_Resources;
 };
 
 class CRenderGraph {
@@ -71,17 +67,17 @@ public:
     ~CRenderGraph();
 
     // Declare Logical Textures (no physical allocation yet)
-    FRDGTexture* CreateRDGTexture(const FTextureSpecification& spec, std::string name) {
-        auto RDGtex = new FRDGTexture{ name, spec, nullptr, CreateRef<CTexture>(spec) };
+    FRDGTexture* CreateRDGTexture(std::string name, IRHITexture* rhiTex) {
+        auto RDGtex = new FRDGTexture{ name, rhiTex->GetSpec(), nullptr, rhiTex };
         m_Textures.push_back(RDGtex);
         return RDGtex;
     }
 
-    FRDGTexture* ImportExternalRDGTexture(std::string name, TRef<CTexture> tex,
+    FRDGTexture* ImportExternalRDGTexture(std::string name, IRHITexture* rhiTex,
                                           const EImageLayout initialLayout,
                                           const EImageLayout finalLayout) {
         for (auto* existingTex : m_Textures) {
-            if (existingTex->bExternal && existingTex->Spec == tex->GetSpec()) {
+            if (existingTex->bExternal && existingTex->Spec == rhiTex->GetSpec()) {
                 existingTex->FinalLayout = finalLayout;
                 return existingTex;
             }
@@ -89,38 +85,16 @@ public:
 
         // CZ_LOG(LogRenderGraph, Trace, "ImportExternalRDGTexture");
 
-        auto RDGtex =
-            new FRDGTexture{ name,        tex->GetSpec(), tex->GetOrCreateResource()->GetImage(),
-                             tex,         true,           initialLayout,
-                             finalLayout, initialLayout };
+        auto RDGtex = new FRDGTexture{ name, rhiTex->GetSpec(), rhiTex->GetImage(), rhiTex,
+                                       true, initialLayout,     finalLayout,        initialLayout };
         m_Textures.push_back(RDGtex);
         return RDGtex;
     }
 
-    // FRDGTexture* ImportExternalRDGTexture(std::string name, const IRHITexture* rhiTex,
-    //                                       const EImageLayout initialLayout,
-    //                                       const EImageLayout finalLayout) {
-    //     for (auto* existingTex : m_Textures) {
-    //         if (existingTex->bExternal && existingTex->Spec == rhiTex->GetSpec()) {
-    //             existingTex->FinalLayout = finalLayout;
-    //             return existingTex;
-    //         }
-    //     }
-
-    //     // CZ_LOG(LogRenderGraph, Trace, "ImportExternalRDGTexture");
-
-    //     auto tex    = CreateRef<CTexture>(rhiTex->GetSpec(), rhiTex);
-    //     auto RDGtex = new FRDGTexture{ name, rhiTex->GetSpec(), rhiTex->GetImage(), tex,
-    //                                    true, initialLayout,     finalLayout,        initialLayout
-    //                                    };
-    //     m_Textures.push_back(RDGtex);
-    //     return RDGtex;
-    // }
-
     // Register Passes with their input/output logical textures and execution logic
     void AddPass(std::string name, std::vector<FRDGTexture*> inputs,
                  std::vector<FRDGTexture*> outputs, ERenderPassLoadOp loadOp,
-                 std::function<void(CRenderGraphExecuteContext& ctx)> execute) {
+                 std::function<void(CRDGContext& ctx)> execute) {
         auto pass = new FRDGPass{ name, inputs, outputs, loadOp, execute };
         m_Passes.push_back(pass);
 
@@ -140,7 +114,9 @@ public:
             // The pool will check if there's a matching
             // and expired Image available for reuse (Aliasing)
             FImageSpecification physSpec = tex->Spec.ToImageSpec();
-            tex->Image                   = m_Context->GetDevice()->GetImageFromPool(physSpec);
+            tex->Image                   = m_Context->GetDevice()->GetImageFromPool(
+                physSpec, m_Context->GetCurrentFrameIndex());
+            tex->Texture->BorrowImage(tex->Image);
         }
     }
 
@@ -148,7 +124,7 @@ public:
     void Execute(TRef<IRHICommandList> cmd) {
         for (uint32_t i = 0; i < m_Passes.size(); ++i) {
             auto* pass = m_Passes[i];
-            std::vector<IRHITexture2D*> renderTargets;
+            std::vector<IRHITexture*> renderTargets;
             // --- Automatic synchronization logic ---
             for (auto* input : pass->Inputs) {
                 // Automatically insert barriers: transition from current state to ShaderReadOnly
@@ -160,18 +136,26 @@ public:
                 IRHIAPI::TransitionImageLayout(cmd, output->Image,
                                                EImageLayout::ColorAttachmentOptimal);
 
-                renderTargets.push_back(
-                    static_cast<IRHITexture2D*>(output->Texture->GetOrCreateResource()));
+                renderTargets.push_back(output->Texture);
             }
 
             // Execute user-defined rendering logic for this pass
             m_Context->SetRenderTargets(renderTargets);
             bool shouldClear = (pass->LoadOp == ERenderPassLoadOp::Clear);
-            IRHIAPI::BeginRendering(cmd, shouldClear);
 
-            CRenderGraphExecuteContext execCtx(cmd, pass);
-            pass->ExecuteFunc(execCtx);
-            IRHIAPI::EndRendering(cmd);
+            if (renderTargets[0]->GetSpec().Type == ETextureType::TextureCube) {
+                for (uint32_t face = 0; face < 6; ++face) {
+                    IRHIAPI::BeginRendering(cmd, shouldClear, face);
+                    CRDGContext execCtx(cmd, pass);
+                    pass->ExecuteFunc(execCtx);
+                    IRHIAPI::EndRendering(cmd);
+                }
+            } else {
+                IRHIAPI::BeginRendering(cmd, shouldClear);
+                CRDGContext execCtx(cmd, pass);
+                pass->ExecuteFunc(execCtx);
+                IRHIAPI::EndRendering(cmd);
+            }
 
             std::vector<FRDGTexture*> allRes = pass->Inputs;
             allRes.insert(allRes.end(), pass->Outputs.begin(), pass->Outputs.end());

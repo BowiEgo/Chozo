@@ -40,11 +40,13 @@ void CVulkanPipeline::Init() {
 
     // ===== Push Constant Range =====
     std::vector<vk::PushConstantRange> pushConstantRanges;
-    vk::PushConstantRange vertPushRange(vk::ShaderStageFlagBits::eVertex,    // stageFlags
-                                        m_Spec.PushConstantRanges[0].Offset, // offset
-                                        m_Spec.PushConstantRanges[0].Size    // size
-    );
-    pushConstantRanges.push_back(vertPushRange);
+    if (m_Spec.PushConstantRanges.size() > 0) {
+        vk::PushConstantRange vertPushRange(vk::ShaderStageFlagBits::eVertex,    // stageFlags
+                                            m_Spec.PushConstantRanges[0].Offset, // offset
+                                            m_Spec.PushConstantRanges[0].Size    // size
+        );
+        pushConstantRanges.push_back(vertPushRange);
+    }
 
     // ===== Shader Stages =====
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;

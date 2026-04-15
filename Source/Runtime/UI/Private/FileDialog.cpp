@@ -639,7 +639,7 @@ void UFileDialog::AddFavorite(const std::string& path) {
         }
 }
 
-TRef<IRHITexture2D> UFileDialog::CreateTexture(uint8_t* data, int w, int h, char fmt) {
+TRef<CTexture> UFileDialog::CreateTexture(uint8_t* data, int w, int h, char fmt) {
     FTextureSpecification spec;
     spec.Name   = "UFileDialog_Preview";
     spec.Size   = { (uint32_t)w, (uint32_t)h };
@@ -647,7 +647,10 @@ TRef<IRHITexture2D> UFileDialog::CreateTexture(uint8_t* data, int w, int h, char
     spec.Usage  = ETextureUsage::Texture;
 
     FBuffer imageData(data, w * h * 4);
-    TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(spec, imageData);
+
+    TRef<CTexture> texture = CreateRef<CTexture>(spec, imageData);
+
+    // TRef<IRHITexture2D> texture = IRHIAPI::CreateTexture2D(spec, imageData);
 
     return texture;
 }
@@ -778,7 +781,7 @@ void UFileDialog::ParseFilter(const std::string& filter) {
     }
 }
 
-TRef<IRHITexture2D> UFileDialog::GetIcon(const std::filesystem::path& path) {
+TRef<CTexture> UFileDialog::GetIcon(const std::filesystem::path& path) {
     std::string pathU8 = path.string();
 
     if (pathU8 == "Quick Access") return CIconManager::Get().GetOrLoadSVGIcon("lightning");
@@ -788,7 +791,7 @@ TRef<IRHITexture2D> UFileDialog::GetIcon(const std::filesystem::path& path) {
     return CIconManager::Get().GetOrLoadFileIcon(path);
 }
 
-TRef<IRHITexture2D> UFileDialog::GetThumbnail(const std::filesystem::path& path) {
+TRef<CTexture> UFileDialog::GetThumbnail(const std::filesystem::path& path) {
     {
         std::lock_guard<std::mutex> lock(m_ThumbMutex);
         auto itr = m_ThumbMap.find(path.string());

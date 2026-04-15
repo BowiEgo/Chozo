@@ -59,6 +59,8 @@ void CVulkanImage::Destroy() {
 }
 
 void CVulkanImage::SetData(FBuffer& data) {
+    if (data.Size == 0) return;
+
     auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return;
 
@@ -176,7 +178,7 @@ void CVulkanImage::CreateImageResources() {
     //        m_Spec.Size.Width, m_Spec.Size.Height, m_Spec.Layers, m_Spec.MipLevels);
 }
 
-vk::ImageView CVulkanImage::GetOrCreateView(const FImageViewSpecification& spec) {
+vk::ImageView CVulkanImage::GetOrCreateVKView(const FImageViewSpecification& spec) {
     if (m_ViewCache.contains(spec)) {
         return m_ViewCache[spec];
     }
@@ -184,38 +186,35 @@ vk::ImageView CVulkanImage::GetOrCreateView(const FImageViewSpecification& spec)
     auto device              = m_Device.lock().As<CVulkanDevice>();
     vk::Device logicalDevice = device->GetLogicalDevice();
 
-    // vk::ImageViewCreateInfo viewInfo{};
-    // viewInfo.image    = m_VKImage;
-    // viewInfo.viewType = ChozoUtils::Vulkan::ToVkViewType(spec.ViewType);
-
-    // // viewInfo.format = (spec.Format == EShaderDataFormat::None)
-    // //                       ? ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format)
-    // //                       : ChozoUtils::Vulkan::ShaderDataTypeToVkFormat(spec.Format);
-
-    // viewInfo.format = ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format);
-
-    // viewInfo.subresourceRange.aspectMask =
-    // ChozoUtils::Vulkan::GetImageAspectFlags(viewInfo.format);
-    // viewInfo.subresourceRange.baseMipLevel = spec.BaseMipLevel;
-    // viewInfo.subresourceRange.levelCount = (spec.MipCount == 0) ? m_Spec.MipLevels :
-    // spec.MipCount; viewInfo.subresourceRange.baseArrayLayer = spec.BaseArrayLayer;
-    // viewInfo.subresourceRange.layerCount = (spec.LayerCount == 0) ? m_Spec.Layers :
-    // spec.LayerCount;
-
     vk::Format vkFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format);
     bool isDepth        = ChozoUtils::Vulkan::IsDepthFormat(vkFormat);
+    vk::ImageAspectFlags aspectMask =
+        isDepth ? vk::ImageAspectFlagBits::eDepth : vk::ImageAspectFlagBits::eColor;
+
+    vk::ImageViewType viewType = ChozoUtils::Vulkan::ToVkViewType(spec.ViewType);
+
+    uint32_t mipLevels  = (spec.MipCount == 0) ? m_Spec.MipLevels : spec.MipCount;
+    uint32_t layerCount = (spec.LayerCount == 0) ? m_Spec.Layers : spec.LayerCount;
+
+    vk::ImageSubresourceRange subresourceRange;
+    subresourceRange.setAspectMask(aspectMask)
+        .setBaseMipLevel(spec.BaseMipLevel)
+        .setLevelCount(mipLevels)
+        .setBaseArrayLayer(spec.BaseArrayLayer)
+        .setLayerCount(layerCount);
 
     vk::ImageViewCreateInfo viewInfo;
-    viewInfo.setImage(m_VKImage)
-        .setViewType(vk::ImageViewType::e2D)
-        .setFormat(vkFormat)
-        .setSubresourceRange(vk::ImageSubresourceRange(isDepth ? vk::ImageAspectFlagBits::eDepth
-                                                               : vk::ImageAspectFlagBits::eColor,
-                                                       0, 1, 0, 1));
+    viewInfo.setImage(m_VKImage).setViewType(viewType).setFormat(vkFormat).setSubresourceRange(
+        subresourceRange);
 
-    vk::ImageView view = logicalDevice.createImageView(viewInfo);
+    vk::ImageView view;
+    try {
+        view = logicalDevice.createImageView(viewInfo);
+    } catch (const vk::SystemError& e) {
+        CZ_LOG(LogVulkanImage, Error, "Failed to create ImageView: %s", e.what());
+        return VK_NULL_HANDLE;
+    }
 
     m_ViewCache[spec] = view;
-
     return view;
 }

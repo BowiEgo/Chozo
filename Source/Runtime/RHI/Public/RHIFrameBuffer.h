@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RHIExport.h"
-#include "RHITexture2D.h"
+#include "RHITexture.h"
 #include "RHITypes.h"
 #include "Ref.h"
 
@@ -21,11 +21,11 @@ public:
 
     virtual void Resize(uint32 width, uint32 height) = 0;
 
-    TRef<IRHITexture2D> GetColorAttachment(uint32 index) const { return m_ColorAttachments[index]; }
+    TRef<IRHITexture> GetColorAttachment(uint32 index) const { return m_ColorAttachments[index]; }
 
 protected:
     FFrameBufferSpecification m_Spec;
 
-    std::vector<TRef<IRHITexture2D>> m_ColorAttachments;
-    TRef<IRHITexture2D> m_DepthAttachment;
+    std::vector<TRef<IRHITexture>> m_ColorAttachments;
+    TRef<IRHITexture> m_DepthAttachment;
 };

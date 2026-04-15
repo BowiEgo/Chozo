@@ -9,12 +9,12 @@ CImagePool::~CImagePool() {
     // m_AvailableImages.size());
 }
 
-TRef<IRHIImage> CImagePool::RequestImage(const FImageSpecification& spec) {
+IRHIImage* CImagePool::RequestImage(const FImageSpecification& spec, uint32_t frameIndex) {
     for (auto it = m_AvailableImages.begin(); it != m_AvailableImages.end(); ++it) {
         if (it->Image->GetSpec() == spec) {
-            TRef<IRHIImage> foundImage = it->Image;
-            m_AvailableImages.erase(it); // Remove from idle pool, now owned by RenderGraph
-            return foundImage;
+            it->bInUse        = true;
+            it->LastUsedFrame = frameIndex;
+            return it->Image.get();
         }
     }
 
@@ -25,18 +25,24 @@ TRef<IRHIImage> CImagePool::RequestImage(const FImageSpecification& spec) {
         return nullptr;
     }
 
-    auto newImage              = device->CreateImage(spec);
-    newImage->m_bFromImagePool = true;
-    m_AvailableImages.push_back({ newImage, 0 });
+    auto newImage  = device->CreateImage(spec);
+    IRHIImage* ptr = newImage.get();
+    m_AvailableImages.push_back({ std::move(newImage), frameIndex, true });
 
-    return newImage;
+    return ptr;
 }
 
-void CImagePool::ReleaseImage(TRef<IRHIImage> image) {
+void CImagePool::ReturnImage(IRHIImage* image) {
     if (!image) return;
 
     // Add the image back to the pool with the current frame index
-    m_AvailableImages.push_back({ image, 0 });
+    for (auto it = m_AvailableImages.begin(); it != m_AvailableImages.end(); ++it) {
+        if (it->Image->GetSpec() == image->GetSpec()) {
+            it->bInUse        = false;
+            it->LastUsedFrame = 0;
+            break;
+        }
+    }
 }
 
 void CImagePool::Tick(uint32_t currentFrame) {
@@ -53,7 +59,7 @@ void CImagePool::Tick(uint32_t currentFrame) {
 void CImagePool::Clear() {
     CZ_LOG(LogImagePool, Trace, "ImagePool clearing images.");
 
-    for (auto& [image, lastFrame] : m_AvailableImages) {
+    for (auto& [image, lastUsedFrame, bInUse] : m_AvailableImages) {
         image->Destroy();
     }
 

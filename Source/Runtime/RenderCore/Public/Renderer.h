@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Cube.h"
 #include "LightRegister.h"
 #include "MeshManager.h"
 #include "Module.h"
@@ -9,6 +10,7 @@
 #include "RendererWindow.h"
 #include "Scope.h"
 #include "Sphere.h"
+#include "Texture.h"
 #include "Viewport.h"
 
 #include "RenderCoreExport.h"
@@ -68,7 +70,11 @@ private:
 
     std::vector<TScope<CViewport>> m_Viewports;
 
-    TRef<IRHIPipeline> m_CurrentPipeline, m_SolidPipeline, m_WireframePipeline, m_SkyboxPipeline;
+    TRef<IRHIPipeline> m_CurrentPipeline, m_SolidPipeline, m_WireframePipeline,
+        m_CubemapSamplerPipeline, m_SkyboxPipeline;
+
+    TRef<CTexture> m_SkyboxTex; // TODO: Remove
+    TRef<FCube> m_Cube;
 
     FOnRenderUI m_UICallback = nullptr;
 };

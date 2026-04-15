@@ -22,7 +22,9 @@ public:
 
     const vk::Image GetVKImage() const { return m_VKImage; }
     const vk::Format GetVKFormat() const { return m_VKFormat; }
-    vk::ImageView GetVKView() { return GetOrCreateView(FImageViewSpecification()); }
+    vk::ImageView GetVKView(const FImageViewSpecification& spec = FImageViewSpecification()) {
+        return GetOrCreateVKView(spec);
+    }
 
     const vk::ImageLayout GetCurrentLayout() const { return m_VKCurrentLayout; }
     void SetCurrentLayout(vk::ImageLayout layout) { m_VKCurrentLayout = layout; }
@@ -30,7 +32,7 @@ public:
 private:
     void Init();
     void CreateImageResources();
-    vk::ImageView GetOrCreateView(const FImageViewSpecification& spec);
+    vk::ImageView GetOrCreateVKView(const FImageViewSpecification& spec);
 
 private:
     bool m_bIsExternal = false; // Whether this image owns the VkImage (i.e. should destroy it)
