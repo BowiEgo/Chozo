@@ -22,7 +22,7 @@ layout(location = 0) out vec4 o_Color;
 
 layout(location = 0) in vec3 v_WorldPosition;
 
-layout(binding = 0) uniform sampler2D u_EquirectangularMap;
+layout(set = 0, binding = 0) uniform sampler2D u_EquirectangularMap;
 
 const vec2 invAtan = vec2(0.1591, 0.3183);
 vec2 SampleSphericalMap(vec3 v)

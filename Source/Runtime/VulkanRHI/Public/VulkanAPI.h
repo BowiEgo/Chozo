@@ -104,13 +104,13 @@ public:
     }
 
     virtual TRef<IRHIBuffer> CreateBuffer_Internal(const FBufferSpecification& spec) override {
-        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
+        auto RHIDevice = m_Context->GetDevice();
         return CreateRef<CVulkanBuffer>(WeakRef(RHIDevice), spec);
     }
 
     virtual TRef<IRHIBuffer> CreateBuffer_Internal(const FBufferSpecification& spec,
                                                    FBuffer& data) override {
-        auto RHIDevice = m_Context->GetDevice().As<CVulkanDevice>();
+        auto RHIDevice = m_Context->GetDevice();
         return CreateRef<CVulkanBuffer>(WeakRef(RHIDevice), spec, data);
     }
 
@@ -122,7 +122,9 @@ public:
     virtual void EndRendering_Internal(const TRef<IRHICommandList>& cmdBuffer) override;
     virtual void TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmdBuffer,
                                                 const IRHIImage* image,
-                                                const EImageLayout newLayout) override;
+                                                const EImageLayout newLayout,
+                                                uint32_t baseArrayLayer,
+                                                uint32_t layerCount) override;
 
 private:
     CVulkan* m_Vulkan;

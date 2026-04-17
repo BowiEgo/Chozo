@@ -2,6 +2,7 @@
 
 #include "RHIBuffer.h"
 #include "RHICommandPool.h"
+#include "RHIDescriptorSet.h"
 #include "RHIPipeline.h"
 #include "RHITexture.h"
 #include "Ref.h"
@@ -30,6 +31,7 @@ public:
     virtual void SetPolygonMode(EPolygonMode mode)                                = 0;
     virtual void BindPipeline(TRef<IRHIPipeline> pipeline)                        = 0;
     virtual void BindTexture(IRHITexture* texture, int set, int binding)          = 0;
+    virtual void BindDescriptorSets(int set, TRef<IRHIDescriptorSet> descSet)     = 0;
     virtual void PushConstants(const void* data, uint32_t size, uint32_t offset)  = 0;
     virtual void BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) = 0;
     virtual void BindVertexBuffer(TRef<IRHIBuffer> vertexBuffer, int binding)     = 0;
@@ -40,4 +42,12 @@ public:
     virtual void Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex,
                       uint32 firstInstance)                                       = 0;
     virtual void End()                                                            = 0;
+
+protected:
+    struct FPerSetData {
+        void* descSet;
+        TRef<IRHISetLayout> layout;
+    };
+
+    std::unordered_map<int, FPerSetData> m_DescriptorSetCaches;
 };

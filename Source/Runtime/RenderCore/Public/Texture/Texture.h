@@ -21,9 +21,7 @@ public:
 
     IRHITexture* GetOrCreateResource();
 
-    void* GetDescriptorSet(TRef<IRHISetLayout> setLayout = nullptr, uint32_t bindingSlot = 0) {
-        return GetOrCreateResource()->GetDescriptorSet(setLayout, bindingSlot);
-    }
+    void* GetImTextureID() { return GetOrCreateResource()->GetImTextureID(); }
 
 protected:
     FTextureSpecification m_Spec;

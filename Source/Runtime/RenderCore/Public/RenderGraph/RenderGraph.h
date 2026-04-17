@@ -67,8 +67,11 @@ public:
     ~CRenderGraph();
 
     // Declare Logical Textures (no physical allocation yet)
-    FRDGTexture* CreateRDGTexture(std::string name, IRHITexture* rhiTex) {
-        auto RDGtex = new FRDGTexture{ name, rhiTex->GetSpec(), nullptr, rhiTex };
+    FRDGTexture* CreateRDGTexture(std::string name, const FTextureSpecification& spec) {
+        TScope<IRHITexture> texRes = IRHIAPI::CreateTexture(spec, nullptr);
+        auto RDGtex                = new FRDGTexture{ name, spec, nullptr, texRes.get() };
+
+        m_InternalResources.push_back(std::move(texRes));
         m_Textures.push_back(RDGtex);
         return RDGtex;
     }
@@ -133,8 +136,9 @@ public:
             }
             for (auto* output : pass->Outputs) {
                 // Automatically insert barriers: transition to ColorAttachmentOptimal
-                IRHIAPI::TransitionImageLayout(cmd, output->Image,
-                                               EImageLayout::ColorAttachmentOptimal);
+                auto imageSpec = output->Spec.ToImageSpec();
+                IRHIAPI::TransitionImageLayout(
+                    cmd, output->Image, EImageLayout::ColorAttachmentOptimal, 0, imageSpec.Layers);
 
                 renderTargets.push_back(output->Texture);
             }
@@ -174,6 +178,7 @@ public:
 private:
     IRHIContext* m_Context;
 
+    std::vector<TScope<IRHITexture>> m_InternalResources;
     std::vector<FRDGTexture*> m_Textures;
     std::vector<FRDGPass*> m_Passes;
 };

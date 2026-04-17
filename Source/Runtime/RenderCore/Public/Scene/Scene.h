@@ -19,6 +19,7 @@ public:
     FScene()  = default;
     ~FScene() = default;
 
+    void Update(float deltaTime);
     void Draw(IRHICommandList* cmdList);
 
     // ----- Entity Management -----

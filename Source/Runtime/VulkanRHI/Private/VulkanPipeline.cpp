@@ -35,7 +35,7 @@ void CVulkanPipeline::Init() {
     m_DescriptorSetLayouts.reserve(rhiLayouts.size());
 
     for (const auto& rhiLayout : rhiLayouts) {
-        m_DescriptorSetLayouts.push_back(rhiLayout.As<CVulkanSetLayout>()->GetVKSetLayout());
+        m_DescriptorSetLayouts.push_back(rhiLayout);
     }
 
     // ===== Push Constant Range =====
@@ -62,7 +62,11 @@ void CVulkanPipeline::Init() {
     }
 
     // ===== Pipeline Layout =====
-    vk::PipelineLayoutCreateInfo pipelineLayoutInfo({}, m_DescriptorSetLayouts, pushConstantRanges);
+    std::vector<vk::DescriptorSetLayout> vkSetLayouts;
+    for (const auto& layout : m_DescriptorSetLayouts) {
+        vkSetLayouts.push_back(layout.As<CVulkanSetLayout>()->GetVKHandle());
+    }
+    vk::PipelineLayoutCreateInfo pipelineLayoutInfo({}, vkSetLayouts, pushConstantRanges);
     m_PipelineLayout = vk::raii::PipelineLayout(raiiDevice, pipelineLayoutInfo);
 
     // ===== Vertex Input =====
@@ -112,8 +116,10 @@ void CVulkanPipeline::Init() {
 
     // ===== Depth Stencil =====
     vk::Format vkDepthFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.DepthFormat);
-    vk::PipelineDepthStencilStateCreateInfo depthStencil({}, vk::True, vk::True,
-                                                         vk::CompareOp::eLess);
+    vk::PipelineDepthStencilStateCreateInfo depthStencil;
+    depthStencil.setDepthTestEnable(m_Spec.bDepthTestEnable ? vk::True : vk::False)
+        .setDepthWriteEnable(m_Spec.bDepthWriteEnable ? vk::True : vk::False)
+        .setDepthCompareOp(ChozoUtils::Vulkan::ToVkCompareOp(m_Spec.DepthCompareOp));
 
     // ===== Color Blending (Standard opaque) =====
     vk::PipelineColorBlendAttachmentState colorBlendAttachment{};

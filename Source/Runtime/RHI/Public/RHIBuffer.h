@@ -3,14 +3,14 @@
 #include "Buffer.h"
 #include "CoreMinimal.h"
 #include "RHIExport.h"
+#include "RHIResource.h"
 #include "RHITypes.h"
-#include "Ref.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRHIBuffer, Info);
 
 struct FBufferSpecification {
-    size_t Size = 0;
-    EBufferUsage Usage = EBufferUsage::None;
+    size_t Size            = 0;
+    EBufferUsage Usage     = EBufferUsage::None;
     EMemoryType MemoryType = EMemoryType::Unknown;
     std::string Name; // For debugging
 
@@ -18,18 +18,19 @@ struct FBufferSpecification {
     size_t MinAlignment = 0;
 };
 
-class RHI_API IRHIBuffer : public FRefCounted {
+class RHI_API IRHIBuffer : public IRHIResource {
 public:
-    IRHIBuffer(const FBufferSpecification& spec) : m_Spec(spec) {}
+    IRHIBuffer(const WeakRef<IRHIDevice> device, const FBufferSpecification& spec)
+        : IRHIResource(device), m_Spec(spec) {}
     virtual ~IRHIBuffer() {}
 
     // Disable copy
-    IRHIBuffer(const IRHIBuffer&) = delete;
+    IRHIBuffer(const IRHIBuffer&)            = delete;
     IRHIBuffer& operator=(const IRHIBuffer&) = delete;
 
     // Core functionality
     virtual void* Map(size_t offset = 0, size_t size = 0) = 0;
-    virtual void Unmap() = 0;
+    virtual void Unmap()                                  = 0;
 
     // Upload data (convenience)
     virtual void SetData(FBuffer& data, size_t offset = 0) = 0;

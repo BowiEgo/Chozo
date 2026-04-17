@@ -9,8 +9,8 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVulkanBuffer, Info);
 
 class VULKAN_RHI_API CVulkanBuffer : public IRHIBuffer {
 public:
-    CVulkanBuffer(const WeakRef<CVulkanDevice>& device, const FBufferSpecification& spec);
-    CVulkanBuffer(const WeakRef<CVulkanDevice>& device, const FBufferSpecification& spec,
+    CVulkanBuffer(const WeakRef<IRHIDevice>& device, const FBufferSpecification& spec);
+    CVulkanBuffer(const WeakRef<IRHIDevice>& device, const FBufferSpecification& spec,
                   FBuffer& data);
     virtual ~CVulkanBuffer();
 
@@ -24,6 +24,7 @@ public:
     vk::DeviceMemory GetVKMemory() const { return m_Memory; }
     vk::DeviceSize GetVKSize() const { return m_AlignedSize; }
     vk::DeviceAddress GetVKDeviceAddress() const;
+    vk::DescriptorBufferInfo GetVKBufferInfo();
 
 private:
     void CreateBuffer();
@@ -31,12 +32,11 @@ private:
     vk::DeviceSize GetAlignment() const;
 
 private:
-    WeakRef<CVulkanDevice> m_Device;
-
-    vk::Buffer m_Buffer = VK_NULL_HANDLE;
-    vk::DeviceMemory m_Memory = VK_NULL_HANDLE;
+    vk::Buffer m_Buffer          = VK_NULL_HANDLE;
+    vk::DeviceMemory m_Memory    = VK_NULL_HANDLE;
     vk::DeviceSize m_AlignedSize = 0;
+    size_t m_Offset              = 0; // For non-persistent mapping
 
-    void* m_MappedData = nullptr;
+    void* m_MappedData         = nullptr;
     bool m_IsPersistentMapping = false;
 };

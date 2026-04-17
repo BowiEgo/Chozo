@@ -89,7 +89,7 @@ void SandboxLayer::OnImGuiRender() {
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
     auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
-    ImTextureID textureID = (ImTextureID)tex->GetDescriptorSet();
+    ImTextureID textureID = (ImTextureID)tex->GetImTextureID();
     ImGui::Image(textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
     // Integrated Debug Overlay

@@ -1,12 +1,13 @@
 #include "RenderGraph.h"
 
 CRenderGraph::~CRenderGraph() {
-    for (auto* rdgTex : m_Textures) {
-        if (rdgTex->Image && !rdgTex->bExternal) {
-            m_Context->GetDevice()->ReturnImageToPool(rdgTex->Image);
+    for (auto& rdgTex : m_InternalResources) {
+        if (rdgTex->GetImage()) {
+            m_Context->GetDevice()->ReturnImageToPool(rdgTex->GetImage());
         }
     }
 
-    // m_Textures.clear();
+    m_InternalResources.clear();
+    m_Textures.clear();
     m_Passes.clear();
 }

@@ -4,14 +4,12 @@
 
 DEFINE_LOG_CATEGORY(LogScene);
 
-void FScene::Draw(IRHICommandList* cmdList) {
+void FScene::Update(float deltaTime) {
     m_TransformSystem.Update();
 
     auto view = View<FMeshComponent, FTransformComponent>();
-
     for (auto entity : view) {
         auto& meshComp = view.get<FMeshComponent>(entity);
-
         if (meshComp.IsValid()) {
             auto mesh = FMeshManager::Get().GetMesh(meshComp.MeshHandle);
             if (meshComp.IsDirty()) {
@@ -19,20 +17,29 @@ void FScene::Draw(IRHICommandList* cmdList) {
                 mesh->Upload();
                 CZ_LOG(LogScene, Trace, "UpdateMesh");
             }
-
-            auto& transformComp = view.get<FTransformComponent>(entity);
-
-            struct {
-                FMatrix4 ModelMatrix;
-                FMatrix3 NormalMatrix;
-            } pushConstants;
-
-            pushConstants.ModelMatrix  = transformComp.WorldMatrix;
-            pushConstants.NormalMatrix = transformComp.WorldNormalMatrix;
-            cmdList->PushConstants(&pushConstants, sizeof(pushConstants), 0);
-
-            mesh->Draw(cmdList);
         }
+    }
+}
+
+void FScene::Draw(IRHICommandList* cmdList) {
+    auto view = View<FMeshComponent, FTransformComponent>();
+    for (auto entity : view) {
+        auto& meshComp = view.get<FMeshComponent>(entity);
+        if (!meshComp.IsValid()) continue;
+
+        auto mesh           = FMeshManager::Get().GetMesh(meshComp.MeshHandle);
+        auto& transformComp = view.get<FTransformComponent>(entity);
+
+        struct {
+            FMatrix4 ModelMatrix;
+            FMatrix3 NormalMatrix;
+        } pushConstants;
+
+        pushConstants.ModelMatrix  = transformComp.WorldMatrix;
+        pushConstants.NormalMatrix = transformComp.WorldNormalMatrix;
+        cmdList->PushConstants(&pushConstants, sizeof(pushConstants), 0);
+
+        mesh->Draw(cmdList);
     }
 }
 

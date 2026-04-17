@@ -73,9 +73,13 @@ public:
     virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec,
                                               IRHIImage* borrowedImage)                         = 0;
     virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec, FBuffer& data) = 0;
-    virtual TRef<IRHIDescriptorSet> CreateDescriptorSet(const FTextureDescriptorInfo& info,
-                                                        TRef<IRHISetLayout> setLayout,
-                                                        uint32 bindingSlot)                     = 0;
+    // virtual TRef<IRHIDescriptorSet> CreateDescriptorSet(const FTextureDescriptorInfo& info,
+    //                                                     TRef<IRHISetLayout> setLayout,
+    //                                                     uint32 bindingSlot)                     =
+    //                                                     0;
+    virtual TRef<IRHIDescriptorSet>
+        CreateDescriptorSet(TRef<IRHISetLayout> setLayout,
+                            const std::vector<FDescriptorBinding>& bindings) = 0;
 
     void ReturnImageToPool(IRHIImage* image) { return m_ImagePool.ReturnImage(image); }
     IRHIImage* GetImageFromPool(const FImageSpecification& spec, uint32_t frameIndex) {
@@ -89,10 +93,16 @@ public:
     }
     TRef<IRHISetLayout> GetEmptySetLayout() { return m_SetLayoutCache.GetEmptySetLayout(); }
     TRef<IRHISetLayout> GetStaticSetLayout() { return m_SetLayoutCache.GetStaticSetLayout(); }
-    TRef<IRHIDescriptorSet> GetOrCreateDescriptorSet(const FTextureDescriptorInfo& info,
-                                                     TRef<IRHISetLayout> setLayout,
-                                                     uint32 bindingSlot) {
-        return m_DescriptorSetCache.GetOrCreateDescriptorSet(info, setLayout, bindingSlot);
+    // TRef<IRHIDescriptorSet> GetOrCreateDescriptorSet(const FTextureDescriptorInfo& info,
+    //                                                  TRef<IRHISetLayout> setLayout,
+    //                                                  uint32 bindingSlot) {
+    //     return m_DescriptorSetCache.GetOrCreateDescriptorSet(info, setLayout, bindingSlot);
+    // }
+
+    TRef<IRHIDescriptorSet>
+        GetOrCreateDescriptorSet(TRef<IRHISetLayout> setLayout,
+                                 const std::vector<FDescriptorBinding>& bindings) {
+        return m_DescriptorSetCache.GetOrCreateDescriptorSet(setLayout, bindings);
     }
 
     // Enqueue a cleanup function to be called after it's safe to delete the resource (e.g., after

@@ -5,6 +5,7 @@
 #include "MeshManager.h"
 #include "ModuleUtils.h"
 #include "RHIAPI.h"
+#include "RHIDescriptorSet.h"
 #include "RenderGraph.h"
 
 CRenderer::CRenderer(IRendererWindow* windowHandle) : m_Window(windowHandle) {}
@@ -56,6 +57,11 @@ void CRenderer::Init() {
                                                "shaders://CubemapSampler.glsl",
                                                { EShaderStage::Vertex, EShaderStage::Fragment },
                                                "main" });
+    TRef<CShader> skyboxShader =
+        CAssetManager::Get().GetOrLoadShader({ "Skybox",
+                                               "shaders://Skybox.glsl",
+                                               { EShaderStage::Vertex, EShaderStage::Fragment },
+                                               "main" });
 
     // Texture
     m_SkyboxTex = CAssetManager::Get().GetOrLoadTexture(
@@ -63,19 +69,19 @@ void CRenderer::Init() {
 
     // Pipeline
     {
-        FPipelineSpecification solidSpec;
-        solidSpec.Name               = "Solid";
-        solidSpec.RHIShaders         = cubeShader->GetShaderResources();
-        solidSpec.ColorFormats       = { EPixelFormat::RGBA8_UNORM };
-        solidSpec.VertexLayout       = { { EShaderDataFormat::Float3, "a_Position" },
-                                         { EShaderDataFormat::Float3, "a_Normal" },
-                                         { EShaderDataFormat::Float2, "a_TexCoord" },
-                                         { EShaderDataFormat::Float3, "a_Tangent" },
-                                         { EShaderDataFormat::Float3, "a_Bitangent" } };
-        solidSpec.PushConstantRanges = { { 0, sizeof(FMatrix4) + sizeof(FMatrix3) } };
-        m_SolidPipeline              = IRHIAPI::CreatePipeline(solidSpec);
+        FPipelineSpecification spec;
+        spec.Name               = "Solid";
+        spec.RHIShaders         = cubeShader->GetShaderResources();
+        spec.ColorFormats       = { EPixelFormat::RGBA16F };
+        spec.VertexLayout       = { { EShaderDataFormat::Float3, "a_Position" },
+                                    { EShaderDataFormat::Float3, "a_Normal" },
+                                    { EShaderDataFormat::Float2, "a_TexCoord" },
+                                    { EShaderDataFormat::Float3, "a_Tangent" },
+                                    { EShaderDataFormat::Float3, "a_Bitangent" } };
+        spec.PushConstantRanges = { { 0, sizeof(FMatrix4) + sizeof(FMatrix3) } };
+        m_SolidPipeline         = IRHIAPI::CreatePipeline(spec);
 
-        FPipelineSpecification wireSpec = solidSpec;
+        FPipelineSpecification wireSpec = spec;
         wireSpec.Name                   = "Wireframe";
         wireSpec.PolygonMode            = EPolygonMode::Line;
         m_WireframePipeline             = IRHIAPI::CreatePipeline(wireSpec);
@@ -91,6 +97,20 @@ void CRenderer::Init() {
             { EShaderDataFormat::Float3, "a_Position" },
         };
         m_CubemapSamplerPipeline = IRHIAPI::CreatePipeline(spec);
+    }
+
+    {
+        FPipelineSpecification spec;
+        spec.Name              = "Skybox";
+        spec.RHIShaders        = { skyboxShader->GetShaderResources() };
+        spec.ColorFormats      = { EPixelFormat::RGBA16F };
+        spec.bDepthTestEnable  = false;
+        spec.bDepthWriteEnable = false;
+        spec.VertexLayout      = {
+            { EShaderDataFormat::Float3, "a_Position" },
+        };
+
+        m_SkyboxPipeline = IRHIAPI::CreatePipeline(spec);
     }
 
     SetPolygonMode(EPolygonMode::Fill);
@@ -131,17 +151,24 @@ void CRenderer::Tick(float deltaTime) {
 
         uint32_t faceSize = cubeSpec.Size.Width;
 
-        TScope<IRHITexture> skyboxCubemap = IRHIAPI::CreateTexture(cubeSpec, nullptr);
-        FRDGTexture* skyboxCubemapHandle =
-            graph.CreateRDGTexture("SkyboxCubemap", skyboxCubemap.get());
+        FRDGTexture* skyboxCubemapHandle = graph.CreateRDGTexture("SkyboxCubemap", cubeSpec);
 
         graph.AddPass("EquirectangularToCubemap", { skybox2DHandle }, { skyboxCubemapHandle },
                       ERenderPassLoadOp::Clear, [this, faceSize, skybox2DHandle](CRDGContext& ctx) {
-                          auto st = ctx.GetTexture(skybox2DHandle);
-
+                          auto st  = ctx.GetTexture(skybox2DHandle);
                           auto cmd = ctx.GetCommandBuffer();
+
+                          auto setLayout = m_CubemapSamplerPipeline->GetSetLayout(0);
+                          std::vector<FDescriptorBinding> bindings = {
+                              { 0, EUniformType::CombinedImageSampler, st, st->GetSampler().get(),
+                                EImageLayout::ShaderReadOnlyOptimal }
+                          };
+                          auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
+                              setLayout, bindings);
+
                           cmd->BindPipeline(m_CubemapSamplerPipeline);
-                          cmd->BindTexture(st, 0, 0);
+                          cmd->BindDescriptorSets(0, descSet);
+                          //   cmd->BindTexture(st, 0, 0);
                           cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
                           cmd->SetScissor({ 0, 0, faceSize, faceSize });
 
@@ -151,6 +178,8 @@ void CRenderer::Tick(float deltaTime) {
         // Request a transient texture for storing the skybox pass result,
         // lifetime managed by the render graph
         for (auto& viewport : m_Viewports) {
+            viewport->GetScene()->Update(deltaTime);
+
             IRHITexture* viewportCanvas = viewport->GetFrameBuffer()->GetColorAttachment(0).get();
             // auto tex = CreateRef<CTexture>(viewportCanvas->GetSpec(), viewportCanvas);
 
@@ -159,28 +188,64 @@ void CRenderer::Tick(float deltaTime) {
                 EImageLayout::ColorAttachmentOptimal, // initial usage
                 EImageLayout::ShaderReadOnlyOptimal); // final usage (for UI)
 
-            // graph.AddPass("SkyboxPass", { skyboxHandle }, { viewportHandle },
-            //               ERenderPassLoadOp::Clear, [=](CRDGContext& ctx) {
-            //                   TRef<IRHITexture> st = ctx.GetTextureCube(skyboxHandle);
-            //                   TRef<IRHITexture> rt      = ctx.GetTexture2D(viewportHandle);
+            graph.AddPass("SkyboxPass", { skyboxCubemapHandle }, { viewportHandle },
+                          ERenderPassLoadOp::Clear,
+                          [this, &viewport, skyboxCubemapHandle, viewportHandle](CRDGContext& ctx) {
+                              auto st  = ctx.GetTexture(skyboxCubemapHandle);
+                              auto rt  = ctx.GetTexture(viewportHandle);
+                              auto cmd = ctx.GetCommandBuffer();
 
-            //                   DrawSkybox(ctx.GetCommandBuffer(), st, rt);
-            //               });
+                              auto scene  = viewport->GetScene();
+                              auto camera = viewport->GetCamera();
+                              auto cameraBuffer =
+                                  CCameraUniformManager::Get().GetBufferForCamera(camera.get());
+                              auto width  = viewport->GetWidth();
+                              auto height = viewport->GetHeight();
 
-            graph.AddPass("SceneCompositePass", {}, { viewportHandle }, ERenderPassLoadOp::Clear,
+                              auto setLayout = m_SkyboxPipeline->GetSetLayout(0);
+                              std::vector<FDescriptorBinding> bindings = {
+                                  { 0, EUniformType::UniformBuffer, cameraBuffer.get(), nullptr },
+                                  { 1, EUniformType::CombinedImageSampler, st,
+                                    st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+                              };
+                              auto descSet =
+                                  m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(setLayout,
+                                                                                          bindings);
+
+                              cmd->BindPipeline(m_SkyboxPipeline);
+                              cmd->BindDescriptorSets(0, descSet);
+                              //   cmd->BindUniformBuffer(cameraBuffer, 0, 0);
+                              //   cmd->BindTexture(st, 0, 1);
+                              cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
+                              cmd->SetScissor({ 0, 0, width, height });
+
+                              // cmd->Draw(4, 1, 0, 0);
+                              m_Cube->Draw(cmd.get());
+                          });
+
+            graph.AddPass("SceneCompositePass", {}, { viewportHandle }, ERenderPassLoadOp::Load,
                           [this, &viewport, viewportHandle](CRDGContext& ctx) {
                               //   auto rt  = ctx.GetTexture(viewportHandle);
                               auto cmd = ctx.GetCommandBuffer();
 
                               auto scene  = viewport->GetScene();
                               auto camera = viewport->GetCamera();
-                              auto uniformBuffer =
+                              auto cameraBuffer =
                                   CCameraUniformManager::Get().GetBufferForCamera(camera.get());
                               auto width  = viewport->GetWidth();
                               auto height = viewport->GetHeight();
 
+                              auto setLayout = m_CurrentPipeline->GetSetLayout(0);
+                              std::vector<FDescriptorBinding> bindings = {
+                                  { 0, EUniformType::UniformBuffer, cameraBuffer.get(), nullptr },
+                              };
+                              auto descSet =
+                                  m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(setLayout,
+                                                                                          bindings);
+
                               cmd->BindPipeline(m_CurrentPipeline);
-                              cmd->BindUniformBuffer(uniformBuffer, 0, 0);
+                              cmd->BindDescriptorSets(0, descSet);
+                              //   cmd->BindUniformBuffer(uniformBuffer, 0, 0);
                               cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
                               cmd->SetScissor({ 0, 0, width, height });
 
@@ -220,6 +285,7 @@ void CRenderer::Shutdown() {
     m_GraphicContext->GetDevice()->WaitIdle();
 
     m_SkyboxTex.Reset(); // TODO: Remove
+    m_Cube.Reset();
 
     m_Viewports.clear();
     m_SolidPipeline.Reset();

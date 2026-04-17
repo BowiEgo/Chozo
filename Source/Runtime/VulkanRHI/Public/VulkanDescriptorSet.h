@@ -10,13 +10,13 @@ DECLARE_LOG_CATEGORY_EXTERN(LogVulkanDescriptorSet, Info);
 
 class VULKAN_RHI_API CVulkanDescriptorSet : public IRHIDescriptorSet {
 public:
-    CVulkanDescriptorSet(const WeakRef<IRHIDevice> device, const FTextureDescriptorInfo& info,
-                         TRef<IRHISetLayout> setLayout, uint32 bindingSlot);
+    CVulkanDescriptorSet(const WeakRef<IRHIDevice> device, TRef<IRHISetLayout> setLayout,
+                         const std::vector<FDescriptorBinding>& bindings);
     virtual ~CVulkanDescriptorSet() = default;
 
-    virtual void* GetRawHandle() const override { return (void*)GetVKDescriptorSet(); }
+    virtual void* GetRawHandle() const override { return (void*)GetVKHandle(); }
 
-    const vk::DescriptorSet GetVKDescriptorSet() const { return *m_RAIIHandle; }
+    const vk::DescriptorSet GetVKHandle() const { return *m_RAIIHandle; }
 
 private:
     void Init();
@@ -24,7 +24,5 @@ private:
 private:
     vk::raii::DescriptorSet m_RAIIHandle = nullptr;
 
-    FTextureDescriptorInfo m_Info;
-    TRef<CVulkanSetLayout> m_Layout;
     uint32 m_Slot;
 };

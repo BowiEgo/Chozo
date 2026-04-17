@@ -12,7 +12,7 @@ public:
     CVulkanSetLayout(const WeakRef<IRHIDevice> device, const FRHISetLayoutDescription& desc);
     virtual ~CVulkanSetLayout();
 
-    const vk::DescriptorSetLayout GetVKSetLayout() const { return *m_SetLayout; }
+    const vk::DescriptorSetLayout GetVKHandle() const { return *m_SetLayout; }
 
 private:
     vk::raii::DescriptorSetLayout CreateVKSetLayout(const FRHISetLayoutDescription& desc);

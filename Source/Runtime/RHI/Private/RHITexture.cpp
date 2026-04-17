@@ -1,5 +1,6 @@
 #include "RHITexture.h"
 
+#include "RHIDescriptorSet.h"
 #include "RHIDevice.h"
 
 DEFINE_LOG_CATEGORY(LogRHITexture);
@@ -31,14 +32,12 @@ TRef<IRHISampler> IRHITexture::GetSampler(const FSamplerSpecification spec) cons
     return m_Device.lock()->GetSampler(spec);
 };
 
-void* IRHITexture::GetDescriptorSet(TRef<IRHISetLayout> setLayout, uint32_t bindingSlot) const {
+void* IRHITexture::GetImTextureID() const {
     auto device = m_Device.lock();
-    if (!setLayout) setLayout = device->GetStaticSetLayout();
 
-    FTextureDescriptorInfo info;
-    info.Image       = GetImage();
-    info.Sampler     = GetSampler();
-    info.ImageLayout = EImageLayout::ShaderReadOnlyOptimal;
-
-    return device->GetOrCreateDescriptorSet(info, setLayout, 0)->GetRawHandle();
+    std::vector<FDescriptorBinding> bindings = {
+        { 0, EUniformType::CombinedImageSampler, const_cast<IRHITexture*>(this), GetSampler().get(),
+          EImageLayout::ShaderReadOnlyOptimal }
+    };
+    return device->GetOrCreateDescriptorSet(device->GetStaticSetLayout(), bindings)->GetRawHandle();
 }

@@ -123,7 +123,7 @@ public:
     TRef<IRHISampler>
         GetSampler(const FSamplerSpecification spec = FSamplerSpecification::LinearClamp()) const;
 
-    void* GetDescriptorSet(TRef<IRHISetLayout> setLayout = nullptr, uint32_t bindingSlot = 0) const;
+    void* GetImTextureID() const;
 
     void BorrowImage(IRHIImage* borrowedImage) {
         if (m_OwnedImage) return;

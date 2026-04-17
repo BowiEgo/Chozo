@@ -1016,7 +1016,7 @@ void UFileDialog::RenderTree(FileTreeNode* node) {
 
     auto tex           = GetIcon(node->Path);
     bool isDefaultOpen = displayName == "Quick Access" || displayName == "This Computer";
-    if (FolderNode(displayName.c_str(), (ImTextureID)tex->GetDescriptorSet(), isClicked,
+    if (FolderNode(displayName.c_str(), (ImTextureID)tex->GetImTextureID(), isClicked,
                    isDefaultOpen)) {
         if (!node->Read) {
             // cache children if it's not already cached
@@ -1086,7 +1086,7 @@ void UFileDialog::RenderContent() {
 
                 // icon
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Image((ImTextureID)tex->GetDescriptorSet(),
+                ImGui::Image((ImTextureID)tex->GetImTextureID(),
                              ImVec2(iconTotalSize, iconTotalSize));
                 ImGui::SameLine();
 
@@ -1145,7 +1145,7 @@ void UFileDialog::RenderContent() {
             auto tex        = entry.IsDirectory ? GetIcon(entry.Path) : GetThumbnail(entry.Path);
             auto texSize    = tex->GetSize();
 
-            if (FileIcon(filename.c_str(), isSelected, (ImTextureID)tex->GetDescriptorSet(),
+            if (FileIcon(filename.c_str(), isSelected, (ImTextureID)tex->GetImTextureID(),
                          ImVec2(32 + 16 * m_Zoom, 32 + 16 * m_Zoom), !entry.IsDirectory,
                          texSize.Width, texSize.Height)) {
                 std::error_code ec;

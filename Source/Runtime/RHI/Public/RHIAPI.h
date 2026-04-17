@@ -91,8 +91,10 @@ public:
     }
 
     static void TransitionImageLayout(const TRef<IRHICommandList>& cmdList, const IRHIImage* image,
-                                      const EImageLayout newLayout) {
-        return s_Instance->TransitionImageLayout_Internal(cmdList, image, newLayout);
+                                      const EImageLayout newLayout, uint32_t baseArrayLayer = 0,
+                                      uint32_t layerCount = 1) {
+        return s_Instance->TransitionImageLayout_Internal(cmdList, image, newLayout, baseArrayLayer,
+                                                          layerCount);
     }
 
 protected:
@@ -129,7 +131,8 @@ protected:
 
     virtual void TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmdList,
                                                 const IRHIImage* image,
-                                                const EImageLayout newLayout) = 0;
+                                                const EImageLayout newLayout,
+                                                uint32_t baseArrayLayer, uint32_t layerCount) = 0;
 
 protected:
     static IRHIAPI* s_Instance;

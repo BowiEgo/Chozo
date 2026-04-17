@@ -20,7 +20,7 @@ public:
     virtual void Destroy() override;
     virtual void SetData(FBuffer& data) override;
 
-    const vk::Image GetVKImage() const { return m_VKImage; }
+    const vk::Image GetVKHandle() const { return m_VKImage; }
     const vk::Format GetVKFormat() const { return m_VKFormat; }
     vk::ImageView GetVKView(const FImageViewSpecification& spec = FImageViewSpecification()) {
         return GetOrCreateVKView(spec);

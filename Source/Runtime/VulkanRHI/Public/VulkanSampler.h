@@ -9,7 +9,7 @@ public:
     CVulkanSampler(const WeakRef<IRHIDevice> device, const FSamplerSpecification& spec);
     virtual ~CVulkanSampler();
 
-    const vk::Sampler GetVKSampler() const { return m_VKSampler; }
+    const vk::Sampler GetVKHandle() const { return m_VKSampler; }
 
 private:
     void CreateVKSampler();

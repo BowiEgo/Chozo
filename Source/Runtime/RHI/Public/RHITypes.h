@@ -467,6 +467,17 @@ enum class EPixelFormat {
 };
 // clang-format on
 
+enum class ECompareOp : uint8_t {
+    Never          = 0,
+    Less           = 1,
+    Equal          = 2,
+    LessOrEqual    = 3,
+    Greater        = 4,
+    NotEqual       = 5,
+    GreaterOrEqual = 6,
+    Always         = 7,
+};
+
 enum class EFilter : uint8_t {
     Nearest = 0,
     Linear  = 1,

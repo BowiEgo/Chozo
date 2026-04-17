@@ -2,8 +2,8 @@
 
 DEFINE_LOG_CATEGORY(LogVulkanBuffer);
 
-CVulkanBuffer::CVulkanBuffer(const WeakRef<CVulkanDevice>& device, const FBufferSpecification& spec)
-    : IRHIBuffer(spec), m_Device(device) {
+CVulkanBuffer::CVulkanBuffer(const WeakRef<IRHIDevice>& device, const FBufferSpecification& spec)
+    : IRHIBuffer(device, spec) {
     CreateBuffer();
 
     CZ_LOG(LogVulkanBuffer, Info,
@@ -12,9 +12,9 @@ CVulkanBuffer::CVulkanBuffer(const WeakRef<CVulkanDevice>& device, const FBuffer
            static_cast<uint32_t>(spec.MemoryType), (void*)m_Buffer);
 }
 
-CVulkanBuffer::CVulkanBuffer(const WeakRef<CVulkanDevice>& device, const FBufferSpecification& spec,
+CVulkanBuffer::CVulkanBuffer(const WeakRef<IRHIDevice>& device, const FBufferSpecification& spec,
                              FBuffer& data)
-    : IRHIBuffer(spec), m_Device(device) {
+    : IRHIBuffer(device, spec) {
     CreateBuffer();
     SetData(data, 0);
 
@@ -26,7 +26,7 @@ CVulkanBuffer::CVulkanBuffer(const WeakRef<CVulkanDevice>& device, const FBuffer
 
 CVulkanBuffer::~CVulkanBuffer() {
     CZ_LOG(LogVulkanBuffer, Trace, "Destroyed Buffer: {} {}", (void*)m_Buffer, m_Spec.Name);
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return;
 
     if (m_MappedData) {
@@ -47,7 +47,7 @@ CVulkanBuffer::~CVulkanBuffer() {
 }
 
 void CVulkanBuffer::CreateBuffer() {
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) {
         CZ_LOG(LogVulkanBuffer, Error, "Device is invalid");
         return;
@@ -156,7 +156,7 @@ void* CVulkanBuffer::Map(size_t offset, size_t size) {
         return m_MappedData; // Already mapped persistently
     }
 
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) {
         CZ_LOG(LogVulkanBuffer, Error, "Device is invalid during Map");
         return nullptr;
@@ -182,7 +182,7 @@ void CVulkanBuffer::Unmap() {
         return; // Keep persistent mapping
     }
 
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return;
 
     vk::Device vkDevice = device->GetLogicalDevice();
@@ -199,6 +199,8 @@ void CVulkanBuffer::SetData(FBuffer& data, size_t offset) {
         return;
     }
 
+    m_Offset = offset;
+
     void* mapped = Map(offset, size);
     if (!mapped) return;
 
@@ -206,7 +208,7 @@ void CVulkanBuffer::SetData(FBuffer& data, size_t offset) {
 
     if (!HasFlag(m_Spec.MemoryType, EMemoryType::HostCoherent)) {
         // Flush memory range
-        auto device = m_Device.lock();
+        auto device = m_Device.lock().As<CVulkanDevice>();
         if (device) {
             vk::Device vkDevice = device->GetLogicalDevice();
             vk::MappedMemoryRange range;
@@ -225,7 +227,7 @@ vk::DeviceAddress CVulkanBuffer::GetVKDeviceAddress() const {
         return 0;
     }
 
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return 0;
 
     vk::Device vkDevice = device->GetLogicalDevice();
@@ -237,7 +239,7 @@ vk::DeviceAddress CVulkanBuffer::GetVKDeviceAddress() const {
 }
 
 uint32_t CVulkanBuffer::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return ~0u;
 
     vk::PhysicalDevice physicalDevice                = device->GetPhysicalDevice();
@@ -255,7 +257,7 @@ uint32_t CVulkanBuffer::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFl
 }
 
 vk::DeviceSize CVulkanBuffer::GetAlignment() const {
-    auto device = m_Device.lock();
+    auto device = m_Device.lock().As<CVulkanDevice>();
     if (!device) return 0;
 
     if (m_Spec.MinAlignment > 0) {
@@ -274,4 +276,12 @@ vk::DeviceSize CVulkanBuffer::GetAlignment() const {
     }
 
     return 1; // No alignment requirement
+}
+
+vk::DescriptorBufferInfo CVulkanBuffer::GetVKBufferInfo() {
+    vk::DescriptorBufferInfo bufferInfo;
+    bufferInfo.setBuffer(m_Buffer);
+    bufferInfo.setOffset(m_Offset);
+    bufferInfo.setRange(m_AlignedSize);
+    return bufferInfo;
 }

@@ -403,7 +403,7 @@ inline ImRect RectOffset(const ImRect& rect, ImVec2 xy) { return RectOffset(rect
 inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tint, ImVec2 rectMin, ImVec2 rectMax,
                             ImVec2 uv0, ImVec2 uv1) {
     auto* drawList = ImGui::GetWindowDrawList();
-    drawList->AddImage((ImTextureID)image->GetDescriptorSet(), rectMin, rectMax, uv0, uv1, tint);
+    drawList->AddImage((ImTextureID)image->GetImTextureID(), rectMin, rectMax, uv0, uv1, tint);
 };
 
 inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tint, ImRect rectangle, ImVec2 uv0,
@@ -417,13 +417,13 @@ inline void DrawButtonImage(TRef<CTexture>& imageNormal, TRef<CTexture>& imageHo
                             ImVec2 uv1) {
     auto* drawList = ImGui::GetWindowDrawList();
     if (ImGui::IsItemActive())
-        drawList->AddImage((ImTextureID)imagePressed->GetDescriptorSet(), rectMin, rectMax, uv0,
-                           uv1, tintPressed);
+        drawList->AddImage((ImTextureID)imagePressed->GetImTextureID(), rectMin, rectMax, uv0, uv1,
+                           tintPressed);
     else if (ImGui::IsItemHovered())
-        drawList->AddImage((ImTextureID)imageHovered->GetDescriptorSet(), rectMin, rectMax, uv0,
-                           uv1, tintHovered);
+        drawList->AddImage((ImTextureID)imageHovered->GetImTextureID(), rectMin, rectMax, uv0, uv1,
+                           tintHovered);
     else
-        drawList->AddImage((ImTextureID)imageNormal->GetDescriptorSet(), rectMin, rectMax, uv0, uv1,
+        drawList->AddImage((ImTextureID)imageNormal->GetImTextureID(), rectMin, rectMax, uv0, uv1,
                            tintNormal);
 };
 

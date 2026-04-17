@@ -169,13 +169,15 @@ void CVulkanAPI::EndRendering_Internal(const TRef<IRHICommandList>& cmdBuffer) {
 
 void CVulkanAPI::TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmdBuffer,
                                                 const IRHIImage* image,
-                                                const EImageLayout newLayout) {
+                                                const EImageLayout newLayout,
+                                                uint32_t baseArrayLayer, uint32_t layerCount) {
     auto rhiImage    = const_cast<CVulkanImage*>(static_cast<const CVulkanImage*>(image));
     auto vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
-    auto vkImage     = rhiImage->GetVKImage();
+    auto vkImage     = rhiImage->GetVKHandle();
     auto vkOldLayout = rhiImage->GetCurrentLayout();
     auto vkNewLayout = ChozoUtils::Vulkan::ToVkImageLayout(newLayout);
 
-    ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, vkImage, vkOldLayout, vkNewLayout);
+    ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, vkImage, vkOldLayout, vkNewLayout,
+                                              baseArrayLayer, layerCount);
     rhiImage->SetCurrentLayout(vkNewLayout);
 }

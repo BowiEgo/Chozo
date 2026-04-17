@@ -1,5 +1,8 @@
 #include "VulkanTexture.h"
 
+#include "VulkanImage.h"
+#include "VulkanSampler.h"
+
 CVulkanTexture::CVulkanTexture(const WeakRef<IRHIDevice> device, const FTextureSpecification& spec)
     : IRHITexture(device, spec) {}
 
@@ -16,3 +19,24 @@ CVulkanTexture::CVulkanTexture(const WeakRef<IRHIDevice> device, const FTextureS
     : IRHITexture(device, spec, data) {}
 
 CVulkanTexture::~CVulkanTexture() {}
+
+vk::DescriptorImageInfo CVulkanTexture::GetImageInfo() {
+    vk::DescriptorImageInfo imageInfo;
+    imageInfo.setSampler(GetSampler().As<CVulkanSampler>()->GetVKHandle());
+    imageInfo.setImageView(static_cast<CVulkanImage*>(GetImage())->GetVKView());
+    imageInfo.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
+
+    return imageInfo;
+}
+
+vk::ImageView CVulkanTexture::GetVKImageView() {
+    FImageViewSpecification spec;
+
+    if (m_Spec.Type == ETextureType::TextureCube) {
+        spec.ViewType   = EImageViewType::ViewCube;
+        spec.LayerCount = 6;
+        spec.MipCount   = 0;
+    }
+
+    return static_cast<CVulkanImage*>(GetImage())->GetVKView(spec);
+}

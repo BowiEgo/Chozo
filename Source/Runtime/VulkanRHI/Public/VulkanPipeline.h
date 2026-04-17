@@ -16,7 +16,7 @@ public:
     CVulkanPipeline(const FPipelineSpecification& spec, const TRef<CVulkanDevice>& device);
     virtual ~CVulkanPipeline();
 
-    vk::DescriptorSetLayout GetSetLayout(uint32_t set) {
+    virtual const TRef<IRHISetLayout> GetSetLayout(uint32_t set) override {
         if (set < m_DescriptorSetLayouts.size()) return m_DescriptorSetLayouts[set];
         return nullptr;
     }
@@ -33,5 +33,4 @@ private:
 
     vk::raii::PipelineLayout m_PipelineLayout = nullptr;
     vk::raii::Pipeline m_Pipeline             = nullptr;
-    std::vector<vk::DescriptorSetLayout> m_DescriptorSetLayouts;
 };

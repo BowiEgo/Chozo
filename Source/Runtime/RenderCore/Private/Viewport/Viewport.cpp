@@ -17,7 +17,7 @@ void CViewport::CreateFrameBuffer() {
     FFrameBufferSpecification fbSpec;
     fbSpec.Name         = m_Spec.Name + "_Framebuffer";
     fbSpec.Size         = { m_Spec.Width, m_Spec.Height };
-    fbSpec.ColorFormats = { EPixelFormat::RGBA8_UNORM };
+    fbSpec.ColorFormats = { EPixelFormat::RGBA16F };
     fbSpec.DepthFormat  = EPixelFormat::D32_SFLOAT;
 
     m_FrameBuffer = IRHIAPI::CreateFrameBuffer(fbSpec);

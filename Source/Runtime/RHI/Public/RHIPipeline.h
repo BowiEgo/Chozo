@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RHIExport.h"
+#include "RHISetLayout.h"
 #include "RHIShader.h"
 #include "Ref.h"
 
@@ -16,7 +17,10 @@ struct FPipelineSpecification {
     std::vector<TRef<IRHIShader>> RHIShaders;
 
     std::vector<EPixelFormat> ColorFormats;
-    EPixelFormat DepthFormat = EPixelFormat::D32_SFLOAT;
+    EPixelFormat DepthFormat  = EPixelFormat::D32_SFLOAT;
+    bool bDepthTestEnable     = true;
+    bool bDepthWriteEnable    = true;
+    ECompareOp DepthCompareOp = ECompareOp::Less;
 
     VertexBufferLayout VertexLayout;
     std::vector<FPushConstantRange> PushConstantRanges;
@@ -29,8 +33,11 @@ public:
     IRHIPipeline(const FPipelineSpecification& spec);
     virtual ~IRHIPipeline();
 
+    virtual const TRef<IRHISetLayout> GetSetLayout(uint32_t set) = 0;
+
     EPolygonMode GetPolygonMode() const { return m_Spec.PolygonMode; }
 
 protected:
     FPipelineSpecification m_Spec;
+    std::vector<TRef<IRHISetLayout>> m_DescriptorSetLayouts;
 };

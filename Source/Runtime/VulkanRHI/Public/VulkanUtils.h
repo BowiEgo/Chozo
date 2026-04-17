@@ -76,7 +76,8 @@ vk::SamplerMipmapMode ToVKMipmapMode(EMipmapMode mode);
 vk::ImageLayout ToVkImageLayout(EImageLayout layout);
 
 void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image vkImage,
-                           vk::ImageLayout oldLayout, vk::ImageLayout newLayout);
+                           vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+                           uint32_t baseArrayLayer = 0, uint32_t layerCount = 1);
 
 void SetupBarrierSync(vk::ImageMemoryBarrier2& barrier, vk::ImageLayout oldLayout,
                       vk::ImageLayout newLayout);
@@ -103,5 +104,7 @@ vk::Format ShaderDataTypeToVkFormat(EShaderDataFormat type);
 
 // Pipeline
 vk::PolygonMode GetVulkanPolygonMode(EPolygonMode mode);
+
+vk::CompareOp ToVkCompareOp(ECompareOp op);
 
 } // namespace ChozoUtils::Vulkan

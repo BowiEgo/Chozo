@@ -222,7 +222,8 @@ vk::ImageLayout ToVkImageLayout(EImageLayout layout) {
 }
 
 void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image vkImage,
-                           vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
+                           vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+                           uint32_t baseArrayLayer, uint32_t layerCount) {
     if (oldLayout == newLayout) return;
 
     vk::ImageMemoryBarrier2 barrier;
@@ -231,8 +232,9 @@ void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image 
         .setSrcQueueFamilyIndex(vk::QueueFamilyIgnored)
         .setDstQueueFamilyIndex(vk::QueueFamilyIgnored)
         .setImage(vkImage)
-        .setSubresourceRange(
-            vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1));
+        .setSubresourceRange(vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0,
+                                                       VK_REMAINING_MIP_LEVELS, baseArrayLayer,
+                                                       VK_REMAINING_ARRAY_LAYERS));
 
     // Automatically deduce stages and access masks based on layouts
     SetupBarrierSync(barrier, oldLayout, newLayout);
@@ -511,6 +513,20 @@ vk::PolygonMode GetVulkanPolygonMode(EPolygonMode mode) {
         case EPolygonMode::Line: return vk::PolygonMode::eLine;
         case EPolygonMode::Point: return vk::PolygonMode::ePoint;
         default: return vk::PolygonMode::eFill;
+    }
+}
+
+vk::CompareOp ToVkCompareOp(ECompareOp op) {
+    switch (op) {
+        case ECompareOp::Never: return vk::CompareOp::eNever;
+        case ECompareOp::Less: return vk::CompareOp::eLess;
+        case ECompareOp::Equal: return vk::CompareOp::eEqual;
+        case ECompareOp::LessOrEqual: return vk::CompareOp::eLessOrEqual;
+        case ECompareOp::Greater: return vk::CompareOp::eGreater;
+        case ECompareOp::NotEqual: return vk::CompareOp::eNotEqual;
+        case ECompareOp::GreaterOrEqual: return vk::CompareOp::eGreaterOrEqual;
+        case ECompareOp::Always: return vk::CompareOp::eAlways;
+        default: return vk::CompareOp::eAlways;
     }
 }
 

@@ -21,4 +21,7 @@ public:
 
     virtual vk::RenderingAttachmentInfo GetColorAttachmentInfo(const vk::ClearValue clearColor,
                                                                const bool bClear, uint32_t) = 0;
+
+    vk::DescriptorImageInfo GetImageInfo();
+    vk::ImageView GetVKImageView();
 };
