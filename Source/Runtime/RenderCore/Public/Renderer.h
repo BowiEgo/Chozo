@@ -16,6 +16,7 @@
 #include "RenderCoreExport.h"
 
 #include "Cube.h"
+#include "Quad.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRenderer, Info);
 
@@ -75,6 +76,7 @@ private:
 
     TRef<CTexture> m_SkyboxTex; // TODO: Remove
     TRef<FCube> m_Cube;
+    TRef<FQuad> m_Quad;
 
     FOnRenderUI m_UICallback = nullptr;
 };

@@ -467,6 +467,13 @@ enum class EPixelFormat {
 };
 // clang-format on
 
+enum class ECullMode : uint8_t {
+    None         = 0,
+    Front        = 1,
+    Back         = 2,
+    FrontAndBack = 3,
+};
+
 enum class ECompareOp : uint8_t {
     Never          = 0,
     Less           = 1,

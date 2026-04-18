@@ -31,6 +31,7 @@ class CRDGContext;
 
 struct FRDGPass {
     std::string Name;
+    TRef<IRHIPipeline> Pipeline;
     std::vector<FRDGTexture*> Inputs;
     std::vector<FRDGTexture*> Outputs;
     ERenderPassLoadOp LoadOp;
@@ -95,10 +96,10 @@ public:
     }
 
     // Register Passes with their input/output logical textures and execution logic
-    void AddPass(std::string name, std::vector<FRDGTexture*> inputs,
+    void AddPass(std::string name, TRef<IRHIPipeline> pipeline, std::vector<FRDGTexture*> inputs,
                  std::vector<FRDGTexture*> outputs, ERenderPassLoadOp loadOp,
                  std::function<void(CRDGContext& ctx)> execute) {
-        auto pass = new FRDGPass{ name, inputs, outputs, loadOp, execute };
+        auto pass = new FRDGPass{ name, pipeline, inputs, outputs, loadOp, execute };
         m_Passes.push_back(pass);
 
         // Update texture lifetime range
@@ -145,12 +146,18 @@ public:
 
             // Execute user-defined rendering logic for this pass
             m_Context->SetRenderTargets(renderTargets);
+            if (pass->Pipeline) cmd->BindPipeline(pass->Pipeline);
             bool shouldClear = (pass->LoadOp == ERenderPassLoadOp::Clear);
 
             if (renderTargets[0]->GetSpec().Type == ETextureType::TextureCube) {
                 for (uint32_t face = 0; face < 6; ++face) {
                     IRHIAPI::BeginRendering(cmd, shouldClear, face);
                     CRDGContext execCtx(cmd, pass);
+                    struct {
+                        uint32_t u_FaceIndex;
+                    } pushConstants;
+                    pushConstants.u_FaceIndex = face;
+                    cmd->PushConstants(&pushConstants, sizeof(pushConstants), 0);
                     pass->ExecuteFunc(execCtx);
                     IRHIAPI::EndRendering(cmd);
                 }

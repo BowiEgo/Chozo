@@ -18,6 +18,7 @@ struct FPipelineSpecification {
 
     std::vector<EPixelFormat> ColorFormats;
     EPixelFormat DepthFormat  = EPixelFormat::D32_SFLOAT;
+    ECullMode CullMode        = ECullMode::Back;
     bool bDepthTestEnable     = true;
     bool bDepthWriteEnable    = true;
     ECompareOp DepthCompareOp = ECompareOp::Less;

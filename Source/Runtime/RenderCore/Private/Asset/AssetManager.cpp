@@ -17,8 +17,9 @@ void CAssetManager::ClearCaches() {
 
 void CAssetManager::Shutdown() { ClearCaches(); }
 
-TRef<CTexture> CAssetManager::GetOrLoadTexture(const std::filesystem::path& path) {
-    std::string pathString = path.string();
+TRef<CTexture> CAssetManager::GetOrLoadTexture(const std::string& virtualPath) {
+    std::filesystem::path path = VFS::Resolve(virtualPath);
+    std::string pathString     = path.string();
 
     auto it = m_TextureCaches.find(pathString);
     if (it != m_TextureCaches.end()) {

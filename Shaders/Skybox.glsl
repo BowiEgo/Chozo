@@ -6,6 +6,10 @@
 #include "shaders://Camera.glsl"
 
 layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec3 a_Normal;
+layout(location = 2) in vec2 a_TexCoord;
+layout(location = 3) in vec3 a_Tangent;
+layout(location = 4) in vec3 a_Bitangent;
 
 layout(location = 0) out vec3 v_TexCoords;
 
@@ -33,7 +37,6 @@ void main() {
 	// color = pow(color, vec3(1.0/2.2));
 
 	o_Color = vec4(color, texture.a);
-    o_Color = vec4(1.0, 0.0, 0.0, 1.0);
 }
 
 #endif

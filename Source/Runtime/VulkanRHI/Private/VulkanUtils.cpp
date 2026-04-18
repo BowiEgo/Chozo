@@ -516,6 +516,16 @@ vk::PolygonMode GetVulkanPolygonMode(EPolygonMode mode) {
     }
 }
 
+vk::CullModeFlags ToVkCullMode(ECullMode mode) {
+    switch (mode) {
+        case ECullMode::None: return vk::CullModeFlagBits::eNone;
+        case ECullMode::Front: return vk::CullModeFlagBits::eFront;
+        case ECullMode::Back: return vk::CullModeFlagBits::eBack;
+        case ECullMode::FrontAndBack: return vk::CullModeFlagBits::eFrontAndBack;
+        default: return vk::CullModeFlagBits::eBack;
+    }
+}
+
 vk::CompareOp ToVkCompareOp(ECompareOp op) {
     switch (op) {
         case ECompareOp::Never: return vk::CompareOp::eNever;

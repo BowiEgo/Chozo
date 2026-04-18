@@ -64,8 +64,7 @@ void CRenderer::Init() {
                                                "main" });
 
     // Texture
-    m_SkyboxTex = CAssetManager::Get().GetOrLoadTexture(
-        "/Volumes/WD My Passport/ChozoProjectReSources/Textures/HDRI/newport_loft.hdr");
+    m_SkyboxTex = CAssetManager::Get().GetOrLoadTexture("textures://HDRI/newport_loft.hdr");
 
     // Pipeline
     {
@@ -79,23 +78,29 @@ void CRenderer::Init() {
                                     { EShaderDataFormat::Float3, "a_Tangent" },
                                     { EShaderDataFormat::Float3, "a_Bitangent" } };
         spec.PushConstantRanges = { { 0, sizeof(FMatrix4) + sizeof(FMatrix3) } };
-        m_SolidPipeline         = IRHIAPI::CreatePipeline(spec);
+
+        m_SolidPipeline = IRHIAPI::CreatePipeline(spec);
 
         FPipelineSpecification wireSpec = spec;
         wireSpec.Name                   = "Wireframe";
         wireSpec.PolygonMode            = EPolygonMode::Line;
-        m_WireframePipeline             = IRHIAPI::CreatePipeline(wireSpec);
+
+        m_WireframePipeline = IRHIAPI::CreatePipeline(wireSpec);
     }
 
     {
 
         FPipelineSpecification spec;
-        spec.Name         = "CubemapSampler";
-        spec.RHIShaders   = { cubemapSamplerShader->GetShaderResources() };
-        spec.ColorFormats = { EPixelFormat::RGBA16F };
-        spec.VertexLayout = {
-            { EShaderDataFormat::Float3, "a_Position" },
-        };
+        spec.Name               = "CubemapSampler";
+        spec.RHIShaders         = { cubemapSamplerShader->GetShaderResources() };
+        spec.ColorFormats       = { EPixelFormat::RGBA16F };
+        spec.VertexLayout       = { { EShaderDataFormat::Float3, "a_Position" },
+                                    { EShaderDataFormat::Float3, "a_Normal" },
+                                    { EShaderDataFormat::Float2, "a_TexCoord" },
+                                    { EShaderDataFormat::Float3, "a_Tangent" },
+                                    { EShaderDataFormat::Float3, "a_Bitangent" } };
+        spec.PushConstantRanges = { { 0, sizeof(uint32_t) } };
+
         m_CubemapSamplerPipeline = IRHIAPI::CreatePipeline(spec);
     }
 
@@ -104,11 +109,14 @@ void CRenderer::Init() {
         spec.Name              = "Skybox";
         spec.RHIShaders        = { skyboxShader->GetShaderResources() };
         spec.ColorFormats      = { EPixelFormat::RGBA16F };
+        spec.CullMode          = ECullMode::Front;
         spec.bDepthTestEnable  = false;
         spec.bDepthWriteEnable = false;
-        spec.VertexLayout      = {
-            { EShaderDataFormat::Float3, "a_Position" },
-        };
+        spec.VertexLayout      = { { EShaderDataFormat::Float3, "a_Position" },
+                                   { EShaderDataFormat::Float3, "a_Normal" },
+                                   { EShaderDataFormat::Float2, "a_TexCoord" },
+                                   { EShaderDataFormat::Float3, "a_Tangent" },
+                                   { EShaderDataFormat::Float3, "a_Bitangent" } };
 
         m_SkyboxPipeline = IRHIAPI::CreatePipeline(spec);
     }
@@ -117,6 +125,9 @@ void CRenderer::Init() {
 
     m_Cube = CreateRef<FCube>();
     m_Cube->Upload();
+
+    m_Quad = CreateRef<FQuad>();
+    m_Quad->Upload();
 }
 
 void CRenderer::Tick(float deltaTime) {
@@ -153,8 +164,9 @@ void CRenderer::Tick(float deltaTime) {
 
         FRDGTexture* skyboxCubemapHandle = graph.CreateRDGTexture("SkyboxCubemap", cubeSpec);
 
-        graph.AddPass("EquirectangularToCubemap", { skybox2DHandle }, { skyboxCubemapHandle },
-                      ERenderPassLoadOp::Clear, [this, faceSize, skybox2DHandle](CRDGContext& ctx) {
+        graph.AddPass("EquirectangularToCubemap", m_CubemapSamplerPipeline, { skybox2DHandle },
+                      { skyboxCubemapHandle }, ERenderPassLoadOp::Clear,
+                      [this, faceSize, skybox2DHandle](CRDGContext& ctx) {
                           auto st  = ctx.GetTexture(skybox2DHandle);
                           auto cmd = ctx.GetCommandBuffer();
 
@@ -166,13 +178,12 @@ void CRenderer::Tick(float deltaTime) {
                           auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
                               setLayout, bindings);
 
-                          cmd->BindPipeline(m_CubemapSamplerPipeline);
                           cmd->BindDescriptorSets(0, descSet);
                           //   cmd->BindTexture(st, 0, 0);
                           cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
                           cmd->SetScissor({ 0, 0, faceSize, faceSize });
 
-                          m_Cube->Draw(cmd.get());
+                          m_Quad->Draw(cmd.get());
                       });
 
         // Request a transient texture for storing the skybox pass result,
@@ -188,8 +199,8 @@ void CRenderer::Tick(float deltaTime) {
                 EImageLayout::ColorAttachmentOptimal, // initial usage
                 EImageLayout::ShaderReadOnlyOptimal); // final usage (for UI)
 
-            graph.AddPass("SkyboxPass", { skyboxCubemapHandle }, { viewportHandle },
-                          ERenderPassLoadOp::Clear,
+            graph.AddPass("SkyboxPass", m_SkyboxPipeline, { skyboxCubemapHandle },
+                          { viewportHandle }, ERenderPassLoadOp::Clear,
                           [this, &viewport, skyboxCubemapHandle, viewportHandle](CRDGContext& ctx) {
                               auto st  = ctx.GetTexture(skyboxCubemapHandle);
                               auto rt  = ctx.GetTexture(viewportHandle);
@@ -212,10 +223,7 @@ void CRenderer::Tick(float deltaTime) {
                                   m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(setLayout,
                                                                                           bindings);
 
-                              cmd->BindPipeline(m_SkyboxPipeline);
                               cmd->BindDescriptorSets(0, descSet);
-                              //   cmd->BindUniformBuffer(cameraBuffer, 0, 0);
-                              //   cmd->BindTexture(st, 0, 1);
                               cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
                               cmd->SetScissor({ 0, 0, width, height });
 
@@ -223,7 +231,8 @@ void CRenderer::Tick(float deltaTime) {
                               m_Cube->Draw(cmd.get());
                           });
 
-            graph.AddPass("SceneCompositePass", {}, { viewportHandle }, ERenderPassLoadOp::Load,
+            graph.AddPass("SceneCompositePass", m_CurrentPipeline, {}, { viewportHandle },
+                          ERenderPassLoadOp::Load,
                           [this, &viewport, viewportHandle](CRDGContext& ctx) {
                               //   auto rt  = ctx.GetTexture(viewportHandle);
                               auto cmd = ctx.GetCommandBuffer();
@@ -243,7 +252,6 @@ void CRenderer::Tick(float deltaTime) {
                                   m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(setLayout,
                                                                                           bindings);
 
-                              cmd->BindPipeline(m_CurrentPipeline);
                               cmd->BindDescriptorSets(0, descSet);
                               //   cmd->BindUniformBuffer(uniformBuffer, 0, 0);
                               cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
@@ -262,7 +270,7 @@ void CRenderer::Tick(float deltaTime) {
             "Backbuffer", backbuffer, EImageLayout::ColorAttachmentOptimal, // initial usage
             EImageLayout::PresentSrc);
 
-        graph.AddPass("SwapchainPass", {}, { BackbufferHandle }, ERenderPassLoadOp::Clear,
+        graph.AddPass("SwapchainPass", nullptr, {}, { BackbufferHandle }, ERenderPassLoadOp::Clear,
                       [this](CRDGContext& ctx) {
                           if (m_UICallback) {
                               m_UICallback(ctx.GetCommandBuffer());
@@ -286,6 +294,7 @@ void CRenderer::Shutdown() {
 
     m_SkyboxTex.Reset(); // TODO: Remove
     m_Cube.Reset();
+    m_Quad.Reset();
 
     m_Viewports.clear();
     m_SolidPipeline.Reset();

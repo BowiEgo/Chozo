@@ -11,12 +11,13 @@ struct FVertex {
     FVector3 Position;
     FVector3 Normal;
     FVector2 UV;
-    FVector3 Tangent = FVector3::Zero;
+    FVector3 Tangent   = FVector3::Zero;
     FVector3 Bitangent = FVector3::Zero;
 
     FVertex() = default;
-    FVertex(const FVector3& pos, const FVector3& norm, const FVector2& uv)
-        : Position(pos), Normal(norm), UV(uv) {}
+    FVertex(const FVector3& pos, const FVector3& norm, const FVector2& uv,
+            const FVector3& tangent = FVector3::Zero, const FVector3& bitangent = FVector3::Zero)
+        : Position(pos), Normal(norm), UV(uv), Tangent(tangent), Bitangent(bitangent) {}
 };
 
 struct FIndex {

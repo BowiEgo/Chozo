@@ -18,6 +18,9 @@ public:
     CImagePool(const WeakRef<IRHIDevice> device) : m_Device(device) {};
     ~CImagePool();
 
+    CImagePool(const CImagePool&)            = delete;
+    CImagePool& operator=(const CImagePool&) = delete;
+
     IRHIImage* RequestImage(const FImageSpecification& spec, uint32_t frameIndex);
 
     // Usually called when RenderGraph destructs, to return images back to the pool for potential

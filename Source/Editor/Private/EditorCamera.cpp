@@ -15,7 +15,7 @@ CEditorCamera::CEditorCamera(float fov, float aspectRatio, float nearClip, float
 void CEditorCamera::OnUpdate(float deltaTime, bool bUpdateInput) {
     if (SInput::IsKeyPressed(CZ_KEY(LeftAlt))) {
         const FVector2& mouse{ SInput::GetMouseX(), SInput::GetMouseY() };
-        FVector2 delta = (mouse - m_InitialMousePosition) * 0.003f;
+        FVector2 delta         = (mouse - m_InitialMousePosition) * 0.003f;
         m_InitialMousePosition = mouse;
 
         if (!bUpdateInput) return;
@@ -54,7 +54,7 @@ void CEditorCamera::MousePan(const FVector2& delta) {
 }
 
 void CEditorCamera::MouseRotate(const FVector2& delta) {
-    m_ActiveCamera->m_Rotation.x += delta.y * RotationSpeed();
+    m_ActiveCamera->m_Rotation.x -= delta.y * RotationSpeed();
     m_ActiveCamera->m_Rotation.y += delta.x * RotationSpeed();
 
     m_ActiveCamera->m_Rotation.x = std::clamp(m_ActiveCamera->m_Rotation.x, -89.0f, 89.0f);
@@ -69,10 +69,10 @@ void CEditorCamera::MouseZoom(float delta) {
 }
 
 std::pair<float, float> CEditorCamera::PanSpeed() const {
-    float x = std::min(m_ActiveCamera->m_ViewportWidth / 1000.0f, 2.4f); // max = 2.4f
+    float x       = std::min(m_ActiveCamera->m_ViewportWidth / 1000.0f, 2.4f); // max = 2.4f
     float xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
 
-    float y = std::min(m_ActiveCamera->m_ViewportHeight / 1000.0f, 2.4f); // max = 2.4f
+    float y       = std::min(m_ActiveCamera->m_ViewportHeight / 1000.0f, 2.4f); // max = 2.4f
     float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
 
     return { xFactor, yFactor };
@@ -82,8 +82,8 @@ float CEditorCamera::RotationSpeed() const { return 20.0f; }
 
 float CEditorCamera::ZoomSpeed() const {
     float distance = m_ActiveCamera->m_Distance * 0.2f;
-    distance = std::max(distance, 0.0f);
-    float speed = distance * distance;
-    speed = std::min(speed, 100.0f); // max speed = 100
+    distance       = std::max(distance, 0.0f);
+    float speed    = distance * distance;
+    speed          = std::min(speed, 100.0f); // max speed = 100
     return speed;
 }

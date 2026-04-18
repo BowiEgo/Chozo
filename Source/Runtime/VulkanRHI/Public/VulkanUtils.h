@@ -105,6 +105,8 @@ vk::Format ShaderDataTypeToVkFormat(EShaderDataFormat type);
 // Pipeline
 vk::PolygonMode GetVulkanPolygonMode(EPolygonMode mode);
 
+vk::CullModeFlags ToVkCullMode(ECullMode mode);
+
 vk::CompareOp ToVkCompareOp(ECompareOp op);
 
 } // namespace ChozoUtils::Vulkan

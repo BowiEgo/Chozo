@@ -33,7 +33,7 @@ public:
     void ClearCaches();
     void Shutdown();
 
-    TRef<CTexture> GetOrLoadTexture(const std::filesystem::path& path);
+    TRef<CTexture> GetOrLoadTexture(const std::string& virtualPath);
     TRef<CShader> GetOrLoadShader(const FShaderSpecification& spec);
 
 private:
