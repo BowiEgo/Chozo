@@ -31,7 +31,7 @@ CApplication::~CApplication() {
 void CApplication::Init(const std::string& name) {
     CZ_LOG(LogApplication, Trace, "Applicatin Initializing...");
 
-    m_Profiler = CreateScope<PerformanceProfiler>();
+    m_Profiler = CreateScope<PerformanceProfiler>(static_cast<uint32_t>(EAppProfileSlot::COUNT));
     {
 #ifdef CZ_PLATFORM_WINDOWS
         // Set the timer resolution to 1ms for high-precision sleep
@@ -96,7 +96,7 @@ void CApplication::Init(const std::string& name) {
 
 void CApplication::Run() {
     m_Profiler->Flip();
-    CZ_APP_SCOPE_PERF(EProfileSlot::TotalFrame);
+    CZ_APP_SCOPE_PERF(EAppProfileSlot::TotalFrame);
 
     float time      = m_AppTimer.ElapsedMillis();
     float deltaTime = time - m_LastFrameTime;
@@ -105,7 +105,7 @@ void CApplication::Run() {
     m_FPSCounter.Update(deltaTime);
 
     {
-        CZ_APP_SCOPE_PERF(EProfileSlot::Logic);
+        CZ_APP_SCOPE_PERF(EAppProfileSlot::Logic);
 
         m_Window->OnUpdate();
         for (ILayer* layer : m_LayerStack)
@@ -113,7 +113,7 @@ void CApplication::Run() {
 
         {
             // TODO: execute this stuff on render thread.
-            CZ_APP_SCOPE_PERF(EProfileSlot::ImGui);
+            CZ_APP_SCOPE_PERF(EAppProfileSlot::ImGui);
             m_ImGuiLayer->Begin();
             m_ImGuiLayer->Render([this]() {
                 for (ILayer* layer : m_LayerStack)
@@ -123,7 +123,7 @@ void CApplication::Run() {
         }
 
         {
-            CZ_APP_SCOPE_PERF(EProfileSlot::Render);
+            CZ_APP_SCOPE_PERF(EAppProfileSlot::Render);
             m_RenderEngine->Tick(deltaTime);
         }
     }
@@ -132,7 +132,7 @@ void CApplication::Run() {
     float timeToWait  = m_TargetFrameTime - workElapsed;
     if (timeToWait > 0) {
         // Log wait time separately to see CPU headroom in Profiler
-        CZ_APP_SCOPE_PERF(EProfileSlot::Wait);
+        CZ_APP_SCOPE_PERF(EAppProfileSlot::Wait);
         Timer::Wait(timeToWait);
     }
 }

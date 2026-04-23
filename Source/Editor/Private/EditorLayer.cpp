@@ -195,16 +195,25 @@ void EditorLayer::OnImGuiRender() {
     // Integrated Debug Overlay
     m_Overlay.Draw("Editor Overlay:", &m_IsOverlayOpen, [io]() {
         // Performance monitoring
-        auto profiler = CApplication::Get()->GetPerformanceProfiler();
-        float fps     = CApplication::Get()->GetFPSCounter()->GetFPS();
-        float latency = CApplication::Get()->GetFPSCounter()->GetAvgLatency();
+        auto appProfiler = CApplication::Get()->GetPerformanceProfiler();
+        float fps        = CApplication::Get()->GetFPSCounter()->GetFPS();
+        float latency    = CApplication::Get()->GetFPSCounter()->GetAvgLatency();
+
+        auto rendererProfiler =
+            CApplication::Get()->GetRenderEngine()->GetRenderer()->GetPerformanceProfiler();
 
         ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Engine FPS: %.1f", fps);
         ImGui::TextDisabled("Latency: %.3f ms", latency);
+        for (uint32_t i = 1; i < (uint32_t)EAppProfileSlot::COUNT; ++i) {
+            const float time = appProfiler->GetSmoothedAverage((uint32_t)(EAppProfileSlot)i);
+            ImGui::Text("%-20s: %.3f ms", GAppProfileSlotNames[i], time);
+        }
 
-        for (uint32_t i = 1; i < (uint32_t)EProfileSlot::COUNT; ++i) {
-            const float time = profiler->GetSmoothedAverage((EProfileSlot)i);
-            ImGui::Text("%-20s: %.3f ms", GProfileSlotNames[i], time);
+        ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Renderer:");
+        for (uint32_t i = 1; i < (uint32_t)ERendererProfileSlot::COUNT; ++i) {
+            const float time =
+                rendererProfiler->GetSmoothedAverage((uint32_t)(ERendererProfileSlot)i);
+            ImGui::Text("%-20s: %.3f ms", GRendererProfileSlotNames[i], time);
         }
 
         auto gpuProfiler = CApplication::Get()->GetGPUProfiler();

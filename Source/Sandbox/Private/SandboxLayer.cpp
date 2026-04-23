@@ -102,10 +102,10 @@ void SandboxLayer::OnImGuiRender() {
         ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Engine FPS: %.1f", fps);
         ImGui::TextDisabled("Latency: %.3f ms", latency);
 
-        for (uint32_t i = 1; i < (uint32_t)EProfileSlot::COUNT; ++i) {
-            const auto& data = profiler->GetSlot((EProfileSlot)i);
+        for (uint32_t i = 1; i < (uint32_t)EAppProfileSlot::COUNT; ++i) {
+            const auto& data = profiler->GetSlot((uint32_t)(EAppProfileSlot)i);
             if (data.Samples > 0) {
-                ImGui::Text("%-20s: %.3f ms", GProfileSlotNames[i], data.Time);
+                ImGui::Text("%-20s: %.3f ms", GAppProfileSlotNames[i], data.Time);
             }
         }
     });

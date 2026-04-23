@@ -8,7 +8,9 @@
 #include "RHIDescriptorSet.h"
 #include "RenderGraph.h"
 
-CRenderer::CRenderer(IRendererWindow* windowHandle) : m_Window(windowHandle) {}
+CRenderer::CRenderer(IRendererWindow* windowHandle)
+    : m_Window(windowHandle), m_Profiler(CreateScope<PerformanceProfiler>(
+                                  static_cast<uint32_t>(ERendererProfileSlot::COUNT))) {}
 
 CRenderer::~CRenderer() {}
 
@@ -131,6 +133,8 @@ void CRenderer::Init() {
 }
 
 void CRenderer::Tick(float deltaTime) {
+    m_Profiler->Flip();
+
     if (m_Window->CheckAndResetVSyncDirty()) {
         EPresentMode mode =
             m_Window->IsVSyncEnabled() ? EPresentMode::FIFO : EPresentMode::Immediate;
@@ -168,6 +172,7 @@ void CRenderer::Tick(float deltaTime) {
         graph.AddPass("EquirectangularToCubemap", m_CubemapSamplerPipeline, { skybox2DHandle },
                       { skyboxCubemapHandle }, ERenderPassLoadOp::Clear,
                       [this, faceSize, skybox2DHandle](CRDGContext& ctx) {
+                          CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::CubemapSampler);
                           auto st  = ctx.GetTexture(skybox2DHandle);
                           auto cmd = ctx.GetCommandBuffer();
 
@@ -203,6 +208,7 @@ void CRenderer::Tick(float deltaTime) {
             graph.AddPass("SkyboxPass", m_SkyboxPipeline, { skyboxCubemapHandle },
                           { viewportHandle }, ERenderPassLoadOp::Clear,
                           [this, &viewport, skyboxCubemapHandle, viewportHandle](CRDGContext& ctx) {
+                              CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::Skybox);
                               auto st  = ctx.GetTexture(skyboxCubemapHandle);
                               auto rt  = ctx.GetTexture(viewportHandle);
                               auto cmd = ctx.GetCommandBuffer();
@@ -235,6 +241,8 @@ void CRenderer::Tick(float deltaTime) {
             graph.AddPass("SceneCompositePass", m_CurrentPipeline, {}, { viewportHandle },
                           ERenderPassLoadOp::Load,
                           [this, &viewport, viewportHandle](CRDGContext& ctx) {
+                              CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::Composite);
+
                               auto cmd = ctx.GetCommandBuffer();
 
                               auto scene  = viewport->GetScene();
@@ -272,13 +280,23 @@ void CRenderer::Tick(float deltaTime) {
 
         graph.AddPass("SwapchainPass", nullptr, {}, { BackbufferHandle }, ERenderPassLoadOp::Clear,
                       [this](CRDGContext& ctx) {
+                          CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::ImGUI);
+
                           if (m_UICallback) {
                               m_UICallback(ctx.GetCommandBuffer());
                           }
                       });
 
-        graph.Compile(); // Request physical resources from the global singleton ImagePool
-        graph.Execute(cmdList.get());
+        {
+            CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::GraphCompile);
+            graph.Compile(); // Request physical resources from the global singleton ImagePool
+        }
+
+        {
+            CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::GraphExecute);
+            graph.Execute(cmdList.get());
+        }
+
         // ------ Render Graph End ------
 
         cmdList->End();

@@ -11,6 +11,7 @@
 #include "Scope.h"
 #include "Sphere.h"
 #include "Texture.h"
+#include "Timer.h"
 #include "Viewport.h"
 
 #include "RenderCoreExport.h"
@@ -19,6 +20,23 @@
 #include "Quad.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRenderer, Info);
+
+#define RENDERER_PROFILE_SLOTS                                                                     \
+    X(TotalFrame, "Total FrameTime")                                                               \
+    X(CubemapSampler, "EquirectToCubemap Pass")                                                    \
+    X(Skybox, "Skybox Pass")                                                                       \
+    X(Composite, "Composite Pass")                                                                 \
+    X(ImGUI, "ImGUI Pass")                                                                         \
+    X(GraphCompile, "Graph Compile")                                                               \
+    X(GraphExecute, "Graph Execute")
+
+#define X(name, displayName) name,
+enum class ERendererProfileSlot : uint32_t { RENDERER_PROFILE_SLOTS COUNT };
+#undef X
+
+#define X(name, displayName) displayName,
+const char* const GRendererProfileSlotNames[] = { RENDERER_PROFILE_SLOTS };
+#undef X
 
 struct FFrameResource {
     TRef<IRHICommandPool> CommandPool;
@@ -59,9 +77,11 @@ public:
     TRef<IRHICommandList> GetCommandList() const {
         return m_Frames[m_CurrentFrameIndex].CommandList;
     }
+    PerformanceProfiler* GetPerformanceProfiler() { return m_Profiler.get(); }
 
 private:
     CModule m_RHIModule;
+    TScope<PerformanceProfiler> m_Profiler;
 
     IRendererWindow* m_Window;
     TScope<IRHIContext> m_GraphicContext;
@@ -80,3 +100,15 @@ private:
 
     FOnRenderUI m_UICallback = nullptr;
 };
+
+#if 1
+    // Create a unique timer variable named e.g., timer123
+    #define CZ_RENDERER_SCOPE_PERF(slot)                                                           \
+        ScopePerfTimer CZ_CONCAT(timer, __LINE__)(static_cast<uint32_t>(slot),                     \
+                                                  this -> GetPerformanceProfiler())
+
+    #define CZ_RENDERER_SCOPE_TIMER(name) ScopedTimer CZ_CONCAT(timer, __LINE__)(name);
+#else
+    #define CZ_RENDERER_SCOPE_PERF(slot)
+    #define CZ_RENDERER_SCOPE_TIMER(name)
+#endif
