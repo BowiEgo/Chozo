@@ -4,7 +4,6 @@
 #include "EngineExport.h"
 #include "Event.h"
 #include "FPSCounter.h"
-#include "ImGuiLayer.h"
 #include "LayerStack.h"
 #include "Module.h"
 #include "RenderEngine.h"
@@ -91,7 +90,6 @@ public:
     }
     FPSCounter* GetFPSCounter() { return &m_FPSCounter; }
     EAppPowerMode GetPowerMode() { return m_PowerMode; }
-    CImGuiLayer& GetImGuiLayer() const { return *m_ImGuiLayer; }
     uint32 GetCurrentFrameIndex() const {
         return m_RenderEngine->GetRenderer()->GetGraphicContext()->GetCurrentFrameIndex();
     }
@@ -118,6 +116,5 @@ private:
     TScope<CWindow> m_Window;
     TScope<CRenderEngine> m_RenderEngine;
 
-    CImGuiLayer* m_ImGuiLayer;
     ILayerStack m_LayerStack;
 };

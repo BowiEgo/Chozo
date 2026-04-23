@@ -20,7 +20,14 @@ public:
     virtual void NewFrame()                                                       = 0;
     virtual void Draw(ImDrawData* drawData, const TRef<IRHICommandList>& cmdList) = 0;
 
+    virtual ImTextureID GetTextureIDForRHITexture(const IRHITexture* texture) = 0;
+    virtual void ReleaseTextureID(ImTextureID id)                             = 0;
+
 protected:
     CWindow* m_Window;
     IRHIContext* m_Context;
+    bool m_bShutdown = false;
+
+    TScope<IRHITexture> m_DefaultBlackTexture;
+    std::unordered_map<const IRHITexture*, ImTextureID> m_TextureIDCache;
 };

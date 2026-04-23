@@ -54,6 +54,7 @@ public:
 
     void Init();
     void Tick(float deltaTime);
+    void Clear();
     void Shutdown();
     CViewport* CreateViewport(const std::string name, uint32 width, uint32 height);
 

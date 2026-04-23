@@ -21,8 +21,6 @@ public:
 
     IRHITexture* GetOrCreateResource();
 
-    void* GetImTextureID() { return GetOrCreateResource()->GetImTextureID(); }
-
 protected:
     FTextureSpecification m_Spec;
     TScope<IRHITexture> m_Resource;

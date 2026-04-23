@@ -1,6 +1,7 @@
 ﻿#include "Application.h"
 
 #include "GLFWInputImpl.h"
+#include "ImGuiLayer.h"
 #include "Input.h"
 #include "ModuleUtils.h"
 #include "RendererAPI.h"
@@ -69,14 +70,10 @@ void CApplication::Init(const std::string& name) {
         m_RenderEngine = CreateScope<CRenderEngine>(m_Window.get());
         m_RenderEngine->Init();
 
-        m_ImGuiLayer =
-            new CImGuiLayer(m_Window.get(), m_RenderEngine->GetRenderer()->GetGraphicContext());
-        PushLayer(m_ImGuiLayer);
+        CImGuiLayer::Get().Init(m_Window.get(), m_RenderEngine->GetRenderer()->GetGraphicContext());
 
         m_RenderEngine->GetRenderer()->SetUICallback(
-            [this](const TRef<IRHICommandList>& cmdBuffer) {
-                if (m_ImGuiLayer) m_ImGuiLayer->Draw(cmdBuffer);
-            });
+            [this](const TRef<IRHICommandList>& cmdBuffer) { CImGuiLayer::Get().Draw(cmdBuffer); });
 
         if (m_EditorModule.Load(ChozoUitls::Module::GetPlatformLibName("Editor"))) {
             auto EditorLayer = m_EditorModule.Invoke<ILayer*()>("CreateEditorLayer");
@@ -114,12 +111,12 @@ void CApplication::Run() {
         {
             // TODO: execute this stuff on render thread.
             CZ_APP_SCOPE_PERF(EAppProfileSlot::ImGui);
-            m_ImGuiLayer->Begin();
-            m_ImGuiLayer->Render([this]() {
+            CImGuiLayer::Get().Begin();
+            CImGuiLayer::Get().Render([this]() {
                 for (ILayer* layer : m_LayerStack)
                     layer->OnImGuiRender();
             });
-            m_ImGuiLayer->End();
+            CImGuiLayer::Get().End();
         }
 
         {
@@ -138,6 +135,7 @@ void CApplication::Run() {
 }
 
 void CApplication::Exit() {
+    CImGuiLayer::Get().OnDetach();
     m_LayerStack.Clear();
     m_RenderEngine->Shutdown();
     m_Window->Shutdown();

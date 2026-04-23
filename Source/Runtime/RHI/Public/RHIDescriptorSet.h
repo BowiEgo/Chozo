@@ -28,6 +28,8 @@ public:
                       const std::vector<FDescriptorBinding>& bindings);
     virtual ~IRHIDescriptorSet();
 
+    virtual EResourceType GetResourceType() const { return EResourceType::DescriptorSet; }
+
     virtual void* GetRawHandle() const = 0;
 
 protected:

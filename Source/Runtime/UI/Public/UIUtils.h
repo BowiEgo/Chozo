@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ImGuiLayer.h"
 #include "Params.h"
 #include "Ref.h"
 #include "StringUtils.h"
@@ -13,6 +14,10 @@
 #include <imgui_internal.h>
 
 DECLARE_LOG_CATEGORY_EXTERN(LogUIUtils, Info);
+
+#define GET_IM_RHI_TEXTURE_ID(tex) CImGuiLayer::Get().GetRenderer()->GetTextureIDForRHITexture(tex)
+#define GET_IM_TEXTURE_ID(tex)                                                                     \
+    CImGuiLayer::Get().GetRenderer()->GetTextureIDForRHITexture(tex->GetOrCreateResource())
 
 namespace ChozoUtils::UI {
 
@@ -403,7 +408,7 @@ inline ImRect RectOffset(const ImRect& rect, ImVec2 xy) { return RectOffset(rect
 inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tint, ImVec2 rectMin, ImVec2 rectMax,
                             ImVec2 uv0, ImVec2 uv1) {
     auto* drawList = ImGui::GetWindowDrawList();
-    drawList->AddImage((ImTextureID)image->GetImTextureID(), rectMin, rectMax, uv0, uv1, tint);
+    drawList->AddImage(GET_IM_TEXTURE_ID(image), rectMin, rectMax, uv0, uv1, tint);
 };
 
 inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tint, ImRect rectangle, ImVec2 uv0,
@@ -417,14 +422,13 @@ inline void DrawButtonImage(TRef<CTexture>& imageNormal, TRef<CTexture>& imageHo
                             ImVec2 uv1) {
     auto* drawList = ImGui::GetWindowDrawList();
     if (ImGui::IsItemActive())
-        drawList->AddImage((ImTextureID)imagePressed->GetImTextureID(), rectMin, rectMax, uv0, uv1,
+        drawList->AddImage(GET_IM_TEXTURE_ID(imagePressed), rectMin, rectMax, uv0, uv1,
                            tintPressed);
     else if (ImGui::IsItemHovered())
-        drawList->AddImage((ImTextureID)imageHovered->GetImTextureID(), rectMin, rectMax, uv0, uv1,
+        drawList->AddImage(GET_IM_TEXTURE_ID(imageHovered), rectMin, rectMax, uv0, uv1,
                            tintHovered);
     else
-        drawList->AddImage((ImTextureID)imageNormal->GetImTextureID(), rectMin, rectMax, uv0, uv1,
-                           tintNormal);
+        drawList->AddImage(GET_IM_TEXTURE_ID(imageNormal), rectMin, rectMax, uv0, uv1, tintNormal);
 };
 
 inline void DrawButtonImage(TRef<CTexture>& imageNormal, TRef<CTexture>& imageHovered,

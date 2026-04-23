@@ -1,6 +1,7 @@
 #include "SandboxLayer.h"
 
 #include "Application.h"
+#include "UIUtils.h"
 
 #include "imgui.h"
 
@@ -82,14 +83,14 @@ void SandboxLayer::OnImGuiRender() {
 
     // m_ViewportFocused = ImGui::IsWindowFocused();
     // m_ViewportHovered = ImGui::IsWindowHovered();
-    // Application::Get().GetImGuiLayer().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+    // CImGuiLayer()::Get().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
     auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
     m_ViewportSize      = ImGui::GetContentRegionAvail();
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
     auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
-    ImTextureID textureID = (ImTextureID)tex->GetImTextureID();
+    ImTextureID textureID = GET_IM_RHI_TEXTURE_ID(tex.get());
     ImGui::Image(textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
     // Integrated Debug Overlay

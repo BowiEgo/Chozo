@@ -11,4 +11,6 @@ class RHI_API IRHISetLayout : public IRHIResource {
 public:
     IRHISetLayout(const WeakRef<IRHIDevice> device);
     virtual ~IRHISetLayout();
+
+    virtual EResourceType GetResourceType() const { return EResourceType::SetLayout; }
 };

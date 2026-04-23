@@ -25,6 +25,8 @@ IRHITexture::IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecifi
 }
 
 IRHITexture::~IRHITexture() {
+    FRHIResourceDestroyedEvent event(this);
+    FEventBus::Get().Dispatch(event);
     // CZ_LOG(LogRHITexture, Trace, "RHITexture: {} destroying...", m_Spec.Name);
 }
 
@@ -32,11 +34,12 @@ TRef<IRHISampler> IRHITexture::GetSampler(const FSamplerSpecification spec) cons
     return m_Device.lock()->GetSampler(spec);
 };
 
-void* IRHITexture::GetImTextureID() const {
-    auto device = m_Device.lock();
+// void* IRHITexture::GetImTextureID() const {
+//     auto device = m_Device.lock();
 
-    std::vector<FDescriptorBinding> bindings = { { 0, EUniformType::CombinedImageSampler,
-                                                   GetImage(), GetSampler().get(),
-                                                   EImageLayout::ShaderReadOnlyOptimal } };
-    return device->GetOrCreateDescriptorSet(device->GetStaticSetLayout(), bindings)->GetRawHandle();
-}
+//     std::vector<FDescriptorBinding> bindings = { { 0, EUniformType::CombinedImageSampler,
+//                                                    GetImage(), GetSampler().get(),
+//                                                    EImageLayout::ShaderReadOnlyOptimal } };
+//     return device->GetOrCreateDescriptorSet(device->GetStaticSetLayout(),
+//     bindings)->GetRawHandle();
+// }

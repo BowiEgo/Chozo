@@ -16,4 +16,7 @@ public:
     virtual void Shutdown() override;
     virtual void NewFrame() override;
     virtual void Draw(ImDrawData* drawData, const TRef<IRHICommandList>& cmdBuffer) override;
+
+    virtual ImTextureID GetTextureIDForRHITexture(const IRHITexture* texture) override;
+    virtual void ReleaseTextureID(ImTextureID id) override;
 };

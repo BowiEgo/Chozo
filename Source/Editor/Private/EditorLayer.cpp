@@ -2,7 +2,9 @@
 
 #include "Application.h"
 #include "AssetManager.h"
+#include "ImGuiLayer.h"
 #include "Input.h"
+#include "UIUtils.h"
 
 #include "imgui.h"
 
@@ -182,14 +184,14 @@ void EditorLayer::OnImGuiRender() {
     // the scene to receive input when the viewport is active.
     m_ViewportFocused = ImGui::IsWindowFocused();
     m_ViewportHovered = ImGui::IsWindowHovered();
-    CApplication::Get()->GetImGuiLayer().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+    CImGuiLayer::Get().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
     auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
     m_ViewportSize      = ImGui::GetContentRegionAvail();
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
     auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
-    ImTextureID textureID = (ImTextureID)tex->GetImTextureID();
+    ImTextureID textureID = GET_IM_RHI_TEXTURE_ID(tex.get());
     ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
 
     // Integrated Debug Overlay

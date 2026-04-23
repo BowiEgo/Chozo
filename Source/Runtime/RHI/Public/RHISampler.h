@@ -69,6 +69,8 @@ public:
     IRHISampler(const WeakRef<IRHIDevice> device, const FSamplerSpecification& spec);
     virtual ~IRHISampler();
 
+    virtual EResourceType GetResourceType() const { return EResourceType::Sampler; }
+
 protected:
     FSamplerSpecification m_Spec;
 };

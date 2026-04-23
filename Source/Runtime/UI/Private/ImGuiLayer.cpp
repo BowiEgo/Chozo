@@ -19,12 +19,15 @@ DEFINE_LOG_CATEGORY(LogImGuiLayer);
 //     return FImVec2(lhs.x - rhs.x, lhs.y - rhs.y);
 // }
 
-CImGuiLayer::CImGuiLayer(CWindow* window, IRHIContext* rhiContext)
-    : ILayer("ImGuiLayer"), m_Window(window), m_Context(rhiContext) {
-    m_ImGuiRenderer = CreateRenderer(window, rhiContext);
-}
+CImGuiLayer::CImGuiLayer() : m_Window(nullptr), m_Context(nullptr) {}
 
-CImGuiLayer::~CImGuiLayer() {}
+void CImGuiLayer::Init(CWindow* window, IRHIContext* context) {
+    m_Window        = window;
+    m_Context       = context;
+    m_ImGuiRenderer = CreateRenderer(window, context);
+
+    OnAttach();
+}
 
 TScope<IImGuiRenderer> CImGuiLayer::CreateRenderer(CWindow* window, IRHIContext* rhiContext) {
 

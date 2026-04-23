@@ -33,7 +33,7 @@ public:
 
         m_Types.push_back(info);
         m_NameToBit[name] = bit;
-        m_BitToInfo[bit] = info;
+        m_BitToInfo[bit]  = info;
         m_NextBit++;
 
         switch (category) {
@@ -100,11 +100,11 @@ private:
         RegisterType("None", true, ETypeCategory::None);
     }
 
-    uint32_t m_NextBit = 0;
-    uint32_t m_AllTypesBit = 0;
-    uint32_t m_NodeTypesBit = 0;
+    uint32_t m_NextBit       = 0;
+    uint32_t m_AllTypesBit   = 0;
+    uint32_t m_NodeTypesBit  = 0;
     uint32_t m_LightTypesBit = 0;
-    uint32_t m_MeshTypesBit = 0;
+    uint32_t m_MeshTypesBit  = 0;
 
     std::vector<FTypeInfo> m_Types;
     std::unordered_map<std::string, uint32_t> m_NameToBit;

@@ -99,6 +99,8 @@ public:
         return m_DescriptorSetCache.GetOrCreateDescriptorSet(setLayout, bindings);
     }
 
+    void ClearDescriptorSetCache() { m_DescriptorSetCache.Clear(); }
+
     // Enqueue a cleanup function to be called after it's safe to delete the resource (e.g., after
     // GPU is done with it)
     void EnqueueCleanup(std::function<void()>&& func);

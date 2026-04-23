@@ -4,6 +4,8 @@
 #include "VulkanAPI.h"
 #include "VulkanCommandBuffer.h"
 #include "VulkanDevice.h"
+#include "VulkanImage.h"
+#include "VulkanSampler.h"
 #include "VulkanSwapchain.h"
 
 #include "imgui_impl_glfw.h"
@@ -96,6 +98,8 @@ void CVulkanImGuiRenderer::Shutdown() {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+
+    m_DefaultBlackTexture.reset();
 }
 
 void CVulkanImGuiRenderer::NewFrame() {
@@ -104,6 +108,8 @@ void CVulkanImGuiRenderer::NewFrame() {
     ImGui::NewFrame();
 
     ImGuiIO& io = ImGui::GetIO();
+
+    m_bShutdown = true;
 }
 
 void CVulkanImGuiRenderer::Draw(ImDrawData* drawData, const TRef<IRHICommandList>& cmdBuffer) {
@@ -113,4 +119,27 @@ void CVulkanImGuiRenderer::Draw(ImDrawData* drawData, const TRef<IRHICommandList
     vk::CommandBuffer cmd = vlkCmdBuffer->GetVKCommandBuffer();
 
     ImGui_ImplVulkan_RenderDrawData(drawData, cmd);
+}
+
+ImTextureID CVulkanImGuiRenderer::GetTextureIDForRHITexture(const IRHITexture* texture) {
+    auto it = m_TextureIDCache.find(texture);
+    if (it != m_TextureIDCache.end()) {
+        return it->second;
+    }
+
+    if (!texture->IsValid()) texture = m_DefaultBlackTexture.get();
+
+    vk::ImageView imageView = static_cast<CVulkanImage*>(texture->GetImage())->GetVKView();
+    vk::Sampler sampler     = texture->GetSampler().As<CVulkanSampler>()->GetVKHandle();
+    VkDescriptorSet descSet =
+        ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    ImTextureID id            = reinterpret_cast<ImTextureID>(descSet);
+    m_TextureIDCache[texture] = id;
+    return id;
+}
+
+void CVulkanImGuiRenderer::ReleaseTextureID(ImTextureID id) {
+    if (m_bShutdown) return;
+    CZ_LOG(LogVulkanImGuiRenderer, Trace, "Releasing ImGui Texture ID: {}", id);
+    ImGui_ImplVulkan_RemoveTexture(reinterpret_cast<VkDescriptorSet>(id));
 }

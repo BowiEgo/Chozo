@@ -27,6 +27,11 @@ void CViewport::Resize(uint32 width, uint32 height) {
     if (width == 0 || height == 0) return;
     if (m_Spec.Width == width && m_Spec.Height == height) return;
 
+    auto device = IRHIAPI::GetContext()->GetDevice();
+    device->WaitIdle();
+
+    m_FrameBuffer.Reset();
+
     m_Spec.Width  = width;
     m_Spec.Height = height;
     m_Camera->SetViewportSize(width, height);
