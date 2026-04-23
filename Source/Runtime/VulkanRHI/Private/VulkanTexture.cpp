@@ -28,15 +28,3 @@ vk::DescriptorImageInfo CVulkanTexture::GetImageInfo() {
 
     return imageInfo;
 }
-
-vk::ImageView CVulkanTexture::GetVKImageView() {
-    FImageViewSpecification spec;
-
-    if (m_Spec.Type == ETextureType::TextureCube) {
-        spec.ViewType   = EImageViewType::ViewCube;
-        spec.LayerCount = 6;
-        spec.MipCount   = 0;
-    }
-
-    return static_cast<CVulkanImage*>(GetImage())->GetVKView(spec);
-}

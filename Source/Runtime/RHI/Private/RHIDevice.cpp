@@ -33,6 +33,8 @@ void IRHIDevice::TickDeferredDeletion(uint32 currentFrame) {
             ++it;
         }
     }
+
+    m_DescriptorSetCache.Trim();
 }
 
 std::vector<TRef<IRHISetLayout>>

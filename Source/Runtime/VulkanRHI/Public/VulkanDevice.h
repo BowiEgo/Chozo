@@ -68,9 +68,6 @@ private:
                                               IRHIImage* borrowedImage) override;
     virtual TScope<IRHITexture> CreateTexture(const FTextureSpecification& spec,
                                               FBuffer& data) override;
-    // virtual TRef<IRHIDescriptorSet> CreateDescriptorSet(const FTextureDescriptorInfo& info,
-    //                                                     TRef<IRHISetLayout> setLayout,
-    //                                                     uint32 bindingSlot) override;
     virtual TRef<IRHIDescriptorSet>
         CreateDescriptorSet(TRef<IRHISetLayout> setLayout,
                             const std::vector<FDescriptorBinding>& bindings) override;

@@ -23,5 +23,4 @@ public:
                                                                const bool bClear, uint32_t) = 0;
 
     vk::DescriptorImageInfo GetImageInfo();
-    vk::ImageView GetVKImageView();
 };

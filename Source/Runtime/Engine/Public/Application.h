@@ -14,19 +14,16 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogApplication, Info);
 
-#define CZ_CONCAT_IMPL(a, b) a##b
-#define CZ_CONCAT(a, b)      CZ_CONCAT_IMPL(a, b)
-
 #if 1
     // Create a unique timer variable named e.g., timer123
-    #define CZ_SCOPE_PERF(name)                                                                    \
+    #define CZ_APP_SCOPE_PERF(name)                                                                \
         ScopePerfTimer CZ_CONCAT(timer, __LINE__)(name,                                            \
                                                   CApplication::Get()->GetPerformanceProfiler());
 
-    #define CZ_SCOPE_TIMER(name) ScopedTimer CZ_CONCAT(timer, __LINE__)(name);
+    #define CZ_APP_SCOPE_TIMER(name) ScopedTimer CZ_CONCAT(timer, __LINE__)(name);
 #else
-    #define CZ_SCOPE_PERF(name)
-    #define CZ_SCOPE_TIMER(name)
+    #define CZ_APP_SCOPE_PERF(name)
+    #define CZ_APP_SCOPE_TIMER(name)
 #endif
 
 enum class EAppPowerMode {

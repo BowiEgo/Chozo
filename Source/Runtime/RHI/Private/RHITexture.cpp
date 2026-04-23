@@ -35,9 +35,8 @@ TRef<IRHISampler> IRHITexture::GetSampler(const FSamplerSpecification spec) cons
 void* IRHITexture::GetImTextureID() const {
     auto device = m_Device.lock();
 
-    std::vector<FDescriptorBinding> bindings = {
-        { 0, EUniformType::CombinedImageSampler, const_cast<IRHITexture*>(this), GetSampler().get(),
-          EImageLayout::ShaderReadOnlyOptimal }
-    };
+    std::vector<FDescriptorBinding> bindings = { { 0, EUniformType::CombinedImageSampler,
+                                                   GetImage(), GetSampler().get(),
+                                                   EImageLayout::ShaderReadOnlyOptimal } };
     return device->GetOrCreateDescriptorSet(device->GetStaticSetLayout(), bindings)->GetRawHandle();
 }

@@ -7,7 +7,13 @@ CRenderGraph::~CRenderGraph() {
         }
     }
 
-    m_InternalResources.clear();
+    for (auto* tex : m_Textures)
+        delete tex;
+
+    for (auto* pass : m_Passes)
+        delete pass;
+
     m_Textures.clear();
     m_Passes.clear();
+    m_InternalResources.clear();
 }

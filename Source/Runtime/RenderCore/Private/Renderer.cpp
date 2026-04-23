@@ -140,6 +140,7 @@ void CRenderer::Tick(float deltaTime) {
 
     auto& cmdList    = m_Frames[m_CurrentFrameIndex].CommandList;
     auto& syncObject = m_Frames[m_CurrentFrameIndex].RenderFence;
+    m_GraphicContext->SetCurrentFrame(deltaTime);
     m_GraphicContext->SetCurrentFrameIndex(m_CurrentFrameIndex);
     m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex);
     CCameraUniformManager::Get().UpdateAllCameras();
@@ -172,8 +173,8 @@ void CRenderer::Tick(float deltaTime) {
 
                           auto setLayout = m_CubemapSamplerPipeline->GetSetLayout(0);
                           std::vector<FDescriptorBinding> bindings = {
-                              { 0, EUniformType::CombinedImageSampler, st, st->GetSampler().get(),
-                                EImageLayout::ShaderReadOnlyOptimal }
+                              { 0, EUniformType::CombinedImageSampler, st->GetImage(),
+                                st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
                           };
                           auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
                               setLayout, bindings);
@@ -216,7 +217,7 @@ void CRenderer::Tick(float deltaTime) {
                               auto setLayout = m_SkyboxPipeline->GetSetLayout(0);
                               std::vector<FDescriptorBinding> bindings = {
                                   { 0, EUniformType::UniformBuffer, cameraBuffer.get(), nullptr },
-                                  { 1, EUniformType::CombinedImageSampler, st,
+                                  { 1, EUniformType::CombinedImageSampler, st->GetImage(),
                                     st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
                               };
                               auto descSet =
@@ -234,7 +235,6 @@ void CRenderer::Tick(float deltaTime) {
             graph.AddPass("SceneCompositePass", m_CurrentPipeline, {}, { viewportHandle },
                           ERenderPassLoadOp::Load,
                           [this, &viewport, viewportHandle](CRDGContext& ctx) {
-                              //   auto rt  = ctx.GetTexture(viewportHandle);
                               auto cmd = ctx.GetCommandBuffer();
 
                               auto scene  = viewport->GetScene();
@@ -297,6 +297,7 @@ void CRenderer::Shutdown() {
     m_Quad.Reset();
 
     m_Viewports.clear();
+
     m_SolidPipeline.Reset();
     m_WireframePipeline.Reset();
     m_CurrentPipeline.Reset();

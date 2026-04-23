@@ -58,4 +58,37 @@ FRHIPipelineLayoutDescription
     return pipelineDesc;
 }
 
+EShaderDataFormat ToShaderDataFormat(EPixelFormat format) {
+    switch (format) {
+        // Single-channel
+        case EPixelFormat::R8_UNORM:
+        case EPixelFormat::R16_UNORM:
+        case EPixelFormat::R16F:
+        case EPixelFormat::R32F:
+        case EPixelFormat::D16_UNORM:
+        case EPixelFormat::D24_UNORM_S8_UINT:
+        case EPixelFormat::D32_SFLOAT: return EShaderDataFormat::Float;
+
+        // Dual-channel
+        case EPixelFormat::RG8_UNORM:
+        case EPixelFormat::RG16_UNORM:
+        case EPixelFormat::RG16F:
+        case EPixelFormat::RG32F: return EShaderDataFormat::Float2;
+
+        case EPixelFormat::RGB9E5:
+        case EPixelFormat::R11G11B10F: return EShaderDataFormat::Float3;
+
+        // 4-channel RGBA/BGRA
+        case EPixelFormat::RGBA8_UNORM:
+        case EPixelFormat::RGBA8_SRGB:
+        case EPixelFormat::BGRA8_UNORM:
+        case EPixelFormat::BGRA8_SRGB:
+        case EPixelFormat::RGBA16_UNORM:
+        case EPixelFormat::RGBA16F:
+        case EPixelFormat::RGBA32F: return EShaderDataFormat::Float4;
+
+        default: return EShaderDataFormat::None;
+    }
+}
+
 } // namespace ChozoUtils::RHI

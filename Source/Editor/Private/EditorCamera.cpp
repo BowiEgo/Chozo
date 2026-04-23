@@ -55,7 +55,7 @@ void CEditorCamera::MousePan(const FVector2& delta) {
 
 void CEditorCamera::MouseRotate(const FVector2& delta) {
     m_ActiveCamera->m_Rotation.x -= delta.y * RotationSpeed();
-    m_ActiveCamera->m_Rotation.y += delta.x * RotationSpeed();
+    m_ActiveCamera->m_Rotation.y -= delta.x * RotationSpeed();
 
     m_ActiveCamera->m_Rotation.x = std::clamp(m_ActiveCamera->m_Rotation.x, -89.0f, 89.0f);
 }

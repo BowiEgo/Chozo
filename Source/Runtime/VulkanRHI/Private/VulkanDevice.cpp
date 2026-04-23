@@ -93,13 +93,6 @@ TScope<IRHITexture> CVulkanDevice::CreateTexture(const FTextureSpecification& sp
     }
 }
 
-// TRef<IRHIDescriptorSet> CVulkanDevice::CreateDescriptorSet(const FTextureDescriptorInfo& info,
-//                                                            TRef<IRHISetLayout> setLayout,
-//                                                            uint32 bindingSlot) {
-//     return CreateRef<CVulkanDescriptorSet>(WeakRef<IRHIDevice>(this), info, setLayout,
-//     bindingSlot);
-// }
-
 TRef<IRHIDescriptorSet>
     CVulkanDevice::CreateDescriptorSet(TRef<IRHISetLayout> setLayout,
                                        const std::vector<FDescriptorBinding>& bindings) {

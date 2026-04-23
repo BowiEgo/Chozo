@@ -68,23 +68,6 @@ void CVulkanCommandBuffer::BindPipeline(TRef<IRHIPipeline> pipeline) {
     m_VKHandle.bindPipeline(vk::PipelineBindPoint::eGraphics, vlkPipeline);
 }
 
-void CVulkanCommandBuffer::BindTexture(IRHITexture* texture, int set, int binding) {
-    // auto vkCommandBuffer       = GetVKCommandBuffer();
-    // auto currentPipelineLayout = m_CurrentPipeline->GetPipelineLayout();
-
-    // TRef<IRHISetLayout> layout = m_CurrentPipeline->GetSetLayout(set);
-
-    // vk::DescriptorSet descSet = vk::DescriptorSet(
-    //     reinterpret_cast<VkDescriptorSet>(texture->GetDescriptorSet(layout, binding)));
-    // std::array<vk::DescriptorSet, 1> descSets = { descSet };
-
-    // vkCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, currentPipelineLayout,
-    // set,
-    //                                    descSets, nullptr);
-
-    // m_BoundDescriptorSets[set] = descSet;
-}
-
 void CVulkanCommandBuffer::PushConstants(const void* data, uint32_t size, uint32_t offset) {
     PushConstants(VK_SHADER_STAGE_VERTEX_BIT, data, size, offset);
 }
@@ -100,44 +83,6 @@ void CVulkanCommandBuffer::PushConstants(VkShaderStageFlags stageFlags, const vo
 
     vkCommandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlags(stageFlags), offset, size,
                                   data);
-}
-
-void CVulkanCommandBuffer::BindUniformBuffer(TRef<IRHIBuffer> buffer, int set, int binding) {
-    // auto device                              = m_CommandPool->GetDevice().lock();
-    // auto vkCommandBuffer                     = GetVKCommandBuffer();
-    // vk::PipelineLayout currentPipelineLayout = m_CurrentPipeline->GetPipelineLayout();
-
-    // auto vkBuffer = buffer.As<CVulkanBuffer>();
-    // if (!vkBuffer) {
-    //     CZ_LOG(LogVulkan, Error, "Invalid buffer type for Uniform Buffer binding");
-    //     return;
-    // }
-
-    // if (!HasFlag(vkBuffer->GetUsage(), EBufferUsage::UniformBuffer)) {
-    //     CZ_LOG(LogVulkan, Warning, "Binding non-uniform buffer as uniform buffer");
-    // }
-
-    // vk::DescriptorSetLayout layout =
-    //     m_CurrentPipeline->GetSetLayout(set).As<CVulkanSetLayout>()->GetVKHandle();
-    // vk::DescriptorSet descSet = GetOrCreateDescriptorSet(set, layout);
-
-    // vk::DescriptorBufferInfo bufferInfo;
-    // bufferInfo.setBuffer(vkBuffer->GetVKBuffer()).setOffset(0).setRange(vkBuffer->GetSize());
-
-    // vk::WriteDescriptorSet descriptorWrite;
-    // descriptorWrite.setDstSet(descSet)
-    //     .setDstBinding(binding)
-    //     .setDescriptorCount(1)
-    //     .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-    //     .setPBufferInfo(&bufferInfo);
-
-    // device->GetLogicalDevice().updateDescriptorSets({ descriptorWrite }, nullptr);
-
-    // vkCommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, currentPipelineLayout,
-    // set,
-    //                                    1, &descSet, 0, nullptr);
-
-    // m_BoundDescriptorSets[set] = descSet;
 }
 
 void CVulkanCommandBuffer::BindVertexBuffer(TRef<IRHIBuffer> vertexBuffer, int binding) {
@@ -200,70 +145,6 @@ void CVulkanCommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32
     // [Note] Ensure a pipeline is bound before this call to avoid the previous error
     m_VKHandle.draw(vertexCount, instanceCount, firstVertex, firstInstance);
 }
-
-// vk::DescriptorSet CVulkanCommandBuffer::GetOrCreateDescriptorSet(int set,
-//                                                                  vk::DescriptorSetLayout layout)
-//                                                                  {
-//     auto device = m_CommandPool->GetDevice().lock();
-
-//     auto it = m_DescriptorSetCache.find(set);
-//     if (it != m_DescriptorSetCache.end()) {
-//         return it->second;
-//     }
-
-//     vk::DescriptorSetAllocateInfo allocInfo;
-//     allocInfo.setDescriptorPool(device->GetGlobalDescriptorPool())
-//         .setDescriptorSetCount(1)
-//         .setPSetLayouts(&layout);
-
-//     auto descSet              = device->GetLogicalDevice().allocateDescriptorSets(allocInfo)[0];
-//     m_DescriptorSetCache[set] = descSet;
-
-//     return descSet;
-// }
-
-// void CVulkanCommandBuffer::BeginDescriptorSet(int set, TRef<IRHISetLayout> setLayout) {
-//     if (m_DescriptorSetCaches.find(set) == m_DescriptorSetCaches.end()) {
-//         vk::DescriptorSetAllocateInfo allocInfo;
-//         allocInfo.setDescriptorPool(m_Device->GetGlobalDescriptorPool())
-//             .setDescriptorSetCount(1)
-//             .setPSetLayouts(&setLayout.As<CVulkanSetLayout>()->GetRawHandle());
-//         auto descSet = m_Device->GetLogicalDevice().allocateDescriptorSets(allocInfo)[0];
-//         m_DescriptorSetCaches[set] = { descSet, setLayout };
-//     }
-// }
-
-// void CVulkanCommandBuffer::UpdateBuffer(int set, int binding, TRef<IRHIBuffer> buffer) {
-//     auto& data = m_DescriptorSetCaches[set];
-//     vk::WriteDescriptorSet write;
-//     write.setDstSet(data.descSet)
-//         .setDstBinding(binding)
-//         .setDescriptorCount(1)
-//         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
-//         .setPBufferInfo(&buffer.As<CVulkanBuffer>()->GetVKBufferInfo());
-//     m_Device->GetLogicalDevice().updateDescriptorSets({ write }, nullptr);
-// }
-
-// void CVulkanCommandBuffer::UpdateImage(int set, int binding,
-//                                        const vk::DescriptorImageInfo& imageInfo) {
-//     auto& data = m_DescriptorSetCaches[set];
-//     vk::WriteDescriptorSet write;
-//     write.setDstSet(data.descSet)
-//         .setDstBinding(binding)
-//         .setDescriptorCount(1)
-//         .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-//         .setPImageInfo(&imageInfo);
-//     m_Device->GetLogicalDevice().updateDescriptorSets({ write }, nullptr);
-// }
-
-// void CVulkanCommandBuffer::FlushDescriptorSets() {
-//     for (auto& [set, data] : m_DescriptorSetCaches) {
-//         m_VKHandle.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-//                                       m_CurrentPipeline->GetPipelineLayout(), set, { data.descSet
-//                                       },
-//                                       {});
-//     }
-// }
 
 void CVulkanCommandBuffer::BindDescriptorSets(int set, TRef<IRHIDescriptorSet> descSet) {
     m_VKHandle.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,

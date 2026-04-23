@@ -2,9 +2,9 @@
 
 #include "VulkanBuffer.h"
 #include "VulkanDevice.h"
+#include "VulkanImage.h"
 #include "VulkanSampler.h"
 #include "VulkanSetLayout.h"
-#include "VulkanTexture.h"
 #include "VulkanUtils.h"
 
 CVulkanDescriptorSet::CVulkanDescriptorSet(const WeakRef<IRHIDevice> device,
@@ -20,22 +20,6 @@ void CVulkanDescriptorSet::Init() {
     vk::DescriptorSetLayout vkLayout  = m_SetLayout.As<CVulkanSetLayout>()->GetVKHandle();
     vk::raii::DescriptorSet vkDescSet = device->AllocateSetFromPool(vkLayout);
 
-    // vk::DescriptorImageInfo imageInfo;
-    // imageInfo.setSampler(m_Info.Sampler.As<CVulkanSampler>()->GetVKSampler())
-    //     .setImageView(static_cast<CVulkanImage*>(m_Info.Image)->GetVKView())
-    //     .setImageLayout(ChozoUtils::Vulkan::ToVkImageLayout(m_Info.ImageLayout));
-
-    // vk::WriteDescriptorSet write{};
-    // write.setDstSet(*vkDescSet)
-    //     .setDstBinding(m_Slot)
-    //     .setDescriptorCount(1)
-    //     .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-    //     .setPImageInfo(&imageInfo);
-
-    // device->GetRAIILogicalDevice().updateDescriptorSets(write, nullptr);
-
-    // m_RAIIHandle = std::move(vkDescSet);
-
     std::vector<vk::WriteDescriptorSet> writes;
     for (const auto& b : m_ResourceBindings) {
         vk::WriteDescriptorSet write;
@@ -48,10 +32,11 @@ void CVulkanDescriptorSet::Init() {
 
             write.setDescriptorType(vk::DescriptorType::eUniformBuffer).setPBufferInfo(&bufferInfo);
         } else if (b.Type == EUniformType::CombinedImageSampler) {
-            auto texture = static_cast<CVulkanTexture*>(b.Resource);
+            auto image   = static_cast<CVulkanImage*>(b.Resource);
             auto sampler = static_cast<CVulkanSampler*>(b.Sampler);
 
-            vk::DescriptorImageInfo imageInfo(sampler->GetVKHandle(), texture->GetVKImageView(),
+            vk::DescriptorImageInfo imageInfo(sampler->GetVKHandle(),
+                                              image->GetVKView(image->GetSpec().ToImageViewSpec()),
                                               ChozoUtils::Vulkan::ToVkImageLayout(b.ImageLayout));
 
             write.setDescriptorType(vk::DescriptorType::eCombinedImageSampler)

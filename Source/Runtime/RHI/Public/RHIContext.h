@@ -24,12 +24,14 @@ public:
 
     TRef<IRHIDevice> GetDevice() const { return m_Device; }
     TRef<IRHISwapchain> GetSwapchain() const { return m_Swapchain; }
+    float GetCurrentFrame() const { return m_Frame; }
     uint32 GetCurrentFrameIndex() const { return m_FrameIndex; }
     uint32 GetCurrentImageIndex() const { return m_ImageIndex; }
     uint32 GetMaxFramesInFlight() const { return MAX_FRAMES_IN_FLIGHT; }
     IRHITexture* GetTarget() const { return m_Target; }
     const std::vector<IRHITexture*>& GetRenderTargets() const { return m_Targets; }
 
+    void SetCurrentFrame(const float index) { m_Frame = index; }
     void SetCurrentFrameIndex(const uint32 index) { m_FrameIndex = index; }
     void SetCurrentImageIndex(const uint32 index) { m_ImageIndex = index; }
     void SetTarget(IRHITexture* target) { m_Target = target; }
@@ -42,6 +44,7 @@ protected:
     TRef<IRHISwapchain> m_Swapchain;
     // std::vector<TRef<CVulkanCommandList>> m_FrameCommandLists;
 
+    float m_Frame;
     uint32 m_FrameIndex;
     bool m_IsFirstRenderingInFrame = true;
 
