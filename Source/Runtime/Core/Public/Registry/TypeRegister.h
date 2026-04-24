@@ -3,12 +3,7 @@
 #include "CoreExport.h"
 #include "CoreMinimal.h"
 
-enum class ETypeCategory : uint8_t {
-    None,
-    Node,
-    Light,
-    Mesh,
-};
+enum class ETypeCategory : uint8_t { None, Node, Light, Mesh, Material };
 
 struct FTypeInfo {
     std::string Name;
@@ -40,6 +35,7 @@ public:
             case ETypeCategory::Node: m_NodeTypesBit |= bit; break;
             case ETypeCategory::Light: m_LightTypesBit |= bit; break;
             case ETypeCategory::Mesh: m_MeshTypesBit |= bit; break;
+            case ETypeCategory::Material: m_MaterialTypesBit |= bit; break;
             default: break;
         }
 
@@ -86,6 +82,7 @@ public:
     uint32_t GetNodeTypesMask() const { return m_NodeTypesBit; }
     uint32_t GetLightTypesMask() const { return m_LightTypesBit; }
     uint32_t GetMeshTypesMask() const { return m_MeshTypesBit; }
+    uint32_t GetMaterialTypesMask() const { return m_MaterialTypesBit; }
     uint32_t GetAllTypesMask() const { return m_AllTypesBit; }
 
     bool IsValidType(uint32_t bit) const { return m_BitToInfo.find(bit) != m_BitToInfo.end(); }
@@ -93,6 +90,7 @@ public:
     bool IsNodeType(uint32_t bit) const { return (bit & m_NodeTypesBit) != 0; }
     bool IsLightType(uint32_t bit) const { return (bit & m_LightTypesBit) != 0; }
     bool IsMeshType(uint32_t bit) const { return (bit & m_MeshTypesBit) != 0; }
+    bool IsMaterialType(uint32_t bit) const { return (bit & m_MaterialTypesBit) != 0; }
 
 private:
     FTypeRegister() : m_NextBit(0) {
@@ -100,11 +98,12 @@ private:
         RegisterType("None", true, ETypeCategory::None);
     }
 
-    uint32_t m_NextBit       = 0;
-    uint32_t m_AllTypesBit   = 0;
-    uint32_t m_NodeTypesBit  = 0;
-    uint32_t m_LightTypesBit = 0;
-    uint32_t m_MeshTypesBit  = 0;
+    uint32_t m_NextBit          = 0;
+    uint32_t m_AllTypesBit      = 0;
+    uint32_t m_NodeTypesBit     = 0;
+    uint32_t m_LightTypesBit    = 0;
+    uint32_t m_MeshTypesBit     = 0;
+    uint32_t m_MaterialTypesBit = 0;
 
     std::vector<FTypeInfo> m_Types;
     std::unordered_map<std::string, uint32_t> m_NameToBit;

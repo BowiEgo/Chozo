@@ -65,25 +65,12 @@ private:
 
     // Panels
     ConsolePanel m_ConsolePanel;
-    bool m_IsConsoleOpen = true;
-
     SceneHierarchyPanel m_SceneHierarchyPanel;
-    bool m_IsSceneHierarchyOpen = true;
-
     PropertiesPanel m_PropertiesPanel;
-    bool m_IsPropertiesOpen = true;
-
     ContentBrowserPanel m_ContentBrowserPanel;
-    bool m_IsContentBrowserOpen = true;
-
     MaterialPanel m_MaterialPanel;
-    bool m_IsMaterialOpen = true;
-
     TextureViewerPanel m_TextureViewerPanel;
-    bool m_IsTextureViewerOpen = true;
-
     AssetsPanel m_AssetsPanel;
-    bool m_IsAssetsOpen = true;
 };
 
 extern "C" {

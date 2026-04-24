@@ -31,6 +31,11 @@ void CViewport::Resize(uint32 width, uint32 height) {
     device->WaitIdle();
 
     m_FrameBuffer.Reset();
+    // auto oldFrameBuffer = m_FrameBuffer;
+    // device->EnqueueCleanup([oldFrameBuffer]() mutable {
+    //     //
+    //     oldFrameBuffer.Reset();
+    // });
 
     m_Spec.Width  = width;
     m_Spec.Height = height;

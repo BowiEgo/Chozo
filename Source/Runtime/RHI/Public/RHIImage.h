@@ -101,9 +101,11 @@ public:
     virtual void SetData(FBuffer& data) = 0;
     virtual const FImageSpecification& GetSpec() const { return m_Spec; }
 
+    bool IsValid() const { return m_bValid; }
     const bool IsFromImagePool() const { return m_bFromImagePool; }
 
 protected:
     FImageSpecification m_Spec;
+    bool m_bValid         = true;
     bool m_bFromImagePool = false; // TODO: Remove
 };

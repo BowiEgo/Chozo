@@ -2,6 +2,8 @@
 
 #include "VulkanTexture2D.h"
 
+DEFINE_LOG_CATEGORY(LogVulkanFrameBuffer);
+
 CVulkanFrameBuffer::CVulkanFrameBuffer(const FFrameBufferSpecification& spec,
                                        const TRef<CVulkanDevice>& device)
     : IRHIFrameBuffer(spec), m_Device(device) {

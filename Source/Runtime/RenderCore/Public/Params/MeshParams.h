@@ -46,10 +46,10 @@ public:
 
     explicit FMeshParams(TRef<IParams> params) : m_Params(std::move(params)) {}
 
-    FMeshParams(const FMeshParams& other) = default;
+    FMeshParams(const FMeshParams& other)            = default;
     FMeshParams& operator=(const FMeshParams& other) = default;
 
-    FMeshParams(FMeshParams&& other) noexcept = default;
+    FMeshParams(FMeshParams&& other) noexcept            = default;
     FMeshParams& operator=(FMeshParams&& other) noexcept = default;
 
     // ===== Type Info =====
@@ -97,30 +97,30 @@ private:
     TRef<IParams> m_Params;
 };
 
-class FDynamicVariant {
-public:
-    template <typename T> void RegisterType(const std::string& typeName) {
-        m_TypeNames.push_back(typeName);
-        m_TypeIndex[typeName] = m_TypeNames.size() - 1;
-    }
+// class FDynamicVariant { // TODO: Remove
+// public:
+//     template <typename T> void RegisterType(const std::string& typeName) {
+//         m_TypeNames.push_back(typeName);
+//         m_TypeIndex[typeName] = m_TypeNames.size() - 1;
+//     }
 
-    template <typename T> void Set(const T& value) {
-        m_Data = CreateScope<T>(value);
-        m_TypeName = T::GetStaticTypeName();
-    }
+//     template <typename T> void Set(const T& value) {
+//         m_Data     = CreateScope<T>(value);
+//         m_TypeName = T::GetStaticTypeName();
+//     }
 
-    template <typename T> T* Get() {
-        if (m_TypeName == T::GetStaticTypeName()) {
-            return static_cast<T*>(m_Data.get());
-        }
-        return nullptr;
-    }
+//     template <typename T> T* Get() {
+//         if (m_TypeName == T::GetStaticTypeName()) {
+//             return static_cast<T*>(m_Data.get());
+//         }
+//         return nullptr;
+//     }
 
-    const std::string& GetTypeName() const { return m_TypeName; }
+//     const std::string& GetTypeName() const { return m_TypeName; }
 
-private:
-    TScope<void> m_Data;
-    std::string m_TypeName;
-    std::vector<std::string> m_TypeNames;
-    std::unordered_map<std::string, size_t> m_TypeIndex;
-};
+// private:
+//     TScope<void> m_Data;
+//     std::string m_TypeName;
+//     std::vector<std::string> m_TypeNames;
+//     std::unordered_map<std::string, size_t> m_TypeIndex;
+// };

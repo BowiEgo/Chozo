@@ -128,11 +128,23 @@ ImTextureID CVulkanImGuiRenderer::GetTextureIDForRHITexture(const IRHITexture* t
     }
 
     if (!texture->IsValid()) texture = m_DefaultBlackTexture.get();
+    // texture = m_DefaultBlackTexture.get();
 
     vk::ImageView imageView = static_cast<CVulkanImage*>(texture->GetImage())->GetVKView();
     vk::Sampler sampler     = texture->GetSampler().As<CVulkanSampler>()->GetVKHandle();
+
+    // CZ_LOG(LogVulkanImGuiRenderer, Trace, "GetTextureIDForRHITexture: image {} with imageView
+    // {}",
+    //        (void*)static_cast<CVulkanImage*>(texture->GetImage())->GetVKHandle(),
+    //        (void*)imageView);
+
     VkDescriptorSet descSet =
         ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    // CZ_LOG(LogVulkanImGuiRenderer, Trace,
+    //        "GetTextureIDForRHITexture: image {} with descriptor set {}",
+    //        (void*)static_cast<CVulkanImage*>(texture->GetImage())->GetVKHandle(),
+    //        (void*)descSet);
     ImTextureID id            = reinterpret_cast<ImTextureID>(descSet);
     m_TextureIDCache[texture] = id;
     return id;

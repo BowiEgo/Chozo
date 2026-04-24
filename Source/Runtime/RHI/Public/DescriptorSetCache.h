@@ -32,7 +32,7 @@ template <> struct hash<FDescriptorSetKey> {
 };
 } // namespace std
 
-class CDescriptorSetCache {
+class RHI_API CDescriptorSetCache {
 public:
     CDescriptorSetCache(const WeakRef<IRHIDevice> device) : m_Device(device) {};
     ~CDescriptorSetCache() = default;

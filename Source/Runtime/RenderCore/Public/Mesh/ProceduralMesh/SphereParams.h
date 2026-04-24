@@ -1,16 +1,19 @@
 #pragma once
 
+#include "Asset.h"
 #include "MathUtils.h"
 #include "Params.h"
 
 struct FSphereParams : public IParams {
-    float Radius = 0.5f;
-    uint32_t WidthSegments = 32;
+    float Radius            = 0.5f;
+    uint32_t WidthSegments  = 32;
     uint32_t HeightSegments = 16;
-    float PhiStart = 0.0f;
-    float PhiLength = ChozoUtils::Math::PI * 2;
-    float ThetaStart = 0.0f;
-    float ThetaLength = ChozoUtils::Math::PI;
+    float PhiStart          = 0.0f;
+    float PhiLength         = ChozoUtils::Math::PI * 2;
+    float ThetaStart        = 0.0f;
+    float ThetaLength       = ChozoUtils::Math::PI;
+
+    FAssetHandle Material;
 
     FSphereParams() = default;
 
@@ -50,15 +53,16 @@ struct FSphereParams : public IParams {
         HashCombine(h, std::hash<float>{}(PhiLength));
         HashCombine(h, std::hash<float>{}(ThetaStart));
         HashCombine(h, std::hash<float>{}(ThetaLength));
+        HashCombine(h, std::hash<FAssetHandle>{}(Material));
         return h;
     }
 
     virtual std::string GetTypeName() const override { return "Sphere"; }
 
-    virtual size_t GetPropertyCount() const override { return 7; }
+    virtual size_t GetPropertyCount() const override { return 8; }
     virtual std::string GetPropertyName(size_t index) const override {
-        static const std::string names[] = { "Radius",    "Segments",   "Rings",      "PhiStart",
-                                             "PhiLength", "ThetaStart", "ThetaLength" };
+        static const std::string names[] = { "Radius",    "Segments",   "Rings",       "PhiStart",
+                                             "PhiLength", "ThetaStart", "ThetaLength", "Material" };
         return index < GetPropertyCount() ? names[index] : "";
     }
 
@@ -70,6 +74,7 @@ struct FSphereParams : public IParams {
         visitor.Visit(PhiLength, "Phi Length");
         visitor.Visit(ThetaStart, "Theta Start");
         visitor.Visit(ThetaLength, "Theta Length");
+        visitor.Visit(Material, "Material");
     }
     virtual void Accept(IConstParamsVisitor& visitor) const override {
         visitor.Visit(Radius, "Radius");
@@ -79,6 +84,7 @@ struct FSphereParams : public IParams {
         visitor.Visit(PhiLength, "Phi Length");
         visitor.Visit(ThetaStart, "Theta Start");
         visitor.Visit(ThetaLength, "Theta Length");
+        visitor.Visit(Material, "Material");
     }
 
     // ===== Comparison Operators =====

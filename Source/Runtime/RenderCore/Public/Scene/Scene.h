@@ -19,6 +19,9 @@ public:
     FScene()  = default;
     ~FScene() = default;
 
+    virtual const std::string GetName() const override { return m_Name; }
+    virtual const EAssetType GetType() const override { return EAssetType::Scene; }
+
     void Update(float deltaTime);
     void Draw(IRHICommandList* cmdList);
 

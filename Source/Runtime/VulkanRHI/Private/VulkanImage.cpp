@@ -16,7 +16,6 @@ CVulkanImage::CVulkanImage(const WeakRef<IRHIDevice> device, const FImageSpecifi
 CVulkanImage::CVulkanImage(const WeakRef<IRHIDevice> device, const FImageSpecification& spec,
                            vk::Image image, bool bIsExternal)
     : IRHIImage(device, spec), m_VKImage(image), m_bIsExternal(bIsExternal) {
-    CZ_LOG(LogVulkanImage, Trace, "CreateVulkanImage");
     // Assume the provided image is already in a valid layout and has memory bound.
     // We will query its format and set the current layout to undefined (caller should set it).
     // In a more robust implementation, we might want to allow passing the current layout as well.
@@ -36,7 +35,7 @@ void CVulkanImage::Init() {
 }
 
 void CVulkanImage::Destroy() {
-    // CZ_LOG(LogVulkanImage, Trace, "VulkanImage: destroying...");
+    // CZ_LOG(LogVulkanImage, Trace, "VulkanImage: {} destroying...", (void*)m_VKImage);
     auto device = m_Device.As<CVulkanDevice>();
     if (!device) return;
 
@@ -56,6 +55,8 @@ void CVulkanImage::Destroy() {
             if (m_VKMemory) logicalDevice.freeMemory(m_VKMemory);
         }
     }
+
+    m_bValid = false;
 }
 
 void CVulkanImage::SetData(FBuffer& data) {
@@ -179,6 +180,10 @@ void CVulkanImage::CreateImageResources() {
 }
 
 vk::ImageView CVulkanImage::GetOrCreateVKView(const FImageViewSpecification& spec) {
+    if (!m_bValid) {
+        CZ_LOG(LogVulkanImage, Warning, "Attempting to get ImageView for an invalid image!");
+        return VK_NULL_HANDLE;
+    }
     if (m_ViewCache.contains(spec)) {
         return m_ViewCache[spec];
     }

@@ -2,9 +2,14 @@
 
 #include "Application.h"
 #include "AssetManager.h"
+#include "EditorEvent.h"
 #include "ImGuiLayer.h"
 #include "Input.h"
+#include "Material.h"
+#include "PBRMaterialParams.h"
 #include "UIUtils.h"
+
+#include "SphereParams.h"
 
 #include "imgui.h"
 
@@ -82,17 +87,52 @@ void EditorLayer::OnAttach() {
     CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
 
     {
+        // Material
+
         auto nodeBit   = FTypeRegister::Get().GetBit("Node_Regular");
         auto sphereBit = FTypeRegister::Get().GetBit("Mesh_Sphere");
         auto newNode   = m_NodeTree.CreateNode("Sphere", nodeBit |= sphereBit, nullptr);
         m_NodeTree.SelectNode(newNode);
+
+        TRef<CMaterial> pbrMaterial = CAssetManager::Get().GetOrLoadMaterial({ "PBRMaterial" });
+        static_cast<FSphereParams*>(newNode->GetMeshParams()->Get())->Material =
+            pbrMaterial->GetHandle();
     }
 
     {
         auto nodeBit = FTypeRegister::Get().GetBit("Node_Regular");
         auto hdriBit = FTypeRegister::Get().GetBit("Light_HDRIBackdrop");
-        m_NodeTree.CreateNode("HDRI Backdrop", nodeBit |= hdriBit, nullptr);
+        auto newNode = m_NodeTree.CreateNode("HDRI Backdrop", nodeBit |= hdriBit, nullptr);
+
+        auto tex = CAssetManager::Get().GetOrLoadTexture("textures://HDRI/newport_loft.hdr");
+        newNode->GetHDRIBackdropParams()->Cubemap = tex->GetHandle();
     }
+
+    FEventBus::Get().AddListener(EEventType::OpenMaterialPanel, [this](IEvent& e) {
+        auto& openMaterialPanelEvent = static_cast<FOpenMaterialPanelEvent&>(e);
+
+        CZ_LOG(LogEditorLayer, Trace, "OpenMaterialPanel: {}",
+               openMaterialPanelEvent.GetMaterialHandle().ToString());
+
+        auto mat = CAssetManager::Get().GetAsset(openMaterialPanelEvent.GetMaterialHandle());
+        if (mat) {
+            m_MaterialPanel.SetMaterial(mat);
+            m_MaterialPanel.Open();
+            ImGuiWindow* window = ImGui::FindWindowByName("Material");
+            if (window) {
+                ImGui::FocusWindow(window);
+            }
+        }
+        return true; // Return false to indicate we don't want to mark the event as handled
+    });
+
+    m_ConsolePanel.Open();
+    m_SceneHierarchyPanel.Open();
+    m_PropertiesPanel.Open();
+    m_ContentBrowserPanel.Open();
+    m_MaterialPanel.Open();
+    m_TextureViewerPanel.Open();
+    m_AssetsPanel.Open();
 }
 
 void EditorLayer::OnDetach() {
@@ -136,6 +176,10 @@ void EditorLayer::OnImGuiRender() {
 
             if (ImGui::BeginMenu("PowerMode")) {
                 EAppPowerMode appPowerMode = CApplication::Get()->GetPowerMode();
+                if (ImGui::MenuItem("NoLimit", nullptr, appPowerMode == EAppPowerMode::NoLimit))
+                    CApplication::Get()->SetPowerMode(EAppPowerMode::NoLimit);
+                if (ImGui::MenuItem("Extreme", nullptr, appPowerMode == EAppPowerMode::Extreme))
+                    CApplication::Get()->SetPowerMode(EAppPowerMode::Extreme);
                 if (ImGui::MenuItem("Performance", nullptr,
                                     appPowerMode == EAppPowerMode::Performance))
                     CApplication::Get()->SetPowerMode(EAppPowerMode::Performance);
@@ -159,13 +203,13 @@ void EditorLayer::OnImGuiRender() {
     // ----------------------------------------------------------------------------
     // [Sub-Section] Sub-Panels Update
     // ----------------------------------------------------------------------------
-    m_ConsolePanel.Draw("Console", &m_IsConsoleOpen);
-    m_SceneHierarchyPanel.Draw("Scene Hierarchy", &m_IsSceneHierarchyOpen);
-    m_PropertiesPanel.Draw("Properties", &m_IsPropertiesOpen);
-    m_ContentBrowserPanel.Draw("Content Browser", &m_IsContentBrowserOpen);
-    m_MaterialPanel.Draw("Material", &m_IsMaterialOpen);
-    m_TextureViewerPanel.Draw("Texture Viewer", &m_IsTextureViewerOpen);
-    m_AssetsPanel.Draw("Assets", &m_IsAssetsOpen);
+    m_ConsolePanel.Draw("Console");
+    m_SceneHierarchyPanel.Draw("Scene Hierarchy");
+    m_PropertiesPanel.Draw("Properties");
+    m_ContentBrowserPanel.Draw("Content Browser");
+    m_MaterialPanel.Draw("Material");
+    m_TextureViewerPanel.Draw("Texture Viewer");
+    m_AssetsPanel.Draw("Assets");
 #pragma endregion
 
 #pragma region Viewport Rendering

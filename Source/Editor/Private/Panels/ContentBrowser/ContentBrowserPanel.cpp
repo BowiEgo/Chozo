@@ -17,9 +17,11 @@ static void HelpMarker(const char* desc) {
     }
 }
 
-void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
+void ContentBrowserPanel::Draw(const char* title) {
+    if (!m_bOpen) return;
+
     ImGui::SetNextWindowSize(ImVec2(IconSize * 25, IconSize * 15), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(title, p_open, ImGuiWindowFlags_MenuBar)) {
+    if (!ImGui::Begin(title, &m_bOpen, ImGuiWindowFlags_MenuBar)) {
         ImGui::End();
         return;
     }
@@ -36,7 +38,7 @@ void ContentBrowserPanel::Draw(const char* title, bool* p_open) {
             if (ImGui::MenuItem("Add 10000 items")) AddItems(10000);
             if (ImGui::MenuItem("Clear items")) ClearItems();
             ImGui::Separator();
-            if (ImGui::MenuItem("Close", NULL, false, p_open != NULL)) *p_open = false;
+            if (ImGui::MenuItem("Close", NULL, false)) m_bOpen = false;
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit")) {

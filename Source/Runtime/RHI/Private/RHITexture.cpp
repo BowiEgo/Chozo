@@ -27,7 +27,6 @@ IRHITexture::IRHITexture(const WeakRef<IRHIDevice> device, const FTextureSpecifi
 IRHITexture::~IRHITexture() {
     FRHIResourceDestroyedEvent event(this);
     FEventBus::Get().Dispatch(event);
-    // CZ_LOG(LogRHITexture, Trace, "RHITexture: {} destroying...", m_Spec.Name);
 }
 
 TRef<IRHISampler> IRHITexture::GetSampler(const FSamplerSpecification spec) const {

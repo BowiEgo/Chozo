@@ -22,7 +22,10 @@ enum class EEventType {
     MouseButtonReleased,
     MouseMoved,
     MouseScrolled,
+
     ResourceDestroyed,
+
+    OpenMaterialPanel
 };
 
 enum EEventCategory {
@@ -34,6 +37,7 @@ enum EEventCategory {
     EventCategory_Mouse       = BIT(4),
     EventCategory_MouseButton = BIT(5),
     EventCategory_RHIResource = BIT(6),
+    EventCategory_Editor      = BIT(7),
 };
 
 #define EVENT_CLASS_TYPE(type)                                                                     \

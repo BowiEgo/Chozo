@@ -10,7 +10,7 @@ public:
     PropertiesPanel() {}
     ~PropertiesPanel() {}
 
-    virtual void Draw(const char* title, bool* p_open) override;
+    virtual void Draw(const char* title) override;
 
     void SetNodeTree(CEditorNodeTree* nodeTree) { m_NodeTree = nodeTree; }
 

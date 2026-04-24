@@ -44,7 +44,8 @@ public:
             const std::unordered_map<EShaderStage, FShaderCompilerOutput>& outputs);
     virtual ~CShader() = default;
 
-    const std::string& GetName() const { return m_Spec.Name; }
+    virtual const std::string GetName() const override { return m_Spec.Name; }
+    virtual const EAssetType GetType() const override { return EAssetType::Shader; }
 
     std::vector<TRef<IRHIShader>> GetShaderResources() {
         if (m_ShaderResources.empty()) {

@@ -7,5 +7,5 @@ public:
     TextureViewerPanel() {}
     ~TextureViewerPanel() {}
 
-    virtual void Draw(const char* title, bool* p_open) override;
+    virtual void Draw(const char* title) override;
 };

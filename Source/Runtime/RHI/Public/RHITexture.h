@@ -107,7 +107,10 @@ public:
     virtual ~IRHITexture();
     virtual EResourceType GetResourceType() const { return EResourceType::Texture; }
 
-    const bool IsValid() const { return GetImage() != nullptr; }
+    const bool IsValid() const {
+        auto image = GetImage();
+        return image && image->IsValid();
+    }
     const FTextureSpecification& GetSpec() const { return m_Spec; }
     std::string GetName() const { return m_Spec.Name; }
     FExtent2D GetSize() const { return m_Spec.Size; }

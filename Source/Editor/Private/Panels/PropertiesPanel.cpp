@@ -1,9 +1,11 @@
 #include "PropertiesPanel.h"
 
-#include "UIUtils.h"
+#include "Controls.h"
 
-void PropertiesPanel::Draw(const char* title, bool* p_open) {
-    if (!ImGui::Begin(title, p_open)) {
+void PropertiesPanel::Draw(const char* title) {
+    if (!m_bOpen) return;
+
+    if (!ImGui::Begin(title, &m_bOpen)) {
         ImGui::End();
         return;
     }
@@ -30,7 +32,7 @@ void PropertiesPanel::DrawComponentHeader(const std::string& name, bool bDefault
     if (bDefaultOpen) treeNodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
 
     ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
-    const float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+    const float lineHeight        = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 
     ImGui::Separator();
     bool open =
@@ -56,7 +58,7 @@ bool PropertiesPanel::DrawColumnProperties(const std::string& name, IParams* par
         ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 100.0f);
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-        ChozoUtils::UI::TableParamsVisitor visitor;
+        ChozoEditor::Controls::TableParamsVisitor visitor;
         params->Accept(visitor);
 
         if (visitor.IsValueChanged()) {
