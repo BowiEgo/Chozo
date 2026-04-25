@@ -468,12 +468,7 @@ inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tintNormal, ImU32 tintH
 };
 
 inline void DrawButtonImageByRatio(TRef<CTexture>& image, FVector2 size) {
-    ImGuiIO& io        = ImGui::GetIO();
-    ImVec2 imageSizePx = ImVec2(size.x, size.y);
-    ImVec2 logicalSize = ImVec2(imageSizePx.x / io.DisplayFramebufferScale.x,
-                                imageSizePx.y / io.DisplayFramebufferScale.y);
-
-    ImGui::InvisibleButton("##thumbnailButton", logicalSize);
+    ImGui::InvisibleButton("##thumbnailButton", ImVec2{ size.x, size.y });
 
     float imageAspectRatio =
         static_cast<float>(image->GetSize().Height) / static_cast<float>(image->GetSize().Width);

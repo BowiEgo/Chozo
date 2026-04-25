@@ -100,16 +100,13 @@ void CVulkanImGuiRenderer::Shutdown() {
     ImGui::DestroyContext();
 
     m_DefaultBlackTexture.reset();
+    m_bShutdown = true;
 }
 
 void CVulkanImGuiRenderer::NewFrame() {
     ImGui_ImplGlfw_NewFrame();
     ImGui_ImplVulkan_NewFrame();
     ImGui::NewFrame();
-
-    ImGuiIO& io = ImGui::GetIO();
-
-    m_bShutdown = true;
 }
 
 void CVulkanImGuiRenderer::Draw(ImDrawData* drawData, const TRef<IRHICommandList>& cmdBuffer) {

@@ -75,6 +75,10 @@ void CImGuiLayer::OnAttach() {
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
+    float pixelRatio  = m_Window->GetPixelRatio();
+    FExtent2D fbScale = m_Window->GetFrameBufferScale();
+    style.ScaleAllSizes(fbScale.Width / pixelRatio);
+
     // SetDarkThemeColors();
 
     // Setup Platform/Renderer backends
@@ -102,15 +106,6 @@ void CImGuiLayer::Draw(const TRef<IRHICommandList>& cmdBuffer) {
 }
 
 void CImGuiLayer::Begin() {
-    ImGuiIO& io           = ImGui::GetIO();
-    auto logicalSize      = m_Window->GetSize();
-    auto framebufferScale = m_Window->GetFrameBufferScale();
-
-    io.DisplaySize = ImVec2((float)logicalSize.Width, (float)logicalSize.Height);
-    if (logicalSize.Width > 0 && logicalSize.Height > 0) {
-        io.DisplayFramebufferScale = ImVec2(framebufferScale.Width, framebufferScale.Height);
-    }
-
     m_ImGuiRenderer->NewFrame();
     CIconManager::Get().ProcessRawIcons(m_Context->GetCurrentFrameIndex());
 }
@@ -169,15 +164,14 @@ void CImGuiLayer::SetFont(std::string font) {
         return;
     }
 
-    ImGuiIO& io      = ImGui::GetIO();
-    float fontSize   = 18.0f;
-    float pixleRatio = m_Window->GetPixelRatio();
-    float scale      = m_Window->GetFrameBufferScale().Width;
+    ImGuiIO& io       = ImGui::GetIO();
+    float fontSize    = 18.0f;
+    float pixelRatio  = m_Window->GetPixelRatio();
+    FExtent2D fbScale = m_Window->GetFrameBufferScale();
 
     io.Fonts->Clear();
-    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * scale);
-    io.FontDefault     = io.Fonts->Fonts.back();
-    io.FontGlobalScale = 1.0f / pixleRatio;
+    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * fbScale.Width / pixelRatio);
+    io.FontDefault = io.Fonts->Fonts.back();
 }
 
 void CImGuiLayer::SetDarkThemeColors() {

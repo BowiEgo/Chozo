@@ -83,7 +83,7 @@ static bool DrawVec3Control(const std::string& label, FVector3& values,
 }
 
 static bool DrawTextureControl(TRef<CTexture> texture) {
-    ChozoUtils::UI::DrawButtonImageByRatio(texture, { 80.0f, 80.0f });
+    ChozoUtils::UI::DrawButtonImageByRatio(texture, { 120.0f, 120.0f });
 
     ImGui::SameLine();
     ImGui::BeginGroup();
@@ -125,7 +125,7 @@ static bool DrawTextureControl(TRef<CTexture> texture) {
 
 static bool DrawMaterialControl(const TRef<CMaterial>& mat) {
     auto texture = CAssetManager::Get().GetCheckboardTexture();
-    ChozoUtils::UI::DrawButtonImageByRatio(texture, { 80.0f, 80.0f });
+    ChozoUtils::UI::DrawButtonImageByRatio(texture, { 120.0f, 120.0f });
 
     ImGui::SameLine();
     ImGui::BeginGroup();
