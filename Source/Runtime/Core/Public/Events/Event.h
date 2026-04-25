@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CoreExport.h"
 #include "CorePCH.h"
 #include "CoreTypes.h"
 
@@ -48,7 +49,7 @@ enum EEventCategory {
 #define EVENT_CLASS_CATEGORY(category)                                                             \
     virtual int GetCategoryFlags() const override { return category; }
 
-class IEvent {
+class CORE_API IEvent {
     friend class FEventDispatcher;
 
 public:
@@ -69,7 +70,7 @@ public:
 
 inline std::ostream& operator<<(std::ostream& os, const IEvent& e) { return os << e.ToString(); };
 
-class FEventDispatcher {
+class CORE_API FEventDispatcher {
     template <typename T> using TEventFn = std::function<bool(T&)>;
 
 public:
@@ -89,14 +90,11 @@ private:
 
 using FEventCallback = std::function<bool(IEvent&)>;
 
-class FEventBus {
+class CORE_API FEventBus {
     using FEventListener = std::pair<bool, FEventCallback>;
 
 public:
-    static FEventBus& Get() {
-        static FEventBus instance;
-        return instance;
-    }
+    static FEventBus& Get() { return *s_Instance; }
 
     void AddListener(const EEventType type, const FEventCallback& callback, bool destroy = false) {
         m_Listeners[type].emplace_back(destroy, callback);
@@ -122,6 +120,10 @@ public:
     }
 
 private:
-    FEventBus() = default;
+    FEventBus()  = default;
+    ~FEventBus() = default;
+
+    static FEventBus* s_Instance;
+
     std::unordered_map<EEventType, std::vector<FEventListener>> m_Listeners;
 };

@@ -26,7 +26,7 @@ void IRHIDevice::TickDeferredDeletion(uint32 currentFrame) {
 
     auto it = m_DeletionQueue.begin();
     while (it != m_DeletionQueue.end()) {
-        if (it->RetireFrame + 3 == safeFrame) {
+        if (it->RetireFrame == safeFrame) {
             it->CleanupFunc();
             it = m_DeletionQueue.erase(it);
         } else {

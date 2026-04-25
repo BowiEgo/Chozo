@@ -19,8 +19,7 @@ IImGuiRenderer::IImGuiRenderer(CWindow* window, IRHIContext* rhiContext)
 
         if (res->GetResourceType() == EResourceType::Texture) {
             auto tex = static_cast<IRHITexture*>(res);
-
-            auto it = m_TextureIDCache.find(tex);
+            auto it  = m_TextureIDCache.find(tex);
             if (it != m_TextureIDCache.end()) {
                 ReleaseTextureID(it->second);
                 m_TextureIDCache.erase(it);
