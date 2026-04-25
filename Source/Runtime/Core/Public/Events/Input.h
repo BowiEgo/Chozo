@@ -11,6 +11,7 @@ class CORE_API SInput {
 
 public:
     static void Init(IInputImpl* impl) { s_Impl = impl; }
+    static IInputImpl* GetImpl() { return s_Impl; }
     static bool IsKeyPressed(EKeyCode keycode) { return s_Impl->IsKeyPressed(keycode); }
     static bool IsMouseButtonPressed(EMouseButton button) {
         return s_Impl->IsMouseButtonPressed(button);

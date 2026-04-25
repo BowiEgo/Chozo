@@ -8,13 +8,14 @@
 #include "VulkanSampler.h"
 #include "VulkanSwapchain.h"
 
-#include "imgui_impl_glfw.h"
+#include "imgui_impl_sdl3.h"
 #define IM_VULKAN_HAS_DYNAMIC_RENDERING
 #include "imgui_impl_vulkan.h"
 #include <stdio.h>  // printf, fprintf
 #include <stdlib.h> // abort
 #define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+
+#include <SDL3/SDL.h>
 
 DEFINE_LOG_CATEGORY(LogVulkanImGuiRenderer);
 
@@ -45,13 +46,13 @@ void CVulkanImGuiRenderer::Init(ImGuiContext* ctx) {
 
     auto device       = m_Context->GetDevice().As<CVulkanDevice>();
     auto swapchain    = m_Context->GetSwapchain().As<CVulkanSwapchain>();
-    auto windowHandle = (GLFWwindow*)m_Window->GetWindowWrapper();
+    auto windowHandle = (SDL_Window*)m_Window->GetWindowWrapper();
 
     static VkFormat colorFormats[1];
     colorFormats[0] = static_cast<VkFormat>(swapchain->GetVKImageFormat());
 
     // m_Window->InitImGui(ctx);
-    ImGui_ImplGlfw_InitForVulkan(windowHandle, true);
+    ImGui_ImplSDL3_InitForVulkan(windowHandle);
 
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.ApiVersion                = VK_API_VERSION_1_4; // Pass in your value of
@@ -96,7 +97,7 @@ void CVulkanImGuiRenderer::Shutdown() {
 
     device->WaitIdle();
     ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 
     m_DefaultBlackTexture.reset();
@@ -104,7 +105,7 @@ void CVulkanImGuiRenderer::Shutdown() {
 }
 
 void CVulkanImGuiRenderer::NewFrame() {
-    ImGui_ImplGlfw_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
     ImGui_ImplVulkan_NewFrame();
     ImGui::NewFrame();
 }

@@ -1,10 +1,10 @@
 ﻿#include "Application.h"
 
-#include "GLFWInputImpl.h"
 #include "ImGuiLayer.h"
 #include "Input.h"
 #include "ModuleUtils.h"
 #include "RendererAPI.h"
+#include "SDLInputImpl.h"
 
 #ifdef CZ_PLATFORM_WINDOWS
     #include <Windows.h>
@@ -63,7 +63,7 @@ void CApplication::Init(const std::string& name) {
         m_Window->Init();
         m_Window->SetEventCallback(CZ_BIND_EVENT_FN(OnEvent));
 
-        auto* inputImpl = new CGLFWInputImpl(m_Window.get());
+        auto* inputImpl = new CSDLInputImpl(m_Window.get());
         SInput::Init(inputImpl);
 
         // Setup RenderEngine

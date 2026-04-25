@@ -4,18 +4,16 @@
 #include "Window.h"
 #include "WindowingExport.h"
 
-#include <GLFW/glfw3.h>
+#include <SDL3/SDL.h>
 
-DECLARE_LOG_CATEGORY_EXTERN(LogGLFWWindow, Info);
+DECLARE_LOG_CATEGORY_EXTERN(LogSDLWindow, Info);
 
-static bool s_GLFWInitialized = false;
-
-class WINDOWING_API CGLFWWindow : public CWindow {
+class WINDOWING_API CSDLWindow : public CWindow {
 public:
-    CGLFWWindow(const FWindowDefinition& def) : CWindow(def) {};
-    ~CGLFWWindow();
+    CSDLWindow(const FWindowDefinition& def) : CWindow(def) {};
+    ~CSDLWindow();
 
-    // from Window
+    // CWindow interface
     virtual void Init() override;
     virtual void Shutdown() override;
     virtual void OnUpdate() override;
@@ -24,19 +22,19 @@ public:
         m_Definition.EventCallback = callback;
     }
 
-    // from IRendererWindow
+    // IRendererWindow interface
     virtual FExtent2D GetSize() const override;
     virtual FExtent2D GetFrameBufferSize() const override;
     virtual FExtent2D GetFrameBufferScale() const override { return m_Definition.FrameBufferScale; }
     virtual std::vector<const char*> GetRequiredExtensions() const override;
     virtual FWindowHandle GetNativeHandle() const override;
 
-    GLFWwindow* GetGLFWWindow() const { return static_cast<GLFWwindow*>(m_Window); }
+    SDL_Window* GetSDLWindow() const { return static_cast<SDL_Window*>(m_Window); }
 
 private:
-    static void OnGLFWError(int error, const char* description);
+    void CreateSDLWindow();
+    void ProcessEvent(const SDL_Event& event);
 
-private:
-    void CreateGLFWWindow();
-    void SetGLFWCallbacks();
+    bool m_bShouldClose = false;
+    static bool s_SDLInitialized;
 };

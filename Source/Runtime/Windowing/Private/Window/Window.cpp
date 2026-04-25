@@ -1,6 +1,6 @@
 ﻿#include "Window.h"
-#include "GLFWWindow.h"
+#include "SDLWindow.h"
 
-TScope<CWindow> CWindow::Create(const FWindowDefinition &windowDef) {
-    return CreateScope<CGLFWWindow>(windowDef);
+TScope<CWindow> CWindow::Create(const FWindowDefinition& windowDef) {
+    return CreateScope<CSDLWindow>(windowDef);
 }

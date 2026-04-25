@@ -42,6 +42,7 @@ public:
     void Draw(const TRef<IRHICommandList>& cmdBuffer);
 
     IImGuiRenderer* GetRenderer() { return m_ImGuiRenderer.get(); }
+    CWindow* GetWindow() { return m_Window; }
 
 private:
     CModule m_RHIModule;

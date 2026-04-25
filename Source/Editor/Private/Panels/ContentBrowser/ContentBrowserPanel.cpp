@@ -4,6 +4,7 @@
 #include "FileSystemUtils.h"
 #include "RHIAPI.h"
 #include "TextureImporter.h"
+#include "UIUtils.h"
 
 DEFINE_LOG_CATEGORY(LogContentBrowserPanel);
 
@@ -57,7 +58,7 @@ void ContentBrowserPanel::Draw(const char* title) {
             ImGui::Checkbox("Allow box-selection", &AllowBoxSelect);
 
             ImGui::SeparatorText("Layout");
-            ImGui::SliderFloat("Icon Size", &IconSize, 16.0f, 128.0f, "%.0f");
+            ImGui::SliderFloat("Icon Size", &IconSize, 64.0f, 512.0f, "%.0f");
             ImGui::SameLine();
             HelpMarker("Use Ctrl+Wheel to zoom");
             ImGui::SliderInt("Icon Spacing", &IconSpacing, 0, 32);
@@ -344,11 +345,11 @@ void ContentBrowserPanel::Draw(const char* title) {
 
 void ContentBrowserPanel::UpdateLayoutSizes(float avail_width) {
     // Layout: when not stretching: allow extending into right-most spacing.
-    LayoutItemSpacing = (float)IconSpacing;
+    LayoutItemSpacing = (float)IconSpacing / IMGUI_DPI_SCALE;
     if (StretchSpacing == false) avail_width += floorf(LayoutItemSpacing * 0.5f);
 
     // Layout: calculate number of icon per line and number of lines
-    LayoutItemSize    = ImVec2(floorf(IconSize), floorf(IconSize));
+    LayoutItemSize    = ImVec2(floorf(IconSize), floorf(IconSize)) / IMGUI_DPI_SCALE;
     LayoutColumnCount = IM_MAX((int)(avail_width / (LayoutItemSize.x + LayoutItemSpacing)), 1);
     LayoutLineCount   = (m_Items.Size + LayoutColumnCount - 1) / LayoutColumnCount;
 

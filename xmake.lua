@@ -33,8 +33,7 @@ end
 
 add_requires("glm", "entt")
 add_requires("spdlog", {configs = {header_only = false}})
-add_requires("glfw", {configs = {shared = true}})
-add_requireconfs("*.glfw", {override = true, configs = {shared = true}})
+add_requires("libsdl3", {configs = {shared = true}})
 
 option("tests")
     set_default(false)
@@ -107,28 +106,28 @@ target("CopyBinaries")
             cprint("${yellow}[CopyBinaries]:${clear} Warning - VULKAN_SDK environment variable not found!")
         end
 
-        local windowing = target:dep("Windowing")
-        if windowing then
-            local glfw_pkg = windowing:pkg("glfw")
-            if glfw_pkg then
-                local pkg_dir = glfw_pkg:installdir()
-                local lib_name = is_win and "glfw3.dll" or "libglfw.3.dylib"
-                local search_paths = {path.join(pkg_dir, "bin"), path.join(pkg_dir, "lib")}
-                local found = false
-                for _, p in ipairs(search_paths) do
-                    local full_path = path.join(p, lib_name)
-                    if os.isfile(full_path) then
-                        table.insert(bin_files, full_path)
-                        found = true
-                        break
-                    end
-                end
+        -- local windowing = target:dep("Windowing")
+        -- if windowing then
+        --     local glfw_pkg = windowing:pkg("glfw")
+        --     if glfw_pkg then
+        --         local pkg_dir = glfw_pkg:installdir()
+        --         local lib_name = is_win and "glfw3.dll" or "libglfw.3.dylib"
+        --         local search_paths = {path.join(pkg_dir, "bin"), path.join(pkg_dir, "lib")}
+        --         local found = false
+        --         for _, p in ipairs(search_paths) do
+        --             local full_path = path.join(p, lib_name)
+        --             if os.isfile(full_path) then
+        --                 table.insert(bin_files, full_path)
+        --                 found = true
+        --                 break
+        --             end
+        --         end
 
-                if not found then
-                    cprint("${yellow}[CopyBinaries]:${clear} Warning - glfw3.dll not found in pkg dir: %s", pkg_dir)
-                end
-            end
-        end
+        --         if not found then
+        --             cprint("${yellow}[CopyBinaries]:${clear} Warning - glfw3.dll not found in pkg dir: %s", pkg_dir)
+        --         end
+        --     end
+        -- end
 
         for _, src in ipairs(bin_files) do
             local filename = path.filename(src)

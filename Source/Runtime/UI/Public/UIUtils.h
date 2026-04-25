@@ -20,6 +20,8 @@ DECLARE_LOG_CATEGORY_EXTERN(LogUIUtils, Info);
 #define GET_IM_TEXTURE_ID(tex)                                                                     \
     CImGuiLayer::Get().GetRenderer()->GetTextureIDForRHITexture(tex->GetOrCreateResource())
 
+#define IMGUI_DPI_SCALE (CImGuiLayer::Get().GetWindow()->GetPixelRatio())
+
 namespace ChozoUtils::UI {
 
 #define COLOR_WHITE   0xFFFFFFFF
@@ -468,7 +470,8 @@ inline void DrawButtonImage(TRef<CTexture>& image, ImU32 tintNormal, ImU32 tintH
 };
 
 inline void DrawButtonImageByRatio(TRef<CTexture>& image, FVector2 size) {
-    ImGui::InvisibleButton("##thumbnailButton", ImVec2{ size.x, size.y });
+    auto dpiScale = IMGUI_DPI_SCALE;
+    ImGui::InvisibleButton("##thumbnailButton", ImVec2{ size.x / dpiScale, size.y / dpiScale });
 
     float imageAspectRatio =
         static_cast<float>(image->GetSize().Height) / static_cast<float>(image->GetSize().Width);
@@ -484,8 +487,8 @@ inline void DrawButtonImageByRatio(TRef<CTexture>& image, FVector2 size) {
         uv1.x         = 1.0f - offsetX;
     }
 
-    DrawButtonImage(image, IM_COL32(255, 255, 255, 225), RectExpanded(GetItemRect(), -6.0f, -6.0f),
-                    uv0, uv1);
+    DrawButtonImage(image, IM_COL32(255, 255, 255, 225),
+                    RectExpanded(GetItemRect(), -6.0f / dpiScale, -6.0f / dpiScale), uv0, uv1);
 }
 
 //=========================================================================================

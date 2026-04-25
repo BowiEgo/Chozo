@@ -144,7 +144,7 @@ private:
     bool AllowSorting        = true;
     bool AllowDragUnselected = false;
     bool AllowBoxSelect      = true;
-    float IconSize           = 32.0f;
+    float IconSize           = 180.0f;
     int IconSpacing          = 10;
     int IconHitSpacing  = 4; // Increase hit-spacing if you want to make it possible to clear or
                              // box-select from gaps. Some spacing is required to able to amend with

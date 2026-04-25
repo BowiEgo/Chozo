@@ -7,7 +7,7 @@
 #include "VFS.h"
 
 #include "imgui.h"
-#include "imgui_impl_glfw.h"
+#include "imgui_impl_sdl3.h"
 
 DEFINE_LOG_CATEGORY(LogImGuiLayer);
 
@@ -25,6 +25,9 @@ void CImGuiLayer::Init(CWindow* window, IRHIContext* context) {
     m_Window        = window;
     m_Context       = context;
     m_ImGuiRenderer = CreateRenderer(window, context);
+
+    window->SetEventPreprocessor(
+        [](const SDL_Event& event) -> void { ImGui_ImplSDL3_ProcessEvent(&event); });
 
     OnAttach();
 }

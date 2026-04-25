@@ -4,18 +4,18 @@ target("imgui")
     add_defines("IMGUI_DEFINE_MATH_OPERATORS", {public = true})
     
     add_files("imgui/*.cpp")
-    add_files("imgui/backends/imgui_impl_glfw.cpp")
+    add_files("imgui/backends/imgui_impl_sdl3.cpp")
     add_files("imgui/backends/imgui_impl_vulkan.cpp")
     add_files("imgui/misc/cpp/imgui_stdlib.cpp")
 
     -- Export include paths so other modules can #include "imgui.h"
     add_includedirs("imgui", "imgui/backends", "imgui/misc/cpp", {public = true})
 
-    -- Crucial! Link against your system Vulkan and GLFW
+    -- Crucial! Link against your system Vulkan and SDL3
     -- This resolves the LNK2019 errors once and for all.
     add_deps("VulkanSDK_Interface", {public = true})
 
-    add_packages("glfw", {public = true, config = {shared = true}})
+    add_packages("libsdl3", {public = true, config = {shared = true}})
 
     -- Windows DLL symbol export handling
     if is_plat("windows") then
