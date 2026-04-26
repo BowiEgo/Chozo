@@ -1,4 +1,5 @@
 #include "Overlay.h"
+#include "UIUtils.h"
 
 UOverlay::UOverlay() {}
 
@@ -11,15 +12,15 @@ void UOverlay::Draw(const char* title, bool* bIsOpen,
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     // Get Viewport metrics
-    ImVec2 parentPos = ImGui::GetWindowPos();
+    ImVec2 parentPos  = ImGui::GetWindowPos();
     ImVec2 parentSize = ImGui::GetWindowSize();
     ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
 
-    float edgePad = 10.0f * ImGui::GetIO().FontGlobalScale;
-    float padding = 10.0f;
+    float edgePad = 10.0f * ImGui::GetIO().FontGlobalScale / IMGUI_DPI_SCALE;
+    float padding = 10.0f / IMGUI_DPI_SCALE;
 
     float boxWidth = m_LastSize.x + padding * 2.0f;
-    boxWidth = boxWidth < 360.0f ? 360.0f : boxWidth;
+    boxWidth       = boxWidth < 360.0f / IMGUI_DPI_SCALE ? 360.0f / IMGUI_DPI_SCALE : boxWidth;
     // Calculate Start Position based on the size from THE PREVIOUS FRAME
     // This ensures we can draw the background BEFORE the text in a single pass.
     ImVec2 boxSize = { boxWidth, m_LastSize.y + padding * 2.0f };
