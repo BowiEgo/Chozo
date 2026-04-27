@@ -63,13 +63,6 @@ public:
     void SetPresentMode(const EPresentMode mode) {
         m_GraphicContext->GetSwapchain()->SetPresentMode(mode);
     }
-    void SetPolygonMode(const EPolygonMode mode) {
-        switch (mode) {
-            case EPolygonMode::Fill: m_CurrentPipeline = m_SolidPipeline; break;
-            case EPolygonMode::Line: m_CurrentPipeline = m_WireframePipeline; break;
-            default: break;
-        }
-    }
     void RecreateSwapchain(const FExtent2D& frameBufferSize) {
         m_GraphicContext->GetSwapchain()->Recreate(frameBufferSize);
     }
@@ -95,8 +88,7 @@ private:
 
     std::vector<TScope<CViewport>> m_Viewports;
 
-    TRef<IRHIPipeline> m_CurrentPipeline, m_SolidPipeline, m_WireframePipeline,
-        m_CubemapSamplerPipeline, m_SkyboxPipeline; // TODO: Remove
+    TRef<IRHIPipeline> m_CubemapSamplerPipeline, m_SkyboxPipeline; // TODO: Remove
 
     TRef<CTexture> m_SkyboxTex; // TODO: Remove
     TRef<FCube> m_Cube;

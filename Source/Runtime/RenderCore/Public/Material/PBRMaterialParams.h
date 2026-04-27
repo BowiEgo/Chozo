@@ -8,12 +8,12 @@ struct FPBRMaterialParams : public IMaterialParams {
     float Roughness        = 0.5f;
     float NormalStrength   = 1.0f;
     float EmissiveStrength = 0.0f;
-    FAssetHandle AlbedoMap;
-    FAssetHandle NormalMap;
-    FAssetHandle RMAOMap;
-    bool UseAlbedoMap = false;
-    bool UseNormalMap = false;
-    bool UseRMAOMap   = false;
+    FAssetHandle AlbedoMap = CAssetManager::Get().GetCheckboardTexture()->GetHandle();
+    FAssetHandle NormalMap = CAssetManager::Get().GetCheckboardTexture()->GetHandle();
+    FAssetHandle RMAOMap   = CAssetManager::Get().GetCheckboardTexture()->GetHandle();
+    bool UseAlbedoMap      = false;
+    bool UseNormalMap      = false;
+    bool UseRMAOMap        = false;
 
     FPBRMaterialParams() = default;
 
@@ -95,26 +95,46 @@ struct FPBRMaterialParams : public IMaterialParams {
     }
 
     virtual void Accept(IParamsVisitor& visitor) override {
-        // visitor.Visit(PolygonMode, "PolygonMode");
-        // visitor.Visit(CullMode, "CullMode");
+        uint32_t polygonMode = static_cast<uint32_t>(PolygonMode);
+        visitor.Visit(polygonMode, "PolygonMode");
+        PolygonMode = static_cast<EPolygonMode>(polygonMode);
+
+        uint32_t cullMode = static_cast<uint32_t>(CullMode);
+        visitor.Visit(cullMode, "CullMode");
+        CullMode = static_cast<ECullMode>(cullMode);
+
         visitor.Visit(BaseColor, "BaseColor");
         visitor.Visit(Metallic, "Metallic");
         visitor.Visit(Roughness, "Roughness");
         visitor.Visit(NormalStrength, "Normal Strength");
         visitor.Visit(EmissiveStrength, "Emissive Strength");
+
+        visitor.Visit(AlbedoMap, "AlbedoMap");
+        visitor.Visit(NormalMap, "NormalMap");
+        visitor.Visit(RMAOMap, "RMAOMap");
+
         visitor.Visit(UseAlbedoMap, "Use Albedo Map");
         visitor.Visit(UseNormalMap, "Use Normal Map");
         visitor.Visit(UseRMAOMap, "Use RMAO Map");
     }
 
     virtual void Accept(IConstParamsVisitor& visitor) const override {
-        // visitor.Visit(PolygonMode, "PolygonMode");
-        // visitor.Visit(CullMode, "CullMode");
+        uint32_t polygonMode = static_cast<uint32_t>(PolygonMode);
+        visitor.Visit(polygonMode, "PolygonMode");
+
+        uint32_t cullMode = static_cast<uint32_t>(CullMode);
+        visitor.Visit(cullMode, "CullMode");
+
         visitor.Visit(BaseColor, "BaseColor");
         visitor.Visit(Metallic, "Metallic");
         visitor.Visit(Roughness, "Roughness");
         visitor.Visit(NormalStrength, "Normal Strength");
         visitor.Visit(EmissiveStrength, "Emissive Strength");
+
+        visitor.Visit(AlbedoMap, "AlbedoMap");
+        visitor.Visit(NormalMap, "NormalMap");
+        visitor.Visit(RMAOMap, "RMAOMap");
+
         visitor.Visit(UseAlbedoMap, "Use Albedo Map");
         visitor.Visit(UseNormalMap, "Use Normal Map");
         visitor.Visit(UseRMAOMap, "Use RMAO Map");

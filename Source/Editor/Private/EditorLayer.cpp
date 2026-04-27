@@ -334,13 +334,6 @@ bool EditorLayer::OnKeyPressed(FKeyPressedEvent& e) {
         // case Key::R: m_GizmoType = ImGuizmo::OPERATION::SCALE; break;
         case Key::F: {
             CZ_LOG(LogEditorLayer, Trace, "F Pressed");
-            if (m_PolygonMode == EPolygonMode::Fill) {
-                m_ViewportRenderer->SetPolygonMode(EPolygonMode::Line);
-                m_PolygonMode = EPolygonMode::Line;
-            } else {
-                m_ViewportRenderer->SetPolygonMode(EPolygonMode::Fill);
-                m_PolygonMode = EPolygonMode::Fill;
-            }
         }
         default: break;
     }

@@ -81,27 +81,6 @@ void CRenderer::Init() {
 
     // Pipeline
     {
-        FPipelineSpecification spec;
-        spec.Name               = "Solid";
-        spec.RHIShaders         = cubeShader->GetShaderResources();
-        spec.ColorFormats       = { EPixelFormat::RGBA16F };
-        spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
-                                    { EShaderDataType::Float3, "a_Normal" },
-                                    { EShaderDataType::Float2, "a_TexCoord" },
-                                    { EShaderDataType::Float3, "a_Tangent" },
-                                    { EShaderDataType::Float3, "a_Bitangent" } };
-        spec.PushConstantRanges = { { 0, sizeof(FMatrix4) + sizeof(FMatrix3) } };
-
-        m_SolidPipeline = IRHIAPI::CreatePipeline(spec);
-
-        FPipelineSpecification wireSpec = spec;
-        wireSpec.Name                   = "Wireframe";
-        wireSpec.PolygonMode            = EPolygonMode::Line;
-
-        m_WireframePipeline = IRHIAPI::CreatePipeline(wireSpec);
-    }
-
-    {
 
         FPipelineSpecification spec;
         spec.Name               = "CubemapSampler";
@@ -133,8 +112,6 @@ void CRenderer::Init() {
 
         m_SkyboxPipeline = IRHIAPI::CreatePipeline(spec);
     }
-
-    SetPolygonMode(EPolygonMode::Fill);
 
     m_Cube = CreateRef<FCube>();
     m_Cube->Upload();
@@ -340,9 +317,6 @@ void CRenderer::Shutdown() {
 
     m_Viewports.clear();
 
-    m_SolidPipeline.Reset();
-    m_WireframePipeline.Reset();
-    m_CurrentPipeline.Reset();
     m_CubemapSamplerPipeline.Reset();
     m_SkyboxPipeline.Reset();
 

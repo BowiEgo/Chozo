@@ -134,6 +134,8 @@ void CMaterial::Bind(IRHICommandList* cmdList) {
     if (m_bIsDirty) CreateDescriptorSet();
 
     cmdList->BindPipeline(GetPipeline());
+    cmdList->SetPolygonMode(m_Params.Get()->PolygonMode);
+    // cmdList->SetCullMode(m_Params.Get()->CullMode);
 
     if (m_DescriptorSet) {
         cmdList->BindDescriptorSets(1, m_DescriptorSet);

@@ -1,6 +1,6 @@
 #include "PropertiesPanel.h"
 
-#include "Controls.h"
+#include "PropControllers.h"
 
 void PropertiesPanel::Draw(const char* title) {
     if (!m_bOpen) return;
@@ -43,9 +43,9 @@ void PropertiesPanel::DrawComponentHeader(const std::string& name, bool bDefault
     }
 
     if (open) {
-        ImGui::Indent();
+        // ImGui::Indent();
         drawContentFunc();
-        ImGui::Unindent();
+        // ImGui::Unindent();
         ImGui::TreePop();
     }
 }
@@ -58,7 +58,7 @@ bool PropertiesPanel::DrawColumnProperties(const std::string& name, IParams* par
         ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 100.0f);
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-        ChozoEditor::Controls::TableParamsVisitor visitor;
+        EditorParamsVisitor visitor;
         params->Accept(visitor);
 
         if (visitor.IsValueChanged()) {

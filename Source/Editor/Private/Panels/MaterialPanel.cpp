@@ -1,6 +1,6 @@
 #include "MaterialPanel.h"
 
-#include "Controls.h"
+#include "PropControllers.h"
 
 DEFINE_LOG_CATEGORY(LogMaterialPanel);
 
@@ -24,13 +24,43 @@ void MaterialPanel::Draw(const char* title) {
 
 bool MaterialPanel::DrawColumnProperties(const std::string& name, IParams* params) {
     bool valChanged = false;
+    ImGui::Indent();
+
     if (constexpr ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
         ImGui::BeginTable("table", 2, flags)) {
 
         ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 100.0f);
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-        ChozoEditor::Controls::TableParamsVisitor visitor;
+        EditorParamsVisitor visitor;
+
+        {
+            FParamControllerConfig config{ EPropControllerType::Combo };
+            config.Items        = FPolygonModeStrings;
+            config.bNotifyDirty = false;
+            visitor.SetControllerConfig("PolygonMode", config);
+        }
+
+        {
+            FParamControllerConfig config{ EPropControllerType::Combo };
+            config.Items        = FCullModeStrings;
+            config.bNotifyDirty = false;
+            visitor.SetControllerConfig("CullMode", config);
+        }
+
+        {
+            FParamControllerConfig config{ EPropControllerType::ColorPicker };
+            visitor.SetControllerConfig("BaseColor", config);
+        }
+
+        {
+            FParamControllerConfig config{ EPropControllerType::Slider };
+            visitor.SetControllerConfig("Metallic", config);
+            visitor.SetControllerConfig("Roughness", config);
+            visitor.SetControllerConfig("Normal Strength", config);
+            visitor.SetControllerConfig("Emissive Strength", config);
+        }
+
         params->Accept(visitor);
 
         if (visitor.IsValueChanged()) {
@@ -39,6 +69,8 @@ bool MaterialPanel::DrawColumnProperties(const std::string& name, IParams* param
 
         ImGui::EndTable();
     }
+
+    ImGui::Unindent();
 
     return valChanged;
 }

@@ -475,12 +475,32 @@ enum class EPixelFormat {
 };
 // clang-format on
 
-enum class ECullMode : uint8_t {
-    None         = 0,
-    Front        = 1,
-    Back         = 2,
-    FrontAndBack = 3,
-};
+#define POLYGON_MODE_LIST                                                                          \
+    X(Fill)                                                                                        \
+    X(Line)
+// X(Point) // Metal does not support setting VK_POLYGON_MODE_POINT dynamically
+
+#define X(name) name,
+enum class EPolygonMode { POLYGON_MODE_LIST };
+#undef X
+
+#define X(name) #name,
+static const std::vector<std::string> FPolygonModeStrings = { POLYGON_MODE_LIST };
+#undef X
+
+#define CULL_MODE_LIST                                                                             \
+    X(None)                                                                                        \
+    X(Front)                                                                                       \
+    X(Back)                                                                                        \
+    X(FrontAndBack)
+
+#define X(name) name,
+enum class ECullMode { CULL_MODE_LIST };
+#undef X
+
+#define X(name) #name,
+static const std::vector<std::string> FCullModeStrings = { CULL_MODE_LIST };
+#undef X
 
 enum class ECompareOp : uint8_t {
     Never          = 0,
@@ -576,8 +596,6 @@ enum class EPresentMode {
 
     Unkown
 };
-
-enum class EPolygonMode { Fill, Line, Point };
 
 /**
  * ECommandPoolFlags - Maps to underlying API flags (e.g., VkCommandPoolCreateFlagBits).

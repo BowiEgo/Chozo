@@ -53,8 +53,6 @@ private:
 
     CEditorCamera m_EditorCamera;
 
-    EPolygonMode m_PolygonMode = EPolygonMode::Fill;
-
     TScope<FScene> m_Scene;
     CEditorNodeTree m_NodeTree;
     TScope<FSyncLayer> m_SyncLayer;

@@ -16,12 +16,10 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-DECLARE_LOG_CATEGORY_EXTERN(LogPropertyControls, Info);
+DECLARE_LOG_CATEGORY_EXTERN(LogPropertyControllers, Info);
 
 //=========================================================================================
-// Property Controls
-namespace ChozoEditor::Controls {
-
+// Property PropControllers
 template <size_t I>
 static void DrawAxis(const char* label, float* value, const ImVec2& buttonSize, ImFont* boldFont,
                      float valueSpeed, float resetValue, bool& valueChanged) {
@@ -82,19 +80,21 @@ static bool DrawVec3Control(const std::string& label, FVector3& values,
     return valueChanged;
 }
 
-static bool DrawTextureControl(TRef<CTexture> texture) {
+static bool DrawTextureControl(const std::string& id, TRef<CTexture> texture) {
+    ChozoUtils::UI::ScopedID scopedID(id.c_str());
+
     ChozoUtils::UI::DrawButtonImageByRatio(texture, { 120.0f, 120.0f });
 
     ImGui::SameLine();
     ImGui::BeginGroup();
 
-    static ImGuiComboFlags flags = 0;
-    const char* items[]          = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE",    "FFFF", "GGGG",
-                                     "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO" };
-    static int item_selected_idx = 0;
+    ImGuiComboFlags flags = 0;
+    const char* items[]   = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE",    "FFFF", "GGGG",
+                              "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO" };
+    int item_selected_idx = 0;
     const char* combo_preview_value = items[item_selected_idx];
-    if (ImGui::BeginCombo("combo 2 (w/ filter)", combo_preview_value, flags)) {
-        static ImGuiTextFilter filter;
+    if (ImGui::BeginCombo("##Combo", combo_preview_value, flags)) {
+        ImGuiTextFilter filter;
         if (ImGui::IsWindowAppearing()) {
             ImGui::SetKeyboardFocusHere();
             filter.Clear();
@@ -123,7 +123,9 @@ static bool DrawTextureControl(TRef<CTexture> texture) {
     return false;
 }
 
-static bool DrawMaterialControl(const TRef<CMaterial>& mat) {
+static bool DrawMaterialControl(const std::string& id, const TRef<CMaterial>& mat) {
+    ChozoUtils::UI::ScopedID scopedID(id.c_str());
+
     auto texture = CAssetManager::Get().GetCheckboardTexture();
     ChozoUtils::UI::DrawButtonImageByRatio(texture, { 120.0f, 120.0f });
 
@@ -135,7 +137,7 @@ static bool DrawMaterialControl(const TRef<CMaterial>& mat) {
                                      "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO" };
     static int item_selected_idx = 0;
     const char* combo_preview_value = items[item_selected_idx];
-    if (ImGui::BeginCombo("combo 2 (w/ filter)", combo_preview_value, flags)) {
+    if (ImGui::BeginCombo("##Combo", combo_preview_value, flags)) {
         static ImGuiTextFilter filter;
         if (ImGui::IsWindowAppearing()) {
             ImGui::SetKeyboardFocusHere();
@@ -168,8 +170,8 @@ static bool DrawMaterialControl(const TRef<CMaterial>& mat) {
 }
 
 template <typename T>
-bool DrawControl(T& value, const std::string& name, float speed = 0.01f, float min = 0.0f,
-                 float max = 0.0f) {
+bool DrawController(T& value, const std::string& name, float speed = 0.01f, float min = 0.0f,
+                    float max = 0.0f) {
     const std::string id = "##" + name;
 
     if constexpr (std::is_same_v<T, float>) {
@@ -265,10 +267,10 @@ bool DrawControl(T& value, const std::string& name, float speed = 0.01f, float m
         TRef<IAsset> asset = CAssetManager::Get().GetAsset(value);
         if (asset) {
             if (asset->GetType() == EAssetType::Texture) {
-                return DrawTextureControl(asset.As<CTexture>());
+                return DrawTextureControl(id, asset.As<CTexture>());
             }
             if (asset->GetType() == EAssetType::Material) {
-                return DrawMaterialControl(asset);
+                return DrawMaterialControl(id, asset);
             }
         }
         // if (asset) {
@@ -285,15 +287,15 @@ bool DrawControl(T& value, const std::string& name, float speed = 0.01f, float m
 
         return false;
     } else {
-        static_assert(sizeof(T) == 0, "Unsupported type for DrawControl");
+        static_assert(sizeof(T) == 0, "Unsupported type for DrawController");
         return false;
     }
 }
 
 template <typename T>
-bool DrawControlWithRange(T& value, const std::string& name, float speed = 0.01f, float min = 0.0f,
-                          float max = 0.0f) {
-    return DrawControl(value, name, speed, min, max);
+bool DrawControllerWithRange(T& value, const std::string& name, float speed = 0.01f,
+                             float min = 0.0f, float max = 0.0f) {
+    return DrawController(value, name, speed, min, max);
 }
 
 template <typename T> bool DrawSlider(T& value, const std::string& name, float min, float max) {
@@ -314,7 +316,7 @@ template <typename T> bool DrawSlider(T& value, const std::string& name, float m
         return false;
     }
 
-    return DrawControl(value, name);
+    return DrawController(value, name);
 }
 
 template <typename T> bool DrawColor(T& value, const std::string& name) {
@@ -330,68 +332,145 @@ template <typename T> bool DrawColor(T& value, const std::string& name) {
         return ImGui::ColorEdit4(id.c_str(), &value.x);
     }
 
-    return DrawControl(value, name);
+    return DrawController(value, name);
 }
 
-class TableParamsVisitor : public IParamsVisitor {
+enum class EPropControllerType {
+    Default,
+    Drag,
+    Slider,
+    ColorPicker,
+    Combo,
+    Radio,
+};
+
+struct FParamControllerConfig {
+    EPropControllerType Type = EPropControllerType::Default;
+    float Min                = 0.0f;
+    float Max                = 1.0f;
+    float Speed              = 0.01f;
+    std::vector<std::string> Items; // Use for Combo
+    bool bNotifyDirty = true;
+
+    FParamControllerConfig() = default;
+    FParamControllerConfig(EPropControllerType type, float min = 0.0f, float max = 1.0f,
+                           float speed = 0.01f, std::vector<std::string> items = {})
+        : Type(type), Min(min), Max(max), Speed(speed), Items(items) {}
+};
+
+class EditorParamsVisitor : public IParamsVisitor {
 public:
-    TableParamsVisitor() = default;
+    EditorParamsVisitor() = default;
 
     void SetReadOnly(bool readOnly) { m_ReadOnly = readOnly; }
     bool IsReadOnly() const { return m_ReadOnly; }
     bool IsValueChanged() const { return m_bValueChanged; }
     void ResetChangedFlag() { m_bValueChanged = false; }
 
+    void SetControllerConfig(const std::string& name, const FParamControllerConfig& config) {
+        m_Configs[name] = config;
+    }
+
     virtual void Visit(float& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name, 0.01f); });
+        auto it = m_Configs.find(name);
+        if (it != m_Configs.end()) {
+            const auto& cfg = it->second;
+            switch (cfg.Type) {
+                case EPropControllerType::Slider:
+                    AddTableRow(name, [&]() {
+                        return ImGui::SliderFloat(("##" + name).c_str(), &value, cfg.Min, cfg.Max);
+                    });
+                    return;
+                case EPropControllerType::Drag:
+                    AddTableRow(name, [&]() {
+                        return ImGui::DragFloat(("##" + name).c_str(), &value, cfg.Speed, cfg.Min,
+                                                cfg.Max);
+                    });
+                    return;
+                default: break;
+            }
+        }
+        AddTableRow(name, [&]() { return DrawController(value, name, 0.01f); });
     }
 
     virtual void Visit(double& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name, 0.01f); });
+        AddTableRow(name, [&]() { return DrawController(value, name, 0.01f); });
     }
 
     virtual void Visit(int32_t& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name, 1.0f); });
+        AddTableRow(name, [&]() { return DrawController(value, name, 1.0f); });
     }
 
     virtual void Visit(uint32_t& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name, 1.0f, 0.0f, 1000.0f); });
+        auto it = m_Configs.find(name);
+        if (it != m_Configs.end()) {
+            const auto& cfg = it->second;
+
+            switch (cfg.Type) {
+                case EPropControllerType::Combo: {
+                    int current = static_cast<int>(value);
+                    AddTableRow(name, [&]() {
+                        if (ImGui::Combo(("##" + name).c_str(), &current,
+                                         [](void* data, int idx) {
+                                             return (*static_cast<const std::vector<std::string>*>(
+                                                 data))[idx]
+                                                 .c_str();
+                                         },
+                                         (void*)&cfg.Items, (int)cfg.Items.size())) {
+                            value = current;
+                            return cfg.bNotifyDirty;
+                        }
+                        return false;
+                    });
+                    return;
+                }
+
+                default: break;
+            }
+            return;
+        }
+        AddTableRow(name, [&]() { return DrawController(value, name, 1.0f, 0.0f, 1000.0f); });
     }
 
     virtual void Visit(int64_t& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name, 1.0f); });
+        AddTableRow(name, [&]() { return DrawController(value, name, 1.0f); });
     }
 
     virtual void Visit(uint64_t& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name, 1.0f, 0.0f, 1000.0f); });
+        AddTableRow(name, [&]() { return DrawController(value, name, 1.0f, 0.0f, 1000.0f); });
     }
 
     virtual void Visit(bool& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name); });
+        AddTableRow(name, [&]() { return DrawController(value, name); });
     }
 
     virtual void Visit(std::string& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name); });
+        AddTableRow(name, [&]() { return DrawController(value, name); });
     }
 
     virtual void Visit(FVector2& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name, 0.01f); });
+        AddTableRow(name, [&]() { return DrawController(value, name, 0.01f); });
     }
 
     virtual void Visit(FVector3& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name, 0.01f); });
+        AddTableRow(name, [&]() { return DrawController(value, name, 0.01f); });
     }
 
     virtual void Visit(FVector4& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name, 0.01f); });
+        auto it = m_Configs.find(name);
+        if (it != m_Configs.end() && it->second.Type == EPropControllerType::ColorPicker) {
+            AddTableRow(name, [&]() { return ImGui::ColorEdit4(("##" + name).c_str(), &value.x); });
+            return;
+        }
+        AddTableRow(name, [&]() { return DrawController(value, name, 0.01f); });
     }
 
     virtual void Visit(FQuaternion& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name, 1.0f); });
+        AddTableRow(name, [&]() { return DrawController(value, name, 1.0f); });
     }
 
     virtual void Visit(FAssetHandle& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawControl(value, name); });
+        AddTableRow(name, [&]() { return DrawController(value, name); });
     }
 
 private:
@@ -414,6 +493,5 @@ private:
 
     bool m_ReadOnly      = false;
     bool m_bValueChanged = false;
+    std::unordered_map<std::string, FParamControllerConfig> m_Configs;
 };
-
-} // namespace ChozoEditor::Controls

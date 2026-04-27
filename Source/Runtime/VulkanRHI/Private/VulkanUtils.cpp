@@ -511,7 +511,8 @@ vk::PolygonMode GetVulkanPolygonMode(EPolygonMode mode) {
     switch (mode) {
         case EPolygonMode::Fill: return vk::PolygonMode::eFill;
         case EPolygonMode::Line: return vk::PolygonMode::eLine;
-        case EPolygonMode::Point: return vk::PolygonMode::ePoint;
+        // case EPolygonMode::Point: return vk::PolygonMode::ePoint; // Metal does not support
+        // setting VK_POLYGON_MODE_POINT dynamically
         default: return vk::PolygonMode::eFill;
     }
 }
