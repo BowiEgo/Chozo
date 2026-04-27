@@ -6,7 +6,7 @@
 struct FHDRIBackdropParams : public IParams {
     FAssetHandle Cubemap;
     float Intensity = 1.0f;
-    float Lod = 0.0f;
+    float Lod       = 0.0f;
 
     FHDRIBackdropParams() = default;
 
@@ -17,9 +17,9 @@ struct FHDRIBackdropParams : public IParams {
 
     FHDRIBackdropParams& operator=(const FHDRIBackdropParams& other) {
         if (this != &other) {
-            Cubemap = other.Cubemap;
+            Cubemap   = other.Cubemap;
             Intensity = other.Intensity;
-            Lod = other.Lod;
+            Lod       = other.Lod;
         }
         return *this;
     }
@@ -49,6 +49,12 @@ struct FHDRIBackdropParams : public IParams {
     virtual std::string GetPropertyName(size_t index) const override {
         static const std::string names[] = { "Cubemap", "Intensity", "Lod" };
         return index < GetPropertyCount() ? names[index] : "";
+    }
+    virtual std::any GetProperty(const std::string& name) const override {
+        if (name == "Cubemap") return Cubemap;
+        if (name == "Intensity") return Intensity;
+        if (name == "Lod") return Lod;
+        return {};
     }
 
     virtual void Accept(IParamsVisitor& visitor) override {

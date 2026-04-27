@@ -107,7 +107,7 @@ void PropertiesPanel::DrawMeshProperties(FEditorNode* node) {
     if (!node->HasMesh()) return;
 
     DrawComponentHeader("Mesh", true, [this, node]() {
-        auto params = node->GetMeshParams()->Get();
+        auto params = node->GetMeshProps()->Get();
         if (DrawColumnProperties("Mesh", params)) {
             node->MarkDirty();
         }

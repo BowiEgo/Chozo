@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Asset.h"
 #include "MathUtils.h"
-#include "Params.h"
+#include "MeshParams.h"
 
-struct FSphereParams : public IParams {
+struct FSphereParams : public IMeshParams {
     float Radius            = 0.5f;
     uint32_t WidthSegments  = 32;
     uint32_t HeightSegments = 16;
@@ -12,8 +11,6 @@ struct FSphereParams : public IParams {
     float PhiLength         = ChozoUtils::Math::PI * 2;
     float ThetaStart        = 0.0f;
     float ThetaLength       = ChozoUtils::Math::PI;
-
-    FAssetHandle Material;
 
     FSphereParams() = default;
 
@@ -25,7 +22,7 @@ struct FSphereParams : public IParams {
           ThetaLength(thetaLength) {}
 
     FSphereParams(const FSphereParams& other)
-        : Radius(other.Radius), WidthSegments(other.WidthSegments),
+        : IMeshParams(other), Radius(other.Radius), WidthSegments(other.WidthSegments),
           HeightSegments(other.HeightSegments), PhiStart(other.PhiStart),
           PhiLength(other.PhiLength), ThetaStart(other.ThetaStart), ThetaLength(other.ThetaLength) {
     }
@@ -61,9 +58,21 @@ struct FSphereParams : public IParams {
 
     virtual size_t GetPropertyCount() const override { return 8; }
     virtual std::string GetPropertyName(size_t index) const override {
-        static const std::string names[] = { "Radius",    "Segments",   "Rings",       "PhiStart",
-                                             "PhiLength", "ThetaStart", "ThetaLength", "Material" };
+        static const std::string names[] = { "Radius",      "WidthSegments", "HeightSegments",
+                                             "PhiStart",    "PhiLength",     "ThetaStart",
+                                             "ThetaLength", "Material" };
         return index < GetPropertyCount() ? names[index] : "";
+    }
+    virtual std::any GetProperty(const std::string& name) const override {
+        if (name == "Radius") return Radius;
+        if (name == "WidthSegments") return WidthSegments;
+        if (name == "HeightSegments") return HeightSegments;
+        if (name == "PhiStart") return PhiStart;
+        if (name == "PhiLength") return PhiLength;
+        if (name == "ThetaStart") return ThetaStart;
+        if (name == "ThetaLength") return ThetaLength;
+        if (name == "Material") return Material;
+        return {};
     }
 
     virtual void Accept(IParamsVisitor& visitor) override {

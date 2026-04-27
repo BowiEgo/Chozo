@@ -3,6 +3,8 @@
 #include "Material.h"
 #include "Panel.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogMaterialPanel, Info);
+
 class MaterialPanel : public Panel {
 public:
     MaterialPanel() {}

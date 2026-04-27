@@ -27,6 +27,26 @@ struct FSamplerSpecification {
         return spec;
     }
 
+    static FSamplerSpecification LinearClampToBorder() {
+        FSamplerSpecification spec;
+        spec.AddressModeU = EAddressMode::ClampToBorder;
+        spec.AddressModeV = EAddressMode::ClampToBorder;
+        spec.AddressModeW = EAddressMode::ClampToBorder;
+        spec.MagFilter    = EFilter::Linear;
+        spec.MinFilter    = EFilter::Linear;
+        return spec;
+    }
+
+    static FSamplerSpecification Repeat() {
+        FSamplerSpecification spec;
+        spec.AddressModeU = EAddressMode::Repeat;
+        spec.AddressModeV = EAddressMode::Repeat;
+        spec.AddressModeW = EAddressMode::Repeat;
+        spec.MagFilter    = EFilter::Linear;
+        spec.MinFilter    = EFilter::Linear;
+        return spec;
+    }
+
     static FSamplerSpecification PointClamp() {
         FSamplerSpecification spec;
         spec.MinFilter    = EFilter::Nearest;
@@ -34,6 +54,16 @@ struct FSamplerSpecification {
         spec.AddressModeU = EAddressMode::ClampToEdge;
         spec.AddressModeV = EAddressMode::ClampToEdge;
         spec.AddressModeW = EAddressMode::ClampToEdge;
+        return spec;
+    }
+
+    static FSamplerSpecification PointClampToBorder() {
+        FSamplerSpecification spec;
+        spec.MinFilter    = EFilter::Nearest;
+        spec.MagFilter    = EFilter::Nearest;
+        spec.AddressModeU = EAddressMode::ClampToBorder;
+        spec.AddressModeV = EAddressMode::ClampToBorder;
+        spec.AddressModeW = EAddressMode::ClampToBorder;
         return spec;
     }
 

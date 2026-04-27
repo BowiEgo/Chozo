@@ -40,7 +40,7 @@ void FSyncLayer::RegisterNode(FEditorNode* node) {
     }
 
     // Register mapping
-    m_NodeToEntity[node] = entity;
+    m_NodeToEntity[node]   = entity;
     m_EntityToNode[entity] = node;
 
     // Mark as dirty
@@ -253,7 +253,7 @@ void FSyncLayer::SyncComponents(FEditorNode* node, FEntity entity) {
 
     // Handle Mesh Component - store only parameters
     if (node->HasMesh()) {
-        SyncMeshComponent(entity, node->GetMeshParams());
+        SyncMeshComponent(entity, node->GetMeshProps());
     } else if (m_Scene->HasComponent<FMeshComponent>(entity)) {
         m_Scene->RemoveComponent<FMeshComponent>(entity);
     }
@@ -264,8 +264,8 @@ void FSyncLayer::SyncTransformComponent(FEntity entity, const FTransformParams* 
     m_Scene->SetTransform(entity, *transformParams);
 }
 
-void FSyncLayer::SyncMeshComponent(FEntity entity, const FMeshParams* meshParams) {
-    m_Scene->SetMesh(entity, *meshParams);
+void FSyncLayer::SyncMeshComponent(FEntity entity, const FMeshProps* props) {
+    m_Scene->SetMesh(entity, *props);
 }
 
 void FSyncLayer::SyncRelationshipComponent(FEntity entity, FEntity parent) {
@@ -278,7 +278,7 @@ bool FSyncLayer::ValidateMapping(FEditorNode* node) const {
     if (it == m_NodeToEntity.end()) return false;
 
     FEntity entity = it->second;
-    auto revIt = m_EntityToNode.find(entity);
+    auto revIt     = m_EntityToNode.find(entity);
     return revIt != m_EntityToNode.end() && revIt->second == node;
 }
 
@@ -287,6 +287,6 @@ bool FSyncLayer::ValidateMapping(FEntity entity) const {
     if (it == m_EntityToNode.end()) return false;
 
     FEditorNode* node = it->second;
-    auto revIt = m_NodeToEntity.find(node);
+    auto revIt        = m_NodeToEntity.find(node);
     return revIt != m_NodeToEntity.end() && revIt->second == entity;
 }

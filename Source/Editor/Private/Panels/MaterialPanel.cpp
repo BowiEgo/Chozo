@@ -2,6 +2,8 @@
 
 #include "Controls.h"
 
+DEFINE_LOG_CATEGORY(LogMaterialPanel);
+
 void MaterialPanel::Draw(const char* title) {
     if (!m_bOpen) return;
 
@@ -13,6 +15,7 @@ void MaterialPanel::Draw(const char* title) {
     if (m_Material) {
         IParams* params = m_Material->GetParams().Get();
         if (DrawColumnProperties("Props", params)) {
+            m_Material->MarkDirty();
         }
     }
 

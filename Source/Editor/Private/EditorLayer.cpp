@@ -94,9 +94,10 @@ void EditorLayer::OnAttach() {
         auto newNode   = m_NodeTree.CreateNode("Sphere", nodeBit |= sphereBit, nullptr);
         m_NodeTree.SelectNode(newNode);
 
-        TRef<CMaterial> pbrMaterial = CAssetManager::Get().GetOrLoadMaterial({ "PBRMaterial" });
-        static_cast<FSphereParams*>(newNode->GetMeshParams()->Get())->Material =
-            pbrMaterial->GetHandle();
+        auto pbrMat = m_ViewportRenderer->GetPBRMaterial();
+        static_cast<FSphereParams*>(newNode->GetMeshProps()->Get())->Material = pbrMat->GetHandle();
+
+        auto meshProps = newNode->GetMeshProps();
     }
 
     {

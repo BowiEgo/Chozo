@@ -1,9 +1,9 @@
 #pragma once
 
+#include "MeshParams.h"
 #include "MeshTypes.h"
-#include "Params.h"
 
-struct FCubeParams : public IParams {
+struct FCubeParams : public IMeshParams {
     float Width             = 1.0f;
     float Height            = 1.0f;
     float Depth             = 1.0f;
@@ -19,7 +19,7 @@ struct FCubeParams : public IParams {
           HeightSegments(heightSegments), DepthSegments(depthSegments) {}
 
     FCubeParams(const FCubeParams& other)
-        : Width(other.Width), Height(other.Height), Depth(other.Depth),
+        : IMeshParams(other), Width(other.Width), Height(other.Height), Depth(other.Depth),
           WidthSegments(other.WidthSegments), HeightSegments(other.HeightSegments),
           DepthSegments(other.DepthSegments) {}
 
@@ -54,6 +54,15 @@ struct FCubeParams : public IParams {
         static const std::string names[] = { "Width",         "Height",         "Depth",
                                              "WidthSegments", "HeightSegments", "DepthSegments" };
         return index < GetPropertyCount() ? names[index] : "";
+    }
+    virtual std::any GetProperty(const std::string& name) const override {
+        if (name == "Width") return Width;
+        if (name == "Height") return Height;
+        if (name == "Depth") return Depth;
+        if (name == "WidthSegments") return WidthSegments;
+        if (name == "HeightSegments") return HeightSegments;
+        if (name == "DepthSegments") return DepthSegments;
+        return {};
     }
 
     virtual void Accept(IParamsVisitor& visitor) override {

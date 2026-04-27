@@ -1,33 +1,51 @@
 #pragma once
 
 #include "Asset.h"
-#include "MaterialParams.h"
+#include "MaterialProps.h"
 #include "Params.h"
 #include "RHIContext.h"
 #include "RHIShader.h"
 #include "Ref.h"
 #include "RenderCoreExport.h"
+#include "Shader.h"
 #include "Texture.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMaterial, Info);
 
 struct FMaterialSpecification {
     std::string Name;
+    TRef<CShader> Shader;
+    std::vector<EPixelFormat> ColorFormats;
+    EPixelFormat DepthFormat = EPixelFormat::D32_SFLOAT;
 };
 
 class RENDER_CORE_API CMaterial : public IAsset {
 public:
-    CMaterial(const FMaterialSpecification& spec, const FMaterialParams& params)
+    CMaterial(const FMaterialSpecification& spec, const FMaterialProps& params)
         : m_Spec(spec), m_Params(params) {};
     virtual ~CMaterial() = default;
 
     virtual const std::string GetName() const override { return m_Spec.Name; }
     virtual const EAssetType GetType() const override { return EAssetType::Material; }
 
-    FMaterialParams& GetParams() { return m_Params; }
-    const FMaterialParams& GetParams() const { return m_Params; }
+    const FMaterialSpecification GetSpec() const { return m_Spec; }
+    TRef<CShader> GetShader() const { return m_Spec.Shader; }
 
-protected:
-    const FMaterialSpecification m_Spec;
-    FMaterialParams m_Params;
+    FMaterialProps& GetParams() { return m_Params; }
+    const FMaterialProps& GetParams() const { return m_Params; }
+    const TRef<IRHIPipeline> GetPipeline();
+
+    void MarkDirty() { m_bIsDirty = true; }
+    void CreateDescriptorSet();
+    void Bind(IRHICommandList* cmdList);
+
+private:
+    FMaterialSpecification m_Spec;
+    FMaterialProps m_Params;
+
+    TRef<IRHIPipeline> m_Pipeline;
+    TRef<IRHIBuffer> m_UniformBuffer;
+
+    bool m_bIsDirty = true;
+    TRef<IRHIDescriptorSet> m_DescriptorSet;
 };

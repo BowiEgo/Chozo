@@ -43,10 +43,11 @@ TRef<CTexture> CAssetManager::GetOrLoadTexture(const std::string& virtualPath) {
     bool isHDR      = (ext == ".hdr" || ext == ".HDR");
 
     FTextureSpecification spec;
-    spec.Name   = "Texture";
-    spec.Size   = { w, h };
-    spec.Format = ChozoUtils::FileSystem::PixelFormatFromDesc(desc);
-    spec.Usage  = ETextureUsage::Texture;
+    spec.Name        = "Texture";
+    spec.Size        = { w, h };
+    spec.Format      = ChozoUtils::FileSystem::PixelFormatFromDesc(desc);
+    spec.Usage       = ETextureUsage::Texture;
+    spec.SamplerSpec = FSamplerSpecification::Repeat();
     if (isHDR) {
         // spec.Type = ETextureType::TextureCube;
     } else {
@@ -102,8 +103,8 @@ TRef<CMaterial> CAssetManager::GetOrLoadMaterial(const FMaterialSpecification& s
     // }
 
     TRef<CMaterial> pbrMaterial = CreateRef<CMaterial>(
-        spec, FMaterialParams{ FPBRMaterialParams{
-                  { 1.0f, 0.0f, 0.0f }, 0.5f, 0.5f, 1.0f, 1.0f, false, false, false } });
+        spec, FMaterialProps{ FPBRMaterialParams{
+                  { 1.0f, 0.0f, 0.0f, 1.0f }, 0.5f, 0.5f, 1.0f, 1.0f, false, false, false } });
 
     FAssetHandle handle = FAssetHandle::Generate();
     pbrMaterial->SetHandle(handle);

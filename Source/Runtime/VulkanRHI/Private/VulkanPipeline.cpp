@@ -26,18 +26,6 @@ void CVulkanPipeline::Init() {
 
     const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
 
-    FRHIPipelineLayoutDescription pipelineLayoutDesc =
-        ChozoUtils::RHI::GeneratePipelineLayoutDesc(m_Spec.RHIShaders);
-
-    auto rhiLayouts = device->CreateDescriptorSetLayout(pipelineLayoutDesc);
-
-    m_DescriptorSetLayouts.clear();
-    m_DescriptorSetLayouts.reserve(rhiLayouts.size());
-
-    for (const auto& rhiLayout : rhiLayouts) {
-        m_DescriptorSetLayouts.push_back(rhiLayout);
-    }
-
     // ===== Push Constant Range =====
     std::vector<vk::PushConstantRange> pushConstantRanges;
     if (m_Spec.PushConstantRanges.size() > 0) {
@@ -47,6 +35,28 @@ void CVulkanPipeline::Init() {
         );
         pushConstantRanges.push_back(vertPushRange);
     }
+
+    // ===== Pipeline Layout =====
+#if 1
+    FRHIPipelineLayoutDescription pipelineLayoutDesc =
+        ChozoUtils::RHI::GeneratePipelineLayoutDesc(m_Spec.RHIShaders);
+
+    m_DescriptorSetLayouts = device->CreateDescriptorSetLayout(pipelineLayoutDesc);
+#else
+    m_DescriptorSetLayouts.clear();
+    m_DescriptorSetLayouts.reserve(m_Spec.RHISeyLayouts.size());
+
+    for (const auto& [_, setLayout] : m_Spec.RHISeyLayouts) {
+        m_DescriptorSetLayouts.push_back(setLayout);
+    }
+#endif
+    std::vector<vk::DescriptorSetLayout> vkSetLayouts;
+    for (const auto& layout : m_DescriptorSetLayouts) {
+        vkSetLayouts.push_back(layout.As<CVulkanSetLayout>()->GetVKHandle());
+    }
+
+    vk::PipelineLayoutCreateInfo pipelineLayoutInfo({}, vkSetLayouts, pushConstantRanges);
+    m_PipelineLayout = vk::raii::PipelineLayout(raiiDevice, pipelineLayoutInfo);
 
     // ===== Shader Stages =====
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
@@ -60,14 +70,6 @@ void CVulkanPipeline::Init() {
                                  vulkanShader->GetModule(),
                                  RHIShader->GetEntryPoint().c_str() });
     }
-
-    // ===== Pipeline Layout =====
-    std::vector<vk::DescriptorSetLayout> vkSetLayouts;
-    for (const auto& layout : m_DescriptorSetLayouts) {
-        vkSetLayouts.push_back(layout.As<CVulkanSetLayout>()->GetVKHandle());
-    }
-    vk::PipelineLayoutCreateInfo pipelineLayoutInfo({}, vkSetLayouts, pushConstantRanges);
-    m_PipelineLayout = vk::raii::PipelineLayout(raiiDevice, pipelineLayoutInfo);
 
     // ===== Vertex Input =====
     std::vector<vk::VertexInputBindingDescription> bindingDescs;

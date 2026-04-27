@@ -54,6 +54,9 @@ void CRenderer::Init() {
                                                { EShaderStage::Vertex, EShaderStage::Fragment },
                                                "main" });
 
+    TRef<CShader> pbrShader = CAssetManager::Get().GetOrLoadShader(
+        { "PBR", "shaders://PBR.glsl", { EShaderStage::Vertex, EShaderStage::Fragment }, "main" });
+
     TRef<CShader> cubemapSamplerShader =
         CAssetManager::Get().GetOrLoadShader({ "CubemapSampler",
                                                "shaders://CubemapSampler.glsl",
@@ -68,17 +71,25 @@ void CRenderer::Init() {
     // Texture
     m_SkyboxTex = CAssetManager::Get().GetOrLoadTexture("textures://HDRI/newport_loft.hdr");
 
+    // Material
+    // m_SolidMat =
+    //     CAssetManager::Get().GetOrLoadMaterial({ "Solid", cubeShader, { EPixelFormat::RGBA16F }
+    //     });
+
+    m_PBRMat =
+        CAssetManager::Get().GetOrLoadMaterial({ "PBR", pbrShader, { EPixelFormat::RGBA16F } });
+
     // Pipeline
     {
         FPipelineSpecification spec;
         spec.Name               = "Solid";
         spec.RHIShaders         = cubeShader->GetShaderResources();
         spec.ColorFormats       = { EPixelFormat::RGBA16F };
-        spec.VertexLayout       = { { EShaderDataFormat::Float3, "a_Position" },
-                                    { EShaderDataFormat::Float3, "a_Normal" },
-                                    { EShaderDataFormat::Float2, "a_TexCoord" },
-                                    { EShaderDataFormat::Float3, "a_Tangent" },
-                                    { EShaderDataFormat::Float3, "a_Bitangent" } };
+        spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
+                                    { EShaderDataType::Float3, "a_Normal" },
+                                    { EShaderDataType::Float2, "a_TexCoord" },
+                                    { EShaderDataType::Float3, "a_Tangent" },
+                                    { EShaderDataType::Float3, "a_Bitangent" } };
         spec.PushConstantRanges = { { 0, sizeof(FMatrix4) + sizeof(FMatrix3) } };
 
         m_SolidPipeline = IRHIAPI::CreatePipeline(spec);
@@ -96,11 +107,11 @@ void CRenderer::Init() {
         spec.Name               = "CubemapSampler";
         spec.RHIShaders         = { cubemapSamplerShader->GetShaderResources() };
         spec.ColorFormats       = { EPixelFormat::RGBA16F };
-        spec.VertexLayout       = { { EShaderDataFormat::Float3, "a_Position" },
-                                    { EShaderDataFormat::Float3, "a_Normal" },
-                                    { EShaderDataFormat::Float2, "a_TexCoord" },
-                                    { EShaderDataFormat::Float3, "a_Tangent" },
-                                    { EShaderDataFormat::Float3, "a_Bitangent" } };
+        spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
+                                    { EShaderDataType::Float3, "a_Normal" },
+                                    { EShaderDataType::Float2, "a_TexCoord" },
+                                    { EShaderDataType::Float3, "a_Tangent" },
+                                    { EShaderDataType::Float3, "a_Bitangent" } };
         spec.PushConstantRanges = { { 0, sizeof(uint32_t) } };
 
         m_CubemapSamplerPipeline = IRHIAPI::CreatePipeline(spec);
@@ -114,11 +125,11 @@ void CRenderer::Init() {
         spec.CullMode          = ECullMode::Front;
         spec.bDepthTestEnable  = false;
         spec.bDepthWriteEnable = false;
-        spec.VertexLayout      = { { EShaderDataFormat::Float3, "a_Position" },
-                                   { EShaderDataFormat::Float3, "a_Normal" },
-                                   { EShaderDataFormat::Float2, "a_TexCoord" },
-                                   { EShaderDataFormat::Float3, "a_Tangent" },
-                                   { EShaderDataFormat::Float3, "a_Bitangent" } };
+        spec.VertexLayout      = { { EShaderDataType::Float3, "a_Position" },
+                                   { EShaderDataType::Float3, "a_Normal" },
+                                   { EShaderDataType::Float2, "a_TexCoord" },
+                                   { EShaderDataType::Float3, "a_Tangent" },
+                                   { EShaderDataType::Float3, "a_Bitangent" } };
 
         m_SkyboxPipeline = IRHIAPI::CreatePipeline(spec);
     }
@@ -156,8 +167,8 @@ void CRenderer::Tick(float deltaTime) {
         CRenderGraph graph(m_GraphicContext.get());
 
         FRDGTexture* skybox2DHandle = graph.ImportExternalRDGTexture(
-            "SkyboxTexture", m_SkyboxTex->GetOrCreateResource(),
-            EImageLayout::ShaderReadOnlyOptimal, EImageLayout::ShaderReadOnlyOptimal);
+            "SkyboxTexture", m_SkyboxTex->GetResource(), EImageLayout::ShaderReadOnlyOptimal,
+            EImageLayout::ShaderReadOnlyOptimal);
 
         FTextureSpecification cubeSpec;
         cubeSpec.Type   = ETextureType::TextureCube;
@@ -176,7 +187,7 @@ void CRenderer::Tick(float deltaTime) {
                           auto st  = ctx.GetTexture(skybox2DHandle);
                           auto cmd = ctx.GetCommandBuffer();
 
-                          auto setLayout = m_CubemapSamplerPipeline->GetSetLayout(0);
+                          auto setLayout = m_CubemapSamplerPipeline->GetSetLayout(1);
                           std::vector<FDescriptorBinding> bindings = {
                               { 0, EUniformType::CombinedImageSampler, st->GetImage(),
                                 st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
@@ -184,7 +195,7 @@ void CRenderer::Tick(float deltaTime) {
                           auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
                               setLayout, bindings);
 
-                          cmd->BindDescriptorSets(0, descSet);
+                          cmd->BindDescriptorSets(1, descSet);
                           //   cmd->BindTexture(st, 0, 0);
                           cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
                           cmd->SetScissor({ 0, 0, faceSize, faceSize });
@@ -198,47 +209,58 @@ void CRenderer::Tick(float deltaTime) {
             viewport->GetScene()->Update(deltaTime);
 
             IRHITexture* viewportCanvas = viewport->GetFrameBuffer()->GetColorAttachment(0).get();
-            // auto tex = CreateRef<CTexture>(viewportCanvas->GetSpec(), viewportCanvas);
-
             FRDGTexture* viewportHandle = graph.ImportExternalRDGTexture(
                 "ViewportCanvas_" + viewport->GetName(), viewportCanvas,
                 EImageLayout::ColorAttachmentOptimal, // initial usage
                 EImageLayout::ShaderReadOnlyOptimal); // final usage (for UI)
 
-            graph.AddPass("SkyboxPass", m_SkyboxPipeline, { skyboxCubemapHandle },
-                          { viewportHandle }, ERenderPassLoadOp::Clear,
-                          [this, &viewport, skyboxCubemapHandle, viewportHandle](CRDGContext& ctx) {
-                              CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::Skybox);
-                              auto st  = ctx.GetTexture(skyboxCubemapHandle);
-                              auto rt  = ctx.GetTexture(viewportHandle);
-                              auto cmd = ctx.GetCommandBuffer();
+            graph.AddPass(
+                "SkyboxPass", m_SkyboxPipeline, { skyboxCubemapHandle }, { viewportHandle },
+                ERenderPassLoadOp::Clear,
+                [this, &viewport, skyboxCubemapHandle, viewportHandle](CRDGContext& ctx) {
+                    CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::Skybox);
+                    auto st  = ctx.GetTexture(skyboxCubemapHandle);
+                    auto rt  = ctx.GetTexture(viewportHandle);
+                    auto cmd = ctx.GetCommandBuffer();
 
-                              auto scene  = viewport->GetScene();
-                              auto camera = viewport->GetCamera();
-                              auto cameraBuffer =
-                                  CCameraUniformManager::Get().GetBufferForCamera(camera.get());
-                              auto width  = viewport->GetWidth();
-                              auto height = viewport->GetHeight();
+                    auto scene  = viewport->GetScene();
+                    auto camera = viewport->GetCamera();
+                    auto cameraBuffer =
+                        CCameraUniformManager::Get().GetBufferForCamera(camera.get());
+                    auto width  = viewport->GetWidth();
+                    auto height = viewport->GetHeight();
 
-                              auto setLayout = m_SkyboxPipeline->GetSetLayout(0);
-                              std::vector<FDescriptorBinding> bindings = {
-                                  { 0, EUniformType::UniformBuffer, cameraBuffer.get(), nullptr },
-                                  { 1, EUniformType::CombinedImageSampler, st->GetImage(),
-                                    st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
-                              };
-                              auto descSet =
-                                  m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(setLayout,
-                                                                                          bindings);
+                    {
+                        auto setLayout = m_SkyboxPipeline->GetSetLayout(0);
+                        std::vector<FDescriptorBinding> bindings = {
+                            { 0, EUniformType::UniformBuffer, cameraBuffer.get(), nullptr },
+                        };
+                        auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
+                            setLayout, bindings);
 
-                              cmd->BindDescriptorSets(0, descSet);
-                              cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
-                              cmd->SetScissor({ 0, 0, width, height });
+                        cmd->BindDescriptorSets(0, descSet);
+                    }
 
-                              // cmd->Draw(4, 1, 0, 0);
-                              m_Cube->Draw(cmd.get());
-                          });
+                    {
+                        auto setLayout = m_SkyboxPipeline->GetSetLayout(1);
+                        std::vector<FDescriptorBinding> bindings = {
+                            { 0, EUniformType::CombinedImageSampler, st->GetImage(),
+                              st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+                        };
+                        auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
+                            setLayout, bindings);
 
-            graph.AddPass("SceneCompositePass", m_CurrentPipeline, {}, { viewportHandle },
+                        cmd->BindDescriptorSets(1, descSet);
+                    }
+
+                    cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
+                    cmd->SetScissor({ 0, 0, width, height });
+
+                    // cmd->Draw(4, 1, 0, 0);
+                    m_Cube->Draw(cmd.get());
+                });
+
+            graph.AddPass("SceneCompositePass", nullptr, {}, { viewportHandle },
                           ERenderPassLoadOp::Load,
                           [this, &viewport, viewportHandle](CRDGContext& ctx) {
                               CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::Composite);
@@ -252,20 +274,22 @@ void CRenderer::Tick(float deltaTime) {
                               auto width  = viewport->GetWidth();
                               auto height = viewport->GetHeight();
 
-                              auto setLayout = m_CurrentPipeline->GetSetLayout(0);
-                              std::vector<FDescriptorBinding> bindings = {
-                                  { 0, EUniformType::UniformBuffer, cameraBuffer.get(), nullptr },
-                              };
-                              auto descSet =
-                                  m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(setLayout,
-                                                                                          bindings);
+                              // {
+                              //     auto setLayout = m_CurrentPipeline->GetSetLayout(0);
+                              //     std::vector<FDescriptorBinding> bindings = {
+                              //         { 0, EUniformType::UniformBuffer, cameraBuffer.get(),
+                              //         nullptr },
+                              //     };
+                              //     auto descSet =
+                              //     m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
+                              //         setLayout, bindings);
 
-                              cmd->BindDescriptorSets(0, descSet);
-                              //   cmd->BindUniformBuffer(uniformBuffer, 0, 0);
+                              //     cmd->BindDescriptorSets(0, descSet);
+                              // }
                               cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
                               cmd->SetScissor({ 0, 0, width, height });
 
-                              scene->Draw(cmd.get());
+                              scene->Draw(cmd.get(), cameraBuffer);
                           });
         }
 
@@ -322,6 +346,9 @@ void CRenderer::Shutdown() {
     m_CubemapSamplerPipeline.Reset();
     m_SkyboxPipeline.Reset();
 
+    m_SolidMat.Reset();
+    m_PBRMat.Reset();
+
     for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {
         m_Frames[i].RenderFence.Reset();
         m_Frames[i].CommandList.Reset();
@@ -329,7 +356,7 @@ void CRenderer::Shutdown() {
     }
 
     CCameraUniformManager::Get().Shutdown();
-    FMeshManager::Get().Shutdown();
+    CMeshManager::Get().Shutdown();
     CAssetManager::Get().Shutdown();
 
     m_GraphicContext.reset();

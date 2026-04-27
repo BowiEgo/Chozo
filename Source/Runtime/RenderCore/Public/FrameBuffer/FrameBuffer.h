@@ -15,10 +15,10 @@ public:
     const FFrameBufferSpecification& GetSpec() const { return m_Spec; }
     const std::string& GetName() const { return m_Spec.Name; }
 
-    IRHIFrameBuffer* GetOrCreateResource();
+    IRHIFrameBuffer* GetResource();
 
     TRef<CTexture> GetColorAttachment(uint32 index) {
-        auto res    = GetOrCreateResource();
+        auto res    = GetResource();
         auto rhiTex = res->GetColorAttachment(index);
         if (!rhiTex) return nullptr;
         auto tex = CreateRef<CTexture>(rhiTex->GetSpec(), rhiTex.get());

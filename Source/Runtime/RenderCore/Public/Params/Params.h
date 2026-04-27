@@ -9,6 +9,7 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
+#include <any>
 #include <string>
 
 struct IParamsVisitor {
@@ -64,6 +65,8 @@ struct IParams : public FRefCounted {
 
     virtual size_t GetPropertyCount() const                 = 0;
     virtual std::string GetPropertyName(size_t index) const = 0;
+
+    virtual std::any GetProperty(const std::string& name) const = 0;
 
     virtual void Accept(IParamsVisitor& visitor)            = 0;
     virtual void Accept(IConstParamsVisitor& visitor) const = 0;

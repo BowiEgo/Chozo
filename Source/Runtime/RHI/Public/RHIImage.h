@@ -10,8 +10,8 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogRHIImage, Info);
 
 struct FImageViewSpecification {
-    EImageViewType ViewType  = EImageViewType::View2D;
-    EShaderDataFormat Format = EShaderDataFormat::None;
+    EImageViewType ViewType = EImageViewType::View2D;
+    EShaderDataType Format  = EShaderDataType::None;
 
     uint32 BaseMipLevel   = 0;
     uint32 MipCount       = 1;

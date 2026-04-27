@@ -11,7 +11,7 @@
 struct FTransformParams : public IParams {
     FVector3 Translation = FVector3::Zero;
     FQuaternion Rotation = FQuaternion::Identity();
-    FVector3 Scale = FVector3::One;
+    FVector3 Scale       = FVector3::One;
 
     FTransformParams() = default;
 
@@ -24,8 +24,8 @@ struct FTransformParams : public IParams {
     FTransformParams& operator=(const FTransformParams& other) {
         if (this != &other) {
             Translation = other.Translation;
-            Rotation = other.Rotation;
-            Scale = other.Scale;
+            Rotation    = other.Rotation;
+            Scale       = other.Scale;
         }
         return *this;
     }
@@ -55,6 +55,12 @@ struct FTransformParams : public IParams {
     virtual std::string GetPropertyName(size_t index) const override {
         static const std::string names[] = { "Translation", "Rotation", "Scale" };
         return index < GetPropertyCount() ? names[index] : "";
+    }
+    virtual std::any GetProperty(const std::string& name) const override {
+        if (name == "Translation") return Translation;
+        if (name == "Rotation") return Rotation;
+        if (name == "Scale") return Scale;
+        return {};
     }
 
     virtual void Accept(IParamsVisitor& visitor) override {

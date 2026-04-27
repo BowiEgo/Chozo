@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Cube.h"
 #include "LightRegister.h"
+#include "Material.h" // TODO: Remove
 #include "MeshManager.h"
 #include "Module.h"
 #include "RHICommandList.h"
@@ -80,6 +81,8 @@ public:
     }
     PerformanceProfiler* GetPerformanceProfiler() { return m_Profiler.get(); }
 
+    TRef<CMaterial> GetPBRMaterial() { return m_PBRMat; } // TODO: Remove
+
 private:
     CModule m_RHIModule;
     TScope<PerformanceProfiler> m_Profiler;
@@ -93,11 +96,13 @@ private:
     std::vector<TScope<CViewport>> m_Viewports;
 
     TRef<IRHIPipeline> m_CurrentPipeline, m_SolidPipeline, m_WireframePipeline,
-        m_CubemapSamplerPipeline, m_SkyboxPipeline;
+        m_CubemapSamplerPipeline, m_SkyboxPipeline; // TODO: Remove
 
     TRef<CTexture> m_SkyboxTex; // TODO: Remove
     TRef<FCube> m_Cube;
     TRef<FQuad> m_Quad;
+
+    TRef<CMaterial> m_SolidMat, m_PBRMat; // TODO: Remove
 
     FOnRenderUI m_UICallback = nullptr;
 };

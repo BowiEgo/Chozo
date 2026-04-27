@@ -26,8 +26,10 @@ void main() {
     
     gl_Position = mvp * vec4(a_Position, 1.0);
 
+    float dummy = a_Tangent.x + a_Bitangent.x;
+
     v_TexCoord = a_TexCoord;
-    v_Normal = normalize(u_PC.NormalMatrix * a_Normal);
+    v_Normal = normalize(u_VertContant.NormalMatrix * a_Normal);
 }
 
 #endif
@@ -43,24 +45,46 @@ layout(set = 1, binding = 0) uniform MaterialUBO {
     vec4 u_BaseColor;
     float u_Metallic;
     float u_Roughness;
-    float u_AmbientOcclusion;
+    float u_NormalStrength;
+    float u_EmissiveStrength;
+    int UseAlbedoMap;
+    int UseNormalMap;
+    int UseRMAOMap;
 } u_Material;
 
 layout(set = 1, binding = 1) uniform sampler2D u_AlbedoMap;
 layout(set = 1, binding = 2) uniform sampler2D u_NormalMap;
-layout(set = 1, binding = 3) uniform sampler2D u_MetallicRoughnessMap;
+layout(set = 1, binding = 3) uniform sampler2D u_RMAOMap;
 
 void main() {
-    vec4 albedo = texture(u_AlbedoMap, v_TexCoord) * u_Material.u_BaseColor;
-    float metallic = texture(u_MetallicRoughnessMap, v_TexCoord).g * u_Material.u_Metallic;
-    float roughness = texture(u_MetallicRoughnessMap, v_TexCoord).b * u_Material.u_Roughness;
+    vec4 albedo = u_Material.u_BaseColor;
+    float metallic = u_Material.u_Metallic;
+    float roughness = u_Material.u_Roughness;
+
+    vec3 normal = v_Normal;
+
+    vec4 rmao = texture(u_RMAOMap, v_TexCoord);
+
+    if (u_Material.UseAlbedoMap != 0) {
+        albedo *= texture(u_AlbedoMap, v_TexCoord);
+    }
+    if (u_Material.UseNormalMap != 0) {
+        normal = texture(u_NormalMap, v_TexCoord).rgb;
+    }
+    if (u_Material.UseRMAOMap != 0) {
+        roughness *= rmao.r;
+    }
+    if (u_Material.UseRMAOMap != 0) {
+        metallic *= rmao.g;
+    }
 
     vec3 N = normalize(v_Normal);
     vec3 L = normalize(vec3(1.0, 1.0, 0.0));
     float diff = max(dot(N, L), 0.0);
     vec3 color = albedo.rgb * diff;
 
-    o_Color = vec4(color, 1.0);
+    // o_Color = vec4(color, 1.0);
+    o_Color = albedo;
 }
 
 #endif

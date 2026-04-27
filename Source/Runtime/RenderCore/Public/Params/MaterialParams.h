@@ -1,12 +1,15 @@
 #pragma once
 
 #include "Params.h"
+#include "RHITypes.h"
 
-struct IMeshParams : public IParams {
-    FAssetHandle Material;
+struct IMaterialParams : public IParams {
+    EPolygonMode PolygonMode = EPolygonMode::Fill;
+    ECullMode CullMode       = ECullMode::Back;
 
-    IMeshParams() = default;
-    IMeshParams(const IMeshParams& other) : IParams(), Material(other.Material) {}
+    IMaterialParams() = default;
+    IMaterialParams(const IMaterialParams& other)
+        : IParams(), PolygonMode(other.PolygonMode), CullMode(other.CullMode) {}
 
     // ===== IParams Implementation =====
     virtual IParams* Clone() const override = 0;

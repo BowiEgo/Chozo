@@ -14,8 +14,8 @@ EShaderStage GetStageFromExtension(const std::string& extension);
 
 uint32 StageToKind(EShaderStage shaderStage);
 
-EShaderDataFormat GetDataFormatFromSpv(const SpvReflectTypeDescription& type);
-EShaderDataFormat GetDataFormatFromSpv(const SpvReflectFormat& format);
+EShaderDataType GetDataFormatFromSpv(const SpvReflectTypeDescription& type);
+EShaderDataType GetDataFormatFromSpv(const SpvReflectFormat& format);
 
 EUniformType GetUniformTypeFromSpvDescType(const SpvReflectDescriptorType& spvType);
 

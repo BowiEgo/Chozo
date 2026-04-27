@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MeshParams.h"
+#include "MeshProps.h"
 #include "ProceduralMesh.h"
 #include "Ref.h"
 #include "Scope.h"
@@ -57,15 +57,16 @@ public:
         RegisterMeshGenerator<ParamsType, MeshType>(typeName);
     }
 
-    FMeshParams CreateParams(const std::string& typeName) const {
+    FMeshProps CreateParams(const std::string& typeName) const {
         auto it = m_Factories.find(typeName);
         if (it != m_Factories.end()) {
-            auto params = it->second->CreateDefault();
-            if (params) {
-                return FMeshParams(std::move(params));
+            auto temp = it->second->CreateDefault();
+            if (temp) {
+                auto params = static_cast<IMeshParams*>(temp.release());
+                return FMeshProps(params);
             }
         }
-        return FMeshParams();
+        return FMeshProps();
     }
 
     TRef<FProceduralMesh> CreateMesh(const IParams& params) {

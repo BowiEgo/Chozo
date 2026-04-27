@@ -18,7 +18,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogUIUtils, Info);
 
 #define GET_IM_RHI_TEXTURE_ID(tex) CImGuiLayer::Get().GetRenderer()->GetTextureIDForRHITexture(tex)
 #define GET_IM_TEXTURE_ID(tex)                                                                     \
-    CImGuiLayer::Get().GetRenderer()->GetTextureIDForRHITexture(tex->GetOrCreateResource())
+    CImGuiLayer::Get().GetRenderer()->GetTextureIDForRHITexture(tex->GetResource())
 
 #define IMGUI_DPI_SCALE (CImGuiLayer::Get().GetWindow()->GetPixelRatio())
 

@@ -54,7 +54,7 @@ FShaderReflection CShaderCompiler::Reflect(const std::vector<uint32_t>& spirvBin
     for (auto* var : inputVars) {
         if (var->decoration_flags & SPV_REFLECT_DECORATION_BUILT_IN) continue;
 
-        EShaderDataFormat format = ChozoUtils::Shader::GetDataFormatFromSpv(*var->type_description);
+        EShaderDataType format = ChozoUtils::Shader::GetDataFormatFromSpv(*var->type_description);
         reflection.Attributes.emplace_back(var->name, var->location, format);
     }
 
@@ -175,7 +175,7 @@ bool CShaderCompiler::CompileFromSource(const std::string& source,
         options.AddMacroDefinition(name, value);
     }
 
-    options.SetOptimizationLevel(shaderc_optimization_level_performance);
+    options.SetOptimizationLevel(shaderc_optimization_level_zero);
     options.SetGenerateDebugInfo();
 
     auto result =

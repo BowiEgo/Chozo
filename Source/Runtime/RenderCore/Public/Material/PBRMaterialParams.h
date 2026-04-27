@@ -1,93 +1,123 @@
 #pragma once
 
-#include "Params.h"
+#include "MaterialParams.h"
 
-struct FPBRMaterialParams : public IParams {
-    FVector3 Albedo               = FVector3(1.0f, 1.0f, 1.0f);
-    float Metallic                = 0.0f;
-    float Roughness               = 0.5f;
-    float NormalStrength          = 1.0f;
-    float EmissiveStrength        = 0.0f;
-    bool BUseAlbedoMap            = false;
-    bool BUseNormalMap            = false;
-    bool BUseMetallicRoughnessMap = false;
+struct FPBRMaterialParams : public IMaterialParams {
+    FVector4 BaseColor     = FVector4(1.0f, 1.0f, 1.0f, 1.0f);
+    float Metallic         = 0.0f;
+    float Roughness        = 0.5f;
+    float NormalStrength   = 1.0f;
+    float EmissiveStrength = 0.0f;
+    FAssetHandle AlbedoMap;
+    FAssetHandle NormalMap;
+    FAssetHandle RMAOMap;
+    bool UseAlbedoMap = false;
+    bool UseNormalMap = false;
+    bool UseRMAOMap   = false;
 
     FPBRMaterialParams() = default;
 
-    FPBRMaterialParams(const FVector3& albedo, float metallic, float roughness,
+    FPBRMaterialParams(const FVector4& baseColor, float metallic, float roughness,
                        float normalStrength = 1.0f, float emissiveStrength = 0.0f,
-                       bool bUseAlbedoMap = false, bool bUseNormalMap = false,
-                       bool bUseMetallicRoughnessMap = false)
-        : Albedo(albedo), Metallic(metallic), Roughness(roughness), NormalStrength(normalStrength),
-          EmissiveStrength(emissiveStrength), BUseAlbedoMap(bUseAlbedoMap),
-          BUseNormalMap(bUseNormalMap), BUseMetallicRoughnessMap(bUseMetallicRoughnessMap) {}
+                       bool useAlbedoMap = false, bool useNormalMap = false,
+                       bool useRMAOMap = false)
+        : BaseColor(baseColor), Metallic(metallic), Roughness(roughness),
+          NormalStrength(normalStrength), EmissiveStrength(emissiveStrength),
+          UseAlbedoMap(useAlbedoMap), UseNormalMap(useNormalMap), UseRMAOMap(useRMAOMap) {}
 
     FPBRMaterialParams(const FPBRMaterialParams& other)
-        : Albedo(other.Albedo), Metallic(other.Metallic), Roughness(other.Roughness),
+        : BaseColor(other.BaseColor), Metallic(other.Metallic), Roughness(other.Roughness),
           NormalStrength(other.NormalStrength), EmissiveStrength(other.EmissiveStrength),
-          BUseAlbedoMap(other.BUseAlbedoMap), BUseNormalMap(other.BUseNormalMap),
-          BUseMetallicRoughnessMap(other.BUseMetallicRoughnessMap) {}
+          UseAlbedoMap(other.UseAlbedoMap), UseNormalMap(other.UseNormalMap),
+          UseRMAOMap(other.UseRMAOMap) {}
 
-    // ===== IParams Implementation =====
+    // ===== IMaterialParams Implementation =====
     virtual IParams* Clone() const override { return new FPBRMaterialParams(*this); }
 
     virtual bool Equals(const IParams& other) const override {
         const auto* otherMat = dynamic_cast<const FPBRMaterialParams*>(&other);
         if (!otherMat) return false;
-        return Albedo == otherMat->Albedo && Metallic == otherMat->Metallic &&
+        return PolygonMode == otherMat->PolygonMode && CullMode == otherMat->CullMode &&
+               BaseColor == otherMat->BaseColor && Metallic == otherMat->Metallic &&
                Roughness == otherMat->Roughness && NormalStrength == otherMat->NormalStrength &&
                EmissiveStrength == otherMat->EmissiveStrength &&
-               BUseAlbedoMap == otherMat->BUseAlbedoMap &&
-               BUseNormalMap == otherMat->BUseNormalMap &&
-               BUseMetallicRoughnessMap == otherMat->BUseMetallicRoughnessMap;
+               UseAlbedoMap == otherMat->UseAlbedoMap && UseNormalMap == otherMat->UseNormalMap &&
+               UseRMAOMap == otherMat->UseRMAOMap;
     }
 
     virtual size_t GetHash() const override {
         size_t h = 0;
-        HashCombine(h, std::hash<float>{}(Albedo.x));
-        HashCombine(h, std::hash<float>{}(Albedo.y));
-        HashCombine(h, std::hash<float>{}(Albedo.z));
+        HashCombine(h, std::hash<EPolygonMode>{}(PolygonMode));
+        HashCombine(h, std::hash<ECullMode>{}(CullMode));
+        HashCombine(h, std::hash<float>{}(BaseColor.x));
+        HashCombine(h, std::hash<float>{}(BaseColor.y));
+        HashCombine(h, std::hash<float>{}(BaseColor.z));
+        HashCombine(h, std::hash<float>{}(BaseColor.w));
         HashCombine(h, std::hash<float>{}(Metallic));
         HashCombine(h, std::hash<float>{}(Roughness));
         HashCombine(h, std::hash<float>{}(NormalStrength));
         HashCombine(h, std::hash<float>{}(EmissiveStrength));
-        HashCombine(h, std::hash<bool>{}(BUseAlbedoMap));
-        HashCombine(h, std::hash<bool>{}(BUseNormalMap));
-        HashCombine(h, std::hash<bool>{}(BUseMetallicRoughnessMap));
+        HashCombine(h, std::hash<FAssetHandle>{}(AlbedoMap));
+        HashCombine(h, std::hash<FAssetHandle>{}(NormalMap));
+        HashCombine(h, std::hash<FAssetHandle>{}(RMAOMap));
+        HashCombine(h, std::hash<bool>{}(UseAlbedoMap));
+        HashCombine(h, std::hash<bool>{}(UseNormalMap));
+        HashCombine(h, std::hash<bool>{}(UseRMAOMap));
         return h;
     }
 
-    virtual std::string GetTypeName() const override { return "Material"; }
+    virtual std::string GetTypeName() const override { return "PBR"; }
 
-    virtual size_t GetPropertyCount() const override { return 8; }
+    virtual size_t GetPropertyCount() const override { return 13; }
     virtual std::string GetPropertyName(size_t index) const override {
-        static const std::string names[] = { "Albedo",           "Metallic",
-                                             "Roughness",        "NormalStrength",
-                                             "EmissiveStrength", "UseAlbedoMap",
-                                             "UseNormalMap",     "UseMetallicRoughnessMap" };
+        static const std::string names[] = { "PolygonMode",      "CullMode",     "BaseColor",
+                                             "Metallic",         "Roughness",    "NormalStrength",
+                                             "EmissiveStrength", "AlbedoMap",    "NormalMap",
+                                             "RMAOMap",          "UseAlbedoMap", "UseNormalMap",
+                                             "UseRMAOMap" };
         return index < GetPropertyCount() ? names[index] : "";
+    }
+    virtual std::any GetProperty(const std::string& name) const override {
+        if (name == "PolygonMode") return PolygonMode;
+        if (name == "CullMode") return CullMode;
+        if (name == "BaseColor") return BaseColor;
+        if (name == "Metallic") return Metallic;
+        if (name == "Roughness") return Roughness;
+        if (name == "NormalStrength") return NormalStrength;
+        if (name == "EmissiveStrength") return EmissiveStrength;
+        if (name == "AlbedoMap") return AlbedoMap;
+        if (name == "NormalMap") return NormalMap;
+        if (name == "RMAOMap") return RMAOMap;
+        if (name == "UseAlbedoMap") return UseAlbedoMap;
+        if (name == "UseNormalMap") return UseNormalMap;
+        if (name == "UseRMAOMap") return UseRMAOMap;
+        return {};
     }
 
     virtual void Accept(IParamsVisitor& visitor) override {
-        visitor.Visit(Albedo, "Albedo");
+        // visitor.Visit(PolygonMode, "PolygonMode");
+        // visitor.Visit(CullMode, "CullMode");
+        visitor.Visit(BaseColor, "BaseColor");
         visitor.Visit(Metallic, "Metallic");
         visitor.Visit(Roughness, "Roughness");
         visitor.Visit(NormalStrength, "Normal Strength");
         visitor.Visit(EmissiveStrength, "Emissive Strength");
-        visitor.Visit(BUseAlbedoMap, "Use Albedo Map");
-        visitor.Visit(BUseNormalMap, "Use Normal Map");
-        visitor.Visit(BUseMetallicRoughnessMap, "Use Metallic Roughness Map");
+        visitor.Visit(UseAlbedoMap, "Use Albedo Map");
+        visitor.Visit(UseNormalMap, "Use Normal Map");
+        visitor.Visit(UseRMAOMap, "Use RMAO Map");
     }
 
     virtual void Accept(IConstParamsVisitor& visitor) const override {
-        visitor.Visit(Albedo, "Albedo");
+        // visitor.Visit(PolygonMode, "PolygonMode");
+        // visitor.Visit(CullMode, "CullMode");
+        visitor.Visit(BaseColor, "BaseColor");
         visitor.Visit(Metallic, "Metallic");
         visitor.Visit(Roughness, "Roughness");
         visitor.Visit(NormalStrength, "Normal Strength");
         visitor.Visit(EmissiveStrength, "Emissive Strength");
-        visitor.Visit(BUseAlbedoMap, "Use Albedo Map");
-        visitor.Visit(BUseNormalMap, "Use Normal Map");
-        visitor.Visit(BUseMetallicRoughnessMap, "Use Metallic Roughness Map");
+        visitor.Visit(UseAlbedoMap, "Use Albedo Map");
+        visitor.Visit(UseNormalMap, "Use Normal Map");
+        visitor.Visit(UseRMAOMap, "Use RMAO Map");
     }
 
     bool operator==(const FPBRMaterialParams& other) const { return Equals(other); }

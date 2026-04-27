@@ -27,7 +27,7 @@ layout(location = 0) out vec4 o_Color;
 
 layout (location = 0) in vec3 v_TexCoords;
 
-layout(set = 0, binding = 1) uniform samplerCube u_Texture;
+layout(set = 1, binding = 0) uniform samplerCube u_Texture;
 
 void main() {
     vec4 texture = textureLod(u_Texture, v_TexCoords, 1.0) * 1.0;

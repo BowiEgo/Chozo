@@ -1,6 +1,6 @@
 #include "MeshManager.h"
 
-FMeshManager& FMeshManager::Get() {
-    static FMeshManager instance;
+CMeshManager& CMeshManager::Get() {
+    static CMeshManager instance;
     return instance;
 }

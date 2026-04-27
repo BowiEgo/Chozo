@@ -5,7 +5,7 @@
 
 #include "Asset.h"
 #include "Entity.h"
-#include "MeshParams.h"
+#include "MeshProps.h"
 #include "RHICommandList.h"
 #include "TransformParams.h"
 #include "TransformSystem.h"
@@ -23,7 +23,7 @@ public:
     virtual const EAssetType GetType() const override { return EAssetType::Scene; }
 
     void Update(float deltaTime);
-    void Draw(IRHICommandList* cmdList);
+    void Draw(IRHICommandList* cmdList, TRef<IRHIBuffer> cameraBuffer);
 
     // ----- Entity Management -----
     FEntity CreateEntity(const std::string& name = "");
@@ -39,7 +39,7 @@ public:
     void SetTransform(FEntity entity, const FTransformParams& params);
 
     // ----- Mesh -----
-    void SetMesh(FEntity entity, const FMeshParams& params);
+    void SetMesh(FEntity entity, const FMeshProps& props);
 
     // ===== Component Operations =====
     template <typename T, typename... Args> T& AddComponent(FEntity entity, Args&&... args) {

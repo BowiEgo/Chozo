@@ -72,7 +72,7 @@ private:
 
     // ===== Component Creation Helpers =====
     void SyncTransformComponent(FEntity entity, const FTransformParams* transformParams);
-    void SyncMeshComponent(FEntity entity, const FMeshParams* mesh);
+    void SyncMeshComponent(FEntity entity, const FMeshProps* props);
     // void SyncMaterialComponent(FEntity entity, const FMaterialComponent& material);
     void SyncRelationshipComponent(FEntity entity, FEntity parent);
 

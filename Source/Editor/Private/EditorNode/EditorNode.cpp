@@ -18,13 +18,13 @@ FEditorNode::FEditorNode(const std::string& name, uint32_t type)
     if (HasMesh()) {
         auto regManager = FTypeRegister::Get();
 
-        auto cubeBit = regManager.GetBit("Mesh_Cube");
+        auto cubeBit   = regManager.GetBit("Mesh_Cube");
         auto sphereBit = regManager.GetBit("Mesh_Sphere");
 
         if ((m_Type & cubeBit) != 0)
-            SetMeshParams("Cube");
+            SetMeshProps("Cube");
         else if ((m_Type & sphereBit) != 0)
-            SetMeshParams("Sphere");
+            SetMeshProps("Sphere");
     }
 
     CZ_LOG(LogEditorNode, Trace, "Created node '{}' with ID {}", name, m_ID);
@@ -168,7 +168,7 @@ std::vector<FEditorNode*> FEditorNode::GetChildrenRecursive() const {
 }
 
 int FEditorNode::GetDepth() const {
-    int depth = 0;
+    int depth            = 0;
     FEditorNode* current = m_Parent;
     while (current) {
         depth++;

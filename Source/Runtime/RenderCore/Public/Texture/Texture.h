@@ -21,7 +21,7 @@ public:
     EPixelFormat GetFormat() const { return m_Spec.Format; }
     ETextureUsage GetUsage() const { return m_Spec.Usage; }
 
-    IRHITexture* GetOrCreateResource();
+    IRHITexture* GetResource();
 
 protected:
     FTextureSpecification m_Spec;

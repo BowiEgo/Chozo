@@ -2,18 +2,18 @@
 
 #include "CoreMinimal.h"
 #include "MeshManager.h"
-#include "MeshParams.h"
+#include "MeshProps.h"
 #include "MeshReflection.h"
 #include "MeshRegister.h"
 
 struct FMeshComponent {
     // ===== Core Data =====
-    FMeshParams MeshParams;
+    FMeshProps MeshProps;
     FAssetHandle MeshHandle = FAssetHandle::Invalid();
 
     // ===== State =====
     mutable uint32_t Revision = 0;
-    mutable bool bIsDirty = true;
+    mutable bool bIsDirty     = true;
 
     // ===== State Management =====
     void MarkDirty() const {
@@ -23,28 +23,28 @@ struct FMeshComponent {
 
     void ClearDirty() const { bIsDirty = false; }
     bool IsDirty() const { return bIsDirty; }
-    bool IsValid() const { return MeshParams.Get() != nullptr; }
+    bool IsValid() const { return MeshProps.Get() != nullptr; }
 
     // ===== Constructors =====
     FMeshComponent() = default;
-    explicit FMeshComponent(FMeshParams& params) : MeshParams(params) {
-        MeshHandle = FMeshManager::Get().CreateProceduralMesh(*params.Get())->GetHandle();
+    explicit FMeshComponent(FMeshProps& props) : MeshProps(props) {
+        MeshHandle = CMeshManager::Get().CreateProceduralMesh(*props.Get())->GetHandle();
     }
 
     // ===== Type Helpers =====
-    // EMeshType GetType() const { return MeshParams.GetType(); }
-    std::string GetTypeName() const { return MeshParams.GetTypeName(); }
+    // EMeshType GetType() const { return MeshProps.GetType(); }
+    std::string GetTypeName() const { return MeshProps.GetTypeName(); }
 
     // ===== Generic Property Setters =====
     template <typename Tag> void SetProperty(typename MeshPropertyTraits<Tag>::Type value) {
         bool set = false;
 
         std::visit(
-            [&](auto& params) {
-                using T = std::decay_t<decltype(params)>;
-                set = SetProperty(params, Tag{}, value);
+            [&](auto& props) {
+                using T = std::decay_t<decltype(props)>;
+                set     = SetProperty(props, Tag{}, value);
             },
-            MeshParams);
+            MeshProps);
 
         if (set) {
             MarkDirty();
@@ -57,21 +57,21 @@ struct FMeshComponent {
         std::optional<typename MeshPropertyTraits<Tag>::Type> result;
 
         std::visit(
-            [&](const auto& params) {
-                using T = std::decay_t<decltype(params)>;
-                result = GetProperty(params, Tag{});
+            [&](const auto& props) {
+                using T = std::decay_t<decltype(props)>;
+                result  = GetProperty(props, Tag{});
             },
-            MeshParams);
+            MeshProps);
 
         return result;
     }
 
-    void SetMeshParams(const FMeshParams& params) {
-        if (MeshParams == params) return;
-        MeshParams = params.Clone();
+    void SetMeshProps(const FMeshProps& props) {
+        if (MeshProps == props) return;
+        MeshProps = props.Clone();
 
         if (!MeshHandle.IsValid()) {
-            MeshHandle = FMeshManager::Get().CreateProceduralMesh(*params.Get())->GetHandle();
+            MeshHandle = CMeshManager::Get().CreateProceduralMesh(*props.Get())->GetHandle();
         }
 
         MarkDirty();
@@ -80,19 +80,19 @@ struct FMeshComponent {
     void UpdateMesh() {
         if (bIsDirty) {
             if (MeshHandle.IsValid())
-                FMeshManager::Get().UpdateMesh(MeshHandle, *MeshParams.Get());
+                CMeshManager::Get().UpdateMesh(MeshHandle, *MeshProps.Get());
             else
                 MeshHandle =
-                    FMeshManager::Get().CreateProceduralMesh(*MeshParams.Get())->GetHandle();
+                    CMeshManager::Get().CreateProceduralMesh(*MeshProps.Get())->GetHandle();
 
             ClearDirty();
         }
     }
 
     // ===== Comparison =====
-    bool operator==(const FMeshComponent& other) const { return MeshParams == other.MeshParams; }
+    bool operator==(const FMeshComponent& other) const { return MeshProps == other.MeshProps; }
     bool operator!=(const FMeshComponent& other) const { return !(*this == other); }
 
     // ===== Hash =====
-    size_t GetHash() const { return MeshParams.GetHash(); }
+    size_t GetHash() const { return MeshProps.GetHash(); }
 };

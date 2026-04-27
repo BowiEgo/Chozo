@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Material.h"
-#include "MaterialParams.h"
+#include "MaterialProps.h"
 #include "Ref.h"
 #include "Scope.h"
 #include "TypeRegister.h"
@@ -11,14 +11,14 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogMaterialRegistry, Info);
 
 struct IMaterialGenerator {
-    virtual ~IMaterialGenerator()                                 = default;
-    virtual TRef<CMaterial> CreateMaterial(const IParams& params) = 0;
+    virtual ~IMaterialGenerator()                                         = default;
+    virtual TRef<CMaterial> CreateMaterial(const IMaterialParams& params) = 0;
 };
 
 template <typename ParamsType, typename MaterialType>
 class TMaterialGenerator : public IMaterialGenerator {
 public:
-    TRef<CMaterial> CreateMaterial(const IParams& params) override {
+    TRef<CMaterial> CreateMaterial(const IMaterialParams& params) override {
         const auto& typedParams = static_cast<const ParamsType&>(params);
         return CreateRef<MaterialType>(typedParams);
     }
@@ -58,18 +58,18 @@ public:
         RegisterMaterialGenerator<ParamsType, MaterialType>(typeName);
     }
 
-    FMaterialParams CreateParams(const std::string& typeName) const {
+    FMaterialProps CreateParams(const std::string& typeName) const {
         auto it = m_Factories.find(typeName);
         if (it != m_Factories.end()) {
             auto params = it->second->CreateDefault();
             if (params) {
-                return FMaterialParams(std::move(params));
+                return FMaterialProps(std::move(params));
             }
         }
-        return FMaterialParams();
+        return FMaterialProps();
     }
 
-    TRef<CMaterial> CreateMaterial(const IParams& params) {
+    TRef<CMaterial> CreateMaterial(const IMaterialParams& params) {
         auto it = m_Generators.find(params.GetTypeName());
         if (it != m_Generators.end()) {
             return it->second->CreateMaterial(params);
@@ -80,7 +80,7 @@ public:
         return nullptr;
     }
 
-    FMaterialBuffer* CacheStaticData(const IParams& params, const FMaterialBuffer& data) {
+    FMaterialBuffer* CacheStaticData(const IMaterialParams& params, const FMaterialBuffer& data) {
         size_t hash          = params.GetHash();
         std::string typeName = params.GetTypeName();
         std::string key      = typeName + "_" + std::to_string(hash);
@@ -89,7 +89,7 @@ public:
         return &m_StaticDataCache[key];
     }
 
-    FMaterialBuffer* GetStaticCachedData(const IParams& params) {
+    FMaterialBuffer* GetStaticCachedData(const IMaterialParams& params) {
         size_t hash          = params.GetHash();
         std::string typeName = params.GetTypeName();
         std::string key      = typeName + "_" + std::to_string(hash);
@@ -121,7 +121,7 @@ private:
     }
     ~FMaterialRegister() = default;
 
-    std::unordered_map<std::string, TScope<IParamsFactory>> m_Factories;
+    std::unordered_map<std::string, TScope<IMaterialParamsFactory>> m_Factories;
     std::unordered_map<std::string, TScope<IMaterialGenerator>> m_Generators;
     std::vector<FTypeInfo> m_Types;
 };
