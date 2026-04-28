@@ -108,6 +108,18 @@ target("CopyFiles")
             cprint("${yellow}[CopyFiles]:${clear} Warning - imgui.ini not found at %s", config_src)
         end
 
+        local folders = {"Resources", "Shaders", "Config"}
+
+        for _, folder in ipairs(folders) do
+            local src = path.join(os.projectdir(), folder)
+            local dst = path.join(outdir, folder)
+            
+            if os.isdir(src) then
+                os.cp(src, outdir) 
+                cprint("${green}[CopyBinaries]:${clear} deploying folder %s", folder)
+            end
+        end
+
         for _, depname in ipairs(target:get("deps")) do
             local dep = project.target(depname)
             if dep then
