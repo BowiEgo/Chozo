@@ -44,9 +44,22 @@ public:
             const std::unordered_map<EShaderStage, FShaderCompilerOutput>& outputs);
     virtual ~CShader() = default;
 
-    const std::string& GetName() const { return m_Spec.Name; }
+    virtual const std::string GetName() const override { return m_Spec.Name; }
+    virtual const EAssetType GetType() const override { return EAssetType::Shader; }
 
-    std::vector<TRef<IRHIShader>> GetShaderResources() {
+    TRef<IRHISetLayout> GetSetLayout(uint32_t set) {
+        if (m_ShaderResources.empty()) {
+            CreateRHIDeviceResources();
+        }
+        auto it = m_SetLayouts.find(set);
+        return it != m_SetLayouts.end() ? it->second : nullptr;
+    }
+    const std::unordered_map<uint32_t, TRef<IRHISetLayout>>& GetAllSetLayouts() const {
+        return m_SetLayouts;
+    }
+    const VertexBufferLayout GetVertexLayout();
+    const std::vector<FPushConstantRange>& GetPushConstantRanges();
+    const std::vector<TRef<IRHIShader>>& GetShaderResources() {
         if (m_ShaderResources.empty()) {
             CreateRHIDeviceResources();
         }
@@ -55,9 +68,18 @@ public:
 
     void CreateRHIDeviceResources();
 
-protected:
+private:
+    void BuildLayouts();
+
+private:
     const FShaderSpecification m_Spec;
     std::unordered_map<EShaderStage, FShaderCompilerOutput> m_Datas;
 
-    std::vector<TRef<IRHIShader>> m_ShaderResources;
+    mutable std::vector<TRef<IRHIShader>> m_ShaderResources;
+    mutable std::vector<FPushConstantRange> m_PushConstantRanges;
+
+    mutable std::unordered_map<uint32_t, TRef<IRHISetLayout>> m_SetLayouts;
+
+    TRef<IRHIDescriptorSet> m_DescriptorSet;
+    mutable bool m_bDescriptorSetDirty = true;
 };

@@ -15,6 +15,9 @@ public:
     FProceduralMesh() = default;
     ~FProceduralMesh();
 
+    virtual const std::string GetName() const override { return "ProceduralMesh"; };
+    virtual const EAssetType GetType() const override { return EAssetType::Mesh; }
+
     virtual FMeshBuffer* GenerateBuffer()         = 0;
     virtual void SetParams(const IParams& params) = 0;
 

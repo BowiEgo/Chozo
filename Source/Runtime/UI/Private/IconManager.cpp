@@ -10,6 +10,11 @@ DEFINE_LOG_CATEGORY(LogIconManager);
 static const char* GetDefaultFolderIcon();
 static const char* GetDefaultFileIcon();
 
+CIconManager& CIconManager::Get() {
+    static CIconManager instance;
+    return instance;
+}
+
 CIconManager::CIconManager() {
     FRawFileImage folderIconImage, fileIconImage;
 

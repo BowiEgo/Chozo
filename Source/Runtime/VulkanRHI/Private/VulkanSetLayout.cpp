@@ -37,7 +37,7 @@ vk::raii::DescriptorSetLayout
         vkBindings.push_back(b);
     }
 
-    vk::DescriptorSetLayoutCreateInfo layoutInfo;
+    vk::DescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.setBindings(vkBindings);
 
     try {

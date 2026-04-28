@@ -15,10 +15,7 @@ class UI_API CIconManager {
     };
 
 public:
-    static inline CIconManager& Get() {
-        static CIconManager ret;
-        return ret;
-    }
+    static CIconManager& Get();
 
     CIconManager();
     ~CIconManager();

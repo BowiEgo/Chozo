@@ -2,7 +2,14 @@
 
 #include "Application.h"
 #include "AssetManager.h"
+#include "EditorEvent.h"
+#include "ImGuiLayer.h"
 #include "Input.h"
+#include "Material.h"
+#include "PBRMaterialParams.h"
+#include "UIUtils.h"
+
+#include "SphereParams.h"
 
 #include "imgui.h"
 
@@ -80,17 +87,54 @@ void EditorLayer::OnAttach() {
     CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
 
     {
+        // Material
+
         auto nodeBit   = FTypeRegister::Get().GetBit("Node_Regular");
         auto sphereBit = FTypeRegister::Get().GetBit("Mesh_Sphere");
         auto newNode   = m_NodeTree.CreateNode("Sphere", nodeBit |= sphereBit, nullptr);
         m_NodeTree.SelectNode(newNode);
+
+        auto pbrMat = m_ViewportRenderer->GetPBRMaterial();
+        static_cast<FSphereParams*>(newNode->GetMeshParamsWrapper()->Get())->Material =
+            pbrMat->GetHandle();
+
+        auto meshProps = newNode->GetMeshParamsWrapper();
     }
 
     {
         auto nodeBit = FTypeRegister::Get().GetBit("Node_Regular");
         auto hdriBit = FTypeRegister::Get().GetBit("Light_HDRIBackdrop");
-        m_NodeTree.CreateNode("HDRI Backdrop", nodeBit |= hdriBit, nullptr);
+        auto newNode = m_NodeTree.CreateNode("HDRI Backdrop", nodeBit |= hdriBit, nullptr);
+
+        auto tex = CAssetManager::Get().GetOrLoadTexture("textures://HDRI/newport_loft.hdr");
+        newNode->GetHDRIBackdropParams()->Cubemap = tex->GetHandle();
     }
+
+    FEventBus::Get().AddListener(EEventType::OpenMaterialPanel, [this](IEvent& e) {
+        auto& openMaterialPanelEvent = static_cast<FOpenMaterialPanelEvent&>(e);
+
+        CZ_LOG(LogEditorLayer, Trace, "OpenMaterialPanel: {}",
+               openMaterialPanelEvent.GetMaterialHandle().ToString());
+
+        auto mat = CAssetManager::Get().GetAsset(openMaterialPanelEvent.GetMaterialHandle());
+        if (mat) {
+            m_MaterialPanel.SetMaterial(mat);
+            m_MaterialPanel.Open();
+            ImGuiWindow* window = ImGui::FindWindowByName("Material");
+            if (window) {
+                ImGui::FocusWindow(window);
+            }
+        }
+        return true; // Return false to indicate we don't want to mark the event as handled
+    });
+
+    m_ConsolePanel.Open();
+    m_SceneHierarchyPanel.Open();
+    m_PropertiesPanel.Open();
+    m_ContentBrowserPanel.Open();
+    m_MaterialPanel.Open();
+    m_TextureViewerPanel.Open();
+    m_AssetsPanel.Open();
 }
 
 void EditorLayer::OnDetach() {
@@ -134,6 +178,10 @@ void EditorLayer::OnImGuiRender() {
 
             if (ImGui::BeginMenu("PowerMode")) {
                 EAppPowerMode appPowerMode = CApplication::Get()->GetPowerMode();
+                if (ImGui::MenuItem("NoLimit", nullptr, appPowerMode == EAppPowerMode::NoLimit))
+                    CApplication::Get()->SetPowerMode(EAppPowerMode::NoLimit);
+                if (ImGui::MenuItem("Extreme", nullptr, appPowerMode == EAppPowerMode::Extreme))
+                    CApplication::Get()->SetPowerMode(EAppPowerMode::Extreme);
                 if (ImGui::MenuItem("Performance", nullptr,
                                     appPowerMode == EAppPowerMode::Performance))
                     CApplication::Get()->SetPowerMode(EAppPowerMode::Performance);
@@ -157,13 +205,13 @@ void EditorLayer::OnImGuiRender() {
     // ----------------------------------------------------------------------------
     // [Sub-Section] Sub-Panels Update
     // ----------------------------------------------------------------------------
-    m_ConsolePanel.Draw("Console", &m_IsConsoleOpen);
-    m_SceneHierarchyPanel.Draw("Scene Hierarchy", &m_IsSceneHierarchyOpen);
-    m_PropertiesPanel.Draw("Properties", &m_IsPropertiesOpen);
-    m_ContentBrowserPanel.Draw("Content Browser", &m_IsContentBrowserOpen);
-    m_MaterialPanel.Draw("Material", &m_IsMaterialOpen);
-    m_TextureViewerPanel.Draw("Texture Viewer", &m_IsTextureViewerOpen);
-    m_AssetsPanel.Draw("Assets", &m_IsAssetsOpen);
+    m_ConsolePanel.Draw("Console");
+    m_SceneHierarchyPanel.Draw("Scene Hierarchy");
+    m_PropertiesPanel.Draw("Properties");
+    m_ContentBrowserPanel.Draw("Content Browser");
+    m_MaterialPanel.Draw("Material");
+    m_TextureViewerPanel.Draw("Texture Viewer");
+    m_AssetsPanel.Draw("Assets");
 #pragma endregion
 
 #pragma region Viewport Rendering
@@ -182,29 +230,38 @@ void EditorLayer::OnImGuiRender() {
     // the scene to receive input when the viewport is active.
     m_ViewportFocused = ImGui::IsWindowFocused();
     m_ViewportHovered = ImGui::IsWindowHovered();
-    CApplication::Get()->GetImGuiLayer().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+    CImGuiLayer::Get().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
     auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
     m_ViewportSize      = ImGui::GetContentRegionAvail();
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
     auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
-    ImTextureID textureID = (ImTextureID)tex->GetImTextureID();
+    ImTextureID textureID = GET_IM_RHI_TEXTURE_ID(tex.get());
     ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
 
     // Integrated Debug Overlay
     m_Overlay.Draw("Editor Overlay:", &m_IsOverlayOpen, [io]() {
         // Performance monitoring
-        auto profiler = CApplication::Get()->GetPerformanceProfiler();
-        float fps     = CApplication::Get()->GetFPSCounter()->GetFPS();
-        float latency = CApplication::Get()->GetFPSCounter()->GetAvgLatency();
+        auto appProfiler = CApplication::Get()->GetPerformanceProfiler();
+        float fps        = CApplication::Get()->GetFPSCounter()->GetFPS();
+        float latency    = CApplication::Get()->GetFPSCounter()->GetAvgLatency();
+
+        auto rendererProfiler =
+            CApplication::Get()->GetRenderEngine()->GetRenderer()->GetPerformanceProfiler();
 
         ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Engine FPS: %.1f", fps);
         ImGui::TextDisabled("Latency: %.3f ms", latency);
+        for (uint32_t i = 1; i < (uint32_t)EAppProfileSlot::COUNT; ++i) {
+            const float time = appProfiler->GetSmoothedAverage((uint32_t)(EAppProfileSlot)i);
+            ImGui::Text("%-20s: %.3f ms", GAppProfileSlotNames[i], time);
+        }
 
-        for (uint32_t i = 1; i < (uint32_t)EProfileSlot::COUNT; ++i) {
-            const float time = profiler->GetSmoothedAverage((EProfileSlot)i);
-            ImGui::Text("%-20s: %.3f ms", GProfileSlotNames[i], time);
+        ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Renderer:");
+        for (uint32_t i = 1; i < (uint32_t)ERendererProfileSlot::COUNT; ++i) {
+            const float time =
+                rendererProfiler->GetSmoothedAverage((uint32_t)(ERendererProfileSlot)i);
+            ImGui::Text("%-20s: %.3f ms", GRendererProfileSlotNames[i], time);
         }
 
         auto gpuProfiler = CApplication::Get()->GetGPUProfiler();
@@ -278,13 +335,6 @@ bool EditorLayer::OnKeyPressed(FKeyPressedEvent& e) {
         // case Key::R: m_GizmoType = ImGuizmo::OPERATION::SCALE; break;
         case Key::F: {
             CZ_LOG(LogEditorLayer, Trace, "F Pressed");
-            if (m_PolygonMode == EPolygonMode::Fill) {
-                m_ViewportRenderer->SetPolygonMode(EPolygonMode::Line);
-                m_PolygonMode = EPolygonMode::Line;
-            } else {
-                m_ViewportRenderer->SetPolygonMode(EPolygonMode::Fill);
-                m_PolygonMode = EPolygonMode::Fill;
-            }
         }
         default: break;
     }

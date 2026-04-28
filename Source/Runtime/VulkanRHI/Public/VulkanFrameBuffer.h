@@ -2,10 +2,11 @@
 #pragma once
 
 #include "RHIFrameBuffer.h"
-
 #include "VulkanDevice.h"
 
 #include "VulkanRHIExport.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogVulkanFrameBuffer, Info);
 
 class VULKAN_RHI_API CVulkanFrameBuffer : public IRHIFrameBuffer {
 public:

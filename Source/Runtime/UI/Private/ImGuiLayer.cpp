@@ -7,7 +7,7 @@
 #include "VFS.h"
 
 #include "imgui.h"
-#include "imgui_impl_glfw.h"
+#include "imgui_impl_sdl3.h"
 
 DEFINE_LOG_CATEGORY(LogImGuiLayer);
 
@@ -19,12 +19,23 @@ DEFINE_LOG_CATEGORY(LogImGuiLayer);
 //     return FImVec2(lhs.x - rhs.x, lhs.y - rhs.y);
 // }
 
-CImGuiLayer::CImGuiLayer(CWindow* window, IRHIContext* rhiContext)
-    : ILayer("ImGuiLayer"), m_Window(window), m_Context(rhiContext) {
-    m_ImGuiRenderer = CreateRenderer(window, rhiContext);
+CImGuiLayer& CImGuiLayer::Get() {
+    static CImGuiLayer instance;
+    return instance;
 }
 
-CImGuiLayer::~CImGuiLayer() {}
+CImGuiLayer::CImGuiLayer() : m_Window(nullptr), m_Context(nullptr) {}
+
+void CImGuiLayer::Init(CWindow* window, IRHIContext* context) {
+    m_Window        = window;
+    m_Context       = context;
+    m_ImGuiRenderer = CreateRenderer(window, context);
+
+    window->SetEventPreprocessor(
+        [](const SDL_Event& event) -> void { ImGui_ImplSDL3_ProcessEvent(&event); });
+
+    OnAttach();
+}
 
 TScope<IImGuiRenderer> CImGuiLayer::CreateRenderer(CWindow* window, IRHIContext* rhiContext) {
 
@@ -72,7 +83,11 @@ void CImGuiLayer::OnAttach() {
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
-    // SetDarkThemeColors();
+    float pixelRatio  = m_Window->GetPixelRatio();
+    FExtent2D fbScale = m_Window->GetFrameBufferScale();
+    style.ScaleAllSizes(fbScale.Width / pixelRatio);
+
+    SetDarkThemeColors();
 
     // Setup Platform/Renderer backends
     m_ImGuiRenderer->Init(ImGui::GetCurrentContext());
@@ -99,15 +114,6 @@ void CImGuiLayer::Draw(const TRef<IRHICommandList>& cmdBuffer) {
 }
 
 void CImGuiLayer::Begin() {
-    ImGuiIO& io           = ImGui::GetIO();
-    auto logicalSize      = m_Window->GetSize();
-    auto framebufferScale = m_Window->GetFrameBufferScale();
-
-    io.DisplaySize = ImVec2((float)logicalSize.Width, (float)logicalSize.Height);
-    if (logicalSize.Width > 0 && logicalSize.Height > 0) {
-        io.DisplayFramebufferScale = ImVec2(framebufferScale.Width, framebufferScale.Height);
-    }
-
     m_ImGuiRenderer->NewFrame();
     CIconManager::Get().ProcessRawIcons(m_Context->GetCurrentFrameIndex());
 }
@@ -166,45 +172,69 @@ void CImGuiLayer::SetFont(std::string font) {
         return;
     }
 
-    ImGuiIO& io      = ImGui::GetIO();
-    float fontSize   = 18.0f;
-    float pixleRatio = m_Window->GetPixelRatio();
-    float scale      = m_Window->GetFrameBufferScale().Width;
+    ImGuiIO& io       = ImGui::GetIO();
+    float fontSize    = 18.0f;
+    float pixelRatio  = m_Window->GetPixelRatio();
+    FExtent2D fbScale = m_Window->GetFrameBufferScale();
 
     io.Fonts->Clear();
-    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * scale);
-    io.FontDefault     = io.Fonts->Fonts.back();
-    io.FontGlobalScale = 1.0f / pixleRatio;
+    io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * fbScale.Width / pixelRatio);
+    io.FontDefault = io.Fonts->Fonts.back();
 }
 
 void CImGuiLayer::SetDarkThemeColors() {
-    auto& colors              = ImGui::GetStyle().Colors;
-    colors[ImGuiCol_WindowBg] = ImVec4{ 0.15f, 0.155f, 0.16f, 1.0f };
+    auto& colors = ImGui::GetStyle().Colors;
 
-    // Headers
-    colors[ImGuiCol_Header]        = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-    colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.4f, 0.405f, 0.41f, 1.0f };
-    colors[ImGuiCol_HeaderActive]  = ImVec4{ 0.35f, 0.35f, 0.35f, 1.0f };
+    colors[ImGuiCol_WindowBg]  = ImVec4(0.22f, 0.22f, 0.24f, 1.00f);
+    colors[ImGuiCol_ChildBg]   = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
+    colors[ImGuiCol_PopupBg]   = ImVec4(0.06f, 0.06f, 0.08f, 1.00f);
+    colors[ImGuiCol_MenuBarBg] = ImVec4(0.06f, 0.06f, 0.08f, 1.00f);
 
-    // Buttons
-    colors[ImGuiCol_Button]        = ImVec4{ 0.3f, 0.305f, 0.31f, 1.0f };
-    colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
-    colors[ImGuiCol_ButtonActive]  = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
+    colors[ImGuiCol_TitleBg]          = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+    colors[ImGuiCol_TitleBgActive]    = ImVec4(0.28f, 0.28f, 0.28f, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
 
-    // Frame BG
-    colors[ImGuiCol_FrameBg]        = ImVec4{ 0.28f, 0.285f, 0.29f, 1.0f };
-    colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
-    colors[ImGuiCol_FrameBgActive]  = ImVec4{ 0.10f, 0.105f, 0.11f, 1.0f };
+    colors[ImGuiCol_Header]        = ImVec4(0.32f, 0.32f, 0.36f, 1.00f);
+    colors[ImGuiCol_HeaderHovered] = ImVec4(0.42f, 0.42f, 0.46f, 1.00f);
+    colors[ImGuiCol_HeaderActive]  = ImVec4(0.46f, 0.46f, 0.50f, 1.00f);
 
-    // Tabs
-    colors[ImGuiCol_Tab]                = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-    colors[ImGuiCol_TabHovered]         = ImVec4{ 0.38f, 0.385f, 0.39f, 1.0f };
-    colors[ImGuiCol_TabActive]          = ImVec4{ 0.28f, 0.285f, 0.29f, 1.0f };
-    colors[ImGuiCol_TabUnfocused]       = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-    colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.1f, 0.105f, 0.11f, 1.0f };
+    colors[ImGuiCol_Button]        = ImVec4(0.34f, 0.34f, 0.38f, 1.00f);
+    colors[ImGuiCol_ButtonHovered] = ImVec4(0.46f, 0.46f, 0.50f, 1.00f);
+    colors[ImGuiCol_ButtonActive]  = ImVec4(0.42f, 0.42f, 0.46f, 1.00f);
 
-    // Titles
-    colors[ImGuiCol_TitleBg]          = ImVec4{ 0.15f, 0.155f, 0.16f, 1.0f };
-    colors[ImGuiCol_TitleBgActive]    = ImVec4{ 0.2f, 0.205f, 0.21f, 1.0f };
-    colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.95f, 0.155f, 0.91f, 1.0f };
+    colors[ImGuiCol_FrameBg]        = ImVec4(0.26f, 0.26f, 0.28f, 1.00f);
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.32f, 0.32f, 0.36f, 1.00f);
+    colors[ImGuiCol_FrameBgActive]  = ImVec4(0.36f, 0.36f, 0.40f, 1.00f);
+
+    colors[ImGuiCol_Tab]                = ImVec4(0.28f, 0.28f, 0.32f, 1.00f);
+    colors[ImGuiCol_TabHovered]         = ImVec4(0.42f, 0.42f, 0.46f, 1.00f);
+    colors[ImGuiCol_TabActive]          = ImVec4(0.36f, 0.36f, 0.40f, 1.00f);
+    colors[ImGuiCol_TabUnfocused]       = ImVec4(0.24f, 0.24f, 0.28f, 1.00f);
+    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.28f, 0.28f, 0.32f, 1.00f);
+
+    colors[ImGuiCol_ScrollbarBg]          = ImVec4(0.18f, 0.18f, 0.20f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrab]        = ImVec4(0.36f, 0.36f, 0.40f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.46f, 0.46f, 0.50f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.50f, 0.50f, 0.54f, 1.00f);
+
+    colors[ImGuiCol_SliderGrab]       = ImVec4(0.40f, 0.40f, 0.44f, 1.00f);
+    colors[ImGuiCol_SliderGrabActive] = ImVec4(0.48f, 0.48f, 0.52f, 1.00f);
+
+    colors[ImGuiCol_CheckMark] = ImVec4(0.85f, 0.85f, 0.95f, 1.00f);
+
+    colors[ImGuiCol_Separator]        = ImVec4(0.32f, 0.32f, 0.36f, 1.00f);
+    colors[ImGuiCol_SeparatorHovered] = ImVec4(0.44f, 0.44f, 0.48f, 1.00f);
+    colors[ImGuiCol_SeparatorActive]  = ImVec4(0.48f, 0.48f, 0.52f, 1.00f);
+
+    colors[ImGuiCol_Text]         = ImVec4(0.98f, 0.98f, 1.00f, 1.00f);
+    colors[ImGuiCol_TextDisabled] = ImVec4(0.70f, 0.70f, 0.74f, 1.00f);
+
+    colors[ImGuiCol_Border]       = ImVec4(0.35f, 0.35f, 0.39f, 1.00f);
+    colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+
+    colors[ImGuiCol_DragDropTarget] = ImVec4(0.65f, 0.65f, 0.75f, 0.90f);
+
+    colors[ImGuiCol_ResizeGrip]        = ImVec4(0.32f, 0.32f, 0.36f, 1.00f);
+    colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.46f, 0.46f, 0.50f, 1.00f);
+    colors[ImGuiCol_ResizeGripActive]  = ImVec4(0.50f, 0.50f, 0.54f, 1.00f);
 }

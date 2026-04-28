@@ -9,7 +9,7 @@ class FScene;
 
 class FTransformSystem {
 public:
-    FTransformSystem(class FScene* scene);
+    FTransformSystem(class FScene* scene) : m_Scene(scene) {}
 
     void Update();
     void MarkDirty(FEntity entity);
@@ -20,12 +20,11 @@ public:
 private:
     void ComputeDepth(FEntity entity, uint32_t depth);
 
-    // 拓扑排序：按深度升序排列需要更新的实体
     std::vector<FEntity> GetUpdateOrder();
 
     void UpdateEntity(FEntity entity);
 
     FScene* m_Scene;
-    std::vector<FEntity> m_DirtySet; // 需要更新的实体列表（可选）
+    std::vector<FEntity> m_DirtySet;
     bool m_bNeedSort = true;
 };

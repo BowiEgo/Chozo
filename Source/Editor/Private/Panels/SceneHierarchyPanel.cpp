@@ -10,11 +10,11 @@ SceneHierarchyPanel::SceneHierarchyPanel() {}
 
 SceneHierarchyPanel::~SceneHierarchyPanel() {}
 
-void SceneHierarchyPanel::Draw(const char* title, bool* p_open) {
-    if (!m_NodeTree) return;
+void SceneHierarchyPanel::Draw(const char* title) {
+    if (!m_bOpen || !m_NodeTree) return;
 
     ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(title, p_open)) {
+    if (!ImGui::Begin(title, &m_bOpen)) {
         ImGui::End();
         return;
     }
@@ -201,23 +201,23 @@ void SceneHierarchyPanel::DrawFlattenedNode(FEditorNode* node, int depth) {
     ImGui::TableNextColumn();
 
     // --- Node Lines Begin ---
-    ImVec2 screen_pos = ImGui::GetCursorScreenPos();
-    float indent_step = ImGui::GetStyle().IndentSpacing;
-    float row_height = ImGui::GetTextLineHeightWithSpacing();
+    ImVec2 screen_pos     = ImGui::GetCursorScreenPos();
+    float indent_step     = ImGui::GetStyle().IndentSpacing;
+    float row_height      = ImGui::GetTextLineHeightWithSpacing();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    ImU32 line_color = ImGui::GetColorU32(ImGuiCol_TextDisabled, 0.8f);
+    ImU32 line_color      = ImGui::GetColorU32(ImGuiCol_TextDisabled, 0.8f);
 
     for (int i = 0; i < depth; i++) {
         // Draw vertical lines for each level of depth.
-        float line_x = screen_pos.x + (i + 0.5f) * indent_step + 10.0f;
+        float line_x  = screen_pos.x + (i + 0.5f) * indent_step + 10.0f;
         float start_y = screen_pos.y - row_height * 0.5;
-        float end_y = screen_pos.y + row_height * 0.5;
+        float end_y   = screen_pos.y + row_height * 0.5;
         draw_list->AddLine(ImVec2(line_x, start_y), ImVec2(line_x, end_y), line_color);
     }
     // Draw the horizontal "stub" for the current node's depth
     float start_x = screen_pos.x + 0.5 * indent_step + 10.0f;
-    float end_x = start_x + depth * indent_step;
-    float stub_y = screen_pos.y + row_height * 0.5f;
+    float end_x   = start_x + depth * indent_step;
+    float stub_y  = screen_pos.y + row_height * 0.5f;
     draw_list->AddLine(ImVec2(start_x, stub_y), ImVec2(end_x, stub_y), line_color);
     // --- Node Lines End ---
 

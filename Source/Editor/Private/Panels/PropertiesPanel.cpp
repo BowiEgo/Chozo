@@ -1,9 +1,11 @@
 #include "PropertiesPanel.h"
 
-#include "UIUtils.h"
+#include "PropControllers.h"
 
-void PropertiesPanel::Draw(const char* title, bool* p_open) {
-    if (!ImGui::Begin(title, p_open)) {
+void PropertiesPanel::Draw(const char* title) {
+    if (!m_bOpen) return;
+
+    if (!ImGui::Begin(title, &m_bOpen)) {
         ImGui::End();
         return;
     }
@@ -30,7 +32,7 @@ void PropertiesPanel::DrawComponentHeader(const std::string& name, bool bDefault
     if (bDefaultOpen) treeNodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
 
     ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
-    const float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+    const float lineHeight        = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
 
     ImGui::Separator();
     bool open =
@@ -41,9 +43,9 @@ void PropertiesPanel::DrawComponentHeader(const std::string& name, bool bDefault
     }
 
     if (open) {
-        ImGui::Indent();
+        // ImGui::Indent();
         drawContentFunc();
-        ImGui::Unindent();
+        // ImGui::Unindent();
         ImGui::TreePop();
     }
 }
@@ -56,7 +58,7 @@ bool PropertiesPanel::DrawColumnProperties(const std::string& name, IParams* par
         ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 100.0f);
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-        ChozoUtils::UI::TableParamsVisitor visitor;
+        EditorParamsVisitor visitor;
         params->Accept(visitor);
 
         if (visitor.IsValueChanged()) {
@@ -105,7 +107,7 @@ void PropertiesPanel::DrawMeshProperties(FEditorNode* node) {
     if (!node->HasMesh()) return;
 
     DrawComponentHeader("Mesh", true, [this, node]() {
-        auto params = node->GetMeshParams()->Get();
+        auto params = node->GetMeshParamsWrapper()->Get();
         if (DrawColumnProperties("Mesh", params)) {
             node->MarkDirty();
         }

@@ -210,30 +210,30 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
         addExtensionIfNeeded(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
     }
 
-    vk::PhysicalDeviceFeatures deviceFeatures;
+    vk::PhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.fillModeNonSolid = VK_TRUE; // [Note] This enables Wireframe/Point mode support
 
-    vk::PhysicalDeviceFeatures2 features2;
+    vk::PhysicalDeviceFeatures2 features2{};
     features2.features = deviceFeatures;
 
-    vk::PhysicalDeviceVulkan11Features features11;
+    vk::PhysicalDeviceVulkan11Features features11{};
     features11.shaderDrawParameters = true;
 
-    vk::PhysicalDeviceVulkan13Features features13;
+    vk::PhysicalDeviceVulkan13Features features13{};
     features13.synchronization2 = true;
     features13.dynamicRendering = true;
 
-    vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT extendedFeatures;
+    vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT extendedFeatures{};
     extendedFeatures.extendedDynamicState = true;
 
-    vk::PhysicalDeviceExtendedDynamicState3FeaturesEXT dynamicState3Features;
+    vk::PhysicalDeviceExtendedDynamicState3FeaturesEXT dynamicState3Features{};
     if (hasDynamicState3) {
         dynamicState3Features.setExtendedDynamicState3PolygonMode(VK_TRUE);
         dynamicState3Features.setExtendedDynamicState3DepthClipEnable(VK_TRUE);
         // dynamicState3Features.setExtendedDynamicState3LogicOp(VK_TRUE);
     }
 
-    vk::PhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchainMaintenanceFeatures;
+    vk::PhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchainMaintenanceFeatures{};
     if (hasSwapchainMaintenance) {
         swapchainMaintenanceFeatures.setSwapchainMaintenance1(VK_TRUE);
     }
@@ -247,13 +247,13 @@ void CVulkanDevice::CreateLogicalDevice(const vk::raii::SurfaceKHR& surface) {
                      swapchainMaintenanceFeatures);
 
     float queuePriority = 0.5f;
-    vk::DeviceQueueCreateInfo deviceQueueCreateInfo;
+    vk::DeviceQueueCreateInfo deviceQueueCreateInfo{};
     deviceQueueCreateInfo.queueFamilyIndex = indices.Graphics.value();
     deviceQueueCreateInfo.queueCount       = 1;
     deviceQueueCreateInfo.pQueuePriorities = &queuePriority;
 
     // Link features to DeviceCreateInfo
-    vk::DeviceCreateInfo deviceCreateInfo;
+    vk::DeviceCreateInfo deviceCreateInfo{};
     deviceCreateInfo.pNext                 = &featureChain.get<vk::PhysicalDeviceFeatures2>();
     deviceCreateInfo.pEnabledFeatures      = nullptr;
     deviceCreateInfo.queueCreateInfoCount  = 1;
@@ -316,7 +316,7 @@ vk::raii::DescriptorPool
                                         const std::vector<vk::DescriptorPoolSize>& poolSizes) {
     vk::raii::DescriptorPool result = nullptr;
 
-    vk::DescriptorPoolCreateInfo poolInfo;
+    vk::DescriptorPoolCreateInfo poolInfo{};
     poolInfo.flags   = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
     poolInfo.maxSets = maxSets;
     poolInfo.setPoolSizes(poolSizes);
@@ -375,7 +375,7 @@ TRef<CVulkanCommandBuffer> CVulkanDevice::BeginSingleTimeCommands() const {
 
     // m_SingleCommandSyncObject->WaitAndResetFence(TRef<CVulkanDevice>(this));
     // Begin recording with the 'OneTimeSubmit' flag for driver optimization
-    vk::CommandBufferBeginInfo beginInfo;
+    vk::CommandBufferBeginInfo beginInfo{};
     beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 
     vkCmdBuffer.begin(beginInfo);
@@ -390,10 +390,10 @@ void CVulkanDevice::EndSingleTimeCommands(TRef<CVulkanCommandBuffer> cmdBuffer) 
 
     vkCmdBuffer.end();
 
-    vk::FenceCreateInfo fenceInfo;
+    vk::FenceCreateInfo fenceInfo{};
     vk::Fence fence = rawDevice.createFence(fenceInfo);
 
-    vk::SubmitInfo submitInfo;
+    vk::SubmitInfo submitInfo{};
     submitInfo.setCommandBuffers(vkCmdBuffer);
 
     m_GraphicsQueue.submit(submitInfo, fence);
@@ -450,7 +450,7 @@ bool CVulkanDevice::IsExtensionSupported(const std::string& extensionName) const
 }
 
 vk::raii::DescriptorSet CVulkanDevice::AllocateSetFromPool(vk::DescriptorSetLayout layout) {
-    vk::DescriptorSetAllocateInfo allocInfo;
+    vk::DescriptorSetAllocateInfo allocInfo{};
     allocInfo.setDescriptorPool(*m_GlobalDescriptorPool)
         .setDescriptorSetCount(1)
         .setPSetLayouts(&layout);
@@ -469,8 +469,8 @@ GPUProfiler CVulkanDevice::GetProfiler() {
     vmaGetHeapBudgets(m_VmaAllocator, budgets);
     vk::PhysicalDeviceMemoryProperties memProps = physicalDevice.getMemoryProperties();
 
-    vk::PhysicalDeviceMemoryBudgetPropertiesEXT budgetProps;
-    vk::PhysicalDeviceMemoryProperties2 memProps2;
+    vk::PhysicalDeviceMemoryBudgetPropertiesEXT budgetProps{};
+    vk::PhysicalDeviceMemoryProperties2 memProps2{};
     memProps2.sType = vk::StructureType::ePhysicalDeviceMemoryProperties2;
     memProps2.pNext = &budgetProps;
 

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Cube.h"
 #include "LightRegister.h"
+#include "Material.h" // TODO: Remove
 #include "MeshManager.h"
 #include "Module.h"
 #include "RHICommandList.h"
@@ -11,6 +12,7 @@
 #include "Scope.h"
 #include "Sphere.h"
 #include "Texture.h"
+#include "Timer.h"
 #include "Viewport.h"
 
 #include "RenderCoreExport.h"
@@ -19,6 +21,23 @@
 #include "Quad.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogRenderer, Info);
+
+#define RENDERER_PROFILE_SLOTS                                                                     \
+    X(TotalFrame, "Total FrameTime")                                                               \
+    X(CubemapSampler, "EquirectToCubemap Pass")                                                    \
+    X(Skybox, "Skybox Pass")                                                                       \
+    X(Composite, "Composite Pass")                                                                 \
+    X(ImGUI, "ImGUI Pass")                                                                         \
+    X(GraphCompile, "Graph Compile")                                                               \
+    X(GraphExecute, "Graph Execute")
+
+#define X(name, displayName) name,
+enum class ERendererProfileSlot : uint32_t { RENDERER_PROFILE_SLOTS COUNT };
+#undef X
+
+#define X(name, displayName) displayName,
+const char* const GRendererProfileSlotNames[] = { RENDERER_PROFILE_SLOTS };
+#undef X
 
 struct FFrameResource {
     TRef<IRHICommandPool> CommandPool;
@@ -36,19 +55,13 @@ public:
 
     void Init();
     void Tick(float deltaTime);
+    void Clear();
     void Shutdown();
     CViewport* CreateViewport(const std::string name, uint32 width, uint32 height);
 
     void SetUICallback(FOnRenderUI callback) { m_UICallback = std::move(callback); }
     void SetPresentMode(const EPresentMode mode) {
         m_GraphicContext->GetSwapchain()->SetPresentMode(mode);
-    }
-    void SetPolygonMode(const EPolygonMode mode) {
-        switch (mode) {
-            case EPolygonMode::Fill: m_CurrentPipeline = m_SolidPipeline; break;
-            case EPolygonMode::Line: m_CurrentPipeline = m_WireframePipeline; break;
-            default: break;
-        }
     }
     void RecreateSwapchain(const FExtent2D& frameBufferSize) {
         m_GraphicContext->GetSwapchain()->Recreate(frameBufferSize);
@@ -59,9 +72,13 @@ public:
     TRef<IRHICommandList> GetCommandList() const {
         return m_Frames[m_CurrentFrameIndex].CommandList;
     }
+    PerformanceProfiler* GetPerformanceProfiler() { return m_Profiler.get(); }
+
+    TRef<CMaterial> GetPBRMaterial() { return m_PBRMat; } // TODO: Remove
 
 private:
     CModule m_RHIModule;
+    TScope<PerformanceProfiler> m_Profiler;
 
     IRendererWindow* m_Window;
     TScope<IRHIContext> m_GraphicContext;
@@ -71,12 +88,25 @@ private:
 
     std::vector<TScope<CViewport>> m_Viewports;
 
-    TRef<IRHIPipeline> m_CurrentPipeline, m_SolidPipeline, m_WireframePipeline,
-        m_CubemapSamplerPipeline, m_SkyboxPipeline;
+    TRef<IRHIPipeline> m_CubemapSamplerPipeline, m_SkyboxPipeline; // TODO: Remove
 
     TRef<CTexture> m_SkyboxTex; // TODO: Remove
     TRef<FCube> m_Cube;
     TRef<FQuad> m_Quad;
 
+    TRef<CMaterial> m_SolidMat, m_PBRMat; // TODO: Remove
+
     FOnRenderUI m_UICallback = nullptr;
 };
+
+#if 1
+    // Create a unique timer variable named e.g., timer123
+    #define CZ_RENDERER_SCOPE_PERF(slot)                                                           \
+        ScopePerfTimer CZ_CONCAT(timer, __LINE__)(static_cast<uint32_t>(slot),                     \
+                                                  this -> GetPerformanceProfiler())
+
+    #define CZ_RENDERER_SCOPE_TIMER(name) ScopedTimer CZ_CONCAT(timer, __LINE__)(name);
+#else
+    #define CZ_RENDERER_SCOPE_PERF(slot)
+    #define CZ_RENDERER_SCOPE_TIMER(name)
+#endif

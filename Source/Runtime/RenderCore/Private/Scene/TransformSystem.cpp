@@ -4,8 +4,6 @@
 #include "Scene.h"
 #include "TransformComponent.h"
 
-FTransformSystem::FTransformSystem(FScene* scene) : m_Scene(scene) {}
-
 void FTransformSystem::Update() {
     if (m_DirtySet.empty()) return;
 
@@ -66,7 +64,7 @@ void FTransformSystem::ComputeDepth(FEntity entity, uint32_t depth) {
 
 void FTransformSystem::UpdateEntity(FEntity entity) {
     auto& transform = m_Scene->GetComponent<FTransformComponent>(entity);
-    auto& rel = m_Scene->GetComponent<FRelationshipComponent>(entity);
+    auto& rel       = m_Scene->GetComponent<FRelationshipComponent>(entity);
 
     if (!transform.IsValid()) return;
 
@@ -81,7 +79,7 @@ void FTransformSystem::UpdateEntity(FEntity entity) {
             // Parent node not yet updated (theoretically shouldn’t happen because sorting
             // Can recursively update the parent node
             UpdateEntity(rel.Parent);
-            auto& updatedParent = m_Scene->GetComponent<FTransformComponent>(rel.Parent);
+            auto& updatedParent   = m_Scene->GetComponent<FTransformComponent>(rel.Parent);
             transform.WorldMatrix = updatedParent.WorldMatrix * local;
         }
     } else {

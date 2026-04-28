@@ -48,10 +48,7 @@ public:
 
 class UI_API UFileDialog {
 public:
-    static inline UFileDialog& Get() {
-        static UFileDialog ret;
-        return ret;
-    }
+    static UFileDialog& Get();
 
     UFileDialog();
     ~UFileDialog();

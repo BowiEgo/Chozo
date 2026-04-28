@@ -3,10 +3,10 @@
 #include "Asset.h"
 #include "Params.h"
 
-struct FHDRIBackdropParams : public IParams {
+struct RENDER_CORE_API FHDRIBackdropParams : public IParams {
     FAssetHandle Cubemap;
     float Intensity = 1.0f;
-    float Lod = 0.0f;
+    float Lod       = 0.0f;
 
     FHDRIBackdropParams() = default;
 
@@ -17,9 +17,9 @@ struct FHDRIBackdropParams : public IParams {
 
     FHDRIBackdropParams& operator=(const FHDRIBackdropParams& other) {
         if (this != &other) {
-            Cubemap = other.Cubemap;
+            Cubemap   = other.Cubemap;
             Intensity = other.Intensity;
-            Lod = other.Lod;
+            Lod       = other.Lod;
         }
         return *this;
     }
@@ -43,12 +43,16 @@ struct FHDRIBackdropParams : public IParams {
         return h;
     }
 
-    virtual std::string GetTypeName() const override { return "HDRIBackdrop"; }
-
-    virtual size_t GetPropertyCount() const override { return 3; }
-    virtual std::string GetPropertyName(size_t index) const override {
+    virtual size_t GetParamCount() override { return 3; }
+    virtual std::string GetParamName(size_t index) override {
         static const std::string names[] = { "Cubemap", "Intensity", "Lod" };
-        return index < GetPropertyCount() ? names[index] : "";
+        return index < GetParamCount() ? names[index] : "";
+    }
+    virtual std::any GetParamValue(const std::string& name) const override {
+        if (name == "Cubemap") return Cubemap;
+        if (name == "Intensity") return Intensity;
+        if (name == "Lod") return Lod;
+        return {};
     }
 
     virtual void Accept(IParamsVisitor& visitor) override {
@@ -62,10 +66,11 @@ struct FHDRIBackdropParams : public IParams {
         visitor.Visit(Lod, "Lod");
     }
 
+    // ===== Type Info =====
+    virtual std::string GetTypeName() const override { return "HDRIBackdrop"; }
+    static const char* GetStaticTypeName() { return "HDRIBackdrop"; }
+
     // ===== Comparison Operators =====
     bool operator==(const FHDRIBackdropParams& other) const { return Equals(other); }
     bool operator!=(const FHDRIBackdropParams& other) const { return !(*this == other); }
-
-    // ===== Type Info =====
-    static const char* GetStaticTypeName() { return "HDRIBackdrop"; }
 };

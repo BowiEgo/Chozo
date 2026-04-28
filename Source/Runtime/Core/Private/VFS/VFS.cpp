@@ -29,7 +29,7 @@ std::filesystem::path VFS::Resolve(const std::string& virtualPath) {
             }
 
             resolvedPath = physicalRoot / relativePath;
-            found = true;
+            found        = true;
             break;
         }
     }

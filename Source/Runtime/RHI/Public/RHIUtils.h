@@ -16,6 +16,6 @@ RHI_API std::map<uint32_t, FRHISetLayoutDescription>
 RHI_API FRHIPipelineLayoutDescription
     GeneratePipelineLayoutDesc(const std::vector<TRef<IRHIShader>>& RHIShaders);
 
-RHI_API EShaderDataFormat ToShaderDataFormat(EPixelFormat format);
+RHI_API EShaderDataType ToShaderDataFormat(EPixelFormat format);
 
 } // namespace ChozoUtils::RHI

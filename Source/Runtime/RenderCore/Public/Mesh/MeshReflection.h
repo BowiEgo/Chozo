@@ -25,7 +25,7 @@ template <typename Tag> struct MeshPropertyTraits;
 // ===== Macro: Generate property traits =====
 #define DEFINE_PROPERTY_TRAITS(ParamsType, PropName, PropType, TagName)                            \
     template <> struct MeshPropertyTraits<MeshProp::TagName> {                                     \
-        using Type = PropType;                                                                     \
+        using Type                        = PropType;                                              \
         static constexpr const char* Name = #PropName;                                             \
         static void Set(ParamsType& params, PropType value) { params.PropName = value; }           \
         static PropType Get(const ParamsType& params) { return params.PropName; }                  \
@@ -41,9 +41,9 @@ template <typename Tag> struct MeshPropertyTraits;
         return false;                                                                              \
     }
 
-// ===== Macro: Generate GetProperty function =====
+// ===== Macro: Generate GetParamValue function =====
 #define DEFINE_GET_PROPERTY(ParamsType, PropName, PropType, TagName)                               \
-    inline std::optional<PropType> GetProperty(const ParamsType& params, MeshProp::TagName) {      \
+    inline std::optional<PropType> GetParamValue(const ParamsType& params, MeshProp::TagName) {    \
         return params.PropName;                                                                    \
     }
 
@@ -70,7 +70,7 @@ template <typename Tag> struct MeshPropertyTraits;
     DEFINE_GET_PROPERTY(ParamsType, PropName, PropType, TagName)
 
 #define DECLARE_PARAM_COPY_CTOR(ParamsType)                                                        \
-    ParamsType(const ParamsType&) = default;                                                       \
+    ParamsType(const ParamsType&)            = default;                                            \
     ParamsType& operator=(const ParamsType&) = default;
 
 #define DECLARE_PARAM_COPY_CTOR_EXPLICIT(ParamsType, ...)                                          \

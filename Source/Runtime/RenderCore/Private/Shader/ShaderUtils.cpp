@@ -52,55 +52,55 @@ uint32 StageToKind(EShaderStage shaderStage) {
     }
 }
 
-EShaderDataFormat GetDataFormatFromSpv(const SpvReflectTypeDescription& type) {
+EShaderDataType GetDataFormatFromSpv(const SpvReflectTypeDescription& type) {
     if (type.type_flags & SPV_REFLECT_TYPE_FLAG_FLOAT) {
         uint32_t component_count = type.traits.numeric.vector.component_count;
         if (type.type_flags & SPV_REFLECT_TYPE_FLAG_MATRIX) {
             uint32_t columns = type.traits.numeric.matrix.column_count;
-            if (columns == 3) return EShaderDataFormat::Mat3;
-            if (columns == 4) return EShaderDataFormat::Mat4;
+            if (columns == 3) return EShaderDataType::Mat3;
+            if (columns == 4) return EShaderDataType::Mat4;
         } else {
-            if (component_count == 1) return EShaderDataFormat::Float;
-            if (component_count == 2) return EShaderDataFormat::Float2;
-            if (component_count == 3) return EShaderDataFormat::Float3;
-            if (component_count == 4) return EShaderDataFormat::Float4;
+            if (component_count == 1) return EShaderDataType::Float;
+            if (component_count == 2) return EShaderDataType::Float2;
+            if (component_count == 3) return EShaderDataType::Float3;
+            if (component_count == 4) return EShaderDataType::Float4;
         }
     }
     // ... 处理 Int / UInt ...
-    return EShaderDataFormat::None;
+    return EShaderDataType::None;
 }
 
-EShaderDataFormat GetDataFormatFromSpv(const SpvReflectFormat& format) {
+EShaderDataType GetDataFormatFromSpv(const SpvReflectFormat& format) {
     switch (format) {
         // --- 32-bit Float (最常用) ---
-        case SPV_REFLECT_FORMAT_R32_SFLOAT: return EShaderDataFormat::Float;
-        case SPV_REFLECT_FORMAT_R32G32_SFLOAT: return EShaderDataFormat::Float2;
-        case SPV_REFLECT_FORMAT_R32G32B32_SFLOAT: return EShaderDataFormat::Float3;
-        case SPV_REFLECT_FORMAT_R32G32B32A32_SFLOAT: return EShaderDataFormat::Float4;
+        case SPV_REFLECT_FORMAT_R32_SFLOAT: return EShaderDataType::Float;
+        case SPV_REFLECT_FORMAT_R32G32_SFLOAT: return EShaderDataType::Float2;
+        case SPV_REFLECT_FORMAT_R32G32B32_SFLOAT: return EShaderDataType::Float3;
+        case SPV_REFLECT_FORMAT_R32G32B32A32_SFLOAT: return EShaderDataType::Float4;
 
         // --- 32-bit Signed Int ---
-        case SPV_REFLECT_FORMAT_R32_SINT: return EShaderDataFormat::Int;
-        case SPV_REFLECT_FORMAT_R32G32_SINT: return EShaderDataFormat::Int2;
-        case SPV_REFLECT_FORMAT_R32G32B32_SINT: return EShaderDataFormat::Int3;
-        case SPV_REFLECT_FORMAT_R32G32B32A32_SINT: return EShaderDataFormat::Int4;
+        case SPV_REFLECT_FORMAT_R32_SINT: return EShaderDataType::Int;
+        case SPV_REFLECT_FORMAT_R32G32_SINT: return EShaderDataType::Int2;
+        case SPV_REFLECT_FORMAT_R32G32B32_SINT: return EShaderDataType::Int3;
+        case SPV_REFLECT_FORMAT_R32G32B32A32_SINT: return EShaderDataType::Int4;
 
         // --- 32-bit Unsigned Int ---
-        case SPV_REFLECT_FORMAT_R32_UINT: return EShaderDataFormat::UInt;
-        case SPV_REFLECT_FORMAT_R32G32_UINT: return EShaderDataFormat::UInt2;
-        case SPV_REFLECT_FORMAT_R32G32B32_UINT: return EShaderDataFormat::UInt3;
-        case SPV_REFLECT_FORMAT_R32G32B32A32_UINT: return EShaderDataFormat::UInt4;
+        case SPV_REFLECT_FORMAT_R32_UINT: return EShaderDataType::UInt;
+        case SPV_REFLECT_FORMAT_R32G32_UINT: return EShaderDataType::UInt2;
+        case SPV_REFLECT_FORMAT_R32G32B32_UINT: return EShaderDataType::UInt3;
+        case SPV_REFLECT_FORMAT_R32G32B32A32_UINT: return EShaderDataType::UInt4;
 
         // --- 16-bit Float (Half Float) ---
         // 如果引擎支持 Half 类型，可以增加对应枚举，否则暂存为 Float
-        case SPV_REFLECT_FORMAT_R16_SFLOAT: return EShaderDataFormat::Float;
-        case SPV_REFLECT_FORMAT_R16G16B16A16_SFLOAT: return EShaderDataFormat::Float4;
+        case SPV_REFLECT_FORMAT_R16_SFLOAT: return EShaderDataType::Float;
+        case SPV_REFLECT_FORMAT_R16G16B16A16_SFLOAT: return EShaderDataType::Float4;
 
         // --- 64-bit Float (Double) ---
         // 通常实时渲染不常用，映射到 None 或根据需要处理
-        case SPV_REFLECT_FORMAT_R64G64B64A64_SFLOAT: return EShaderDataFormat::None;
+        case SPV_REFLECT_FORMAT_R64G64B64A64_SFLOAT: return EShaderDataType::None;
 
         case SPV_REFLECT_FORMAT_UNDEFINED:
-        default: return EShaderDataFormat::None;
+        default: return EShaderDataType::None;
     }
 }
 

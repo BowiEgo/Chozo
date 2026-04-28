@@ -13,15 +13,15 @@ public:
     CTexture(const FTextureSpecification& spec, const FBuffer& data);
     virtual ~CTexture() = default;
 
+    virtual const std::string GetName() const override { return m_Spec.Name; }
+    virtual const EAssetType GetType() const override { return EAssetType::Texture; }
+
     const FTextureSpecification& GetSpec() const { return m_Spec; }
-    const std::string& GetName() const { return m_Spec.Name; }
     FExtent2D GetSize() const { return m_Spec.Size; }
     EPixelFormat GetFormat() const { return m_Spec.Format; }
     ETextureUsage GetUsage() const { return m_Spec.Usage; }
 
-    IRHITexture* GetOrCreateResource();
-
-    void* GetImTextureID() { return GetOrCreateResource()->GetImTextureID(); }
+    IRHITexture* GetResource();
 
 protected:
     FTextureSpecification m_Spec;

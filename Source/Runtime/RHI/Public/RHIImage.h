@@ -10,8 +10,8 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogRHIImage, Info);
 
 struct FImageViewSpecification {
-    EImageViewType ViewType  = EImageViewType::View2D;
-    EShaderDataFormat Format = EShaderDataFormat::None;
+    EImageViewType ViewType = EImageViewType::View2D;
+    EShaderDataType Format  = EShaderDataType::None;
 
     uint32 BaseMipLevel   = 0;
     uint32 MipCount       = 1;
@@ -95,14 +95,17 @@ public:
     IRHIImage(const WeakRef<IRHIDevice> device, const FImageSpecification& spec);
     virtual ~IRHIImage();
 
+    virtual EResourceType GetResourceType() const { return EResourceType::Image; }
+
     virtual void Destroy()              = 0;
     virtual void SetData(FBuffer& data) = 0;
-
     virtual const FImageSpecification& GetSpec() const { return m_Spec; }
 
+    bool IsValid() const { return m_bValid; }
     const bool IsFromImagePool() const { return m_bFromImagePool; }
 
 protected:
     FImageSpecification m_Spec;
+    bool m_bValid         = true;
     bool m_bFromImagePool = false; // TODO: Remove
 };

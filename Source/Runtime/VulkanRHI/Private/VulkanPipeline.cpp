@@ -26,18 +26,6 @@ void CVulkanPipeline::Init() {
 
     const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
 
-    FRHIPipelineLayoutDescription pipelineLayoutDesc =
-        ChozoUtils::RHI::GeneratePipelineLayoutDesc(m_Spec.RHIShaders);
-
-    auto rhiLayouts = device->CreateDescriptorSetLayout(pipelineLayoutDesc);
-
-    m_DescriptorSetLayouts.clear();
-    m_DescriptorSetLayouts.reserve(rhiLayouts.size());
-
-    for (const auto& rhiLayout : rhiLayouts) {
-        m_DescriptorSetLayouts.push_back(rhiLayout);
-    }
-
     // ===== Push Constant Range =====
     std::vector<vk::PushConstantRange> pushConstantRanges;
     if (m_Spec.PushConstantRanges.size() > 0) {
@@ -47,6 +35,28 @@ void CVulkanPipeline::Init() {
         );
         pushConstantRanges.push_back(vertPushRange);
     }
+
+    // ===== Pipeline Layout =====
+#if 1
+    FRHIPipelineLayoutDescription pipelineLayoutDesc =
+        ChozoUtils::RHI::GeneratePipelineLayoutDesc(m_Spec.RHIShaders);
+
+    m_DescriptorSetLayouts = device->CreateDescriptorSetLayout(pipelineLayoutDesc);
+#else
+    m_DescriptorSetLayouts.clear();
+    m_DescriptorSetLayouts.reserve(m_Spec.RHISeyLayouts.size());
+
+    for (const auto& [_, setLayout] : m_Spec.RHISeyLayouts) {
+        m_DescriptorSetLayouts.push_back(setLayout);
+    }
+#endif
+    std::vector<vk::DescriptorSetLayout> vkSetLayouts;
+    for (const auto& layout : m_DescriptorSetLayouts) {
+        vkSetLayouts.push_back(layout.As<CVulkanSetLayout>()->GetVKHandle());
+    }
+
+    vk::PipelineLayoutCreateInfo pipelineLayoutInfo({}, vkSetLayouts, pushConstantRanges);
+    m_PipelineLayout = vk::raii::PipelineLayout(raiiDevice, pipelineLayoutInfo);
 
     // ===== Shader Stages =====
     std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
@@ -61,20 +71,12 @@ void CVulkanPipeline::Init() {
                                  RHIShader->GetEntryPoint().c_str() });
     }
 
-    // ===== Pipeline Layout =====
-    std::vector<vk::DescriptorSetLayout> vkSetLayouts;
-    for (const auto& layout : m_DescriptorSetLayouts) {
-        vkSetLayouts.push_back(layout.As<CVulkanSetLayout>()->GetVKHandle());
-    }
-    vk::PipelineLayoutCreateInfo pipelineLayoutInfo({}, vkSetLayouts, pushConstantRanges);
-    m_PipelineLayout = vk::raii::PipelineLayout(raiiDevice, pipelineLayoutInfo);
-
     // ===== Vertex Input =====
     std::vector<vk::VertexInputBindingDescription> bindingDescs;
     std::vector<vk::VertexInputAttributeDescription> attributeDescs;
 
     if (m_Spec.VertexLayout.GetElements().size() > 0) {
-        vk::VertexInputBindingDescription bindingDesc;
+        vk::VertexInputBindingDescription bindingDesc{};
         bindingDesc.setBinding(0)
             .setStride(m_Spec.VertexLayout.GetStride())
             .setInputRate(vk::VertexInputRate::eVertex);
@@ -82,7 +84,7 @@ void CVulkanPipeline::Init() {
 
         uint32_t location = 0;
         for (const auto& element : m_Spec.VertexLayout) {
-            vk::VertexInputAttributeDescription attrDesc;
+            vk::VertexInputAttributeDescription attrDesc{};
             attrDesc.setLocation(location++)
                 .setBinding(0)
                 .setFormat(ChozoUtils::Vulkan::ShaderDataTypeToVkFormat(element.Type))
@@ -91,7 +93,7 @@ void CVulkanPipeline::Init() {
         }
     }
 
-    vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.setVertexBindingDescriptionCount(bindingDescs.size())
         .setPVertexBindingDescriptions(bindingDescs.data())
         .setVertexAttributeDescriptionCount(attributeDescs.size())
@@ -116,7 +118,7 @@ void CVulkanPipeline::Init() {
 
     // ===== Depth Stencil =====
     vk::Format vkDepthFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.DepthFormat);
-    vk::PipelineDepthStencilStateCreateInfo depthStencil;
+    vk::PipelineDepthStencilStateCreateInfo depthStencil{};
     depthStencil.setDepthTestEnable(m_Spec.bDepthTestEnable ? vk::True : vk::False)
         .setDepthWriteEnable(m_Spec.bDepthWriteEnable ? vk::True : vk::False)
         .setDepthCompareOp(ChozoUtils::Vulkan::ToVkCompareOp(m_Spec.DepthCompareOp));

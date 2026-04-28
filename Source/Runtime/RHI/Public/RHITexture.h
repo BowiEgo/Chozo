@@ -105,7 +105,12 @@ public:
                 FBuffer& data); // TODO: Remove
 
     virtual ~IRHITexture();
+    virtual EResourceType GetResourceType() const { return EResourceType::Texture; }
 
+    const bool IsValid() const {
+        auto image = GetImage();
+        return image && image->IsValid();
+    }
     const FTextureSpecification& GetSpec() const { return m_Spec; }
     std::string GetName() const { return m_Spec.Name; }
     FExtent2D GetSize() const { return m_Spec.Size; }
@@ -122,8 +127,6 @@ public:
 
     TRef<IRHISampler>
         GetSampler(const FSamplerSpecification spec = FSamplerSpecification::LinearClamp()) const;
-
-    void* GetImTextureID() const;
 
     void BorrowImage(IRHIImage* borrowedImage) {
         if (m_OwnedImage) return;

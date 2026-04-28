@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CoreExport.h"
 #include "CorePCH.h"
 #include "CoreTypes.h"
 
@@ -21,17 +22,23 @@ enum class EEventType {
     MouseButtonPressed,
     MouseButtonReleased,
     MouseMoved,
-    MouseScrolled
+    MouseScrolled,
+
+    ResourceDestroyed,
+
+    OpenMaterialPanel
 };
 
 enum EEventCategory {
-    None = 0,
+    None                      = 0,
     EventCategory_Application = BIT(0),
-    EventCategory_Render = BIT(1),
-    EventCategory_Input = BIT(2),
-    EventCategory_Keyboard = BIT(3),
-    EventCategory_Mouse = BIT(4),
+    EventCategory_Render      = BIT(1),
+    EventCategory_Input       = BIT(2),
+    EventCategory_Keyboard    = BIT(3),
+    EventCategory_Mouse       = BIT(4),
     EventCategory_MouseButton = BIT(5),
+    EventCategory_RHIResource = BIT(6),
+    EventCategory_Editor      = BIT(7),
 };
 
 #define EVENT_CLASS_TYPE(type)                                                                     \
@@ -42,15 +49,15 @@ enum EEventCategory {
 #define EVENT_CLASS_CATEGORY(category)                                                             \
     virtual int GetCategoryFlags() const override { return category; }
 
-class IEvent {
+class CORE_API IEvent {
     friend class FEventDispatcher;
 
 public:
     virtual ~IEvent() = default;
 
     virtual EEventType GetEventType() const = 0;
-    virtual const char* GetName() const = 0;
-    virtual int GetCategoryFlags() const = 0;
+    virtual const char* GetName() const     = 0;
+    virtual int GetCategoryFlags() const    = 0;
     virtual std::string ToString() const { return GetName(); }
 
     bool isInCategory(const EEventCategory category) const { return GetCategoryFlags() & category; }
@@ -63,7 +70,7 @@ public:
 
 inline std::ostream& operator<<(std::ostream& os, const IEvent& e) { return os << e.ToString(); };
 
-class FEventDispatcher {
+class CORE_API FEventDispatcher {
     template <typename T> using TEventFn = std::function<bool(T&)>;
 
 public:
@@ -83,11 +90,11 @@ private:
 
 using FEventCallback = std::function<bool(IEvent&)>;
 
-class FEventBus {
+class CORE_API FEventBus {
     using FEventListener = std::pair<bool, FEventCallback>;
 
 public:
-    FEventBus() = default;
+    static FEventBus& Get() { return *s_Instance; }
 
     void AddListener(const EEventType type, const FEventCallback& callback, bool destroy = false) {
         m_Listeners[type].emplace_back(destroy, callback);
@@ -95,17 +102,16 @@ public:
 
     void Dispatch(IEvent& event) {
         auto eventType = event.GetEventType();
-        auto it = m_Listeners.find(eventType);
+        auto it        = m_Listeners.find(eventType);
 
         if (it != m_Listeners.end()) {
             for (auto itListener = it->second.begin(); itListener != it->second.end();) {
-                bool destroy = std::get<0>(*itListener);
+                bool destroy  = std::get<0>(*itListener);
                 auto callback = std::get<1>(*itListener);
 
                 if (!event.m_Handled) {
                     event.m_Handled = callback(event);
-                    if (destroy)
-                        itListener = it->second.erase(itListener);
+                    if (destroy) itListener = it->second.erase(itListener);
                 } else {
                     ++itListener;
                 }
@@ -114,5 +120,10 @@ public:
     }
 
 private:
+    FEventBus()  = default;
+    ~FEventBus() = default;
+
+    static FEventBus* s_Instance;
+
     std::unordered_map<EEventType, std::vector<FEventListener>> m_Listeners;
 };

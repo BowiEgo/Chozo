@@ -1,6 +1,8 @@
 #include "Scene.h"
 
+#include "AssetManager.h"
 #include "Components.h"
+#include "RHIAPI.h"
 
 DEFINE_LOG_CATEGORY(LogScene);
 
@@ -11,7 +13,7 @@ void FScene::Update(float deltaTime) {
     for (auto entity : view) {
         auto& meshComp = view.get<FMeshComponent>(entity);
         if (meshComp.IsValid()) {
-            auto mesh = FMeshManager::Get().GetMesh(meshComp.MeshHandle);
+            auto mesh = CMeshManager::Get().GetMesh(meshComp.MeshHandle);
             if (meshComp.IsDirty()) {
                 meshComp.UpdateMesh();
                 mesh->Upload();
@@ -21,14 +23,36 @@ void FScene::Update(float deltaTime) {
     }
 }
 
-void FScene::Draw(IRHICommandList* cmdList) {
+void FScene::Draw(IRHICommandList* cmdList, TRef<IRHIBuffer> cameraBuffer) {
     auto view = View<FMeshComponent, FTransformComponent>();
     for (auto entity : view) {
         auto& meshComp = view.get<FMeshComponent>(entity);
         if (!meshComp.IsValid()) continue;
 
-        auto mesh           = FMeshManager::Get().GetMesh(meshComp.MeshHandle);
+        auto mesh           = CMeshManager::Get().GetMesh(meshComp.MeshHandle);
         auto& transformComp = view.get<FTransformComponent>(entity);
+
+        auto matHandle = meshComp.MeshParamsWrapper.Get()->Material;
+        if (matHandle.IsValid()) {
+            auto mat = CAssetManager::Get()
+                           .GetAsset(meshComp.MeshParamsWrapper.Get()->Material)
+                           .As<CMaterial>();
+
+            if (mat) {
+                mat->Bind(cmdList);
+
+                {
+                    auto device                              = IRHIAPI::GetContext()->GetDevice();
+                    auto setLayout                           = mat->GetShader()->GetSetLayout(0);
+                    std::vector<FDescriptorBinding> bindings = {
+                        { 0, EUniformType::UniformBuffer, cameraBuffer.get(), nullptr },
+                    };
+                    auto descSet = device->GetOrCreateDescriptorSet(setLayout, bindings);
+
+                    cmdList->BindDescriptorSets(0, descSet);
+                }
+            }
+        }
 
         struct {
             FMatrix4 ModelMatrix;
@@ -181,11 +205,11 @@ void FScene::SetTransform(FEntity entity, const FTransformParams& params) {
     m_TransformSystem.MarkDirty(entity);
 }
 
-void FScene::SetMesh(FEntity entity, const FMeshParams& params) {
+void FScene::SetMesh(FEntity entity, const FMeshParamsWrapper& props) {
     bool hasMeshComp = HasComponent<FMeshComponent>(entity);
     auto& comp =
         hasMeshComp ? GetComponent<FMeshComponent>(entity) : AddComponent<FMeshComponent>(entity);
-    comp.SetMeshParams(params);
+    comp.SetMeshParamsWrapper(props);
 }
 
 // ===== Serialization =====

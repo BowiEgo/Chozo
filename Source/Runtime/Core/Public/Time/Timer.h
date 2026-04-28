@@ -58,23 +58,6 @@ private:
     Timer m_Timer;
 };
 
-enum class EProfileSlot : uint32_t {
-    TotalFrame = 0,
-    Logic,
-    ImGui,
-    Render,
-    Wait,
-    COUNT // Used for array sizing
-};
-
-// Keep human-readable names for UI display only
-const char* const GProfileSlotNames[] = { "Total FrameTime", "LogicUpdate", "ImGui Render",
-                                          "Render", "Wait Time" };
-
-static_assert(sizeof(GProfileSlotNames) / sizeof(const char*) ==
-                  static_cast<uint32_t>(EProfileSlot::COUNT),
-              "Profiler slot names count mismatch!");
-
 class PerformanceProfiler {
     struct SlotData {
         float Time       = 0.0f;
@@ -97,11 +80,17 @@ class PerformanceProfiler {
     };
 
 public:
-    void SetTiming(EProfileSlot slot, const float time) {
-        uint32_t index = static_cast<uint32_t>(slot);
-        if (index < static_cast<uint32_t>(EProfileSlot::COUNT)) {
-            m_Buffers[m_WriteIndex][index].Time += time;
-            m_Buffers[m_WriteIndex][index].Samples++;
+    PerformanceProfiler(const uint32_t slotCount)
+        : m_SlotCount(slotCount), m_SmoothedValues(slotCount, 0.0f) {
+        m_Buffers[0].resize(slotCount);
+        m_Buffers[1].resize(slotCount);
+    }
+    ~PerformanceProfiler() = default;
+
+    void SetTiming(uint32_t slot, const float time) {
+        if (slot < m_SlotCount) {
+            m_Buffers[m_WriteIndex][slot].Time += time;
+            m_Buffers[m_WriteIndex][slot].Samples++;
         }
     }
 
@@ -109,7 +98,7 @@ public:
         uint32_t readIndex = m_WriteIndex;
         m_WriteIndex       = 1 - m_WriteIndex; // Toggle between 0 and 1
 
-        for (uint32_t i = 0; i < static_cast<uint32_t>(EProfileSlot::COUNT); ++i) {
+        for (uint32_t i = 0; i < m_SlotCount; ++i) {
             const SlotData& data = m_Buffers[readIndex][i];
             float currentAvg     = (data.Samples > 0) ? (data.Time / data.Samples) : 0.0f;
 
@@ -126,35 +115,37 @@ public:
         }
     }
 
-    const SlotData& GetSlot(EProfileSlot slot) const {
-        uint32_t index = static_cast<uint32_t>(slot);
+    const SlotData& GetSlot(uint32_t slot) const {
+        uint32_t index = slot;
         return m_Buffers[1 - m_WriteIndex][index];
     }
 
-    float GetRawAverage(EProfileSlot slot) const {
-        uint32_t index       = static_cast<uint32_t>(slot);
+    float GetRawAverage(uint32_t slot) const {
+        uint32_t index       = slot;
         const SlotData& data = m_Buffers[1 - m_WriteIndex][index];
         return (data.Samples > 0) ? (data.Time / data.Samples) : 0.0f;
     }
 
-    float GetSmoothedAverage(EProfileSlot slot) const {
-        uint32_t index = static_cast<uint32_t>(slot);
+    float GetSmoothedAverage(uint32_t slot) const {
+        uint32_t index = slot;
         return m_SmoothedValues[index];
     }
 
     void SetSmoothingFactor(float alpha) { m_SmoothingAlpha = alpha; }
 
 private:
-    uint32_t m_WriteIndex = 0;
-    std::array<SlotData, static_cast<uint32_t>(EProfileSlot::COUNT)> m_Buffers[2];
+    uint32_t m_SlotCount;
 
+    uint32_t m_WriteIndex  = 0;
     float m_SmoothingAlpha = 0.1f;
-    std::array<float, static_cast<uint32_t>(EProfileSlot::COUNT)> m_SmoothedValues;
+
+    std::vector<SlotData> m_Buffers[2];
+    std::vector<float> m_SmoothedValues;
 };
 
 class ScopePerfTimer {
 public:
-    ScopePerfTimer(const EProfileSlot slot, PerformanceProfiler* profiler)
+    ScopePerfTimer(const uint32_t slot, PerformanceProfiler* profiler)
         : m_Slot(slot), m_Profiler(profiler) {}
 
     ~ScopePerfTimer() {
@@ -163,7 +154,7 @@ public:
     }
 
 private:
-    EProfileSlot m_Slot;
+    uint32_t m_Slot;
     PerformanceProfiler* m_Profiler;
     Timer m_Timer;
 };

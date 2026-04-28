@@ -22,6 +22,7 @@ public:
     virtual ~IRHIAPI();
 
     static void SetContext(IRHIContext* ctx) { s_Instance->m_Context = ctx; }
+    static IRHIContext* GetContext() { return s_Instance->m_Context; }
 
     static TRef<IRHIDevice> CreateDevice(const IRHIContext* ctx, const FDeviceSpecification& spec) {
         return s_Instance->CreateDevice_Internal(ctx, spec);

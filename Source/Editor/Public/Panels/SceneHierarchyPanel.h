@@ -19,7 +19,7 @@ public:
     ~SceneHierarchyPanel();
 
     void SetNodeTree(CEditorNodeTree* tree) { m_NodeTree = tree; }
-    virtual void Draw(const char* title, bool* p_open) override;
+    virtual void Draw(const char* title) override;
 
 private:
     void DrawNodeContextMenu(FEditorNode* node);

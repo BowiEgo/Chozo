@@ -226,7 +226,7 @@ void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image 
                            uint32_t baseArrayLayer, uint32_t layerCount) {
     if (oldLayout == newLayout) return;
 
-    vk::ImageMemoryBarrier2 barrier;
+    vk::ImageMemoryBarrier2 barrier{};
     barrier.setOldLayout(oldLayout)
         .setNewLayout(newLayout)
         .setSrcQueueFamilyIndex(vk::QueueFamilyIgnored)
@@ -239,7 +239,7 @@ void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image 
     // Automatically deduce stages and access masks based on layouts
     SetupBarrierSync(barrier, oldLayout, newLayout);
 
-    vk::DependencyInfo depInfo;
+    vk::DependencyInfo depInfo{};
     depInfo.setImageMemoryBarriers(barrier);
 
     vkCmdBuffer.pipelineBarrier2(depInfo);
@@ -489,17 +489,17 @@ vk::DescriptorType ToVkDescType(EUniformType type) {
     }
 }
 
-vk::Format ShaderDataTypeToVkFormat(EShaderDataFormat type) {
+vk::Format ShaderDataTypeToVkFormat(EShaderDataType type) {
     switch (type) {
-        case EShaderDataFormat::Float: return vk::Format::eR32Sfloat;
-        case EShaderDataFormat::Float2: return vk::Format::eR32G32Sfloat;
-        case EShaderDataFormat::Float3: return vk::Format::eR32G32B32Sfloat;
-        case EShaderDataFormat::Float4: return vk::Format::eR32G32B32A32Sfloat;
-        case EShaderDataFormat::Int: return vk::Format::eR32Sint;
-        case EShaderDataFormat::Int2: return vk::Format::eR32G32Sint;
-        case EShaderDataFormat::Int3: return vk::Format::eR32G32B32Sint;
-        case EShaderDataFormat::Int4: return vk::Format::eR32G32B32A32Sint;
-        case EShaderDataFormat::Bool: return vk::Format::eR32Sint;
+        case EShaderDataType::Float: return vk::Format::eR32Sfloat;
+        case EShaderDataType::Float2: return vk::Format::eR32G32Sfloat;
+        case EShaderDataType::Float3: return vk::Format::eR32G32B32Sfloat;
+        case EShaderDataType::Float4: return vk::Format::eR32G32B32A32Sfloat;
+        case EShaderDataType::Int: return vk::Format::eR32Sint;
+        case EShaderDataType::Int2: return vk::Format::eR32G32Sint;
+        case EShaderDataType::Int3: return vk::Format::eR32G32B32Sint;
+        case EShaderDataType::Int4: return vk::Format::eR32G32B32A32Sint;
+        case EShaderDataType::Bool: return vk::Format::eR32Sint;
         default:
             CZ_LOG(LogVulkanUtils, Error, "Unsupported shader data type");
             return vk::Format::eUndefined;
@@ -511,7 +511,8 @@ vk::PolygonMode GetVulkanPolygonMode(EPolygonMode mode) {
     switch (mode) {
         case EPolygonMode::Fill: return vk::PolygonMode::eFill;
         case EPolygonMode::Line: return vk::PolygonMode::eLine;
-        case EPolygonMode::Point: return vk::PolygonMode::ePoint;
+        // case EPolygonMode::Point: return vk::PolygonMode::ePoint; // Metal does not support
+        // setting VK_POLYGON_MODE_POINT dynamically
         default: return vk::PolygonMode::eFill;
     }
 }

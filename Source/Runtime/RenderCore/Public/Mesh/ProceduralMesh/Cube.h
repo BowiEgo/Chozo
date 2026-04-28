@@ -12,6 +12,8 @@ public:
     explicit FCube(const FCubeParams& params);
     ~FCube() override = default;
 
+    virtual const std::string GetName() const override { return m_Params.GetTypeName(); }
+
     virtual FMeshBuffer* GenerateBuffer() override;
     virtual void SetParams(const IParams& params) override {
         if (params.GetTypeName() != "Cube") return;

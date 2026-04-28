@@ -23,7 +23,7 @@ static int Strnicmp(const char* s1, const char* s2, int n) {
 static char* Strdup(const char* s) {
     IM_ASSERT(s);
     size_t len = strlen(s) + 1;
-    void* buf = ImGui::MemAlloc(len);
+    void* buf  = ImGui::MemAlloc(len);
     IM_ASSERT(buf);
     return (char*)memcpy(buf, (const void*)s, len);
 }
@@ -51,7 +51,7 @@ ConsolePanel::ConsolePanel() {
     m_Commands.push_back("HISTORY");
     m_Commands.push_back("CLEAR");
     m_Commands.push_back("CLASSIFY");
-    m_AutoScroll = true;
+    m_AutoScroll     = true;
     m_ScrollToBottom = false;
 
     CZ_LOG(LogConsolePanel, Info, "Welcome to Chozo Engine Editor!");
@@ -63,9 +63,11 @@ ConsolePanel::~ConsolePanel() {
         ImGui::MemFree(m_History[i]);
 }
 
-void ConsolePanel::Draw(const char* title, bool* p_open) {
+void ConsolePanel::Draw(const char* title) {
+    if (!m_bOpen) return;
+
     ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(title, p_open)) {
+    if (!ImGui::Begin(title, &m_bOpen)) {
         ImGui::End();
         return;
     }
@@ -74,7 +76,7 @@ void ConsolePanel::Draw(const char* title, bool* p_open) {
     // represent the title bar. So e.g. IsItemHovered() will return true when hovering the title
     // bar. Here we create a context menu only available from the title bar.
     if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Close Console")) *p_open = false;
+        if (ImGui::MenuItem("Close Console")) m_bOpen = false;
         ImGui::EndPopup();
     }
 
@@ -259,7 +261,7 @@ int ConsolePanel::TextEditCallback(ImGuiInputTextCallbackData* data) {
             // Example of TEXT COMPLETION
 
             // Locate beginning of current word
-            const char* word_end = data->Buf + data->CursorPos;
+            const char* word_end   = data->Buf + data->CursorPos;
             const char* word_start = word_end;
             while (word_start > data->Buf) {
                 const char c = word_start[-1];
@@ -290,7 +292,7 @@ int ConsolePanel::TextEditCallback(ImGuiInputTextCallbackData* data) {
                 // matches.
                 int match_len = (int)(word_end - word_start);
                 for (;;) {
-                    int c = 0;
+                    int c                       = 0;
                     bool all_candidates_matches = true;
                     for (int i = 0; i < candidates.Size && all_candidates_matches; i++)
                         if (i == 0)

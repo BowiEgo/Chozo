@@ -14,10 +14,7 @@ struct CameraData {
 
 class RENDER_CORE_API CCameraUniformManager {
 public:
-    static CCameraUniformManager& Get() {
-        static CCameraUniformManager instance;
-        return instance;
-    }
+    static CCameraUniformManager& Get();
 
     void Initialize();
     void Shutdown();

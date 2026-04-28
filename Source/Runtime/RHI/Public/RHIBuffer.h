@@ -24,6 +24,8 @@ public:
         : IRHIResource(device), m_Spec(spec) {}
     virtual ~IRHIBuffer() {}
 
+    virtual EResourceType GetResourceType() const { return EResourceType::Buffer; }
+
     // Disable copy
     IRHIBuffer(const IRHIBuffer&)            = delete;
     IRHIBuffer& operator=(const IRHIBuffer&) = delete;

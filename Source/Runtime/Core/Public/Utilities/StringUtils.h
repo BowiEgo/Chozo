@@ -18,6 +18,10 @@ CORE_API std::string ToLowerCopy(const std::string_view string);
 
 CORE_API uint64_t ToUint64(std::string string);
 
+CORE_API std::string RemovePrefix(const std::string& str, const std::string& prefix);
+
+CORE_API std::string TrimQuotes(const std::string& str);
+
 } // namespace String
 
 namespace Numeric {

@@ -127,6 +127,7 @@ public:
     // The actual Vulkan calls happen here
     void Execute(TRef<IRHICommandList> cmd) {
         for (uint32_t i = 0; i < m_Passes.size(); ++i) {
+            
             auto* pass = m_Passes[i];
             std::vector<IRHITexture*> renderTargets;
             // --- Automatic synchronization logic ---

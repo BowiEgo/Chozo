@@ -4,7 +4,6 @@
 #include "EngineExport.h"
 #include "Event.h"
 #include "FPSCounter.h"
-#include "ImGuiLayer.h"
 #include "LayerStack.h"
 #include "Module.h"
 #include "RenderEngine.h"
@@ -14,15 +13,30 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogApplication, Info);
 
+#define APP_PROFILE_SLOTS                                                                          \
+    X(TotalFrame, "Total FrameTime")                                                               \
+    X(Logic, "LogicUpdate")                                                                        \
+    X(ImGui, "ImGui Render")                                                                       \
+    X(Render, "Render")                                                                            \
+    X(Wait, "Wait Time")
+
+#define X(name, displayName) name,
+enum class EAppProfileSlot : uint32_t { APP_PROFILE_SLOTS COUNT };
+#undef X
+
+#define X(name, displayName) displayName,
+const char* const GAppProfileSlotNames[] = { APP_PROFILE_SLOTS };
+#undef X
+
 #if 1
     // Create a unique timer variable named e.g., timer123
-    #define CZ_APP_SCOPE_PERF(name)                                                                \
-        ScopePerfTimer CZ_CONCAT(timer, __LINE__)(name,                                            \
-                                                  CApplication::Get()->GetPerformanceProfiler());
+    #define CZ_APP_SCOPE_PERF(slot)                                                                \
+        ScopePerfTimer CZ_CONCAT(timer, __LINE__)(static_cast<uint32_t>(slot),                     \
+                                                  CApplication::Get() -> GetPerformanceProfiler())
 
     #define CZ_APP_SCOPE_TIMER(name) ScopedTimer CZ_CONCAT(timer, __LINE__)(name);
 #else
-    #define CZ_APP_SCOPE_PERF(name)
+    #define CZ_APP_SCOPE_PERF(slot)
     #define CZ_APP_SCOPE_TIMER(name)
 #endif
 
@@ -76,7 +90,6 @@ public:
     }
     FPSCounter* GetFPSCounter() { return &m_FPSCounter; }
     EAppPowerMode GetPowerMode() { return m_PowerMode; }
-    CImGuiLayer& GetImGuiLayer() const { return *m_ImGuiLayer; }
     uint32 GetCurrentFrameIndex() const {
         return m_RenderEngine->GetRenderer()->GetGraphicContext()->GetCurrentFrameIndex();
     }
@@ -103,6 +116,5 @@ private:
     TScope<CWindow> m_Window;
     TScope<CRenderEngine> m_RenderEngine;
 
-    CImGuiLayer* m_ImGuiLayer;
     ILayerStack m_LayerStack;
 };

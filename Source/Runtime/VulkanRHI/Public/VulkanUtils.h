@@ -100,7 +100,7 @@ bool IsDepthFormat(vk::Format format);
 // Shader
 vk::DescriptorType ToVkDescType(EUniformType type);
 
-vk::Format ShaderDataTypeToVkFormat(EShaderDataFormat type);
+vk::Format ShaderDataTypeToVkFormat(EShaderDataType type);
 
 // Pipeline
 vk::PolygonMode GetVulkanPolygonMode(EPolygonMode mode);

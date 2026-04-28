@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MeshParams.h"
+#include "MeshParamsWrapper.h"
 #include "ProceduralMesh.h"
 #include "Ref.h"
 #include "Scope.h"
@@ -10,29 +10,8 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMeshRegistry, Info);
 
-struct IParamsFactory {
-    virtual ~IParamsFactory() = default;
-    virtual TScope<IParams> CreateDefault() const = 0;
-    virtual TScope<IParams> Clone(const IParams* params) const = 0;
-    virtual std::string GetTypeName() const = 0;
-};
-
-template <typename T> struct TParamsFactory : public IParamsFactory {
-    TScope<IParams> CreateDefault() const override { return CreateScope<T>(); }
-
-    TScope<IParams> Clone(const IParams* params) const override {
-        const auto* typed = dynamic_cast<const T*>(params);
-        if (typed) {
-            return CreateScope<T>(*typed);
-        }
-        return nullptr;
-    }
-
-    std::string GetTypeName() const override { return T::GetStaticTypeName(); }
-};
-
 struct IMeshGenerator {
-    virtual ~IMeshGenerator() = default;
+    virtual ~IMeshGenerator()                                       = default;
     virtual TRef<FProceduralMesh> CreateMesh(const IParams& params) = 0;
 };
 
@@ -49,7 +28,7 @@ public:
     static FMeshRegister& Get();
     static void Init();
 
-    FMeshRegister(const FMeshRegister&) = delete;
+    FMeshRegister(const FMeshRegister&)            = delete;
     FMeshRegister& operator=(const FMeshRegister&) = delete;
 
     FTypeInfo RegisterMeshType(const std::string& name, bool bBuiltin = false) {
@@ -61,7 +40,7 @@ public:
     }
 
     template <typename T> void RegisterParamsType(bool bBuiltin) {
-        std::string typeName = T::GetStaticTypeName();
+        std::string typeName  = T::GetStaticTypeName();
         m_Factories[typeName] = CreateScope<TParamsFactory<T>>();
 
         RegisterMeshType(typeName, bBuiltin);
@@ -78,15 +57,16 @@ public:
         RegisterMeshGenerator<ParamsType, MeshType>(typeName);
     }
 
-    FMeshParams CreateParams(const std::string& typeName) const {
+    FMeshParamsWrapper CreateParams(const std::string& typeName) const {
         auto it = m_Factories.find(typeName);
         if (it != m_Factories.end()) {
-            auto params = it->second->CreateDefault();
-            if (params) {
-                return FMeshParams(std::move(params));
+            auto temp = it->second->CreateDefault();
+            if (temp) {
+                auto params = static_cast<IMeshParams*>(temp.release());
+                return FMeshParamsWrapper(params);
             }
         }
-        return FMeshParams();
+        return FMeshParamsWrapper();
     }
 
     TRef<FProceduralMesh> CreateMesh(const IParams& params) {
@@ -100,18 +80,18 @@ public:
     }
 
     FMeshBuffer* CacheStaticData(const IParams& params, const FMeshBuffer& data) {
-        size_t hash = params.GetHash();
+        size_t hash          = params.GetHash();
         std::string typeName = params.GetTypeName();
-        std::string key = typeName + "_" + std::to_string(hash);
+        std::string key      = typeName + "_" + std::to_string(hash);
 
         m_StaticDataCache[key] = std::move(data);
         return &m_StaticDataCache[key];
     }
 
     FMeshBuffer* GetStaticCachedData(const IParams& params) {
-        size_t hash = params.GetHash();
+        size_t hash          = params.GetHash();
         std::string typeName = params.GetTypeName();
-        std::string key = typeName + "_" + std::to_string(hash);
+        std::string key      = typeName + "_" + std::to_string(hash);
 
         auto it = m_StaticDataCache.find(key);
         if (it != m_StaticDataCache.end()) {

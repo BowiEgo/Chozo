@@ -7,7 +7,7 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogSetLayoutCache, Info);
 
-class CSetLayoutCache {
+class RHI_API CSetLayoutCache {
 public:
     CSetLayoutCache(const WeakRef<IRHIDevice> device) : m_Device(device) {}
     ~CSetLayoutCache() { CZ_LOG(LogSetLayoutCache, Trace, "SetLayoutCache destroying..."); }

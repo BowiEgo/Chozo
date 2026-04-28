@@ -92,7 +92,7 @@ void CVulkanBuffer::CreateBuffer() {
     }
 
     // Create buffer
-    vk::BufferCreateInfo bufferInfo;
+    vk::BufferCreateInfo bufferInfo{};
     bufferInfo.setSize(m_AlignedSize).setUsage(vkUsage).setSharingMode(vk::SharingMode::eExclusive);
 
     try {
@@ -124,7 +124,7 @@ void CVulkanBuffer::CreateBuffer() {
     // Allocate memory
     uint32_t memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, vkMemoryFlags);
 
-    vk::MemoryAllocateInfo allocInfo;
+    vk::MemoryAllocateInfo allocInfo{};
     allocInfo.setAllocationSize(memReqs.size).setMemoryTypeIndex(memoryTypeIndex);
 
     try {
@@ -232,7 +232,7 @@ vk::DeviceAddress CVulkanBuffer::GetVKDeviceAddress() const {
 
     vk::Device vkDevice = device->GetLogicalDevice();
 
-    vk::BufferDeviceAddressInfo addressInfo;
+    vk::BufferDeviceAddressInfo addressInfo{};
     addressInfo.setBuffer(m_Buffer);
 
     return vkDevice.getBufferAddress(addressInfo);
@@ -279,7 +279,7 @@ vk::DeviceSize CVulkanBuffer::GetAlignment() const {
 }
 
 vk::DescriptorBufferInfo CVulkanBuffer::GetVKBufferInfo() {
-    vk::DescriptorBufferInfo bufferInfo;
+    vk::DescriptorBufferInfo bufferInfo{};
     bufferInfo.setBuffer(m_Buffer);
     bufferInfo.setOffset(m_Offset);
     bufferInfo.setRange(m_AlignedSize);

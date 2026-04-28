@@ -1,3 +1,5 @@
 #include "AssetsPanel.h"
 
-void AssetsPanel::Draw(const char* title, bool* p_open) {}
+void AssetsPanel::Draw(const char* title) {
+    if (!m_bOpen) return;
+}

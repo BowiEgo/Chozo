@@ -16,9 +16,9 @@ struct FDescriptorBinding {
     IRHISampler* Sampler;   // Optional, can be null if texture has its own sampler
     EImageLayout ImageLayout = EImageLayout::ShaderReadOnlyOptimal;
 
-    FDescriptorBinding(uint32_t binding, EUniformType type, IRHIResource* resource,
-                       IRHISampler* sampler = nullptr,
-                       EImageLayout layout  = EImageLayout::ShaderReadOnlyOptimal)
+    FDescriptorBinding(uint32_t binding = 0, EUniformType type = EUniformType::None,
+                       IRHIResource* resource = nullptr, IRHISampler* sampler = nullptr,
+                       EImageLayout layout = EImageLayout::ShaderReadOnlyOptimal)
         : Binding(binding), Type(type), Resource(resource), Sampler(sampler), ImageLayout(layout) {}
 };
 
@@ -27,6 +27,8 @@ public:
     IRHIDescriptorSet(const WeakRef<IRHIDevice> device, TRef<IRHISetLayout> setLayout,
                       const std::vector<FDescriptorBinding>& bindings);
     virtual ~IRHIDescriptorSet();
+
+    virtual EResourceType GetResourceType() const { return EResourceType::DescriptorSet; }
 
     virtual void* GetRawHandle() const = 0;
 

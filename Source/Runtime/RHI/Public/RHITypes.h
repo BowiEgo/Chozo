@@ -98,7 +98,7 @@ private:
     std::map<std::string, std::string> m_Macros;
 };
 
-enum class EShaderDataFormat {
+enum class EShaderDataType {
     None = 0,
     Float,
     Float2,
@@ -117,60 +117,60 @@ enum class EShaderDataFormat {
     Bool
 };
 
-inline const char* ShaderDataFormatToString(EShaderDataFormat format) {
+inline const char* ShaderDataTypeToString(EShaderDataType format) {
     switch (format) {
-        case EShaderDataFormat::Float: return "Float";
-        case EShaderDataFormat::Float2: return "Float2";
-        case EShaderDataFormat::Float3: return "Float3";
-        case EShaderDataFormat::Float4: return "Float4";
-        case EShaderDataFormat::Mat3: return "Mat3";
-        case EShaderDataFormat::Mat4: return "Mat4";
-        case EShaderDataFormat::Int: return "Int";
-        case EShaderDataFormat::Int2: return "Int2";
-        case EShaderDataFormat::Int3: return "Int3";
-        case EShaderDataFormat::Int4: return "Int4";
-        case EShaderDataFormat::UInt: return "UInt";
-        case EShaderDataFormat::UInt2: return "UInt2";
-        case EShaderDataFormat::UInt3: return "UInt3";
-        case EShaderDataFormat::UInt4: return "UInt4";
-        case EShaderDataFormat::Bool: return "Bool";
-        case EShaderDataFormat::None:
+        case EShaderDataType::Float: return "Float";
+        case EShaderDataType::Float2: return "Float2";
+        case EShaderDataType::Float3: return "Float3";
+        case EShaderDataType::Float4: return "Float4";
+        case EShaderDataType::Mat3: return "Mat3";
+        case EShaderDataType::Mat4: return "Mat4";
+        case EShaderDataType::Int: return "Int";
+        case EShaderDataType::Int2: return "Int2";
+        case EShaderDataType::Int3: return "Int3";
+        case EShaderDataType::Int4: return "Int4";
+        case EShaderDataType::UInt: return "UInt";
+        case EShaderDataType::UInt2: return "UInt2";
+        case EShaderDataType::UInt3: return "UInt3";
+        case EShaderDataType::UInt4: return "UInt4";
+        case EShaderDataType::Bool: return "Bool";
+        case EShaderDataType::None:
         default: return "None/Unknown";
     }
 }
 
-static uint32 FShaderDataTypeSize(EShaderDataFormat type) {
+static uint32 FShaderDataTypeSize(EShaderDataType type) {
     switch (type) {
-        case EShaderDataFormat::None: return 0;
+        case EShaderDataType::None: return 0;
 
         // --- Floating Point ---
-        case EShaderDataFormat::Float: return 4;
-        case EShaderDataFormat::Float2: return 4 * 2;
-        case EShaderDataFormat::Float3: return 4 * 3;
-        case EShaderDataFormat::Float4: return 4 * 4;
+        case EShaderDataType::Float: return 4;
+        case EShaderDataType::Float2: return 4 * 2;
+        case EShaderDataType::Float3: return 4 * 3;
+        case EShaderDataType::Float4: return 4 * 4;
 
         // --- Matrices (Logical size) ---
-        case EShaderDataFormat::Mat3: return 4 * 3 * 3; // 36 bytes
-        case EShaderDataFormat::Mat4:
+        case EShaderDataType::Mat3: return 4 * 3 * 3; // 36 bytes
+        case EShaderDataType::Mat4:
             return 4 * 4 * 4; // 64 bytes
 
         // --- Signed Integers ---
-        case EShaderDataFormat::Int: return 4;
-        case EShaderDataFormat::Int2: return 4 * 2;
-        case EShaderDataFormat::Int3: return 4 * 3;
-        case EShaderDataFormat::Int4: return 4 * 4;
+        case EShaderDataType::Int: return 4;
+        case EShaderDataType::Int2: return 4 * 2;
+        case EShaderDataType::Int3: return 4 * 3;
+        case EShaderDataType::Int4: return 4 * 4;
 
         // --- Unsigned Integers ---
-        case EShaderDataFormat::UInt: return 4;
-        case EShaderDataFormat::UInt2: return 4 * 2;
-        case EShaderDataFormat::UInt3: return 4 * 3;
-        case EShaderDataFormat::UInt4: return 4 * 4;
+        case EShaderDataType::UInt: return 4;
+        case EShaderDataType::UInt2: return 4 * 2;
+        case EShaderDataType::UInt3: return 4 * 3;
+        case EShaderDataType::UInt4: return 4 * 4;
 
         // --- Boolean ---
-        case EShaderDataFormat::Bool: return 1;
+        case EShaderDataType::Bool: return 1;
     }
 
-    // CZ_CORE_ASSERT(false, "Unknown EShaderDataFormat!");
+    // CZ_CORE_ASSERT(false, "Unknown EShaderDataType!");
     return 0;
 }
 
@@ -188,7 +188,7 @@ enum class EUniformType : uint8_t {
 
 struct FUniformSpecification {
     EUniformType Type;
-    EShaderDataFormat Format;
+    EShaderDataType Format;
     std::string Name;         // 成员名 (如 "u_Color")
     std::string ResourceName; // 容器名 (如 "u_MaterialData")
     uint32 Size      = 0;     // 字节大小
@@ -218,20 +218,20 @@ struct FAttributeInfo {
     std::string Name;
     uint32 Location = 0;
     uint32 Size     = 0;
-    EShaderDataFormat Format;
+    EShaderDataType Type;
 
     FAttributeInfo() = default;
 
     // Logic-driven constructor
-    FAttributeInfo(const std::string& name, uint32 loc, EShaderDataFormat format)
-        : Name(name), Location(loc), Format(format) {
-        Size = FShaderDataTypeSize(format);
+    FAttributeInfo(const std::string& name, uint32 loc, EShaderDataType type)
+        : Name(name), Location(loc), Type(type) {
+        Size = FShaderDataTypeSize(type);
     }
 
     std::string ToString() const {
         std::stringstream ss;
-        ss << "[Loc " << Location << "] " << Name
-           << " (Format: " << ShaderDataFormatToString(Format) << ", Size: " << Size << " bytes)";
+        ss << "[Loc " << Location << "] " << Name << " (Type: " << ShaderDataTypeToString(Type)
+           << ", Size: " << Size << " bytes)";
         return ss.str();
     }
 };
@@ -295,6 +295,7 @@ struct FRHISetLayoutDescription {
         for (const auto& b : Bindings) {
             HashCombine(h, std::hash<uint32_t>{}(b.Binding));
             HashCombine(h, std::hash<uint32_t>{}(static_cast<uint32_t>(b.Type)));
+            HashCombine(h, std::hash<uint32_t>{}(static_cast<uint32_t>(b.DescriptorCount)));
             HashCombine(h, std::hash<uint32_t>{}(static_cast<uint32_t>(b.StageFlags)));
         }
         return h;
@@ -339,48 +340,50 @@ struct FShaderCompilerOutput {
 };
 
 struct FBufferElement {
+    EShaderDataType Type;
     std::string Name;
-    EShaderDataFormat Type;
     uint32 Size;
     uint32 Offset;
+    uint32 Location;
     bool Normalized;
 
     FBufferElement() {}
 
-    FBufferElement(EShaderDataFormat type, const std::string& name, bool normalized = false)
-        : Name(name), Type(type), Size(FShaderDataTypeSize(type)), Offset(0),
-          Normalized(normalized) {}
+    FBufferElement(EShaderDataType type, const std::string& name, uint32 offset = 0,
+                   uint32 location = 0, bool normalized = false)
+        : Name(name), Type(type), Size(FShaderDataTypeSize(type)), Offset(offset),
+          Location(location), Normalized(normalized) {}
 
     uint32 GetComponentCount() const {
         switch (Type) {
-            case EShaderDataFormat::None: return 0;
+            case EShaderDataType::None: return 0;
 
             // --- Floats & Mats ---
-            case EShaderDataFormat::Float: return 1;
-            case EShaderDataFormat::Float2: return 2;
-            case EShaderDataFormat::Float3: return 3;
-            case EShaderDataFormat::Float4: return 4;
-            case EShaderDataFormat::Mat3: return 3 * 3; // 9
-            case EShaderDataFormat::Mat4:
+            case EShaderDataType::Float: return 1;
+            case EShaderDataType::Float2: return 2;
+            case EShaderDataType::Float3: return 3;
+            case EShaderDataType::Float4: return 4;
+            case EShaderDataType::Mat3: return 3 * 3; // 9
+            case EShaderDataType::Mat4:
                 return 4 * 4; // 16
 
             // --- Signed Integers ---
-            case EShaderDataFormat::Int: return 1;
-            case EShaderDataFormat::Int2: return 2;
-            case EShaderDataFormat::Int3: return 3;
-            case EShaderDataFormat::Int4: return 4;
+            case EShaderDataType::Int: return 1;
+            case EShaderDataType::Int2: return 2;
+            case EShaderDataType::Int3: return 3;
+            case EShaderDataType::Int4: return 4;
 
             // --- Unsigned Integers ---
-            case EShaderDataFormat::UInt: return 1;
-            case EShaderDataFormat::UInt2: return 2;
-            case EShaderDataFormat::UInt3: return 3;
-            case EShaderDataFormat::UInt4: return 4;
+            case EShaderDataType::UInt: return 1;
+            case EShaderDataType::UInt2: return 2;
+            case EShaderDataType::UInt3: return 3;
+            case EShaderDataType::UInt4: return 4;
 
             // --- Boolean ---
-            case EShaderDataFormat::Bool: return 1;
+            case EShaderDataType::Bool: return 1;
         }
 
-        // CZ_CORE_ASSERT(false, "Unknown EShaderDataFormat!");
+        // CZ_CORE_ASSERT(false, "Unknown EShaderDataType!");
         return 0;
     }
 };
@@ -411,6 +414,11 @@ public:
 
     inline uint32 GetStride() const { return m_Stride; }
     inline const std::vector<FBufferElement>& GetElements() const { return m_Elements; }
+
+    void AddElement(EShaderDataType type, const std::string& name, uint32_t location = 0) {
+        m_Elements.push_back({ type, name, 0, location });
+        CalculateOffsetsAndStride();
+    }
 
     std::vector<FBufferElement>::iterator begin() { return m_Elements.begin(); }
     std::vector<FBufferElement>::iterator end() { return m_Elements.end(); }
@@ -467,12 +475,32 @@ enum class EPixelFormat {
 };
 // clang-format on
 
-enum class ECullMode : uint8_t {
-    None         = 0,
-    Front        = 1,
-    Back         = 2,
-    FrontAndBack = 3,
-};
+#define POLYGON_MODE_LIST                                                                          \
+    X(Fill)                                                                                        \
+    X(Line)
+// X(Point) // Metal does not support setting VK_POLYGON_MODE_POINT dynamically
+
+#define X(name) name,
+enum class EPolygonMode { POLYGON_MODE_LIST };
+#undef X
+
+#define X(name) #name,
+static constexpr std::array<const char*, 2> FPolygonModeStrings = { POLYGON_MODE_LIST };
+#undef X
+
+#define CULL_MODE_LIST                                                                             \
+    X(None)                                                                                        \
+    X(Front)                                                                                       \
+    X(Back)                                                                                        \
+    X(FrontAndBack)
+
+#define X(name) name,
+enum class ECullMode { CULL_MODE_LIST };
+#undef X
+
+#define X(name) #name,
+static constexpr std::array<const char*, 4> FCullModeStrings = { CULL_MODE_LIST };
+#undef X
 
 enum class ECompareOp : uint8_t {
     Never          = 0,
@@ -568,8 +596,6 @@ enum class EPresentMode {
 
     Unkown
 };
-
-enum class EPolygonMode { Fill, Line, Point };
 
 /**
  * ECommandPoolFlags - Maps to underlying API flags (e.g., VkCommandPoolCreateFlagBits).

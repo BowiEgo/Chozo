@@ -136,7 +136,7 @@ void CVulkan::CreateVKSurface(const void* nativeWindowHandle) {
 #elif defined(CZ_PLATFORM_MACOS)
         // Implement Metal/Cocoa logic here...
         auto metalLayer = ChozoUtils::Mac::GetMetalLayerFromNSWindow(nativeWindowHandle);
-        vk::MetalSurfaceCreateInfoEXT createInfo;
+        vk::MetalSurfaceCreateInfoEXT createInfo{};
         createInfo.setPLayer(static_cast<const CAMetalLayer*>(metalLayer));
 
         try {

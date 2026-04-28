@@ -13,7 +13,7 @@ CTexture::CTexture(const FTextureSpecification& spec, const FBuffer& data)
     // CZ_LOG(LogTexture, Trace, "Creating Texture {} ...", m_Spec.Name);
 }
 
-IRHITexture* CTexture::GetOrCreateResource() {
+IRHITexture* CTexture::GetResource() {
     if (m_Resource) {
         return m_Resource.get();
     }

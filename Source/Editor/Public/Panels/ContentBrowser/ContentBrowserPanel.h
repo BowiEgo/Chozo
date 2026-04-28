@@ -6,8 +6,8 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogContentBrowserPanel, Info);
 
-#define IM_MIN(A, B) (((A) < (B)) ? (A) : (B))
-#define IM_MAX(A, B) (((A) >= (B)) ? (A) : (B))
+#define IM_MIN(A, B)        (((A) < (B)) ? (A) : (B))
+#define IM_MAX(A, B)        (((A) >= (B)) ? (A) : (B))
 #define IM_CLAMP(V, MN, MX) ((V) < (MN) ? (MN) : (V) > (MX) ? (MX) : (V))
 
 struct ExampleSelectionWithDeletion : ImGuiSelectionBasicStorage {
@@ -80,7 +80,7 @@ struct ExampleAsset {
     int Type;
 
     ExampleAsset(ImGuiID id, int type) {
-        ID = id;
+        ID   = id;
         Type = type;
     }
 
@@ -100,7 +100,7 @@ struct ExampleAsset {
         const ExampleAsset* b = (const ExampleAsset*)rhs;
         for (int n = 0; n < s_current_sort_specs->SpecsCount; n++) {
             const ImGuiTableColumnSortSpecs* sort_spec = &s_current_sort_specs->Specs[n];
-            int delta = 0;
+            int delta                                  = 0;
             if (sort_spec->ColumnIndex == 0)
                 delta = ((int)a->ID - (int)b->ID);
             else if (sort_spec->ColumnIndex == 1)
@@ -119,7 +119,7 @@ public:
     ContentBrowserPanel() {}
     ~ContentBrowserPanel() {}
 
-    virtual void Draw(const char* title, bool* p_open) override;
+    virtual void Draw(const char* title) override;
 
     void AddItems(int count) {
         if (m_Items.Size == 0) NextItemId = 0;
@@ -140,33 +140,33 @@ private:
     void UpdateLayoutSizes(float avail_width);
 
 private:
-    bool ShowTypeOverlay = true;
-    bool AllowSorting = true;
+    bool ShowTypeOverlay     = true;
+    bool AllowSorting        = true;
     bool AllowDragUnselected = false;
-    bool AllowBoxSelect = true;
-    float IconSize = 32.0f;
-    int IconSpacing = 10;
-    int IconHitSpacing = 4; // Increase hit-spacing if you want to make it possible to clear or
-                            // box-select from gaps. Some spacing is required to able to amend with
-                            // Shift+box-select. Value is small in Explorer.
+    bool AllowBoxSelect      = true;
+    float IconSize           = 180.0f;
+    int IconSpacing          = 10;
+    int IconHitSpacing  = 4; // Increase hit-spacing if you want to make it possible to clear or
+                             // box-select from gaps. Some spacing is required to able to amend with
+                             // Shift+box-select. Value is small in Explorer.
     bool StretchSpacing = true;
 
     // State
     ImVector<ExampleAsset> m_Items; // Our items
     ExampleSelectionWithDeletion
         Selection; // Our selection (ImGuiSelectionBasicStorage + helper funcs to handle deletion)
-    ImGuiID NextItemId = 0;      // Unique identifier when creating new items
-    bool RequestDelete = false;  // Deferred deletion request
-    bool RequestSort = false;    // Deferred sort request
-    float ZoomWheelAccum = 0.0f; // Mouse wheel accumulator to handle smooth wheels better
+    ImGuiID NextItemId   = 0;     // Unique identifier when creating new items
+    bool RequestDelete   = false; // Deferred deletion request
+    bool RequestSort     = false; // Deferred sort request
+    float ZoomWheelAccum = 0.0f;  // Mouse wheel accumulator to handle smooth wheels better
 
     // Calculated sizes for layout, output of UpdateLayoutSizes(). Could be locals but our code is
     // simpler this way.
     ImVec2 LayoutItemSize;
     ImVec2 LayoutItemStep; // == LayoutItemSize + LayoutItemSpacing
-    float LayoutItemSpacing = 0.0f;
+    float LayoutItemSpacing       = 0.0f;
     float LayoutSelectableSpacing = 0.0f;
-    float LayoutOuterPadding = 0.0f;
-    int LayoutColumnCount = 0;
-    int LayoutLineCount = 0;
+    float LayoutOuterPadding      = 0.0f;
+    int LayoutColumnCount         = 0;
+    int LayoutLineCount           = 0;
 };

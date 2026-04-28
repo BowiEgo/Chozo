@@ -1,9 +1,10 @@
 ﻿#include "Application.h"
 
-#include "GLFWInputImpl.h"
+#include "ImGuiLayer.h"
 #include "Input.h"
 #include "ModuleUtils.h"
 #include "RendererAPI.h"
+#include "SDLInputImpl.h"
 
 #ifdef CZ_PLATFORM_WINDOWS
     #include <Windows.h>
@@ -31,7 +32,7 @@ CApplication::~CApplication() {
 void CApplication::Init(const std::string& name) {
     CZ_LOG(LogApplication, Trace, "Applicatin Initializing...");
 
-    m_Profiler = CreateScope<PerformanceProfiler>();
+    m_Profiler = CreateScope<PerformanceProfiler>(static_cast<uint32_t>(EAppProfileSlot::COUNT));
     {
 #ifdef CZ_PLATFORM_WINDOWS
         // Set the timer resolution to 1ms for high-precision sleep
@@ -62,21 +63,17 @@ void CApplication::Init(const std::string& name) {
         m_Window->Init();
         m_Window->SetEventCallback(CZ_BIND_EVENT_FN(OnEvent));
 
-        auto* inputImpl = new CGLFWInputImpl(m_Window.get());
+        auto* inputImpl = new CSDLInputImpl(m_Window.get());
         SInput::Init(inputImpl);
 
         // Setup RenderEngine
         m_RenderEngine = CreateScope<CRenderEngine>(m_Window.get());
         m_RenderEngine->Init();
 
-        m_ImGuiLayer =
-            new CImGuiLayer(m_Window.get(), m_RenderEngine->GetRenderer()->GetGraphicContext());
-        PushLayer(m_ImGuiLayer);
+        CImGuiLayer::Get().Init(m_Window.get(), m_RenderEngine->GetRenderer()->GetGraphicContext());
 
         m_RenderEngine->GetRenderer()->SetUICallback(
-            [this](const TRef<IRHICommandList>& cmdBuffer) {
-                if (m_ImGuiLayer) m_ImGuiLayer->Draw(cmdBuffer);
-            });
+            [this](const TRef<IRHICommandList>& cmdBuffer) { CImGuiLayer::Get().Draw(cmdBuffer); });
 
         if (m_EditorModule.Load(ChozoUitls::Module::GetPlatformLibName("Editor"))) {
             auto EditorLayer = m_EditorModule.Invoke<ILayer*()>("CreateEditorLayer");
@@ -96,7 +93,7 @@ void CApplication::Init(const std::string& name) {
 
 void CApplication::Run() {
     m_Profiler->Flip();
-    CZ_APP_SCOPE_PERF(EProfileSlot::TotalFrame);
+    CZ_APP_SCOPE_PERF(EAppProfileSlot::TotalFrame);
 
     float time      = m_AppTimer.ElapsedMillis();
     float deltaTime = time - m_LastFrameTime;
@@ -105,7 +102,7 @@ void CApplication::Run() {
     m_FPSCounter.Update(deltaTime);
 
     {
-        CZ_APP_SCOPE_PERF(EProfileSlot::Logic);
+        CZ_APP_SCOPE_PERF(EAppProfileSlot::Logic);
 
         m_Window->OnUpdate();
         for (ILayer* layer : m_LayerStack)
@@ -113,17 +110,17 @@ void CApplication::Run() {
 
         {
             // TODO: execute this stuff on render thread.
-            CZ_APP_SCOPE_PERF(EProfileSlot::ImGui);
-            m_ImGuiLayer->Begin();
-            m_ImGuiLayer->Render([this]() {
+            CZ_APP_SCOPE_PERF(EAppProfileSlot::ImGui);
+            CImGuiLayer::Get().Begin();
+            CImGuiLayer::Get().Render([this]() {
                 for (ILayer* layer : m_LayerStack)
                     layer->OnImGuiRender();
             });
-            m_ImGuiLayer->End();
+            CImGuiLayer::Get().End();
         }
 
         {
-            CZ_APP_SCOPE_PERF(EProfileSlot::Render);
+            CZ_APP_SCOPE_PERF(EAppProfileSlot::Render);
             m_RenderEngine->Tick(deltaTime);
         }
     }
@@ -132,12 +129,13 @@ void CApplication::Run() {
     float timeToWait  = m_TargetFrameTime - workElapsed;
     if (timeToWait > 0) {
         // Log wait time separately to see CPU headroom in Profiler
-        CZ_APP_SCOPE_PERF(EProfileSlot::Wait);
+        CZ_APP_SCOPE_PERF(EAppProfileSlot::Wait);
         Timer::Wait(timeToWait);
     }
 }
 
 void CApplication::Exit() {
+    CImGuiLayer::Get().OnDetach();
     m_LayerStack.Clear();
     m_RenderEngine->Shutdown();
     m_Window->Shutdown();

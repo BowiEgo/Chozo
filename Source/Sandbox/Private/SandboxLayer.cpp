@@ -1,6 +1,7 @@
 #include "SandboxLayer.h"
 
 #include "Application.h"
+#include "UIUtils.h"
 
 #include "imgui.h"
 
@@ -82,14 +83,14 @@ void SandboxLayer::OnImGuiRender() {
 
     // m_ViewportFocused = ImGui::IsWindowFocused();
     // m_ViewportHovered = ImGui::IsWindowHovered();
-    // Application::Get().GetImGuiLayer().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+    // CImGuiLayer()::Get().BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
     auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
     m_ViewportSize      = ImGui::GetContentRegionAvail();
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
     auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
-    ImTextureID textureID = (ImTextureID)tex->GetImTextureID();
+    ImTextureID textureID = GET_IM_RHI_TEXTURE_ID(tex.get());
     ImGui::Image(textureID, m_ViewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
     // Integrated Debug Overlay
@@ -102,10 +103,10 @@ void SandboxLayer::OnImGuiRender() {
         ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Engine FPS: %.1f", fps);
         ImGui::TextDisabled("Latency: %.3f ms", latency);
 
-        for (uint32_t i = 1; i < (uint32_t)EProfileSlot::COUNT; ++i) {
-            const auto& data = profiler->GetSlot((EProfileSlot)i);
+        for (uint32_t i = 1; i < (uint32_t)EAppProfileSlot::COUNT; ++i) {
+            const auto& data = profiler->GetSlot((uint32_t)(EAppProfileSlot)i);
             if (data.Samples > 0) {
-                ImGui::Text("%-20s: %.3f ms", GProfileSlotNames[i], data.Time);
+                ImGui::Text("%-20s: %.3f ms", GAppProfileSlotNames[i], data.Time);
             }
         }
     });

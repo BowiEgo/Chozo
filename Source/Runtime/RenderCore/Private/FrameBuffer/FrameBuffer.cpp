@@ -8,7 +8,7 @@ CFrameBuffer::CFrameBuffer(const FFrameBufferSpecification& spec) : m_Spec(spec)
     CZ_LOG(LogFrameBuffer, Trace, "Creating FrameBuffer {} ...", m_Spec.Name);
 }
 
-IRHIFrameBuffer* CFrameBuffer::GetOrCreateResource() {
+IRHIFrameBuffer* CFrameBuffer::GetResource() {
     if (m_Resource) {
         return m_Resource.get();
     }

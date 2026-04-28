@@ -398,6 +398,11 @@ FileData::FileData(const std::filesystem::path& path) {
     ThumbnailWidth  = 0;
 }
 
+UFileDialog& UFileDialog::Get() {
+    static UFileDialog instance;
+    return instance;
+}
+
 UFileDialog::UFileDialog() {
     m_IsOpen            = false;
     m_Type              = 0;
@@ -1016,8 +1021,7 @@ void UFileDialog::RenderTree(FileTreeNode* node) {
 
     auto tex           = GetIcon(node->Path);
     bool isDefaultOpen = displayName == "Quick Access" || displayName == "This Computer";
-    if (FolderNode(displayName.c_str(), (ImTextureID)tex->GetImTextureID(), isClicked,
-                   isDefaultOpen)) {
+    if (FolderNode(displayName.c_str(), GET_IM_TEXTURE_ID(tex), isClicked, isDefaultOpen)) {
         if (!node->Read) {
             // cache children if it's not already cached
             if (std::filesystem::exists(node->Path, ec))
@@ -1086,8 +1090,7 @@ void UFileDialog::RenderContent() {
 
                 // icon
                 ImGui::TableSetColumnIndex(0);
-                ImGui::Image((ImTextureID)tex->GetImTextureID(),
-                             ImVec2(iconTotalSize, iconTotalSize));
+                ImGui::Image(GET_IM_TEXTURE_ID(tex), ImVec2(iconTotalSize, iconTotalSize));
                 ImGui::SameLine();
 
                 if (ImGui::Selectable(("##" + filename).c_str(), isSelected,
@@ -1145,7 +1148,7 @@ void UFileDialog::RenderContent() {
             auto tex        = entry.IsDirectory ? GetIcon(entry.Path) : GetThumbnail(entry.Path);
             auto texSize    = tex->GetSize();
 
-            if (FileIcon(filename.c_str(), isSelected, (ImTextureID)tex->GetImTextureID(),
+            if (FileIcon(filename.c_str(), isSelected, GET_IM_TEXTURE_ID(tex),
                          ImVec2(32 + 16 * m_Zoom, 32 + 16 * m_Zoom), !entry.IsDirectory,
                          texSize.Width, texSize.Height)) {
                 std::error_code ec;

@@ -12,10 +12,15 @@ DECLARE_LOG_CATEGORY_EXTERN(LogImGuiLayer, Info);
 
 class UI_API CImGuiLayer : public ILayer {
 public:
-    CImGuiLayer(CWindow* window, IRHIContext* rhiContext);
-    ~CImGuiLayer();
+    static CImGuiLayer& Get();
+
+    CImGuiLayer(const CImGuiLayer&)            = delete;
+    CImGuiLayer& operator=(const CImGuiLayer&) = delete;
 
 private:
+    CImGuiLayer();
+    ~CImGuiLayer() = default;
+
     TScope<IImGuiRenderer> CreateRenderer(CWindow* window, IRHIContext* rhiContext);
 
 public:
@@ -23,6 +28,7 @@ public:
     virtual void OnDetach() override;
     virtual void OnEvent(IEvent& e) override;
 
+    void Init(CWindow* window, IRHIContext* rhiContext);
     void BlockEvents(bool block) { m_BlockEvents = block; }
     void Begin();
     void Render(const std::function<void()>& renderCb);
@@ -31,6 +37,9 @@ public:
     void SetDarkThemeColors();
 
     void Draw(const TRef<IRHICommandList>& cmdBuffer);
+
+    IImGuiRenderer* GetRenderer() { return m_ImGuiRenderer.get(); }
+    CWindow* GetWindow() { return m_Window; }
 
 private:
     CModule m_RHIModule;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MeshParams.h"
+#include "MeshParamsWrapper.h"
 #include "MeshRegister.h"
 #include "ProceduralMesh.h"
 #include "Ref.h"
@@ -11,15 +11,15 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogMeshManager, Info);
 
-class RENDER_CORE_API FMeshManager {
+class RENDER_CORE_API CMeshManager {
 public:
-    static FMeshManager& Get();
+    static CMeshManager& Get();
 
-    FMeshManager& operator=(const FMeshManager&) = delete;
+    CMeshManager& operator=(const CMeshManager&) = delete;
 
     TRef<FProceduralMesh> CreateProceduralMesh(const IParams& params) {
         TRef<FProceduralMesh> mesh = FMeshRegister::Get().CreateMesh(params);
-        FAssetHandle handle = FAssetHandle::Generate();
+        FAssetHandle handle        = FAssetHandle::Generate();
 
         mesh->SetHandle(handle);
         m_ProceduralMeshes[handle] = mesh;
