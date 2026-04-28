@@ -12,10 +12,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogImGuiLayer, Info);
 
 class UI_API CImGuiLayer : public ILayer {
 public:
-    static CImGuiLayer& Get() {
-        static CImGuiLayer instance;
-        return instance;
-    }
+    static CImGuiLayer& Get();
 
     CImGuiLayer(const CImGuiLayer&)            = delete;
     CImGuiLayer& operator=(const CImGuiLayer&) = delete;

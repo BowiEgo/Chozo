@@ -19,6 +19,11 @@ DEFINE_LOG_CATEGORY(LogImGuiLayer);
 //     return FImVec2(lhs.x - rhs.x, lhs.y - rhs.y);
 // }
 
+CImGuiLayer& CImGuiLayer::Get() {
+    static CImGuiLayer instance;
+    return instance;
+}
+
 CImGuiLayer::CImGuiLayer() : m_Window(nullptr), m_Context(nullptr) {}
 
 void CImGuiLayer::Init(CWindow* window, IRHIContext* context) {

@@ -10,6 +10,11 @@
 
 DEFINE_LOG_CATEGORY(LogAssetManager);
 
+CAssetManager& CAssetManager::Get() {
+    static CAssetManager instance;
+    return instance;
+}
+
 CAssetManager::CAssetManager() {
     m_ShaderCompiler    = CreateScope<CShaderCompiler>();
     m_CheckboardTexture = GetOrLoadTexture("textures://CheckerboardTexture.png");

@@ -17,10 +17,7 @@ class RENDER_CORE_API CAssetManager {
     };
 
 public:
-    static inline CAssetManager& Get() {
-        static CAssetManager ret;
-        return ret;
-    }
+    static CAssetManager& Get();
 
     CAssetManager();
     ~CAssetManager() {};

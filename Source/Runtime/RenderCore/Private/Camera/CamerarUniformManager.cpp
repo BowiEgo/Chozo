@@ -5,6 +5,11 @@
 
 DEFINE_LOG_CATEGORY(LogCameraUniformManager);
 
+CCameraUniformManager& CCameraUniformManager::Get() {
+    static CCameraUniformManager instance;
+    return instance;
+}
+
 void CCameraUniformManager::Initialize() {}
 
 void CCameraUniformManager::Shutdown() { m_Cameras.clear(); }

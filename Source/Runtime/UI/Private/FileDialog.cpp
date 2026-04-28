@@ -398,6 +398,11 @@ FileData::FileData(const std::filesystem::path& path) {
     ThumbnailWidth  = 0;
 }
 
+UFileDialog& UFileDialog::Get() {
+    static UFileDialog instance;
+    return instance;
+}
+
 UFileDialog::UFileDialog() {
     m_IsOpen            = false;
     m_Type              = 0;
