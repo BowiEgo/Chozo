@@ -29,7 +29,7 @@ void CVulkanCommandBuffer::Init() {
 
     const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
 
-    vk::CommandBufferAllocateInfo allocInfo;
+    vk::CommandBufferAllocateInfo allocInfo{};
     allocInfo.commandPool        = m_CommandPool->GetRAIICommandPool();
     allocInfo.level              = vk::CommandBufferLevel::ePrimary;
     allocInfo.commandBufferCount = 1;

@@ -27,7 +27,7 @@ void CVulkanSampler::CreateVKSampler() {
         return;
     }
 
-    vk::SamplerCreateInfo samplerInfo;
+    vk::SamplerCreateInfo samplerInfo{};
     samplerInfo.setMagFilter(ChozoUtils::Vulkan::ToVKFilter(m_Spec.MagFilter))
         .setMinFilter(ChozoUtils::Vulkan::ToVKFilter(m_Spec.MinFilter))
         .setAddressModeU(ChozoUtils::Vulkan::ToVKAddressMode(m_Spec.AddressModeU))

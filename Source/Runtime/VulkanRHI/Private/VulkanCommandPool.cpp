@@ -24,7 +24,7 @@ void CVulkanCommandPool::Init() {
 
     const vk::raii::Device& raiiDevice = device->GetRAIILogicalDevice();
 
-    vk::CommandPoolCreateInfo poolInfo;
+    vk::CommandPoolCreateInfo poolInfo{};
     poolInfo.flags            = ChozoUtils::Vulkan::MapCommandPoolFlags(m_Spec.Flags);
     poolInfo.queueFamilyIndex = m_Spec.QueueIndex;
 

@@ -69,8 +69,8 @@ void CVulkanImage::SetData(FBuffer& data) {
     vk::DeviceSize size      = data.Size;
 
     // Create staging buffer
-    vk::Buffer stagingBuffer;
-    vk::DeviceMemory stagingMemory;
+    vk::Buffer stagingBuffer       = nullptr;
+    vk::DeviceMemory stagingMemory = nullptr;
     device->CreateBuffer(size, vk::BufferUsageFlagBits::eTransferSrc,
                          vk::MemoryPropertyFlagBits::eHostVisible |
                              vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -89,7 +89,7 @@ void CVulkanImage::SetData(FBuffer& data) {
                                               vk::ImageLayout::eTransferDstOptimal);
 
     // Copy Buffer to Image
-    vk::BufferImageCopy region;
+    vk::BufferImageCopy region{};
     region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
     region.imageSubresource.layerCount = 1;
     region.imageExtent                 = vk::Extent3D(m_Spec.Size.Width, m_Spec.Size.Height, 1);
@@ -119,7 +119,7 @@ void CVulkanImage::CreateImageResources() {
     vk::PhysicalDevice physicalDevice = device->GetPhysicalDevice();
     bool isDepth                      = ChozoUtils::Vulkan::IsDepthFormat(m_VKFormat);
 
-    vk::ImageCreateInfo imageInfo;
+    vk::ImageCreateInfo imageInfo{};
     imageInfo.setImageType(vk::ImageType::e2D)
         .setFormat(m_VKFormat)
         .setExtent({ m_Spec.Size.Width, m_Spec.Size.Height, 1 })
@@ -201,18 +201,18 @@ vk::ImageView CVulkanImage::GetOrCreateVKView(const FImageViewSpecification& spe
     uint32_t mipLevels  = (spec.MipCount == 0) ? m_Spec.MipLevels : spec.MipCount;
     uint32_t layerCount = (spec.LayerCount == 0) ? m_Spec.Layers : spec.LayerCount;
 
-    vk::ImageSubresourceRange subresourceRange;
+    vk::ImageSubresourceRange subresourceRange{};
     subresourceRange.setAspectMask(aspectMask)
         .setBaseMipLevel(spec.BaseMipLevel)
         .setLevelCount(mipLevels)
         .setBaseArrayLayer(spec.BaseArrayLayer)
         .setLayerCount(layerCount);
 
-    vk::ImageViewCreateInfo viewInfo;
+    vk::ImageViewCreateInfo viewInfo{};
     viewInfo.setImage(m_VKImage).setViewType(viewType).setFormat(vkFormat).setSubresourceRange(
         subresourceRange);
 
-    vk::ImageView view;
+    vk::ImageView view = nullptr;
     try {
         view = logicalDevice.createImageView(viewInfo);
     } catch (const vk::SystemError& e) {

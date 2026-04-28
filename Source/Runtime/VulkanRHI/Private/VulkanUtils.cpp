@@ -226,7 +226,7 @@ void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image 
                            uint32_t baseArrayLayer, uint32_t layerCount) {
     if (oldLayout == newLayout) return;
 
-    vk::ImageMemoryBarrier2 barrier;
+    vk::ImageMemoryBarrier2 barrier{};
     barrier.setOldLayout(oldLayout)
         .setNewLayout(newLayout)
         .setSrcQueueFamilyIndex(vk::QueueFamilyIgnored)
@@ -239,7 +239,7 @@ void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image 
     // Automatically deduce stages and access masks based on layouts
     SetupBarrierSync(barrier, oldLayout, newLayout);
 
-    vk::DependencyInfo depInfo;
+    vk::DependencyInfo depInfo{};
     depInfo.setImageMemoryBarriers(barrier);
 
     vkCmdBuffer.pipelineBarrier2(depInfo);

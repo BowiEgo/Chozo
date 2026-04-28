@@ -1,20 +1,27 @@
 #include "PBRMaterialParams.h"
 
+// Use designated initializers for all members
 inline const FParamControllerConfig kBaseColorConfig{ .Type = EParamControllerType::ColorPicker };
+
 inline const FParamControllerConfig kMetallicConfig{ .Type = EParamControllerType::Slider,
-                                                     0.0f,
-                                                     1.0f };
+                                                     .Min  = 0.0f,
+                                                     .Max  = 1.0f };
+
 inline const FParamControllerConfig kRoughnessConfig{ .Type = EParamControllerType::Slider,
-                                                      0.0f,
-                                                      1.0f };
+                                                      .Min  = 0.0f,
+                                                      .Max  = 1.0f };
+
 inline const FParamControllerConfig kNormalStrengthConfig{ .Type = EParamControllerType::Slider,
-                                                           0.0f,
-                                                           2.0f };
+                                                           .Min  = 0.0f,
+                                                           .Max  = 2.0f };
+
 inline const FParamControllerConfig kEmissiveStrengthConfig{ .Type = EParamControllerType::Slider,
-                                                             0.0,
-                                                             1.0f };
+                                                             .Min  = 0.0f,
+                                                             .Max  = 1.0f };
+
 inline const FParamControllerConfig kMapConfig{ .Type         = EParamControllerType::AssetPicker,
                                                 .bNotifyDirty = false };
+
 inline const FParamControllerConfig kCheckboxConfig{ .Type = EParamControllerType::Checkbox };
 
 #define PARAMS_LIST                                                                                \

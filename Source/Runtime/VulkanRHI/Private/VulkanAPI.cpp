@@ -25,7 +25,7 @@ void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer,
     colorAttachmentInfos.reserve(targets.size());
 
     for (const auto& target : targets) {
-        vk::RenderingAttachmentInfo info;
+        vk::RenderingAttachmentInfo info{};
         if (target->GetSpec().Type == ETextureType::Texture2D) {
             auto tex2D = static_cast<CVulkanTexture2D*>(target);
             info       = tex2D->GetColorAttachmentInfo(clearValue, bClear, faceIndex);
@@ -37,7 +37,7 @@ void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer,
         colorAttachmentInfos.push_back(info);
     }
 
-    vk::RenderingInfo renderingInfo;
+    vk::RenderingInfo renderingInfo{};
     renderingInfo.setRenderArea(vk::Rect2D({ 0, 0 }, extent))
         .setLayerCount(1)
         .setColorAttachmentCount(static_cast<uint32_t>(colorAttachmentInfos.size()))
@@ -117,7 +117,7 @@ void CVulkanAPI::DrawFrame_Internal(const TRef<IRHICommandList>& cmdBuffer,
 
     // 4. submit draw command buffer and signal the renderFinishedSemaphore when done
     vk::PipelineStageFlags waitStages = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-    vk::SubmitInfo submitInfo;
+    vk::SubmitInfo submitInfo{};
 
     vk::Semaphore imageSigSem = swapchain->GetRenderFinishedSemaphore(imgIdx);
     vk::Fence fence           = vkSync->GetVKFence();
@@ -137,10 +137,10 @@ void CVulkanAPI::DrawFrame_Internal(const TRef<IRHICommandList>& cmdBuffer,
 
     // 5. present the image, waiting on the renderFinishedSemaphore to ensure rendering is
     // complete
-    vk::PresentInfoKHR presentInfo;
+    vk::PresentInfoKHR presentInfo{};
     presentInfo.setWaitSemaphores(imageSigSem).setSwapchains(vkSwapchain).setPImageIndices(&imgIdx);
 
-    vk::Result result;
+    vk::Result result{};
     try {
         result = queue.presentKHR(presentInfo);
     } catch (const vk::OutOfDateKHRError& e) {

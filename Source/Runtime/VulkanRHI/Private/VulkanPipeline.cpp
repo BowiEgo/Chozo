@@ -76,7 +76,7 @@ void CVulkanPipeline::Init() {
     std::vector<vk::VertexInputAttributeDescription> attributeDescs;
 
     if (m_Spec.VertexLayout.GetElements().size() > 0) {
-        vk::VertexInputBindingDescription bindingDesc;
+        vk::VertexInputBindingDescription bindingDesc{};
         bindingDesc.setBinding(0)
             .setStride(m_Spec.VertexLayout.GetStride())
             .setInputRate(vk::VertexInputRate::eVertex);
@@ -84,7 +84,7 @@ void CVulkanPipeline::Init() {
 
         uint32_t location = 0;
         for (const auto& element : m_Spec.VertexLayout) {
-            vk::VertexInputAttributeDescription attrDesc;
+            vk::VertexInputAttributeDescription attrDesc{};
             attrDesc.setLocation(location++)
                 .setBinding(0)
                 .setFormat(ChozoUtils::Vulkan::ShaderDataTypeToVkFormat(element.Type))
@@ -93,7 +93,7 @@ void CVulkanPipeline::Init() {
         }
     }
 
-    vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+    vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.setVertexBindingDescriptionCount(bindingDescs.size())
         .setPVertexBindingDescriptions(bindingDescs.data())
         .setVertexAttributeDescriptionCount(attributeDescs.size())
@@ -118,7 +118,7 @@ void CVulkanPipeline::Init() {
 
     // ===== Depth Stencil =====
     vk::Format vkDepthFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.DepthFormat);
-    vk::PipelineDepthStencilStateCreateInfo depthStencil;
+    vk::PipelineDepthStencilStateCreateInfo depthStencil{};
     depthStencil.setDepthTestEnable(m_Spec.bDepthTestEnable ? vk::True : vk::False)
         .setDepthWriteEnable(m_Spec.bDepthWriteEnable ? vk::True : vk::False)
         .setDepthCompareOp(ChozoUtils::Vulkan::ToVkCompareOp(m_Spec.DepthCompareOp));

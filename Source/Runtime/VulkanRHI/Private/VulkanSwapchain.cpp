@@ -92,7 +92,7 @@ void CVulkanSwapchain::Init() {
     // vk::Extent2D extent =
     //     ChozoUtils::Vulkan::ChooseSwapExtent(details.capabilities, pixelWidth, pixelHeight);
 
-    vk::Extent2D extent;
+    vk::Extent2D extent{};
     bool hasSwapchainMaintenance =
         device->IsExtensionSupported(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
 
@@ -115,7 +115,7 @@ void CVulkanSwapchain::Init() {
         m_ImageCount = details.capabilities.maxImageCount;
     }
 
-    vk::SwapchainCreateInfoKHR createInfo;
+    vk::SwapchainCreateInfoKHR createInfo{};
     createInfo.surface          = *m_VKSurface;
     createInfo.minImageCount    = m_ImageCount;
     createInfo.imageFormat      = surfaceFormat.format;
@@ -147,7 +147,7 @@ void CVulkanSwapchain::Init() {
     createInfo.presentMode    = presentMode;
     createInfo.clipped        = true;
 
-    vk::SwapchainPresentScalingCreateInfoEXT scalingInfo;
+    vk::SwapchainPresentScalingCreateInfoEXT scalingInfo{};
     if (hasSwapchainMaintenance) {
         // Use single scaling flag, cannot combine multiple bits
         scalingInfo.setScalingBehavior(vk::PresentScalingFlagBitsEXT::eStretch
@@ -170,7 +170,7 @@ void CVulkanSwapchain::Init() {
 
     // Retrieve the images created by the swapchain
     auto images = m_VKSwapchain.getImages();
-    vk::SemaphoreCreateInfo semiInfo;
+    vk::SemaphoreCreateInfo semiInfo{};
 
     m_ColorAttachments.clear();
     m_ColorAttachments.reserve(images.size());

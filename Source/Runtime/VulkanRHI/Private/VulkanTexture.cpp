@@ -21,7 +21,7 @@ CVulkanTexture::CVulkanTexture(const WeakRef<IRHIDevice> device, const FTextureS
 CVulkanTexture::~CVulkanTexture() {}
 
 vk::DescriptorImageInfo CVulkanTexture::GetImageInfo() {
-    vk::DescriptorImageInfo imageInfo;
+    vk::DescriptorImageInfo imageInfo{};
     imageInfo.setSampler(GetSampler().As<CVulkanSampler>()->GetVKHandle());
     imageInfo.setImageView(static_cast<CVulkanImage*>(GetImage())->GetVKView());
     imageInfo.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
