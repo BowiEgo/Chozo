@@ -40,7 +40,8 @@ void CApplication::Init(const std::string& name) {
 #endif
 
         // Setup VFS
-        std::filesystem::path projectRoot = ChozoUtils::File::GetProjectRoot();
+        std::filesystem::path projectRoot =
+            std::filesystem::absolute(ChozoUtils::File::GetExecutablePath()).parent_path();
         CZ_LOG(LogApplication, Info, "Project Root set from environment variable: {0}",
                projectRoot.string());
         std::filesystem::path resourcesDir = projectRoot / "Resources";
