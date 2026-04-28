@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Material.h"
-#include "MaterialProps.h"
+#include "MaterialParamsWrapper.h"
 #include "Ref.h"
 #include "Scope.h"
 #include "TypeRegister.h"
@@ -58,15 +58,15 @@ public:
         RegisterMaterialGenerator<ParamsType, MaterialType>(typeName);
     }
 
-    FMaterialProps CreateParams(const std::string& typeName) const {
+    FMaterialParamsWrapper CreateParams(const std::string& typeName) const {
         auto it = m_Factories.find(typeName);
         if (it != m_Factories.end()) {
             auto params = it->second->CreateDefault();
             if (params) {
-                return FMaterialProps(std::move(params));
+                return FMaterialParamsWrapper(std::move(params));
             }
         }
-        return FMaterialProps();
+        return FMaterialParamsWrapper();
     }
 
     TRef<CMaterial> CreateMaterial(const IMaterialParams& params) {

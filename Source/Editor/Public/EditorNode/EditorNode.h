@@ -98,16 +98,16 @@ public:
 
     // ===== Mesh =====
     bool HasMesh() const { return FTypeRegister::Get().IsMeshType(m_Type); }
-    void SetMeshProps(const FMeshProps& props) {
-        m_MeshProps = props;
+    void SetMeshParamsWrapper(const FMeshParamsWrapper& props) {
+        m_MeshParamsWrapper = props;
         MarkDirty();
     }
-    void SetMeshProps(const std::string& typeName) {
-        m_MeshProps = FMeshRegister::Get().CreateParams(typeName);
+    void SetMeshParamsWrapper(const std::string& typeName) {
+        m_MeshParamsWrapper = FMeshRegister::Get().CreateParams(typeName);
         MarkDirty();
     }
-    const FMeshProps* GetMeshProps() const { return &m_MeshProps; }
-    FMeshProps* GetMeshProps() { return &m_MeshProps; }
+    const FMeshParamsWrapper* GetMeshParamsWrapper() const { return &m_MeshParamsWrapper; }
+    FMeshParamsWrapper* GetMeshParamsWrapper() { return &m_MeshParamsWrapper; }
 
     // ===== Material =====
 
@@ -130,7 +130,7 @@ private:
     // Components
     FTransformParams m_TransformParams;
     FHDRIBackdropParams m_HDRIBackdropParams;
-    FMeshProps m_MeshProps;
+    FMeshParamsWrapper m_MeshParamsWrapper;
 
     // State
     bool m_bDirty = false;

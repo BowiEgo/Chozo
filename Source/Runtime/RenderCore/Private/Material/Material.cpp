@@ -52,7 +52,7 @@ void CMaterial::CreateDescriptorSet() {
             binding.ImageLayout = EImageLayout::ShaderReadOnlyOptimal;
 
             if (binding.Type == EUniformType::CombinedImageSampler) {
-                std::any value = m_Params.Get()->GetProperty(
+                std::any value = m_Params.Get()->GetParamValue(
                     ChozoUtils::String::RemovePrefix(uniform.Name, "u_"));
 
                 FAssetHandle handle = std::any_cast<FAssetHandle>(value);
@@ -71,18 +71,18 @@ void CMaterial::CreateDescriptorSet() {
                        uniform.Name == "u_Material") {
 
                 FVector4 baseColor =
-                    std::any_cast<FVector4>(m_Params.Get()->GetProperty("BaseColor"));
-                float metallic  = std::any_cast<float>(m_Params.Get()->GetProperty("Metallic"));
-                float roughness = std::any_cast<float>(m_Params.Get()->GetProperty("Roughness"));
+                    std::any_cast<FVector4>(m_Params.Get()->GetParamValue("BaseColor"));
+                float metallic  = std::any_cast<float>(m_Params.Get()->GetParamValue("Metallic"));
+                float roughness = std::any_cast<float>(m_Params.Get()->GetParamValue("Roughness"));
                 float normalStrength =
-                    std::any_cast<float>(m_Params.Get()->GetProperty("NormalStrength"));
+                    std::any_cast<float>(m_Params.Get()->GetParamValue("NormalStrength"));
                 float emissiveStrength =
-                    std::any_cast<float>(m_Params.Get()->GetProperty("EmissiveStrength"));
+                    std::any_cast<float>(m_Params.Get()->GetParamValue("EmissiveStrength"));
                 bool useAlbedoMap =
-                    std::any_cast<bool>(m_Params.Get()->GetProperty("UseAlbedoMap"));
+                    std::any_cast<bool>(m_Params.Get()->GetParamValue("UseAlbedoMap"));
                 bool useNormalMap =
-                    std::any_cast<bool>(m_Params.Get()->GetProperty("UseNormalMap"));
-                bool useRMAOMap = std::any_cast<bool>(m_Params.Get()->GetProperty("UseRMAOMap"));
+                    std::any_cast<bool>(m_Params.Get()->GetParamValue("UseNormalMap"));
+                bool useRMAOMap = std::any_cast<bool>(m_Params.Get()->GetParamValue("UseRMAOMap"));
 
                 struct alignas(16) MaterialUniforms {
                     FVector4 BaseColor;

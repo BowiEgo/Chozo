@@ -22,9 +22,9 @@ FEditorNode::FEditorNode(const std::string& name, uint32_t type)
         auto sphereBit = regManager.GetBit("Mesh_Sphere");
 
         if ((m_Type & cubeBit) != 0)
-            SetMeshProps("Cube");
+            SetMeshParamsWrapper("Cube");
         else if ((m_Type & sphereBit) != 0)
-            SetMeshProps("Sphere");
+            SetMeshParamsWrapper("Sphere");
     }
 
     CZ_LOG(LogEditorNode, Trace, "Created node '{}' with ID {}", name, m_ID);

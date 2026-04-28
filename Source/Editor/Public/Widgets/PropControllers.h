@@ -125,6 +125,17 @@ static bool DrawTextureControl(const std::string& id, TRef<CTexture> texture) {
 
 static bool DrawMaterialControl(const std::string& id, const TRef<CMaterial>& mat) {
     ChozoUtils::UI::ScopedID scopedID(id.c_str());
+    // if (mat) {
+    //     std::string matName = mat->GetName();
+    //     strncpy(buffer, matName.c_str(), sizeof(buffer) - 1);
+    //     buffer[sizeof(buffer) - 1] = '\0';
+    // } else {
+    //     buffer[0] = '\0';
+    // }
+    // if (ImGui::InputText(id.c_str(), buffer, sizeof(buffer))) {
+    //     // value = std::strtoull(buffer, nullptr, 10);
+    //     return true;
+    // }
 
     auto texture = CAssetManager::Get().GetCheckboardTexture();
     ChozoUtils::UI::DrawButtonImageByRatio(texture, { 120.0f, 120.0f });
@@ -169,9 +180,149 @@ static bool DrawMaterialControl(const std::string& id, const TRef<CMaterial>& ma
     return false;
 }
 
+template <typename T> bool DrawSlider(T& value, const std::string& name, float min, float max) {
+    const std::string id = "##" + name;
+
+    if constexpr (std::is_same_v<T, float>) {
+        return ImGui::SliderFloat(id.c_str(), &value, min, max);
+    } else if constexpr (std::is_same_v<T, double>) {
+        float temp   = static_cast<float>(value);
+        bool changed = ImGui::SliderFloat(id.c_str(), &temp, min, max);
+        if (changed) {
+            value = static_cast<double>(temp);
+        }
+        return changed;
+    } else if constexpr (std::is_same_v<T, int32_t>) {
+        return ImGui::SliderInt(id.c_str(), &value, static_cast<int>(min), static_cast<int>(max));
+    } else if constexpr (std::is_same_v<T, uint32_t>) {
+        int temp = static_cast<int>(value);
+        bool changed =
+            ImGui::SliderInt(id.c_str(), &temp, static_cast<int>(min), static_cast<int>(max));
+        if (changed) {
+            value = static_cast<uint32_t>(temp);
+            return true;
+        }
+        return false;
+    }
+
+    return false;
+}
+
 template <typename T>
-bool DrawController(T& value, const std::string& name, float speed = 0.01f, float min = 0.0f,
-                    float max = 0.0f) {
+bool DrawDrag(T& value, const std::string& name, float speed, float min, float max) {
+    const std::string id = "##" + name;
+
+    if constexpr (std::is_same_v<T, float>) {
+        if (max > min) {
+            return ImGui::DragFloat(id.c_str(), &value, speed, min, max);
+        }
+        return ImGui::DragFloat(id.c_str(), &value, speed);
+    } else if constexpr (std::is_same_v<T, double>) {
+        float temp   = static_cast<float>(value);
+        bool changed = ImGui::DragFloat(id.c_str(), &temp, static_cast<float>(speed));
+        if (changed) {
+            value = static_cast<double>(temp);
+        }
+        return changed;
+    } else if constexpr (std::is_same_v<T, int32_t>) {
+        if (max > min) {
+            return ImGui::DragInt(id.c_str(), &value, static_cast<int>(speed),
+                                  static_cast<int>(min), static_cast<int>(max));
+        }
+        return ImGui::DragInt(id.c_str(), &value, static_cast<int>(speed));
+    } else if constexpr (std::is_same_v<T, uint32_t>) {
+        int temp     = static_cast<int>(value);
+        int minInt   = static_cast<int>(min);
+        int maxInt   = static_cast<int>(max);
+        bool changed = false;
+
+        if (maxInt > minInt) {
+            changed = ImGui::DragInt(id.c_str(), &temp, static_cast<int>(speed), minInt, maxInt);
+        } else {
+            changed = ImGui::DragInt(id.c_str(), &temp, static_cast<int>(speed));
+        }
+
+        if (changed && temp >= 0) {
+            value = static_cast<uint32_t>(temp);
+            return true;
+        }
+        return false;
+    } else if constexpr (std::is_same_v<T, int64_t>) {
+        int temp     = static_cast<int>(value);
+        bool changed = ImGui::DragInt(id.c_str(), &temp, static_cast<int>(speed));
+        if (changed) {
+            value = static_cast<int64_t>(temp);
+        }
+        return changed;
+    } else if constexpr (std::is_same_v<T, uint64_t>) {
+        int temp     = static_cast<int>(value);
+        bool changed = ImGui::DragInt(id.c_str(), &temp, static_cast<int>(speed));
+        if (changed && temp >= 0) {
+            value = static_cast<uint64_t>(temp);
+            return true;
+        }
+        return false;
+    } else if constexpr (std::is_same_v<T, FVector2>) {
+        return ImGui::DragFloat2(id.c_str(), &value.x, speed);
+    } else if constexpr (std::is_same_v<T, FVector3>) {
+        return ImGui::DragFloat3(id.c_str(), &value.x, speed);
+    } else if constexpr (std::is_same_v<T, FVector4>) {
+        return ImGui::DragFloat4(id.c_str(), &value.x, speed);
+    } else if constexpr (std::is_same_v<T, FVector2>) {
+        return ImGui::DragFloat2(id.c_str(), &value.x, speed);
+    } else if constexpr (std::is_same_v<T, FVector3>) {
+        return ImGui::DragFloat3(id.c_str(), &value.x, speed);
+    } else if constexpr (std::is_same_v<T, FVector4>) {
+        return ImGui::DragFloat4(id.c_str(), &value.x, speed);
+    } else if constexpr (std::is_same_v<T, FQuaternion>) {
+        FVector3 euler = value.ToEuler();
+        bool changed   = ImGui::DragFloat3(id.c_str(), &euler.x, speed);
+        if (changed) {
+            value = FQuaternion::FromEuler(euler);
+        }
+        return changed;
+    }
+
+    return false;
+}
+
+template <typename T> bool DrawColor(T& value, const std::string& name) {
+    const std::string id = "##" + name;
+
+    if constexpr (std::is_same_v<T, FVector3>) {
+        return ImGui::ColorEdit3(id.c_str(), &value.x);
+    } else if constexpr (std::is_same_v<T, FVector4>) {
+        return ImGui::ColorEdit4(id.c_str(), &value.x);
+    } else if constexpr (std::is_same_v<T, FVector3>) {
+        return ImGui::ColorEdit3(id.c_str(), &value.x);
+    } else if constexpr (std::is_same_v<T, FVector4>) {
+        return ImGui::ColorEdit4(id.c_str(), &value.x);
+    }
+
+    return false;
+}
+
+template <typename T>
+bool DrawCombo(T& value, const std::string& name, const std::vector<std::string>& items,
+               bool bNotifyChanged = true) {
+    if constexpr (std::is_integral_v<T> || std::is_enum_v<T>) {
+        int current = static_cast<int>(value);
+        if (ImGui::Combo(
+                ("##" + name).c_str(), &current,
+                [](void* data, int idx) {
+                    return (*static_cast<const std::vector<std::string>*>(data))[idx].c_str();
+                },
+                (void*)&items, (int)items.size())) {
+            value = current;
+            return bNotifyChanged;
+        }
+    }
+    return false;
+}
+
+template <typename T>
+bool DrawDefaultController(T& value, const std::string& name, float speed = 0.01f, float min = 0.0f,
+                           float max = 0.0f) {
     const std::string id = "##" + name;
 
     if constexpr (std::is_same_v<T, float>) {
@@ -245,7 +396,6 @@ bool DrawController(T& value, const std::string& name, float speed = 0.01f, floa
         return ImGui::DragFloat2(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, FVector3>) {
         return DrawVec3Control(name, value, 0.0f, speed);
-        return ImGui::DragFloat3(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, FVector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, FQuaternion>) {
@@ -273,18 +423,6 @@ bool DrawController(T& value, const std::string& name, float speed = 0.01f, floa
                 return DrawMaterialControl(id, asset);
             }
         }
-        // if (asset) {
-        //     std::string assetName = asset->GetName();
-        //     strncpy(buffer, assetName.c_str(), sizeof(buffer) - 1);
-        //     buffer[sizeof(buffer) - 1] = '\0';
-        // } else {
-        //     buffer[0] = '\0';
-        // }
-        // if (ImGui::InputText(id.c_str(), buffer, sizeof(buffer))) {
-        //     // value = std::strtoull(buffer, nullptr, 10);
-        //     return true;
-        // }
-
         return false;
     } else {
         static_assert(sizeof(T) == 0, "Unsupported type for DrawController");
@@ -293,70 +431,22 @@ bool DrawController(T& value, const std::string& name, float speed = 0.01f, floa
 }
 
 template <typename T>
-bool DrawControllerWithRange(T& value, const std::string& name, float speed = 0.01f,
-                             float min = 0.0f, float max = 0.0f) {
-    return DrawController(value, name, speed, min, max);
-}
-
-template <typename T> bool DrawSlider(T& value, const std::string& name, float min, float max) {
-    const std::string id = "##" + name;
-
-    if constexpr (std::is_same_v<T, float>) {
-        return ImGui::SliderFloat(id.c_str(), &value, min, max);
-    } else if constexpr (std::is_same_v<T, int32_t>) {
-        return ImGui::SliderInt(id.c_str(), &value, static_cast<int>(min), static_cast<int>(max));
-    } else if constexpr (std::is_same_v<T, uint32_t>) {
-        int temp = static_cast<int>(value);
-        bool changed =
-            ImGui::SliderInt(id.c_str(), &temp, static_cast<int>(min), static_cast<int>(max));
-        if (changed) {
-            value = static_cast<uint32_t>(temp);
-            return true;
-        }
-        return false;
+bool DrawControllerWithType(T& value, const std::string& name,
+                            const FParamControllerConfig config) {
+    switch (config.Type) {
+        case EParamControllerType::Slider: return DrawSlider(value, name, config.Min, config.Max);
+        case EParamControllerType::Drag:
+            return DrawDrag(value, name, config.Speed, config.Min, config.Max);
+        case EParamControllerType::ColorPicker: return DrawColor(value, name);
+        case EParamControllerType::Combo:
+            return DrawCombo(value, name, config.Items, config.bNotifyDirty);
+        case EParamControllerType::Default:
+            return DrawDefaultController(value, name, config.Speed, config.Min, config.Max);
+        default: return DrawDefaultController(value, name, config.Speed, config.Min, config.Max);
     }
 
-    return DrawController(value, name);
+    return DrawDefaultController(value, name, config.Speed, config.Min, config.Max);
 }
-
-template <typename T> bool DrawColor(T& value, const std::string& name) {
-    const std::string id = "##" + name;
-
-    if constexpr (std::is_same_v<T, FVector3>) {
-        return ImGui::ColorEdit3(id.c_str(), &value.x);
-    } else if constexpr (std::is_same_v<T, FVector4>) {
-        return ImGui::ColorEdit4(id.c_str(), &value.x);
-    } else if constexpr (std::is_same_v<T, FVector3>) {
-        return ImGui::ColorEdit3(id.c_str(), &value.x);
-    } else if constexpr (std::is_same_v<T, FVector4>) {
-        return ImGui::ColorEdit4(id.c_str(), &value.x);
-    }
-
-    return DrawController(value, name);
-}
-
-enum class EPropControllerType {
-    Default,
-    Drag,
-    Slider,
-    ColorPicker,
-    Combo,
-    Radio,
-};
-
-struct FParamControllerConfig {
-    EPropControllerType Type = EPropControllerType::Default;
-    float Min                = 0.0f;
-    float Max                = 1.0f;
-    float Speed              = 0.01f;
-    std::vector<std::string> Items; // Use for Combo
-    bool bNotifyDirty = true;
-
-    FParamControllerConfig() = default;
-    FParamControllerConfig(EPropControllerType type, float min = 0.0f, float max = 1.0f,
-                           float speed = 0.01f, std::vector<std::string> items = {})
-        : Type(type), Min(min), Max(max), Speed(speed), Items(items) {}
-};
 
 class EditorParamsVisitor : public IParamsVisitor {
 public:
@@ -367,110 +457,69 @@ public:
     bool IsValueChanged() const { return m_bValueChanged; }
     void ResetChangedFlag() { m_bValueChanged = false; }
 
-    void SetControllerConfig(const std::string& name, const FParamControllerConfig& config) {
-        m_Configs[name] = config;
+    virtual void Visit(float& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(float& value, const std::string& name) override {
-        auto it = m_Configs.find(name);
-        if (it != m_Configs.end()) {
-            const auto& cfg = it->second;
-            switch (cfg.Type) {
-                case EPropControllerType::Slider:
-                    AddTableRow(name, [&]() {
-                        return ImGui::SliderFloat(("##" + name).c_str(), &value, cfg.Min, cfg.Max);
-                    });
-                    return;
-                case EPropControllerType::Drag:
-                    AddTableRow(name, [&]() {
-                        return ImGui::DragFloat(("##" + name).c_str(), &value, cfg.Speed, cfg.Min,
-                                                cfg.Max);
-                    });
-                    return;
-                default: break;
-            }
-        }
-        AddTableRow(name, [&]() { return DrawController(value, name, 0.01f); });
+    virtual void Visit(double& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(double& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawController(value, name, 0.01f); });
+    virtual void Visit(int32_t& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(int32_t& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawController(value, name, 1.0f); });
+    virtual void Visit(uint32_t& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(uint32_t& value, const std::string& name) override {
-        auto it = m_Configs.find(name);
-        if (it != m_Configs.end()) {
-            const auto& cfg = it->second;
-
-            switch (cfg.Type) {
-                case EPropControllerType::Combo: {
-                    int current = static_cast<int>(value);
-                    AddTableRow(name, [&]() {
-                        if (ImGui::Combo(("##" + name).c_str(), &current,
-                                         [](void* data, int idx) {
-                                             return (*static_cast<const std::vector<std::string>*>(
-                                                 data))[idx]
-                                                 .c_str();
-                                         },
-                                         (void*)&cfg.Items, (int)cfg.Items.size())) {
-                            value = current;
-                            return cfg.bNotifyDirty;
-                        }
-                        return false;
-                    });
-                    return;
-                }
-
-                default: break;
-            }
-            return;
-        }
-        AddTableRow(name, [&]() { return DrawController(value, name, 1.0f, 0.0f, 1000.0f); });
+    virtual void Visit(int64_t& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(int64_t& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawController(value, name, 1.0f); });
+    virtual void Visit(uint64_t& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(uint64_t& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawController(value, name, 1.0f, 0.0f, 1000.0f); });
+    virtual void Visit(bool& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(bool& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawController(value, name); });
+    virtual void Visit(std::string& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(std::string& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawController(value, name); });
+    virtual void Visit(FVector2& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(FVector2& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawController(value, name, 0.01f); });
+    virtual void Visit(FVector3& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(FVector3& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawController(value, name, 0.01f); });
+    virtual void Visit(FVector4& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(FVector4& value, const std::string& name) override {
-        auto it = m_Configs.find(name);
-        if (it != m_Configs.end() && it->second.Type == EPropControllerType::ColorPicker) {
-            AddTableRow(name, [&]() { return ImGui::ColorEdit4(("##" + name).c_str(), &value.x); });
-            return;
-        }
-        AddTableRow(name, [&]() { return DrawController(value, name, 0.01f); });
+    virtual void Visit(FQuaternion& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
-    virtual void Visit(FQuaternion& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawController(value, name, 1.0f); });
-    }
-
-    virtual void Visit(FAssetHandle& value, const std::string& name) override {
-        AddTableRow(name, [&]() { return DrawController(value, name); });
+    virtual void Visit(FAssetHandle& value, const std::string& name,
+                       const FParamControllerConfig config = {}) override {
+        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
     }
 
 private:
@@ -493,5 +542,4 @@ private:
 
     bool m_ReadOnly      = false;
     bool m_bValueChanged = false;
-    std::unordered_map<std::string, FParamControllerConfig> m_Configs;
 };

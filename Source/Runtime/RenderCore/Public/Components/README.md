@@ -136,8 +136,8 @@ size_t hash = cube.GetHash();
 Converting to Variant
 cpp
 // Convert to variant for uniform storage
-FMeshProps variant = cube;
-std::vector<FMeshProps> meshList;
+FMeshParamsWrapper variant = cube;
+std::vector<FMeshParamsWrapper> meshList;
 meshList.push_back(cube);
 meshList.push_back(sphere);
 ```
@@ -188,7 +188,7 @@ auto sphere = TMeshComponent<FSphereParams>(1.0f, 32, 16);
     sphereMesh->Draw(cmdList);
 
     // Store in uniform container
-    std::vector<FMeshProps> meshes;
+    std::vector<FMeshParamsWrapper> meshes;
     meshes.push_back(cube);
     meshes.push_back(sphere);
 

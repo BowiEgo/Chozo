@@ -14,37 +14,37 @@
 #include <functional>
 #include <variant>
 
-class FMaterialProps {
+class RENDER_CORE_API FMaterialParamsWrapper {
 public:
-    FMaterialProps() = default;
+    FMaterialParamsWrapper() = default;
 
     template <typename T>
-    explicit FMaterialProps(const T& params) : m_Params(CreateRef<T>(params)) {}
+    explicit FMaterialParamsWrapper(const T& params) : m_Params(CreateRef<T>(params)) {}
 
-    explicit FMaterialProps(IMaterialParams* params) : m_Params(params) {}
+    explicit FMaterialParamsWrapper(IMaterialParams* params) : m_Params(params) {}
 
-    explicit FMaterialProps(TScope<IMaterialParams> params) : m_Params(params.release()) {}
+    explicit FMaterialParamsWrapper(TScope<IMaterialParams> params) : m_Params(params.release()) {}
 
-    explicit FMaterialProps(TRef<IMaterialParams> params) : m_Params(std::move(params)) {}
+    explicit FMaterialParamsWrapper(TRef<IMaterialParams> params) : m_Params(std::move(params)) {}
 
-    FMaterialProps(const FMaterialProps& other)            = default;
-    FMaterialProps& operator=(const FMaterialProps& other) = default;
+    FMaterialParamsWrapper(const FMaterialParamsWrapper& other)            = default;
+    FMaterialParamsWrapper& operator=(const FMaterialParamsWrapper& other) = default;
 
-    FMaterialProps(FMaterialProps&& other) noexcept            = default;
-    FMaterialProps& operator=(FMaterialProps&& other) noexcept = default;
+    FMaterialParamsWrapper(FMaterialParamsWrapper&& other) noexcept            = default;
+    FMaterialParamsWrapper& operator=(FMaterialParamsWrapper&& other) noexcept = default;
 
     // ===== Type Info =====
     std::string GetTypeName() const { return m_Params ? m_Params->GetTypeName() : ""; }
-    static const char* GetStaticTypeName() { return "FMaterialProps"; }
+    static const char* GetStaticTypeName() { return "FMaterialParamsWrapper"; }
 
     // ===== Comparison =====
-    bool operator==(const FMaterialProps& other) const {
+    bool operator==(const FMaterialParamsWrapper& other) const {
         if (!m_Params && !other.m_Params) return true;
         if (!m_Params || !other.m_Params) return false;
         return m_Params->Equals(*other.m_Params);
     }
 
-    bool operator!=(const FMaterialProps& other) const { return !(*this == other); }
+    bool operator!=(const FMaterialParamsWrapper& other) const { return !(*this == other); }
 
     // ===== Hash =====
     size_t GetHash() const { return m_Params ? m_Params->GetHash() : 0; }
@@ -69,9 +69,9 @@ public:
     }
 
     // ===== Clone =====
-    FMaterialProps Clone() const {
-        if (!m_Params) return FMaterialProps();
-        return FMaterialProps(
+    FMaterialParamsWrapper Clone() const {
+        if (!m_Params) return FMaterialParamsWrapper();
+        return FMaterialParamsWrapper(
             TScope<IMaterialParams>(static_cast<IMaterialParams*>(m_Params->Clone())));
     }
 

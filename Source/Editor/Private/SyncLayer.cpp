@@ -253,7 +253,7 @@ void FSyncLayer::SyncComponents(FEditorNode* node, FEntity entity) {
 
     // Handle Mesh Component - store only parameters
     if (node->HasMesh()) {
-        SyncMeshComponent(entity, node->GetMeshProps());
+        SyncMeshComponent(entity, node->GetMeshParamsWrapper());
     } else if (m_Scene->HasComponent<FMeshComponent>(entity)) {
         m_Scene->RemoveComponent<FMeshComponent>(entity);
     }
@@ -264,7 +264,7 @@ void FSyncLayer::SyncTransformComponent(FEntity entity, const FTransformParams* 
     m_Scene->SetTransform(entity, *transformParams);
 }
 
-void FSyncLayer::SyncMeshComponent(FEntity entity, const FMeshProps* props) {
+void FSyncLayer::SyncMeshComponent(FEntity entity, const FMeshParamsWrapper* props) {
     m_Scene->SetMesh(entity, *props);
 }
 

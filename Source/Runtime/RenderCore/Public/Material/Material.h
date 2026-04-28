@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Asset.h"
-#include "MaterialProps.h"
+#include "MaterialParamsWrapper.h"
 #include "Params.h"
 #include "RHIContext.h"
 #include "RHIShader.h"
@@ -21,7 +21,7 @@ struct FMaterialSpecification {
 
 class RENDER_CORE_API CMaterial : public IAsset {
 public:
-    CMaterial(const FMaterialSpecification& spec, const FMaterialProps& params)
+    CMaterial(const FMaterialSpecification& spec, const FMaterialParamsWrapper& params)
         : m_Spec(spec), m_Params(params) {};
     virtual ~CMaterial() = default;
 
@@ -31,8 +31,8 @@ public:
     const FMaterialSpecification GetSpec() const { return m_Spec; }
     TRef<CShader> GetShader() const { return m_Spec.Shader; }
 
-    FMaterialProps& GetParams() { return m_Params; }
-    const FMaterialProps& GetParams() const { return m_Params; }
+    FMaterialParamsWrapper& GetParams() { return m_Params; }
+    const FMaterialParamsWrapper& GetParams() const { return m_Params; }
     const TRef<IRHIPipeline> GetPipeline();
 
     void MarkDirty() { m_bIsDirty = true; }
@@ -41,7 +41,7 @@ public:
 
 private:
     FMaterialSpecification m_Spec;
-    FMaterialProps m_Params;
+    FMaterialParamsWrapper m_Params;
 
     TRef<IRHIPipeline> m_Pipeline;
     TRef<IRHIBuffer> m_UniformBuffer;

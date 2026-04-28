@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MeshProps.h"
+#include "MeshParamsWrapper.h"
 #include "MeshRegister.h"
 #include "ProceduralMesh.h"
 #include "Ref.h"

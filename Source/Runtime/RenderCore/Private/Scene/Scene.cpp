@@ -32,10 +32,11 @@ void FScene::Draw(IRHICommandList* cmdList, TRef<IRHIBuffer> cameraBuffer) {
         auto mesh           = CMeshManager::Get().GetMesh(meshComp.MeshHandle);
         auto& transformComp = view.get<FTransformComponent>(entity);
 
-        auto matHandle = meshComp.MeshProps.Get()->Material;
+        auto matHandle = meshComp.MeshParamsWrapper.Get()->Material;
         if (matHandle.IsValid()) {
-            auto mat =
-                CAssetManager::Get().GetAsset(meshComp.MeshProps.Get()->Material).As<CMaterial>();
+            auto mat = CAssetManager::Get()
+                           .GetAsset(meshComp.MeshParamsWrapper.Get()->Material)
+                           .As<CMaterial>();
 
             if (mat) {
                 mat->Bind(cmdList);
@@ -204,11 +205,11 @@ void FScene::SetTransform(FEntity entity, const FTransformParams& params) {
     m_TransformSystem.MarkDirty(entity);
 }
 
-void FScene::SetMesh(FEntity entity, const FMeshProps& props) {
+void FScene::SetMesh(FEntity entity, const FMeshParamsWrapper& props) {
     bool hasMeshComp = HasComponent<FMeshComponent>(entity);
     auto& comp =
         hasMeshComp ? GetComponent<FMeshComponent>(entity) : AddComponent<FMeshComponent>(entity);
-    comp.SetMeshProps(props);
+    comp.SetMeshParamsWrapper(props);
 }
 
 // ===== Serialization =====

@@ -33,34 +33,6 @@ bool MaterialPanel::DrawColumnProperties(const std::string& name, IParams* param
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
         EditorParamsVisitor visitor;
-
-        {
-            FParamControllerConfig config{ EPropControllerType::Combo };
-            config.Items        = FPolygonModeStrings;
-            config.bNotifyDirty = false;
-            visitor.SetControllerConfig("PolygonMode", config);
-        }
-
-        {
-            FParamControllerConfig config{ EPropControllerType::Combo };
-            config.Items        = FCullModeStrings;
-            config.bNotifyDirty = false;
-            visitor.SetControllerConfig("CullMode", config);
-        }
-
-        {
-            FParamControllerConfig config{ EPropControllerType::ColorPicker };
-            visitor.SetControllerConfig("BaseColor", config);
-        }
-
-        {
-            FParamControllerConfig config{ EPropControllerType::Slider };
-            visitor.SetControllerConfig("Metallic", config);
-            visitor.SetControllerConfig("Roughness", config);
-            visitor.SetControllerConfig("Normal Strength", config);
-            visitor.SetControllerConfig("Emissive Strength", config);
-        }
-
         params->Accept(visitor);
 
         if (visitor.IsValueChanged()) {

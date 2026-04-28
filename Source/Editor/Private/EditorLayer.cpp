@@ -95,9 +95,10 @@ void EditorLayer::OnAttach() {
         m_NodeTree.SelectNode(newNode);
 
         auto pbrMat = m_ViewportRenderer->GetPBRMaterial();
-        static_cast<FSphereParams*>(newNode->GetMeshProps()->Get())->Material = pbrMat->GetHandle();
+        static_cast<FSphereParams*>(newNode->GetMeshParamsWrapper()->Get())->Material =
+            pbrMat->GetHandle();
 
-        auto meshProps = newNode->GetMeshProps();
+        auto meshProps = newNode->GetMeshParamsWrapper();
     }
 
     {

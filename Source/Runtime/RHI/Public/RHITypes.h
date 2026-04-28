@@ -485,7 +485,7 @@ enum class EPolygonMode { POLYGON_MODE_LIST };
 #undef X
 
 #define X(name) #name,
-static const std::vector<std::string> FPolygonModeStrings = { POLYGON_MODE_LIST };
+static constexpr std::array<const char*, 2> FPolygonModeStrings = { POLYGON_MODE_LIST };
 #undef X
 
 #define CULL_MODE_LIST                                                                             \
@@ -499,7 +499,7 @@ enum class ECullMode { CULL_MODE_LIST };
 #undef X
 
 #define X(name) #name,
-static const std::vector<std::string> FCullModeStrings = { CULL_MODE_LIST };
+static constexpr std::array<const char*, 4> FCullModeStrings = { CULL_MODE_LIST };
 #undef X
 
 enum class ECompareOp : uint8_t {

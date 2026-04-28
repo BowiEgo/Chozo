@@ -3,7 +3,7 @@
 #include "MathUtils.h"
 #include "MeshParams.h"
 
-struct FSphereParams : public IMeshParams {
+struct RENDER_CORE_API FSphereParams : public IMeshParams {
     float Radius            = 0.5f;
     uint32_t WidthSegments  = 32;
     uint32_t HeightSegments = 16;
@@ -30,76 +30,24 @@ struct FSphereParams : public IMeshParams {
     // ===== IParams Implementation =====
     virtual IParams* Clone() const override { return new FSphereParams(*this); }
 
-    virtual bool Equals(const IParams& other) const override {
-        // Type check
-        const auto* otherSphere = dynamic_cast<const FSphereParams*>(&other);
-        if (!otherSphere) return false;
+    virtual size_t GetHash() const override;
 
-        return Radius == otherSphere->Radius && WidthSegments == otherSphere->WidthSegments &&
-               HeightSegments == otherSphere->HeightSegments && PhiStart == otherSphere->PhiStart &&
-               PhiLength == otherSphere->PhiLength && ThetaStart == otherSphere->ThetaStart &&
-               ThetaLength == otherSphere->ThetaLength;
-    }
+    virtual std::any GetParamValue(const std::string& name) const override;
 
-    virtual size_t GetHash() const override {
-        size_t h = 0;
-        HashCombine(h, std::hash<float>{}(Radius));
-        HashCombine(h, std::hash<uint32_t>{}(WidthSegments));
-        HashCombine(h, std::hash<uint32_t>{}(HeightSegments));
-        HashCombine(h, std::hash<float>{}(PhiStart));
-        HashCombine(h, std::hash<float>{}(PhiLength));
-        HashCombine(h, std::hash<float>{}(ThetaStart));
-        HashCombine(h, std::hash<float>{}(ThetaLength));
-        HashCombine(h, std::hash<FAssetHandle>{}(Material));
-        return h;
-    }
+    // ===== IMeshParams Implementation =====
+    virtual bool Equals_Internal(const IParams& other) const override;
 
+    virtual void Accept_Internal(IParamsVisitor& visitor) override;
+
+    virtual void Accept_Internal(IConstParamsVisitor& visitor) const override;
+
+    virtual const std::vector<std::string>& GetAllParamNames_Internal() override;
+
+    // ===== Type Info =====
     virtual std::string GetTypeName() const override { return "Sphere"; }
-
-    virtual size_t GetPropertyCount() const override { return 8; }
-    virtual std::string GetPropertyName(size_t index) const override {
-        static const std::string names[] = { "Radius",      "WidthSegments", "HeightSegments",
-                                             "PhiStart",    "PhiLength",     "ThetaStart",
-                                             "ThetaLength", "Material" };
-        return index < GetPropertyCount() ? names[index] : "";
-    }
-    virtual std::any GetProperty(const std::string& name) const override {
-        if (name == "Radius") return Radius;
-        if (name == "WidthSegments") return WidthSegments;
-        if (name == "HeightSegments") return HeightSegments;
-        if (name == "PhiStart") return PhiStart;
-        if (name == "PhiLength") return PhiLength;
-        if (name == "ThetaStart") return ThetaStart;
-        if (name == "ThetaLength") return ThetaLength;
-        if (name == "Material") return Material;
-        return {};
-    }
-
-    virtual void Accept(IParamsVisitor& visitor) override {
-        visitor.Visit(Radius, "Radius");
-        visitor.Visit(WidthSegments, "Width Segments");
-        visitor.Visit(HeightSegments, "Height Segments");
-        visitor.Visit(PhiStart, "Phi Start");
-        visitor.Visit(PhiLength, "Phi Length");
-        visitor.Visit(ThetaStart, "Theta Start");
-        visitor.Visit(ThetaLength, "Theta Length");
-        visitor.Visit(Material, "Material");
-    }
-    virtual void Accept(IConstParamsVisitor& visitor) const override {
-        visitor.Visit(Radius, "Radius");
-        visitor.Visit(WidthSegments, "Width Segments");
-        visitor.Visit(HeightSegments, "Height Segments");
-        visitor.Visit(PhiStart, "Phi Start");
-        visitor.Visit(PhiLength, "Phi Length");
-        visitor.Visit(ThetaStart, "Theta Start");
-        visitor.Visit(ThetaLength, "Theta Length");
-        visitor.Visit(Material, "Material");
-    }
+    static const char* GetStaticTypeName() { return "Sphere"; }
 
     // ===== Comparison Operators =====
     bool operator==(const FSphereParams& other) const { return Equals(other); }
     bool operator!=(const FSphereParams& other) const { return !(*this == other); }
-
-    // ===== Type Info =====
-    static const char* GetStaticTypeName() { return "Sphere"; }
 };

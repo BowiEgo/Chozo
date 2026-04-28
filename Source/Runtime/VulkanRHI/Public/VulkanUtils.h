@@ -23,7 +23,7 @@ vk::ShaderStageFlagBits StageToFlagBits(EShaderStage shaderStage);
 
 namespace {
 #ifdef NDEBUG
-constexpr bool EnableValidationLayers = false;
+constexpr bool EnableValidationLayers = true;
 #else
 constexpr bool EnableValidationLayers = true;
 #endif

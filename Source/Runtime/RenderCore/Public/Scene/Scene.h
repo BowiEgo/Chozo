@@ -5,7 +5,7 @@
 
 #include "Asset.h"
 #include "Entity.h"
-#include "MeshProps.h"
+#include "MeshParamsWrapper.h"
 #include "RHICommandList.h"
 #include "TransformParams.h"
 #include "TransformSystem.h"
@@ -39,7 +39,7 @@ public:
     void SetTransform(FEntity entity, const FTransformParams& params);
 
     // ----- Mesh -----
-    void SetMesh(FEntity entity, const FMeshProps& props);
+    void SetMesh(FEntity entity, const FMeshParamsWrapper& props);
 
     // ===== Component Operations =====
     template <typename T, typename... Args> T& AddComponent(FEntity entity, Args&&... args) {

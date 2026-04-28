@@ -15,7 +15,7 @@
 #include <variant>
 
 /**
- * FMeshProps - Type-erased wrapper for mesh parameters with value semantics
+ * FMeshParamsWrapper - Type-erased wrapper for mesh parameters with value semantics
  *
  * Features:
  * - Shallow copy (shared IParams) via default copy operations
@@ -26,44 +26,45 @@
  *
  * Example:
  * @code
- * FMeshProps sphere(FSphereParams(1.0f, 32, 16));
- * FMeshProps sphere2 = sphere;                    // Shallow copy
+ * FMeshParamsWrapper sphere(FSphereParams(1.0f, 32, 16));
+ * FMeshParamsWrapper sphere2 = sphere;                    // Shallow copy
  * if (auto* p = sphere.As<FSphereParams>()) {
  *     p->Radius = 2.0f;                            // Modifies both sphere and sphere2
  * }
- * FMeshProps sphere3 = sphere.Clone();            // Deep copy
+ * FMeshParamsWrapper sphere3 = sphere.Clone();            // Deep copy
  * @endcode
  */
-class FMeshProps {
+class RENDER_CORE_API FMeshParamsWrapper {
 public:
-    FMeshProps() = default;
+    FMeshParamsWrapper() = default;
 
-    template <typename T> explicit FMeshProps(const T& params) : m_Params(CreateRef<T>(params)) {}
+    template <typename T>
+    explicit FMeshParamsWrapper(const T& params) : m_Params(CreateRef<T>(params)) {}
 
-    explicit FMeshProps(IMeshParams* params) : m_Params(params) {}
+    explicit FMeshParamsWrapper(IMeshParams* params) : m_Params(params) {}
 
-    explicit FMeshProps(TScope<IMeshParams> params) : m_Params(params.release()) {}
+    explicit FMeshParamsWrapper(TScope<IMeshParams> params) : m_Params(params.release()) {}
 
-    explicit FMeshProps(TRef<IMeshParams> params) : m_Params(std::move(params)) {}
+    explicit FMeshParamsWrapper(TRef<IMeshParams> params) : m_Params(std::move(params)) {}
 
-    FMeshProps(const FMeshProps& other)            = default;
-    FMeshProps& operator=(const FMeshProps& other) = default;
+    FMeshParamsWrapper(const FMeshParamsWrapper& other)            = default;
+    FMeshParamsWrapper& operator=(const FMeshParamsWrapper& other) = default;
 
-    FMeshProps(FMeshProps&& other) noexcept            = default;
-    FMeshProps& operator=(FMeshProps&& other) noexcept = default;
+    FMeshParamsWrapper(FMeshParamsWrapper&& other) noexcept            = default;
+    FMeshParamsWrapper& operator=(FMeshParamsWrapper&& other) noexcept = default;
 
     // ===== Type Info =====
     std::string GetTypeName() const { return m_Params ? m_Params->GetTypeName() : ""; }
-    static const char* GetStaticTypeName() { return "FMeshProps"; }
+    static const char* GetStaticTypeName() { return "FMeshParamsWrapper"; }
 
     // ===== Comparison =====
-    bool operator==(const FMeshProps& other) const {
+    bool operator==(const FMeshParamsWrapper& other) const {
         if (!m_Params && !other.m_Params) return true;
         if (!m_Params || !other.m_Params) return false;
         return m_Params->Equals(*other.m_Params);
     }
 
-    bool operator!=(const FMeshProps& other) const { return !(*this == other); }
+    bool operator!=(const FMeshParamsWrapper& other) const { return !(*this == other); }
 
     // ===== Hash =====
     size_t GetHash() const { return m_Params ? m_Params->GetHash() : 0; }
@@ -88,9 +89,10 @@ public:
     }
 
     // ===== Clone =====
-    FMeshProps Clone() const {
-        if (!m_Params) return FMeshProps();
-        return FMeshProps(TScope<IMeshParams>(static_cast<IMeshParams*>(m_Params->Clone())));
+    FMeshParamsWrapper Clone() const {
+        if (!m_Params) return FMeshParamsWrapper();
+        return FMeshParamsWrapper(
+            TScope<IMeshParams>(static_cast<IMeshParams*>(m_Params->Clone())));
     }
 
 private:
