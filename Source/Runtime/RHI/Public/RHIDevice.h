@@ -81,8 +81,8 @@ public:
     const IRHIContext* GetContext() const { return m_Context; }
 
     void ReturnImageToPool(IRHIImage* image) { return m_ImagePool.ReturnImage(image); }
-    IRHIImage* GetImageFromPool(const FImageSpecification& spec, uint32_t frameIndex) {
-        return m_ImagePool.RequestImage(spec, frameIndex);
+    IRHIImage* GetImageFromPool(const FImageSpecification& spec, uint32_t frame) {
+        return m_ImagePool.RequestImage(spec, frame);
     }
     TRef<IRHISampler> GetSampler(const FSamplerSpecification& spec) {
         return m_SamplerCache.GetOrCreateSampler(spec);
@@ -104,7 +104,7 @@ public:
     // Enqueue a cleanup function to be called after it's safe to delete the resource (e.g., after
     // GPU is done with it)
     void EnqueueCleanup(std::function<void()>&& func);
-    void TickDeferredDeletion(uint32 currentFrame);
+    void TickDeferredDeletion(uint32 currentFrame, uint32 frameIndex);
     std::vector<TRef<IRHISetLayout>>
         CreateDescriptorSetLayout(const FRHIPipelineLayoutDescription& desc);
 

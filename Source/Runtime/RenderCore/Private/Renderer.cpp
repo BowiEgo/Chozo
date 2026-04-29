@@ -54,6 +54,17 @@ void CRenderer::Init() {
                                                { EShaderStage::Vertex, EShaderStage::Fragment },
                                                "main" });
 
+    TRef<CShader> gBufferShader =
+        CAssetManager::Get().GetOrLoadShader({ "GBuffer",
+                                               "shaders://GBuffer.glsl",
+                                               { EShaderStage::Vertex, EShaderStage::Fragment },
+                                               "main" });
+    TRef<CShader> debugShader =
+        CAssetManager::Get().GetOrLoadShader({ "Debug",
+                                               "shaders://Debug.glsl",
+                                               { EShaderStage::Vertex, EShaderStage::Fragment },
+                                               "main" });
+
     TRef<CShader> pbrShader = CAssetManager::Get().GetOrLoadShader(
         { "PBR", "shaders://PBR.glsl", { EShaderStage::Vertex, EShaderStage::Fragment }, "main" });
 
@@ -76,6 +87,12 @@ void CRenderer::Init() {
     //     CAssetManager::Get().GetOrLoadMaterial({ "Solid", cubeShader, { EPixelFormat::RGBA16F }
     //     });
 
+    m_GBufferMat = CAssetManager::Get().GetOrLoadMaterial(
+        { "GBuffer",
+          gBufferShader,
+          { EPixelFormat::RGBA16F, EPixelFormat::RGBA16F, EPixelFormat::RGBA16F,
+            EPixelFormat::RGBA16F, EPixelFormat::RGBA16F } });
+
     m_PBRMat =
         CAssetManager::Get().GetOrLoadMaterial({ "PBR", pbrShader, { EPixelFormat::RGBA16F } });
 
@@ -85,7 +102,7 @@ void CRenderer::Init() {
         FPipelineSpecification spec;
         spec.Name               = "CubemapSampler";
         spec.RHIShaders         = { cubemapSamplerShader->GetShaderResources() };
-        spec.ColorFormats       = { EPixelFormat::RGBA16F };
+        spec.OutputColorFormats = { EPixelFormat::RGBA16F };
         spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
                                     { EShaderDataType::Float3, "a_Normal" },
                                     { EShaderDataType::Float2, "a_TexCoord" },
@@ -98,19 +115,37 @@ void CRenderer::Init() {
 
     {
         FPipelineSpecification spec;
-        spec.Name              = "Skybox";
-        spec.RHIShaders        = { skyboxShader->GetShaderResources() };
-        spec.ColorFormats      = { EPixelFormat::RGBA16F };
-        spec.CullMode          = ECullMode::Front;
-        spec.bDepthTestEnable  = false;
-        spec.bDepthWriteEnable = false;
-        spec.VertexLayout      = { { EShaderDataType::Float3, "a_Position" },
-                                   { EShaderDataType::Float3, "a_Normal" },
-                                   { EShaderDataType::Float2, "a_TexCoord" },
-                                   { EShaderDataType::Float3, "a_Tangent" },
-                                   { EShaderDataType::Float3, "a_Bitangent" } };
+        spec.Name               = "Skybox";
+        spec.RHIShaders         = { skyboxShader->GetShaderResources() };
+        spec.OutputColorFormats = { EPixelFormat::RGBA16F };
+        spec.CullMode           = ECullMode::Front;
+        spec.bDepthTestEnable   = false;
+        spec.bDepthWriteEnable  = false;
+        spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
+                                    { EShaderDataType::Float3, "a_Normal" },
+                                    { EShaderDataType::Float2, "a_TexCoord" },
+                                    { EShaderDataType::Float3, "a_Tangent" },
+                                    { EShaderDataType::Float3, "a_Bitangent" } };
 
         m_SkyboxPipeline = IRHIAPI::CreatePipeline(spec);
+    }
+
+    {
+        FPipelineSpecification spec;
+        spec.Name               = "Debug";
+        spec.RHIShaders         = { debugShader->GetShaderResources() };
+        spec.OutputColorFormats = { EPixelFormat::RGBA16F };
+        // spec.PolygonMode       = EPolygonMode::Line;
+        spec.CullMode           = ECullMode::None;
+        spec.bDepthTestEnable   = false;
+        spec.bDepthWriteEnable  = false;
+        spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
+                                    { EShaderDataType::Float3, "a_Normal" },
+                                    { EShaderDataType::Float2, "a_TexCoord" },
+                                    { EShaderDataType::Float3, "a_Tangent" },
+                                    { EShaderDataType::Float3, "a_Bitangent" } };
+
+        m_DebugPipeline = IRHIAPI::CreatePipeline(spec);
     }
 
     m_Cube = CreateRef<FCube>();
@@ -134,7 +169,7 @@ void CRenderer::Tick(float deltaTime) {
     auto& syncObject = m_Frames[m_CurrentFrameIndex].RenderFence;
     m_GraphicContext->SetCurrentFrame(deltaTime);
     m_GraphicContext->SetCurrentFrameIndex(m_CurrentFrameIndex);
-    m_GraphicContext->GetDevice()->TickDeferredDeletion(m_CurrentFrameIndex);
+    m_GraphicContext->GetDevice()->TickDeferredDeletion(deltaTime, m_CurrentFrameIndex);
     CCameraUniformManager::Get().UpdateAllCameras();
 
     IRHIAPI::DrawFrame(cmdList, syncObject, [&](uint32 imageIndex) {
@@ -237,11 +272,33 @@ void CRenderer::Tick(float deltaTime) {
                     m_Cube->Draw(cmd.get());
                 });
 
-            graph.AddPass("SceneCompositePass", nullptr, {}, { viewportHandle },
-                          ERenderPassLoadOp::Load,
-                          [this, &viewport, viewportHandle](CRDGContext& ctx) {
-                              CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::Composite);
+            FTextureSpecification gBufferSpec;
+            gBufferSpec.Type   = ETextureType::Texture2D;
+            gBufferSpec.Size   = viewportCanvas->GetSize();
+            gBufferSpec.Format = EPixelFormat::RGBA16F;
+            gBufferSpec.Usage  = ETextureUsage::Texture | ETextureUsage::Attachment;
 
+            FRDGTexture* gBufferPositionHandle =
+                graph.CreateRDGTexture("GBufferPosition", gBufferSpec);
+            FRDGTexture* gBufferNormalHandle = graph.CreateRDGTexture("GBufferNormal", gBufferSpec);
+            FRDGTexture* gBufferBaseColorHandle =
+                graph.CreateRDGTexture("GBufferBaseColor", gBufferSpec);
+            FRDGTexture* gBufferRMAOHandle = graph.CreateRDGTexture("GBufferRMAO", gBufferSpec);
+            FRDGTexture* gBufferEmissiveHandle =
+                graph.CreateRDGTexture("GBufferEmissive", gBufferSpec);
+
+            FTextureSpecification gBufferDepthSpec;
+            gBufferDepthSpec.Type   = ETextureType::Texture2D;
+            gBufferDepthSpec.Size   = viewportCanvas->GetSize();
+            gBufferDepthSpec.Format = EPixelFormat::D32F;
+            gBufferDepthSpec.Usage  = ETextureUsage::Texture | ETextureUsage::Attachment;
+            FRDGTexture* gBufferDepthHandle =
+                graph.CreateRDGTexture("GBufferDepth", gBufferDepthSpec);
+
+            graph.AddPass("GBufferPass", nullptr, {},
+                          { gBufferPositionHandle, gBufferNormalHandle, gBufferBaseColorHandle,
+                            gBufferRMAOHandle, gBufferEmissiveHandle, gBufferDepthHandle },
+                          ERenderPassLoadOp::Clear, [&viewport](CRDGContext& ctx) {
                               auto cmd = ctx.GetCommandBuffer();
 
                               auto scene  = viewport->GetScene();
@@ -251,23 +308,102 @@ void CRenderer::Tick(float deltaTime) {
                               auto width  = viewport->GetWidth();
                               auto height = viewport->GetHeight();
 
-                              // {
-                              //     auto setLayout = m_CurrentPipeline->GetSetLayout(0);
-                              //     std::vector<FDescriptorBinding> bindings = {
-                              //         { 0, EUniformType::UniformBuffer, cameraBuffer.get(),
-                              //         nullptr },
-                              //     };
-                              //     auto descSet =
-                              //     m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
-                              //         setLayout, bindings);
-
-                              //     cmd->BindDescriptorSets(0, descSet);
-                              // }
                               cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
                               cmd->SetScissor({ 0, 0, width, height });
 
                               scene->Draw(cmd.get(), cameraBuffer);
                           });
+
+            graph.AddPass(
+                "DebugPass", m_DebugPipeline,
+                { gBufferPositionHandle, gBufferNormalHandle, gBufferBaseColorHandle,
+                  gBufferRMAOHandle, gBufferEmissiveHandle, gBufferDepthHandle },
+                { viewportHandle }, ERenderPassLoadOp::Load,
+                [this, &viewport, gBufferPositionHandle, gBufferNormalHandle,
+                 gBufferBaseColorHandle, gBufferRMAOHandle, gBufferEmissiveHandle,
+                 gBufferDepthHandle](CRDGContext& ctx) {
+                    auto t1 = ctx.GetTexture(gBufferPositionHandle);
+                    auto t2 = ctx.GetTexture(gBufferNormalHandle);
+                    auto t3 = ctx.GetTexture(gBufferBaseColorHandle);
+                    auto t4 = ctx.GetTexture(gBufferRMAOHandle);
+                    auto t5 = ctx.GetTexture(gBufferEmissiveHandle);
+                    auto t6 = ctx.GetTexture(gBufferDepthHandle);
+
+                    auto cmd = ctx.GetCommandBuffer();
+
+                    auto width  = viewport->GetWidth();
+                    auto height = viewport->GetHeight();
+
+                    {
+                        struct alignas(16) DebugUBO {
+                            int Mode;
+                            int padding[3];
+                        };
+
+                        DebugUBO uniforms;
+                        uniforms.Mode = m_DebugMode;
+
+                        FBufferSpecification bufferSpec;
+                        bufferSpec.Usage = EBufferUsage::UniformBuffer;
+                        bufferSpec.Size  = sizeof(DebugUBO);
+                        bufferSpec.MemoryType =
+                            EMemoryType::HostVisible | EMemoryType::HostCoherent;
+                        bufferSpec.Name = "DebugUniformBuffer";
+
+                        FBuffer data(&uniforms, bufferSpec.Size);
+
+                        if (m_DebugUniformBuffer) {
+                            m_DebugUniformBuffer->SetData(data);
+                        } else {
+                            m_DebugUniformBuffer = IRHIAPI::CreateBuffer(bufferSpec, data);
+                        }
+
+                        auto setLayout                           = m_DebugPipeline->GetSetLayout(1);
+                        std::vector<FDescriptorBinding> bindings = {
+                            { 0, EUniformType::UniformBuffer, m_DebugUniformBuffer.get(), nullptr },
+                            { 1, EUniformType::CombinedImageSampler, t1->GetImage(),
+                              t1->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 2, EUniformType::CombinedImageSampler, t2->GetImage(),
+                              t2->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 3, EUniformType::CombinedImageSampler, t3->GetImage(),
+                              t3->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 4, EUniformType::CombinedImageSampler, t4->GetImage(),
+                              t4->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 5, EUniformType::CombinedImageSampler, t5->GetImage(),
+                              t5->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 6, EUniformType::CombinedImageSampler, t6->GetImage(),
+                              t6->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+                        };
+                        auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
+                            setLayout, bindings);
+
+                        cmd->BindDescriptorSets(1, descSet);
+                    }
+
+                    cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
+                    cmd->SetScissor({ 0, 0, width, height });
+
+                    cmd->Draw(3, 1, 0, 0);
+                });
+
+            // graph.AddPass("SceneCompositePass", nullptr, {}, { viewportHandle },
+            //               ERenderPassLoadOp::Load, [this, &viewport](CRDGContext& ctx) {
+            //                   CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::Composite);
+
+            //                   auto cmd = ctx.GetCommandBuffer();
+
+            //                   auto scene  = viewport->GetScene();
+            //                   auto camera = viewport->GetCamera();
+            //                   auto cameraBuffer =
+            //                       CCameraUniformManager::Get().GetBufferForCamera(camera.get());
+            //                   auto width  = viewport->GetWidth();
+            //                   auto height = viewport->GetHeight();
+
+            //                   cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
+            //                   cmd->SetScissor({ 0, 0, width, height });
+
+            //                   scene->Draw(cmd.get(), cameraBuffer);
+            //               });
         }
 
         // // draw UI on top of the scene
@@ -319,8 +455,12 @@ void CRenderer::Shutdown() {
 
     m_CubemapSamplerPipeline.Reset();
     m_SkyboxPipeline.Reset();
+    m_DebugPipeline.Reset();
+
+    m_DebugUniformBuffer.Reset();
 
     m_SolidMat.Reset();
+    m_GBufferMat.Reset();
     m_PBRMat.Reset();
 
     for (int i = 0; i < m_GraphicContext->GetMaxFramesInFlight(); i++) {

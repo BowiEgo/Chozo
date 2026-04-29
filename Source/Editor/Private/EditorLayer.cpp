@@ -94,7 +94,7 @@ void EditorLayer::OnAttach() {
         auto newNode   = m_NodeTree.CreateNode("Sphere", nodeBit |= sphereBit, nullptr);
         m_NodeTree.SelectNode(newNode);
 
-        auto pbrMat = m_ViewportRenderer->GetPBRMaterial();
+        auto pbrMat = m_ViewportRenderer->GetMaterial();
         static_cast<FSphereParams*>(newNode->GetMeshParamsWrapper()->Get())->Material =
             pbrMat->GetHandle();
 
@@ -197,6 +197,22 @@ void EditorLayer::OnImGuiRender() {
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Debug")) {
+            static int item_selected_idx = 0;
+            int currentDebugMode =
+                CApplication::Get()->GetRenderEngine()->GetRenderer()->GetDebugMode();
+            if (ImGui::MenuItem("Position", nullptr, currentDebugMode == 0)) item_selected_idx = 0;
+            if (ImGui::MenuItem("Normal", nullptr, currentDebugMode == 1)) item_selected_idx = 1;
+            if (ImGui::MenuItem("BaseColor", nullptr, currentDebugMode == 2)) item_selected_idx = 2;
+            if (ImGui::MenuItem("Roughness", nullptr, currentDebugMode == 3)) item_selected_idx = 3;
+            if (ImGui::MenuItem("Metallic", nullptr, currentDebugMode == 4)) item_selected_idx = 4;
+            if (ImGui::MenuItem("AO", nullptr, currentDebugMode == 5)) item_selected_idx = 5;
+            if (ImGui::MenuItem("Emissive", nullptr, currentDebugMode == 6)) item_selected_idx = 6;
+            if (ImGui::MenuItem("Depth", nullptr, currentDebugMode == 7)) item_selected_idx = 7;
+
+            CApplication::Get()->GetRenderEngine()->GetRenderer()->SetDebugMode(item_selected_idx);
+            ImGui::EndMenu();
+        }
         ImGui::EndMenuBar();
     }
 #pragma endregion

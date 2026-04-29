@@ -8,7 +8,11 @@ DECLARE_LOG_CATEGORY_EXTERN(LogRHIUtils, Info);
 
 namespace ChozoUtils::RHI {
 
+RHI_API bool IsSRGBFormat(EPixelFormat format);
+
 RHI_API bool IsDepthFormat(EPixelFormat format);
+
+RHI_API bool HasStencilComponent(EPixelFormat format);
 
 RHI_API std::map<uint32_t, FRHISetLayoutDescription>
     GenerateLayoutDescriptions(const FShaderReflection& reflection, EShaderStage currentStage);

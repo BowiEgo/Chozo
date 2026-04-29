@@ -22,7 +22,7 @@ layout(location = 1) out vec3 v_Normal;
 
 void main() {
     mat4 model = u_VertContant.ModelMatrix;
-    mat4 mvp = u_Camera.Projection * u_Camera.View * model;
+    mat4 mvp = u_Camera.ProjMatrix * u_Camera.ViewMatrix * model;
     
     gl_Position = mvp * vec4(a_Position, 1.0);
 

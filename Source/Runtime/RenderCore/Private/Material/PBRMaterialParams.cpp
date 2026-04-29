@@ -1,7 +1,7 @@
 #include "PBRMaterialParams.h"
 
 // Use designated initializers for all members
-inline const FParamControllerConfig kBaseColorConfig{ .Type = EParamControllerType::ColorPicker };
+inline const FParamControllerConfig kColorConfig{ .Type = EParamControllerType::ColorPicker };
 
 inline const FParamControllerConfig kMetallicConfig{ .Type = EParamControllerType::Slider,
                                                      .Min  = 0.0f,
@@ -11,13 +11,9 @@ inline const FParamControllerConfig kRoughnessConfig{ .Type = EParamControllerTy
                                                       .Min  = 0.0f,
                                                       .Max  = 1.0f };
 
-inline const FParamControllerConfig kNormalStrengthConfig{ .Type = EParamControllerType::Slider,
-                                                           .Min  = 0.0f,
-                                                           .Max  = 2.0f };
-
-inline const FParamControllerConfig kEmissiveStrengthConfig{ .Type = EParamControllerType::Slider,
-                                                             .Min  = 0.0f,
-                                                             .Max  = 1.0f };
+inline const FParamControllerConfig kIntensityConfig{ .Type = EParamControllerType::Slider,
+                                                      .Min  = 0.0f,
+                                                      .Max  = 1.0f };
 
 inline const FParamControllerConfig kMapConfig{ .Type         = EParamControllerType::AssetPicker,
                                                 .bNotifyDirty = false };
@@ -25,17 +21,20 @@ inline const FParamControllerConfig kMapConfig{ .Type         = EParamController
 inline const FParamControllerConfig kCheckboxConfig{ .Type = EParamControllerType::Checkbox };
 
 #define PARAMS_LIST                                                                                \
-    PARAM(FVector4, BaseColor, "Base Color", kBaseColorConfig)                                     \
+    PARAM(FVector4, BaseColor, "Base Color", kColorConfig)                                         \
     PARAM(float, Metallic, "Metallic", kMetallicConfig)                                            \
     PARAM(float, Roughness, "Roughness", kRoughnessConfig)                                         \
-    PARAM(float, NormalStrength, "Normal Strength", kNormalStrengthConfig)                         \
-    PARAM(float, EmissiveStrength, "Emissive Strength", kEmissiveStrengthConfig)                   \
+    PARAM(float, AOIntensity, "AO Intensity", kIntensityConfig)                                    \
+    PARAM(FVector3, EmissiveColor, "Emissive Color", kColorConfig)                                 \
+    PARAM(float, EmissiveIntensity, "Emissive Intensity", kIntensityConfig)                        \
     PARAM(FAssetHandle, AlbedoMap, "Albedo Map", kMapConfig)                                       \
     PARAM(FAssetHandle, NormalMap, "Normal Map", kMapConfig)                                       \
     PARAM(FAssetHandle, RMAOMap, "RMAO Map", kMapConfig)                                           \
+    PARAM(FAssetHandle, EmissiveMap, "Emissive Map", kMapConfig)                                   \
     PARAM(bool, UseAlbedoMap, "Use Albedo Map", kCheckboxConfig)                                   \
     PARAM(bool, UseNormalMap, "Use Normal Map", kCheckboxConfig)                                   \
-    PARAM(bool, UseRMAOMap, "Use RMAO Map", kCheckboxConfig)
+    PARAM(bool, UseRMAOMap, "Use RMAO Map", kCheckboxConfig)                                       \
+    PARAM(bool, UseEmissiveMap, "Use Emissive Map", kCheckboxConfig)
 
 size_t FPBRMaterialParams::GetHash() const {
     size_t h = 0;

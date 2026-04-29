@@ -21,8 +21,8 @@ struct FPipelineSpecification {
     VertexBufferLayout VertexLayout;
     std::vector<FPushConstantRange> PushConstantRanges;
 
-    std::vector<EPixelFormat> ColorFormats;
-    EPixelFormat DepthFormat  = EPixelFormat::D32_SFLOAT;
+    std::vector<EPixelFormat> OutputColorFormats;
+    EPixelFormat DepthFormat  = EPixelFormat::D32F;
     EPolygonMode PolygonMode  = EPolygonMode::Fill;
     ECullMode CullMode        = ECullMode::Back;
     bool bDepthTestEnable     = true;

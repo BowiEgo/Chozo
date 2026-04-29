@@ -1,5 +1,7 @@
 #include "VulkanUtils.h"
 
+#include "RHIUtils.h"
+
 DEFINE_LOG_CATEGORY(LogVulkanUtils);
 
 namespace ChozoUtils::Vulkan {
@@ -221,9 +223,25 @@ vk::ImageLayout ToVkImageLayout(EImageLayout layout) {
     }
 }
 
+vk::ImageAspectFlags ToVkAspectFlags(EPixelFormat format) {
+    vk::ImageAspectFlags flags;
+
+    if (ChozoUtils::RHI::IsDepthFormat(format)) {
+        flags |= vk::ImageAspectFlagBits::eDepth;
+        if (ChozoUtils::RHI::HasStencilComponent(format)) {
+            flags |= vk::ImageAspectFlagBits::eStencil;
+        }
+    } else {
+        flags |= vk::ImageAspectFlagBits::eColor;
+    }
+
+    return flags;
+}
+
 void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image vkImage,
                            vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
-                           uint32_t baseArrayLayer, uint32_t layerCount) {
+                           vk::ImageAspectFlags aspect, uint32_t baseArrayLayer,
+                           uint32_t layerCount) {
     if (oldLayout == newLayout) return;
 
     vk::ImageMemoryBarrier2 barrier{};
@@ -232,9 +250,8 @@ void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image 
         .setSrcQueueFamilyIndex(vk::QueueFamilyIgnored)
         .setDstQueueFamilyIndex(vk::QueueFamilyIgnored)
         .setImage(vkImage)
-        .setSubresourceRange(vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0,
-                                                       VK_REMAINING_MIP_LEVELS, baseArrayLayer,
-                                                       VK_REMAINING_ARRAY_LAYERS));
+        .setSubresourceRange(vk::ImageSubresourceRange(aspect, 0, VK_REMAINING_MIP_LEVELS,
+                                                       baseArrayLayer, VK_REMAINING_ARRAY_LAYERS));
 
     // Automatically deduce stages and access masks based on layouts
     SetupBarrierSync(barrier, oldLayout, newLayout);
@@ -419,8 +436,8 @@ vk::Format ToVkFormat(EPixelFormat format) {
 
         // Depth/stencil
         case EPixelFormat::D16_UNORM: return vk::Format::eD16Unorm;
-        case EPixelFormat::D24_UNORM_S8_UINT: return vk::Format::eD24UnormS8Uint;
-        case EPixelFormat::D32_SFLOAT: return vk::Format::eD32Sfloat;
+        case EPixelFormat::D24S8: return vk::Format::eD24UnormS8Uint;
+        case EPixelFormat::D32F: return vk::Format::eD32Sfloat;
 
         default: return vk::Format::eUndefined;
     }
@@ -460,8 +477,8 @@ EPixelFormat FromVKFormat(vk::Format format) {
 
         // Depth/stencil
         case vk::Format::eD16Unorm: return EPixelFormat::D16_UNORM;
-        case vk::Format::eD24UnormS8Uint: return EPixelFormat::D24_UNORM_S8_UINT;
-        case vk::Format::eD32Sfloat: return EPixelFormat::D32_SFLOAT;
+        case vk::Format::eD24UnormS8Uint: return EPixelFormat::D24S8;
+        case vk::Format::eD32Sfloat: return EPixelFormat::D32F;
 
         default: return EPixelFormat::Unknown;
     }

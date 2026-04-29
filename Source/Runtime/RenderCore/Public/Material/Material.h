@@ -16,7 +16,7 @@ struct FMaterialSpecification {
     std::string Name;
     TRef<CShader> Shader;
     std::vector<EPixelFormat> ColorFormats;
-    EPixelFormat DepthFormat = EPixelFormat::D32_SFLOAT;
+    EPixelFormat DepthFormat = EPixelFormat::D32F;
 };
 
 class RENDER_CORE_API CMaterial : public IAsset {

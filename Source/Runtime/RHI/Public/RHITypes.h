@@ -437,41 +437,51 @@ struct FExtent2D {
 
 // clang-format off
 enum class EPixelFormat {
-    Unknown,   // Undefined or invalid format
+    Unknown = 0,
 
-    // --- Single-channel (R) ---
-    R8_UNORM,   // 8-bit unsigned normalized
-    R16_UNORM,  // 16-bit unsigned normalized
-    R16F,       // 16-bit float
-    R32F,       // 32-bit float
+    // --- 8-bit formats ---
+    R8_UNORM,           // VK_FORMAT_R8_UNORM
+    R8_UINT,            // VK_FORMAT_R8_UINT
+    RG8_UNORM,          // VK_FORMAT_R8G8_UNORM
+    RGBA8_UNORM,        // VK_FORMAT_R8G8B8A8_UNORM
+    RGBA8_SRGB,         // VK_FORMAT_R8G8B8A8_SRGB
+    BGRA8_UNORM,        // VK_FORMAT_B8G8R8A8_UNORM
+    BGRA8_SRGB,         // VK_FORMAT_B8G8R8A8_SRGB
 
-    // --- Dual-channel (RG) ---
-    RG8_UNORM,  // 8-bit unsigned normalized per channel
-    RG16_UNORM, // 16-bit unsigned normalized per channel
-    RG16F,      // 16-bit float per channel
-    RG32F,      // 32-bit float per channel
+    // --- 16-bit formats ---
+    R16_UNORM,          // VK_FORMAT_R16_UNORM
+    R16F,               // VK_FORMAT_R16_SFLOAT
+    RG16F,              // VK_FORMAT_R16G16_SFLOAT
+    RG16_UNORM,         // VK_FORMAT_R16G16_UNORM
+    RGBA16_UNORM,       // VK_FORMAT_R16G16B10A16_UNORM
+    RGBA16F,            // VK_FORMAT_R16G16B16A16_SFLOAT
 
-    // --- 8-bit 4-channel (RGBA/BGRA) ---
-    RGBA8_UNORM, // 8-bit unsigned normalized, linear
-    RGBA8_SRGB,  // 8-bit sRGB (gamma-corrected)
-    BGRA8_UNORM, // 8-bit unsigned normalized, BGR order, linear
-    BGRA8_SRGB,  // 8-bit sRGB, BGR order
+    // --- 32-bit formats ---
+    R32F,               // VK_FORMAT_R32_SFLOAT
+    RG32F,              // VK_FORMAT_R32G32_SFLOAT
+    RGBA32F,            // VK_FORMAT_R32G32B32A32_SFLOAT
 
-    // --- 16-bit 4-channel ---
-    RGBA16_UNORM, // 16-bit unsigned normalized per channel
-    RGBA16F,      // 16-bit float per channel
-
-    // --- 32-bit 4-channel ---
-    RGBA32F,      // 32-bit float per channel
-
-    // --- Special packed RGB formats (no alpha) ---
-    RGB9E5,       // 9:9:9:5 shared exponent, RGB
-    R11G11B10F,   // 11:11:10 float, no sign, RGB
+    // --- Special Packed / HDR formats ---
+    R11G11B10F,         // VK_FORMAT_B10G11R11_UFLOAT_PACK32 (G-Buffer Normal/Emissive)
+    RGB9E5,             // VK_FORMAT_E5B9G9R9_UFLOAT_PACK32
+    RGB10A2_UNORM,      // VK_FORMAT_A2B10G10R10_UNORM_PACK32
 
     // --- Depth / Stencil formats ---
-    D16_UNORM,          // 16-bit unsigned normalized depth
-    D24_UNORM_S8_UINT,  // 24-bit depth + 8-bit stencil
-    D32_SFLOAT          // 32-bit float depth
+    D16_UNORM,          // VK_FORMAT_D16_UNORM
+    D32F,               // VK_FORMAT_D32_SFLOAT
+    D24S8,              // VK_FORMAT_D24_UNORM_S8_UINT (或依据设备支持选 D32S8)
+    D32F_S8,            // VK_FORMAT_D32_SFLOAT_S8_UINT
+
+    // --- Compressed formats (BC / Texture compression) ---
+    BC1_RGB_UNORM,      // VK_FORMAT_BC1_RGB_UNORM_BLOCK (DXT1)
+    BC1_RGB_SRGB,       // VK_FORMAT_BC1_RGB_SRGB_BLOCK
+    BC3_UNORM,          // VK_FORMAT_BC3_UNORM_BLOCK (DXT5)
+    BC3_SRGB,           // VK_FORMAT_BC3_SRGB_BLOCK
+    BC5_UNORM,          // VK_FORMAT_BC5_UNORM_BLOCK (Normal maps)
+    BC7_UNORM,          // VK_FORMAT_BC7_UNORM_BLOCK
+    BC7_SRGB,           // VK_FORMAT_BC7_SRGB_BLOCK
+
+    Max
 };
 // clang-format on
 
@@ -565,6 +575,17 @@ enum class EImageLayout {
     // Add more as needed for specific APIs (e.g., Vulkan has many more)
     Unknown
 };
+
+enum class EImageAspect : uint32_t {
+    None    = 0,
+    Color   = 1 << 0,
+    Depth   = 1 << 1,
+    Stencil = 1 << 2,
+
+    // Use for D24S8 or D32S8
+    DepthStencil = Depth | Stencil
+};
+ENUM_CLASS_FLAGS(EImageAspect);
 
 enum class EImageViewType {
     View1D = 0,

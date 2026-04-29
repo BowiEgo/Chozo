@@ -5,8 +5,7 @@ enum class EChannelLayout {
     Unknown,
     R, RG, RGB, RGBA,
     BGR, BGRA,
-    // Depth/Stencil
-    D, DS,
+    Depth, DepthStencil,
 };
 
 enum class EColorSpace {
@@ -27,8 +26,8 @@ enum class EPixelPrecision {
 // clang-format on
 
 struct FImageFormatDesc {
-    EChannelLayout Layout = EChannelLayout::Unknown;
-    EColorSpace Space = EColorSpace::Linear;
+    EChannelLayout Layout     = EChannelLayout::Unknown;
+    EColorSpace Space         = EColorSpace::Linear;
     EPixelPrecision Precision = EPixelPrecision::Unknown;
 
     bool IsValid() const {

@@ -4,33 +4,40 @@
 #include "MaterialParams.h"
 
 struct RENDER_CORE_API FPBRMaterialParams : public IMaterialParams {
-    FVector4 BaseColor     = FVector4(1.0f, 1.0f, 1.0f, 1.0f);
-    float Metallic         = 0.0f;
-    float Roughness        = 0.5f;
-    float NormalStrength   = 1.0f;
-    float EmissiveStrength = 0.0f;
-    FAssetHandle AlbedoMap = CAssetManager::Get().GetCheckboardTexture()->GetHandle();
-    FAssetHandle NormalMap = CAssetManager::Get().GetCheckboardTexture()->GetHandle();
-    FAssetHandle RMAOMap   = CAssetManager::Get().GetCheckboardTexture()->GetHandle();
-    bool UseAlbedoMap      = true;
-    bool UseNormalMap      = false;
-    bool UseRMAOMap        = false;
+    FVector4 BaseColor       = FVector4(1.0f, 1.0f, 1.0f, 1.0f);
+    float Metallic           = 0.0f;
+    float Roughness          = 0.5f;
+    float AOIntensity        = 1.0f;
+    FVector3 EmissiveColor   = FVector3(0.0f, 0.0f, 0.0f);
+    float EmissiveIntensity  = 0.0f;
+    FAssetHandle AlbedoMap   = CAssetManager::Get().GetCheckboardTexture()->GetHandle();
+    FAssetHandle NormalMap   = CAssetManager::Get().GetCheckboardTexture()->GetHandle();
+    FAssetHandle RMAOMap     = CAssetManager::Get().GetCheckboardTexture()->GetHandle();
+    FAssetHandle EmissiveMap = CAssetManager::Get().GetCheckboardTexture()->GetHandle();
+    bool UseAlbedoMap        = true;
+    bool UseNormalMap        = false;
+    bool UseRMAOMap          = false;
+    bool UseEmissiveMap      = false;
 
     FPBRMaterialParams() = default;
 
-    FPBRMaterialParams(const FVector4& baseColor, float metallic, float roughness,
-                       float normalStrength = 1.0f, float emissiveStrength = 0.0f,
-                       bool useAlbedoMap = false, bool useNormalMap = false,
-                       bool useRMAOMap = false)
-        : BaseColor(baseColor), Metallic(metallic), Roughness(roughness),
-          NormalStrength(normalStrength), EmissiveStrength(emissiveStrength),
-          UseAlbedoMap(useAlbedoMap), UseNormalMap(useNormalMap), UseRMAOMap(useRMAOMap) {}
+    FPBRMaterialParams(const FVector4& baseColor, float metallic = 0.0f, float roughness = 0.5f,
+                       float aoIntensity             = 1.0f,
+                       const FVector3& emissiveColor = FVector3(0.0f, 0.0f, 0.0f),
+                       float emissiveIntensity = 0.0f, bool useAlbedoMap = false,
+                       bool useNormalMap = false, bool useRMAOMap = false,
+                       bool useEmissiveMap = false)
+        : BaseColor(baseColor), Metallic(metallic), Roughness(roughness), AOIntensity(aoIntensity),
+          EmissiveColor(emissiveColor), EmissiveIntensity(emissiveIntensity),
+          UseAlbedoMap(useAlbedoMap), UseNormalMap(useNormalMap), UseRMAOMap(useRMAOMap),
+          UseEmissiveMap(useEmissiveMap) {}
 
     FPBRMaterialParams(const FPBRMaterialParams& other)
         : BaseColor(other.BaseColor), Metallic(other.Metallic), Roughness(other.Roughness),
-          NormalStrength(other.NormalStrength), EmissiveStrength(other.EmissiveStrength),
-          UseAlbedoMap(other.UseAlbedoMap), UseNormalMap(other.UseNormalMap),
-          UseRMAOMap(other.UseRMAOMap) {}
+          AOIntensity(other.AOIntensity), EmissiveColor(other.EmissiveColor),
+          EmissiveIntensity(other.EmissiveIntensity), UseAlbedoMap(other.UseAlbedoMap),
+          UseNormalMap(other.UseNormalMap), UseRMAOMap(other.UseRMAOMap),
+          UseEmissiveMap(other.UseEmissiveMap) {}
 
     // #define PARAM(type, member, ...) , member(other.member)
     //     FPBRMaterialParams(const FPBRMaterialParams& other) : IMaterialParams(other)

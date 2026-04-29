@@ -14,9 +14,32 @@ static FRHIShaderResourceBinding ToRHIBinding(const FUniformSpecification& unifo
 
 namespace ChozoUtils::RHI {
 
+bool IsSRGBFormat(EPixelFormat format) {
+    return format == EPixelFormat::RGBA8_SRGB || format == EPixelFormat::BGRA8_SRGB ||
+           format == EPixelFormat::BC1_RGB_SRGB || format == EPixelFormat::BC3_SRGB ||
+           format == EPixelFormat::BC7_SRGB;
+}
+
 bool IsDepthFormat(EPixelFormat format) {
-    return format == EPixelFormat::D32_SFLOAT || format == EPixelFormat::D24_UNORM_S8_UINT ||
-           format == EPixelFormat::D16_UNORM;
+    return format == EPixelFormat::D16_UNORM || format == EPixelFormat::D32F ||
+           format == EPixelFormat::D24S8 || format == EPixelFormat::D32F_S8;
+}
+
+bool HasStencilComponent(EPixelFormat format) {
+    return format == EPixelFormat::D24S8 || format == EPixelFormat::D32F_S8;
+}
+
+EImageAspect GetDefaultAspectMask(EPixelFormat format) {
+    if (IsDepthFormat(format)) {
+        EImageAspect aspect = EImageAspect::Depth;
+
+        if (HasStencilComponent(format)) {
+            aspect = aspect | EImageAspect::Stencil;
+        }
+        return aspect;
+    }
+
+    return EImageAspect::Color;
 }
 
 FRHIPipelineLayoutDescription
@@ -66,12 +89,11 @@ EShaderDataType ToShaderDataFormat(EPixelFormat format) {
         case EPixelFormat::R16F:
         case EPixelFormat::R32F:
         case EPixelFormat::D16_UNORM:
-        case EPixelFormat::D24_UNORM_S8_UINT:
-        case EPixelFormat::D32_SFLOAT: return EShaderDataType::Float;
+        case EPixelFormat::D24S8:
+        case EPixelFormat::D32F: return EShaderDataType::Float;
 
         // Dual-channel
         case EPixelFormat::RG8_UNORM:
-        case EPixelFormat::RG16_UNORM:
         case EPixelFormat::RG16F:
         case EPixelFormat::RG32F: return EShaderDataType::Float2;
 

@@ -103,23 +103,45 @@ public:
         m_Passes.push_back(pass);
 
         // Update texture lifetime range
-        for (auto* t : inputs)
-            t->LastPass = m_Passes.size() - 1;
-        for (auto* t : outputs)
-            t->LastPass = m_Passes.size() - 1;
+        uint32_t passIndex = m_Passes.size() - 1;
+
+        for (auto* t : inputs) {
+            t->FirstPass = std::min(t->FirstPass, passIndex);
+            t->LastPass  = std::max(t->LastPass, passIndex);
+        }
+
+        for (auto* t : outputs) {
+            t->FirstPass = std::min(t->FirstPass, passIndex);
+            t->LastPass  = std::max(t->LastPass, passIndex);
+        }
     }
 
     // The most critical step, for physical allocation and barrier insertion
     void Compile() {
-        for (auto* tex : m_Textures) {
+        std::vector<FRDGTexture*> sortedTextures = m_Textures;
+        std::sort(sortedTextures.begin(), sortedTextures.end(),
+                  [](auto* a, auto* b) { return a->FirstPass < b->FirstPass; });
+
+        std::vector<std::pair<IRHIImage*, uint32_t>> busyImages;
+
+        for (auto* tex : sortedTextures) {
             if (tex->bExternal) continue;
 
-            // Request a physical Image from the physical resource pool
-            // The pool will check if there's a matching
-            // and expired Image available for reuse (Aliasing)
+            uint32_t currentPass = tex->FirstPass;
+
+            for (auto it = busyImages.begin(); it != busyImages.end();) {
+                if (currentPass > it->second) {
+                    m_Context->GetDevice()->ReturnImageToPool(it->first);
+                    it = busyImages.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+
             FImageSpecification physSpec = tex->Spec.ToImageSpec();
-            tex->Image                   = m_Context->GetDevice()->GetImageFromPool(
-                physSpec, m_Context->GetCurrentFrameIndex());
+            tex->Image =
+                m_Context->GetDevice()->GetImageFromPool(physSpec, m_Context->GetCurrentFrame());
+            busyImages.push_back({ tex->Image, tex->LastPass });
             tex->Texture->BorrowImage(tex->Image);
         }
     }
@@ -127,7 +149,7 @@ public:
     // The actual Vulkan calls happen here
     void Execute(TRef<IRHICommandList> cmd) {
         for (uint32_t i = 0; i < m_Passes.size(); ++i) {
-            
+
             auto* pass = m_Passes[i];
             std::vector<IRHITexture*> renderTargets;
             // --- Automatic synchronization logic ---
@@ -137,15 +159,23 @@ public:
                                                EImageLayout::ShaderReadOnlyOptimal);
             }
             for (auto* output : pass->Outputs) {
-                // Automatically insert barriers: transition to ColorAttachmentOptimal
+                EImageLayout targetLayout;
                 auto imageSpec = output->Spec.ToImageSpec();
-                IRHIAPI::TransitionImageLayout(
-                    cmd, output->Image, EImageLayout::ColorAttachmentOptimal, 0, imageSpec.Layers);
+
+                if (ChozoUtils::RHI::IsDepthFormat(output->Spec.Format)) {
+                    targetLayout = EImageLayout::DepthStencilAttachmentOptimal;
+                } else {
+                    targetLayout = EImageLayout::ColorAttachmentOptimal;
+                }
+
+                IRHIAPI::TransitionImageLayout(cmd, output->Image, targetLayout, 0,
+                                               imageSpec.Layers);
 
                 renderTargets.push_back(output->Texture);
             }
 
             // Execute user-defined rendering logic for this pass
+            auto tarSize = renderTargets.size();
             m_Context->SetRenderTargets(renderTargets);
             if (pass->Pipeline) cmd->BindPipeline(pass->Pipeline);
             bool shouldClear = (pass->LoadOp == ERenderPassLoadOp::Clear);

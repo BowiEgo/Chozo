@@ -75,9 +75,12 @@ vk::SamplerMipmapMode ToVKMipmapMode(EMipmapMode mode);
 // Image
 vk::ImageLayout ToVkImageLayout(EImageLayout layout);
 
+vk::ImageAspectFlags ToVkAspectFlags(EPixelFormat format);
+
 void TransitionImageLayout(const vk::CommandBuffer vkCmdBuffer, const vk::Image vkImage,
                            vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
-                           uint32_t baseArrayLayer = 0, uint32_t layerCount = 1);
+                           vk::ImageAspectFlags aspect, uint32_t baseArrayLayer = 0,
+                           uint32_t layerCount = 1);
 
 void SetupBarrierSync(vk::ImageMemoryBarrier2& barrier, vk::ImageLayout oldLayout,
                       vk::ImageLayout newLayout);

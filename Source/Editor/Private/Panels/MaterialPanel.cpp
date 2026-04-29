@@ -1,5 +1,6 @@
 #include "MaterialPanel.h"
 
+#include "Application.h"
 #include "PropControllers.h"
 
 DEFINE_LOG_CATEGORY(LogMaterialPanel);

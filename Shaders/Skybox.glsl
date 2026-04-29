@@ -14,7 +14,7 @@ layout(location = 4) in vec3 a_Bitangent;
 layout(location = 0) out vec3 v_TexCoords;
 
 void main() {
-    vec4 pos = u_Camera.Projection * mat4(mat3(u_Camera.View)) * vec4(a_Position, 1.0);
+    vec4 pos = u_Camera.ProjMatrix * mat4(mat3(u_Camera.ViewMatrix)) * vec4(a_Position, 1.0);
     gl_Position = pos.xyww;
     v_TexCoords = a_Position;
 }

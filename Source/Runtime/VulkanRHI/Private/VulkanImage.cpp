@@ -85,8 +85,9 @@ void CVulkanImage::SetData(FBuffer& data) {
     vk::CommandBuffer vkCmdBuffer        = cmdBuffer->GetVKCommandBuffer();
 
     // Transition Undefined -> TransferDst
+    auto aspect = ChozoUtils::Vulkan::ToVkAspectFlags(m_Spec.Format);
     ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, m_VKImage, vk::ImageLayout::eUndefined,
-                                              vk::ImageLayout::eTransferDstOptimal);
+                                              vk::ImageLayout::eTransferDstOptimal, aspect);
 
     // Copy Buffer to Image
     vk::BufferImageCopy region{};
@@ -99,7 +100,7 @@ void CVulkanImage::SetData(FBuffer& data) {
     // Transition TransferDst -> ShaderReadOnly
     ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, m_VKImage,
                                               vk::ImageLayout::eTransferDstOptimal,
-                                              vk::ImageLayout::eShaderReadOnlyOptimal);
+                                              vk::ImageLayout::eShaderReadOnlyOptimal, aspect);
 
     device->EndSingleTimeCommands(cmdBuffer);
 
@@ -193,8 +194,8 @@ vk::ImageView CVulkanImage::GetOrCreateVKView(const FImageViewSpecification& spe
 
     vk::Format vkFormat = ChozoUtils::Vulkan::ToVkFormat(m_Spec.Format);
     bool isDepth        = ChozoUtils::Vulkan::IsDepthFormat(vkFormat);
-    vk::ImageAspectFlags aspectMask =
-        isDepth ? vk::ImageAspectFlagBits::eDepth : vk::ImageAspectFlagBits::eColor;
+
+    vk::ImageAspectFlags aspectMask = ChozoUtils::Vulkan::ToVkAspectFlags(m_Spec.Format);
 
     vk::ImageViewType viewType = ChozoUtils::Vulkan::ToVkViewType(spec.ViewType);
 

@@ -18,23 +18,41 @@ void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer,
 
     FExtent2D firstSize = targets[0]->GetSize();
     vk::Extent2D extent(firstSize.Width, firstSize.Height);
-    vk::ClearValue clearValue = vk::ClearColorValue(0.1f, 0.1f, 0.1f, 1.0f);
 
-    // Setup rendering attachment
+    // Setup attachments
     std::vector<vk::RenderingAttachmentInfo> colorAttachmentInfos;
     colorAttachmentInfos.reserve(targets.size());
 
+    vk::RenderingAttachmentInfo depthAttachmentInfo{};
+    bool hasDepth = false;
+
     for (const auto& target : targets) {
+        EPixelFormat format = target->GetSpec().Format;
+        bool isDepth        = ChozoUtils::RHI::IsDepthFormat(format);
+
+        vk::ClearValue clearValue;
+        if (isDepth) {
+            clearValue.depthStencil = vk::ClearDepthStencilValue(1.0f, 0);
+        } else {
+            clearValue.color = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+        }
+
         vk::RenderingAttachmentInfo info{};
         if (target->GetSpec().Type == ETextureType::Texture2D) {
-            auto tex2D = static_cast<CVulkanTexture2D*>(target);
-            info       = tex2D->GetColorAttachmentInfo(clearValue, bClear, faceIndex);
+            info = static_cast<CVulkanTexture2D*>(target)->GetColorAttachmentInfo(
+                clearValue, bClear, faceIndex);
         } else {
-            auto texCube = static_cast<CVulkanTextureCubemap*>(target);
-            info         = texCube->GetColorAttachmentInfo(
-                clearValue, bClear, faceIndex); // TODO: target owns clearValue and get from it
+            info = static_cast<CVulkanTextureCubemap*>(target)->GetColorAttachmentInfo(
+                clearValue, bClear, faceIndex);
         }
-        colorAttachmentInfos.push_back(info);
+
+        if (isDepth) {
+            depthAttachmentInfo = info;
+            depthAttachmentInfo.setImageLayout(vk::ImageLayout::eDepthAttachmentOptimal);
+            hasDepth = true;
+        } else {
+            colorAttachmentInfos.push_back(info);
+        }
     }
 
     vk::RenderingInfo renderingInfo{};
@@ -43,8 +61,9 @@ void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer,
         .setColorAttachmentCount(static_cast<uint32_t>(colorAttachmentInfos.size()))
         .setPColorAttachments(colorAttachmentInfos.data());
 
-    // Optional: Handle DepthAttachment
-    // renderingInfo.setPDepthAttachment(&depthAttachmentInfo);
+    if (hasDepth) {
+        renderingInfo.setPDepthAttachment(&depthAttachmentInfo);
+    }
 
     vkCmdBuffer.beginRendering(renderingInfo);
 }
@@ -176,8 +195,9 @@ void CVulkanAPI::TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmd
     auto vkImage     = rhiImage->GetVKHandle();
     auto vkOldLayout = rhiImage->GetCurrentLayout();
     auto vkNewLayout = ChozoUtils::Vulkan::ToVkImageLayout(newLayout);
+    auto aspect      = ChozoUtils::Vulkan::ToVkAspectFlags(rhiImage->GetSpec().Format);
 
     ChozoUtils::Vulkan::TransitionImageLayout(vkCmdBuffer, vkImage, vkOldLayout, vkNewLayout,
-                                              baseArrayLayer, layerCount);
+                                              aspect, baseArrayLayer, layerCount);
     rhiImage->SetCurrentLayout(vkNewLayout);
 }

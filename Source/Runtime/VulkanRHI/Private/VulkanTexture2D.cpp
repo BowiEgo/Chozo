@@ -22,9 +22,14 @@ vk::RenderingAttachmentInfo
                                              uint32_t face) {
     vk::ImageView imageView = static_cast<CVulkanImage*>(GetImage())->GetVKView();
 
+    bool isDepth = ChozoUtils::RHI::IsDepthFormat(m_Spec.Format);
+
+    vk::ImageLayout layout = isDepth ? vk::ImageLayout::eDepthAttachmentOptimal
+                                     : vk::ImageLayout::eColorAttachmentOptimal;
+
     return vk::RenderingAttachmentInfo()
         .setImageView(imageView)
-        .setImageLayout(vk::ImageLayout::eColorAttachmentOptimal)
+        .setImageLayout(layout)
         .setLoadOp(bClear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eLoad)
         .setStoreOp(vk::AttachmentStoreOp::eStore)
         .setClearValue(clearColor);

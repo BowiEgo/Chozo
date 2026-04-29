@@ -74,7 +74,9 @@ public:
     }
     PerformanceProfiler* GetPerformanceProfiler() { return m_Profiler.get(); }
 
-    TRef<CMaterial> GetPBRMaterial() { return m_PBRMat; } // TODO: Remove
+    TRef<CMaterial> GetMaterial() { return m_GBufferMat; } // TODO: Remove
+    void SetDebugMode(int mode) { m_DebugMode = mode; }    // TODO: Remove
+    const int GetDebugMode() { return m_DebugMode; }       // TODO: Remove
 
 private:
     CModule m_RHIModule;
@@ -88,13 +90,16 @@ private:
 
     std::vector<TScope<CViewport>> m_Viewports;
 
-    TRef<IRHIPipeline> m_CubemapSamplerPipeline, m_SkyboxPipeline; // TODO: Remove
+    TRef<IRHIPipeline> m_CubemapSamplerPipeline, m_SkyboxPipeline, m_DebugPipeline; // TODO: Remove
+    TRef<IRHIBuffer> m_DebugUniformBuffer;                                          // TODO: Remove
 
     TRef<CTexture> m_SkyboxTex; // TODO: Remove
     TRef<FCube> m_Cube;
     TRef<FQuad> m_Quad;
 
-    TRef<CMaterial> m_SolidMat, m_PBRMat; // TODO: Remove
+    TRef<CMaterial> m_SolidMat, m_GBufferMat, m_PBRMat; // TODO: Remove
+
+    int m_DebugMode = 0; // TODO: Remove
 
     FOnRenderUI m_UICallback = nullptr;
 };

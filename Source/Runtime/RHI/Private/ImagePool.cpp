@@ -9,11 +9,11 @@ CImagePool::~CImagePool() {
     // m_AvailableImages.size());
 }
 
-IRHIImage* CImagePool::RequestImage(const FImageSpecification& spec, uint32_t frameIndex) {
+IRHIImage* CImagePool::RequestImage(const FImageSpecification& spec, uint32_t frame) {
     for (auto it = m_AvailableImages.begin(); it != m_AvailableImages.end(); ++it) {
-        if (it->Image->GetSpec() == spec) {
+        if (!it->bInUse && it->Image->GetSpec() == spec) {
             it->bInUse        = true;
-            it->LastUsedFrame = frameIndex;
+            it->LastUsedFrame = frame;
             return it->Image.get();
         }
     }
@@ -27,7 +27,7 @@ IRHIImage* CImagePool::RequestImage(const FImageSpecification& spec, uint32_t fr
 
     auto newImage  = device->CreateImage(spec);
     IRHIImage* ptr = newImage.get();
-    m_AvailableImages.push_back({ std::move(newImage), frameIndex, true });
+    m_AvailableImages.push_back({ std::move(newImage), frame, true });
 
     return ptr;
 }
@@ -37,10 +37,9 @@ void CImagePool::ReturnImage(IRHIImage* image) {
 
     // Add the image back to the pool with the current frame index
     for (auto it = m_AvailableImages.begin(); it != m_AvailableImages.end(); ++it) {
-        if (it->Image->GetSpec() == image->GetSpec()) {
-            it->bInUse        = false;
-            it->LastUsedFrame = 0;
-            break;
+        if (it->Image.get() == image) {
+            it->bInUse = false;
+            return;
         }
     }
 }
@@ -48,7 +47,8 @@ void CImagePool::ReturnImage(IRHIImage* image) {
 void CImagePool::Tick(uint32_t currentFrame) {
     auto it = m_AvailableImages.begin();
     while (it != m_AvailableImages.end()) {
-        if (currentFrame - it->LastUsedFrame > m_MaxIdleFrames) {
+        if (!it->bInUse && currentFrame - it->LastUsedFrame > m_MaxIdleFrames) {
+            it->Image->Destroy();
             it = m_AvailableImages.erase(it);
         } else {
             ++it;

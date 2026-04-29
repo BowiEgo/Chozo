@@ -103,21 +103,23 @@ void CApplication::Run() {
     m_FPSCounter.Update(deltaTime);
 
     {
-        CZ_APP_SCOPE_PERF(EAppProfileSlot::Logic);
-
-        m_Window->OnUpdate();
-        for (ILayer* layer : m_LayerStack)
-            layer->OnUpdate(deltaTime);
-
         {
-            // TODO: execute this stuff on render thread.
-            CZ_APP_SCOPE_PERF(EAppProfileSlot::ImGui);
-            CImGuiLayer::Get().Begin();
-            CImGuiLayer::Get().Render([this]() {
-                for (ILayer* layer : m_LayerStack)
-                    layer->OnImGuiRender();
-            });
-            CImGuiLayer::Get().End();
+            CZ_APP_SCOPE_PERF(EAppProfileSlot::Logic);
+
+            m_Window->OnUpdate();
+            for (ILayer* layer : m_LayerStack)
+                layer->OnUpdate(deltaTime);
+
+            {
+                // TODO: execute this stuff on render thread.
+                CZ_APP_SCOPE_PERF(EAppProfileSlot::ImGui);
+                CImGuiLayer::Get().Begin();
+                CImGuiLayer::Get().Render([this]() {
+                    for (ILayer* layer : m_LayerStack)
+                        layer->OnImGuiRender();
+                });
+                CImGuiLayer::Get().End();
+            }
         }
 
         {

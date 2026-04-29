@@ -15,7 +15,7 @@ const TRef<IRHIPipeline> CMaterial::GetPipeline() {
     spec.RHISeyLayouts      = m_Spec.Shader->GetAllSetLayouts();
     spec.VertexLayout       = m_Spec.Shader->GetVertexLayout();
     spec.PushConstantRanges = m_Spec.Shader->GetPushConstantRanges();
-    spec.ColorFormats       = m_Spec.ColorFormats;
+    spec.OutputColorFormats = m_Spec.ColorFormats;
     spec.DepthFormat        = m_Spec.DepthFormat;
     spec.PolygonMode        = params->PolygonMode;
     spec.CullMode           = params->CullMode;
@@ -74,37 +74,43 @@ void CMaterial::CreateDescriptorSet() {
                     std::any_cast<FVector4>(m_Params.Get()->GetParamValue("BaseColor"));
                 float metallic  = std::any_cast<float>(m_Params.Get()->GetParamValue("Metallic"));
                 float roughness = std::any_cast<float>(m_Params.Get()->GetParamValue("Roughness"));
-                float normalStrength =
-                    std::any_cast<float>(m_Params.Get()->GetParamValue("NormalStrength"));
-                float emissiveStrength =
-                    std::any_cast<float>(m_Params.Get()->GetParamValue("EmissiveStrength"));
+                float aoIntensity =
+                    std::any_cast<float>(m_Params.Get()->GetParamValue("AOIntensity"));
+                FVector3 emissiveColor =
+                    std::any_cast<FVector3>(m_Params.Get()->GetParamValue("EmissiveColor"));
+                float emissiveIntensity =
+                    std::any_cast<float>(m_Params.Get()->GetParamValue("EmissiveIntensity"));
                 bool useAlbedoMap =
                     std::any_cast<bool>(m_Params.Get()->GetParamValue("UseAlbedoMap"));
                 bool useNormalMap =
                     std::any_cast<bool>(m_Params.Get()->GetParamValue("UseNormalMap"));
                 bool useRMAOMap = std::any_cast<bool>(m_Params.Get()->GetParamValue("UseRMAOMap"));
+                bool useEmissiveMap =
+                    std::any_cast<bool>(m_Params.Get()->GetParamValue("UseEmissiveMap"));
 
                 struct alignas(16) MaterialUniforms {
                     FVector4 BaseColor;
+                    FVector4 Emissive;
                     float Metallic;
                     float Roughness;
-                    float NormalStrength;
-                    float EmissiveStrength;
+                    float AOIntensity;
                     int UseAlbedoMap;
                     int UseNormalMap;
                     int UseRMAOMap;
+                    int UseEmissiveMap;
                     char padding[4];
                 };
 
                 MaterialUniforms matUniforms;
-                matUniforms.BaseColor        = baseColor;
-                matUniforms.Metallic         = metallic;
-                matUniforms.Roughness        = roughness;
-                matUniforms.NormalStrength   = normalStrength;
-                matUniforms.EmissiveStrength = emissiveStrength;
-                matUniforms.UseAlbedoMap     = useAlbedoMap ? 1 : 0;
-                matUniforms.UseNormalMap     = useNormalMap ? 1 : 0;
-                matUniforms.UseRMAOMap       = useRMAOMap ? 1 : 0;
+                matUniforms.BaseColor      = baseColor;
+                matUniforms.Emissive       = FVector4(emissiveColor, emissiveIntensity);
+                matUniforms.Metallic       = metallic;
+                matUniforms.Roughness      = roughness;
+                matUniforms.AOIntensity    = aoIntensity;
+                matUniforms.UseAlbedoMap   = useAlbedoMap ? 1 : 0;
+                matUniforms.UseNormalMap   = useNormalMap ? 1 : 0;
+                matUniforms.UseRMAOMap     = useRMAOMap ? 1 : 0;
+                matUniforms.UseEmissiveMap = useEmissiveMap ? 1 : 0;
 
                 FBufferSpecification bufferSpec;
                 bufferSpec.Usage      = EBufferUsage::UniformBuffer;

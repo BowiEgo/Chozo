@@ -124,14 +124,24 @@ void CVulkanPipeline::Init() {
         .setDepthCompareOp(ChozoUtils::Vulkan::ToVkCompareOp(m_Spec.DepthCompareOp));
 
     // ===== Color Blending (Standard opaque) =====
-    vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
-    colorBlendAttachment.setColorWriteMask(
-        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-    colorBlendAttachment.setBlendEnable(vk::False);
+    std::vector<vk::PipelineColorBlendAttachmentState> colorBlendAttachments;
+    colorBlendAttachments.reserve(m_Spec.OutputColorFormats.size());
 
-    vk::PipelineColorBlendStateCreateInfo colorBlending({}, vk::False, vk::LogicOp::eCopy, 1,
-                                                        &colorBlendAttachment);
+    for (size_t i = 0; i < m_Spec.OutputColorFormats.size(); ++i) {
+        vk::PipelineColorBlendAttachmentState attachment{};
+        attachment
+            .setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+                               vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA)
+            .setBlendEnable(vk::False);
+
+        colorBlendAttachments.push_back(attachment);
+    }
+
+    vk::PipelineColorBlendStateCreateInfo colorBlending{};
+    colorBlending.setLogicOpEnable(vk::False)
+        .setLogicOp(vk::LogicOp::eCopy)
+        .setAttachmentCount(static_cast<uint32_t>(colorBlendAttachments.size()))
+        .setPAttachments(colorBlendAttachments.data());
 
     // ===== Dynamic States =====
     std::vector<vk::DynamicState> dynamicStates = { vk::DynamicState::eViewport,
@@ -141,7 +151,7 @@ void CVulkanPipeline::Init() {
 
     // ===== Dynamic Rendering Setup (Vulkan 1.3+) =====
     std::vector<vk::Format> vkColorFormats;
-    for (auto f : m_Spec.ColorFormats) {
+    for (auto f : m_Spec.OutputColorFormats) {
         vkColorFormats.push_back(ChozoUtils::Vulkan::ToVkFormat(f));
     }
     vk::PipelineRenderingCreateInfo renderingInfo(0, vkColorFormats, vkDepthFormat);
