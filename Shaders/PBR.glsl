@@ -17,6 +17,23 @@ layout(location = 0) in vec2 v_TexCoord;
 
 layout(location = 0) out vec4 o_Color;
 
+#include "shaders://Camera.glsl"
+
+layout(set = 1, binding = 0) uniform SceneUBO
+{
+    vec3 CameraPosition;
+} u_Scene;
+
+layout(set = 1, binding = 1) uniform sampler2D u_PositionMap;
+layout(set = 1, binding = 2) uniform sampler2D u_NormalMap;
+layout(set = 1, binding = 3) uniform sampler2D u_BaseColorMap;
+layout(set = 1, binding = 4) uniform sampler2D u_RMAOMap;
+layout(set = 1, binding = 5) uniform sampler2D u_EmissiveMap;
+layout(set = 1, binding = 6) uniform sampler2D u_DepthMap;
+layout(set = 1, binding = 7) uniform sampler2D u_BRDFLutTex;
+layout(set = 1, binding = 8) uniform samplerCube u_IrradianceCubeMap;
+layout(set = 1, binding = 9) uniform samplerCube u_PrefilteredCubeMap;
+
 #include "shaders://Includes/GBuffer.glsl"
 #include "shaders://Includes/Lighting.glsl"
 #include "shaders://Includes/Material.glsl"

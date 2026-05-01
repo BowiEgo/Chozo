@@ -2,46 +2,99 @@
 #include "FileUtils.h"
 #include "VFS.h"
 
-shaderc_include_result *FGlslIncluder::GetInclude(const char *requestedPath,
+shaderc_include_result* FGlslIncluder::GetInclude(const char* requestedPath,
                                                   shaderc_include_type type,
-                                                  const char *requestingPath,
+                                                  const char* requestingPath,
                                                   size_t include_depth) {
-    std::string path = requestedPath;
+    std::string path  = requestedPath;
+    auto physicalPath = VFS::Resolve(path);
 
     // If it's a relative path (not starting with a protocol),
     // you might want to resolve it relative to the 'requestingPath'.
     // For now, VFS::Resolve handles our virtual protocols.
-    auto physicalPath = VFS::Resolve(path);
-    std::string content = ChozoUtils::File::ReadTextFile(physicalPath);
-
-    // Handle file not found case to prevent downstream crashes
-    if (content.empty() && !std::filesystem::exists(physicalPath)) {
-        auto result = new shaderc_include_result;
-        result->content = "File not found";
-        result->content_length = 14;
-        result->source_name = requestedPath;
+    if (m_IncludedFiles.find(physicalPath) != m_IncludedFiles.end()) {
+        auto result                = new shaderc_include_result;
+        result->content            = "";
+        result->content_length     = 0;
+        result->source_name        = requestedPath;
         result->source_name_length = strlen(requestedPath);
-        result->user_data = nullptr;
+        result->user_data          = nullptr;
         return result;
     }
 
-    auto container = new std::pair<std::string, std::string>(path, content);
+    if (std::find(m_IncludeStack.begin(), m_IncludeStack.end(), physicalPath) !=
+        m_IncludeStack.end()) {
+        auto result                = new shaderc_include_result;
+        result->content            = "";
+        result->content_length     = 0;
+        result->source_name        = requestedPath;
+        result->source_name_length = strlen(requestedPath);
+        result->user_data          = nullptr;
+        return result;
+    }
 
-    auto result = new shaderc_include_result;
-    result->source_name = container->first.c_str();
+    m_IncludeStack.push_back(physicalPath);
+
+    std::string content;
+    auto it = m_FileCache.find(physicalPath);
+    if (it != m_FileCache.end()) {
+        content = it->second;
+    } else {
+        content = ChozoUtils::File::ReadTextFile(physicalPath);
+        if (content.empty()) {
+            m_IncludeStack.pop_back();
+            auto result                = new shaderc_include_result;
+            result->content            = "File not found";
+            result->content_length     = 14;
+            result->source_name        = requestedPath;
+            result->source_name_length = strlen(requestedPath);
+            result->user_data          = nullptr;
+            return result;
+        }
+        m_FileCache[physicalPath] = content;
+    }
+
+    m_IncludedFiles.insert(physicalPath);
+
+    auto container             = new std::pair<std::string, std::string>(path, content);
+    auto result                = new shaderc_include_result;
+    result->source_name        = container->first.c_str();
     result->source_name_length = container->first.length();
-    result->content = container->second.c_str();
-    result->content_length = container->second.length();
-    result->user_data = container;
+    result->content            = container->second.c_str();
+    result->content_length     = container->second.length();
+    result->user_data          = container;
+
+    m_IncludeStack.pop_back();
+
+    // std::string content = ChozoUtils::File::ReadTextFile(physicalPath);
+
+    // // Handle file not found case to prevent downstream crashes
+    // if (content.empty() && !std::filesystem::exists(physicalPath)) {
+    //     auto result                = new shaderc_include_result;
+    //     result->content            = "File not found";
+    //     result->content_length     = 14;
+    //     result->source_name        = requestedPath;
+    //     result->source_name_length = strlen(requestedPath);
+    //     result->user_data          = nullptr;
+    //     return result;
+    // }
+
+    // auto container = new std::pair<std::string, std::string>(path, content);
+
+    // auto result                = new shaderc_include_result;
+    // result->source_name        = container->first.c_str();
+    // result->source_name_length = container->first.length();
+    // result->content            = container->second.c_str();
+    // result->content_length     = container->second.length();
+    // result->user_data          = container;
 
     return result;
 }
 
-void FGlslIncluder::ReleaseInclude(shaderc_include_result *data) {
+void FGlslIncluder::ReleaseInclude(shaderc_include_result* data) {
     if (data) {
         if (data->user_data) {
-            delete static_cast<std::pair<std::string, std::string> *>(
-                data->user_data);
+            delete static_cast<std::pair<std::string, std::string>*>(data->user_data);
         }
         delete data;
     }

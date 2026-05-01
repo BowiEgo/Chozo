@@ -78,9 +78,8 @@ void CRenderer::Init() {
                                                { EShaderStage::Vertex, EShaderStage::Fragment },
                                                "main" });
 
-    // TRef<CShader> pbrShader = CAssetManager::Get().GetOrLoadShader(
-    //     { "PBR", "shaders://PBR.glsl", { EShaderStage::Vertex, EShaderStage::Fragment }, "main"
-    //     });
+    TRef<CShader> pbrShader = CAssetManager::Get().GetOrLoadShader(
+        { "PBR", "shaders://PBR.glsl", { EShaderStage::Vertex, EShaderStage::Fragment }, "main" });
 
     TRef<CShader> cubemapSamplerShader =
         CAssetManager::Get().GetOrLoadShader({ "CubemapSampler",
@@ -107,7 +106,8 @@ void CRenderer::Init() {
                                                "main" });
 
     // Texture
-    m_SkyboxTex = CAssetManager::Get().GetOrLoadTexture("textures://HDRI/newport_loft.hdr");
+    m_SkyboxTex  = CAssetManager::Get().GetOrLoadTexture("textures://HDRI/newport_loft.hdr");
+    m_BRDFLutTex = CAssetManager::Get().GetOrLoadTexture("textures://brdfLUT.png");
 
     {
         FTextureSpecification spec;
@@ -247,6 +247,23 @@ void CRenderer::Init() {
         m_DebugPipeline = IRHIAPI::CreatePipeline(spec);
     }
 
+    {
+        FPipelineSpecification spec;
+        spec.Name               = "PBR";
+        spec.RHIShaders         = { pbrShader->GetShaderResources() };
+        spec.OutputColorFormats = { EPixelFormat::RGBA16F };
+        spec.CullMode           = ECullMode::None;
+        spec.bDepthTestEnable   = false;
+        spec.bDepthWriteEnable  = false;
+        spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
+                                    { EShaderDataType::Float3, "a_Normal" },
+                                    { EShaderDataType::Float2, "a_TexCoord" },
+                                    { EShaderDataType::Float3, "a_Tangent" },
+                                    { EShaderDataType::Float3, "a_Bitangent" } };
+
+        m_PBRPipeline = IRHIAPI::CreatePipeline(spec);
+    }
+
     // Buffers
     {
         FBufferSpecification spec;
@@ -314,6 +331,10 @@ void CRenderer::Tick(float deltaTime) {
         FRDGTexture* skyboxPrefilteredCubemapHandle = graph.ImportExternalRDGTexture(
             "SkyboxPrefilteredCubemap", m_SkyboxPrefilteredCubemap->GetResource(),
             EImageLayout::ColorAttachmentOptimal, EImageLayout::ShaderReadOnlyOptimal);
+
+        FRDGTexture* BRDFLutHandle = graph.ImportExternalRDGTexture(
+            "BRDFLutTexture", m_BRDFLutTex->GetResource(), EImageLayout::ShaderReadOnlyOptimal,
+            EImageLayout::ShaderReadOnlyOptimal);
 
         if (!m_bEnvSampled) {
             graph.AddPass("EquirectangularToCubemap", m_CubemapSamplerPipeline, { skybox2DHandle },
@@ -531,27 +552,133 @@ void CRenderer::Tick(float deltaTime) {
                               scene->Draw(cmd.get(), cameraBuffer);
                           });
 
+            FTextureSpecification pbrSpec;
+            pbrSpec.Type   = ETextureType::Texture2D;
+            pbrSpec.Size   = viewportCanvas->GetSize();
+            pbrSpec.Format = EPixelFormat::RGBA16F;
+            pbrSpec.Usage  = ETextureUsage::Texture | ETextureUsage::Attachment;
+
+            FRDGTexture* pbrHandle = graph.CreateRDGTexture("PBR", pbrSpec);
+
+            graph.AddPass(
+                "PBRPass", m_PBRPipeline,
+                { gBufferPositionHandle, gBufferNormalHandle, gBufferBaseColorHandle,
+                  gBufferRMAOHandle, gBufferEmissiveHandle, gBufferDepthHandle, BRDFLutHandle,
+                  skyboxIrradianceCubemapHandle, skyboxPrefilteredCubemapHandle },
+                { pbrHandle }, ERenderPassLoadOp::Load,
+                [this, &viewport, gBufferPositionHandle, gBufferNormalHandle,
+                 gBufferBaseColorHandle, gBufferRMAOHandle, gBufferEmissiveHandle,
+                 gBufferDepthHandle, BRDFLutHandle, skyboxIrradianceCubemapHandle,
+                 skyboxPrefilteredCubemapHandle](CRDGContext& ctx) {
+                    auto t1 = ctx.GetTexture(gBufferPositionHandle);
+                    auto t2 = ctx.GetTexture(gBufferNormalHandle);
+                    auto t3 = ctx.GetTexture(gBufferBaseColorHandle);
+                    auto t4 = ctx.GetTexture(gBufferRMAOHandle);
+                    auto t5 = ctx.GetTexture(gBufferEmissiveHandle);
+                    auto t6 = ctx.GetTexture(gBufferDepthHandle);
+                    auto t7 = ctx.GetTexture(BRDFLutHandle);
+                    auto t8 = ctx.GetTexture(skyboxIrradianceCubemapHandle);
+                    auto t9 = ctx.GetTexture(skyboxPrefilteredCubemapHandle);
+
+                    auto cmd = ctx.GetCommandBuffer();
+
+                    auto camera = viewport->GetCamera();
+                    auto cameraBuffer =
+                        CCameraUniformManager::Get().GetBufferForCamera(camera.get());
+                    auto width  = viewport->GetWidth();
+                    auto height = viewport->GetHeight();
+
+                    {
+                        auto setLayout                           = m_PBRPipeline->GetSetLayout(0);
+                        std::vector<FDescriptorBinding> bindings = {
+                            { 0, EUniformType::UniformBuffer, cameraBuffer.get(), nullptr },
+                        };
+                        auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
+                            setLayout, bindings);
+
+                        cmd->BindDescriptorSets(0, descSet);
+                    }
+
+                    {
+                        struct alignas(16) SceneUBO {
+                            FVector3 CameraPosition;
+                            float _padding;
+                        };
+
+                        SceneUBO uniforms;
+                        uniforms.CameraPosition = camera->GetPosition();
+
+                        FBufferSpecification bufferSpec;
+                        bufferSpec.Usage = EBufferUsage::UniformBuffer;
+                        bufferSpec.Size  = sizeof(SceneUBO);
+                        bufferSpec.MemoryType =
+                            EMemoryType::HostVisible | EMemoryType::HostCoherent;
+                        bufferSpec.Name = "SceneUniformBuffer";
+
+                        FBuffer data(&uniforms, bufferSpec.Size);
+
+                        if (m_SceneUniformBuffer) {
+                            m_SceneUniformBuffer->SetData(data);
+                        } else {
+                            m_SceneUniformBuffer = IRHIAPI::CreateBuffer(bufferSpec, data);
+                        }
+
+                        auto setLayout                           = m_PBRPipeline->GetSetLayout(1);
+                        std::vector<FDescriptorBinding> bindings = {
+                            { 0, EUniformType::UniformBuffer, m_SceneUniformBuffer.get(), nullptr },
+                            { 1, EUniformType::CombinedImageSampler, t1->GetImage(),
+                              t1->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 2, EUniformType::CombinedImageSampler, t2->GetImage(),
+                              t2->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 3, EUniformType::CombinedImageSampler, t3->GetImage(),
+                              t3->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 4, EUniformType::CombinedImageSampler, t4->GetImage(),
+                              t4->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 5, EUniformType::CombinedImageSampler, t5->GetImage(),
+                              t5->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 6, EUniformType::CombinedImageSampler, t6->GetImage(),
+                              t6->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 7, EUniformType::CombinedImageSampler, t7->GetImage(),
+                              t7->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 8, EUniformType::CombinedImageSampler, t8->GetImage(),
+                              t8->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 9, EUniformType::CombinedImageSampler, t9->GetImage(),
+                              t9->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+                        };
+                        auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
+                            setLayout, bindings);
+
+                        cmd->BindDescriptorSets(1, descSet);
+                    }
+
+                    cmd->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
+                    cmd->SetScissor({ 0, 0, width, height });
+
+                    cmd->Draw(3, 1, 0, 0);
+                });
+
             graph.AddPass(
                 "DebugPass", m_DebugPipeline,
-                { gBufferPositionHandle, gBufferNormalHandle, gBufferBaseColorHandle,
+                { pbrHandle, gBufferPositionHandle, gBufferNormalHandle, gBufferBaseColorHandle,
                   gBufferRMAOHandle, gBufferEmissiveHandle, gBufferDepthHandle, skyboxHandle,
                   skyboxCubemapHandle, skyboxIrradianceCubemapHandle,
                   skyboxPrefilteredCubemapHandle },
                 { viewportHandle }, ERenderPassLoadOp::Load,
-                [this, &viewport, gBufferPositionHandle, gBufferNormalHandle,
+                [this, &viewport, pbrHandle, gBufferPositionHandle, gBufferNormalHandle,
                  gBufferBaseColorHandle, gBufferRMAOHandle, gBufferEmissiveHandle,
                  gBufferDepthHandle, skyboxHandle, skyboxCubemapHandle,
                  skyboxIrradianceCubemapHandle, skyboxPrefilteredCubemapHandle](CRDGContext& ctx) {
-                    auto t1  = ctx.GetTexture(gBufferPositionHandle);
-                    auto t2  = ctx.GetTexture(gBufferNormalHandle);
-                    auto t3  = ctx.GetTexture(gBufferBaseColorHandle);
-                    auto t4  = ctx.GetTexture(gBufferRMAOHandle);
-                    auto t5  = ctx.GetTexture(gBufferEmissiveHandle);
-                    auto t6  = ctx.GetTexture(gBufferDepthHandle);
-                    auto t7  = ctx.GetTexture(skyboxHandle);
-                    auto t8  = ctx.GetTexture(skyboxCubemapHandle);
-                    auto t9  = ctx.GetTexture(skyboxIrradianceCubemapHandle);
-                    auto t10 = ctx.GetTexture(skyboxPrefilteredCubemapHandle);
+                    auto t1  = ctx.GetTexture(pbrHandle);
+                    auto t2  = ctx.GetTexture(gBufferPositionHandle);
+                    auto t3  = ctx.GetTexture(gBufferNormalHandle);
+                    auto t4  = ctx.GetTexture(gBufferBaseColorHandle);
+                    auto t5  = ctx.GetTexture(gBufferRMAOHandle);
+                    auto t6  = ctx.GetTexture(gBufferEmissiveHandle);
+                    auto t7  = ctx.GetTexture(gBufferDepthHandle);
+                    auto t8  = ctx.GetTexture(skyboxHandle);
+                    auto t9  = ctx.GetTexture(skyboxCubemapHandle);
+                    auto t10 = ctx.GetTexture(skyboxIrradianceCubemapHandle);
+                    auto t11 = ctx.GetTexture(skyboxPrefilteredCubemapHandle);
 
                     auto cmd = ctx.GetCommandBuffer();
 
@@ -605,6 +732,8 @@ void CRenderer::Tick(float deltaTime) {
                               t9->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
                             { 10, EUniformType::CombinedImageSampler, t10->GetImage(),
                               t10->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 11, EUniformType::CombinedImageSampler, t11->GetImage(),
+                              t11->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
 
                         };
                         auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
@@ -682,6 +811,7 @@ void CRenderer::Shutdown() {
 
     m_SkyboxTex.Reset();     // TODO: Remove
     m_SkyboxCubemap.Reset(); // TODO: Remove
+    m_BRDFLutTex.Reset();
     m_SkyboxIrradianceCubemap.Reset();
     m_SkyboxPrefilteredCubemap.Reset();
     m_Cube.Reset();
@@ -694,9 +824,11 @@ void CRenderer::Shutdown() {
     m_PrefilteredPipeline.Reset();
     m_SkyboxPipeline.Reset();
     m_DebugPipeline.Reset();
+    m_PBRPipeline.Reset();
 
     m_DebugUniformBuffer.Reset();
     m_CubemapCameraBuffer.Reset();
+    m_SceneUniformBuffer.Reset();
 
     m_SolidMat.Reset();
     m_GBufferMat.Reset();

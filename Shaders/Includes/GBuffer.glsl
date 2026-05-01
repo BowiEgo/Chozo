@@ -1,11 +1,3 @@
-#include "../Snippets/Fragment/Scene.glsl"
-
-layout(set = 1, binding = 0) uniform sampler2D u_PositionMap;
-layout(set = 1, binding = 1) uniform sampler2D u_NormalMap;
-layout(set = 1, binding = 2) uniform sampler2D u_BaseColorMap;
-layout(set = 1, binding = 3) uniform sampler2D u_RMAOMap;
-layout(set = 1, binding = 4) uniform sampler2D u_EmissiveMap;
-
 struct GBufferData
 {
     vec3 BaseColor;
@@ -16,11 +8,11 @@ struct GBufferData
     vec3 Emissive;
 
     float AO;
-    highp vec3 Position;
+    vec3 Position;
     vec3 PerturbedNormal;
     vec3 View;
     vec3 Reflected;
-} GBuffer;
+};
 
 void InitGBuffer(out GBufferData GBuffer)
 {

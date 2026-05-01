@@ -104,8 +104,8 @@ void main()
     o_Color = vec4(color, 1.0);
 
     // vec3 testColor = texture(u_Texture, N).rgb;
-    vec3 testColor = vec3(1.0, 1.0, 1.0);
-    o_Color = vec4(testColor, 1.0);
+    // vec3 testColor = vec3(1.0, 1.0, 1.0);
+    // o_Color = vec4(testColor, 1.0);
 }
 
 #endif

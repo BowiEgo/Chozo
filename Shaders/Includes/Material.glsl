@@ -1,4 +1,4 @@
-#include "GBuffer.glsl"
+#include "shaders://Includes/GBuffer.glsl"
 
 struct PhysicalMaterial
 {

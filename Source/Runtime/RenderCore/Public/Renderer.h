@@ -91,13 +91,12 @@ private:
     std::vector<TScope<CViewport>> m_Viewports;
 
     TRef<IRHIPipeline> m_CubemapSamplerPipeline, m_IrradiancePipeline, m_PrefilteredPipeline,
-        m_SkyboxPipeline,
-        m_DebugPipeline;                   // TODO: Remove
-    TRef<IRHIBuffer> m_DebugUniformBuffer; // TODO: Remove
+        m_SkyboxPipeline, m_DebugPipeline, m_PBRPipeline;        // TODO: Remove
+    TRef<IRHIBuffer> m_DebugUniformBuffer, m_SceneUniformBuffer; // TODO: Remove
 
     TRef<IRHIBuffer> m_CubemapCameraBuffer; // TODO: Remove
 
-    TRef<CTexture> m_SkyboxTex, m_SkyboxCubemap, m_SkyboxIrradianceCubemap,
+    TRef<CTexture> m_SkyboxTex, m_SkyboxCubemap, m_BRDFLutTex, m_SkyboxIrradianceCubemap,
         m_SkyboxPrefilteredCubemap; // TODO: Remove
     TRef<FCube> m_Cube;
     TRef<FQuad> m_Quad;

@@ -1,7 +1,7 @@
-#include "GBuffer.glsl"
-#include "Material.glsl"
-#include "LightInfo.glsl"
-#include "LightRE.glsl"
+#include "shaders://Includes/GBuffer.glsl"
+#include "shaders://Includes/Material.glsl"
+#include "shaders://Includes/LightInfo.glsl"
+#include "shaders://Includes/LightRE.glsl"
 
 /**
  * This function evaluates all lights one by one:
@@ -17,43 +17,37 @@ vec3 EvaluateLights(const in GBufferData GBuffer, const in PhysicalMaterial mate
 {
     vec3 worldNormal = GBuffer.PerturbedNormal;
     vec3 geometryPosition = GBuffer.Position;
-    vec3 geometryNormal = normalize((vec4(worldNormal, 0.0) * inverse(u_ViewMatrix)).xyz);
+    vec3 geometryNormal = normalize((vec4(worldNormal, 0.0) * inverse(u_Camera.ViewMatrix)).xyz);
     vec3 geometryViewDir = GBuffer.View;
     vec3 geometryClearcoatNormal = vec3(0.0);
 
     //    color += EvaluateIBL(GBuffer, BRDFContext);
-
-    // Direct lights
-
-    IncidentLight directLight;
     ReflectedLight reflectedLight = ReflectedLight(vec3(0.0), vec3(0.0), vec3(0.0), vec3(0.0));
 
-    for (int i = 0; i < u_DirectionalLights.LightCount; i++)
-    {
-        DirectionalLight directionalLight = u_DirectionalLights.Lights[i];
-        GetDirectionalLightInfo(directionalLight, directLight);
-        RE_Direct_Physical(
-            directLight,
-            geometryPosition,
-            geometryNormal,
-            geometryViewDir,
-            geometryClearcoatNormal,
-            material,
-            reflectedLight
-        );
-    }
+    // Direct lights
+    // IncidentLight directLight;
 
-    //    for (int i = 0; i < u_PointLights.LightCount; i++)
-    //    {
-    //        PointLight pointLight = u_PointLights.Lights[i];
-    //    }
-
+    // for (int i = 0; i < u_DirectionalLights.LightCount; i++)
+    // {
+    //     DirectionalLight directionalLight = u_DirectionalLights.Lights[i];
+    //     GetDirectionalLightInfo(directionalLight, directLight);
+    //     RE_Direct_Physical(
+    //         directLight,
+    //         geometryPosition,
+    //         geometryNormal,
+    //         geometryViewDir,
+    //         geometryClearcoatNormal,
+    //         material,
+    //         reflectedLight
+    //     );
+    // }
 
     // Indirect lights
 
     // Diffuse
     vec3 iblIrradiance = vec3(0.0);
-    vec3 irradiance = u_Scene.AmbientLightColor;
+    // vec3 irradiance = u_Scene.AmbientLightColor;
+    vec3 irradiance = vec3(0.0);
     iblIrradiance += GetIBLIrradiance(geometryNormal, 4.0);
     RE_IndirectDiffuse_Physical(
         irradiance,

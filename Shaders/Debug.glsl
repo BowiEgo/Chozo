@@ -23,16 +23,17 @@ layout(set = 1, binding = 0) uniform DebugUBO {
     int Mode;
 } u_Debug;
 
-layout(set = 1, binding = 1) uniform sampler2D u_PositionMap;
-layout(set = 1, binding = 2) uniform sampler2D u_NormalMap;
-layout(set = 1, binding = 3) uniform sampler2D u_BaseColorMap;
-layout(set = 1, binding = 4) uniform sampler2D u_RMAOMap;
-layout(set = 1, binding = 5) uniform sampler2D u_EmissiveMap;
-layout(set = 1, binding = 6) uniform sampler2D u_DepthMap;
-layout(set = 1, binding = 7) uniform sampler2D u_SkyboxMap;
-layout(set = 1, binding = 8) uniform samplerCube u_SkyboxCubeMap;
-layout(set = 1, binding = 9) uniform samplerCube u_IrradianceCubeMap;
-layout(set = 1, binding = 10) uniform samplerCube u_PrefilteredCubeMap;
+layout(set = 1, binding = 1) uniform sampler2D u_PBRMap;
+layout(set = 1, binding = 2) uniform sampler2D u_PositionMap;
+layout(set = 1, binding = 3) uniform sampler2D u_NormalMap;
+layout(set = 1, binding = 4) uniform sampler2D u_BaseColorMap;
+layout(set = 1, binding = 5) uniform sampler2D u_RMAOMap;
+layout(set = 1, binding = 6) uniform sampler2D u_EmissiveMap;
+layout(set = 1, binding = 7) uniform sampler2D u_DepthMap;
+layout(set = 1, binding = 8) uniform sampler2D u_SkyboxMap;
+layout(set = 1, binding = 9) uniform samplerCube u_SkyboxCubeMap;
+layout(set = 1, binding = 10) uniform samplerCube u_IrradianceCubeMap;
+layout(set = 1, binding = 11) uniform samplerCube u_PrefilteredCubeMap;
 
 layout(location = 0) out vec4 o_Color;
 
@@ -46,55 +47,60 @@ void main() {
 
     switch (u_Debug.Mode) {
         case 0: // Position
+            result = texture(u_PBRMap, v_TexCoord).rgb;
+            break;
+
+        case 1: // Position
             result = texture(u_PositionMap, v_TexCoord).rgb;
             break;
             
-        case 1: // Normal
+        case 2: // Normal
             // 如果 G-Buffer 存的是 [-1, 1], 需要映射到 [0, 1] 才能正确显示颜色
             result = texture(u_NormalMap, v_TexCoord).rgb * 0.5 + 0.5;
             break;
             
-        case 2: // BaseColor
+        case 3: // BaseColor
             result = texture(u_BaseColorMap, v_TexCoord).rgb;
             break;
             
-        case 3: // Roughness (R)
+        case 4: // Roughness (R)
             result = vec3(texture(u_RMAOMap, v_TexCoord).r);
             break;
             
-        case 4: // Metallic (G)
+        case 5: // Metallic (G)
             result = vec3(texture(u_RMAOMap, v_TexCoord).g);
             break;
             
-        case 5: // AO (B)
+        case 6: // AO (B)
             result = vec3(texture(u_RMAOMap, v_TexCoord).b);
             break;
             
-        case 6: // Emissive
+        case 7: // Emissive
             result = texture(u_EmissiveMap, v_TexCoord).rgb;
             break;
 
-        case 7: // Depth
+        case 8: // Depth
             float d = texture(u_DepthMap, v_TexCoord).r;
             float ld = LinearizeNDCDepthToViewZ(d, near, far) / far;
             result = vec3(d);
             break;
 
-        case 8: // Skybox
+        case 9: // Skybox
             result = texture(u_SkyboxMap, v_TexCoord).rgb;
             break;
         
-        case 9:
+        case 10:
             result = CubemapPreview(u_SkyboxCubeMap, v_TexCoord, 0).rgb;
             break;
 
-        case 10:
+        case 11:
             result = CubemapPreview(u_IrradianceCubeMap, v_TexCoord, 0).rgb;
             break;
             
-        case 11:
-            result = CubemapPreview(u_PrefilteredCubeMap, v_TexCoord, 0.5).rgb;
+        case 12:
+            result = CubemapPreview(u_PrefilteredCubeMap, v_TexCoord, 0).rgb;
             break;
+            
         default:
             result = vec3(1.0, 0.0, 1.0); // Error: Magenta
             break;

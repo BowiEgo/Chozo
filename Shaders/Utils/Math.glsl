@@ -1,6 +1,3 @@
-precision highp float;
-precision highp int;
-
 #define HALF_PI           1.5707963267948966
 #define PI                3.141592653589793
 #define TWO_PI            6.283185307179586
@@ -26,10 +23,10 @@ float pow3(const in float x) { return x * x * x; }
 float pow4(const in float x) { float x2 = x * x; return x2 * x2; }
 float pow5(const in float x) { float x2 = x * x; return x2 * x2 * x; }
 
-highp float rand(const in vec2 uv)
+float rand(const in vec2 uv)
 {
-    const highp float a = 12.9898, b = 78.233, c = 43758.5453;
-    highp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );
+    const float a = 12.9898, b = 78.233, c = 43758.5453;
+    float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );
 
     return fract( sin( sn ) * c );
 }

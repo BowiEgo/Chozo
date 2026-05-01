@@ -1,10 +1,6 @@
-#include "Math.glsl"
-#include "Material.glsl"
-#include "LightInfo.glsl"
-
-layout(binding = 4) uniform samplerCube u_IrradianceMap;
-layout(binding = 5) uniform samplerCube u_PrefilterMap;
-layout(binding = 6) uniform sampler2D u_BRDFLutTex;
+#include "shaders://Utils/Math.glsl"
+#include "shaders://Includes/Material.glsl"
+#include "shaders://Includes/LightInfo.glsl"
 
 struct LightContext
 {
@@ -150,8 +146,8 @@ float V_GGX_SmithCorrelated_Anisotropic(const in float alphaT, const in float al
 float D_GGX_Anisotropic(const in float alphaT, const in float alphaB, const in float NoH, const in float dotTH, const in float dotBH)
 {
     float a2 = alphaT * alphaB;
-    highp vec3 v = vec3(alphaB * dotTH, alphaT * dotBH, a2 * NoH);
-    highp float v2 = dot(v, v);
+    vec3 v = vec3(alphaB * dotTH, alphaT * dotBH, a2 * NoH);
+    float v2 = dot(v, v);
     float w2 = a2 / v2;
 
     return RECIPROCAL_PI * a2 * pow2 (w2);
@@ -266,7 +262,7 @@ void RE_IndirectSpecular_Physical(const in vec3 radiance, const in vec3 irradian
 
 vec3 GetIBLIrradiance(const in vec3 normal, const in float lod)
 {
-    return PI * textureLod(u_IrradianceMap, normal, lod).rgb;
+    return PI * textureLod(u_IrradianceCubeMap, normal, lod).rgb;
 }
 
 vec3 GetIBLRadiance(const in vec3 normal, const in vec3 viewDir, const in float roughness)
@@ -275,9 +271,9 @@ vec3 GetIBLRadiance(const in vec3 normal, const in vec3 viewDir, const in float 
     // Mixing the reflection with the normal is more accurate and keeps rough objects from gathering light from behind their tangent plane.
     reflectVec = normalize(mix(reflectVec, normal, roughness * roughness));
 
-    reflectVec = InverseTransformDirection(reflectVec, u_ViewMatrix);
+    reflectVec = InverseTransformDirection(reflectVec, u_Camera.ViewMatrix);
 
     float lod = 4.0 * roughness * (2.0 - roughness);
 
-    return textureLod(u_PrefilterMap, reflectVec, lod).rgb;
+    return textureLod(u_PrefilteredCubeMap, reflectVec, lod).rgb;
 }
