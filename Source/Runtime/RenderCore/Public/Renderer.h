@@ -90,13 +90,15 @@ private:
 
     std::vector<TScope<CViewport>> m_Viewports;
 
-    TRef<IRHIPipeline> m_CubemapSamplerPipeline, m_IrradiancePipeline, m_SkyboxPipeline,
+    TRef<IRHIPipeline> m_CubemapSamplerPipeline, m_IrradiancePipeline, m_PrefilteredPipeline,
+        m_SkyboxPipeline,
         m_DebugPipeline;                   // TODO: Remove
     TRef<IRHIBuffer> m_DebugUniformBuffer; // TODO: Remove
 
     TRef<IRHIBuffer> m_CubemapCameraBuffer; // TODO: Remove
 
-    TRef<CTexture> m_SkyboxTex; // TODO: Remove
+    TRef<CTexture> m_SkyboxTex, m_SkyboxCubemap, m_SkyboxIrradianceCubemap,
+        m_SkyboxPrefilteredCubemap; // TODO: Remove
     TRef<FCube> m_Cube;
     TRef<FQuad> m_Quad;
 
@@ -105,6 +107,8 @@ private:
     int m_DebugMode = 0; // TODO: Remove
 
     FOnRenderUI m_UICallback = nullptr;
+
+    bool m_bEnvSampled = false;
 };
 
 #if 1

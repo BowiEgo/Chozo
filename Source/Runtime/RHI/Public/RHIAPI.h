@@ -83,8 +83,8 @@ public:
     }
 
     static void BeginRendering(const TRef<IRHICommandList>& cmdList, bool bClear,
-                               uint32_t faceIndex = 0) {
-        return s_Instance->BeginRendering_Internal(cmdList, bClear, faceIndex);
+                               uint32_t faceIndex = 0, uint32_t mip = 0) {
+        return s_Instance->BeginRendering_Internal(cmdList, bClear, faceIndex, mip);
     }
 
     static void EndRendering(const TRef<IRHICommandList>& cmdList) {
@@ -127,7 +127,7 @@ protected:
                                     TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback)           = 0;
     virtual void BeginRendering_Internal(const TRef<IRHICommandList>& cmdList, bool bClear,
-                                         uint32_t faceIndex)                 = 0;
+                                         uint32_t faceIndex, uint32_t mip)   = 0;
     virtual void EndRendering_Internal(const TRef<IRHICommandList>& cmdList) = 0;
 
     virtual void TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmdList,

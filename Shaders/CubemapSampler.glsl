@@ -4,7 +4,7 @@
 
 layout(push_constant) uniform PushConsts {
     int u_FaceIndex;
-} pc;
+} PC;
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
@@ -29,7 +29,7 @@ vec3 GetDirection(const in int face, const in vec2 uv) {
 }
 
 void main() {
-    v_Direction = normalize(GetDirection(pc.u_FaceIndex, a_TexCoord));
+    v_Direction = normalize(GetDirection(PC.u_FaceIndex, a_TexCoord));
     gl_Position = vec4(a_Position, 1.0);
 }
 

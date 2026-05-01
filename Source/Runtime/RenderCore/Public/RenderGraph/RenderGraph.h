@@ -40,8 +40,8 @@ struct FRDGPass {
 
 class CRDGContext {
 public:
-    CRDGContext(TRef<IRHICommandList> cmd, FRDGPass* pass, int faceIndex = 0)
-        : m_Cmd(cmd), m_Pass(pass), m_FaceIndex(faceIndex) {
+    CRDGContext(TRef<IRHICommandList> cmd, FRDGPass* pass, int faceIndex = 0, int mip = 0)
+        : m_Cmd(cmd), m_Pass(pass), m_FaceIndex(faceIndex), m_Mip(mip) {
         for (auto* input : m_Pass->Inputs) {
             m_Resources[input] = input->Texture;
         }
@@ -56,11 +56,12 @@ public:
 
     const std::string& GetPassName() const { return m_Pass->Name; }
     const int GetFaceIndex() const { return m_FaceIndex; }
+    const int GetMip() const { return m_Mip; }
 
 private:
     TRef<IRHICommandList> m_Cmd;
     FRDGPass* m_Pass;
-    int m_FaceIndex;
+    int m_FaceIndex, m_Mip;
 
     std::unordered_map<FRDGTexture*, IRHITexture*> m_Resources;
 };
@@ -184,11 +185,14 @@ public:
             bool shouldClear = (pass->LoadOp == ERenderPassLoadOp::Clear);
 
             if (renderTargets[0]->GetSpec().Type == ETextureType::TextureCube) {
-                for (uint32_t face = 0; face < 6; ++face) {
-                    IRHIAPI::BeginRendering(cmd, shouldClear, face);
-                    CRDGContext execCtx(cmd, pass, face);
-                    pass->ExecuteFunc(execCtx);
-                    IRHIAPI::EndRendering(cmd);
+                uint32_t mipLevels = renderTargets[0]->GetImage()->GetSpec().MipLevels;
+                for (uint32_t mip = 0; mip < mipLevels; ++mip) {
+                    for (uint32_t face = 0; face < 6; ++face) {
+                        IRHIAPI::BeginRendering(cmd, shouldClear, face);
+                        CRDGContext execCtx(cmd, pass, face, mip);
+                        pass->ExecuteFunc(execCtx);
+                        IRHIAPI::EndRendering(cmd);
+                    }
                 }
             } else {
                 IRHIAPI::BeginRendering(cmd, shouldClear);

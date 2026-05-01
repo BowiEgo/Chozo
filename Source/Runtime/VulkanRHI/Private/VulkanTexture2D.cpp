@@ -19,7 +19,7 @@ CVulkanTexture2D::~CVulkanTexture2D() {
 
 vk::RenderingAttachmentInfo
     CVulkanTexture2D::GetColorAttachmentInfo(const vk::ClearValue clearColor, const bool bClear,
-                                             uint32_t face) {
+                                             uint32_t face, uint32_t mip) {
     vk::ImageView imageView = static_cast<CVulkanImage*>(GetImage())->GetVKView();
 
     bool isDepth = ChozoUtils::RHI::IsDepthFormat(m_Spec.Format);

@@ -118,7 +118,7 @@ public:
                                     TRef<IRHISyncObject>& syncObject,
                                     RecordCallback recordCallback) override;
     virtual void BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer, bool bClear,
-                                         uint32_t faceIndex = 0) override;
+                                         uint32_t faceIndex = 0, uint32_t mip = 0) override;
     virtual void EndRendering_Internal(const TRef<IRHICommandList>& cmdBuffer) override;
     virtual void TransitionImageLayout_Internal(const TRef<IRHICommandList>& cmdBuffer,
                                                 const IRHIImage* image,

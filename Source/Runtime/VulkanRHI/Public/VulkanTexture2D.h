@@ -12,6 +12,6 @@ public:
     virtual ~CVulkanTexture2D();
 
     virtual vk::RenderingAttachmentInfo GetColorAttachmentInfo(const vk::ClearValue clearColor,
-                                                               const bool bClear,
-                                                               uint32_t face = 0) override;
+                                                               const bool bClear, uint32_t face = 0,
+                                                               uint32_t mip = 0) override;
 };

@@ -20,7 +20,7 @@ CVulkanTextureCubemap::~CVulkanTextureCubemap() {
 
 vk::RenderingAttachmentInfo
     CVulkanTextureCubemap::GetColorAttachmentInfo(const vk::ClearValue clearColor,
-                                                  const bool bClear, uint32_t face) {
+                                                  const bool bClear, uint32_t face, uint32_t mip) {
     CZ_ASSERT(face < 6);
 
     IRHIImage* image = GetImage();
@@ -29,7 +29,7 @@ vk::RenderingAttachmentInfo
     faceViewSpec.ViewType       = EImageViewType::View2D;
     faceViewSpec.BaseArrayLayer = face;
     faceViewSpec.LayerCount     = 1;
-    faceViewSpec.BaseMipLevel   = 0;
+    faceViewSpec.BaseMipLevel   = mip;
     faceViewSpec.MipCount       = 1;
     vk::ImageView imageView     = static_cast<CVulkanImage*>(image)->GetVKView(faceViewSpec);
 

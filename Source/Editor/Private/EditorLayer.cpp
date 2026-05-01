@@ -214,6 +214,8 @@ void EditorLayer::OnImGuiRender() {
                 item_selected_idx = 9;
             if (ImGui::MenuItem("IrradiancePreview", nullptr, currentDebugMode == 10))
                 item_selected_idx = 10;
+            if (ImGui::MenuItem("PrefilteredPreview", nullptr, currentDebugMode == 11))
+                item_selected_idx = 11;
 
             CApplication::Get()->GetRenderEngine()->GetRenderer()->SetDebugMode(item_selected_idx);
             ImGui::EndMenu();

@@ -10,7 +10,7 @@ CVulkanAPI::CVulkanAPI() {}
 CVulkanAPI::~CVulkanAPI() { CZ_LOG(LogVulkanAPI, Trace, "VulkanAPI destroying..."); }
 
 void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer, bool bClear,
-                                         uint32_t faceIndex) {
+                                         uint32_t faceIndex, uint32_t mip) {
     const auto& targets = m_Context->GetRenderTargets();
     if (targets.empty()) return;
 
@@ -40,10 +40,10 @@ void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer,
         vk::RenderingAttachmentInfo info{};
         if (target->GetSpec().Type == ETextureType::Texture2D) {
             info = static_cast<CVulkanTexture2D*>(target)->GetColorAttachmentInfo(
-                clearValue, bClear, faceIndex);
+                clearValue, bClear, faceIndex, mip);
         } else {
             info = static_cast<CVulkanTextureCubemap*>(target)->GetColorAttachmentInfo(
-                clearValue, bClear, faceIndex);
+                clearValue, bClear, faceIndex, mip);
         }
 
         if (isDepth) {

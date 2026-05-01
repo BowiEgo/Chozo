@@ -1,4 +1,4 @@
-vec4 CubemapPreview(const in samplerCube u_textureCube, const in vec2 uv)
+vec4 CubemapPreview(const in samplerCube u_textureCube, const in vec2 uv, const in float lod)
 {
     vec3 color = vec3(0.0);
     vec3 dir = vec3(0.0);
@@ -41,7 +41,7 @@ vec4 CubemapPreview(const in samplerCube u_textureCube, const in vec2 uv)
     }
 
     if (alpha > 0.0) {
-        color = texture(u_textureCube, normalize(dir)).rgb;
+        color = textureLod(u_textureCube, normalize(dir), lod).rgb;
     }
 
     return vec4(color, alpha);

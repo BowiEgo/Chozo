@@ -32,6 +32,7 @@ layout(set = 1, binding = 6) uniform sampler2D u_DepthMap;
 layout(set = 1, binding = 7) uniform sampler2D u_SkyboxMap;
 layout(set = 1, binding = 8) uniform samplerCube u_SkyboxCubeMap;
 layout(set = 1, binding = 9) uniform samplerCube u_IrradianceCubeMap;
+layout(set = 1, binding = 10) uniform samplerCube u_PrefilteredCubeMap;
 
 layout(location = 0) out vec4 o_Color;
 
@@ -84,13 +85,16 @@ void main() {
             break;
         
         case 9:
-            result = CubemapPreview(u_SkyboxCubeMap, v_TexCoord).rgb;
+            result = CubemapPreview(u_SkyboxCubeMap, v_TexCoord, 0).rgb;
             break;
 
         case 10:
-            result = CubemapPreview(u_IrradianceCubeMap, v_TexCoord).rgb;
+            result = CubemapPreview(u_IrradianceCubeMap, v_TexCoord, 0).rgb;
             break;
             
+        case 11:
+            result = CubemapPreview(u_PrefilteredCubeMap, v_TexCoord, 0.5).rgb;
+            break;
         default:
             result = vec3(1.0, 0.0, 1.0); // Error: Magenta
             break;

@@ -94,6 +94,12 @@ void CRenderer::Init() {
                                                { EShaderStage::Vertex, EShaderStage::Fragment },
                                                "main" });
 
+    TRef<CShader> prefilteredShader =
+        CAssetManager::Get().GetOrLoadShader({ "PrefilteredSampler",
+                                               "shaders://PrefilteredSampler.glsl",
+                                               { EShaderStage::Vertex, EShaderStage::Fragment },
+                                               "main" });
+
     TRef<CShader> skyboxShader =
         CAssetManager::Get().GetOrLoadShader({ "Skybox",
                                                "shaders://Skybox.glsl",
@@ -102,6 +108,40 @@ void CRenderer::Init() {
 
     // Texture
     m_SkyboxTex = CAssetManager::Get().GetOrLoadTexture("textures://HDRI/newport_loft.hdr");
+
+    {
+        FTextureSpecification spec;
+        spec.Name   = "SkyboxCubemap";
+        spec.Type   = ETextureType::TextureCube;
+        spec.Size   = { 512, 512 };
+        spec.Format = EPixelFormat::RGBA16F;
+        spec.Usage  = ETextureUsage::Texture | ETextureUsage::Attachment;
+
+        m_SkyboxCubemap = CreateRef<CTexture>(spec);
+    }
+
+    {
+        FTextureSpecification spec;
+        spec.Name   = "SkyboxIrradianceCubemap";
+        spec.Type   = ETextureType::TextureCube;
+        spec.Size   = { 32, 32 };
+        spec.Format = EPixelFormat::RGBA16F;
+        spec.Usage  = ETextureUsage::Texture | ETextureUsage::Attachment;
+
+        m_SkyboxIrradianceCubemap = CreateRef<CTexture>(spec);
+    }
+
+    {
+        FTextureSpecification spec;
+        spec.Name          = "SkyboxPrefilteredCubemap";
+        spec.Type          = ETextureType::TextureCube;
+        spec.Size          = { 512, 512 };
+        spec.Format        = EPixelFormat::RGBA16F;
+        spec.Usage         = ETextureUsage::Texture | ETextureUsage::Attachment;
+        spec.bGenerateMips = true;
+
+        m_SkyboxPrefilteredCubemap = CreateRef<CTexture>(spec);
+    }
 
     // Material
     // m_SolidMat =
@@ -138,11 +178,6 @@ void CRenderer::Init() {
     }
 
     {
-        struct {
-            FMatrix4 ViewMatrix;
-            FMatrix4 ProjMatrix;
-        } pushConstants;
-
         FPipelineSpecification spec;
         spec.Name               = "IrradianceConvolution";
         spec.RHIShaders         = { irradianceShader->GetShaderResources() };
@@ -158,6 +193,24 @@ void CRenderer::Init() {
         spec.PushConstantRanges = { { 0, sizeof(uint32_t) } };
 
         m_IrradiancePipeline = IRHIAPI::CreatePipeline(spec);
+    }
+
+    {
+        FPipelineSpecification spec;
+        spec.Name               = "PrefilteredSampler";
+        spec.RHIShaders         = { prefilteredShader->GetShaderResources() };
+        spec.OutputColorFormats = { EPixelFormat::RGBA16F };
+        spec.CullMode           = ECullMode::Front;
+        spec.bDepthTestEnable   = false;
+        spec.bDepthWriteEnable  = false;
+        spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
+                                    { EShaderDataType::Float3, "a_Normal" },
+                                    { EShaderDataType::Float2, "a_TexCoord" },
+                                    { EShaderDataType::Float3, "a_Tangent" },
+                                    { EShaderDataType::Float3, "a_Bitangent" } };
+        spec.PushConstantRanges = { { 0, sizeof(uint32_t) + sizeof(float) } };
+
+        m_PrefilteredPipeline = IRHIAPI::CreatePipeline(spec);
     }
 
     {
@@ -250,71 +303,34 @@ void CRenderer::Tick(float deltaTime) {
             "SkyboxTexture", m_SkyboxTex->GetResource(), EImageLayout::ShaderReadOnlyOptimal,
             EImageLayout::ShaderReadOnlyOptimal);
 
-        FTextureSpecification cubeSpec;
-        cubeSpec.Type   = ETextureType::TextureCube;
-        cubeSpec.Size   = { 512, 512 };
-        cubeSpec.Format = EPixelFormat::RGBA16F;
-        cubeSpec.Usage  = ETextureUsage::Texture | ETextureUsage::Attachment;
+        FRDGTexture* skyboxCubemapHandle = graph.ImportExternalRDGTexture(
+            "SkyboxCubemap", m_SkyboxCubemap->GetResource(), EImageLayout::ColorAttachmentOptimal,
+            EImageLayout::ShaderReadOnlyOptimal);
 
-        uint32_t faceSize = cubeSpec.Size.Width;
+        FRDGTexture* skyboxIrradianceCubemapHandle = graph.ImportExternalRDGTexture(
+            "SkyboxIrradianceCubemap", m_SkyboxIrradianceCubemap->GetResource(),
+            EImageLayout::ColorAttachmentOptimal, EImageLayout::ShaderReadOnlyOptimal);
 
-        FRDGTexture* skyboxCubemapHandle = graph.CreateRDGTexture("SkyboxCubemap", cubeSpec);
+        FRDGTexture* skyboxPrefilteredCubemapHandle = graph.ImportExternalRDGTexture(
+            "SkyboxPrefilteredCubemap", m_SkyboxPrefilteredCubemap->GetResource(),
+            EImageLayout::ColorAttachmentOptimal, EImageLayout::ShaderReadOnlyOptimal);
 
-        graph.AddPass("EquirectangularToCubemap", m_CubemapSamplerPipeline, { skybox2DHandle },
-                      { skyboxCubemapHandle }, ERenderPassLoadOp::Clear,
-                      [this, faceSize, skybox2DHandle](CRDGContext& ctx) {
-                          CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::CubemapSampler);
-                          auto st       = ctx.GetTexture(skybox2DHandle);
-                          auto cmd      = ctx.GetCommandBuffer();
-                          int faceIndex = ctx.GetFaceIndex();
+        if (!m_bEnvSampled) {
+            graph.AddPass("EquirectangularToCubemap", m_CubemapSamplerPipeline, { skybox2DHandle },
+                          { skyboxCubemapHandle }, ERenderPassLoadOp::Clear,
+                          [this, skybox2DHandle](CRDGContext& ctx) {
+                              CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::CubemapSampler);
+                              auto st       = ctx.GetTexture(skybox2DHandle);
+                              auto cmd      = ctx.GetCommandBuffer();
+                              int faceIndex = ctx.GetFaceIndex();
 
-                          struct {
-                              uint32_t u_FaceIndex;
-                          } pushConstants;
-                          pushConstants.u_FaceIndex = faceIndex;
-                          cmd->PushConstants(&pushConstants, sizeof(pushConstants), 0);
+                              struct {
+                                  uint32_t u_FaceIndex;
+                              } pushConstants;
+                              pushConstants.u_FaceIndex = faceIndex;
+                              cmd->PushConstants(&pushConstants, sizeof(pushConstants), 0);
 
-                          auto setLayout = m_CubemapSamplerPipeline->GetSetLayout(1);
-                          std::vector<FDescriptorBinding> bindings = {
-                              { 0, EUniformType::CombinedImageSampler, st->GetImage(),
-                                st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
-                          };
-                          auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
-                              setLayout, bindings);
-
-                          cmd->BindDescriptorSets(1, descSet);
-                          cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
-                          cmd->SetScissor({ 0, 0, faceSize, faceSize });
-
-                          m_Quad->Draw(cmd.get());
-                      });
-
-        FTextureSpecification irradianceSpec;
-        irradianceSpec.Type   = ETextureType::TextureCube;
-        irradianceSpec.Size   = { 32, 32 };
-        irradianceSpec.Format = EPixelFormat::RGBA16F;
-        irradianceSpec.Usage  = ETextureUsage::Texture | ETextureUsage::Attachment;
-
-        uint32_t irradianceFaceSize = irradianceSpec.Size.Width;
-
-        FRDGTexture* irradianceCubemapHandle = graph.CreateRDGTexture("Irradiance", irradianceSpec);
-
-        graph.AddPass("IrradianceConvolution", m_IrradiancePipeline, { skyboxCubemapHandle },
-                      { irradianceCubemapHandle }, ERenderPassLoadOp::Clear,
-                      [this, irradianceFaceSize, skyboxCubemapHandle](CRDGContext& ctx) {
-                          CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::CubemapSampler);
-                          auto st       = ctx.GetTexture(skyboxCubemapHandle);
-                          auto cmd      = ctx.GetCommandBuffer();
-                          int faceIndex = ctx.GetFaceIndex();
-
-                          struct {
-                              uint32_t u_FaceIndex;
-                          } pushConstants;
-                          pushConstants.u_FaceIndex = faceIndex;
-                          cmd->PushConstants(&pushConstants, sizeof(pushConstants), 0);
-
-                          {
-                              auto setLayout = m_IrradiancePipeline->GetSetLayout(1);
+                              auto setLayout = m_CubemapSamplerPipeline->GetSetLayout(1);
                               std::vector<FDescriptorBinding> bindings = {
                                   { 0, EUniformType::CombinedImageSampler, st->GetImage(),
                                     st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
@@ -323,15 +339,92 @@ void CRenderer::Tick(float deltaTime) {
                                   m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(setLayout,
                                                                                           bindings);
 
+                              uint32_t faceSize = m_SkyboxCubemap->GetSpec().Size.Width;
+
                               cmd->BindDescriptorSets(1, descSet);
-                          }
+                              cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
+                              cmd->SetScissor({ 0, 0, faceSize, faceSize });
 
-                          cmd->SetViewport(
-                              { 0, 0, (float)irradianceFaceSize, (float)irradianceFaceSize, 0, 1 });
-                          cmd->SetScissor({ 0, 0, irradianceFaceSize, irradianceFaceSize });
+                              m_Quad->Draw(cmd.get());
+                          });
 
-                          m_Cube->Draw(cmd.get());
-                      });
+            graph.AddPass(
+                "IrradianceConvolution", m_IrradiancePipeline, { skyboxCubemapHandle },
+                { skyboxIrradianceCubemapHandle }, ERenderPassLoadOp::Clear,
+                [this, skyboxCubemapHandle](CRDGContext& ctx) {
+                    CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::CubemapSampler);
+                    auto st       = ctx.GetTexture(skyboxCubemapHandle);
+                    auto cmd      = ctx.GetCommandBuffer();
+                    int faceIndex = ctx.GetFaceIndex();
+
+                    struct {
+                        uint32_t u_FaceIndex;
+                    } pushConstants;
+                    pushConstants.u_FaceIndex = faceIndex;
+                    cmd->PushConstants(&pushConstants, sizeof(pushConstants), 0);
+
+                    {
+                        auto setLayout = m_IrradiancePipeline->GetSetLayout(1);
+                        std::vector<FDescriptorBinding> bindings = {
+                            { 0, EUniformType::CombinedImageSampler, st->GetImage(),
+                              st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+                        };
+                        auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
+                            setLayout, bindings);
+
+                        cmd->BindDescriptorSets(1, descSet);
+                    }
+
+                    uint32_t faceSize = m_SkyboxIrradianceCubemap->GetSpec().Size.Width;
+
+                    cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
+                    cmd->SetScissor({ 0, 0, faceSize, faceSize });
+
+                    m_Cube->Draw(cmd.get());
+                });
+
+            graph.AddPass(
+                "Prefiltered", m_PrefilteredPipeline, { skyboxCubemapHandle },
+                { skyboxPrefilteredCubemapHandle }, ERenderPassLoadOp::Clear,
+                [this, skyboxCubemapHandle](CRDGContext& ctx) {
+                    CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::CubemapSampler);
+                    auto st       = ctx.GetTexture(skyboxCubemapHandle);
+                    auto cmd      = ctx.GetCommandBuffer();
+                    int faceIndex = ctx.GetFaceIndex();
+                    int mip       = ctx.GetMip();
+
+                    uint32_t faceSize = m_SkyboxPrefilteredCubemap->GetSpec().Size.Width;
+                    uint32_t prefilteredMaxMip =
+                        m_SkyboxPrefilteredCubemap->GetSpec().ToImageSpec().MipLevels;
+
+                    struct {
+                        uint32_t u_FaceIndex;
+                        float u_Roughness;
+                    } pushConstants;
+                    pushConstants.u_FaceIndex = faceIndex;
+                    pushConstants.u_Roughness = (float)mip / (float)(prefilteredMaxMip - 1);
+                    cmd->PushConstants(&pushConstants, sizeof(pushConstants), 0);
+
+                    {
+                        auto setLayout = m_PrefilteredPipeline->GetSetLayout(1);
+                        std::vector<FDescriptorBinding> bindings = {
+                            { 0, EUniformType::CombinedImageSampler, st->GetImage(),
+                              st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+                        };
+                        auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
+                            setLayout, bindings);
+
+                        cmd->BindDescriptorSets(1, descSet);
+                    }
+
+                    cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
+                    cmd->SetScissor({ 0, 0, faceSize, faceSize });
+
+                    m_Cube->Draw(cmd.get());
+                });
+
+            m_bEnvSampled = true;
+        }
 
         // Request a transient texture for storing the skybox pass result,
         // lifetime managed by the render graph
@@ -442,21 +535,23 @@ void CRenderer::Tick(float deltaTime) {
                 "DebugPass", m_DebugPipeline,
                 { gBufferPositionHandle, gBufferNormalHandle, gBufferBaseColorHandle,
                   gBufferRMAOHandle, gBufferEmissiveHandle, gBufferDepthHandle, skyboxHandle,
-                  skyboxCubemapHandle, irradianceCubemapHandle },
+                  skyboxCubemapHandle, skyboxIrradianceCubemapHandle,
+                  skyboxPrefilteredCubemapHandle },
                 { viewportHandle }, ERenderPassLoadOp::Load,
                 [this, &viewport, gBufferPositionHandle, gBufferNormalHandle,
                  gBufferBaseColorHandle, gBufferRMAOHandle, gBufferEmissiveHandle,
                  gBufferDepthHandle, skyboxHandle, skyboxCubemapHandle,
-                 irradianceCubemapHandle](CRDGContext& ctx) {
-                    auto t1 = ctx.GetTexture(gBufferPositionHandle);
-                    auto t2 = ctx.GetTexture(gBufferNormalHandle);
-                    auto t3 = ctx.GetTexture(gBufferBaseColorHandle);
-                    auto t4 = ctx.GetTexture(gBufferRMAOHandle);
-                    auto t5 = ctx.GetTexture(gBufferEmissiveHandle);
-                    auto t6 = ctx.GetTexture(gBufferDepthHandle);
-                    auto t7 = ctx.GetTexture(skyboxHandle);
-                    auto t8 = ctx.GetTexture(skyboxCubemapHandle);
-                    auto t9 = ctx.GetTexture(irradianceCubemapHandle);
+                 skyboxIrradianceCubemapHandle, skyboxPrefilteredCubemapHandle](CRDGContext& ctx) {
+                    auto t1  = ctx.GetTexture(gBufferPositionHandle);
+                    auto t2  = ctx.GetTexture(gBufferNormalHandle);
+                    auto t3  = ctx.GetTexture(gBufferBaseColorHandle);
+                    auto t4  = ctx.GetTexture(gBufferRMAOHandle);
+                    auto t5  = ctx.GetTexture(gBufferEmissiveHandle);
+                    auto t6  = ctx.GetTexture(gBufferDepthHandle);
+                    auto t7  = ctx.GetTexture(skyboxHandle);
+                    auto t8  = ctx.GetTexture(skyboxCubemapHandle);
+                    auto t9  = ctx.GetTexture(skyboxIrradianceCubemapHandle);
+                    auto t10 = ctx.GetTexture(skyboxPrefilteredCubemapHandle);
 
                     auto cmd = ctx.GetCommandBuffer();
 
@@ -507,7 +602,9 @@ void CRenderer::Tick(float deltaTime) {
                             { 8, EUniformType::CombinedImageSampler, t8->GetImage(),
                               t8->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
                             { 9, EUniformType::CombinedImageSampler, t9->GetImage(),
-                              t9->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+                              t9->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 10, EUniformType::CombinedImageSampler, t10->GetImage(),
+                              t10->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
 
                         };
                         auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
@@ -583,7 +680,10 @@ void CRenderer::Shutdown() {
 
     m_GraphicContext->GetDevice()->WaitIdle();
 
-    m_SkyboxTex.Reset(); // TODO: Remove
+    m_SkyboxTex.Reset();     // TODO: Remove
+    m_SkyboxCubemap.Reset(); // TODO: Remove
+    m_SkyboxIrradianceCubemap.Reset();
+    m_SkyboxPrefilteredCubemap.Reset();
     m_Cube.Reset();
     m_Quad.Reset();
 
@@ -591,6 +691,7 @@ void CRenderer::Shutdown() {
 
     m_CubemapSamplerPipeline.Reset();
     m_IrradiancePipeline.Reset();
+    m_PrefilteredPipeline.Reset();
     m_SkyboxPipeline.Reset();
     m_DebugPipeline.Reset();
 
