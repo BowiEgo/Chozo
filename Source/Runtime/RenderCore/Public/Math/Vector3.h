@@ -12,13 +12,11 @@ static_assert(alignof(glm::vec3) == 4, "glm::vec3 should be 4-byte aligned");
 class FVector3 {
 public:
     // ===== Constructors =====
-    constexpr FVector3() : x(0.0f), y(0.0f), z(0.0f) {}
-
+    constexpr FVector3(float InValue = 0.0f) : x(InValue), y(InValue), z(InValue) {}
     constexpr FVector3(float X, float Y, float Z) : x(X), y(Y), z(Z) {}
 
     // Implicit construction from GLM
-    FVector3(const glm::vec3& v) : x(v.x), y(v.y), z(v.z) {}
-
+    explicit FVector3(const glm::vec3& v) : x(v.x), y(v.y), z(v.z) {}
     // Construction from array
     explicit FVector3(const float* data) : x(data[0]), y(data[1]), z(data[2]) {}
 

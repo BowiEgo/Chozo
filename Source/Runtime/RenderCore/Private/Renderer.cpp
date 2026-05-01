@@ -8,6 +8,19 @@
 #include "RHIDescriptorSet.h"
 #include "RenderGraph.h"
 
+#include "MathUtils.h" // TODO: Remove
+
+static const FMatrix4 s_CubeTextureCaptureViews[] = {
+    FMatrix4::LookAt(FVector3(0.0f), FVector3::Right, FVector3::Down),    // +X
+    FMatrix4::LookAt(FVector3(0.0f), FVector3::Left, FVector3::Down),     // -X
+    FMatrix4::LookAt(FVector3(0.0f), FVector3::Up, FVector3::Backward),   // +Y
+    FMatrix4::LookAt(FVector3(0.0f), FVector3::Down, FVector3::Forward),  // -Y
+    FMatrix4::LookAt(FVector3(0.0f), FVector3::Backward, FVector3::Down), // +Z
+    FMatrix4::LookAt(FVector3(0.0f), FVector3::Forward, FVector3::Down)   // -Z
+};
+static const FMatrix4 s_CubeTextureCaptureProjection =
+    FMatrix4::Perspective(90.0f, 1.0f, 0.01f, 1000.0f);
+
 CRenderer::CRenderer(IRendererWindow* windowHandle)
     : m_Window(windowHandle), m_Profiler(CreateScope<PerformanceProfiler>(
                                   static_cast<uint32_t>(ERendererProfileSlot::COUNT))) {}
@@ -75,11 +88,11 @@ void CRenderer::Init() {
                                                { EShaderStage::Vertex, EShaderStage::Fragment },
                                                "main" });
 
-    // TRef<CShader> irradianceShader =
-    //     CAssetManager::Get().GetOrLoadShader({ "IrradianceConvolution",
-    //                                            "shaders://IrradianceConvolution.glsl",
-    //                                            { EShaderStage::Vertex, EShaderStage::Fragment },
-    //                                            "main" });
+    TRef<CShader> irradianceShader =
+        CAssetManager::Get().GetOrLoadShader({ "IrradianceConvolution",
+                                               "shaders://IrradianceConvolution.glsl",
+                                               { EShaderStage::Vertex, EShaderStage::Fragment },
+                                               "main" });
 
     TRef<CShader> skyboxShader =
         CAssetManager::Get().GetOrLoadShader({ "Skybox",
@@ -112,6 +125,8 @@ void CRenderer::Init() {
         spec.RHIShaders         = { cubemapSamplerShader->GetShaderResources() };
         spec.OutputColorFormats = { EPixelFormat::RGBA16F };
         spec.CullMode           = ECullMode::Front;
+        spec.bDepthTestEnable   = false;
+        spec.bDepthWriteEnable  = false;
         spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
                                     { EShaderDataType::Float3, "a_Normal" },
                                     { EShaderDataType::Float2, "a_TexCoord" },
@@ -122,21 +137,28 @@ void CRenderer::Init() {
         m_CubemapSamplerPipeline = IRHIAPI::CreatePipeline(spec);
     }
 
-    // {
+    {
+        struct {
+            FMatrix4 ViewMatrix;
+            FMatrix4 ProjMatrix;
+        } pushConstants;
 
-    //     FPipelineSpecification spec;
-    //     spec.Name               = "IrradianceConvolution";
-    //     spec.RHIShaders         = { irradianceShader->GetShaderResources() };
-    //     spec.OutputColorFormats = { EPixelFormat::RGBA16F };
-    //     spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
-    //                                 { EShaderDataType::Float3, "a_Normal" },
-    //                                 { EShaderDataType::Float2, "a_TexCoord" },
-    //                                 { EShaderDataType::Float3, "a_Tangent" },
-    //                                 { EShaderDataType::Float3, "a_Bitangent" } };
-    //     spec.PushConstantRanges = { { 0, sizeof(uint32_t) } };
+        FPipelineSpecification spec;
+        spec.Name               = "IrradianceConvolution";
+        spec.RHIShaders         = { irradianceShader->GetShaderResources() };
+        spec.OutputColorFormats = { EPixelFormat::RGBA16F };
+        spec.CullMode           = ECullMode::Front;
+        spec.bDepthTestEnable   = false;
+        spec.bDepthWriteEnable  = false;
+        spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
+                                    { EShaderDataType::Float3, "a_Normal" },
+                                    { EShaderDataType::Float2, "a_TexCoord" },
+                                    { EShaderDataType::Float3, "a_Tangent" },
+                                    { EShaderDataType::Float3, "a_Bitangent" } };
+        spec.PushConstantRanges = { { 0, sizeof(uint32_t) } };
 
-    //     m_IrradiancePipeline = IRHIAPI::CreatePipeline(spec);
-    // }
+        m_IrradiancePipeline = IRHIAPI::CreatePipeline(spec);
+    }
 
     {
         FPipelineSpecification spec;
@@ -160,7 +182,6 @@ void CRenderer::Init() {
         spec.Name               = "Debug";
         spec.RHIShaders         = { debugShader->GetShaderResources() };
         spec.OutputColorFormats = { EPixelFormat::RGBA16F };
-        // spec.PolygonMode       = EPolygonMode::Line;
         spec.CullMode           = ECullMode::None;
         spec.bDepthTestEnable   = false;
         spec.bDepthWriteEnable  = false;
@@ -172,6 +193,28 @@ void CRenderer::Init() {
 
         m_DebugPipeline = IRHIAPI::CreatePipeline(spec);
     }
+
+    // Buffers
+    {
+        FBufferSpecification spec;
+        spec.Size       = sizeof(CameraData);
+        spec.Usage      = EBufferUsage::UniformBuffer;
+        spec.MemoryType = EMemoryType::HostVisible | EMemoryType::HostCoherent;
+        spec.Name       = "CubemapCameraUniformBuffer";
+
+        m_CubemapCameraBuffer = IRHIAPI::CreateBuffer(spec);
+    }
+
+    FMatrix4 view = s_CubeTextureCaptureViews[0];
+    FMatrix4 proj = s_CubeTextureCaptureProjection;
+
+    CameraData data;
+    data.view       = view;
+    data.projection = proj;
+
+    FBuffer updateData(&data, sizeof(CameraData));
+
+    m_CubemapCameraBuffer->SetData(updateData);
 
     m_Cube = CreateRef<FCube>();
     m_Cube->Upload();
@@ -216,15 +259,20 @@ void CRenderer::Tick(float deltaTime) {
         uint32_t faceSize = cubeSpec.Size.Width;
 
         FRDGTexture* skyboxCubemapHandle = graph.CreateRDGTexture("SkyboxCubemap", cubeSpec);
-        FRDGTexture* irradianceCubemapHandle =
-            graph.CreateRDGTexture("IrradianceCubemap", cubeSpec);
 
         graph.AddPass("EquirectangularToCubemap", m_CubemapSamplerPipeline, { skybox2DHandle },
                       { skyboxCubemapHandle }, ERenderPassLoadOp::Clear,
                       [this, faceSize, skybox2DHandle](CRDGContext& ctx) {
                           CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::CubemapSampler);
-                          auto st  = ctx.GetTexture(skybox2DHandle);
-                          auto cmd = ctx.GetCommandBuffer();
+                          auto st       = ctx.GetTexture(skybox2DHandle);
+                          auto cmd      = ctx.GetCommandBuffer();
+                          int faceIndex = ctx.GetFaceIndex();
+
+                          struct {
+                              uint32_t u_FaceIndex;
+                          } pushConstants;
+                          pushConstants.u_FaceIndex = faceIndex;
+                          cmd->PushConstants(&pushConstants, sizeof(pushConstants), 0);
 
                           auto setLayout = m_CubemapSamplerPipeline->GetSetLayout(1);
                           std::vector<FDescriptorBinding> bindings = {
@@ -235,35 +283,55 @@ void CRenderer::Tick(float deltaTime) {
                               setLayout, bindings);
 
                           cmd->BindDescriptorSets(1, descSet);
-                          //   cmd->BindTexture(st, 0, 0);
                           cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
                           cmd->SetScissor({ 0, 0, faceSize, faceSize });
 
                           m_Quad->Draw(cmd.get());
                       });
 
-        // graph.AddPass("IrradianceConvolution", m_IrradiancePipeline, { skybox2DHandle },
-        //               { irradianceCubemapHandle }, ERenderPassLoadOp::Clear,
-        //               [this, faceSize, skybox2DHandle](CRDGContext& ctx) {
-        //                   CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::CubemapSampler);
-        //                   auto st  = ctx.GetTexture(skybox2DHandle);
-        //                   auto cmd = ctx.GetCommandBuffer();
+        FTextureSpecification irradianceSpec;
+        irradianceSpec.Type   = ETextureType::TextureCube;
+        irradianceSpec.Size   = { 32, 32 };
+        irradianceSpec.Format = EPixelFormat::RGBA16F;
+        irradianceSpec.Usage  = ETextureUsage::Texture | ETextureUsage::Attachment;
 
-        //                   auto setLayout = m_CubemapSamplerPipeline->GetSetLayout(1);
-        //                   std::vector<FDescriptorBinding> bindings = {
-        //                       { 0, EUniformType::CombinedImageSampler, st->GetImage(),
-        //                         st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
-        //                   };
-        //                   auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
-        //                       setLayout, bindings);
+        uint32_t irradianceFaceSize = irradianceSpec.Size.Width;
 
-        //                   cmd->BindDescriptorSets(1, descSet);
-        //                   //   cmd->BindTexture(st, 0, 0);
-        //                   cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
-        //                   cmd->SetScissor({ 0, 0, faceSize, faceSize });
+        FRDGTexture* irradianceCubemapHandle = graph.CreateRDGTexture("Irradiance", irradianceSpec);
 
-        //                   m_Quad->Draw(cmd.get());
-        //               });
+        graph.AddPass("IrradianceConvolution", m_IrradiancePipeline, { skyboxCubemapHandle },
+                      { irradianceCubemapHandle }, ERenderPassLoadOp::Clear,
+                      [this, irradianceFaceSize, skyboxCubemapHandle](CRDGContext& ctx) {
+                          CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::CubemapSampler);
+                          auto st       = ctx.GetTexture(skyboxCubemapHandle);
+                          auto cmd      = ctx.GetCommandBuffer();
+                          int faceIndex = ctx.GetFaceIndex();
+
+                          struct {
+                              uint32_t u_FaceIndex;
+                          } pushConstants;
+                          pushConstants.u_FaceIndex = faceIndex;
+                          cmd->PushConstants(&pushConstants, sizeof(pushConstants), 0);
+
+                          {
+                              auto setLayout = m_IrradiancePipeline->GetSetLayout(1);
+                              std::vector<FDescriptorBinding> bindings = {
+                                  { 0, EUniformType::CombinedImageSampler, st->GetImage(),
+                                    st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+                              };
+                              auto descSet =
+                                  m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(setLayout,
+                                                                                          bindings);
+
+                              cmd->BindDescriptorSets(1, descSet);
+                          }
+
+                          cmd->SetViewport(
+                              { 0, 0, (float)irradianceFaceSize, (float)irradianceFaceSize, 0, 1 });
+                          cmd->SetScissor({ 0, 0, irradianceFaceSize, irradianceFaceSize });
+
+                          m_Cube->Draw(cmd.get());
+                      });
 
         // Request a transient texture for storing the skybox pass result,
         // lifetime managed by the render graph
@@ -374,11 +442,12 @@ void CRenderer::Tick(float deltaTime) {
                 "DebugPass", m_DebugPipeline,
                 { gBufferPositionHandle, gBufferNormalHandle, gBufferBaseColorHandle,
                   gBufferRMAOHandle, gBufferEmissiveHandle, gBufferDepthHandle, skyboxHandle,
-                  skyboxCubemapHandle },
+                  skyboxCubemapHandle, irradianceCubemapHandle },
                 { viewportHandle }, ERenderPassLoadOp::Load,
                 [this, &viewport, gBufferPositionHandle, gBufferNormalHandle,
                  gBufferBaseColorHandle, gBufferRMAOHandle, gBufferEmissiveHandle,
-                 gBufferDepthHandle, skyboxHandle, skyboxCubemapHandle](CRDGContext& ctx) {
+                 gBufferDepthHandle, skyboxHandle, skyboxCubemapHandle,
+                 irradianceCubemapHandle](CRDGContext& ctx) {
                     auto t1 = ctx.GetTexture(gBufferPositionHandle);
                     auto t2 = ctx.GetTexture(gBufferNormalHandle);
                     auto t3 = ctx.GetTexture(gBufferBaseColorHandle);
@@ -387,6 +456,7 @@ void CRenderer::Tick(float deltaTime) {
                     auto t6 = ctx.GetTexture(gBufferDepthHandle);
                     auto t7 = ctx.GetTexture(skyboxHandle);
                     auto t8 = ctx.GetTexture(skyboxCubemapHandle);
+                    auto t9 = ctx.GetTexture(irradianceCubemapHandle);
 
                     auto cmd = ctx.GetCommandBuffer();
 
@@ -435,7 +505,9 @@ void CRenderer::Tick(float deltaTime) {
                             { 7, EUniformType::CombinedImageSampler, t7->GetImage(),
                               t7->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
                             { 8, EUniformType::CombinedImageSampler, t8->GetImage(),
-                              t8->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+                              t8->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 9, EUniformType::CombinedImageSampler, t9->GetImage(),
+                              t9->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
 
                         };
                         auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
@@ -518,10 +590,12 @@ void CRenderer::Shutdown() {
     m_Viewports.clear();
 
     m_CubemapSamplerPipeline.Reset();
+    m_IrradiancePipeline.Reset();
     m_SkyboxPipeline.Reset();
     m_DebugPipeline.Reset();
 
     m_DebugUniformBuffer.Reset();
+    m_CubemapCameraBuffer.Reset();
 
     m_SolidMat.Reset();
     m_GBufferMat.Reset();

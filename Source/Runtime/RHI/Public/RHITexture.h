@@ -22,13 +22,17 @@ inline uint32_t CalculateMipLevels(FExtent2D size) {
     // Simple version using logarithm, but can be less efficient due to floating-point operations
     // return static_cast<uint32_t>(std::floor(std::log2(side))) + 1;
 
-    // Better version using bitwise operations, more efficient on modern CPUs
-    uint32_t levels = 1;
-    while (side > 1) {
-        side >>= 1;
-        levels++;
-    }
-    return levels;
+    // std::bit_width(n) 计算表示 n 所需的最小位数
+    // 对于 1024 (2^10)，返回 11
+    return static_cast<uint32_t>(std::bit_width(side));
+
+    // // Better version using bitwise operations, more efficient on modern CPUs
+    // uint32_t levels = 1;
+    // while (side > 1) {
+    //     side >>= 1;
+    //     levels++;
+    // }
+    // return levels;
 }
 
 inline EImageUsage ToImageUsage(ETextureUsage logicalUsage, EPixelFormat format,

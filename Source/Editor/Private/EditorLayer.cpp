@@ -212,6 +212,8 @@ void EditorLayer::OnImGuiRender() {
             if (ImGui::MenuItem("Skybox", nullptr, currentDebugMode == 8)) item_selected_idx = 8;
             if (ImGui::MenuItem("SkyboxPreview", nullptr, currentDebugMode == 9))
                 item_selected_idx = 9;
+            if (ImGui::MenuItem("IrradiancePreview", nullptr, currentDebugMode == 10))
+                item_selected_idx = 10;
 
             CApplication::Get()->GetRenderEngine()->GetRenderer()->SetDebugMode(item_selected_idx);
             ImGui::EndMenu();

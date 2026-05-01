@@ -99,10 +99,8 @@ void CCamera::RecalculatePosition() {
 
 void CCamera::RecalculateViewMatrix() {
     RecalculatePosition();
-    FVector3 target = m_Position + GetForwardDirection();
-    FVector3 up     = GetUpDirection();
 
-    m_ViewMatrix = FMatrix4::LookAt(m_Position, target, up);
+    m_ViewMatrix = FMatrix4::LookAt(m_Position, m_FocalPoint, GetUpDirection());
     m_ViewDirty  = false;
 }
 

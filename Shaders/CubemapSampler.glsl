@@ -16,13 +16,12 @@ layout(location = 0) out vec3 v_Direction;
 
 vec3 GetDirection(const in int face, const in vec2 uv) {
     vec2 ndc = uv * 2.0 - 1.0;
-    ndc.y = (1.0 - uv.y) * 2.0 - 1.0;
 
     switch (face) {
         case 0: return vec3( 1.0, -ndc.y, -ndc.x); // +X (Right)
         case 1: return vec3(-1.0, -ndc.y,  ndc.x); // -X (Left)
-        case 2: return vec3( ndc.x,  1.0,  ndc.y); // +Y (Top)
-        case 3: return vec3( ndc.x, -1.0, -ndc.y); // -Y (Bottom)
+        case 2: return vec3( ndc.x, -1.0, -ndc.y); // +Y (Top)
+        case 3: return vec3( ndc.x,  1.0,  ndc.y); // -Y (Bottom)
         case 4: return vec3( ndc.x, -ndc.y,  1.0); // +Z (Back)
         case 5: return vec3(-ndc.x, -ndc.y, -1.0); // -Z (Front)
         default: return vec3(0.0);

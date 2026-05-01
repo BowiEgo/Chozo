@@ -40,7 +40,8 @@ struct FRDGPass {
 
 class CRDGContext {
 public:
-    CRDGContext(TRef<IRHICommandList> cmd, FRDGPass* pass) : m_Cmd(cmd), m_Pass(pass) {
+    CRDGContext(TRef<IRHICommandList> cmd, FRDGPass* pass, int faceIndex = 0)
+        : m_Cmd(cmd), m_Pass(pass), m_FaceIndex(faceIndex) {
         for (auto* input : m_Pass->Inputs) {
             m_Resources[input] = input->Texture;
         }
@@ -54,10 +55,12 @@ public:
     IRHITexture* GetTexture(FRDGTexture* handle) { return m_Resources[handle]; }
 
     const std::string& GetPassName() const { return m_Pass->Name; }
+    const int GetFaceIndex() const { return m_FaceIndex; }
 
 private:
     TRef<IRHICommandList> m_Cmd;
     FRDGPass* m_Pass;
+    int m_FaceIndex;
 
     std::unordered_map<FRDGTexture*, IRHITexture*> m_Resources;
 };
@@ -183,12 +186,7 @@ public:
             if (renderTargets[0]->GetSpec().Type == ETextureType::TextureCube) {
                 for (uint32_t face = 0; face < 6; ++face) {
                     IRHIAPI::BeginRendering(cmd, shouldClear, face);
-                    CRDGContext execCtx(cmd, pass);
-                    struct {
-                        uint32_t u_FaceIndex;
-                    } pushConstants;
-                    pushConstants.u_FaceIndex = face;
-                    cmd->PushConstants(&pushConstants, sizeof(pushConstants), 0);
+                    CRDGContext execCtx(cmd, pass, face);
                     pass->ExecuteFunc(execCtx);
                     IRHIAPI::EndRendering(cmd);
                 }

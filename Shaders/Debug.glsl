@@ -31,6 +31,7 @@ layout(set = 1, binding = 5) uniform sampler2D u_EmissiveMap;
 layout(set = 1, binding = 6) uniform sampler2D u_DepthMap;
 layout(set = 1, binding = 7) uniform sampler2D u_SkyboxMap;
 layout(set = 1, binding = 8) uniform samplerCube u_SkyboxCubeMap;
+layout(set = 1, binding = 9) uniform samplerCube u_IrradianceCubeMap;
 
 layout(location = 0) out vec4 o_Color;
 
@@ -84,6 +85,10 @@ void main() {
         
         case 9:
             result = CubemapPreview(u_SkyboxCubeMap, v_TexCoord).rgb;
+            break;
+
+        case 10:
+            result = CubemapPreview(u_IrradianceCubeMap, v_TexCoord).rgb;
             break;
             
         default:

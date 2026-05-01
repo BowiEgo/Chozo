@@ -94,6 +94,8 @@ private:
         m_DebugPipeline;                   // TODO: Remove
     TRef<IRHIBuffer> m_DebugUniformBuffer; // TODO: Remove
 
+    TRef<IRHIBuffer> m_CubemapCameraBuffer; // TODO: Remove
+
     TRef<CTexture> m_SkyboxTex; // TODO: Remove
     TRef<FCube> m_Cube;
     TRef<FQuad> m_Quad;
