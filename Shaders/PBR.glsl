@@ -2,89 +2,58 @@
 
 #ifdef VERTEX_SHADER
 
-// ===== Uniform =====
-#include "shaders://Camera.glsl"
-
-layout(location = 0) in vec3 a_Position;
-layout(location = 1) in vec3 a_Normal;
-layout(location = 2) in vec2 a_TexCoord;
-layout(location = 3) in vec3 a_Tangent;
-layout(location = 4) in vec3 a_Bitangent;
-
-layout(push_constant) uniform VertexContant
-{
-    mat4 ModelMatrix;
-    mat3 NormalMatrix;
-} u_VertContant;
-
 layout(location = 0) out vec2 v_TexCoord;
-layout(location = 1) out vec3 v_Normal;
 
 void main() {
-    mat4 model = u_VertContant.ModelMatrix;
-    mat4 mvp = u_Camera.ProjMatrix * u_Camera.ViewMatrix * model;
-    
-    gl_Position = mvp * vec4(a_Position, 1.0);
-
-    float dummy = a_Tangent.x + a_Bitangent.x;
-
-    v_TexCoord = a_TexCoord;
-    v_Normal = normalize(u_VertContant.NormalMatrix * a_Normal);
+    v_TexCoord = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+    gl_Position = vec4(v_TexCoord * 2.0f - 1.0f, 0.0f, 1.0f);
 }
 
 #endif
 
 #ifdef FRAGMENT_SHADER
 
+layout(location = 0) in vec2 v_TexCoord;
+
 layout(location = 0) out vec4 o_Color;
 
-layout(location = 0) in vec2 v_TexCoord;
-layout(location = 1) in vec3 v_Normal;
+#include "shaders://Includes/GBuffer.glsl"
+#include "shaders://Includes/Lighting.glsl"
+#include "shaders://Includes/Material.glsl"
+#include "shaders://Includes/Dithering.glsl"
 
-layout(set = 1, binding = 0) uniform MaterialUBO {
-    vec4 u_BaseColor;
-    float u_Metallic;
-    float u_Roughness;
-    float u_NormalStrength;
-    float u_EmissiveStrength;
-    int UseAlbedoMap;
-    int UseNormalMap;
-    int UseRMAOMap;
-} u_Material;
+vec4 sRGBTransferOETF(in vec4 value) {
+    return vec4(mix(pow(value.rgb, vec3(0.41666)) * 1.055 - vec3(0.055), value.rgb * 12.92, vec3(lessThanEqual(value.rgb, vec3(0.0031308)))), value.a);
+}
 
-layout(set = 1, binding = 1) uniform sampler2D u_AlbedoMap;
-layout(set = 1, binding = 2) uniform sampler2D u_NormalMap;
-layout(set = 1, binding = 3) uniform sampler2D u_RMAOMap;
+vec4 LinearTosRGB(in vec4 value) {
+    return sRGBTransferOETF(value);
+}
 
 void main() {
-    vec4 albedo = u_Material.u_BaseColor;
-    float metallic = u_Material.u_Metallic;
-    float roughness = u_Material.u_Roughness;
+    GBufferData GBuffer;
+    InitGBuffer(GBuffer);
 
-    vec3 normal = v_Normal;
+    PhysicalMaterial material;
+    InitPhysicalMaterial(GBuffer, material);
 
-    vec4 rmao = texture(u_RMAOMap, v_TexCoord);
+    vec3 color = vec3(0.0);
 
-    if (u_Material.UseAlbedoMap != 0) {
-        albedo *= texture(u_AlbedoMap, v_TexCoord);
-    }
-    if (u_Material.UseNormalMap != 0) {
-        normal = texture(u_NormalMap, v_TexCoord).rgb;
-    }
-    if (u_Material.UseRMAOMap != 0) {
-        roughness *= rmao.r;
-    }
-    if (u_Material.UseRMAOMap != 0) {
-        metallic *= rmao.g;
-    }
+    vec3 totalEmissiveRadiance = GBuffer.Emissive;
 
-    vec3 N = normalize(v_Normal);
-    vec3 L = normalize(vec3(1.0, 1.0, 0.0));
-    float diff = max(dot(N, L), 0.0);
-    vec3 color = albedo.rgb * diff;
+    vec3 light = EvaluateLights(GBuffer, material);
 
-    // o_Color = vec4(color, 1.0);
-    o_Color = albedo;
+    color += light;
+    color += totalEmissiveRadiance;
+    //    color = Dithering(color);
+
+    float alpha = 1.0;
+
+    //    color = color / (color + vec3(1.0));
+    //    color = pow(color, vec3(1.0/2.2));
+
+    color = LinearTosRGB(vec4(color, 1.0)).rgb;
+    o_Color = vec4(color, 1.0);
 }
 
 #endif

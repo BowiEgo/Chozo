@@ -177,14 +177,15 @@ public:
 // ===== Global operators =====
 inline FVector3 operator*(float s, const FVector3& v) { return v * s; }
 
-inline const FVector3 FVector3::Zero(0.0f, 0.0f, 0.0f);
-inline const FVector3 FVector3::One(1.0f, 1.0f, 1.0f);
 inline const FVector3 FVector3::Up(0.0f, 1.0f, 0.0f);
 inline const FVector3 FVector3::Down(0.0f, -1.0f, 0.0f);
 inline const FVector3 FVector3::Right(1.0f, 0.0f, 0.0f);
 inline const FVector3 FVector3::Left(-1.0f, 0.0f, 0.0f);
-inline const FVector3 FVector3::Forward(0.0f, 0.0f, 1.0f); // OpenGL/Vulkan convention
-inline const FVector3 FVector3::Backward(0.0f, 0.0f, -1.0f);
+inline const FVector3 FVector3::Forward(0.0f, 0.0f, -1.0f);
+inline const FVector3 FVector3::Backward(0.0f, 0.0f, 1.0f);
+
+inline const FVector3 FVector3::Zero(0.0f, 0.0f, 0.0f);
+inline const FVector3 FVector3::One(1.0f, 1.0f, 1.0f);
 
 namespace std {
 template <> struct hash<FVector3> {

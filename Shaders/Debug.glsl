@@ -10,6 +10,7 @@ void main() {
     // 映射到 NDC: (-1,-1), (3,-1), (-1,3)
     gl_Position = vec4(v_TexCoord * 2.0f - 1.0f, 0.0f, 1.0f);
     // v_TexCoord.x = 1.0 - v_TexCoord.x;
+    // v_TexCoord.y = 1.0 - v_TexCoord.y;
 }
 
 #endif
@@ -28,10 +29,13 @@ layout(set = 1, binding = 3) uniform sampler2D u_BaseColorMap;
 layout(set = 1, binding = 4) uniform sampler2D u_RMAOMap;
 layout(set = 1, binding = 5) uniform sampler2D u_EmissiveMap;
 layout(set = 1, binding = 6) uniform sampler2D u_DepthMap;
+layout(set = 1, binding = 7) uniform sampler2D u_SkyboxMap;
+layout(set = 1, binding = 8) uniform samplerCube u_SkyboxCubeMap;
 
 layout(location = 0) out vec4 o_Color;
 
 #include "shaders://Utils/Packing.glsl"
+#include "shaders://Includes/CubemapPreview.glsl"
 
 void main() {
     vec3 result = vec3(0.0);
@@ -72,6 +76,14 @@ void main() {
             float d = texture(u_DepthMap, v_TexCoord).r;
             float ld = LinearizeNDCDepthToViewZ(d, near, far) / far;
             result = vec3(d);
+            break;
+
+        case 8: // Skybox
+            result = texture(u_SkyboxMap, v_TexCoord).rgb;
+            break;
+        
+        case 9:
+            result = CubemapPreview(u_SkyboxCubeMap, v_TexCoord).rgb;
             break;
             
         default:

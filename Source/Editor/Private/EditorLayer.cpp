@@ -45,7 +45,7 @@ void EditorLayer::OnAttach() {
 
     auto mainCamera = m_Viewport->GetCamera();
     m_EditorCamera.SetActiveCamera(mainCamera);
-    mainCamera->SetPerspective(45.0f, (float)fbSize.Width / fbSize.Height, 0.1f, 1000.0f);
+    mainCamera->SetPerspective(55.0f, (float)fbSize.Width / fbSize.Height, 0.1f, 1000.0f);
     mainCamera->SetPosition(FVector3(0, 0, 5));
 
     m_SyncLayer = CreateScope<FSyncLayer>(m_Scene.get());
@@ -209,6 +209,9 @@ void EditorLayer::OnImGuiRender() {
             if (ImGui::MenuItem("AO", nullptr, currentDebugMode == 5)) item_selected_idx = 5;
             if (ImGui::MenuItem("Emissive", nullptr, currentDebugMode == 6)) item_selected_idx = 6;
             if (ImGui::MenuItem("Depth", nullptr, currentDebugMode == 7)) item_selected_idx = 7;
+            if (ImGui::MenuItem("Skybox", nullptr, currentDebugMode == 8)) item_selected_idx = 8;
+            if (ImGui::MenuItem("SkyboxPreview", nullptr, currentDebugMode == 9))
+                item_selected_idx = 9;
 
             CApplication::Get()->GetRenderEngine()->GetRenderer()->SetDebugMode(item_selected_idx);
             ImGui::EndMenu();
@@ -254,7 +257,7 @@ void EditorLayer::OnImGuiRender() {
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
     auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
     ImTextureID textureID = GET_IM_RHI_TEXTURE_ID(tex.get());
-    ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
+    ImGui::Image(textureID, m_ViewportSize, ImVec2(0, 0), ImVec2(1, 1));
 
     // Integrated Debug Overlay
     m_Overlay.Draw("Editor Overlay:", &m_IsOverlayOpen, [io]() {

@@ -475,8 +475,8 @@ inline void DrawButtonImageByRatio(TRef<CTexture>& image, FVector2 size) {
 
     float imageAspectRatio =
         static_cast<float>(image->GetSize().Height) / static_cast<float>(image->GetSize().Width);
-    ImVec2 uv0(0.0f, 1.0f);
-    ImVec2 uv1(1.0f, 0.0f);
+    ImVec2 uv0(0.0f, 0.0f);
+    ImVec2 uv1(1.0f, 1.0f);
     if (imageAspectRatio <= 1.0f) {
         float offsetY = (1.0f - 1.0f / imageAspectRatio) / 2.0f;
         uv0.y         = 1.0f - offsetY;

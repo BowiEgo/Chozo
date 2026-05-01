@@ -65,14 +65,22 @@ void CRenderer::Init() {
                                                { EShaderStage::Vertex, EShaderStage::Fragment },
                                                "main" });
 
-    TRef<CShader> pbrShader = CAssetManager::Get().GetOrLoadShader(
-        { "PBR", "shaders://PBR.glsl", { EShaderStage::Vertex, EShaderStage::Fragment }, "main" });
+    // TRef<CShader> pbrShader = CAssetManager::Get().GetOrLoadShader(
+    //     { "PBR", "shaders://PBR.glsl", { EShaderStage::Vertex, EShaderStage::Fragment }, "main"
+    //     });
 
     TRef<CShader> cubemapSamplerShader =
         CAssetManager::Get().GetOrLoadShader({ "CubemapSampler",
                                                "shaders://CubemapSampler.glsl",
                                                { EShaderStage::Vertex, EShaderStage::Fragment },
                                                "main" });
+
+    // TRef<CShader> irradianceShader =
+    //     CAssetManager::Get().GetOrLoadShader({ "IrradianceConvolution",
+    //                                            "shaders://IrradianceConvolution.glsl",
+    //                                            { EShaderStage::Vertex, EShaderStage::Fragment },
+    //                                            "main" });
+
     TRef<CShader> skyboxShader =
         CAssetManager::Get().GetOrLoadShader({ "Skybox",
                                                "shaders://Skybox.glsl",
@@ -93,8 +101,8 @@ void CRenderer::Init() {
           { EPixelFormat::RGBA16F, EPixelFormat::RGBA16F, EPixelFormat::RGBA16F,
             EPixelFormat::RGBA16F, EPixelFormat::RGBA16F } });
 
-    m_PBRMat =
-        CAssetManager::Get().GetOrLoadMaterial({ "PBR", pbrShader, { EPixelFormat::RGBA16F } });
+    // m_PBRMat =
+    //     CAssetManager::Get().GetOrLoadMaterial({ "PBR", pbrShader, { EPixelFormat::RGBA16F } });
 
     // Pipeline
     {
@@ -103,6 +111,7 @@ void CRenderer::Init() {
         spec.Name               = "CubemapSampler";
         spec.RHIShaders         = { cubemapSamplerShader->GetShaderResources() };
         spec.OutputColorFormats = { EPixelFormat::RGBA16F };
+        spec.CullMode           = ECullMode::Front;
         spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
                                     { EShaderDataType::Float3, "a_Normal" },
                                     { EShaderDataType::Float2, "a_TexCoord" },
@@ -112,6 +121,22 @@ void CRenderer::Init() {
 
         m_CubemapSamplerPipeline = IRHIAPI::CreatePipeline(spec);
     }
+
+    // {
+
+    //     FPipelineSpecification spec;
+    //     spec.Name               = "IrradianceConvolution";
+    //     spec.RHIShaders         = { irradianceShader->GetShaderResources() };
+    //     spec.OutputColorFormats = { EPixelFormat::RGBA16F };
+    //     spec.VertexLayout       = { { EShaderDataType::Float3, "a_Position" },
+    //                                 { EShaderDataType::Float3, "a_Normal" },
+    //                                 { EShaderDataType::Float2, "a_TexCoord" },
+    //                                 { EShaderDataType::Float3, "a_Tangent" },
+    //                                 { EShaderDataType::Float3, "a_Bitangent" } };
+    //     spec.PushConstantRanges = { { 0, sizeof(uint32_t) } };
+
+    //     m_IrradiancePipeline = IRHIAPI::CreatePipeline(spec);
+    // }
 
     {
         FPipelineSpecification spec;
@@ -191,6 +216,8 @@ void CRenderer::Tick(float deltaTime) {
         uint32_t faceSize = cubeSpec.Size.Width;
 
         FRDGTexture* skyboxCubemapHandle = graph.CreateRDGTexture("SkyboxCubemap", cubeSpec);
+        FRDGTexture* irradianceCubemapHandle =
+            graph.CreateRDGTexture("IrradianceCubemap", cubeSpec);
 
         graph.AddPass("EquirectangularToCubemap", m_CubemapSamplerPipeline, { skybox2DHandle },
                       { skyboxCubemapHandle }, ERenderPassLoadOp::Clear,
@@ -215,6 +242,29 @@ void CRenderer::Tick(float deltaTime) {
                           m_Quad->Draw(cmd.get());
                       });
 
+        // graph.AddPass("IrradianceConvolution", m_IrradiancePipeline, { skybox2DHandle },
+        //               { irradianceCubemapHandle }, ERenderPassLoadOp::Clear,
+        //               [this, faceSize, skybox2DHandle](CRDGContext& ctx) {
+        //                   CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::CubemapSampler);
+        //                   auto st  = ctx.GetTexture(skybox2DHandle);
+        //                   auto cmd = ctx.GetCommandBuffer();
+
+        //                   auto setLayout = m_CubemapSamplerPipeline->GetSetLayout(1);
+        //                   std::vector<FDescriptorBinding> bindings = {
+        //                       { 0, EUniformType::CombinedImageSampler, st->GetImage(),
+        //                         st->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+        //                   };
+        //                   auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
+        //                       setLayout, bindings);
+
+        //                   cmd->BindDescriptorSets(1, descSet);
+        //                   //   cmd->BindTexture(st, 0, 0);
+        //                   cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
+        //                   cmd->SetScissor({ 0, 0, faceSize, faceSize });
+
+        //                   m_Quad->Draw(cmd.get());
+        //               });
+
         // Request a transient texture for storing the skybox pass result,
         // lifetime managed by the render graph
         for (auto& viewport : m_Viewports) {
@@ -226,13 +276,19 @@ void CRenderer::Tick(float deltaTime) {
                 EImageLayout::ColorAttachmentOptimal, // initial usage
                 EImageLayout::ShaderReadOnlyOptimal); // final usage (for UI)
 
+            FTextureSpecification skyboxSpec;
+            skyboxSpec.Type   = ETextureType::Texture2D;
+            skyboxSpec.Size   = viewportCanvas->GetSize();
+            skyboxSpec.Format = EPixelFormat::RGBA16F;
+            skyboxSpec.Usage  = ETextureUsage::Texture | ETextureUsage::Attachment;
+
+            FRDGTexture* skyboxHandle = graph.CreateRDGTexture("Skybox", skyboxSpec);
+
             graph.AddPass(
-                "SkyboxPass", m_SkyboxPipeline, { skyboxCubemapHandle }, { viewportHandle },
-                ERenderPassLoadOp::Clear,
-                [this, &viewport, skyboxCubemapHandle, viewportHandle](CRDGContext& ctx) {
+                "SkyboxPass", m_SkyboxPipeline, { skyboxCubemapHandle }, { skyboxHandle },
+                ERenderPassLoadOp::Clear, [this, &viewport, skyboxCubemapHandle](CRDGContext& ctx) {
                     CZ_RENDERER_SCOPE_PERF(ERendererProfileSlot::Skybox);
                     auto st  = ctx.GetTexture(skyboxCubemapHandle);
-                    auto rt  = ctx.GetTexture(viewportHandle);
                     auto cmd = ctx.GetCommandBuffer();
 
                     auto scene  = viewport->GetScene();
@@ -317,17 +373,20 @@ void CRenderer::Tick(float deltaTime) {
             graph.AddPass(
                 "DebugPass", m_DebugPipeline,
                 { gBufferPositionHandle, gBufferNormalHandle, gBufferBaseColorHandle,
-                  gBufferRMAOHandle, gBufferEmissiveHandle, gBufferDepthHandle },
+                  gBufferRMAOHandle, gBufferEmissiveHandle, gBufferDepthHandle, skyboxHandle,
+                  skyboxCubemapHandle },
                 { viewportHandle }, ERenderPassLoadOp::Load,
                 [this, &viewport, gBufferPositionHandle, gBufferNormalHandle,
                  gBufferBaseColorHandle, gBufferRMAOHandle, gBufferEmissiveHandle,
-                 gBufferDepthHandle](CRDGContext& ctx) {
+                 gBufferDepthHandle, skyboxHandle, skyboxCubemapHandle](CRDGContext& ctx) {
                     auto t1 = ctx.GetTexture(gBufferPositionHandle);
                     auto t2 = ctx.GetTexture(gBufferNormalHandle);
                     auto t3 = ctx.GetTexture(gBufferBaseColorHandle);
                     auto t4 = ctx.GetTexture(gBufferRMAOHandle);
                     auto t5 = ctx.GetTexture(gBufferEmissiveHandle);
                     auto t6 = ctx.GetTexture(gBufferDepthHandle);
+                    auto t7 = ctx.GetTexture(skyboxHandle);
+                    auto t8 = ctx.GetTexture(skyboxCubemapHandle);
 
                     auto cmd = ctx.GetCommandBuffer();
 
@@ -372,7 +431,12 @@ void CRenderer::Tick(float deltaTime) {
                             { 5, EUniformType::CombinedImageSampler, t5->GetImage(),
                               t5->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
                             { 6, EUniformType::CombinedImageSampler, t6->GetImage(),
-                              t6->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+                              t6->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 7, EUniformType::CombinedImageSampler, t7->GetImage(),
+                              t7->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal },
+                            { 8, EUniformType::CombinedImageSampler, t8->GetImage(),
+                              t8->GetSampler().get(), EImageLayout::ShaderReadOnlyOptimal }
+
                         };
                         auto descSet = m_GraphicContext->GetDevice()->GetOrCreateDescriptorSet(
                             setLayout, bindings);

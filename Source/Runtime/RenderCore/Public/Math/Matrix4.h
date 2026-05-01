@@ -25,16 +25,16 @@ public:
     FMatrix4(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13,
              float m20, float m21, float m22, float m23, float m30, float m31, float m32,
              float m33) {
-        m_Data[0] = m00;
-        m_Data[1] = m01;
-        m_Data[2] = m02;
-        m_Data[3] = m03;
-        m_Data[4] = m10;
-        m_Data[5] = m11;
-        m_Data[6] = m12;
-        m_Data[7] = m13;
-        m_Data[8] = m20;
-        m_Data[9] = m21;
+        m_Data[0]  = m00;
+        m_Data[1]  = m01;
+        m_Data[2]  = m02;
+        m_Data[3]  = m03;
+        m_Data[4]  = m10;
+        m_Data[5]  = m11;
+        m_Data[6]  = m12;
+        m_Data[7]  = m13;
+        m_Data[8]  = m20;
+        m_Data[9]  = m21;
         m_Data[10] = m22;
         m_Data[11] = m23;
         m_Data[12] = m30;
@@ -77,35 +77,28 @@ public:
     }
 
     static FMatrix4 Perspective(float fovDegrees, float aspect, float nearZ, float farZ) {
-        switch (FRendererAPI::GetType()) {
-            case FRendererAPI::EType::Vulkan:
-                return VulkanPerspective(fovDegrees, aspect, nearZ, farZ);
-
-            case FRendererAPI::EType::OpenGL:
-                return OpenGLPerspective(fovDegrees, aspect, nearZ, farZ);
-
-            default: return VulkanPerspective(fovDegrees, aspect, nearZ, farZ);
+        glm::mat4 proj;
+        if (FRendererAPI::GetType() == FRendererAPI::EType::Vulkan) {
+            proj = glm::perspectiveRH_ZO(glm::radians(fovDegrees), aspect, nearZ, farZ);
+            proj[1][1] *= -1.0f;
+        } else {
+            proj = glm::perspective(glm::radians(fovDegrees), aspect, nearZ, farZ);
         }
+        return proj;
     }
 
     static FMatrix4 Orthographic(float left, float right, float bottom, float top, float nearZ,
                                  float farZ) {
-        // clang-format off
-        float projData[16] = {
-            2.0f / (right - left), 0.0f, 0.0f, 0.0f,
-            0.0f, -2.0f / (top - bottom), 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f / (farZ - nearZ), 0.0f,
-            -(right + left) / (right - left), -(top + bottom) / (top - bottom), -nearZ / (farZ - nearZ), 1.0f
-        };
-        return FMatrix4(projData[0], projData[1], projData[2], projData[3],
-                        projData[4], projData[5], projData[6], projData[7],
-                        projData[8], projData[9], projData[10], projData[11],
-                        projData[12], projData[13], projData[14], projData[15]);
-        // clang-format on
+        glm::mat4 proj = glm::ortho(left, right, bottom, top, nearZ, farZ);
+        if (FRendererAPI::GetType() == FRendererAPI::EType::Vulkan) {
+            proj[1][1] *= -1.0f;
+        }
+        return proj;
     }
 
     static FMatrix4 LookAt(const FVector3& eye, const FVector3& center, const FVector3& up) {
         return FMatrix4(glm::lookAt(eye.ToGLM(), center.ToGLM(), up.ToGLM()));
+        // return FMatrix4(glm::lookAtLH(eye.ToGLM(), center.ToGLM(), up.ToGLM()));
     }
 
     // ===== Transformations =====
@@ -146,9 +139,9 @@ public:
     FVector3 GetScale() const {
         glm::mat4 glmMat = *this;
         // Extract scale from matrix columns
-        float scaleX = glm::length(glm::vec3(glmMat[0]));
-        float scaleY = glm::length(glm::vec3(glmMat[1]));
-        float scaleZ = glm::length(glm::vec3(glmMat[2]));
+        float scaleX     = glm::length(glm::vec3(glmMat[0]));
+        float scaleY     = glm::length(glm::vec3(glmMat[1]));
+        float scaleZ     = glm::length(glm::vec3(glmMat[2]));
         return FVector3(scaleX, scaleY, scaleZ);
     }
 
@@ -211,16 +204,6 @@ private:
         m_Data[0] = m_Data[5] = m_Data[10] = m_Data[15] = 1.0f;
     }
 
-    static FMatrix4 VulkanPerspective(float fov, float aspect, float nearZ, float farZ) {
-        float tanHalfFov = tanf(glm::radians(fov) * 0.5f);
-        return FMatrix4(1.0f / (aspect * tanHalfFov), 0, 0, 0, 0, -1.0f / tanHalfFov, 0, 0, 0, 0,
-                        farZ / (farZ - nearZ), 1, 0, 0, -(nearZ * farZ) / (farZ - nearZ), 0);
-    }
-
-    static FMatrix4 OpenGLPerspective(float fov, float aspect, float nearZ, float farZ) {
-        return glm::perspective(glm::radians(fov), aspect, nearZ, farZ);
-    }
-
 private:
     float m_Data[16];
 };
@@ -237,7 +220,7 @@ inline std::ostream& operator<<(std::ostream& os, const FMatrix4& mat) {
 template <> struct fmt::formatter<FMatrix4> {
     // Optional format specifiers
     int precision = 2;
-    bool compact = false;
+    bool compact  = false;
 
     constexpr auto parse(format_parse_context& ctx) {
         auto it = ctx.begin();
@@ -252,7 +235,7 @@ template <> struct fmt::formatter<FMatrix4> {
             if (*it != '}') {
                 char* end;
                 precision = std::strtol(it, &end, 10);
-                it = end;
+                it        = end;
             }
         }
         if (it != ctx.end() && *it != '}') {

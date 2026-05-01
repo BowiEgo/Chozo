@@ -59,12 +59,12 @@ FMeshBuffer* FCube::GenerateBuffer() {
 void FCube::BuildPlane(std::string u, std::string v, std::string w, int uDir, int vDir, float width,
                        float height, float depth, uint32 gridX, uint32 gridY,
                        int& totalVertexCounter) {
-    const float segmentWidth = width / gridX;
+    const float segmentWidth  = width / gridX;
     const float segmentHeight = height / gridY;
 
-    const float widthHalf = width / 2;
+    const float widthHalf  = width / 2;
     const float heightHalf = height / 2;
-    const float depthHalf = depth / 2;
+    const float depthHalf  = depth / 2;
 
     const uint32 gridX1 = gridX + 1;
     const uint32 gridY1 = gridY + 1;
@@ -92,8 +92,8 @@ void FCube::BuildPlane(std::string u, std::string v, std::string w, int uDir, in
             SetAxisValue(vertice.Normal, v, 0);
             SetAxisValue(vertice.Normal, w, depth > 0 ? 1 : -1);
 
-            vertice.UV.x = ix / gridX;
-            vertice.UV.y = 1 - (iy / gridY);
+            vertice.UV.x = (float)ix / (float)gridX;
+            vertice.UV.y = 1.0f - ((float)iy / (float)gridY);
 
             m_Buffer.Vertices.push_back(vertice);
             vertexCounter += 1;

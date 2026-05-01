@@ -111,7 +111,7 @@ void CVulkanPipeline::Init() {
     rasterizer.setPolygonMode(vk::PolygonMode::eFill);
     rasterizer.setLineWidth(1.0f);
     rasterizer.setCullMode(ChozoUtils::Vulkan::ToVkCullMode(m_Spec.CullMode));
-    rasterizer.setFrontFace(vk::FrontFace::eClockwise);
+    rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
 
     // ===== Multisampling (Disabled) =====
     vk::PipelineMultisampleStateCreateInfo multisampling({}, vk::SampleCountFlagBits::e1);
