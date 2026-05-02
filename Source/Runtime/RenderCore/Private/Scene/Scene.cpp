@@ -56,11 +56,12 @@ void FScene::Draw(IRHICommandList* cmdList, TRef<IRHIBuffer> cameraBuffer) {
 
         struct {
             FMatrix4 ModelMatrix;
-            FMatrix3 NormalMatrix;
+            FMatrix4 NormalMatrix;
         } pushConstants;
 
         pushConstants.ModelMatrix  = transformComp.WorldMatrix;
-        pushConstants.NormalMatrix = transformComp.WorldNormalMatrix;
+        pushConstants.NormalMatrix = FMatrix4(transformComp.WorldNormalMatrix);
+
         cmdList->PushConstants(&pushConstants, sizeof(pushConstants), 0);
 
         mesh->Draw(cmdList);

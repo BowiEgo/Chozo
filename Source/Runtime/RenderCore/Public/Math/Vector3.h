@@ -4,6 +4,7 @@
 #include <cmath>
 #include <glm/glm.hpp>
 #include <glm/gtx/norm.hpp>
+#include <spdlog/fmt/bundled/format.h>
 
 // Ensure memory layout matches GLM
 static_assert(sizeof(glm::vec3) == 12, "glm::vec3 should be 12 bytes");
@@ -30,6 +31,9 @@ public:
     float& operator[](int index) { return (&x)[index]; }
 
     const float& operator[](int index) const { return (&x)[index]; }
+
+    // ===== To String =====
+    std::string ToString() const { return fmt::format("[{:6.2f} {:6.2f} {:6.2f}]", x, y, z); }
 
     // ===== Arithmetic operators =====
     FVector3 operator-() const { return FVector3(-x, -y, -z); }

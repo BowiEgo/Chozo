@@ -86,12 +86,27 @@ void EditorLayer::OnAttach() {
 
     CZ_LOG(LogEditorLayer, Info, "EditorLayer Attached.");
 
+    // {
+    //     // Material
+
+    //     auto nodeBit   = FTypeRegister::Get().GetBit("Node_Regular");
+    //     auto sphereBit = FTypeRegister::Get().GetBit("Mesh_Sphere");
+    //     auto newNode   = m_NodeTree.CreateNode("Sphere", nodeBit |= sphereBit, nullptr);
+    //     m_NodeTree.SelectNode(newNode);
+
+    //     auto pbrMat = m_ViewportRenderer->GetMaterial();
+    //     static_cast<FSphereParams*>(newNode->GetMeshParamsWrapper()->Get())->Material =
+    //         pbrMat->GetHandle();
+
+    //     auto meshProps = newNode->GetMeshParamsWrapper();
+    // }
+
     {
         // Material
 
-        auto nodeBit   = FTypeRegister::Get().GetBit("Node_Regular");
-        auto sphereBit = FTypeRegister::Get().GetBit("Mesh_Sphere");
-        auto newNode   = m_NodeTree.CreateNode("Sphere", nodeBit |= sphereBit, nullptr);
+        auto nodeBit = FTypeRegister::Get().GetBit("Node_Regular");
+        auto cubeBit = FTypeRegister::Get().GetBit("Mesh_Cube");
+        auto newNode = m_NodeTree.CreateNode("Cube", nodeBit |= cubeBit, nullptr);
         m_NodeTree.SelectNode(newNode);
 
         auto pbrMat = m_ViewportRenderer->GetMaterial();

@@ -21,6 +21,8 @@ public:
 
     FMatrix4(const glm::mat4& m) { memcpy(m_Data, glm::value_ptr(m), 64); }
 
+    FMatrix4(const FMatrix3& mat3);
+
     // Construct from 16 floats
     FMatrix4(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13,
              float m20, float m21, float m22, float m23, float m30, float m31, float m32,

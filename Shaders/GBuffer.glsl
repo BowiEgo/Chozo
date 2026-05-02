@@ -14,7 +14,7 @@ layout(location = 4) in vec3 a_Bitangent;
 layout(push_constant) uniform VertexContant
 {
     mat4 ModelMatrix;
-    mat3 NormalMatrix;
+    mat4 NormalMatrix;
 } u_VertContant;
 
 layout(location = 0) out vec3 v_Normal;
@@ -31,12 +31,13 @@ void main() {
 
     gl_Position = projectionPosition;
 
-    mat3 normalMatrix = u_VertContant.NormalMatrix;
+    mat3 normalMatrix = mat3(u_VertContant.NormalMatrix);
     v_TexCoord = a_TexCoord;
     v_FragPosition = vec3(viewPosition);
 
     v_Normal = a_Normal;
     v_WorldNormal = normalMatrix * a_Normal;
+    // v_WorldNormal = mat3(transpose(inverse(u_VertContant.ModelMatrix))) * a_Normal;
     v_WorldTangent = normalMatrix * a_Tangent;
     v_WorldBitangent = normalMatrix * a_Bitangent;
 }
@@ -79,24 +80,27 @@ layout(location = 4) out vec3 o_Emissive;
 #include "shaders://Utils/Packing.glsl"
 
 void main() {
-    mat3 TBN;
-    TBN[0] = normalize(v_WorldTangent);
-    TBN[1] = normalize(v_WorldBitangent);
-    TBN[2] = normalize(v_WorldNormal);
+    // mat3 TBN;
+    // TBN[0] = normalize(v_WorldTangent);
+    // TBN[1] = normalize(v_WorldBitangent);
+    // TBN[2] = normalize(v_WorldNormal);
 
-    TBN[1] = normalize(cross(TBN[2], TBN[0]));
-    TBN[2] = normalize(cross(TBN[0], TBN[1]));
+    // TBN[1] = normalize(cross(TBN[2], TBN[0]));
+    // TBN[2] = normalize(cross(TBN[0], TBN[1]));
 
     vec4 normalMap = texture(u_NormalMap, v_TexCoord);
     vec4 albedoMap = texture(u_AlbedoMap, v_TexCoord);
     vec4 RMAOMap = texture(u_RMAOMap, v_TexCoord);
     vec4 emissiveMap = texture(u_EmissiveMap, v_TexCoord);
 
-    vec3 perturbation = UnpackRGBToNormal(normalMap.rgb);
-    vec3 perturbedNormal = normalize(TBN * perturbation);
+    // vec3 perturbation = UnpackRGBToNormal(normalMap.rgb);
+    // vec3 perturbedNormal = normalize(TBN * perturbation);
 
     o_Position = v_FragPosition;
-    o_Normal = (u_Material.UseNormalMap == 1) ? perturbedNormal : normalize(v_WorldNormal);
+    o_Normal = normalize(v_Normal);
+    // o_Normal = v_WorldNormal;
+    // o_Normal = v_Normal * 0.5 + 0.5;
+    // o_Normal = vec3(v_TexCoord, 1.0);
 
     o_BaseColor = u_Material.BaseColor.rgb;
     if (u_Material.UseAlbedoMap == 1)

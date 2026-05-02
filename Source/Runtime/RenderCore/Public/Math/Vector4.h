@@ -36,6 +36,11 @@ public:
 
     const float& operator[](int index) const { return (&x)[index]; }
 
+    // ===== To String =====
+    std::string ToString() const {
+        return fmt::format("[{:6.2f} {:6.2f} {:6.2f} {:6.2f}]", x, y, z, w);
+    }
+
     // ===== Arithmetic operators =====
     FVector4 operator-() const { return FVector4(-x, -y, -z, -w); }
 

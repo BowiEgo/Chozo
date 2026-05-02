@@ -5,6 +5,8 @@
 #include "ProceduralMesh.h"
 #include "SphereParams.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogSphere, Info);
+
 class RENDER_CORE_API FSphere : public FProceduralMesh {
 public:
     explicit FSphere(float radius = 1.0f, uint32_t widthSegments = 32, uint32_t heightSegments = 16,
