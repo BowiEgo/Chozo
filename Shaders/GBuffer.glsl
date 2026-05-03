@@ -37,7 +37,6 @@ void main() {
 
     v_Normal = a_Normal;
     v_WorldNormal = normalMatrix * a_Normal;
-    // v_WorldNormal = mat3(transpose(inverse(u_VertContant.ModelMatrix))) * a_Normal;
     v_WorldTangent = normalMatrix * a_Tangent;
     v_WorldBitangent = normalMatrix * a_Bitangent;
 }
@@ -97,10 +96,7 @@ void main() {
     // vec3 perturbedNormal = normalize(TBN * perturbation);
 
     o_Position = v_FragPosition;
-    o_Normal = normalize(v_Normal);
-    // o_Normal = v_WorldNormal;
-    // o_Normal = v_Normal * 0.5 + 0.5;
-    // o_Normal = vec3(v_TexCoord, 1.0);
+    o_Normal = normalize(v_WorldNormal);
 
     o_BaseColor = u_Material.BaseColor.rgb;
     if (u_Material.UseAlbedoMap == 1)

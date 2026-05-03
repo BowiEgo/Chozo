@@ -10,8 +10,7 @@ public:
     void ReleaseInclude(shaderc_include_result* data) override;
 
 private:
-    std::unordered_map<std::string, std::string> m_FileCache; // 文件内容缓存
-    std::unordered_set<std::string> m_IncludedFiles;          // 已包含文件集合（防止重复）
-    // 可选: 检测递归包含的调用栈
-    std::vector<std::string> m_IncludeStack;
+    std::unordered_map<std::string, std::filesystem::path> m_FileCache;
+    std::unordered_set<std::filesystem::path> m_IncludedFiles;
+    std::vector<std::filesystem::path> m_IncludeStack;
 };

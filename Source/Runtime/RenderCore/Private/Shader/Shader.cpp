@@ -14,9 +14,14 @@ CShader::CShader(const FShaderSpecification& spec,
 
 const VertexBufferLayout CShader::GetVertexLayout() {
     VertexBufferLayout layout;
+
     for (const auto& rhiShader : GetShaderResources()) {
         if (rhiShader->GetStage() == EShaderStage::Vertex) {
-            const auto& reflection = rhiShader->GetReflection();
+            auto reflection = rhiShader->GetReflection();
+
+            std::sort(reflection.Attributes.begin(), reflection.Attributes.end(),
+                      [](const auto& a, const auto& b) { return a.Location < b.Location; });
+
             for (const auto& attr : reflection.Attributes) {
                 layout.AddElement(attr.Type, attr.Name, attr.Location);
             }

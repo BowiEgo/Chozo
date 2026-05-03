@@ -107,11 +107,17 @@ void CVulkanPipeline::Init() {
     vk::PipelineViewportStateCreateInfo viewportState({}, 1, nullptr, 1, nullptr);
 
     // ===== Rasterizer =====
+    bool mVulkanFrontFaceIsCounterClockwise = false;
+#if CZ_PLATFORM_MACOS
+    mVulkanFrontFaceIsCounterClockwise = true;
+#endif
+
     vk::PipelineRasterizationStateCreateInfo rasterizer{};
     rasterizer.setPolygonMode(vk::PolygonMode::eFill);
     rasterizer.setLineWidth(1.0f);
     rasterizer.setCullMode(ChozoUtils::Vulkan::ToVkCullMode(m_Spec.CullMode));
-    rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
+    rasterizer.setFrontFace(mVulkanFrontFaceIsCounterClockwise ? vk::FrontFace::eCounterClockwise
+                                                               : vk::FrontFace::eClockwise);
 
     // ===== Multisampling (Disabled) =====
     vk::PipelineMultisampleStateCreateInfo multisampling({}, vk::SampleCountFlagBits::e1);

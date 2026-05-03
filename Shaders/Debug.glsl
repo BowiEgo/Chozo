@@ -5,9 +5,9 @@
 layout(location = 0) out vec2 v_TexCoord;
 
 void main() {
-    // 生成 UV: (0,0), (2,0), (0,2)
+    // Generate UV: (0,0), (2,0), (0,2)
     v_TexCoord = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
-    // 映射到 NDC: (-1,-1), (3,-1), (-1,3)
+    // Map to NDC: (-1,-1), (3,-1), (-1,3)
     gl_Position = vec4(v_TexCoord * 2.0f - 1.0f, 0.0f, 1.0f);
     // v_TexCoord.x = 1.0 - v_TexCoord.x;
     // v_TexCoord.y = 1.0 - v_TexCoord.y;
@@ -55,8 +55,7 @@ void main() {
             break;
             
         case 2: // Normal
-            // 如果 G-Buffer 存的是 [-1, 1], 需要映射到 [0, 1] 才能正确显示颜色
-            result = texture(u_NormalMap, v_TexCoord).rgb * 0.5 + 0.5;
+            result = texture(u_NormalMap, v_TexCoord).rgb;
             break;
             
         case 3: // BaseColor

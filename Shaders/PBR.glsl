@@ -62,12 +62,12 @@ void main() {
 
     color += light;
     color += totalEmissiveRadiance;
-    //    color = Dithering(color);
+    // color = Dithering(color);
 
     float alpha = 1.0;
 
-    //    color = color / (color + vec3(1.0));
-    //    color = pow(color, vec3(1.0/2.2));
+    // color = color / (color + vec3(1.0));
+    // color = pow(color, vec3(1.0/2.2));
 
     color = LinearTosRGB(vec4(color, 1.0)).rgb;
     o_Color = vec4(color, 1.0);
