@@ -152,19 +152,15 @@ void CVulkanBuffer::CreateBuffer() {
 }
 
 void* CVulkanBuffer::Map(size_t offset, size_t size) {
-    if (m_MappedData && offset == 0 && size == m_AlignedSize) {
-        return m_MappedData; // Already mapped persistently
+    if (m_MappedData) {
+        return static_cast<uint8_t*>(m_MappedData) + offset;
     }
 
     auto device = m_Device.lock().As<CVulkanDevice>();
-    if (!device) {
-        CZ_LOG(LogVulkanBuffer, Error, "Device is invalid during Map");
-        return nullptr;
-    }
+    if (!device) return nullptr;
 
     vk::Device vkDevice = device->GetLogicalDevice();
-
-    size_t mapSize = (size == 0) ? m_AlignedSize : size;
+    size_t mapSize      = (size == 0) ? m_AlignedSize : size;
 
     void* data;
     try {

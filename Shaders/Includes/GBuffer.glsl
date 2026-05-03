@@ -21,6 +21,7 @@ void InitGBuffer(out GBufferData GBuffer)
     GBuffer.BaseColor           = texture(u_BaseColorMap, v_TexCoord).rgb;
     GBuffer.PerceptualRoughness = max(RMAO.r, 0.001);
     GBuffer.Roughness           = GBuffer.PerceptualRoughness * GBuffer.PerceptualRoughness;
+    // GBuffer.Roughness           = GBuffer.PerceptualRoughness;
     GBuffer.Metallic            = RMAO.g;
     GBuffer.Reflectance         = RMAO.b;
     GBuffer.Emissive            = texture(u_EmissiveMap, v_TexCoord).rgb;

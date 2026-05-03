@@ -172,7 +172,7 @@ void CRenderer::Init() {
                                     { EShaderDataType::Float2, "a_TexCoord" },
                                     { EShaderDataType::Float3, "a_Tangent" },
                                     { EShaderDataType::Float3, "a_Bitangent" } };
-        spec.PushConstantRanges = { { 0, sizeof(uint32_t) } };
+        spec.PushConstantRanges = { { 0, sizeof(uint32_t), EShaderStage::Vertex } };
 
         m_CubemapSamplerPipeline = IRHIAPI::CreatePipeline(spec);
     }
@@ -190,7 +190,7 @@ void CRenderer::Init() {
                                     { EShaderDataType::Float2, "a_TexCoord" },
                                     { EShaderDataType::Float3, "a_Tangent" },
                                     { EShaderDataType::Float3, "a_Bitangent" } };
-        spec.PushConstantRanges = { { 0, sizeof(uint32_t) } };
+        spec.PushConstantRanges = { { 0, sizeof(uint32_t), EShaderStage::Vertex } };
 
         m_IrradiancePipeline = IRHIAPI::CreatePipeline(spec);
     }
@@ -208,7 +208,8 @@ void CRenderer::Init() {
                                     { EShaderDataType::Float2, "a_TexCoord" },
                                     { EShaderDataType::Float3, "a_Tangent" },
                                     { EShaderDataType::Float3, "a_Bitangent" } };
-        spec.PushConstantRanges = { { 0, sizeof(uint32_t) + sizeof(float) } };
+        spec.PushConstantRanges = { { 0, sizeof(uint32_t) + sizeof(float),
+                                      EShaderStage::Vertex | EShaderStage::Fragment } };
 
         m_PrefilteredPipeline = IRHIAPI::CreatePipeline(spec);
     }
@@ -278,13 +279,45 @@ void CRenderer::Init() {
     FMatrix4 view = s_CubeTextureCaptureViews[0];
     FMatrix4 proj = s_CubeTextureCaptureProjection;
 
-    CameraData data;
-    data.view       = view;
-    data.projection = proj;
+    {
+        CameraData data;
+        data.view       = view;
+        data.projection = proj;
 
-    FBuffer updateData(&data, sizeof(CameraData));
+        FBuffer updateData(&data, sizeof(CameraData));
 
-    m_CubemapCameraBuffer->SetData(updateData);
+        m_CubemapCameraBuffer->SetData(updateData);
+    }
+
+    {
+        struct alignas(16) SceneUBO {
+            FVector3 CameraPosition;
+            float _padding;
+        };
+
+        FBufferSpecification bufferSpec;
+        bufferSpec.Usage      = EBufferUsage::UniformBuffer;
+        bufferSpec.Size       = sizeof(SceneUBO);
+        bufferSpec.MemoryType = EMemoryType::HostVisible | EMemoryType::HostCoherent;
+        bufferSpec.Name       = "SceneUniformBuffer";
+
+        m_SceneUniformBuffer = IRHIAPI::CreateBuffer(bufferSpec);
+    }
+
+    {
+        struct alignas(16) DebugUBO {
+            int Mode;
+            int padding[3];
+        };
+
+        FBufferSpecification bufferSpec;
+        bufferSpec.Usage      = EBufferUsage::UniformBuffer;
+        bufferSpec.Size       = sizeof(DebugUBO);
+        bufferSpec.MemoryType = EMemoryType::HostVisible | EMemoryType::HostCoherent;
+        bufferSpec.Name       = "DebugUniformBuffer";
+
+        m_DebugUniformBuffer = IRHIAPI::CreateBuffer(bufferSpec);
+    }
 
     m_Cube = CreateRef<FCube>();
     m_Cube->Upload();
@@ -417,14 +450,19 @@ void CRenderer::Tick(float deltaTime) {
                     uint32_t faceSize = m_SkyboxPrefilteredCubemap->GetSpec().Size.Width;
                     uint32_t prefilteredMaxMip =
                         m_SkyboxPrefilteredCubemap->GetSpec().ToImageSpec().MipLevels;
+                    std::vector<FPushConstantRange> pushConstantRanges =
+                        m_PrefilteredPipeline->GetSpec().PushConstantRanges;
 
                     struct {
                         uint32_t u_FaceIndex;
                         float u_Roughness;
                     } pushConstants;
                     pushConstants.u_FaceIndex = faceIndex;
-                    pushConstants.u_Roughness = (float)mip / (float)(prefilteredMaxMip - 1);
-                    cmd->PushConstants(&pushConstants, sizeof(pushConstants), 0);
+                    if (prefilteredMaxMip > 1) {
+                        pushConstants.u_Roughness = (float)mip / (float)(prefilteredMaxMip - 1);
+                    }
+                    // pushConstants.u_Roughness = 0.1;
+                    cmd->PushConstants(&pushConstants, pushConstantRanges[0]);
 
                     {
                         auto setLayout = m_PrefilteredPipeline->GetSetLayout(1);
@@ -438,8 +476,11 @@ void CRenderer::Tick(float deltaTime) {
                         cmd->BindDescriptorSets(1, descSet);
                     }
 
-                    cmd->SetViewport({ 0, 0, (float)faceSize, (float)faceSize, 0, 1 });
-                    cmd->SetScissor({ 0, 0, faceSize, faceSize });
+                    uint32_t mipWidth  = std::max(1u, faceSize >> mip);
+                    uint32_t mipHeight = std::max(1u, faceSize >> mip);
+
+                    cmd->SetViewport({ 0, 0, (float)mipWidth, (float)mipHeight, 0, 1 });
+                    cmd->SetScissor({ 0, 0, mipWidth, mipHeight });
 
                     m_Cube->Draw(cmd.get());
                 });
@@ -608,20 +649,9 @@ void CRenderer::Tick(float deltaTime) {
                         SceneUBO uniforms;
                         uniforms.CameraPosition = camera->GetPosition();
 
-                        FBufferSpecification bufferSpec;
-                        bufferSpec.Usage = EBufferUsage::UniformBuffer;
-                        bufferSpec.Size  = sizeof(SceneUBO);
-                        bufferSpec.MemoryType =
-                            EMemoryType::HostVisible | EMemoryType::HostCoherent;
-                        bufferSpec.Name = "SceneUniformBuffer";
+                        FBuffer data(&uniforms, sizeof(SceneUBO));
 
-                        FBuffer data(&uniforms, bufferSpec.Size);
-
-                        if (m_SceneUniformBuffer) {
-                            m_SceneUniformBuffer->SetData(data);
-                        } else {
-                            m_SceneUniformBuffer = IRHIAPI::CreateBuffer(bufferSpec, data);
-                        }
+                        m_SceneUniformBuffer->SetData(data);
 
                         auto setLayout                           = m_PBRPipeline->GetSetLayout(1);
                         std::vector<FDescriptorBinding> bindings = {
@@ -694,20 +724,9 @@ void CRenderer::Tick(float deltaTime) {
                         DebugUBO uniforms;
                         uniforms.Mode = m_DebugMode;
 
-                        FBufferSpecification bufferSpec;
-                        bufferSpec.Usage = EBufferUsage::UniformBuffer;
-                        bufferSpec.Size  = sizeof(DebugUBO);
-                        bufferSpec.MemoryType =
-                            EMemoryType::HostVisible | EMemoryType::HostCoherent;
-                        bufferSpec.Name = "DebugUniformBuffer";
+                        FBuffer data(&uniforms, sizeof(DebugUBO));
 
-                        FBuffer data(&uniforms, bufferSpec.Size);
-
-                        if (m_DebugUniformBuffer) {
-                            m_DebugUniformBuffer->SetData(data);
-                        } else {
-                            m_DebugUniformBuffer = IRHIAPI::CreateBuffer(bufferSpec, data);
-                        }
+                        m_DebugUniformBuffer->SetData(data);
 
                         auto setLayout                           = m_DebugPipeline->GetSetLayout(1);
                         std::vector<FDescriptorBinding> bindings = {

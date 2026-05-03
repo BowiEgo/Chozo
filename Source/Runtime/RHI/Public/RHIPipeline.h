@@ -37,6 +37,7 @@ public:
 
     virtual const TRef<IRHISetLayout> GetSetLayout(uint32_t set) = 0;
 
+    FPipelineSpecification GetSpec() const { return m_Spec; }
     EPolygonMode GetPolygonMode() const { return m_Spec.PolygonMode; }
 
 protected:

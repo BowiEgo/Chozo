@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CoreMinimal.h"
 #include "Cube.h"
 #include "LightRegister.h"
 #include "Material.h" // TODO: Remove
@@ -14,8 +13,6 @@
 #include "Texture.h"
 #include "Timer.h"
 #include "Viewport.h"
-
-#include "RenderCoreExport.h"
 
 #include "Cube.h"
 #include "Quad.h"

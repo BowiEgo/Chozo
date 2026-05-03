@@ -1,6 +1,9 @@
 #pragma once
 
-class FRendererAPI {
+#include "CoreMinimal.h"
+#include "RenderCoreExport.h"
+
+class RENDER_CORE_API FRendererAPI {
 public:
     enum class EType { None = 0, Vulkan = 1, OpenGL = 2, DirectX12 = 3 };
 
@@ -8,5 +11,5 @@ public:
     static void SetType(EType api) { s_Type = api; }
 
 private:
-    inline static EType s_Type = EType::None;
+    static EType s_Type;
 };

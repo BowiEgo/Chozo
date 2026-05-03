@@ -17,7 +17,9 @@ void CVulkanAPI::BeginRendering_Internal(const TRef<IRHICommandList>& cmdBuffer,
     auto vkCmdBuffer = cmdBuffer.As<CVulkanCommandBuffer>()->GetVKCommandBuffer();
 
     FExtent2D firstSize = targets[0]->GetSize();
-    vk::Extent2D extent(firstSize.Width, firstSize.Height);
+    uint32_t mipWidth   = std::max(1u, firstSize.Width >> mip);
+    uint32_t mipHeight  = std::max(1u, firstSize.Height >> mip);
+    vk::Extent2D extent(mipWidth, mipHeight);
 
     // Setup attachments
     std::vector<vk::RenderingAttachmentInfo> colorAttachmentInfos;

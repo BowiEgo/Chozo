@@ -85,6 +85,7 @@ public:
             proj[1][1] *= -1.0f;
         } else {
             proj = glm::perspective(glm::radians(fovDegrees), aspect, nearZ, farZ);
+            // proj[1][1] *= -1.0f;
         }
         return proj;
     }

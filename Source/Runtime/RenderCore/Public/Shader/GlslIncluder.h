@@ -10,7 +10,7 @@ public:
     void ReleaseInclude(shaderc_include_result* data) override;
 
 private:
-    std::unordered_map<std::string, std::filesystem::path> m_FileCache;
+    std::unordered_map<std::filesystem::path, std::string> m_FileCache;
     std::unordered_set<std::filesystem::path> m_IncludedFiles;
     std::vector<std::filesystem::path> m_IncludeStack;
 };

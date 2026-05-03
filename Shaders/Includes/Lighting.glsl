@@ -17,7 +17,7 @@ vec3 EvaluateLights(const in GBufferData GBuffer, const in PhysicalMaterial mate
 {
     vec3 worldNormal = GBuffer.PerturbedNormal;
     vec3 geometryPosition = GBuffer.Position;
-    vec3 geometryNormal = normalize((vec4(worldNormal, 0.0) * inverse(u_Camera.ViewMatrix)).xyz);
+    vec3 geometryNormal = worldNormal;
     vec3 geometryViewDir = GBuffer.View;
     vec3 geometryClearcoatNormal = vec3(0.0);
 
@@ -81,6 +81,7 @@ vec3 EvaluateLights(const in GBufferData GBuffer, const in PhysicalMaterial mate
     vec3 totalDiffuse = reflectedLight.DirectDiffuse + reflectedLight.IndirectDiffuse;
     vec3 totalSpecular = reflectedLight.DirectSpecular + reflectedLight.IndirectSpecular;
 
-    //    DebugColor = totalSpecular;
+    // DebugColor = vec3(material.Roughness);
+
     return totalDiffuse + totalSpecular;
 }

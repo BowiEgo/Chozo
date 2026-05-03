@@ -19,8 +19,8 @@ using LibHandle = void*;
 // --- Module.h ---
 class CORE_API CModule {
 public:
-    CModule() = default;
-    CModule(const CModule&) = delete;
+    CModule()                          = default;
+    CModule(const CModule&)            = delete;
     CModule& operator=(const CModule&) = delete;
 
     CModule(CModule&& other) noexcept; // [Note] Declaration only
@@ -32,7 +32,7 @@ public:
     template <typename Signature, typename... Args>
     auto Invoke(const std::string& name, Args&&... args) {
         using FuncPtr = Signature*;
-        FuncPtr func = reinterpret_cast<FuncPtr>(GetSymbol(name));
+        FuncPtr func  = reinterpret_cast<FuncPtr>(GetSymbol(name));
 
         if (!func) {
             CZ_LOG(LogCore, Error, "Failed to locate symbol: {0}", name);

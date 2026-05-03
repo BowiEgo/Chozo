@@ -10,6 +10,7 @@
 
 #include <vulkan/vulkan_raii.hpp>
 
+#include <algorithm>
 #include <memory>
 #include <ranges>
 #include <set>

@@ -1,5 +1,10 @@
 #version 460
 
+layout(push_constant) uniform PushConstants {
+    int u_FaceIndex;
+    float u_Roughness;
+} PC;
+
 #ifdef VERTEX_SHADER
 
 layout(location = 0) in vec3 a_Position;
@@ -9,12 +14,10 @@ layout(location = 3) in vec3 a_Tangent;
 layout(location = 4) in vec3 a_Bitangent;
 
 layout(location = 0) out vec3 v_Direction;
-layout(location = 1) out float v_Roughness;
 
-layout(push_constant) uniform PushConstants {
-    int u_FaceIndex;
-    float u_Roughness;
-} PC;
+// layout(push_constant) uniform PushConstants {
+//     int u_FaceIndex;
+// } PC;
 
 vec3 GetDirection(const in int face, const in vec2 uv) {
     vec2 ndc = uv * 2.0 - 1.0;
@@ -32,7 +35,6 @@ vec3 GetDirection(const in int face, const in vec2 uv) {
 
 void main() {
     v_Direction = normalize(GetDirection(PC.u_FaceIndex, a_TexCoord));
-    v_Roughness = PC.u_Roughness;
 
     gl_Position = vec4(a_Position * 2.0, 1.0);
 }
@@ -42,11 +44,14 @@ void main() {
 #ifdef FRAGMENT_SHADER
 
 layout(location = 0) in vec3 v_Direction;
-layout(location = 1) in float v_Roughness;
 
 layout(location = 0) out vec4 o_Color;
 
 layout(set = 1, binding = 0) uniform samplerCube u_Texture;
+
+// layout(push_constant) uniform PushConstants {
+//     float u_Roughness;
+// } PC;
 
 const uint NumSamples = 1024;
 const float InvNumSamples = float(NumSamples);
@@ -73,7 +78,7 @@ void main()
 	for(uint i = 0; i < NumSamples; i++)
 	{
 		vec2 u = SampleHammersley(i, InvNumSamples);
-		vec3 Lh = TangentToWorld(SampleGGX(u.x, u.y, v_Roughness), N, S, T);
+		vec3 Lh = TangentToWorld(SampleGGX(u.x, u.y, PC.u_Roughness), N, S, T);
 
 		// Compute incident direction (Li) by reflecting viewing direction (Lo) around half-vector (Lh).
 		vec3 Li = 2.0 * dot(Lo, Lh) * Lh - Lo;
@@ -87,7 +92,7 @@ void main()
 
 			// GGX normal distribution function (D term) probability density function.
 			// Scaling by 1/4 is due to change of density in terms of Lh to Li (and since N=V, rest of the scaling factor cancels out).
-			float pdf = NdfGGX(cosLh, v_Roughness) * 0.25;
+			float pdf = NdfGGX(cosLh, PC.u_Roughness) * 0.25;
 
 			// Solid angle associated with this sample.
 			float ws = 1.0 / (NumSamples * pdf);
@@ -101,6 +106,7 @@ void main()
 	}
 	color /= weight;
 
+    // color = (PC.u_Roughness > 0.0001) ? vec3(PC.u_Roughness) : vec3(0.0, 1.0, 0.0);
     o_Color = vec4(color, 1.0);
 
     // vec3 testColor = texture(u_Texture, N).rgb;

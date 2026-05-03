@@ -33,7 +33,7 @@ void main() {
 
     mat3 normalMatrix = mat3(u_VertContant.NormalMatrix);
     v_TexCoord = a_TexCoord;
-    v_FragPosition = vec3(viewPosition);
+    v_FragPosition = vec3(modelPosition);
 
     v_Normal = a_Normal;
     v_WorldNormal = normalMatrix * a_Normal;

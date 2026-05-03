@@ -31,7 +31,7 @@ vk::raii::DescriptorSetLayout
         b.setBinding(binding.Binding)
             .setDescriptorCount(binding.DescriptorCount)
             .setDescriptorType(ChozoUtils::Vulkan::ToVkDescType(binding.Type))
-            .setStageFlags(ChozoUtils::Vulkan::StageToFlagBits(binding.StageFlags))
+            .setStageFlags(ChozoUtils::Vulkan::ToVkStageFlags(binding.StageFlags))
             .setPImmutableSamplers(nullptr);
 
         vkBindings.push_back(b);

@@ -6,14 +6,28 @@ DEFINE_LOG_CATEGORY(LogVulkanUtils);
 
 namespace ChozoUtils::Vulkan {
 
-vk::ShaderStageFlagBits StageToFlagBits(EShaderStage shaderStage) {
+vk::ShaderStageFlagBits ToVkStageFlagBit(EShaderStage shaderStage) {
     switch (shaderStage) {
 #define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL, VULKAN)                                     \
     case EShaderStage::ENUM: return vk::ShaderStageFlagBits::e##VULKAN;
+
         FOREACH_SHADER_STAGE(GENERATE_CASE)
 #undef GENERATE_CASE
         default: return static_cast<vk::ShaderStageFlagBits>(0);
     }
+}
+
+vk::ShaderStageFlags ToVkStageFlags(EShaderStage shaderStage) {
+    vk::ShaderStageFlags vkFlags;
+
+#define GENERATE_CASE(ENUM, LOWER, UPPER, SHORT, GLSL, VULKAN)                                     \
+    if ((shaderStage & EShaderStage::ENUM) != EShaderStage::None) {                                \
+        vkFlags |= vk::ShaderStageFlagBits::e##VULKAN;                                             \
+    }
+    FOREACH_SHADER_STAGE(GENERATE_CASE)
+#undef GENERATE_CASE
+
+    return vkFlags;
 }
 
 template <typename T, typename Getter>
@@ -470,8 +484,8 @@ EPixelFormat FromVKFormat(vk::Format format) {
         // 32-bit 4-channel
         case vk::Format::eR32G32B32A32Sfloat: return EPixelFormat::RGBA32F;
 
-        // Special packed RGB (note: Vulkan stores these as BGR order, but we map to our RGB-named
-        // enums)
+        // Special packed RGB (note: Vulkan stores these as BGR order, but we map to our
+        // RGB-named enums)
         case vk::Format::eE5B9G9R9UfloatPack32: return EPixelFormat::RGB9E5;
         case vk::Format::eB10G11R11UfloatPack32: return EPixelFormat::R11G11B10F;
 

@@ -19,7 +19,8 @@ struct FQueueFamilyIndices {
 
 namespace ChozoUtils::Vulkan {
 
-vk::ShaderStageFlagBits StageToFlagBits(EShaderStage shaderStage);
+vk::ShaderStageFlagBits ToVkStageFlagBit(EShaderStage shaderStage);
+vk::ShaderStageFlags ToVkStageFlags(EShaderStage shaderStage);
 
 namespace {
 #ifdef NDEBUG

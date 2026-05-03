@@ -34,6 +34,8 @@ layout(set = 1, binding = 7) uniform sampler2D u_BRDFLutTex;
 layout(set = 1, binding = 8) uniform samplerCube u_IrradianceCubeMap;
 layout(set = 1, binding = 9) uniform samplerCube u_PrefilteredCubeMap;
 
+vec3 DebugColor = vec3(0.0);
+
 #include "shaders://Includes/GBuffer.glsl"
 #include "shaders://Includes/Lighting.glsl"
 #include "shaders://Includes/Material.glsl"
@@ -62,7 +64,7 @@ void main() {
 
     color += light;
     color += totalEmissiveRadiance;
-    // color = Dithering(color);
+    color = Dithering(color);
 
     float alpha = 1.0;
 
@@ -70,6 +72,11 @@ void main() {
     // color = pow(color, vec3(1.0/2.2));
 
     color = LinearTosRGB(vec4(color, 1.0)).rgb;
+
+    // float l = length(DebugColor);
+    // vec3 N = (l > 0.0001) ? normalize(DebugColor) : vec3(0.0, 1.0, 0.0);
+    // color = N * 0.5 + 0.5;
+    
     o_Color = vec4(color, 1.0);
 }
 

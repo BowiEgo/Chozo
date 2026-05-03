@@ -22,6 +22,7 @@ public:
     virtual void BindPipeline(TRef<IRHIPipeline> pipeline) override;
     virtual void BindDescriptorSets(int set, TRef<IRHIDescriptorSet> descSet) override;
     virtual void PushConstants(const void* data, uint32_t size, uint32_t offset) override;
+    virtual void PushConstants(const void* data, const FPushConstantRange& range) override;
     virtual void BindVertexBuffer(TRef<IRHIBuffer> vertexBuffer, int binding) override;
     virtual void BindIndexBuffer(TRef<IRHIBuffer> indexBuffer) override;
     virtual void DrawIndexed(uint32 indexCount) override;
@@ -43,8 +44,8 @@ private:
 
     vk::DescriptorSet GetOrCreateDescriptorSet(int set, vk::DescriptorSetLayout layout);
 
-    void PushConstants(VkShaderStageFlags stageFlags, const void* data, uint32_t size,
-                       uint32_t offset);
+    void PushConstants_Internal(vk::ShaderStageFlags stageFlags, const void* data, uint32_t size,
+                                uint32_t offset);
 
 private:
     TRef<CVulkanCommandPool> m_CommandPool;

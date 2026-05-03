@@ -188,7 +188,7 @@ public:
                 uint32_t mipLevels = renderTargets[0]->GetImage()->GetSpec().MipLevels;
                 for (uint32_t mip = 0; mip < mipLevels; ++mip) {
                     for (uint32_t face = 0; face < 6; ++face) {
-                        IRHIAPI::BeginRendering(cmd, shouldClear, face);
+                        IRHIAPI::BeginRendering(cmd, shouldClear, face, mip);
                         CRDGContext execCtx(cmd, pass, face, mip);
                         pass->ExecuteFunc(execCtx);
                         IRHIAPI::EndRendering(cmd);

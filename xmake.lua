@@ -19,6 +19,7 @@ add_runenvs("CZ_ROOT", path.absolute(os.projectdir()))
 
 if is_plat("windows") then
     add_defines("CZ_PLATFORM_WINDOWS")
+    add_defines("NOMINMAX")
 elseif is_plat("linux") then
     add_defines("CZ_PLATFORM_LINUX")
 elseif is_plat("macosx") then

@@ -28,15 +28,21 @@ void CVulkanPipeline::Init() {
 
     // ===== Push Constant Range =====
     std::vector<vk::PushConstantRange> pushConstantRanges;
-    if (m_Spec.PushConstantRanges.size() > 0) {
-        vk::PushConstantRange vertPushRange(vk::ShaderStageFlagBits::eVertex,    // stageFlags
-                                            m_Spec.PushConstantRanges[0].Offset, // offset
-                                            m_Spec.PushConstantRanges[0].Size    // size
+    for (auto& range : m_Spec.PushConstantRanges) {
+        vk::PushConstantRange pushRange(
+            ChozoUtils::Vulkan::ToVkStageFlags(range.StageFlags), // stageFlags
+            range.Offset,                                         // offset
+            range.Size                                            // size
         );
-        pushConstantRanges.push_back(vertPushRange);
+        pushConstantRanges.push_back(pushRange);
     }
 
-    // ===== Pipeline Layout =====
+    for (const auto& r : pushConstantRanges) {
+        CZ_LOG(LogVulkanPipeline, Info, "PushConstantRange: Name={} Stage={}, Offset={}, Size={}",
+               m_Spec.Name, (uint32_t)r.stageFlags, r.offset, r.size);
+    }
+
+// ===== Pipeline Layout =====
 #if 1
     FRHIPipelineLayoutDescription pipelineLayoutDesc =
         ChozoUtils::RHI::GeneratePipelineLayoutDesc(m_Spec.RHIShaders);
@@ -66,7 +72,7 @@ void CVulkanPipeline::Init() {
         TRef<CVulkanShader> vulkanShader = RHIShader.As<CVulkanShader>();
 
         shaderStages.push_back({ {},
-                                 ChozoUtils::Vulkan::StageToFlagBits(RHIShader->GetStage()),
+                                 ChozoUtils::Vulkan::ToVkStageFlagBit(RHIShader->GetStage()),
                                  vulkanShader->GetModule(),
                                  RHIShader->GetEntryPoint().c_str() });
     }
@@ -107,17 +113,11 @@ void CVulkanPipeline::Init() {
     vk::PipelineViewportStateCreateInfo viewportState({}, 1, nullptr, 1, nullptr);
 
     // ===== Rasterizer =====
-    bool mVulkanFrontFaceIsCounterClockwise = false;
-#if CZ_PLATFORM_MACOS
-    mVulkanFrontFaceIsCounterClockwise = true;
-#endif
-
     vk::PipelineRasterizationStateCreateInfo rasterizer{};
     rasterizer.setPolygonMode(vk::PolygonMode::eFill);
     rasterizer.setLineWidth(1.0f);
     rasterizer.setCullMode(ChozoUtils::Vulkan::ToVkCullMode(m_Spec.CullMode));
-    rasterizer.setFrontFace(mVulkanFrontFaceIsCounterClockwise ? vk::FrontFace::eCounterClockwise
-                                                               : vk::FrontFace::eClockwise);
+    rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
 
     // ===== Multisampling (Disabled) =====
     vk::PipelineMultisampleStateCreateInfo multisampling({}, vk::SampleCountFlagBits::e1);

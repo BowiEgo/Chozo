@@ -12,7 +12,7 @@ layout(location = 0) out vec3 v_Direction;
 
 layout(push_constant) uniform PushConstants {
     int u_FaceIndex;
-} pc;
+} PC;
 
 vec3 GetDirection(const in int face, const in vec2 uv) {
     vec2 ndc = uv * 2.0 - 1.0;
@@ -29,7 +29,7 @@ vec3 GetDirection(const in int face, const in vec2 uv) {
 }
 
 void main() {
-    v_Direction = normalize(GetDirection(pc.u_FaceIndex, a_TexCoord));
+    v_Direction = normalize(GetDirection(PC.u_FaceIndex, a_TexCoord));
     gl_Position = vec4(a_Position * 2.0, 1.0);
 }
 
@@ -58,8 +58,8 @@ void main()
 
     vec3 irradiance = vec3(0.0);
 	// uint samples = 64 * u_FragUniforms.Samples;
-    // uint samples = 64 * 512;
-    uint samples = 512;
+    uint samples = 32 * 512;
+    // uint samples = 512;
 
     for(uint i = 0; i < samples; i++)
 	{

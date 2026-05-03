@@ -97,7 +97,7 @@ void main() {
             break;
             
         case 12:
-            result = CubemapPreview(u_PrefilteredCubeMap, v_TexCoord, 0).rgb;
+            result = CubemapPreview(u_PrefilteredCubeMap, v_TexCoord, 0.8).rgb;
             break;
             
         default:

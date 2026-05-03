@@ -69,11 +69,16 @@ void CVulkanCommandBuffer::BindPipeline(TRef<IRHIPipeline> pipeline) {
 }
 
 void CVulkanCommandBuffer::PushConstants(const void* data, uint32_t size, uint32_t offset) {
-    PushConstants(VK_SHADER_STAGE_VERTEX_BIT, data, size, offset);
+    PushConstants_Internal(vk::ShaderStageFlags(VK_SHADER_STAGE_VERTEX_BIT), data, size, offset);
 }
 
-void CVulkanCommandBuffer::PushConstants(VkShaderStageFlags stageFlags, const void* data,
-                                         uint32_t size, uint32_t offset) {
+void CVulkanCommandBuffer::PushConstants(const void* data, const FPushConstantRange& range) {
+    PushConstants_Internal(ChozoUtils::Vulkan::ToVkStageFlags(range.StageFlags), data, range.Size,
+                           range.Offset);
+}
+
+void CVulkanCommandBuffer::PushConstants_Internal(vk::ShaderStageFlags stageFlags, const void* data,
+                                                  uint32_t size, uint32_t offset) {
     auto vkCommandBuffer              = GetVKCommandBuffer();
     vk::PipelineLayout pipelineLayout = m_CurrentPipeline->GetPipelineLayout();
     if (!pipelineLayout) {
@@ -81,8 +86,7 @@ void CVulkanCommandBuffer::PushConstants(VkShaderStageFlags stageFlags, const vo
         return;
     }
 
-    vkCommandBuffer.pushConstants(pipelineLayout, vk::ShaderStageFlags(stageFlags), offset, size,
-                                  data);
+    vkCommandBuffer.pushConstants(pipelineLayout, stageFlags, offset, size, data);
 }
 
 void CVulkanCommandBuffer::BindVertexBuffer(TRef<IRHIBuffer> vertexBuffer, int binding) {
