@@ -2,6 +2,7 @@
 
 #include "FileDialog.h"
 #include "FileSystemUtils.h"
+#include "IconManager.h"
 #include "RHIAPI.h"
 #include "TextureImporter.h"
 #include "UIUtils.h"
@@ -70,6 +71,77 @@ void ContentBrowserPanel::Draw(const char* title) {
         ImGui::EndMenuBar();
     }
 
+    // float bottomBarHeight = (GImGui->FontSize + ImGui::GetStyle().FramePadding.y +
+    //                          ImGui::GetStyle().ItemSpacing.y * 2.0f) *
+    //                         2;
+    float bottomBarHeight = 0;
+    if (ImGui::BeginTable("##table", 2, ImGuiTableFlags_Resizable, ImVec2(0, -bottomBarHeight))) {
+        ImGui::TableSetupColumn("##tree", ImGuiTableColumnFlags_WidthFixed, 125.0f);
+        ImGui::TableSetupColumn("##content", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableNextRow();
+        // Directory Tree
+        ImGui::TableSetColumnIndex(0);
+        ImGui::BeginChild("##treeContainer", ImVec2(0, -bottomBarHeight));
+        for (auto node : m_TreeCache)
+            RenderTree(node);
+        ImGui::EndChild();
+
+        // content on the right side
+        ImGui::TableSetColumnIndex(1);
+        ImGui::BeginChild("##contentContainer", ImVec2(0, -bottomBarHeight));
+        RenderContent();
+        ImGui::EndChild();
+
+        ImGui::EndTable();
+    }
+
+    ImGui::End();
+}
+
+TRef<CTexture> ContentBrowserPanel::GetIcon(const std::filesystem::path& path) {
+    std::string pathU8 = path.string();
+
+    if (pathU8 == "Quick Access") return CIconManager::Get().GetOrLoadSVGIcon("lightning");
+    if (pathU8 == "This Computer") return CIconManager::Get().GetOrLoadSVGIcon("computer");
+
+    CIconManager::Get().RestartLoading();
+    return CIconManager::Get().GetOrLoadFileIcon(path);
+}
+
+void ContentBrowserPanel::RenderTree(FileTreeNode* node) {
+    // directory
+    std::error_code ec;
+    ImGui::PushID(node);
+    bool isClicked          = false;
+    std::string displayName = node->Path.stem().string();
+    if (displayName.size() == 0) displayName = node->Path.string();
+
+    auto tex           = GetIcon(node->Path);
+    bool isDefaultOpen = displayName == "Quick Access" || displayName == "This Computer";
+    if (ChozoUtils::UI::FolderNode(displayName.c_str(), isClicked, GET_IM_TEXTURE_ID(tex),
+                                   ICON_SIZE, isDefaultOpen)) {
+        if (!node->Read) {
+            // cache children if it's not already cached
+            if (std::filesystem::exists(node->Path, ec))
+                for (const auto& entry : std::filesystem::directory_iterator(node->Path, ec)) {
+                    if (std::filesystem::is_directory(entry, ec))
+                        node->Children.push_back(new FileTreeNode(entry.path().string()));
+                }
+            node->Read = true;
+        }
+
+        // display children
+        for (auto c : node->Children)
+            if (c->Path == c->Path.root_path() || !ChozoUtils::File::IsHiddenOrSystem(c->Path))
+                RenderTree(c);
+
+        ImGui::TreePop();
+    }
+    // if (isClicked) SetDirectory(node->Path);
+    ImGui::PopID();
+}
+
+void ContentBrowserPanel::RenderContent() {
     // Show a table with ONLY one header row to showcase the idea/possibility of using this to
     // provide a sorting UI
     if (AllowSorting) {
@@ -313,7 +385,6 @@ void ContentBrowserPanel::Draw(const char* title) {
     ImGui::EndChild();
 
     ImGui::Text("Selected: %d/%d items", Selection.Size, m_Items.Size);
-    ImGui::End();
 
     // ------ File Dialog ------
     auto& fileDialog = UFileDialog::Get();

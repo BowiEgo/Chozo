@@ -33,6 +33,10 @@ namespace ChozoUtils::UI {
 #define COLOR_CYAN    0xFFFFFF00
 #define COLOR_MAGENTA 0xFFFF00FF
 
+#define ICON_SIZE        (ImGui::GetFontSize() + 3)
+#define GUI_ELEMENT_SIZE ((std::max)(ImGui::GetFontSize() + 10.f, 24.f))
+#define PI               3.141592f
+
 enum class ImGuiStyleType {
     Alpha,
     DisabledAlpha,
@@ -369,15 +373,15 @@ inline ImColor ColourWithMultipliedAlpha(const ImColor& color, float multiplier)
 
 //=========================================================================================
 // Cursor
-static void ShiftCursorX(float distance) {
+inline void ShiftCursorX(float distance) {
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + distance);
 }
 
-static void ShiftCursorY(float distance) {
+inline void ShiftCursorY(float distance) {
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + distance);
 }
 
-static void ShiftCursor(float x, float y) {
+inline void ShiftCursor(float x, float y) {
     const ImVec2 cursor = ImGui::GetCursorPos();
     ImGui::SetCursorPos(ImVec2(cursor.x + x, cursor.y + y));
 }
@@ -493,7 +497,7 @@ inline void DrawButtonImageByRatio(TRef<CTexture>& image, FVector2 size) {
 
 //=========================================================================================
 // IconButton
-static bool IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32 bgPressed) {
+inline bool IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32 bgPressed) {
     // ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 0.0f));
     // ScopedFrameStyle<float> frameRounding(ImGuiStyleType::FrameRounding, 2.0f);
     // ScopedFontStyle<float> font(ImGuiFontStyle::Scale, 1.2f);
@@ -505,7 +509,7 @@ static bool IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32
 
 //=========================================================================================
 // FileButton
-// static void FileButton(std::string* filePath) {
+// inline void FileButton(std::string* filePath) {
 //     ImGui::Button("...", ImVec2(40.0f, 0.0f));
 //     if (ImGui::BeginDragDropTarget()) {
 //         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
@@ -521,7 +525,7 @@ static bool IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32
 // }
 //=========================================================================================
 // DragAndDrop
-// static void BeginDragAndDrop(std::function<void(AssetHandle handle)>&& func) {
+// inline void BeginDragAndDrop(std::function<void(AssetHandle handle)>&& func) {
 //     if (ImGui::BeginDragDropTarget()) {
 //         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
 //             const wchar_t* handle_wchar = (const wchar_t*)payload->Data;
@@ -535,7 +539,7 @@ static bool IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32
 //     }
 // }
 
-static void DrawDashedRect(ImVec2 min, ImVec2 max, ImU32 color, float thickness = 1.0f,
+inline void DrawDashedRect(ImVec2 min, ImVec2 max, ImU32 color, float thickness = 1.0f,
                            float dashLength = 5.0f, float gapLength = 5.0f) {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     ImVec2 size;
@@ -574,5 +578,55 @@ unsigned char* LoadImagePreview(const char* path, int max_size, int* out_w, int*
 
 std::vector<std::string> GetWrappedFileName(const char* label, float WrapWidth, float MaxLineHeight,
                                             float RowSpacing, ImVec2 RawTextSize);
+
+inline bool FolderNode(const char* label, bool& clicked, ImTextureID icon,
+                       float iconSize = ICON_SIZE, bool default_open = false) {
+    ImGuiContext& g     = *GImGui;
+    ImGuiWindow* window = g.CurrentWindow;
+
+    clicked = false;
+
+    ImU32 id   = window->GetID(label);
+    int opened = window->StateStorage.GetInt(id, default_open ? 1 : 0);
+    ImVec2 pos = window->DC.CursorPos;
+    const bool is_mouse_x_over_arrow =
+        (g.IO.MousePos.x >= pos.x && g.IO.MousePos.x < pos.x + g.FontSize);
+    if (ImGui::InvisibleButton(label, ImVec2(-FLT_MIN, g.FontSize + g.Style.FramePadding.y * 2))) {
+        if (is_mouse_x_over_arrow) {
+            int* p_opened = window->StateStorage.GetIntRef(id, 0);
+            opened = *p_opened = !*p_opened;
+        } else {
+            clicked = true;
+        }
+    }
+    bool hovered     = ImGui::IsItemHovered();
+    bool active      = ImGui::IsItemActive();
+    bool doubleClick = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+    if (doubleClick && hovered) {
+        int* p_opened = window->StateStorage.GetIntRef(id, 0);
+        opened = *p_opened = !*p_opened;
+        clicked            = false;
+    }
+    if (hovered || active)
+        window->DrawList->AddRectFilled(
+            g.LastItemData.Rect.Min, g.LastItemData.Rect.Max,
+            ImGui::ColorConvertFloat4ToU32(
+                ImGui::GetStyle().Colors[active ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered]));
+
+    // Icon, text
+    float icon_posX = pos.x + g.FontSize + g.Style.FramePadding.y;
+    float text_posX = icon_posX + g.Style.FramePadding.y + iconSize;
+    ImGui::RenderArrow(window->DrawList, ImVec2(pos.x, pos.y + g.Style.FramePadding.y),
+                       ImGui::ColorConvertFloat4ToU32(
+                           ImGui::GetStyle().Colors[((hovered && is_mouse_x_over_arrow) || opened)
+                                                        ? ImGuiCol_Text
+                                                        : ImGuiCol_TextDisabled]),
+                       opened ? ImGuiDir_Down : ImGuiDir_Right);
+    window->DrawList->AddImage(icon, ImVec2(icon_posX, pos.y),
+                               ImVec2(icon_posX + iconSize, pos.y + iconSize));
+    ImGui::RenderText(ImVec2(text_posX, pos.y + g.Style.FramePadding.y), label);
+    if (opened) ImGui::TreePush(label);
+    return opened != 0;
+}
 
 } // namespace ChozoUtils::UI

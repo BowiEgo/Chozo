@@ -106,7 +106,7 @@ void CRenderer::Init() {
                                                "main" });
 
     // Texture
-    m_SkyboxTex  = CAssetManager::Get().GetOrLoadTexture("textures://HDRI/newport_loft.hdr");
+    m_SkyboxTex = CAssetManager::Get().GetOrLoadTexture("textures://HDRI/rosendal_plains_2_1k.hdr");
     m_BRDFLutTex = CAssetManager::Get().GetOrLoadTexture("textures://brdfLUT.png");
 
     {

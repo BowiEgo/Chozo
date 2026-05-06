@@ -1,10 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UIExport.h"
+
+#include "FileTreeNode.h"
 #include "FileUtils.h"
 #include "Texture.h"
 #include "ThreadPool.h"
-#include "UIExport.h"
 
 #include <stack>
 
@@ -13,25 +15,6 @@ DECLARE_LOG_CATEGORY_EXTERN(LogFileDialog, Info);
 #define IFD_DIALOG_FILE      0
 #define IFD_DIALOG_DIRECTORY 1
 #define IFD_DIALOG_SAVE      2
-
-class FileTreeNode {
-public:
-#ifdef CZ_PLATFORM_WINDOWS
-    FileTreeNode(const std::wstring& path) {
-        Path = std::filesystem::path(path);
-        Read = false;
-    }
-#endif
-
-    FileTreeNode(const std::string& path) {
-        Path = std::filesystem::path(path);
-        Read = false;
-    }
-
-    std::filesystem::path Path;
-    bool Read;
-    std::vector<FileTreeNode*> Children;
-};
 
 class FileData {
 public:

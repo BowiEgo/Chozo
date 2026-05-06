@@ -17,61 +17,7 @@
 
 DEFINE_LOG_CATEGORY(LogFileDialog);
 
-#define ICON_SIZE        (ImGui::GetFontSize() + 3)
-#define GUI_ELEMENT_SIZE ((std::max)(ImGui::GetFontSize() + 10.f, 24.f))
-#define PI               3.141592f
-
 static std::unordered_map<std::string, std::vector<std::string>> s_WrappedFileNameMap;
-
-/* UI CONTROLS */
-bool FolderNode(const char* label, ImTextureID icon, bool& clicked, bool default_open = false) {
-    ImGuiContext& g     = *GImGui;
-    ImGuiWindow* window = g.CurrentWindow;
-
-    clicked = false;
-
-    ImU32 id   = window->GetID(label);
-    int opened = window->StateStorage.GetInt(id, default_open ? 1 : 0);
-    ImVec2 pos = window->DC.CursorPos;
-    const bool is_mouse_x_over_arrow =
-        (g.IO.MousePos.x >= pos.x && g.IO.MousePos.x < pos.x + g.FontSize);
-    if (ImGui::InvisibleButton(label, ImVec2(-FLT_MIN, g.FontSize + g.Style.FramePadding.y * 2))) {
-        if (is_mouse_x_over_arrow) {
-            int* p_opened = window->StateStorage.GetIntRef(id, 0);
-            opened = *p_opened = !*p_opened;
-        } else {
-            clicked = true;
-        }
-    }
-    bool hovered     = ImGui::IsItemHovered();
-    bool active      = ImGui::IsItemActive();
-    bool doubleClick = ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
-    if (doubleClick && hovered) {
-        int* p_opened = window->StateStorage.GetIntRef(id, 0);
-        opened = *p_opened = !*p_opened;
-        clicked            = false;
-    }
-    if (hovered || active)
-        window->DrawList->AddRectFilled(
-            g.LastItemData.Rect.Min, g.LastItemData.Rect.Max,
-            ImGui::ColorConvertFloat4ToU32(
-                ImGui::GetStyle().Colors[active ? ImGuiCol_HeaderActive : ImGuiCol_HeaderHovered]));
-
-    // Icon, text
-    float icon_posX = pos.x + g.FontSize + g.Style.FramePadding.y;
-    float text_posX = icon_posX + g.Style.FramePadding.y + ICON_SIZE;
-    ImGui::RenderArrow(window->DrawList, ImVec2(pos.x, pos.y + g.Style.FramePadding.y),
-                       ImGui::ColorConvertFloat4ToU32(
-                           ImGui::GetStyle().Colors[((hovered && is_mouse_x_over_arrow) || opened)
-                                                        ? ImGuiCol_Text
-                                                        : ImGuiCol_TextDisabled]),
-                       opened ? ImGuiDir_Down : ImGuiDir_Right);
-    window->DrawList->AddImage(icon, ImVec2(icon_posX, pos.y),
-                               ImVec2(icon_posX + ICON_SIZE, pos.y + ICON_SIZE));
-    ImGui::RenderText(ImVec2(text_posX, pos.y + g.Style.FramePadding.y), label);
-    if (opened) ImGui::TreePush(label);
-    return opened != 0;
-}
 
 bool FileNode(const char* label, ImTextureID icon) {
     ImGuiContext& g     = *GImGui;
@@ -1021,7 +967,8 @@ void UFileDialog::RenderTree(FileTreeNode* node) {
 
     auto tex           = GetIcon(node->Path);
     bool isDefaultOpen = displayName == "Quick Access" || displayName == "This Computer";
-    if (FolderNode(displayName.c_str(), GET_IM_TEXTURE_ID(tex), isClicked, isDefaultOpen)) {
+    if (ChozoUtils::UI::FolderNode(displayName.c_str(), isClicked, GET_IM_TEXTURE_ID(tex),
+                                   ICON_SIZE, isDefaultOpen)) {
         if (!node->Read) {
             // cache children if it's not already cached
             if (std::filesystem::exists(node->Path, ec))
@@ -1296,8 +1243,9 @@ void UFileDialog::RenderFileDialog() {
     ImGui::PopStyleColor();
 
     if (ImGui::InputTextEx("##searchTB", "Search", m_SearchBuffer, 128,
-                           ImVec2(-FLT_MIN, GUI_ELEMENT_SIZE), 0)) // TODO: no hardcoded literals
-        SetDirectory(m_CurrentDirectory, false);                   // refresh
+                           ImVec2(-FLT_MIN, GUI_ELEMENT_SIZE),
+                           0))                   // TODO: no hardcoded literals
+        SetDirectory(m_CurrentDirectory, false); // refresh
 
     /***** CONTENT *****/
     float bottomBarHeight = (GImGui->FontSize + ImGui::GetStyle().FramePadding.y +

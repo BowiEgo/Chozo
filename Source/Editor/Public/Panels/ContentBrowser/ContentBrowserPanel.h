@@ -1,6 +1,8 @@
 #pragma once
 
+#include "FileTreeNode.h"
 #include "Panel.h"
+#include "Texture.h"
 
 #include "imgui_internal.h"
 
@@ -116,7 +118,15 @@ struct ExampleAsset {
 
 class ContentBrowserPanel : public Panel {
 public:
-    ContentBrowserPanel() {}
+    ContentBrowserPanel() {
+        FileTreeNode* quickAccess = new FileTreeNode("Quick Access");
+        quickAccess->Read         = true;
+        m_TreeCache.push_back(quickAccess);
+
+        quickAccess->Children.push_back(new FileTreeNode("Textures"));
+        quickAccess->Children.push_back(new FileTreeNode("Models"));
+        quickAccess->Children.push_back(new FileTreeNode("HDRIs"));
+    }
     ~ContentBrowserPanel() {}
 
     virtual void Draw(const char* title) override;
@@ -137,6 +147,9 @@ public:
     }
 
 private:
+    TRef<CTexture> GetIcon(const std::filesystem::path& path);
+    void RenderContent();
+    void RenderTree(FileTreeNode* node);
     void UpdateLayoutSizes(float avail_width);
 
 private:
@@ -169,4 +182,6 @@ private:
     float LayoutOuterPadding      = 0.0f;
     int LayoutColumnCount         = 0;
     int LayoutLineCount           = 0;
+
+    std::vector<FileTreeNode*> m_TreeCache;
 };

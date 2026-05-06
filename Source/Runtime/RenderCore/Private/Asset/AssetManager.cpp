@@ -108,7 +108,8 @@ TRef<CMaterial> CAssetManager::GetOrLoadMaterial(const FMaterialSpecification& s
     // }
 
     TRef<CMaterial> pbrMaterial = CreateRef<CMaterial>(
-        spec, FMaterialParamsWrapper{ FPBRMaterialParams{ { 0.8f, 0.4f, 0.2f, 1.0f } } });
+        spec,
+        FMaterialParamsWrapper{ FPBRMaterialParams{ { 0.6f, 0.0f, 0.0f, 1.0f }, 0.0f, 0.1f } });
 
     FAssetHandle handle = FAssetHandle::Generate();
     pbrMaterial->SetHandle(handle);
