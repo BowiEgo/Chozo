@@ -1,0 +1,10 @@
+.vscode
+.vs
+.idea
+.cache
+
+build
+
+*.exe
+.clangd
+.DS_Store
