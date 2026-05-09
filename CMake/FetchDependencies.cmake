@@ -1,5 +1,17 @@
 include(FetchContent)
 
+## Fetch doctest
+
+FetchContent_Declare(
+  doctest
+  GIT_REPOSITORY https://github.com/doctest/doctest.git
+  GIT_TAG v2.4.11 
+)
+FetchContent_MakeAvailable(doctest)
+
+
+## Fetch fmt
+
 FetchContent_Declare(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
@@ -14,7 +26,6 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
   GIT_TAG v1.17.0
 )
-
 FetchContent_MakeAvailable(spdlog)
 message(STATUS "CHOZO SPDLOG SOURCE DIR:     ${spdlog_SOURCE_DIR}")
 
@@ -26,6 +37,9 @@ FetchContent_Declare(
   GIT_TAG release-3.4.8
 )
 
+set(SDL3_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(SDL3_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(SDL3_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 set(SDL_TESTS OFF CACHE BOOL "" FORCE)
 set(SDL_INSTALL_TESTS OFF CACHE BOOL "" FORCE)

@@ -64,6 +64,10 @@ include(CMake/FindDependencies.cmake)
 # Utilities to manage modules
 include(CMake/ChozoModule.cmake)
 
+# Add test
+include(CMake/ChozoModuleTests.cmake)
+
+
 # build extra libs
 add_subdirectory(${CHOZO_EXTERNAL_DIR}/stb)
 
@@ -74,6 +78,7 @@ add_subdirectory(${CHOZO_EXTERNAL_DIR}/stb)
 set(CZ_CORE_MODULE_FOLDER "Core")
 set(CZ_CORE_MODULE_LIST "" CACHE STRING "" FORCE)
 add_subdirectory(Source/Core/Log)
+add_subdirectory(Source/Core/Memory)
 
 add_library(CZCoreLibs INTERFACE)
 target_link_libraries(CZCoreLibs INTERFACE
@@ -89,3 +94,10 @@ set(CZ_RUNTIME_MODULE_FOLDER "Launch")
 add_subdirectory(Source/Runtime)
 
 # include(CMake/EmbedRuntime.cmake)
+
+# Chozo Test
+# - standalone test framework
+# - links with CZCoreLibs
+
+set(CZ_RUNTIME_MODULE_FOLDER "Test")
+add_subdirectory(Source/Test)

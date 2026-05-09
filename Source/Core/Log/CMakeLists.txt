@@ -17,3 +17,5 @@ add_chozo_core_module(
 target_link_libraries(${MODULE_NAME} PRIVATE
 	spdlog::spdlog_header_only
 )
+
+add_chozo_module_tests()

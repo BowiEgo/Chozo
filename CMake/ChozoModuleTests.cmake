@@ -1,0 +1,32 @@
+set(ALL_TEST_FILES "" CACHE INTERNAL "Collected test source files")
+
+function(add_chozo_test TEST_FILES)
+    if(ALL_TEST_FILES)
+        set(ALL_TEST_FILES "${ALL_TEST_FILES};${TEST_FILES}" CACHE INTERNAL "")
+    else()
+        set(ALL_TEST_FILES "${TEST_FILES}" CACHE INTERNAL "")
+    endif()
+endfunction()
+
+function(add_chozo_module_tests)
+    set(options)
+    set(oneValueArgs GLOB_PATTERN)
+    set(multiValueArgs FILES)
+    cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if(ARG_FILES)
+        add_chozo_test("${ARG_FILES}")
+        return()
+    endif()
+
+    if(NOT ARG_GLOB_PATTERN)
+        set(ARG_GLOB_PATTERN "Tests/*Test.cpp")
+    endif()
+
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Tests")
+        file(GLOB LOCAL_TEST_FILES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${ARG_GLOB_PATTERN}")
+        if(LOCAL_TEST_FILES)
+            add_chozo_test("${LOCAL_TEST_FILES}")
+        endif()
+    endif()
+endfunction()
