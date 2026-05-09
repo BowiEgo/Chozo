@@ -1,6 +1,8 @@
 set(MODULE_NAME CZTest)
 
-set(MODULE_SRC Main.cpp)
+set(MODULE_SRC
+    Main.cpp
+)
 
 add_executable(${MODULE_NAME}
     ${MODULE_SRC}

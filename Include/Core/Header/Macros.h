@@ -1,5 +1,8 @@
 #pragma once
 
+#include <functional>
+#include <string>
+
 ////////////////////////////////////////////////////////////////////////////
 //============================ Debug =====================================//
 ////////////////////////////////////////////////////////////////////////////
@@ -39,3 +42,23 @@ static constexpr bool GIsDebug = false;
 #else
     #define CZ_DEBUGBREAK()
 #endif
+
+////////////////////////////////////////////////////////////////////////////
+//=========================== Global Macros ==============================//
+////////////////////////////////////////////////////////////////////////////
+// Use 1ULL to ensure we support up to 64-bit flags safely
+#define BIT(x) (1ULL << (x))
+
+// Support functions with any number of arguments
+#define CZ_BIND_EVENT_FN(fn)                                                                       \
+    [this](auto&&... args) { return fn(std::forward<decltype(args)>(args)...); }
+
+#define CZ_CONCAT_IMPL(a, b) a##b
+#define CZ_CONCAT(a, b)      CZ_CONCAT_IMPL(a, b)
+
+////////////////////////////////////////////////////////////////////////////
+//================================ Hash ==================================//
+////////////////////////////////////////////////////////////////////////////
+inline void HashCombine(size_t& seed, size_t value) {
+    seed ^= value + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}

@@ -6,7 +6,7 @@ namespace CZ {
 
 using uint8 = std::uint8_t;
 
-enum class ELogVerbosity : uint8 {
+enum class LogVerbosity : uint8 {
     Fatal,   // Critical error, app cannot continue
     Error,   // Runtime error that requires attention
     Warning, // Unusual behavior that isn't an error yet

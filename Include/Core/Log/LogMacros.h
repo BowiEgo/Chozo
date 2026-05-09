@@ -9,33 +9,33 @@ namespace CZ {
 /**
  * Base class for all log categories
  */
-struct FLogCategoryBase {
-    FLogCategoryBase(const char* InName, ELogVerbosity InDefaultVerbosity)
+struct LogCategoryBase {
+    LogCategoryBase(const char* InName, LogVerbosity InDefaultVerbosity)
         : Name(InName), DefaultVerbosity(InDefaultVerbosity) {}
 
     const char* Name;
-    ELogVerbosity DefaultVerbosity;
+    LogVerbosity DefaultVerbosity;
 };
 
 } // namespace CZ
 
 #ifdef CZ_DIST
-    #define CZ_LOG_LEVEL ELogVerbosity::Info
+    #define CZ_LOG_LEVEL LogVerbosity::Info
 #else
-    #define CZ_LOG_LEVEL ELogVerbosity::Trace
+    #define CZ_LOG_LEVEL LogVerbosity::Trace
 #endif
 
 // Helper macros to declare and define categories
 #define DECLARE_LOG_CATEGORY_EXTERN(CategoryName, DefaultVerbosity)                                \
-    extern struct FLogCategory##CategoryName : public FLogCategoryBase {                           \
+    extern struct FLogCategory##CategoryName : public LogCategoryBase {                            \
         FLogCategory##CategoryName()                                                               \
-            : FLogCategoryBase(#CategoryName, ELogVerbosity::DefaultVerbosity) {}                  \
+            : LogCategoryBase(#CategoryName, LogVerbosity::DefaultVerbosity) {}                    \
     } CategoryName;
 
 #define DEFINE_LOG_CATEGORY_STATIC(CategoryName, DefaultVerbosity)                                 \
-    struct FLogCategory##CategoryName : public FLogCategoryBase {                                  \
+    struct FLogCategory##CategoryName : public LogCategoryBase {                                   \
         FLogCategory##CategoryName()                                                               \
-            : FLogCategoryBase(#CategoryName, ELogVerbosity::DefaultVerbosity) {}                  \
+            : LogCategoryBase(#CategoryName, LogVerbosity::DefaultVerbosity) {}                    \
     } CategoryName;
 
 #define DEFINE_LOG_CATEGORY(CategoryName) FLogCategory##CategoryName CategoryName;
@@ -53,11 +53,10 @@ struct FLogCategoryBase {
 #define CZ_LOG(Category, Verbosity, Format, ...)                                                   \
     do {                                                                                           \
         CZ_DISABLE_TAUTOLOGICAL_WARNING                                                            \
-        if (static_cast<uint8_t>(ELogVerbosity::Verbosity) <=                                      \
-            static_cast<uint8_t>(CZ_LOG_LEVEL)) {                                                  \
-            Logger::Get().Log(#Category, ELogVerbosity::Verbosity,                                 \
+        if (static_cast<uint8_t>(LogVerbosity::Verbosity) <= static_cast<uint8_t>(CZ_LOG_LEVEL)) { \
+            Logger::Get().Log(#Category, LogVerbosity::Verbosity,                                  \
                               fmt::format(fmt::runtime(Format), ##__VA_ARGS__));                   \
-            if (ELogVerbosity::Verbosity == ELogVerbosity::Fatal) {                                \
+            if (LogVerbosity::Verbosity == LogVerbosity::Fatal) {                                  \
                 CZ_DEBUGBREAK();                                                                   \
             }                                                                                      \
         }                                                                                          \

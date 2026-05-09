@@ -11,7 +11,7 @@ namespace CZ {
 
 template <typename Mutex> class LogCallbackSinkImpl : public spdlog::sinks::base_sink<Mutex> {
 public:
-    using LogCallback = std::function<void(const std::string&, ELogVerbosity)>;
+    using LogCallback = std::function<void(const std::string&, LogVerbosity)>;
     explicit LogCallbackSinkImpl(LogCallback callback) : m_Callback(std::move(callback)) {}
 
 protected:
@@ -80,12 +80,12 @@ void Logger::RemoveSink(Logger::SinkHandle sinkHandle) {
     sinks.erase(std::remove(sinks.begin(), sinks.end(), sinkHandle), sinks.end());
 }
 
-void Logger::Log(const std::string& category, ELogVerbosity verbosity, const std::string& message) {
+void Logger::Log(const std::string& category, LogVerbosity verbosity, const std::string& message) {
     auto spdLevel = LogUtils::ToSpdlogLevel(verbosity);
 
     Impl->SpdLogger->log(spdLevel, "[{}] {}", category, message);
 
-    if (verbosity == ELogVerbosity::Fatal) {
+    if (verbosity == LogVerbosity::Fatal) {
         Impl->SpdLogger->flush();
         CZ_DEBUGBREAK();
         abort();

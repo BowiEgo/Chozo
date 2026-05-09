@@ -1,12 +1,18 @@
 #pragma once
 
+#include <Core/Header/Macros.h>
+#include <Core/Log/LogEnum.h>
+#include <Core/Log/LogMacros.h>
+
 #include <string>
+
+using namespace CZ;
 
 // --- Assertion System ---
 static inline bool g_AssertThrowInsteadOfAbort = false;
 static inline std::string g_LastAssertMessage;
 
-#ifdef CZ_DEBUG
+#ifndef CZ_DEBUG
     // Internal assertion implementation
     #define CZ_INTERNAL_ASSERT_IMPL(type, condition, ...)                                          \
         do {                                                                                       \

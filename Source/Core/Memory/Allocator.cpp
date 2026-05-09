@@ -117,7 +117,7 @@ void* LinearAllocator::AllocateAligned(size_t size, size_t alignment) {
     if (pad + size > Remain()) m_Obj->AllocatePage();
 
     currentPage = m_Obj->PageList;
-    CZ_CORE_ASSERT(currentPage->used + pad + size <= m_Obj->capacity);
+    CZ_CORE_ASSERT(currentPage->Used + pad + size <= m_Obj->Capacity);
 
     Byte* base = (Byte*)currentPage + sizeof(LinearAllocatorObj::Page) + currentPage->Used + pad;
     currentPage->Used += pad + size;

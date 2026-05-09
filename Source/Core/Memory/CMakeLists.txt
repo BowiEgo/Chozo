@@ -1,5 +1,7 @@
 set(MODULE_NAME CZMemory)
 
+set(MODULE_TYPE Core)
+
 set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Core/Memory/Memory.h
     ${CHOZO_INCLUDE_DIR}/Core/Memory/Allocator.h
@@ -12,8 +14,9 @@ set(MODULE_SRC
     TypeMemoryTracker.cpp
 )
 
-add_chozo_core_module(
+add_chozo_module(
     NAME    ${MODULE_NAME}
+    TYPE    ${MODULE_TYPE}
     INCLUDE ${MODULE_INCLUDE}
     SOURCE  ${MODULE_SRC}
 )

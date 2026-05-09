@@ -8,10 +8,10 @@ A comprehensive, phased plan to modernize the engine core, rendering, tools, and
 
 - [ ] **Build System & CI/CD**
     - [ ] Migrate from xmake to CMake
-        - [ ] Top-level `CMakeLists.txt` using modern CMake style (`target_*` commands, PUBLIC/PRIVATE separation).
-        - [ ] Per-module `CMakeLists.txt` (e.g., `Core/`, `RHI/`, `UI/`).
+        - [x] Top-level `CMakeLists.txt` using modern CMake style (`target_*` commands, PUBLIC/PRIVATE separation).
+        - [x] Per-module `CMakeLists.txt` (e.g., `Core/`, `RHI/`, `UI/`).
         - [ ] Configure compilation options, feature flags (`option()`), and default build types.
-        - [ ] Integrate third-party libraries (glm, volk, Vulkan SDK, Tracy, slang, etc.) via `FetchContent` or `find_package`.
+        - [x] Integrate third-party libraries (glm, volk, Vulkan SDK, Tracy, slang, etc.) via `FetchContent` or `find_package`.
     - [ ] Set up CI/CD pipeline (GitHub Actions / GitLab CI)
         - [ ] Automated builds (Debug/Release) and unit tests.
         - [ ] Static code analysis (clang-tidy, cppcheck) and code formatting checks (clang-format).
@@ -26,7 +26,7 @@ A comprehensive, phased plan to modernize the engine core, rendering, tools, and
     - [ ] Each module exposes only a limited set of public headers; internal ones stay in `Source/`.
 
 - [ ] **Handle‑Body Pattern & Entity Registry**
-    - [ ] Implement `RHandle<T>` template.
+    - [x] Implement `Handle<T>` template.
     - [ ] Implement `EntityRegistry<T>` for cameras, components, resources, etc.
 
 - [ ] **Core Utility Modules**
@@ -43,8 +43,8 @@ A comprehensive, phased plan to modernize the engine core, rendering, tools, and
         - [ ] Registerable command callbacks.
 
 - [ ] **Memory Management Foundation**
-    - [ ] Custom `new`/`delete` operators (centralized in `Core/Memory.h`).
-    - [ ] Implement **Linear Allocator** (per‑frame) and **Pool Allocator** (fixed‑size objects).
+    - [x] Custom `new`/`delete` operators (centralized in `Core/Memory.h`).
+    - [x] Implement **Linear Allocator** (per‑frame) and **Pool Allocator** (fixed‑size objects).
     - [ ] Tracy integration: instrument allocations, locks, rendering areas.
 
 - [ ] **Application & Window Boundary Cleanup**

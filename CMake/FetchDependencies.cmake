@@ -47,3 +47,22 @@ set(SDL_DISABLE_INSTALL_DOCS OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(sdl3)
 message(STATUS "CHOZO SDL3 SOURCE DIR:     ${sdl3_SOURCE_DIR}")
+
+## Fetch Vulkan Memory Allocator
+
+FetchContent_Declare(
+  vma
+  GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+  GIT_TAG v3.3.0
+)
+FetchContent_MakeAvailable(vma)
+
+if(TARGET GPUOpen::VulkanMemoryAllocator)
+  message(STATUS "Found target: GPUOpen::VulkanMemoryAllocator")
+elseif(TARGET VulkanMemoryAllocator)
+  message(STATUS "Found target: VulkanMemoryAllocator")
+else()
+  message(WARNING "Could not find a known target for VMA.")
+endif()
+
+message(STATUS "CHOZO VMA SOURCE DIR:      ${vma_SOURCE_DIR}")

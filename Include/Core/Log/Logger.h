@@ -15,14 +15,14 @@ public:
 
     using SinkHandle = std::shared_ptr<void>;
     static SinkHandle
-        AddCallbackSink(std::function<void(const std::string&, ELogVerbosity)> callback,
+        AddCallbackSink(std::function<void(const std::string&, LogVerbosity)> callback,
                         const std::string& pattern = "%v");
     static void RemoveSink(SinkHandle handle);
 
     /**
      * The core log function that dispatches messages to sinks
      */
-    void Log(const std::string& category, ELogVerbosity verbosity, const std::string& message);
+    void Log(const std::string& category, LogVerbosity verbosity, const std::string& message);
 
 private:
     Logger();
