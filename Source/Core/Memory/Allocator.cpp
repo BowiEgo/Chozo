@@ -16,7 +16,7 @@ struct LinearAllocatorObj {
     bool bIsMultiPage; /// whether allocator paginates
 
     void AllocatePage() {
-        Page* page = (Page*)HeapMalloc(sizeof(Page) + Capacity, Usage);
+        Page* page = (Page*)HEAP_MALLOC(sizeof(Page) + Capacity, Usage);
         page->Next = PageList;
         page->Used = 0;
         PageList   = page;
@@ -37,7 +37,7 @@ struct LinearAllocatorObj {
 
 LinearAllocator LinearAllocator::Create(const LinearAllocatorInfo& info) {
     LinearAllocatorObj* obj =
-        (LinearAllocatorObj*)HeapMalloc(sizeof(LinearAllocatorObj), info.Usage);
+        (LinearAllocatorObj*)HEAP_MALLOC(sizeof(LinearAllocatorObj), info.Usage);
     obj->Usage        = info.Usage;
     obj->Capacity     = info.Capacity;
     obj->PageList     = nullptr; // defer until first allocation
@@ -169,7 +169,7 @@ struct PoolAllocatorObj {
     bool bIsMultiPage;
 
     void AllocatePage() {
-        Page* page           = (Page*)HeapMalloc(sizeof(Page) + BlockSize * PageSize, Usage);
+        Page* page           = (Page*)HEAP_MALLOC(sizeof(Page) + BlockSize * PageSize, Usage);
         page->Obj            = this;
         page->Next           = PageList;
         PageList             = page;
@@ -193,7 +193,7 @@ static_assert(sizeof(PoolAllocatorObj::Block) == 16); // update Allocator.h
 PoolAllocator PoolAllocator::Create(const PoolAllocatorInfo& info) {
     CZ_CORE_ASSERT(info.BlockSize != 0 && info.PageSize > 0);
 
-    PoolAllocatorObj* obj = (PoolAllocatorObj*)HeapMalloc(sizeof(PoolAllocatorObj), info.Usage);
+    PoolAllocatorObj* obj = (PoolAllocatorObj*)HEAP_MALLOC(sizeof(PoolAllocatorObj), info.Usage);
     obj->Usage            = info.Usage;
     obj->BlockSize = info.BlockSize +
                      sizeof(PoolAllocatorObj::Block); // each block includes 16-byte header overhead

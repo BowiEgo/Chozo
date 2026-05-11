@@ -20,23 +20,34 @@ bool Application::Startup(const ApplicationSpecification& appSpec, std::string& 
         spec.Title = appSpec.Name;
         spec.Size  = { WINDOW_WIDTH, WINDOW_HEIGHT };
 
-        m_Window = CreateScope<Window>(spec);
+        m_Window = CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, Window, spec);
         m_Window->Init(err);
         m_Window->SetEventCallback(CZ_BIND_EVENT_FN(OnEvent));
     }
 
     {
         // Setup Engine
-        m_Engine = CreateScope<Engine>(m_Window.get());
+        m_Engine = CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, Engine, m_Window.get());
         m_Engine->Init(err);
     }
 
     return true;
 }
 
-void Application::Shutdown() { m_Engine->Shutdown(); }
+void Application::Shutdown() {
+    m_Engine->Shutdown();
+    m_Engine.reset();
 
-void Application::Run() { CZ_LOG(LogApplication, Trace, "Running..."); }
+    m_Window->Shutdown();
+    m_Window.reset();
+
+    ReportMemoryLeaks();
+}
+
+void Application::Run() {
+    // CZ_LOG(LogApplication, Trace, "Running...");
+    m_Window->OnUpdate();
+}
 
 bool Application::OnEvent(Event& e) {
     // for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();) {

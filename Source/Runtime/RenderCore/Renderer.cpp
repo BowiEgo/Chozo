@@ -13,7 +13,7 @@ struct RendererObj {
 };
 
 Renderer Renderer::Create(const RendererSpecification& spec) {
-    RendererObj* obj = New<RendererObj>(MEMORY_USAGE_RENDER);
+    RendererObj* obj = CZ_NEW(MEMORY_USAGE_RENDER, RendererObj);
 
     obj->Window         = spec.Window;
     obj->GraphicContext = spec.GraphicContext;

@@ -196,13 +196,13 @@ enum class UniformType : uint8_t {
 struct UniformSpecification {
     UniformType Type;
     ShaderDataType Format;
-    std::string Name;         // 成员名 (如 "u_Color")
-    std::string ResourceName; // 容器名 (如 "u_MaterialData")
-    uint32 Size      = 0;     // 字节大小
+    std::string Name;         // member name ("u_Color")
+    std::string ResourceName; // ("u_MaterialData")
+    uint32 Size      = 0;     // byte size
     uint32 Offset    = 0;
-    uint32 Binding   = 0; // 绑定点
-    uint32 Set       = 0; // 所在的 DescriptorSet 编号
-    uint32 ArraySize = 1; // 数组长度 (1 表示非数组，0 可能表示运行时数组)
+    uint32 Binding   = 0;
+    uint32 Set       = 0;
+    uint32 ArraySize = 1;
 
     std::string fullName() const {
         return ResourceName.empty() ? Name : (ResourceName + "." + Name);

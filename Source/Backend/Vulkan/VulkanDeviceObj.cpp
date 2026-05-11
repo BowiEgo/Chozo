@@ -25,10 +25,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogVulkanDevice, Info);
 extern "C" {
 
 DeviceObj* CreateVulkanDeviceObj(const DeviceSpecification& spec) {
-    return New<VulkanDeviceObj>(MEMORY_USAGE_RENDER, spec);
+    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanDeviceObj, spec);
 }
-
-void DestroyVulkanDeviceObj(DeviceObj* obj) { Delete(obj); }
 
 } // extern "C"
 

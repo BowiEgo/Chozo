@@ -12,10 +12,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogVulkanGraphicContext, Info);
 extern "C" {
 
 GraphicContextObj* CreateVulkanGraphicContextObj(const GraphicContextSpecification& spec) {
-    return New<VulkanGraphicContextObj>(MEMORY_USAGE_RENDER, spec);
+    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanGraphicContextObj, spec);
 }
-
-void DestroyVulkanGraphicContextObj(VulkanGraphicContextObj* obj) { Delete(obj); }
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL

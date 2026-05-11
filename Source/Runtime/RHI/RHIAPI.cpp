@@ -42,8 +42,9 @@ bool RHIAPI::Init(const GraphicContextSpecification& gcSpec, std::string& err) {
 }
 
 void RHIAPI::Shutdown() {
-    Device::Destroy(m_Device);
-    GraphicContext::Destroy(m_GraphicContext);
+    // Swapchain::Destroy(m_Swapchain);
+    // Device::Destroy(m_Device);
+    // GraphicContext::Destroy(m_GraphicContext);
 }
 
 GraphicContext RHIAPI::CreateGraphicContext(const GraphicContextSpecification& spec) {

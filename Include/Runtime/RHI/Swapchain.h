@@ -19,7 +19,12 @@ class SwapchainObj {
 public:
     SwapchainObj(const Device device, const SwapchainSpecification& spec)
         : m_Device(device), m_Spec(spec) {}
-    virtual ~SwapchainObj() = default;
+    virtual ~SwapchainObj() {
+        for (auto& tex : m_ColorAttachments) {
+            Texture::Destroy(tex);
+        }
+        m_ColorAttachments.clear();
+    }
 
     virtual PixelFormat GetImageFormat() const = 0;
     virtual PixelFormat GetDepthFormat() const = 0;

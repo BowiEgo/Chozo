@@ -14,10 +14,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogVulkanImage, Info);
 extern "C" {
 
 ImageObj* CreateVulkanImageObj(const Device device, const ImageSpecification& spec) {
-    return New<VulkanImageObj>(MEMORY_USAGE_RENDER, device, spec);
+    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanImageObj, device, spec);
 }
-
-void DestroyVulkanImageObj(VulkanImageObj* obj) { Delete(obj); }
 }
 
 VulkanImageObj::VulkanImageObj(const Device device, const ImageSpecification& spec)
@@ -36,7 +34,28 @@ VulkanImageObj::VulkanImageObj(const Device device, const ImageSpecification& sp
     m_VkCurrentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 }
 
-VulkanImageObj::~VulkanImageObj() {}
+VulkanImageObj::~VulkanImageObj() {
+    auto deviceObj = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
+
+    VkDevice logicalDevice = deviceObj->GetLogicalDevice();
+
+    if (!m_IsExternal) {
+        for (auto& [spec, view] : m_ViewCache) {
+            vkDestroyImageView(logicalDevice, view, nullptr);
+        }
+
+        if (m_VmaAllocation != VK_NULL_HANDLE) {
+            vmaDestroyImage(deviceObj->GetVmaAllocator(), m_VkImage, m_VmaAllocation);
+            m_VkImage       = VK_NULL_HANDLE;
+            m_VmaAllocation = VK_NULL_HANDLE;
+        } else {
+            if (m_VkImage) vkDestroyImage(logicalDevice, m_VkImage, nullptr);
+            if (m_VkMemory) vkFreeMemory(logicalDevice, m_VkMemory, nullptr);
+        }
+    }
+
+    m_IsValid = false;
+}
 
 void VulkanImageObj::Init() {
     m_VkFormat = VulkanUtils::ToVkFormat(m_Spec.Format);

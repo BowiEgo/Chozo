@@ -78,8 +78,4 @@ protected:
     bool m_ShouldClose        = false;
 };
 
-template <> struct MemoryTraits<Window> {
-    static constexpr MemoryUsage Usage = MEMORY_USAGE_RUNTIME;
-};
-
 } // namespace CZ

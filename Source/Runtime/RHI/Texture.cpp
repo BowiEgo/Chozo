@@ -10,14 +10,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogTexture, Info);
 void Texture::Destroy(Texture texture) {
     if (!texture) return;
 
-    auto& registry = BackendRegistry::Get();
-    auto destroyFn =
-        registry.GetFunction<void (*)(TextureObj*)>("vulkan", "DestroyVulkanTextureObj");
-    if (destroyFn) {
-        destroyFn(static_cast<TextureObj*>(texture.Unwrap()));
-    } else {
-        CZ_LOG(LogTexture, Error, "DestroyVulkanTextureObj not found, memory leak possible.");
-    }
+    Delete(texture.Unwrap());
 }
 
 } // namespace CZ

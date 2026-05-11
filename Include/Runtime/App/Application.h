@@ -31,12 +31,9 @@ public:
     Application& operator=(const Application&) = delete;
 
     bool Startup(const ApplicationSpecification& spec, std::string& err);
-    bool ShouldClose() const { return m_ShouldClose; }
-
+    bool ShouldClose() const { return m_Window ? m_Window->ShouldClose() : true; }
     void Shutdown();
-
     void Run();
-
     bool OnEvent(Event& e);
 
 private:

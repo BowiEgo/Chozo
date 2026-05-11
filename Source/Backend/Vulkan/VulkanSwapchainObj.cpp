@@ -17,10 +17,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogVulkanSwapchain, Info);
 extern "C" {
 
 SwapchainObj* CreateVulkanSwapchainObj(const Device device, const SwapchainSpecification& spec) {
-    return New<VulkanSwapchainObj>(MEMORY_USAGE_RENDER, device, spec);
+    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanSwapchainObj, device, spec);
 }
-
-void DestroyVulkanSwapchainObj(VulkanSwapchainObj* obj) { Delete(obj); }
 }
 
 VulkanSwapchainObj::VulkanSwapchainObj(const Device device, const SwapchainSpecification& spec)
@@ -28,7 +26,25 @@ VulkanSwapchainObj::VulkanSwapchainObj(const Device device, const SwapchainSpeci
     Init();
 }
 
-VulkanSwapchainObj::~VulkanSwapchainObj() {}
+VulkanSwapchainObj::~VulkanSwapchainObj() {
+    auto deviceObj = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
+
+    CZ_CORE_ASSERT(deviceObj, "Device is no longer valid during Swapchain destroying!");
+
+    VkDevice logicalDevice = deviceObj->GetLogicalDevice();
+
+    for (auto sem : m_ImageAvailableSemaphores) {
+        if (sem != VK_NULL_HANDLE) vkDestroySemaphore(logicalDevice, sem, nullptr);
+    }
+    m_ImageAvailableSemaphores.clear();
+
+    for (auto sem : m_RenderFinishedSemaphores) {
+        if (sem != VK_NULL_HANDLE) vkDestroySemaphore(logicalDevice, sem, nullptr);
+    }
+    m_RenderFinishedSemaphores.clear();
+
+    vkDestroySwapchainKHR(logicalDevice, m_VKSwapchain, nullptr);
+}
 
 void VulkanSwapchainObj::Recreate(const Extent2D& frameBufferSize) {
     auto deviceObj = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
@@ -180,12 +196,13 @@ void VulkanSwapchainObj::Init() {
         texSpec.Usage  = TextureUsage::Attachment;
 
         // Create a VulkanImage that holds the external swapchain image
-        VulkanImageObj* imageObj = New<VulkanImageObj>(MEMORY_USAGE_RENDER, m_Device,
-                                                       texSpec.ToImageSpec(), rawImage, true);
+        VulkanImageObj* imageObj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanImageObj, m_Device,
+                                          texSpec.ToImageSpec(), rawImage, true);
+
         Image image(imageObj);
 
         VulkanTextureObj* textureObj =
-            New<VulkanTextureObj>(MEMORY_USAGE_RENDER, m_Device, texSpec, image);
+            CZ_NEW(MEMORY_USAGE_RENDER, VulkanTextureObj, m_Device, texSpec, image);
 
         Texture texture(textureObj);
 

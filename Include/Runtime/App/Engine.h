@@ -27,7 +27,4 @@ private:
     Renderer m_Renderer;
 };
 
-template <> struct MemoryTraits<Engine> {
-    static constexpr MemoryUsage Usage = MEMORY_USAGE_RUNTIME;
-};
 } // namespace CZ

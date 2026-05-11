@@ -11,10 +11,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogVulkanTexture, Info);
 extern "C" {
 
 TextureObj* CreateVulkanTextureObj(const Device device, const TextureSpecification& spec) {
-    return New<VulkanTextureObj>(MEMORY_USAGE_RENDER, device, spec);
+    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanTextureObj, device, spec);
 }
-
-void DestroyVulkanTextureObj(VulkanTextureObj* obj) { Delete(obj); }
 }
 
 VulkanTextureObj::VulkanTextureObj(const Device device, const TextureSpecification& spec)

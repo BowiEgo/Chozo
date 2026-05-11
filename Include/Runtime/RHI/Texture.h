@@ -97,7 +97,7 @@ public:
     TextureObj(const Device device, const TextureSpecification& spec, Image image)
         : m_Device(device), m_Spec(spec), m_Image(image) {}
 
-    virtual ~TextureObj() = default;
+    virtual ~TextureObj() { Image::Destroy(m_Image); }
 
 protected:
     Device m_Device;
