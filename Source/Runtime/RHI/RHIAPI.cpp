@@ -1,7 +1,5 @@
 #include <Runtime/RHI/RHIAPI.h>
 
-#include <Core/DynamicLibrary/BackendRegistry.h>
-#include <Core/Log/LogMacros.h>
 #include <Runtime/RHI/GraphicContext.h>
 
 namespace CZ {

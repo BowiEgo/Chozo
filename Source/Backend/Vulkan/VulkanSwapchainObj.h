@@ -2,16 +2,6 @@
 
 #include <Runtime/RHI/Swapchain.h>
 
-#include <Core/Memory/Memory.h>
-#include <Core/Platform/Platform.h>
-
-#include "VulkanUtils.h"
-
-#ifdef CZ_PLATFORM_MACOS
-    #define VK_USE_PLATFORM_METAL_EXT
-#endif
-#include <vulkan/vulkan.h>
-
 namespace CZ {
 
 static constexpr uint32 INVALID_IMAGE_INDEX = 0xFFFFFFFF;

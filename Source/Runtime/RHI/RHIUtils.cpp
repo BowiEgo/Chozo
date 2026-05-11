@@ -1,7 +1,5 @@
 #include <Runtime/RHI/RHIUtils.h>
 
-#include <Core/Log/LogMacros.h>
-
 namespace CZ::RHIUtils {
 
 DEFINE_LOG_CATEGORY_STATIC(LogRHIUtils, Info);

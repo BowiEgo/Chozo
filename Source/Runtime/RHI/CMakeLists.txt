@@ -29,6 +29,7 @@ add_chozo_module(
     INCLUDE ${MODULE_INCLUDE}
     SOURCE  ${MODULE_SRC}
     LINK    CZCoreLibs
+    PCH     RHIPCH.h
 )
 
 add_chozo_module_tests()

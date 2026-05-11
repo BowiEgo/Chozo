@@ -9,6 +9,7 @@ set(MODULE_INCLUDE
 )
 
 set(MODULE_SRC
+    VmaImpl.cpp
     VulkanGraphicContextObj.cpp
     VulkanDeviceObj.cpp
     VulkanSwapchainObj.cpp
@@ -24,6 +25,7 @@ add_chozo_module(
     INCLUDE ${MODULE_INCLUDE}
     SOURCE  ${MODULE_SRC}
     LINK    Vulkan::Vulkan VulkanMemoryAllocator CZCoreLibs CZRHI
+    PCH     VulkanPCH.h
 )
 
 # set_target_properties(${MODULE_NAME} PROPERTIES

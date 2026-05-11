@@ -2,9 +2,6 @@
 
 #include "VulkanUtils.h"
 
-#include <Core/Log/LogMacros.h>
-#include <Core/Memory/Memory.h>
-
 namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogVulkanGraphicContext, Info);

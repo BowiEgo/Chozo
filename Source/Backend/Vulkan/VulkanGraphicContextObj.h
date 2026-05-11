@@ -2,14 +2,6 @@
 
 #include <Runtime/RHI/GraphicContext.h>
 
-#include <Core/Memory/Memory.h>
-#include <Core/Platform/Platform.h>
-
-#ifdef CZ_PLATFORM_MACOS
-    #define VK_USE_PLATFORM_METAL_EXT
-#endif
-#include <vulkan/vulkan.h>
-
 namespace CZ {
 
 class VulkanGraphicContextObj : public GraphicContextObj {

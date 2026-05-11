@@ -5,11 +5,6 @@
 #include "VulkanImageObj.h"
 #include "VulkanTextureObj.h"
 
-#include <Core/Header/Assert.h>
-#include <Core/Log/LogMacros.h>
-#include <Core/Memory/Memory.h>
-#include <Runtime/RHI/RHIAPI.h>
-
 namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogVulkanSwapchain, Info);
@@ -100,7 +95,8 @@ void VulkanSwapchainObj::Init() {
         extent.height = pixelHeight;
     } else {
         CZ_LOG(LogVulkanSwapchain, Warning,
-               "VK_EXT_swapchain_maintenance1 not supported, falling back to surface extent");
+               "VK_EXT_swapchain_maintenance1 not supported, falling back to "
+               "surface extent");
         extent = VulkanUtils::ChooseSwapExtent(details.Capabilities, pixelWidth, pixelHeight);
     }
 

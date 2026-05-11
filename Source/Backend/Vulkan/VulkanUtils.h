@@ -1,11 +1,5 @@
 #pragma once
 
-#include <Runtime/RHI/RHITypes.h>
-
-#include <vulkan/vulkan.h>
-
-#include <optional>
-
 namespace CZ {
 
 struct QueueFamilyIndices {

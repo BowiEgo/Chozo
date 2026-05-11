@@ -1,12 +1,4 @@
-#include <Core/Log/LogMacros.h>
 #include <Runtime/RHI/Device.h>
-
-#ifndef VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
-    #define VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME "VK_KHR_portability_subset"
-#endif
-
-#include "vk_mem_alloc.h"
-#include <vulkan/vulkan.h>
 
 namespace CZ {
 

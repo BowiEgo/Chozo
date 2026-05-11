@@ -10,8 +10,8 @@ endif()
 function(add_chozo_module)
     cmake_parse_arguments(
         MODULE
-        ""                          # options (无)
-        "NAME;TYPE;LIBRARY_TYPE"    # 新增 LIBRARY_TYPE 单值参数
+        ""                              # options
+        "NAME;TYPE;LIBRARY_TYPE;PCH"    
         "INCLUDE;SOURCE;LINK;INCLUDE_DIRS;COMPILE_OPTIONS;LINK_OPTIONS"
         ${ARGN}
     )
@@ -69,4 +69,8 @@ function(add_chozo_module)
     target_link_libraries(${MODULE_NAME} PRIVATE CZEnginePrerequisites)
 
     set_target_properties(${MODULE_NAME} PROPERTIES FOLDER ${${MODULE_FOLDER_VAR}})
+
+    if(MODULE_PCH)
+        target_precompile_headers(${MODULE_NAME} PRIVATE ${MODULE_PCH})
+    endif()
 endfunction()
