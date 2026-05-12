@@ -61,4 +61,4 @@ public:
 
     EVENT_CLASS_TYPE(KeyTyped)
 };
-}
+} // namespace CZ

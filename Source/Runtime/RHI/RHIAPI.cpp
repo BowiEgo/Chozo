@@ -1,6 +1,6 @@
 #include <Runtime/RHI/RHIAPI.h>
 
-#include <Runtime/RHI/GraphicContext.h>
+#include <Runtime/RHI/GraphicsContext.h>
 
 namespace CZ {
 
@@ -11,30 +11,14 @@ RHIAPI& RHIAPI::Get() {
     return Instance;
 }
 
-bool RHIAPI::Init(const GraphicContextSpecification& gcSpec, std::string& err) {
-    auto& registry = BackendRegistry::Get();
-    if (!registry.LoadBackend("vulkan", "./libCZVulkan.dylib")) {
+bool RHIAPI::Init(const GraphicsContextSpecification& gcSpec, std::string& err) {
+    auto& registry = DynamicLibraryRegistry::Get();
+    if (!registry.LoadLib("Vulkan", "./libCZVulkan.dylib")) {
         err = "Cannot load Vulkan backend.";
         return false;
     }
 
-    m_GraphicContext = CreateGraphicContext(gcSpec);
-
-    {
-        DeviceSpecification spec;
-        spec.AppName        = "Chozo Engine";
-        spec.AppVersion     = 1;
-        spec.GraphicContext = m_GraphicContext;
-
-        m_Device = CreateDevice(spec);
-    }
-
-    {
-        SwapchainSpecification spec;
-        spec.FrameBufferSize = gcSpec.FrameBufferSize;
-        spec.NativeWindow    = gcSpec.NativeWindow;
-        m_Swapchain          = CreateSwapchain(spec);
-    }
+    m_GraphicsContext = CreateGraphicsContext(gcSpec);
 
     return true;
 }
@@ -42,69 +26,28 @@ bool RHIAPI::Init(const GraphicContextSpecification& gcSpec, std::string& err) {
 void RHIAPI::Shutdown() {
     // Swapchain::Destroy(m_Swapchain);
     // Device::Destroy(m_Device);
-    // GraphicContext::Destroy(m_GraphicContext);
+    // GraphicsContext::Destroy(m_GraphicsContext);
 }
 
-GraphicContext RHIAPI::CreateGraphicContext(const GraphicContextSpecification& spec) {
-    auto& registry = BackendRegistry::Get();
+GraphicsContext RHIAPI::CreateGraphicsContext(const GraphicsContextSpecification& spec) {
+    auto& registry = DynamicLibraryRegistry::Get();
 
     auto createFn =
-        registry.GetFunction<GraphicContextObj* (*)(const GraphicContextSpecification&)>(
-            "vulkan", "CreateVulkanGraphicContextObj");
+        registry.GetFunction<GraphicsContextObj* (*)(const GraphicsContextSpecification&)>(
+            "Vulkan", "CreateVulkanGraphicsContextObj");
     if (!createFn) {
-        CZ_LOG(LogRHIAPI, Error, "CreateVulkanGraphicContextObj not found in backend.");
+        CZ_LOG(LogRHIAPI, Error, "CreateVulkanGraphicsContextObj not found in backend.");
         return {};
     }
 
-    GraphicContextObj* obj = createFn(spec);
+    GraphicsContextObj* obj = createFn(spec);
     if (!obj) {
-        CZ_LOG(LogRHIAPI, Error, "Backend failed to create GraphicContextObj.");
+        CZ_LOG(LogRHIAPI, Error, "Backend failed to create GraphicsContextObj.");
         return {};
     }
 
-    CZ_LOG(LogRHIAPI, Info, "GraphicContext created via backend 'vulkan'.");
-    return GraphicContext(obj);
-}
-
-Device RHIAPI::CreateDevice(const DeviceSpecification& spec) {
-    auto& registry = BackendRegistry::Get();
-
-    auto createFn = registry.GetFunction<DeviceObj* (*)(const DeviceSpecification&)>(
-        "vulkan", "CreateVulkanDeviceObj");
-    if (!createFn) {
-        CZ_LOG(LogRHIAPI, Error, "CreateVulkanDeviceObj not found in backend.");
-        return {};
-    }
-
-    DeviceObj* obj = createFn(spec);
-    if (!obj) {
-        CZ_LOG(LogRHIAPI, Error, "Backend failed to create DeviceObj.");
-        return {};
-    }
-
-    CZ_LOG(LogRHIAPI, Info, "Device created via backend 'vulkan'.");
-    return Device(obj);
-}
-
-Swapchain RHIAPI::CreateSwapchain(const SwapchainSpecification& spec) {
-    auto& registry = BackendRegistry::Get();
-
-    auto createFn =
-        registry.GetFunction<SwapchainObj* (*)(const Device device, const SwapchainSpecification&)>(
-            "vulkan", "CreateVulkanSwapchainObj");
-    if (!createFn) {
-        CZ_LOG(LogRHIAPI, Error, "CreateVulkanSwapchainObj not found in backend.");
-        return {};
-    }
-
-    SwapchainObj* obj = createFn(m_Device, spec);
-    if (!obj) {
-        CZ_LOG(LogRHIAPI, Error, "Backend failed to create SwapchainObj.");
-        return {};
-    }
-
-    CZ_LOG(LogRHIAPI, Info, "Swapchain created via backend 'vulkan'.");
-    return Swapchain(obj);
+    CZ_LOG(LogRHIAPI, Info, "GraphicsContext created via backend 'vulkan'.");
+    return GraphicsContext(obj);
 }
 
 } // namespace CZ

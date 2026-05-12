@@ -1,3 +1,4 @@
+#include <Runtime/App/Application.h>
 #include <Runtime/App/Engine.h>
 
 #include <Core/Log/LogMacros.h>
@@ -12,31 +13,30 @@ Engine::~Engine() {}
 bool Engine::Init(std::string& err) {
     bool success = false;
 
-    if (m_Window) {
-        auto fbSize = m_Window->GetFrameBufferSize();
+    auto window = Application::Get().GetWindow();
+    auto fbSize = window.GetFrameBufferSize();
 
-        {
-            GraphicContextSpecification spec;
-            spec.FrameBufferSize          = fbSize;
-            spec.NativeWindow             = m_Window->GetNativeHandle();
-            spec.WindowRequiredExtensions = m_Window->GetRequiredExtensions(err);
+    {
+        GraphicsContextSpecification spec;
+        spec.FrameBufferSize          = fbSize;
+        spec.NativeWindow             = window.GetNativeHandle();
+        spec.WindowRequiredExtensions = window.GetRequiredExtensions(err);
 #ifdef CZ_DEBUG
-            spec.EnableValidationLayers = true;
+        spec.EnableValidationLayers = true;
 #else
-            spec.EnableValidationLayers = false;
+        spec.EnableValidationLayers = false;
 #endif
 
-            success = RHIAPI::Get().Init(spec, err);
-        }
-
-        // {
-        //     RendererSpecification spec;
-        //     spec.Window         = m_Window;
-        //     spec.GraphicContext = m_GraphicContext;
-
-        //     m_Renderer = Renderer::Create(spec);
-        // }
+        success = RHIAPI::Get().Init(spec, err);
     }
+
+    // {
+    //     RendererSpecification spec;
+    //     spec.Window         = m_Window;
+    //     spec.GraphicsContext = m_GraphicsContext;
+
+    //     m_Renderer = Renderer::Create(spec);
+    // }
 
     CZ_LOG(LogEngine, Info, "Render Engine Initialized.");
     return success;

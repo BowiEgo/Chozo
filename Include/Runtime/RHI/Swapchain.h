@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Header/Types.h"
 #include <Core/Header/Extent.h>
 #include <Core/Header/Handle.h>
 #include <Core/Memory/Memory.h>
@@ -15,34 +16,16 @@ struct SwapchainSpecification {
     void* NativeWindow = nullptr;
 };
 
-class SwapchainObj {
-public:
-    SwapchainObj(const Device device, const SwapchainSpecification& spec)
-        : m_Device(device), m_Spec(spec) {}
-    virtual ~SwapchainObj() {
-        for (auto& tex : m_ColorAttachments) {
-            Texture::Destroy(tex);
-        }
-        m_ColorAttachments.clear();
-    }
-
-    virtual PixelFormat GetImageFormat() const = 0;
-    virtual PixelFormat GetDepthFormat() const = 0;
-    virtual const Extent2D GetExtent() const   = 0;
-
-    virtual void SetPresentMode(const PresentMode mode)    = 0;
-    virtual void Recreate(const Extent2D& frameBufferSize) = 0;
-
-protected:
-    Device m_Device;
-    SwapchainSpecification m_Spec;
-
-    PresentMode m_PresentMode = PresentMode::FIFO;
-    std::vector<Texture> m_ColorAttachments;
-};
+class SwapchainObj;
 
 struct Swapchain : Handle<SwapchainObj> {
     static void Destroy(Swapchain Swapchain);
+
+    PixelFormat GetImageFormat() const;
+
+    PixelFormat GetDepthFormat() const;
+
+    uint32 GetImageCount() const;
 };
 
 } // namespace CZ

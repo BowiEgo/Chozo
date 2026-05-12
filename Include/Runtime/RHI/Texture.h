@@ -3,7 +3,6 @@
 #include <Core/Header/Handle.h>
 #include <Core/Memory/Memory.h>
 #include <Runtime/RHI/Device.h>
-#include <Runtime/RHI/GraphicContext.h>
 #include <Runtime/RHI/Image.h>
 #include <Runtime/RHI/RHITypes.h>
 #include <Runtime/RHI/Sampler.h>

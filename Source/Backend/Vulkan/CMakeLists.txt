@@ -1,18 +1,23 @@
 set(MODULE_NAME CZVulkan)
 
 set(MODULE_INCLUDE
-    VulkanGraphicContextObj.h
+    VulkanRenderContext.h
+    VulkanGraphicsContextObj.h
     VulkanDeviceObj.h
     VulkanSwapchainObj.h
+    VulkanCommandPoolObj.h
+    VulkanCommandBufferObj.h
     VulkanTextureObj.h
     VulkanImageObj.h
 )
 
 set(MODULE_SRC
     VmaImpl.cpp
-    VulkanGraphicContextObj.cpp
+    VulkanGraphicsContextObj.cpp
     VulkanDeviceObj.cpp
     VulkanSwapchainObj.cpp
+    VulkanCommandPoolObj.cpp
+    VulkanCommandBufferObj.cpp
     VulkanTextureObj.cpp
     VulkanImageObj.cpp
     VulkanUtils.cpp
@@ -22,7 +27,7 @@ add_chozo_module(
     NAME    ${MODULE_NAME}
     TYPE    BACKEND
     LIBRARY_TYPE  SHARED
-    INCLUDE ${MODULE_INCLUDE}
+    INCLUDE ${MODULE_INCLUDE} ${CZ_RUNTIME_RHI_INCLUDE}
     SOURCE  ${MODULE_SRC}
     LINK    Vulkan::Vulkan VulkanMemoryAllocator CZCoreLibs CZRHI
     PCH     VulkanPCH.h

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Runtime/RHI/RHITypes.h>
+
 namespace CZ {
 
 struct QueueFamilyIndices {

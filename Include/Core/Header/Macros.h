@@ -50,8 +50,7 @@ static constexpr bool GIsDebug = false;
 #define BIT(x) (1ULL << (x))
 
 // Support functions with any number of arguments
-#define CZ_BIND_EVENT_FN(fn)                                                                       \
-    [this](auto&&... args) { return fn(std::forward<decltype(args)>(args)...); }
+#define CZ_BIND_FN(fn) [this](auto&&... args) { return fn(std::forward<decltype(args)>(args)...); }
 
 #define CZ_CONCAT_IMPL(a, b) a##b
 #define CZ_CONCAT(a, b)      CZ_CONCAT_IMPL(a, b)

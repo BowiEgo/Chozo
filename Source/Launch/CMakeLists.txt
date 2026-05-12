@@ -9,7 +9,7 @@ add_executable(${MODULE_NAME}
 )
 
 target_link_libraries(${MODULE_NAME} PRIVATE
-    CZRuntimeLibs
+    CZRuntimeLibs CZEditor
 )
 
 target_link_options(${MODULE_NAME} PRIVATE -rdynamic)

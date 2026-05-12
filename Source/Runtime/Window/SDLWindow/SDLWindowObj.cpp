@@ -1,4 +1,4 @@
-#include <Runtime/Window/Window.h>
+#include "SDLWindowObj.h"
 
 #include <Core/Event/AppEvent.h>
 #include <Core/Event/KeyEvent.h>
@@ -6,9 +6,9 @@
 #include <Core/Log/LogMacros.h>
 #include <Core/Platform/Platform.h>
 
+#include "Core/Header/Extent.h"
 #include "SDLKeyMap.h"
 
-#include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
 
 namespace CZ {
@@ -93,9 +93,11 @@ static void ProcessEvent(const SDL_Event& event, bool& shouldClose, SDL_Window* 
     }
 }
 
-Window::~Window() { Shutdown(); }
+SDLWindowObj::SDLWindowObj(const WindowSpecifaciton& spec) : WindowObj(spec) {}
 
-void Window::Shutdown() {
+SDLWindowObj::~SDLWindowObj() { Shutdown(); }
+
+void SDLWindowObj::Shutdown() {
     if (m_Window) {
         SDL_DestroyWindow(static_cast<SDL_Window*>(m_Window));
         m_Window = nullptr;
@@ -106,7 +108,7 @@ void Window::Shutdown() {
     }
 }
 
-bool Window::Init(std::string& err) {
+bool SDLWindowObj::Init(std::string& err) {
     if (!m_BackendInitialized) {
         if (!SDL_Init(SDL_INIT_VIDEO)) {
             err = SDL_GetError();
@@ -130,43 +132,44 @@ bool Window::Init(std::string& err) {
         return false;
     }
 
-    float scale             = SDL_GetWindowDisplayScale(static_cast<SDL_Window*>(m_Window));
-    m_Spec.FrameBufferScale = { (uint32_t)scale, (uint32_t)scale };
-
-    int w, h;
-    SDL_GetWindowSize(static_cast<SDL_Window*>(m_Window), &w, &h);
-    m_Spec.Size = { (uint32_t)w, (uint32_t)h };
-
-    Extent2D fbSize   = GetFrameBufferSize();
-    m_Spec.PixelRatio = (float)fbSize.Width / (float)w;
-
     return true;
 }
 
-void Window::OnUpdate() {
+void SDLWindowObj::OnUpdate() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        // ProcessEventWithPreprocessor(event);
+        ProcessEventWithPreprocessor(event);
         ProcessEvent(event, m_ShouldClose, static_cast<SDL_Window*>(m_Window),
                      m_Spec.EventCallback);
     }
 }
 
-bool Window::ShouldClose() const { return m_ShouldClose; }
+bool SDLWindowObj::ShouldClose() const { return m_ShouldClose; }
 
-Extent2D Window::GetSize() const {
+Extent2D SDLWindowObj::GetSize() const {
     int w, h;
     SDL_GetWindowSize(static_cast<SDL_Window*>(m_Window), &w, &h);
     return { (uint32_t)w, (uint32_t)h };
 }
 
-Extent2D Window::GetFrameBufferSize() const {
+Extent2D SDLWindowObj::GetFrameBufferSize() const {
     int w, h;
     SDL_GetWindowSizeInPixels(static_cast<SDL_Window*>(m_Window), &w, &h);
     return { (uint32_t)(w), (uint32_t)(h) };
 }
 
-std::vector<const char*> Window::GetRequiredExtensions(std::string& err) const {
+Extent2D SDLWindowObj::GetFrameBufferScale() const {
+    float scale = SDL_GetWindowDisplayScale(static_cast<SDL_Window*>(m_Window));
+    return { (uint32_t)scale, (uint32_t)scale };
+}
+
+float SDLWindowObj::GetPixelRatio() const {
+    Extent2D size   = GetSize();
+    Extent2D fbSize = GetFrameBufferSize();
+    return (float)fbSize.Width / (float)size.Width;
+}
+
+std::vector<const char*> SDLWindowObj::GetRequiredExtensions(std::string& err) const {
     uint32_t count          = 0;
     const char* const* exts = SDL_Vulkan_GetInstanceExtensions(&count);
     if (exts == nullptr) {
@@ -182,7 +185,7 @@ std::vector<const char*> Window::GetRequiredExtensions(std::string& err) const {
     return result;
 }
 
-WindowHandle Window::GetNativeHandle() const {
+WindowHandle SDLWindowObj::GetNativeHandle() const {
     SDL_PropertiesID props = SDL_GetWindowProperties(static_cast<SDL_Window*>(m_Window));
 #ifdef CZ_PLATFORM_WINDOWS
     return (WindowHandle)SDL_GetPointerProperty(props, "SDL.window.win32.hwnd", nullptr);

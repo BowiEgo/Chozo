@@ -82,7 +82,7 @@ add_library(CZEnginePrerequisites INTERFACE)
 
 target_include_directories(CZEnginePrerequisites INTERFACE
     ${CHOZO_INCLUDE_DIR}
-    ${CHOZO_SOURCE_DIR}
+    # ${CHOZO_SOURCE_DIR}
 )
 
 target_link_libraries(CZEnginePrerequisites INTERFACE fmt::fmt)
@@ -96,6 +96,7 @@ add_subdirectory(Source/Core/Platform)
 add_subdirectory(Source/Core/Log)
 add_subdirectory(Source/Core/Memory)
 add_subdirectory(Source/Core/DynamicLibrary)
+add_subdirectory(Source/Core/Layer)
 
 add_library(CZCoreLibs INTERFACE)
 target_link_libraries(CZCoreLibs INTERFACE
@@ -104,7 +105,6 @@ target_link_libraries(CZCoreLibs INTERFACE
 )
 target_include_directories(CZCoreLibs INTERFACE
     ${CHOZO_INCLUDE_DIR}
-    ${CHOZO_SOURCE_DIR}
 )
 
 # Chozo Runtime
@@ -113,6 +113,7 @@ target_include_directories(CZCoreLibs INTERFACE
 set(CZ_RUNTIME_MODULE_FOLDER "Runtime")
 set(CZ_RUNTIME_MODULE_LIST "" CACHE STRING "" FORCE)
 add_subdirectory(Source/Runtime/RHI)
+# add_subdirectory(Source/Runtime/UI)
 add_subdirectory(Source/Runtime/RenderCore)
 add_subdirectory(Source/Runtime/Window)
 add_subdirectory(Source/Runtime/App)
@@ -124,13 +125,13 @@ target_link_libraries(CZRuntimeLibs INTERFACE
 )
 target_include_directories(CZRuntimeLibs INTERFACE
     ${CHOZO_INCLUDE_DIR}
-    ${CHOZO_SOURCE_DIR}
 )
 
 # Chozo Backend
 # - links with CZCoreLibs
 set(CZ_BACKEND_MODULE_FOLDER "Backend")
 set(CZ_BACKEND_MODULE_LIST "" CACHE STRING "" FORCE)
+
 add_subdirectory(Source/Backend/Vulkan)
 
 add_library(CZBackendLibs INTERFACE)
@@ -140,8 +141,12 @@ target_link_libraries(CZBackendLibs INTERFACE
 )
 target_include_directories(CZBackendLibs INTERFACE
     ${CHOZO_INCLUDE_DIR}
-    ${CHOZO_SOURCE_DIR}
 )
+
+# Chozo Editor
+# - links with CZCoreLibs
+set(CZ_EDITOR_MODULE_FOLDER "Editor")
+add_subdirectory(Source/Editor)
 
 # Chozo Launch
 set(CZ_LAUNCH_MODULE_FOLDER "Launch")

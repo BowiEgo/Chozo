@@ -1,10 +1,10 @@
 #pragma once
 
+#include <Core/Header/Extent.h>
 #include <Core/Header/Handle.h>
 #include <Core/Header/Macros.h>
 #include <Core/Memory/Memory.h>
 #include <Runtime/RHI/Device.h>
-#include <Runtime/RHI/GraphicContext.h>
 #include <Runtime/RHI/RHITypes.h>
 #include <Runtime/RHI/RHIUtils.h>
 

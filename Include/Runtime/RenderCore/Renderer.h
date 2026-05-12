@@ -1,14 +1,14 @@
 #pragma once
 
 #include <Core/Header/Types.h>
-#include <Runtime/RHI/GraphicContext.h>
+#include <Runtime/RHI/GraphicsContext.h>
 #include <Runtime/Window/Window.h>
 
 namespace CZ {
 
 struct RendererSpecification {
-    Window* Window;
-    GraphicContext GraphicContext;
+    Window Window;
+    GraphicsContext GraphicsContext;
 };
 
 struct RendererObj;

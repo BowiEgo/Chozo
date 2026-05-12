@@ -1,23 +1,20 @@
 #include "VulkanDeviceObj.h"
 
-#include "VulkanGraphicContextObj.h"
+#include "Core/Memory/MemoryTypes.h"
+#include "Runtime/RHI/CommandPool.h"
+#include "VulkanCommandPoolObj.h"
+#include "VulkanGraphicsContextObj.h"
 
 namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogVulkanDevice, Info);
 
-extern "C" {
-
-DeviceObj* CreateVulkanDeviceObj(const DeviceSpecification& spec) {
-    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanDeviceObj, spec);
-}
-
-} // extern "C"
-
-VulkanDeviceObj::VulkanDeviceObj(const DeviceSpecification& spec) : DeviceObj(spec) {
-    PickPhysicalDevice(spec.GraphicContext);
-    CreateLogicalDevice(spec.GraphicContext);
-    CreateVmaAllocator(spec.GraphicContext);
+VulkanDeviceObj::VulkanDeviceObj(const DeviceSpecification& spec,
+                                 const VulkanGraphicsContextObj* ctxObj)
+    : DeviceObj(spec) {
+    PickPhysicalDevice(ctxObj);
+    CreateLogicalDevice(ctxObj);
+    CreateVmaAllocator(ctxObj);
     CZ_LOG(LogVulkanDevice, Info, "VulkanDeviceObj created.");
 }
 
@@ -36,6 +33,10 @@ VulkanDeviceObj::~VulkanDeviceObj() {
 // --- Public ---
 
 void VulkanDeviceObj::WaitIdle() { vkDeviceWaitIdle(m_VkDevice); }
+
+CommandPool VulkanDeviceObj::CreateCommandPool(const CommandPoolSpecification& spec) {
+    return CommandPool(CZ_NEW(MEMORY_USAGE_RENDER, VulkanCommandPoolObj, this, spec));
+}
 
 bool VulkanDeviceObj::IsExtensionSupported(const std::string& extensionName) const {
     uint32_t extCount = 0;
@@ -75,8 +76,7 @@ VkDescriptorPool
 }
 // --- Private ---
 
-void VulkanDeviceObj::PickPhysicalDevice(GraphicContext context) {
-    auto* ctxObj          = static_cast<VulkanGraphicContextObj*>(context.Unwrap());
+void VulkanDeviceObj::PickPhysicalDevice(const VulkanGraphicsContextObj* ctxObj) {
     VkInstance vkInstance = ctxObj->GetVKInstance();
 
     // 1. Enumerate physical devices
@@ -182,8 +182,7 @@ void VulkanDeviceObj::PickPhysicalDevice(GraphicContext context) {
     VulkanUtils::LogMemoryBudget(m_VkPhysicalDevice);
 }
 
-void VulkanDeviceObj::CreateLogicalDevice(GraphicContext context) {
-    auto* ctxObj           = static_cast<VulkanGraphicContextObj*>(context.Unwrap());
+void VulkanDeviceObj::CreateLogicalDevice(const VulkanGraphicsContextObj* ctxObj) {
     VkSurfaceKHR vkSurface = ctxObj->GetVKSurface();
 
     QueueFamilyIndices indices = VulkanUtils::FindQueueFamilies(m_VkPhysicalDevice, vkSurface);
@@ -319,8 +318,7 @@ void VulkanDeviceObj::CreateLogicalDevice(GraphicContext context) {
     CZ_LOG(LogVulkanDevice, Info, "Vulkan Logical Device Created.");
 }
 
-void VulkanDeviceObj::CreateVmaAllocator(GraphicContext context) {
-    auto* ctxObj          = static_cast<VulkanGraphicContextObj*>(context.Unwrap());
+void VulkanDeviceObj::CreateVmaAllocator(const VulkanGraphicsContextObj* ctxObj) {
     VkInstance vkInstance = ctxObj->GetVKInstance();
 
     VmaAllocatorCreateInfo allocatorInfo = {};

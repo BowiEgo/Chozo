@@ -3,10 +3,13 @@ set(MODULE_TYPE RUNTIME)
 
 set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/Window/Window.h
+    WindowObj.h
+    SDLWindow/SDLWindowObj.h
 )
 
 set(MODULE_SRC
-    SDLWindow/SDLWindow.cpp
+    Window.cpp
+    SDLWindow/SDLWindowObj.cpp
 )
 
 add_chozo_module(

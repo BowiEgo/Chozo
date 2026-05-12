@@ -3,7 +3,7 @@
 #include <Core/Event/AppEvent.h>
 #include <Core/Memory/Memory.h>
 #include <Runtime/RHI/Device.h>
-#include <Runtime/RHI/GraphicContext.h>
+#include <Runtime/RHI/GraphicsContext.h>
 #include <Runtime/RenderCore/Renderer.h>
 #include <Runtime/Window/Window.h>
 
@@ -11,7 +11,7 @@ namespace CZ {
 
 class Engine {
 public:
-    Engine(Window* window) : m_Window(window) {};
+    Engine() {};
     ~Engine();
 
     bool Init(std::string& err);
@@ -23,7 +23,6 @@ public:
     // Renderer* GetRenderer() const { return m_Renderer.get(); }
 
 private:
-    Window* m_Window;
     Renderer m_Renderer;
 };
 

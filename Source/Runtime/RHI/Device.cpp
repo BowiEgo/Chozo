@@ -1,4 +1,4 @@
-#include <Runtime/RHI/Device.h>
+#include "DeviceObj.h"
 
 namespace CZ {
 
@@ -9,5 +9,11 @@ void Device::Destroy(Device device) {
 
     Delete(device.Unwrap());
 }
+
+void Device::WaitIdle() const { m_Obj->WaitIdle(); }
+
+CommandPool Device::CreateCommandPool(const CommandPoolSpecification& spec) {
+    return m_Obj->CreateCommandPool(spec);
+};
 
 } // namespace CZ

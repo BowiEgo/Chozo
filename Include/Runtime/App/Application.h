@@ -1,7 +1,10 @@
 #pragma once
 
+#include <Core/Layer/LayerStack.h>
 #include <Core/Log/LogMacros.h>
+#include <Core/Memory/Memory.h>
 #include <Runtime/App/Engine.h>
+// #include "Runtime/UI/UI.h"
 #include <Runtime/Window/Window.h>
 
 #include <string>
@@ -24,6 +27,8 @@ struct ApplicationSpecification {
 
 class Application {
 public:
+    static Application& Get();
+
     explicit Application();
     Application(const Application&) = delete;
     ~Application();
@@ -31,15 +36,24 @@ public:
     Application& operator=(const Application&) = delete;
 
     bool Startup(const ApplicationSpecification& spec, std::string& err);
-    bool ShouldClose() const { return m_Window ? m_Window->ShouldClose() : true; }
+    bool ShouldClose() { return m_Window ? m_Window.ShouldClose() : m_ShouldClose; }
     void Shutdown();
     void Run();
     bool OnEvent(Event& e);
 
+    void SetStartupLayer(Layer* layer) { m_StartupLayer = layer; }
+
+    Window GetWindow() { return m_Window; }
+    Window GetWindow() const { return m_Window; }
+
 private:
     bool m_ShouldClose = false;
-    Scope<Window> m_Window;
+    Window m_Window;
     Scope<Engine> m_Engine;
+
+    Layer* m_StartupLayer;
+    LayerStack m_LayerStack;
+    // Scope<UI> m_UI;
 };
 
 } // namespace CZ

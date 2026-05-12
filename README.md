@@ -45,6 +45,7 @@ A comprehensive, phased plan to modernize the engine core, rendering, tools, and
 - [ ] **Memory Management Foundation**
     - [x] Custom `new`/`delete` operators (centralized in `Core/Memory.h`).
     - [x] Implement **Linear Allocator** (per‑frame) and **Pool Allocator** (fixed‑size objects).
+    - [ ] Implement **Memory Arena** system (Arena, FrameArena, SceneArena, ...).
     - [ ] Tracy integration: instrument allocations, locks, rendering areas.
 
 - [ ] **Application & Window Boundary Cleanup**

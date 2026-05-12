@@ -1,4 +1,6 @@
-#include <Runtime/RHI/Device.h>
+#include "VulkanGraphicsContextObj.h"
+
+#include "../Source/Runtime/RHI/DeviceObj.h"
 
 namespace CZ {
 
@@ -30,22 +32,35 @@ struct DynamicState3Functions {
 
 class VulkanDeviceObj : public DeviceObj {
 public:
-    explicit VulkanDeviceObj(const DeviceSpecification& spec);
+    explicit VulkanDeviceObj(const DeviceSpecification& spec,
+                             const VulkanGraphicsContextObj* ctxObj);
     ~VulkanDeviceObj() override;
 
     void WaitIdle() override;
 
+    CommandPool CreateCommandPool(const CommandPoolSpecification& spec) override;
+
     VkDevice GetLogicalDevice() const { return m_VkDevice; }
+
     VkPhysicalDevice GetPhysicalDevice() const { return m_VkPhysicalDevice; }
+
+    uint32 GetGraphicsQueueIndex() const { return m_GraphicsQueueIndex; }
+
+    VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
+
+    VkDescriptorPool GetGlobalDescriptorPool() const { return m_GlobalDescriptorPool; }
+
     bool IsExtensionSupported(const std::string& extensionName) const;
+
     VkDescriptorPool CreateDescriptorPool(uint32_t maxSets,
                                           const std::vector<VkDescriptorPoolSize>& poolSizes);
+
     VmaAllocator GetVmaAllocator() const { return m_VmaAllocator; }
 
 private:
-    void PickPhysicalDevice(GraphicContext context);
-    void CreateLogicalDevice(GraphicContext context);
-    void CreateVmaAllocator(GraphicContext context);
+    void PickPhysicalDevice(const VulkanGraphicsContextObj* ctxObj);
+    void CreateLogicalDevice(const VulkanGraphicsContextObj* ctxObj);
+    void CreateVmaAllocator(const VulkanGraphicsContextObj* ctxObj);
     void InitGlobalDescriptorPool();
     void LoadDynamicState3Functions();
 

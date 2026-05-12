@@ -1,15 +1,17 @@
-#include "VulkanGraphicContextObj.h"
+#include "VulkanGraphicsContextObj.h"
+#include "VulkanDeviceObj.h"
+#include "VulkanSwapchainObj.h"
 
 #include "VulkanUtils.h"
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanGraphicContext, Info);
+DEFINE_LOG_CATEGORY_STATIC(LogVulkanGraphicsContext, Info);
 
 extern "C" {
 
-GraphicContextObj* CreateVulkanGraphicContextObj(const GraphicContextSpecification& spec) {
-    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanGraphicContextObj, spec);
+GraphicsContextObj* CreateVulkanGraphicsContextObj(const GraphicsContextSpecification& spec) {
+    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanGraphicsContextObj, spec);
 }
 }
 
@@ -19,19 +21,19 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL
                   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        CZ_LOG(LogVulkanGraphicContext, Error, "Validation Layer: {0}", pCallbackData->pMessage);
+        CZ_LOG(LogVulkanGraphicsContext, Error, "Validation Layer: {0}", pCallbackData->pMessage);
     } else {
-        CZ_LOG(LogVulkanGraphicContext, Warning, "Validation Layer: {0}", pCallbackData->pMessage);
+        CZ_LOG(LogVulkanGraphicsContext, Warning, "Validation Layer: {0}", pCallbackData->pMessage);
     }
     return VK_FALSE;
 }
 
-VulkanGraphicContextObj::VulkanGraphicContextObj(const GraphicContextSpecification& spec)
-    : GraphicContextObj(spec) {
+VulkanGraphicsContextObj::VulkanGraphicsContextObj(const GraphicsContextSpecification& spec)
+    : GraphicsContextObj(spec) {
     Init();
 }
 
-VulkanGraphicContextObj::~VulkanGraphicContextObj() {
+VulkanGraphicsContextObj::~VulkanGraphicsContextObj() {
     if (m_Surface != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     }
@@ -43,13 +45,46 @@ VulkanGraphicContextObj::~VulkanGraphicContextObj() {
     }
 }
 
-void VulkanGraphicContextObj::Init() {
+VulkanContextWrapper VulkanGraphicsContextObj::GetVulkanContextWrapper() {
+    VulkanContextWrapper wrapper;
+
+    wrapper.Instance       = m_Instance;
+    wrapper.Device         = static_cast<VulkanDeviceObj*>(m_Device.Unwrap())->GetLogicalDevice();
+    wrapper.PhysicalDevice = static_cast<VulkanDeviceObj*>(m_Device.Unwrap())->GetPhysicalDevice();
+    wrapper.GlobalDescriptorPool =
+        static_cast<VulkanDeviceObj*>(m_Device.Unwrap())->GetGlobalDescriptorPool();
+    wrapper.GraphicsQueueIndex =
+        static_cast<VulkanDeviceObj*>(m_Device.Unwrap())->GetGraphicsQueueIndex();
+    wrapper.GraphicsQueue = static_cast<VulkanDeviceObj*>(m_Device.Unwrap())->GetGraphicsQueue();
+
+    wrapper.Swapchain = static_cast<VulkanSwapchainObj*>(m_Swapchain.Unwrap())->GetVkSwapchain();
+
+    return wrapper;
+}
+
+void VulkanGraphicsContextObj::Init() {
     CreateVKInstance();
     SetupVKDebugMessenger();
     CreateVKSurface(m_Spec.NativeWindow);
+
+    {
+        DeviceSpecification spec;
+        spec.AppName    = "Chozo Engine";
+        spec.AppVersion = 1;
+
+        m_Device = Device(CZ_NEW(MEMORY_USAGE_RENDER, VulkanDeviceObj, spec, this));
+    }
+
+    {
+        SwapchainSpecification spec;
+        spec.FrameBufferSize = m_Spec.FrameBufferSize;
+        spec.NativeWindow    = m_Spec.NativeWindow;
+        m_Swapchain =
+            Swapchain(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSwapchainObj, m_Device, spec, this));
+    }
 }
 
-void VulkanGraphicContextObj::CreateVKInstance() {
+void VulkanGraphicsContextObj::CreateVKInstance() {
     VkApplicationInfo appInfo{};
     appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName   = "Chozo Engine";
@@ -83,7 +118,7 @@ void VulkanGraphicContextObj::CreateVKInstance() {
             }
         }
         if (!found) {
-            CZ_LOG(LogVulkanGraphicContext, Error, "Missing required extension: {0}", req);
+            CZ_LOG(LogVulkanGraphicsContext, Error, "Missing required extension: {0}", req);
             throw std::runtime_error("Required Vulkan extension not supported");
         }
     }
@@ -105,13 +140,13 @@ void VulkanGraphicContextObj::CreateVKInstance() {
     }
 
     if (vkCreateInstance(&createInfo, nullptr, &m_Instance) != VK_SUCCESS) {
-        CZ_LOG(LogVulkanGraphicContext, Fatal, "Failed to create Vulkan instance.");
+        CZ_LOG(LogVulkanGraphicsContext, Fatal, "Failed to create Vulkan instance.");
         throw std::runtime_error("Vulkan instance creation failed");
     }
-    CZ_LOG(LogVulkanGraphicContext, Info, "Vulkan Instance created.");
+    CZ_LOG(LogVulkanGraphicsContext, Info, "Vulkan Instance created.");
 }
 
-void VulkanGraphicContextObj::SetupVKDebugMessenger() {
+void VulkanGraphicsContextObj::SetupVKDebugMessenger() {
     if (!m_Spec.EnableValidationLayers) return;
 
     m_vkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(
@@ -119,7 +154,7 @@ void VulkanGraphicContextObj::SetupVKDebugMessenger() {
     m_vkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
         vkGetInstanceProcAddr(m_Instance, "vkDestroyDebugUtilsMessengerEXT"));
     if (!m_vkCreateDebugUtilsMessengerEXT || !m_vkDestroyDebugUtilsMessengerEXT) {
-        CZ_LOG(LogVulkanGraphicContext, Warning, "Debug extension not available");
+        CZ_LOG(LogVulkanGraphicsContext, Warning, "Debug extension not available");
         return;
     }
 
@@ -135,13 +170,13 @@ void VulkanGraphicContextObj::SetupVKDebugMessenger() {
 
     if (m_vkCreateDebugUtilsMessengerEXT(m_Instance, &messengerInfo, nullptr, &m_DebugMessenger) !=
         VK_SUCCESS) {
-        CZ_LOG(LogVulkanGraphicContext, Error, "Failed to create debug messenger");
+        CZ_LOG(LogVulkanGraphicsContext, Error, "Failed to create debug messenger");
     }
 
-    CZ_LOG(LogVulkanGraphicContext, Info, "Vulkan Debug Messenger enabled.");
+    CZ_LOG(LogVulkanGraphicsContext, Info, "Vulkan Debug Messenger enabled.");
 }
 
-void VulkanGraphicContextObj::CreateVKSurface(const void* nativeWindowHandle) {
+void VulkanGraphicsContextObj::CreateVKSurface(const void* nativeWindowHandle) {
     VkResult result = VK_ERROR_UNKNOWN;
 
 #ifdef CZ_PLATFORM_WINDOWS
@@ -160,10 +195,10 @@ void VulkanGraphicContextObj::CreateVKSurface(const void* nativeWindowHandle) {
 #endif
 
     if (result != VK_SUCCESS) {
-        CZ_LOG(LogVulkanGraphicContext, Fatal, "Failed to create window surface");
+        CZ_LOG(LogVulkanGraphicsContext, Fatal, "Failed to create window surface");
         throw std::runtime_error("Vulkan surface creation failed");
     }
-    CZ_LOG(LogVulkanGraphicContext, Info, "Vulkan Surface created.");
+    CZ_LOG(LogVulkanGraphicsContext, Info, "Vulkan Surface created.");
 }
 
 } // namespace CZ

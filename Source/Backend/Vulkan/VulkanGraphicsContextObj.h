@@ -1,16 +1,33 @@
 #pragma once
 
-#include <Runtime/RHI/GraphicContext.h>
+#include "../Source/Runtime/RHI/GraphicsContextObj.h"
+#include <Runtime/RHI/Device.h>
+#include <Runtime/RHI/Swapchain.h>
+#include <vulkan/vulkan_core.h>
 
 namespace CZ {
 
-class VulkanGraphicContextObj : public GraphicContextObj {
+struct VulkanContextWrapper {
+    VkInstance Instance;
+
+    VkPhysicalDevice PhysicalDevice;
+    VkDevice Device;
+    uint32 GraphicsQueueIndex;
+    VkQueue GraphicsQueue;
+    VkDescriptorPool GlobalDescriptorPool;
+
+    VkSwapchainKHR Swapchain;
+};
+
+class VulkanGraphicsContextObj : public GraphicsContextObj {
 public:
-    VulkanGraphicContextObj(const GraphicContextSpecification& spec);
-    ~VulkanGraphicContextObj() override;
+    VulkanGraphicsContextObj(const GraphicsContextSpecification& spec);
+    ~VulkanGraphicsContextObj() override;
 
     VkInstance GetVKInstance() const { return m_Instance; }
     VkSurfaceKHR GetVKSurface() const { return m_Surface; }
+
+    VulkanContextWrapper GetVulkanContextWrapper();
 
 private:
     void Init();

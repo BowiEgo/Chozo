@@ -2,13 +2,11 @@
 
 #include <Core/Header/Handle.h>
 #include <Core/Memory/Memory.h>
-#include <Runtime/RHI/GraphicContext.h>
+#include <Runtime/RHI/CommandPool.h>
 
 namespace CZ {
 
 struct DeviceSpecification {
-    GraphicContext GraphicContext;
-
     // --- Metadata ---
     std::string AppName;
     uint32_t AppVersion;
@@ -19,23 +17,14 @@ struct DeviceSpecification {
     // bool RequireRayTracing   = false;
 };
 
-class DeviceObj {
-public:
-    DeviceObj(const DeviceSpecification& spec) : m_Spec(spec) {}
-    virtual ~DeviceObj() = default;
-
-    virtual void WaitIdle() = 0;
-
-    GraphicContext GetGraphicContext() const { return m_Spec.GraphicContext; }
-
-protected:
-    DeviceSpecification m_Spec;
-};
+class DeviceObj;
 
 struct Device : Handle<DeviceObj> {
     static void Destroy(Device device);
 
-    void WaitIdle() const { m_Obj->WaitIdle(); }
+    void WaitIdle() const;
+
+    CommandPool CreateCommandPool(const CommandPoolSpecification& spec);
 };
 
 } // namespace CZ

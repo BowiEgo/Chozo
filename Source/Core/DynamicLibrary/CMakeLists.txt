@@ -4,11 +4,11 @@ set(MODULE_TYPE Core)
 
 set(MODULE_INCLUDE
 	${CHOZO_INCLUDE_DIR}/Core/DynamicLibrary/DynamicLibrary.h
-	${CHOZO_INCLUDE_DIR}/Core/DynamicLibrary/BackendRegistry.h
+	${CHOZO_INCLUDE_DIR}/Core/DynamicLibrary/DynamicLibraryRegistry.h
 )
 
 set(MODULE_SRC
-	BackendRegistry.cpp
+	DynamicLibraryRegistry.cpp
 )
 
 add_chozo_module(

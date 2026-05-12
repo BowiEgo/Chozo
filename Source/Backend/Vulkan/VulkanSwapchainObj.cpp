@@ -1,7 +1,7 @@
 #include "VulkanSwapchainObj.h"
 
 #include "VulkanDeviceObj.h"
-#include "VulkanGraphicContextObj.h"
+#include "VulkanGraphicsContextObj.h"
 #include "VulkanImageObj.h"
 #include "VulkanTextureObj.h"
 
@@ -9,15 +9,9 @@ namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogVulkanSwapchain, Info);
 
-extern "C" {
-
-SwapchainObj* CreateVulkanSwapchainObj(const Device device, const SwapchainSpecification& spec) {
-    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanSwapchainObj, device, spec);
-}
-}
-
-VulkanSwapchainObj::VulkanSwapchainObj(const Device device, const SwapchainSpecification& spec)
-    : SwapchainObj(device, spec) {
+VulkanSwapchainObj::VulkanSwapchainObj(const Device device, const SwapchainSpecification& spec,
+                                       VulkanGraphicsContextObj* ctxObj)
+    : SwapchainObj(device, spec), m_ContextObj(ctxObj) {
     Init();
 }
 
@@ -38,7 +32,7 @@ VulkanSwapchainObj::~VulkanSwapchainObj() {
     }
     m_RenderFinishedSemaphores.clear();
 
-    vkDestroySwapchainKHR(logicalDevice, m_VKSwapchain, nullptr);
+    vkDestroySwapchainKHR(logicalDevice, m_VkSwapchain, nullptr);
 }
 
 void VulkanSwapchainObj::Recreate(const Extent2D& frameBufferSize) {
@@ -55,10 +49,8 @@ void VulkanSwapchainObj::Recreate(const Extent2D& frameBufferSize) {
 }
 
 void VulkanSwapchainObj::Init() {
-    auto deviceObj = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
-    auto ctxObj    = static_cast<VulkanGraphicContextObj*>(deviceObj->GetGraphicContext().Unwrap());
-
-    VkSurfaceKHR vkSurface = ctxObj->GetVKSurface();
+    auto deviceObj         = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
+    VkSurfaceKHR vkSurface = m_ContextObj->GetVKSurface();
 
     CZ_CORE_ASSERT(deviceObj, "Device is no longer valid during Swapchain initialization!");
     CZ_CORE_ASSERT(vkSurface != VK_NULL_HANDLE,
@@ -146,7 +138,7 @@ void VulkanSwapchainObj::Init() {
     }
 
     // Preserve old swapchain for recreation
-    VkSwapchainKHR oldSwapchain = m_VKSwapchain;
+    VkSwapchainKHR oldSwapchain = m_VkSwapchain;
     if (oldSwapchain != VK_NULL_HANDLE) {
         createInfo.oldSwapchain = oldSwapchain;
     }
@@ -163,16 +155,16 @@ void VulkanSwapchainObj::Init() {
     if (oldSwapchain != VK_NULL_HANDLE) {
         vkDestroySwapchainKHR(logicalDevice, oldSwapchain, nullptr);
     }
-    m_VKSwapchain   = newSwapchain;
-    m_VKImageFormat = surfaceFormat.format;
+    m_VkSwapchain   = newSwapchain;
+    m_VkImageFormat = surfaceFormat.format;
     m_VKDepthFormat = VK_FORMAT_D32_SFLOAT;
-    m_VKExtent      = extent;
+    m_VkExtent      = extent;
 
     // Get swapchain images
     uint32_t imageCount = 0;
-    vkGetSwapchainImagesKHR(logicalDevice, m_VKSwapchain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(logicalDevice, m_VkSwapchain, &imageCount, nullptr);
     std::vector<VkImage> images(imageCount);
-    vkGetSwapchainImagesKHR(logicalDevice, m_VKSwapchain, &imageCount, images.data());
+    vkGetSwapchainImagesKHR(logicalDevice, m_VkSwapchain, &imageCount, images.data());
 
     VkSemaphoreCreateInfo semiInfo{};
     semiInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -187,8 +179,8 @@ void VulkanSwapchainObj::Init() {
         // Wrap each VkImage into RHI Texture object
         TextureSpecification texSpec;
         texSpec.Name   = "Swapchain_ColorAttachment_" + std::to_string(m_ColorAttachments.size());
-        texSpec.Size   = Extent2D(m_VKExtent.width, m_VKExtent.height);
-        texSpec.Format = VulkanUtils::FromVKFormat(m_VKImageFormat);
+        texSpec.Size   = Extent2D(m_VkExtent.width, m_VkExtent.height);
+        texSpec.Format = VulkanUtils::FromVKFormat(m_VkImageFormat);
         texSpec.Usage  = TextureUsage::Attachment;
 
         // Create a VulkanImage that holds the external swapchain image
