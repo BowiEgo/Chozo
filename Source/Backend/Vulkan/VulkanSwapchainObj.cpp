@@ -1,42 +1,85 @@
 #include "VulkanSwapchainObj.h"
 
 #include "VulkanDeviceObj.h"
+#include "VulkanFenceObj.h"
 #include "VulkanGraphicsContextObj.h"
 #include "VulkanImageObj.h"
+#include "VulkanSemaphoreObj.h"
 #include "VulkanTextureObj.h"
+#include "VulkanUtils.h"
 
 namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogVulkanSwapchain, Info);
 
-VulkanSwapchainObj::VulkanSwapchainObj(const Device device, const SwapchainSpecification& spec,
-                                       VulkanGraphicsContextObj* ctxObj)
-    : SwapchainObj(device, spec), m_ContextObj(ctxObj) {
+extern "C" {
+
+// void DestroyVulkanSwapchainObj(SwapchainObj* obj) {
+//     obj->Destroy();
+//     Delete(obj);
+// }
+}
+
+VulkanSwapchainObj::VulkanSwapchainObj(const VulkanGraphicsContextObj* ctxObj,
+                                       const SwapchainSpecification& spec)
+    : SwapchainObj(spec), m_ContextObj(ctxObj) {
     Init();
+
+    m_ImageAvailableSemaphores.assign(
+        spec.MaxFramesInFlight,
+        Semaphore(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSemaphoreObj, ctxObj->m_DeviceObj)));
+
+    m_RenderFinishedSemaphores.assign(
+        spec.MaxFramesInFlight,
+        Semaphore(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSemaphoreObj, ctxObj->m_DeviceObj)));
+
+    m_InFlightFences.assign(
+        spec.MaxFramesInFlight,
+        Fence(CZ_NEW(MEMORY_USAGE_RENDER, VulkanFenceObj, ctxObj->m_DeviceObj)));
 }
 
 VulkanSwapchainObj::~VulkanSwapchainObj() {
-    auto deviceObj = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
+    CZ_LOG(LogVulkanSwapchain, Error, "Swapchain destructed");
+
+    auto deviceObj = m_ContextObj->m_DeviceObj;
 
     CZ_CORE_ASSERT(deviceObj, "Device is no longer valid during Swapchain destroying!");
 
     VkDevice logicalDevice = deviceObj->GetLogicalDevice();
 
-    for (auto sem : m_ImageAvailableSemaphores) {
-        if (sem != VK_NULL_HANDLE) vkDestroySemaphore(logicalDevice, sem, nullptr);
-    }
-    m_ImageAvailableSemaphores.clear();
-
-    for (auto sem : m_RenderFinishedSemaphores) {
-        if (sem != VK_NULL_HANDLE) vkDestroySemaphore(logicalDevice, sem, nullptr);
-    }
-    m_RenderFinishedSemaphores.clear();
-
     vkDestroySwapchainKHR(logicalDevice, m_VkSwapchain, nullptr);
 }
 
+uint32 VulkanSwapchainObj::AcquireNextImageIndex(VkSemaphore sem) {
+    auto deviceObj = m_ContextObj->m_DeviceObj;
+
+    VkDevice logicalDevice = deviceObj->GetLogicalDevice();
+
+    uint32_t imageIndex = 0;
+    VkResult result     = vkAcquireNextImageKHR(logicalDevice,
+                                                m_VkSwapchain,  // VkSwapchainKHR
+                                                UINT64_MAX,     // timeout (uint64_t)
+                                                sem,            // VkSemaphore to signal
+                                                VK_NULL_HANDLE, // fence (optional)
+                                                &imageIndex);
+
+    if (result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR) {
+        if (result == VK_SUBOPTIMAL_KHR) {
+            m_NeedsRecreation = true;
+        }
+        return imageIndex;
+    } else if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        m_NeedsRecreation = true;
+        return INVALID_IMAGE_INDEX;
+    } else {
+        CZ_LOG(LogVulkanSwapchain, Error, "vkAcquireNextImageKHR failed with {}",
+               VulkanUtils::VkResultToString(result));
+        return INVALID_IMAGE_INDEX;
+    }
+}
+
 void VulkanSwapchainObj::Recreate(const Extent2D& frameBufferSize) {
-    auto deviceObj = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
+    auto deviceObj = m_ContextObj->m_DeviceObj;
 
     CZ_CORE_ASSERT(deviceObj, "Device is no longer valid during Swapchain initialization!");
 
@@ -48,8 +91,24 @@ void VulkanSwapchainObj::Recreate(const Extent2D& frameBufferSize) {
     m_NeedsRecreation = false;
 }
 
+void VulkanSwapchainObj::MarkNeedsRecreation() {
+    if (!m_NeedsRecreation) {
+        CZ_LOG(LogVulkanSwapchain, Trace, "Swapchain marked for recreation");
+        m_NeedsRecreation = true;
+    }
+}
+
+bool VulkanSwapchainObj::RecreateIfNeeded() {
+    if (m_NeedsRecreation) {
+        Recreate();
+        return true;
+    }
+
+    return false;
+}
+
 void VulkanSwapchainObj::Init() {
-    auto deviceObj         = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
+    auto deviceObj         = m_ContextObj->m_DeviceObj;
     VkSurfaceKHR vkSurface = m_ContextObj->GetVKSurface();
 
     CZ_CORE_ASSERT(deviceObj, "Device is no longer valid during Swapchain initialization!");
@@ -62,11 +121,11 @@ void VulkanSwapchainObj::Init() {
     VulkanUtils::SwapchainSupportDetails details =
         VulkanUtils::QuerySwapchainSupport(physicalDevice, vkSurface);
 
-    CZ_LOG(LogVulkan, Info, "Vulkan surface current extent: {}x{}",
+    CZ_LOG(LogVulkanSwapchain, Info, "Vulkan surface current extent: {}x{}",
            details.Capabilities.currentExtent.width, details.Capabilities.currentExtent.height);
-    CZ_LOG(LogVulkan, Info, "Vulkan surface min extent: {}x{}",
+    CZ_LOG(LogVulkanSwapchain, Info, "Vulkan surface min extent: {}x{}",
            details.Capabilities.minImageExtent.width, details.Capabilities.minImageExtent.height);
-    CZ_LOG(LogVulkan, Info, "Vulkan surface max extent: {}x{}",
+    CZ_LOG(LogVulkanSwapchain, Info, "Vulkan surface max extent: {}x{}",
            details.Capabilities.maxImageExtent.width, details.Capabilities.maxImageExtent.height);
 
     int pixelWidth = m_Spec.FrameBufferSize.Width, pixelHeight = m_Spec.FrameBufferSize.Height;
@@ -166,14 +225,8 @@ void VulkanSwapchainObj::Init() {
     std::vector<VkImage> images(imageCount);
     vkGetSwapchainImagesKHR(logicalDevice, m_VkSwapchain, &imageCount, images.data());
 
-    VkSemaphoreCreateInfo semiInfo{};
-    semiInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
     m_ColorAttachments.clear();
     m_ColorAttachments.reserve(images.size());
-
-    m_ImageAvailableSemaphores.clear();
-    m_RenderFinishedSemaphores.clear();
 
     for (auto rawImage : images) {
         // Wrap each VkImage into RHI Texture object
@@ -184,28 +237,18 @@ void VulkanSwapchainObj::Init() {
         texSpec.Usage  = TextureUsage::Attachment;
 
         // Create a VulkanImage that holds the external swapchain image
-        VulkanImageObj* imageObj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanImageObj, m_Device,
-                                          texSpec.ToImageSpec(), rawImage, true);
+        VulkanImageObj* imageObj =
+            CZ_NEW(MEMORY_USAGE_RENDER, VulkanImageObj, m_ContextObj->m_DeviceObj,
+                   texSpec.ToImageSpec(), rawImage, true);
 
         Image image(imageObj);
 
-        VulkanTextureObj* textureObj =
-            CZ_NEW(MEMORY_USAGE_RENDER, VulkanTextureObj, m_Device, texSpec, image);
+        VulkanTextureObj* textureObj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanTextureObj,
+                                              m_ContextObj->m_DeviceObj, texSpec, image);
 
         Texture texture(textureObj);
 
         m_ColorAttachments.push_back(texture);
-
-        // Create semaphores
-        VkSemaphore imageAvailable, renderFinished;
-        if (vkCreateSemaphore(logicalDevice, &semiInfo, nullptr, &imageAvailable) != VK_SUCCESS ||
-            vkCreateSemaphore(logicalDevice, &semiInfo, nullptr, &renderFinished) != VK_SUCCESS) {
-            CZ_LOG(LogVulkanSwapchain, Error, "Failed to create semaphores for swapchain images");
-            // Cleanup partially created resources (not shown for brevity)
-            return;
-        }
-        m_ImageAvailableSemaphores.push_back(imageAvailable);
-        m_RenderFinishedSemaphores.push_back(renderFinished);
     }
 
     CZ_LOG(LogVulkanSwapchain, Info, "=== Swapchain Creation Debug ===");

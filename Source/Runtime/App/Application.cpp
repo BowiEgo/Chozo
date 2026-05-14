@@ -1,11 +1,8 @@
-#include "Core/Memory/Memory.h"
 #include "Runtime/Window/Window.h"
 #include <Runtime/App/Application.h>
 
 #include <Core/Header/Assert.h>
 #include <Core/Header/Macros.h>
-
-#include <iostream>
 
 namespace CZ {
 
@@ -38,25 +35,23 @@ bool Application::Startup(const ApplicationSpecification& appSpec, std::string& 
         m_Engine->Init(err);
     }
 
-    m_LayerStack.PushLayer(m_StartupLayer);
-
-    // // Setup UI
-    // {
-    //     m_UI = CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, UI, m_Engine.get());
-    //     m_UI->Init(err);
-    // }
+    m_LayerStack.PushLayer(m_StartupHost.GetStartupLayer());
+    if (m_StartupHost.IsOffscreen()) {
+        m_Engine->GetRenderer().SetDrawFuncToFinalPass(CZ_BIND_FN(m_StartupHost.Draw));
+    }
 
     return true;
 }
 
 void Application::Shutdown() {
+    m_StartupHost.Destroy();
     m_LayerStack.Clear();
 
     m_Engine->Shutdown();
     m_Engine.reset();
 
     m_Window.Shutdown();
-    Window::Destroy(m_Window);
+    m_Window.Destroy();
 
     ReportMemoryLeaks();
 }
@@ -73,8 +68,7 @@ void Application::Run() {
     for (Layer* layer : m_LayerStack)
         layer->OnRender();
 
-    // m_UI->OnUpdate();
-    // m_UI->Render();
+    m_Engine->Tick(deltaTime);
 }
 
 bool Application::OnEvent(Event& e) {

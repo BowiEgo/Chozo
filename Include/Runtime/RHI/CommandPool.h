@@ -15,8 +15,8 @@ struct CommandPoolSpecification {
 
 class CommandPoolObj;
 
-struct CommandPool : Handle<CommandPoolObj> {
-    static void Destroy(CommandPool cmdList);
+struct CommandPool : Handle<class CommandPoolObj> {
+    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
 
     CommandList AllocateCommandBuffer();
 };

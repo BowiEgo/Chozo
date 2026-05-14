@@ -20,10 +20,17 @@ public:
     bool OnEvent(Event& e);
     void OnWindowResize(WindowResizedEvent& e);
 
-    // Renderer* GetRenderer() const { return m_Renderer.get(); }
+    Renderer GetRenderer() const { return m_Renderer; }
+
+    GraphicsContext GetGraphicContext() const { return m_GraphicsContext; }
+
+    Texture GetSwapchainFramebuffer(uint32 index) {
+        return m_GraphicsContext.GetSwapchain().GetColorAttachment(index);
+    }
 
 private:
     Renderer m_Renderer;
+    GraphicsContext m_GraphicsContext;
 };
 
 } // namespace CZ

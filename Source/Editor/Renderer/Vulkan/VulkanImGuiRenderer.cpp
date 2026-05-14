@@ -1,9 +1,12 @@
 #include "VulkanImGuiRenderer.h"
 
+// #include "../../../Backend/Vulkan/VulkanPCH.h"
+#include "../../../Backend/Vulkan/VulkanUtils.h"
+
 #include "../../../Backend/Vulkan/VulkanCommandBufferObj.h"
 #include "../../../Backend/Vulkan/VulkanGraphicsContextObj.h"
+// #include "../../../Backend/Vulkan/VulkanImageObj.h"
 #include "../../../Backend/Vulkan/VulkanUtils.h"
-#include "Core/Log/LogMacros.h"
 
 #include <Runtime/App/Application.h>
 #include <Runtime/RHI/RHIAPI.h>
@@ -35,14 +38,14 @@ VulkanImGuiRenderer::~VulkanImGuiRenderer() {}
 void VulkanImGuiRenderer::Init(ImGuiContext* ctx, SDL_Window* windowHandle) {
     ImGui::SetCurrentContext(ctx);
 
+    // ================================================================
     // Setup Platform/Renderer backends
+    // ================================================================
 
-    auto GraphicsContext = RHIAPI::Get().GetGraphicsContext();
-    // auto device         = RHIAPI::Get().GetDevice();
-    auto swapchain       = GraphicsContext.GetSwapchain();
-
+    auto graphicsContext = RHIAPI::Get().GetGraphicsContext();
+    auto swapchain       = graphicsContext.GetSwapchain();
     auto vulkanCtxWrapper =
-        static_cast<VulkanGraphicsContextObj*>(GraphicsContext.Unwrap())->GetVulkanContextWrapper();
+        graphicsContext.As<VulkanGraphicsContextObj>()->GetVulkanContextWrapper();
 
     auto vkInstance             = vulkanCtxWrapper.Instance;
     auto vkDevice               = vulkanCtxWrapper.Device;
@@ -114,7 +117,29 @@ void VulkanImGuiRenderer::NewFrame() {
 void VulkanImGuiRenderer::Draw(ImDrawData* drawData, CommandList cmdList) {
     if (!drawData || drawData->TotalVtxCount == 0) return;
 
-    auto vkCmdBuffer = static_cast<VulkanCommandBufferObj*>(cmdList.Unwrap())->GetVkCommandBuffer();
+    auto vkCmdBuffer = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
 
     ImGui_ImplVulkan_RenderDrawData(drawData, vkCmdBuffer);
+}
+
+ImTextureID VulkanImGuiRenderer::GetTextureIDForRHITexture(Texture texture) {
+    auto it = m_TextureIDCache.find(texture);
+    if (it != m_TextureIDCache.end()) {
+        return it->second;
+    }
+
+    // if (!texture->IsValid()) texture = m_DefaultBlackTexture.get();
+
+    // VkImageView imageView = texture.GetImage().As<VulkanImageObj>()->GetOrCreateVKView();
+    // // vk::Sampler sampler   = texture->GetSampler().As<CVulkanSampler>()->GetVKHandle();
+
+    // // VkDescriptorSet descSet =
+    // //     ImGui_ImplVulkan_AddTexture(sampler, imageView,
+    // //     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    // ImTextureID id            = reinterpret_cast<ImTextureID>(descSet);
+    // m_TextureIDCache[texture] = id;
+    // return id;
+
+    return 0;
 }

@@ -13,6 +13,8 @@ extern "C" {
 GraphicsContextObj* CreateVulkanGraphicsContextObj(const GraphicsContextSpecification& spec) {
     return CZ_NEW(MEMORY_USAGE_RENDER, VulkanGraphicsContextObj, spec);
 }
+
+void DestroyVulkanGraphicsContextObj(GraphicsContextObj* obj) { Delete(obj); }
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -48,16 +50,14 @@ VulkanGraphicsContextObj::~VulkanGraphicsContextObj() {
 VulkanContextWrapper VulkanGraphicsContextObj::GetVulkanContextWrapper() {
     VulkanContextWrapper wrapper;
 
-    wrapper.Instance       = m_Instance;
-    wrapper.Device         = static_cast<VulkanDeviceObj*>(m_Device.Unwrap())->GetLogicalDevice();
-    wrapper.PhysicalDevice = static_cast<VulkanDeviceObj*>(m_Device.Unwrap())->GetPhysicalDevice();
-    wrapper.GlobalDescriptorPool =
-        static_cast<VulkanDeviceObj*>(m_Device.Unwrap())->GetGlobalDescriptorPool();
-    wrapper.GraphicsQueueIndex =
-        static_cast<VulkanDeviceObj*>(m_Device.Unwrap())->GetGraphicsQueueIndex();
-    wrapper.GraphicsQueue = static_cast<VulkanDeviceObj*>(m_Device.Unwrap())->GetGraphicsQueue();
+    wrapper.Instance             = m_Instance;
+    wrapper.Device               = m_DeviceObj->GetLogicalDevice();
+    wrapper.PhysicalDevice       = m_DeviceObj->GetPhysicalDevice();
+    wrapper.GlobalDescriptorPool = m_DeviceObj->GetGlobalDescriptorPool();
+    wrapper.GraphicsQueueIndex   = m_DeviceObj->GetGraphicsQueueIndex();
+    wrapper.GraphicsQueue        = m_DeviceObj->GetGraphicsQueue();
 
-    wrapper.Swapchain = static_cast<VulkanSwapchainObj*>(m_Swapchain.Unwrap())->GetVkSwapchain();
+    wrapper.Swapchain = m_SwapchainObj->GetVkSwapchain();
 
     return wrapper;
 }
@@ -72,15 +72,18 @@ void VulkanGraphicsContextObj::Init() {
         spec.AppName    = "Chozo Engine";
         spec.AppVersion = 1;
 
-        m_Device = Device(CZ_NEW(MEMORY_USAGE_RENDER, VulkanDeviceObj, spec, this));
+        m_DeviceObj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanDeviceObj, this, spec);
+        m_Device    = Device(m_DeviceObj);
     }
 
     {
         SwapchainSpecification spec;
-        spec.FrameBufferSize = m_Spec.FrameBufferSize;
-        spec.NativeWindow    = m_Spec.NativeWindow;
-        m_Swapchain =
-            Swapchain(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSwapchainObj, m_Device, spec, this));
+        spec.FrameBufferSize   = m_Spec.FrameBufferSize;
+        spec.NativeWindow      = m_Spec.NativeWindow;
+        spec.MaxFramesInFlight = GetMaxFramesInFlight();
+
+        m_SwapchainObj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanSwapchainObj, this, spec);
+        m_Swapchain    = Swapchain(m_SwapchainObj);
     }
 }
 

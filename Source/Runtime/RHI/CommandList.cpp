@@ -6,11 +6,7 @@ namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogCommandList, Info);
 
-void CommandList::Destroy(CommandList cmdList) {
-    if (!cmdList) return;
-
-    Delete(cmdList.Unwrap());
-}
+DEFINE_HANDLE_DESTROY(CommandListObj)
 
 void CommandList::Begin() { m_Obj->Begin(); }
 
@@ -25,9 +21,9 @@ void CommandList::SetPolygonMode(PolygonMode mode) { m_Obj->SetPolygonMode(mode)
 // void CommandList::BindDescriptorSets(int set, DescriptorSet descSet) {
 // m_Obj->BindDescriptorSets(set, decsSet); }
 
-void CommandList::PushConstants(const void* data, uint32 size, uint32 offset) {
-    m_Obj->PushConstants(data, size, offset);
-}
+// void CommandList::PushConstants(const void* data, uint32 size, uint32 offset) {
+//     m_Obj->PushConstants(data, size, offset);
+// }
 
 // void CommandList::BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) {
 // m_Obj->BindVertexBuffer(vertexBuffer, binding); }

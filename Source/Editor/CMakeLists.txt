@@ -1,6 +1,7 @@
 set(MODULE_NAME CZEditor)
 
 set(MODULE_SRC
+    Editor.cpp
     EditorLayer.cpp
     Renderer/Vulkan/VulkanImGuiRenderer.cpp
 )

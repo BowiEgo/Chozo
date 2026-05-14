@@ -19,9 +19,9 @@ public:
 
     void Begin() override;
 
-    void SetViewport(const RenderViewport& viewport) override;
+    void SetViewport(const RenderViewport& vp) override;
 
-    void SetScissor(const RenderScissor& scissor) override;
+    void SetScissor(const RenderScissor& sc) override;
 
     void SetPolygonMode(PolygonMode mode) override;
 
@@ -29,7 +29,7 @@ public:
 
     //  void BindDescriptorSets(int set, DescriptorSet descSet) override;
 
-    void PushConstants(const void* data, uint32 size, uint32 offset) override;
+    // void PushConstants(const void* data, uint32 size, uint32 offset) override;
 
     //  void BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) override;
 
@@ -48,7 +48,12 @@ public:
     VkCommandBuffer GetVkCommandBuffer() const { return m_VkCommandBuffer; }
 
 private:
+    // void PushConstants(VkShaderStageFlags stageFlags, const void* data, uint32_t size,
+    //                    uint32_t offset);
+
     VkCommandBuffer m_VkCommandBuffer;
+
+    VulkanCommandPoolObj* m_CmdPoolObj;
 };
 
 } // namespace CZ

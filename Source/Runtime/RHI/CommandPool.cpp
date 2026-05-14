@@ -6,11 +6,7 @@ namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogCommandPool, Info);
 
-void CommandPool::Destroy(CommandPool cmdPool) {
-    if (!cmdPool) return;
-
-    Delete(cmdPool.Unwrap());
-}
+DEFINE_HANDLE_DESTROY(CommandPoolObj)
 
 CommandList CommandPool::AllocateCommandBuffer() { return m_Obj->AllocateCommandBuffer(); }
 

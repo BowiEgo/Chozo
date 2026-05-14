@@ -1,8 +1,6 @@
 #pragma once
 
 #include "../Source/Runtime/RHI/CommandPoolObj.h"
-#include <Runtime/RHI/CommandPool.h>
-#include <vulkan/vulkan_core.h>
 
 #include "VulkanCommandBufferObj.h"
 
@@ -14,7 +12,7 @@ class VulkanCommandPoolObj : public CommandPoolObj {
     friend class VulkanCommandBufferObj;
 
 public:
-    VulkanCommandPoolObj(const VulkanDeviceObj* deviceObj, const CommandPoolSpecification& spec);
+    VulkanCommandPoolObj(const VulkanDeviceObj* deviceObj, CommandPoolSpecification& spec);
     ~VulkanCommandPoolObj() override;
 
     CommandList AllocateCommandBuffer() override;

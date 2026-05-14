@@ -1,18 +1,18 @@
 #pragma once
 
 #include "../Source/Runtime/RHI/SwapchainObj.h"
-#include "VulkanGraphicsContextObj.h"
-#include <Runtime/RHI/Swapchain.h>
-#include <vulkan/vulkan_core.h>
+
+#include "VulkanUtils.h"
 
 namespace CZ {
 
 static constexpr uint32 INVALID_IMAGE_INDEX = 0xFFFFFFFF;
 
+class VulkanGraphicsContextObj;
+
 class VulkanSwapchainObj : public SwapchainObj {
 public:
-    VulkanSwapchainObj(const Device device, const SwapchainSpecification& spec,
-                       VulkanGraphicsContextObj* ctxObj);
+    VulkanSwapchainObj(const VulkanGraphicsContextObj* ctxObj, const SwapchainSpecification& spec);
     ~VulkanSwapchainObj() override;
 
     PixelFormat GetImageFormat() const override {
@@ -29,26 +29,29 @@ public:
         m_PresentMode     = mode;
         m_NeedsRecreation = true;
     }
+
     void Recreate(const Extent2D& frameBufferSize) override;
 
     VkSwapchainKHR GetVkSwapchain() const { return m_VkSwapchain; }
 
     VkFormat GetVkImageFormat() const { return m_VkImageFormat; }
 
+    uint32 AcquireNextImageIndex(VkSemaphore sem);
+
+    void MarkNeedsRecreation();
+
+    bool RecreateIfNeeded();
+
 private:
     void Init();
+
+    void Recreate() { Recreate(m_Spec.FrameBufferSize); }
 
     VkSwapchainKHR m_VkSwapchain = VK_NULL_HANDLE;
     VkFormat m_VkImageFormat = VK_FORMAT_UNDEFINED, m_VKDepthFormat = VK_FORMAT_UNDEFINED;
     VkExtent2D m_VkExtent = { 0, 0 };
-    uint32_t m_ImageCount = 0;
 
-    std::vector<VkSemaphore> m_ImageAvailableSemaphores;
-    std::vector<VkSemaphore> m_RenderFinishedSemaphores;
-
-    bool m_NeedsRecreation = false;
-
-    VulkanGraphicsContextObj* m_ContextObj;
+    const VulkanGraphicsContextObj* m_ContextObj;
 };
 
 } // namespace CZ

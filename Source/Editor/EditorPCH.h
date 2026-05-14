@@ -8,3 +8,5 @@
 #define IM_VULKAN_HAS_DYNAMIC_RENDERING
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_vulkan.h"
+
+#include <unordered_map>

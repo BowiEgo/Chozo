@@ -2,7 +2,6 @@
 
 #include <Core/Header/Handle.h>
 #include <Core/Memory/Memory.h>
-#include <Runtime/RHI/Device.h>
 #include <Runtime/RHI/Image.h>
 #include <Runtime/RHI/RHITypes.h>
 #include <Runtime/RHI/Sampler.h>
@@ -88,24 +87,22 @@ struct TextureSpecification {
     }
 };
 
-class TextureObj {
-public:
-    TextureObj(const Device device, const TextureSpecification& spec)
-        : m_Device(device), m_Spec(spec) {}
+class TextureObj;
 
-    TextureObj(const Device device, const TextureSpecification& spec, Image image)
-        : m_Device(device), m_Spec(spec), m_Image(image) {}
+struct Texture : Handle<class TextureObj> {
+    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
 
-    virtual ~TextureObj() { Image::Destroy(m_Image); }
+    std::string GetName() const;
 
-protected:
-    Device m_Device;
-    TextureSpecification m_Spec;
-    Image m_Image;
-};
+    TextureType GetType() const;
 
-struct Texture : Handle<TextureObj> {
-    static void Destroy(Texture Texture);
+    Extent2D GetSize() const;
+
+    PixelFormat GetFormat() const;
+
+    TextureUsage GetUsage() const;
+
+    Image GetImage();
 };
 
 } // namespace CZ

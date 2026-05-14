@@ -1,15 +1,22 @@
 #include <Runtime/RHI/Swapchain.h>
 
 #include "SwapchainObj.h"
+#include <Runtime/RHI/RHIAPI.h>
 
 namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogSwapchain, Info);
 
-void Swapchain::Destroy(Swapchain swapchain) {
-    if (!swapchain) return;
+// DEFINE_HANDLE_BACKEND_DESTROY(SwapchainObj, "vulkan_backend", "DestroyVulkanSwapchainObj")
 
-    Delete(swapchain.Unwrap());
+// DEFINE_HANDLE_DESTROY(TextureObj)
+
+template <> void Handle<SwapchainObj>::Destroy() {
+    if (m_Obj) {
+        m_Obj->Destroy();
+        Delete(m_Obj);
+        m_Obj = nullptr;
+    }
 }
 
 PixelFormat Swapchain::GetImageFormat() const { return m_Obj->GetImageFormat(); }
@@ -17,5 +24,13 @@ PixelFormat Swapchain::GetImageFormat() const { return m_Obj->GetImageFormat(); 
 PixelFormat Swapchain::GetDepthFormat() const { return m_Obj->GetDepthFormat(); }
 
 uint32_t Swapchain::GetImageCount() const { return m_Obj->GetImageCount(); }
+
+Fence Swapchain::GetFence(uint32 currentFrame) const { return m_Obj->GetFence(currentFrame); }
+
+Semaphore Swapchain::GetImageAvailableSemaphore(uint32 currentFrame) const {
+    return m_Obj->GetImageAvailableSemaphore(currentFrame);
+}
+
+Texture Swapchain::GetColorAttachment(uint32 index) { return m_Obj->GetColorAttachment(index); }
 
 } // namespace CZ

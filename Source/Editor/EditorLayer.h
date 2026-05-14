@@ -26,7 +26,7 @@ public:
 
     bool OnKeyPressed(KeyPressedEvent& e) override;
 
-    void Draw();
+    void Draw(CommandList cmdList);
 
 private:
     void Init();
@@ -36,6 +36,10 @@ private:
     void SetDarkThemeColors();
 
     bool m_BlockEvents;
+
+    ImVec2 m_ViewportSize{ 1080, 720 };
+
+    bool m_ViewportFocused{}, m_ViewportHovered{};
 
     Scope<VulkanImGuiRenderer> m_ImGuiRenderer;
 };

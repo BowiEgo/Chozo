@@ -19,12 +19,12 @@ struct DeviceSpecification {
 
 class DeviceObj;
 
-struct Device : Handle<DeviceObj> {
-    static void Destroy(Device device);
+struct Device : Handle<class DeviceObj> {
+    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
 
     void WaitIdle() const;
 
-    CommandPool CreateCommandPool(const CommandPoolSpecification& spec);
+    CommandPool CreateCommandPool(CommandPoolSpecification& spec);
 };
 
 } // namespace CZ

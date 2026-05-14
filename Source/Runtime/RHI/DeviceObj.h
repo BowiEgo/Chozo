@@ -9,7 +9,7 @@ public:
 
     virtual void WaitIdle() = 0;
 
-    virtual CommandPool CreateCommandPool(const CommandPoolSpecification& spec) = 0;
+    virtual CommandPool CreateCommandPool(CommandPoolSpecification& spec) = 0;
 
 protected:
     DeviceSpecification m_Spec;

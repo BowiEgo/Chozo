@@ -1,3 +1,4 @@
+#include "Core/Header/Types.h"
 #include <Runtime/RHI/GraphicsContext.h>
 
 namespace CZ {
@@ -15,8 +16,6 @@ struct NativeRenderContext {
 };
 
 class GraphicsContextObj {
-    static const int MAX_FRAMES_IN_FLIGHT = 2;
-
 public:
     GraphicsContextObj(const GraphicsContextSpecification& spec) : m_Spec(spec) {}
     virtual ~GraphicsContextObj() = default;
@@ -25,6 +24,10 @@ public:
     GraphicsContextObj& operator=(const GraphicsContextObj&) = delete;
     GraphicsContextObj(GraphicsContextObj&&)                 = delete;
     GraphicsContextObj& operator=(GraphicsContextObj&&)      = delete;
+
+    uint32 GetMaxFramesInFlight() const { return 2; }
+
+    uint32 GetCurrentFrameIndex() const { return m_CurrentFrameIndex; }
 
     Device GetDevice() { return m_Device; }
 
@@ -35,5 +38,7 @@ protected:
 
     Device m_Device;
     Swapchain m_Swapchain;
+
+    uint32 m_CurrentFrameIndex = 0;
 };
 } // namespace CZ

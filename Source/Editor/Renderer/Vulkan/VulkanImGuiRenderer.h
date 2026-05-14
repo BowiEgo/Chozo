@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Runtime/RHI/CommandList.h>
+#include <Runtime/RHI/Texture.h>
 
 using namespace CZ;
 
@@ -13,4 +14,9 @@ public:
     void Shutdown();
     void NewFrame();
     void Draw(ImDrawData* drawData, CommandList cmdList);
+
+    ImTextureID GetTextureIDForRHITexture(Texture texture);
+
+private:
+    std::unordered_map<const Texture, ImTextureID> m_TextureIDCache;
 };

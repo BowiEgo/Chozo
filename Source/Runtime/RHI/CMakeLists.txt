@@ -5,26 +5,32 @@ set(MODULE_TYPE RUNTIME)
 set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHITypes.h
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHIUtils.h
+
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/GraphicsContext.h
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHIAPI.h
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Device.h
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Swapchain.h
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Fence.h
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Semaphore.h
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/CommandPool.h
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/CommandList.h
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Texture.h
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Image.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHIAPI.h
 )
 
 set(MODULE_SRC
-    GraphicsContext.cpp
     RHIUtils.cpp
+
+    GraphicsContext.cpp
+    RHIAPI.cpp
     Device.cpp
     Swapchain.cpp
+    Fence.cpp
+    Semaphore.cpp
     CommandPool.cpp
     CommandList.cpp
     Texture.cpp
     Image.cpp
-    RHIAPI.cpp
 )
 
 set(CZ_RUNTIME_RHI_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,9 +1,10 @@
 #pragma once
 
 #include "../Source/Runtime/RHI/GraphicsContextObj.h"
-#include <Runtime/RHI/Device.h>
-#include <Runtime/RHI/Swapchain.h>
-#include <vulkan/vulkan_core.h>
+
+#include "VulkanAPIObj.h"
+#include "VulkanDeviceObj.h"
+#include "VulkanSwapchainObj.h"
 
 namespace CZ {
 
@@ -20,6 +21,9 @@ struct VulkanContextWrapper {
 };
 
 class VulkanGraphicsContextObj : public GraphicsContextObj {
+    friend class VulkanAPIObj;
+    friend class VulkanSwapchainObj;
+
 public:
     VulkanGraphicsContextObj(const GraphicsContextSpecification& spec);
     ~VulkanGraphicsContextObj() override;
@@ -41,6 +45,9 @@ private:
 
     PFN_vkCreateDebugUtilsMessengerEXT m_vkCreateDebugUtilsMessengerEXT   = nullptr;
     PFN_vkDestroyDebugUtilsMessengerEXT m_vkDestroyDebugUtilsMessengerEXT = nullptr;
+
+    VulkanDeviceObj* m_DeviceObj;
+    VulkanSwapchainObj* m_SwapchainObj;
 };
 
 } // namespace CZ

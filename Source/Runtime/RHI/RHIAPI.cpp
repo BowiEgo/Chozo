@@ -1,53 +1,61 @@
 #include <Runtime/RHI/RHIAPI.h>
 
+#include <Core/DynamicLibrary/DynamicLibraryRegistry.h>
 #include <Runtime/RHI/GraphicsContext.h>
+
+#include "RHIAPIObj.h"
 
 namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogRHIAPI, Info);
 
+DEFINE_HANDLE_DESTROY(RHIAPIObj)
+
 RHIAPI& RHIAPI::Get() {
-    static RHIAPI Instance;
-    return Instance;
+    static RHIAPI instance;
+
+    return instance;
 }
 
-bool RHIAPI::Init(const GraphicsContextSpecification& gcSpec, std::string& err) {
+bool RHIAPI::Init(GraphicsContext ctx, std::string& err) {
     auto& registry = DynamicLibraryRegistry::Get();
-    if (!registry.LoadLib("Vulkan", "./libCZVulkan.dylib")) {
+    if (!registry.LoadLib("vulkan_backend", "./libCZVulkan.dylib")) {
         err = "Cannot load Vulkan backend.";
         return false;
     }
 
-    m_GraphicsContext = CreateGraphicsContext(gcSpec);
+    auto createFn = registry.GetFunction<RHIAPIObj* (*)(GraphicsContext)>("vulkan_backend",
+                                                                          "CreateVulkanAPIObj");
+    if (!createFn) {
+        CZ_LOG(LogRHIAPI, Error, "CreateVulkanAPIObj not found in backend.");
+        return false;
+    }
+
+    m_Obj = createFn(ctx);
 
     return true;
 }
 
-void RHIAPI::Shutdown() {
-    // Swapchain::Destroy(m_Swapchain);
-    // Device::Destroy(m_Device);
-    // GraphicsContext::Destroy(m_GraphicsContext);
+void RHIAPI::Shutdown() { Destroy(); }
+
+void RHIAPI::WaitIdle() const { GetGraphicsContext().GetDevice().WaitIdle(); }
+
+void RHIAPI::BeginRendering(CommandList cmdList, std::vector<Texture>& targets, bool bClear,
+                            uint32_t faceIndex) {
+    m_Obj->BeginRendering(cmdList, targets, bClear, faceIndex);
 }
 
-GraphicsContext RHIAPI::CreateGraphicsContext(const GraphicsContextSpecification& spec) {
-    auto& registry = DynamicLibraryRegistry::Get();
-
-    auto createFn =
-        registry.GetFunction<GraphicsContextObj* (*)(const GraphicsContextSpecification&)>(
-            "Vulkan", "CreateVulkanGraphicsContextObj");
-    if (!createFn) {
-        CZ_LOG(LogRHIAPI, Error, "CreateVulkanGraphicsContextObj not found in backend.");
-        return {};
-    }
-
-    GraphicsContextObj* obj = createFn(spec);
-    if (!obj) {
-        CZ_LOG(LogRHIAPI, Error, "Backend failed to create GraphicsContextObj.");
-        return {};
-    }
-
-    CZ_LOG(LogRHIAPI, Info, "GraphicsContext created via backend 'vulkan'.");
-    return GraphicsContext(obj);
+void RHIAPI::DrawFrame(const CommandList cmdList, RecordCallback recordCallback) {
+    m_Obj->DrawFrame(cmdList, recordCallback);
 }
+
+void RHIAPI::EndRendering(CommandList cmdList) { m_Obj->EndRendering(cmdList); }
+
+void RHIAPI::TransitionImageLayout(CommandList cmdList, Image image, const ImageLayout newLayout,
+                                   uint32_t baseArrayLayer) {
+    m_Obj->TransitionImageLayout(cmdList, image, newLayout, baseArrayLayer);
+};
+
+GraphicsContext RHIAPI::GetGraphicsContext() const { return m_Obj->GetGraphicsContext(); }
 
 } // namespace CZ

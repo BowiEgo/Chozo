@@ -6,7 +6,7 @@ namespace CZ {
 class CommandListObj {
 public:
     CommandListObj() {}
-    virtual ~CommandListObj() = default;
+    virtual ~CommandListObj() { CZ_CORE_LOG(Error, "CommandListObj destructed"); }
 
     CommandListObj(const CommandListObj&)            = delete;
     CommandListObj& operator=(const CommandListObj&) = delete;
@@ -25,7 +25,7 @@ public:
 
     // virtual void BindDescriptorSets(int set, DescriptorSet descSet) = 0;
 
-    virtual void PushConstants(const void* data, uint32 size, uint32 offset) = 0;
+    // virtual void PushConstants(const void* data, uint32 size, uint32 offset) = 0;
 
     // virtual void BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) = 0;
 

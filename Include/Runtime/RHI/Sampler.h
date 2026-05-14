@@ -5,6 +5,7 @@
 #include <Runtime/RHI/RHITypes.h>
 
 namespace CZ {
+
 struct SamplerSpecification {
     Filter MinFilter         = Filter::Linear;
     Filter MagFilter         = Filter::Linear;

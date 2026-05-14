@@ -1,3 +1,4 @@
+#include "Runtime/RHI/GraphicsContext.h"
 #include <Runtime/App/Application.h>
 #include <Runtime/App/Engine.h>
 
@@ -27,16 +28,17 @@ bool Engine::Init(std::string& err) {
         spec.EnableValidationLayers = false;
 #endif
 
-        success = RHIAPI::Get().Init(spec, err);
+        m_GraphicsContext = GraphicsContext::Create(spec);
+
+        success = RHIAPI::Get().Init(m_GraphicsContext, err);
     }
 
-    // {
-    //     RendererSpecification spec;
-    //     spec.Window         = m_Window;
-    //     spec.GraphicsContext = m_GraphicsContext;
+    {
+        RendererSpecification spec;
+        spec.Window = window;
 
-    //     m_Renderer = Renderer::Create(spec);
-    // }
+        m_Renderer = Renderer::Create(spec);
+    }
 
     CZ_LOG(LogEngine, Info, "Render Engine Initialized.");
     return success;
@@ -45,8 +47,13 @@ bool Engine::Init(std::string& err) {
 void Engine::Tick(float deltaTime) { m_Renderer.Tick(deltaTime); }
 
 void Engine::Shutdown() {
-    Renderer::Destroy(m_Renderer);
+    m_Renderer.Shutdown();
+
     RHIAPI::Get().Shutdown();
+
+    m_GraphicsContext.Destroy();
+
+    // GraphicsContext::Destroy(m_GraphicsContext);
 }
 
 bool Engine::OnEvent(Event& e) {

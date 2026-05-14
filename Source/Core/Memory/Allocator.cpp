@@ -47,7 +47,8 @@ LinearAllocator LinearAllocator::Create(const LinearAllocatorInfo& info) {
 }
 
 void LinearAllocator::Destroy(LinearAllocator allocator) {
-    LinearAllocatorObj* obj = allocator;
+    LinearAllocator::AccessKey key;
+    LinearAllocatorObj* obj = allocator.Unwrap(key);
 
     obj->Free();
 
@@ -205,7 +206,8 @@ PoolAllocator PoolAllocator::Create(const PoolAllocatorInfo& info) {
 }
 
 void PoolAllocator::Destroy(PoolAllocator allocator) {
-    PoolAllocatorObj* obj = allocator;
+    PoolAllocator::AccessKey key;
+    PoolAllocatorObj* obj = allocator.Unwrap(key);
 
     while (obj->PageList) {
         PoolAllocatorObj::Page* page = obj->PageList;

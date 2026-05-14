@@ -5,7 +5,7 @@ namespace CZ {
 
 class CommandPoolObj {
 public:
-    CommandPoolObj(const CommandPoolSpecification& spec) : m_Spec(spec) {}
+    CommandPoolObj(CommandPoolSpecification& spec) : m_Spec(spec) {}
     virtual ~CommandPoolObj() = default;
 
     CommandPoolObj(const CommandPoolObj&)            = delete;

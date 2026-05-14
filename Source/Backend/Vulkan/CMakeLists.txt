@@ -1,10 +1,13 @@
 set(MODULE_NAME CZVulkan)
 
 set(MODULE_INCLUDE
+    VulkanAPIObj.h
     VulkanRenderContext.h
     VulkanGraphicsContextObj.h
     VulkanDeviceObj.h
     VulkanSwapchainObj.h
+    VulkanFenceObj.h
+    VulkanSemaphoreObj.h
     VulkanCommandPoolObj.h
     VulkanCommandBufferObj.h
     VulkanTextureObj.h
@@ -13,9 +16,12 @@ set(MODULE_INCLUDE
 
 set(MODULE_SRC
     VmaImpl.cpp
+    VulkanAPIObj.cpp
     VulkanGraphicsContextObj.cpp
     VulkanDeviceObj.cpp
     VulkanSwapchainObj.cpp
+    VulkanFenceObj.cpp
+    VulkanSemaphoreObj.cpp
     VulkanCommandPoolObj.cpp
     VulkanCommandBufferObj.cpp
     VulkanTextureObj.cpp

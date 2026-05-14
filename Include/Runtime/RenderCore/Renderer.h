@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Runtime/App/StartupHost.h"
 #include <Core/Header/Types.h>
 #include <Runtime/RHI/GraphicsContext.h>
 #include <Runtime/Window/Window.h>
@@ -8,17 +9,18 @@ namespace CZ {
 
 struct RendererSpecification {
     Window Window;
-    GraphicsContext GraphicsContext;
 };
 
 struct RendererObj;
 
-struct Renderer : Handle<RendererObj> {
+struct Renderer : Handle<struct RendererObj> {
     static Renderer Create(const RendererSpecification& spec);
-    static void Destroy(Renderer renderer);
 
     void Init();
+    void Shutdown();
     void Tick(float deltaTime);
+
+    void SetDrawFuncToFinalPass(const DrawFunc& func);
 };
 
 } // namespace CZ

@@ -7,33 +7,24 @@ namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogVulkanImage, Info);
 
-extern "C" {
-
-ImageObj* CreateVulkanImageObj(const Device device, const ImageSpecification& spec) {
-    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanImageObj, device, spec);
-}
-}
-
-VulkanImageObj::VulkanImageObj(const Device device, const ImageSpecification& spec)
-    : ImageObj(device, spec) {
+VulkanImageObj::VulkanImageObj(const VulkanDeviceObj* deviceObj, const ImageSpecification& spec)
+    : ImageObj(spec), m_DeviceObj(deviceObj) {
     Init();
 }
 
-VulkanImageObj::VulkanImageObj(const Device device, const ImageSpecification& spec, VkImage vkImage,
-                               bool isExternal)
-    : ImageObj(device, spec), m_VkImage(vkImage), m_IsExternal(isExternal) {
+VulkanImageObj::VulkanImageObj(const VulkanDeviceObj* deviceObj, const ImageSpecification& spec,
+                               VkImage vkImage, bool isExternal)
+    : ImageObj(spec), m_DeviceObj(deviceObj), m_VkImage(vkImage), m_IsExternal(isExternal) {
     // Assume the provided image is already in a valid layout and has memory bound.
     // We will query its format and set the current layout to undefined (caller should set it).
     // In a more robust implementation, we might want to allow passing the current layout as well.
     // For now, we'll just set it to undefined and expect the caller to manage it.
     m_VkFormat = VK_FORMAT_UNDEFINED; // Caller should set this if using the wrapper constructor
-    m_VkCurrentLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    m_VkImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 }
 
 VulkanImageObj::~VulkanImageObj() {
-    auto deviceObj = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
-
-    VkDevice logicalDevice = deviceObj->GetLogicalDevice();
+    VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
 
     if (!m_IsExternal) {
         for (auto& [spec, view] : m_ViewCache) {
@@ -41,7 +32,7 @@ VulkanImageObj::~VulkanImageObj() {
         }
 
         if (m_VmaAllocation != VK_NULL_HANDLE) {
-            vmaDestroyImage(deviceObj->GetVmaAllocator(), m_VkImage, m_VmaAllocation);
+            vmaDestroyImage(m_DeviceObj->GetVmaAllocator(), m_VkImage, m_VmaAllocation);
             m_VkImage       = VK_NULL_HANDLE;
             m_VmaAllocation = VK_NULL_HANDLE;
         } else {
@@ -62,9 +53,7 @@ void VulkanImageObj::Init() {
 }
 
 void VulkanImageObj::CreateImageResources() {
-    auto deviceObj = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
-
-    CZ_CORE_ASSERT(deviceObj, "Device is no longer valid during Image initialization!");
+    CZ_CORE_ASSERT(m_DeviceObj, "Device is no longer valid during Image initialization!");
 
     VkImageCreateInfo imageInfo{};
     imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -112,7 +101,7 @@ void VulkanImageObj::CreateImageResources() {
     }
 
     VkImage vkImageRaw = VK_NULL_HANDLE;
-    VkResult result    = vmaCreateImage(deviceObj->GetVmaAllocator(), &imageInfo, &allocInfo,
+    VkResult result    = vmaCreateImage(m_DeviceObj->GetVmaAllocator(), &imageInfo, &allocInfo,
                                         &vkImageRaw, &m_VmaAllocation, nullptr);
     if (result != VK_SUCCESS) {
         CZ_LOG(LogVulkanImage, Error, "vmaCreateImage failed");
@@ -131,11 +120,9 @@ VkImageView VulkanImageObj::GetOrCreateVKView(const ImageViewSpecification& spec
         return m_ViewCache[spec];
     }
 
-    auto deviceObj = static_cast<VulkanDeviceObj*>(m_Device.Unwrap());
-
     CZ_CORE_ASSERT(deviceObj, "Device is no longer valid during ImageView creation!");
 
-    VkDevice logicalDevice = deviceObj->GetLogicalDevice();
+    VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
 
     bool isDepth                  = VulkanUtils::IsDepthFormat(m_VkFormat);
     VkFormat vkFormat             = VulkanUtils::ToVkFormat(m_Spec.Format);

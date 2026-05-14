@@ -23,8 +23,8 @@ struct RenderScissor {
 
 class CommandListObj;
 
-struct CommandList : Handle<CommandListObj> {
-    static void Destroy(CommandList cmdList);
+struct CommandList : Handle<class CommandListObj> {
+    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
 
     void Begin();
 
@@ -38,7 +38,7 @@ struct CommandList : Handle<CommandListObj> {
 
     // void BindDescriptorSets(int set, DescriptorSet descSet);
 
-    void PushConstants(const void* data, uint32 size, uint32 offset);
+    // void PushConstants(const void* data, uint32 size, uint32 offset);
 
     // void BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding);
 

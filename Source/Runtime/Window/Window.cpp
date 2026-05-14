@@ -10,7 +10,7 @@ Window Window::Create(const WindowSpecifaciton& spec) {
     return Window(CZ_NEW(MEMORY_USAGE_RUNTIME, SDLWindowObj, spec));
 }
 
-void Window::Destroy(Window window) { Delete(window.Unwrap()); }
+DEFINE_HANDLE_DESTROY(WindowObj)
 
 bool Window::Init(std::string& err) { return m_Obj->Init(err); }
 

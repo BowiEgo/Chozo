@@ -2,6 +2,7 @@
 #include <Core/Memory/Memory.h>
 #include <Core/Memory/MemoryTypes.h>
 #include <Runtime/App/Application.h>
+#include <Runtime/App/StartupHost.h>
 
 using namespace CZ;
 
@@ -9,6 +10,7 @@ int main(int argc, char** argv) {
     std::string err;
 
     Layer* editorLayer;
+    StartupHost editor;
 
     // Load libraries
     {
@@ -19,20 +21,19 @@ int main(int argc, char** argv) {
             return 0;
         }
 
-        auto createEditorLayerFn =
-            registry.GetFunction<Layer* (*)()>("Editor", "CreateEditorLayer");
-        if (!createEditorLayerFn) {
-            CZ_LOG(LogUI, Error, "CreateEditorLayer not found in editor module.");
+        auto createEditorFn = registry.GetFunction<StartupHost (*)()>("Editor", "CreateEditor");
+        if (!createEditorFn) {
+            CZ_LOG(LogUI, Error, "CreateEditor not found in editor module.");
             return 0;
         }
 
-        editorLayer = createEditorLayerFn();
+        editor = createEditorFn();
     }
 
     Application& app = Application::Get();
     ApplicationSpecification spec{};
 
-    app.SetStartupLayer(editorLayer);
+    app.SetStartupHost(editor);
 
     if (!app.Startup(spec, err)) {
         CZ_APP_LOG(Error, "{}", err);

@@ -4,7 +4,6 @@
 #include <Core/Header/Handle.h>
 #include <Core/Header/Macros.h>
 #include <Core/Memory/Memory.h>
-#include <Runtime/RHI/Device.h>
 #include <Runtime/RHI/RHITypes.h>
 #include <Runtime/RHI/RHIUtils.h>
 
@@ -76,19 +75,17 @@ struct ImageSpecification {
 
 class ImageObj {
 public:
-    ImageObj(const Device device, const ImageSpecification& spec)
-        : m_Device(device), m_Spec(spec) {}
+    ImageObj(const ImageSpecification& spec) : m_Spec(spec) {}
     virtual ~ImageObj() = default;
 
 protected:
-    Device m_Device;
     ImageSpecification m_Spec;
 
     bool m_IsValid = true;
 };
 
-struct Image : Handle<ImageObj> {
-    static void Destroy(Image image);
+struct Image : Handle<class ImageObj> {
+    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
 };
 
 } // namespace CZ

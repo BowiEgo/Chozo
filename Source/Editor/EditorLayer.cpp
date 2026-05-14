@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 
 #include "../Runtime/Window/SDLWindow/SDLWindowObj.h"
+#include "imgui.h"
 
 #include <Runtime/App/Application.h>
 #include <Runtime/RHI/RHIAPI.h>
@@ -20,9 +21,8 @@ EditorLayer::~EditorLayer() {}
 void EditorLayer::OnAttach() {
     auto window = Application::Get().GetWindow();
 
-    static_cast<SDLWindowObj*>(window.Unwrap())
-        ->SetEventPreprocessor(
-            [](const SDL_Event& event) -> void { ImGui_ImplSDL3_ProcessEvent(&event); });
+    window.As<SDLWindowObj>()->SetEventPreprocessor(
+        [](const SDL_Event& event) -> void { ImGui_ImplSDL3_ProcessEvent(&event); });
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -65,13 +65,13 @@ void EditorLayer::OnAttach() {
     SetDarkThemeColors();
 
     m_ImGuiRenderer = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, VulkanImGuiRenderer);
-    m_ImGuiRenderer->Init(ImGui::GetCurrentContext(), (SDL_Window*)window.GetWindowWrapper());
+    m_ImGuiRenderer->Init(ImGui::GetCurrentContext(), window.As<SDLWindowObj>()->GetSDLWindow());
 }
 
 void EditorLayer::OnDetach() { m_ImGuiRenderer->Shutdown(); }
 
 void EditorLayer::OnUpdate(float deltaTime) {
-    CZ_LOG(LogEditorLayer, Trace, "OnUpdate: {}", deltaTime);
+    // CZ_LOG(LogEditorLayer, Trace, "OnUpdate: {}", deltaTime);
 }
 
 void EditorLayer::OnRender() {
@@ -110,6 +110,100 @@ void EditorLayer::OnRender() {
     // for (auto Layer : m_Layers)
     //     Layer.OnRender();
 
+#pragma region Main Menu Bar
+    // ----------------------------------------------------------------------------
+    // [Sub-Section] Main Menu Bar
+    // ----------------------------------------------------------------------------
+    if (ImGui::BeginMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Renderer")) {
+            if (ImGui::MenuItem("Recompile Shaders")) {
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Settings")) {
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenuBar();
+    }
+#pragma endregion
+
+#pragma region Viewport Rendering
+    // ----------------------------------------------------------------------------
+    // [Sub-Section] Main Viewport
+    // Renders the final scene texture from the Framebuffer.
+    // ----------------------------------------------------------------------------
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 }); // Viewport begin
+    ImGuiWindowFlags viewportFlags =
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+    ImGui::Begin("Viewport##Editor", nullptr, viewportFlags);
+
+    // Block event pass-through to the underlying scene when the viewport window is neither focused
+    // nor hovered.
+    // This ensures that ImGui handles input when interacting with other UI elements, while allowing
+    // the scene to receive input when the viewport is active.
+    m_ViewportFocused = ImGui::IsWindowFocused();
+    m_ViewportHovered = ImGui::IsWindowHovered();
+    m_BlockEvents     = !m_ViewportFocused && !m_ViewportHovered;
+
+    auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
+    m_ViewportSize      = ImGui::GetContentRegionAvail();
+
+    // Get DescriptorSet from RHI Texture and draw it as ImGui image
+    auto tex              = Application::Get().GetEngine()->GetSwapchainFramebuffer(0);
+    ImTextureID textureID = m_ImGuiRenderer->GetTextureIDForRHITexture(tex);
+    ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
+
+    // // Integrated Debug Overlay
+    // m_Overlay.Draw("Editor Overlay:", &m_IsOverlayOpen, [io]() {
+    //     // Performance monitoring
+    //     auto appProfiler = CApplication::Get()->GetPerformanceProfiler();
+    //     float fps        = CApplication::Get()->GetFPSCounter()->GetFPS();
+    //     float latency    = CApplication::Get()->GetFPSCounter()->GetAvgLatency();
+
+    //     auto rendererProfiler =
+    //         CApplication::Get()->GetRenderEngine()->GetRenderer()->GetPerformanceProfiler();
+
+    //     ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Engine FPS: %.1f", fps);
+    //     ImGui::TextDisabled("Latency: %.3f ms", latency);
+    //     for (uint32_t i = 1; i < (uint32_t)EAppProfileSlot::COUNT; ++i) {
+    //         const float time = appProfiler->GetSmoothedAverage((uint32_t)(EAppProfileSlot)i);
+    //         ImGui::Text("%-20s: %.3f ms", GAppProfileSlotNames[i], time);
+    //     }
+
+    //     ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Renderer:");
+    //     for (uint32_t i = 1; i < (uint32_t)ERendererProfileSlot::COUNT; ++i) {
+    //         const float time =
+    //             rendererProfiler->GetSmoothedAverage((uint32_t)(ERendererProfileSlot)i);
+    //         ImGui::Text("%-20s: %.3f ms", GRendererProfileSlotNames[i], time);
+    //     }
+
+    //     auto gpuProfiler = CApplication::Get()->GetGPUProfiler();
+    //     float mbSize     = 1024.0 * 1024.0;
+
+    //     for (auto& heapInfo : gpuProfiler.Heaps) {
+    //         ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "GPU: %s", heapInfo.Type.c_str());
+    //         ImGui::Text("Size: %.3f MB", heapInfo.Size / mbSize);
+    //         ImGui::Text("Budget: %.3f MB", heapInfo.Budget / mbSize);
+    //         ImGui::Text("Usage: %.3f MB", heapInfo.Usage / mbSize);
+    //     }
+
+    //     // Mouse Position
+    //     // if (ImGui::IsMousePosValid())
+    //     //     ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
+    //     // else
+    //     //     ImGui::Text("Mouse Position: <invalid>");
+    // });
+
+    ImGui::End();
+    ImGui::PopStyleVar();
+#pragma endregion
+
     ImGui::End(); // End Dockspace
 
     ImGui::Render();
@@ -136,15 +230,10 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
     return true;
 }
 
-void EditorLayer::Draw() {
-    auto drawData = ImGui::GetDrawData();
+void EditorLayer::Draw(CommandList cmdList) {
+    // CZ_LOG(LogEditorLayer, Trace, "Draw");
 
-    if (!drawData || drawData->TotalVtxCount == 0) return;
-
-    // auto vlkCmdBuffer     = cmdList.As<CVulkanCommandBuffer>();
-    // vk::CommandBuffer cmd = vlkCmdBuffer->GetVKCommandBuffer();
-
-    // ImGui_ImplVulkan_RenderDrawData(drawData, cmd);
+    m_ImGuiRenderer->Draw(ImGui::GetDrawData(), cmdList);
 }
 
 void EditorLayer::Init() {}

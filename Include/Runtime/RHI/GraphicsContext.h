@@ -25,10 +25,17 @@ struct GraphicsContextSpecification {
 
 class GraphicsContextObj;
 
-struct GraphicsContext : Handle<GraphicsContextObj> {
-    static void Destroy(GraphicsContext context);
+struct GraphicsContext : Handle<class GraphicsContextObj> {
 
-    uint32 GetMaxFramesInFlight() const { return 2; }
+    static GraphicsContext Create(const GraphicsContextSpecification& spec);
+
+    // static void Destroy(GraphicsContext ctx);
+
+    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
+
+    uint32 GetMaxFramesInFlight() const;
+
+    uint32 GetCurrentFrameIndex() const;
 
     Device GetDevice();
 

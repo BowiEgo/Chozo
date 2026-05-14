@@ -1,6 +1,10 @@
-#include "VulkanGraphicsContextObj.h"
+#pragma once
 
 #include "../Source/Runtime/RHI/DeviceObj.h"
+
+#ifndef VMA_IMPLEMENTATION
+typedef struct VmaAllocator_T* VmaAllocator;
+#endif
 
 namespace CZ {
 
@@ -30,15 +34,17 @@ struct DynamicState3Functions {
     PFN_vkCmdSetTessellationDomainOriginEXT vkCmdSetTessellationDomainOriginEXT{ nullptr };
 };
 
+class VulkanGraphicsContextObj;
+
 class VulkanDeviceObj : public DeviceObj {
 public:
-    explicit VulkanDeviceObj(const DeviceSpecification& spec,
-                             const VulkanGraphicsContextObj* ctxObj);
+    explicit VulkanDeviceObj(const VulkanGraphicsContextObj* ctxObj,
+                             const DeviceSpecification& spec);
     ~VulkanDeviceObj() override;
 
     void WaitIdle() override;
 
-    CommandPool CreateCommandPool(const CommandPoolSpecification& spec) override;
+    CommandPool CreateCommandPool(CommandPoolSpecification& spec) override;
 
     VkDevice GetLogicalDevice() const { return m_VkDevice; }
 
@@ -57,12 +63,16 @@ public:
 
     VmaAllocator GetVmaAllocator() const { return m_VmaAllocator; }
 
+    DynamicState3Functions GetDynamicState3Functions() const { return m_DynamicState3Functions; }
+
 private:
-    void PickPhysicalDevice(const VulkanGraphicsContextObj* ctxObj);
-    void CreateLogicalDevice(const VulkanGraphicsContextObj* ctxObj);
-    void CreateVmaAllocator(const VulkanGraphicsContextObj* ctxObj);
+    void PickPhysicalDevice();
+    void CreateLogicalDevice();
+    void CreateVmaAllocator();
     void InitGlobalDescriptorPool();
     void LoadDynamicState3Functions();
+
+    const VulkanGraphicsContextObj* m_GraphicContextObj;
 
     const char* m_RequiredDeviceExtensions[MAX_DEVICE_EXTENSIONS];
     uint32_t m_RequiredDeviceExtensionCount = 0;

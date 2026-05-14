@@ -2,24 +2,43 @@
 
 #include <Runtime/RHI/Device.h>
 #include <Runtime/RHI/GraphicsContext.h>
-#include <Runtime/RHI/Swapchain.h>
+#include <Runtime/RHI/Texture.h>
 
 namespace CZ {
 
-class RHIAPI {
+using RecordCallback = std::function<void(uint32)>;
+
+class RHIAPIObj;
+
+struct RHIAPI : Handle<class RHIAPIObj> {
 public:
     static RHIAPI& Get();
 
-    bool Init(const GraphicsContextSpecification& gcSpec, std::string& err);
+    RHIAPI(const RHIAPI&)            = delete;
+    RHIAPI& operator=(const RHIAPI&) = delete;
+
+    bool Init(GraphicsContext ctx, std::string& err);
+
     void Shutdown();
 
-    GraphicsContext GetGraphicsContext() const { return m_GraphicsContext; }
+    void WaitIdle() const;
+
+    void BeginRendering(CommandList cmdList, std::vector<Texture>& targets, bool bClear,
+                        uint32_t faceIndex = 0);
+
+    void DrawFrame(CommandList cmdList, RecordCallback recordCallback);
+
+    void EndRendering(CommandList cmdList);
+
+    void TransitionImageLayout(CommandList cmdList, const Image image, const ImageLayout newLayout,
+                               uint32_t baseArrayLayer = 0);
+
+    GraphicsContext GetGraphicsContext() const;
 
 private:
-    GraphicsContext CreateGraphicsContext(const GraphicsContextSpecification& spec);
-    Device CreateDevice(const DeviceSpecification& spec);
-    Swapchain CreateSwapchain(const SwapchainSpecification& spec);
-
-    GraphicsContext m_GraphicsContext;
+    RHIAPI() = default;
+    ~RHIAPI() {
+        if (m_Obj) Shutdown();
+    }
 };
 } // namespace CZ

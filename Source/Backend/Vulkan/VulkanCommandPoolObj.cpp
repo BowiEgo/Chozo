@@ -11,7 +11,7 @@
 namespace CZ {
 
 VulkanCommandPoolObj::VulkanCommandPoolObj(const VulkanDeviceObj* deviceObj,
-                                           const CommandPoolSpecification& spec)
+                                           CommandPoolSpecification& spec)
     : CommandPoolObj(spec), m_DeviceObj(deviceObj) {
 
     if (!deviceObj) {

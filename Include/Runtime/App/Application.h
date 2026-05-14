@@ -4,7 +4,7 @@
 #include <Core/Log/LogMacros.h>
 #include <Core/Memory/Memory.h>
 #include <Runtime/App/Engine.h>
-// #include "Runtime/UI/UI.h"
+#include <Runtime/App/StartupHost.h>
 #include <Runtime/Window/Window.h>
 
 #include <string>
@@ -41,19 +41,21 @@ public:
     void Run();
     bool OnEvent(Event& e);
 
-    void SetStartupLayer(Layer* layer) { m_StartupLayer = layer; }
+    StartupHost GetStartupHost() { return m_StartupHost; }
+    void SetStartupHost(StartupHost StartupHost) { m_StartupHost = StartupHost; }
 
     Window GetWindow() { return m_Window; }
     Window GetWindow() const { return m_Window; }
+
+    Engine* GetEngine() { return m_Engine.get(); }
 
 private:
     bool m_ShouldClose = false;
     Window m_Window;
     Scope<Engine> m_Engine;
 
-    Layer* m_StartupLayer;
+    StartupHost m_StartupHost;
     LayerStack m_LayerStack;
-    // Scope<UI> m_UI;
 };
 
 } // namespace CZ

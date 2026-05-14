@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Window/WindowObj.h"
+#include "SDL3/SDL_video.h"
 
 #include <SDL3/SDL.h>
 
@@ -30,6 +31,8 @@ public:
     std::vector<const char*> GetRequiredExtensions(std::string& err) const override;
 
     WindowHandle GetNativeHandle() const override;
+
+    SDL_Window* GetSDLWindow() const { return static_cast<SDL_Window*>(m_Window); }
 
     void SetEventPreprocessor(std::function<void(const SDL_Event&)> preprocessor) {
         m_EventPreprocessor = preprocessor;
