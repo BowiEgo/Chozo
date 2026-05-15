@@ -16,6 +16,7 @@ elseif(UNIX)
         message("//----------------- Platform: MacOS -----------------//")
         set(platform_definitions CZ_PLATFORM_MACOS)
         set(MODULE_SRC
+            Mac/MacFile.mm
             Mac/MacUtils.mm
         )
     else()

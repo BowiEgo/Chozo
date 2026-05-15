@@ -3,6 +3,7 @@
 #include <Core/Header/Handle.h>
 #include <Core/Memory/Memory.h>
 #include <Runtime/RHI/CommandPool.h>
+#include <Runtime/RHI/Sampler.h>
 
 namespace CZ {
 
@@ -20,11 +21,13 @@ struct DeviceSpecification {
 class DeviceObj;
 
 struct Device : Handle<class DeviceObj> {
-    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
+    template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     void WaitIdle() const;
 
     CommandPool CreateCommandPool(CommandPoolSpecification& spec);
+
+    Sampler GetOrCreateSampler(const SamplerSpecification spec);
 };
 
 } // namespace CZ

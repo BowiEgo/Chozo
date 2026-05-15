@@ -1,5 +1,7 @@
 #include <Runtime/RHI/Image.h>
 
+#include "ImageObj.h"
+
 namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogImage, Info);

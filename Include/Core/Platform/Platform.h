@@ -10,5 +10,6 @@
     #define CZ_PLATFORM_LINUX
 #elif defined(__APPLE__)
     #define CZ_PLATFORM_MACOS
+    #include "Mac/MacFile.h"
     #include "Mac/MacUtils.h"
 #endif

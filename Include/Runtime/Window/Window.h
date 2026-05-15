@@ -28,7 +28,7 @@ class WindowObj;
 struct Window : Handle<class WindowObj> {
     static Window Create(const WindowSpecifaciton& spec);
 
-    template <typename T> T* As() { return static_cast<T*>(WindowInternalReader::Unwrap(*this)); }
+    template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     bool Init(std::string& err);
     void Shutdown();

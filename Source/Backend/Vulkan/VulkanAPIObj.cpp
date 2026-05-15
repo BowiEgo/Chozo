@@ -54,7 +54,7 @@ void VulkanAPIObj::BeginRendering(CommandList cmdList, std::vector<Texture>& tar
 }
 
 void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback) {
-    auto currentFrame = m_GraphicsContext.GetCurrentFrameIndex();
+    auto currentFrameIdx = m_GraphicsContext.GetCurrentFrameIndex();
 
     auto vkGraphicsCtx = m_GraphicsContext.As<VulkanGraphicsContextObj>();
 
@@ -64,7 +64,7 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     auto vkQueue     = device->GetGraphicsQueue();
     auto vkSwapchain = swapchain->GetVkSwapchain();
 
-    auto fence      = swapchain->GetFence(currentFrame);
+    auto fence      = swapchain->GetFence(currentFrameIdx);
     VkFence vkFence = fence.As<VulkanFenceObj>()->GetVKFence();
 
     VkCommandBuffer vkCmdBuffer = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
@@ -90,8 +90,7 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     }
 
     // 2. Acquire next available image
-    uint32_t inFlightIndex       = currentFrame % swapchain->GetImageCount();
-    Semaphore acquireWaitSem     = swapchain->GetImageAvailableSemaphore(inFlightIndex);
+    Semaphore acquireWaitSem     = swapchain->GetImageAvailableSemaphore(currentFrameIdx);
     VkSemaphore vkAcquireWaitSem = acquireWaitSem.As<VulkanSemaphoreObj>()->GetVkSemaphore();
 
     uint32_t imgIdx      = INVALID_IMAGE_INDEX;
@@ -120,7 +119,7 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     }
 
     // 4. 提交绘制命令缓冲区，并在完成时发出 renderFinishedSemaphore
-    Semaphore imageSigSem     = swapchain->GetRenderFinishedSemaphore(inFlightIndex);
+    Semaphore imageSigSem     = swapchain->GetRenderFinishedSemaphore(imgIdx);
     VkSemaphore vkImageSigSem = imageSigSem.As<VulkanSemaphoreObj>()->GetVkSemaphore();
 
     VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -138,7 +137,7 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     VkResult submitResult = vkQueueSubmit(vkQueue, 1, &submitInfo, vkFence);
     if (submitResult != VK_SUCCESS) {
         CZ_CORE_LOG(Error, "Submit failed: {}", VulkanUtils::VkResultToString(submitResult));
-        acquireWaitSem.As<VulkanSemaphoreObj>()->Recreate();
+        // acquireWaitSem.As<VulkanSemaphoreObj>()->Recreate();
         return;
     }
 
@@ -172,6 +171,8 @@ void VulkanAPIObj::EndRendering(CommandList cmdList) {
 
 void VulkanAPIObj::TransitionImageLayout(CommandList cmdList, Image image,
                                          const ImageLayout newLayout, uint32_t baseArrayLayer) {
+    // CZ_CORE_LOG(Info, "TransitionImageLayout");
+
     auto imageObj = image.As<VulkanImageObj>();
 
     auto vkCmdBuffer = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();

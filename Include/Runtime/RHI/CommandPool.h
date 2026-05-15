@@ -16,7 +16,7 @@ struct CommandPoolSpecification {
 class CommandPoolObj;
 
 struct CommandPool : Handle<class CommandPoolObj> {
-    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
+    template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     CommandList AllocateCommandBuffer();
 };

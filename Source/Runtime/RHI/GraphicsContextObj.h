@@ -33,6 +33,8 @@ public:
 
     Swapchain GetSwapchain() { return m_Swapchain; }
 
+    void End() { m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % GetMaxFramesInFlight(); }
+
 protected:
     GraphicsContextSpecification m_Spec;
 

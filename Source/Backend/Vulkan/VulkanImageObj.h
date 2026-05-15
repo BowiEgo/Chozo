@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Runtime/RHI/Image.h>
+#include "../Source/Runtime/RHI/ImageObj.h"
 
 #ifndef VMA_IMPLEMENTATION
 typedef struct VmaAllocation_T* VmaAllocation;

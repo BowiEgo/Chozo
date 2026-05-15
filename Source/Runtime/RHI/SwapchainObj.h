@@ -13,27 +13,25 @@ public:
     virtual ~SwapchainObj() = default;
 
     void Destroy() {
-        CZ_CORE_LOG(Error, "SwapchainObj destructed");
-
         for (auto& tex : m_ColorAttachments) {
             tex.Destroy();
         }
         m_ColorAttachments.clear();
 
-        // for (auto& sem : m_ImageAvailableSemaphores) {
-        //     sem.Destroy();
-        // }
-        // m_ImageAvailableSemaphores.clear();
+        for (auto& sem : m_ImageAvailableSemaphores) {
+            sem.Destroy();
+        }
+        m_ImageAvailableSemaphores.clear();
 
-        // for (auto& sem : m_RenderFinishedSemaphores) {
-        //     sem.Destroy();
-        // }
-        // m_RenderFinishedSemaphores.clear();
+        for (auto& sem : m_RenderFinishedSemaphores) {
+            sem.Destroy();
+        }
+        m_RenderFinishedSemaphores.clear();
 
-        // for (auto& fence : m_InFlightFences) {
-        //     fence.Destroy();
-        // }
-        // m_InFlightFences.clear();
+        for (auto& fence : m_InFlightFences) {
+            fence.Destroy();
+        }
+        m_InFlightFences.clear();
     }
 
     virtual PixelFormat GetImageFormat() const = 0;
@@ -48,14 +46,14 @@ public:
 
     virtual void Recreate(const Extent2D& frameBufferSize) = 0;
 
-    Fence GetFence(uint32 currentFrame) const { return m_InFlightFences[currentFrame]; }
+    Fence GetFence(uint32 currentFrameIdx) const { return m_InFlightFences[currentFrameIdx]; }
 
-    Semaphore GetImageAvailableSemaphore(uint32 currentFrame) const {
-        return m_ImageAvailableSemaphores[currentFrame];
+    Semaphore GetImageAvailableSemaphore(uint32 currentFrameIdx) const {
+        return m_ImageAvailableSemaphores[currentFrameIdx];
     }
 
-    Semaphore GetRenderFinishedSemaphore(uint32 currentFrame) const {
-        return m_RenderFinishedSemaphores[currentFrame];
+    Semaphore GetRenderFinishedSemaphore(uint32 imageIdx) const {
+        return m_RenderFinishedSemaphores[imageIdx];
     }
 
     Texture GetColorAttachment(uint32 index) { return m_ColorAttachments[index]; }
@@ -72,9 +70,9 @@ protected:
     uint32_t m_ImageCount      = 0;
     uint32 m_CurrentImageIndex = 0;
 
+    std::vector<Fence> m_InFlightFences;
     std::vector<Semaphore> m_ImageAvailableSemaphores;
     std::vector<Semaphore> m_RenderFinishedSemaphores;
-    std::vector<Fence> m_InFlightFences;
 };
 
 } // namespace CZ

@@ -9,8 +9,7 @@ public:
     class AccessKey {
         friend struct PoolAllocator;
         friend struct LinearAllocator;
-        friend class RHIInternalReader;
-        friend class WindowInternalReader;
+        friend class InternalHandleReader;
 
         AccessKey() = default;
     };
@@ -24,6 +23,8 @@ public:
     bool operator==(const Handle& other) { return m_Obj == other.Unwrap(); }
 
     TObject* Unwrap(AccessKey) { return m_Obj; }
+    const TObject* Unwrap(AccessKey) const { return m_Obj; }
+
     void Destroy();
 
 protected:
@@ -38,20 +39,33 @@ protected:
         }                                                                                          \
     }
 
-class RHIInternalReader {
+class InternalHandleReader {
 public:
     template <typename T> static T* Unwrap(Handle<T>& handle) {
+        typename Handle<T>::AccessKey key;
+        return handle.Unwrap(key);
+    }
+
+    template <typename T> static const T* Unwrap(const Handle<T>& handle) {
         typename Handle<T>::AccessKey key;
         return handle.Unwrap(key);
     }
 };
 
-class WindowInternalReader {
-public:
-    template <typename T> static T* Unwrap(Handle<T>& handle) {
-        typename Handle<T>::AccessKey key;
-        return handle.Unwrap(key);
+template <typename HandleType> struct HandleHash {
+    size_t operator()(const HandleType& h) const {
+        return std::hash<const void*>{}(InternalHandleReader::Unwrap(h));
     }
 };
+
+template <typename HandleType> struct HandleEqual {
+    bool operator()(const HandleType& a, const HandleType& b) const {
+        return InternalHandleReader::Unwrap(a) == InternalHandleReader::Unwrap(b);
+    }
+};
+
+template <typename HandleType>
+using HandleMap =
+    std::unordered_map<HandleType, uint64_t, HandleHash<HandleType>, HandleEqual<HandleType>>;
 
 } // namespace CZ

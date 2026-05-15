@@ -1,6 +1,7 @@
 #include "VulkanDeviceObj.h"
 #include "VulkanCommandPoolObj.h"
 #include "VulkanGraphicsContextObj.h"
+#include "VulkanSamplerObj.h"
 
 #include <Core/Memory/MemoryTypes.h>
 #include <Runtime/RHI/CommandPool.h>
@@ -27,6 +28,12 @@ VulkanDeviceObj::VulkanDeviceObj(const VulkanGraphicsContextObj* ctxObj,
 
 VulkanDeviceObj::~VulkanDeviceObj() {
     if (m_VkDevice) {
+
+        if (m_GlobalDescriptorPool != VK_NULL_HANDLE) {
+            vkDestroyDescriptorPool(m_VkDevice, m_GlobalDescriptorPool, nullptr);
+            m_GlobalDescriptorPool = VK_NULL_HANDLE;
+        }
+
         vkDestroyDevice(m_VkDevice, nullptr);
     }
 
@@ -44,6 +51,10 @@ void VulkanDeviceObj::WaitIdle() { vkDeviceWaitIdle(m_VkDevice); }
 CommandPool VulkanDeviceObj::CreateCommandPool(CommandPoolSpecification& spec) {
     spec.QueueIndex = m_GraphicsQueueIndex;
     return CommandPool(CZ_NEW(MEMORY_USAGE_RENDER, VulkanCommandPoolObj, this, spec));
+}
+
+Sampler VulkanDeviceObj::CreateSampler(const SamplerSpecification spec) {
+    return Sampler(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSamplerObj, this, spec));
 }
 
 bool VulkanDeviceObj::IsExtensionSupported(const std::string& extensionName) const {
@@ -240,7 +251,7 @@ void VulkanDeviceObj::CreateLogicalDevice() {
     }
 
     // ----- Device features -----
-    VkPhysicalDeviceFeatures deviceFeatures{};
+    // VkPhysicalDeviceFeatures deviceFeatures{};
 
     // pNext chain
     VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchainMaintenanceFeatures{};
@@ -340,6 +351,7 @@ void VulkanDeviceObj::CreateVmaAllocator() {
 void VulkanDeviceObj::InitGlobalDescriptorPool() {
     uint32_t poolCapacity                       = 10000;
     std::vector<VkDescriptorPoolSize> poolSizes = {
+        { VK_DESCRIPTOR_TYPE_SAMPLER, poolCapacity },
         { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, poolCapacity },
         { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, poolCapacity },
         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, poolCapacity },

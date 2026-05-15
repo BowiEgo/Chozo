@@ -74,6 +74,11 @@ struct SamplerSpecification {
     }
 };
 
+class SamplerObj;
+
+struct Sampler : Handle<class SamplerObj> {
+    template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
+};
 } // namespace CZ
 
 namespace std {

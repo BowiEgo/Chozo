@@ -5,8 +5,8 @@ namespace CZ {
 
 class CommandListObj {
 public:
-    CommandListObj() {}
-    virtual ~CommandListObj() { CZ_CORE_LOG(Error, "CommandListObj destructed"); }
+    CommandListObj()          = default;
+    virtual ~CommandListObj() = default;
 
     CommandListObj(const CommandListObj&)            = delete;
     CommandListObj& operator=(const CommandListObj&) = delete;

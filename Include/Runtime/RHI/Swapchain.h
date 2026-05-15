@@ -24,7 +24,7 @@ struct Swapchain : Handle<class SwapchainObj> {
 
     // static void Destroy(Swapchain swapchain);
 
-    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
+    template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     PixelFormat GetImageFormat() const;
 

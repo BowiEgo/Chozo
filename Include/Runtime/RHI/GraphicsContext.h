@@ -31,7 +31,7 @@ struct GraphicsContext : Handle<class GraphicsContextObj> {
 
     // static void Destroy(GraphicsContext ctx);
 
-    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
+    template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     uint32 GetMaxFramesInFlight() const;
 
@@ -40,6 +40,8 @@ struct GraphicsContext : Handle<class GraphicsContextObj> {
     Device GetDevice();
 
     Swapchain GetSwapchain();
+
+    void End();
 };
 
 } // namespace CZ

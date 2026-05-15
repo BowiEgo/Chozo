@@ -18,8 +18,6 @@ VulkanFenceObj::VulkanFenceObj(const VulkanDeviceObj* deviceObj) : m_DeviceObj((
 }
 
 VulkanFenceObj::~VulkanFenceObj() {
-    CZ_LOG(LogVulkanFence, Error, "VulkanFenceObj destructed.");
-
     VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
 
     if (m_VkFence != VK_NULL_HANDLE) vkDestroyFence(logicalDevice, m_VkFence, nullptr);

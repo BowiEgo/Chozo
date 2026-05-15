@@ -32,7 +32,13 @@ VulkanCommandPoolObj::VulkanCommandPoolObj(const VulkanDeviceObj* deviceObj,
     }
 }
 
-VulkanCommandPoolObj::~VulkanCommandPoolObj() {}
+VulkanCommandPoolObj::~VulkanCommandPoolObj() {
+    if (m_VkCommandPool != VK_NULL_HANDLE) {
+        VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
+        vkDestroyCommandPool(logicalDevice, m_VkCommandPool, nullptr);
+        m_VkCommandPool = VK_NULL_HANDLE;
+    }
+}
 
 CommandList VulkanCommandPoolObj::AllocateCommandBuffer() {
     return CommandList(CZ_NEW(MEMORY_USAGE_RENDER, VulkanCommandBufferObj, this));

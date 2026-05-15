@@ -19,7 +19,7 @@ RHIAPI& RHIAPI::Get() {
 
 bool RHIAPI::Init(GraphicsContext ctx, std::string& err) {
     auto& registry = DynamicLibraryRegistry::Get();
-    if (!registry.LoadLib("vulkan_backend", "./libCZVulkan.dylib")) {
+    if (!registry.LoadLib("vulkan_backend", "libCZVulkan.dylib")) {
         err = "Cannot load Vulkan backend.";
         return false;
     }
@@ -57,5 +57,9 @@ void RHIAPI::TransitionImageLayout(CommandList cmdList, Image image, const Image
 };
 
 GraphicsContext RHIAPI::GetGraphicsContext() const { return m_Obj->GetGraphicsContext(); }
+
+Sampler RHIAPI::GetSampler(const SamplerSpecification spec) {
+    return GetGraphicsContext().GetDevice().GetOrCreateSampler(spec);
+}
 
 } // namespace CZ

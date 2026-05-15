@@ -16,6 +16,7 @@ set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/CommandList.h
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Texture.h
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Image.h
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Sampler.h
 )
 
 set(MODULE_SRC
@@ -31,6 +32,7 @@ set(MODULE_SRC
     CommandList.cpp
     Texture.cpp
     Image.cpp
+    Sampler.cpp
 )
 
 set(CZ_RUNTIME_RHI_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})

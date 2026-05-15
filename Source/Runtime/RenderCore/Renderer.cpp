@@ -4,6 +4,7 @@
 #include <Runtime/RenderCore/Renderer.h>
 
 #include <Core/Log/LogMacros.h>
+#include <cstddef>
 
 namespace CZ {
 
@@ -20,7 +21,6 @@ struct RendererObj {
     DrawFunc FinalPassDrawFunc;
 
     std::vector<FrameResource> Frames;
-    uint32 m_CurrentFrameIndex = 0;
 };
 
 DEFINE_HANDLE_DESTROY(RendererObj)
@@ -42,12 +42,10 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
     return { obj };
 }
 
-void Renderer::Init() { auto fbSize = m_Obj->Window.GetFrameBufferSize(); }
-
 void Renderer::Shutdown() {
     RHIAPI::Get().WaitIdle();
 
-    for (int i = 0; i < m_Obj->Frames.size(); i++) {
+    for (size_t i = 0; i < m_Obj->Frames.size(); i++) {
         m_Obj->Frames[i].CommandList.Destroy();
         m_Obj->Frames[i].CommandPool.Destroy();
     }
@@ -58,7 +56,8 @@ void Renderer::Shutdown() {
 }
 
 void Renderer::Tick(float deltaTime) {
-    auto cmdList = m_Obj->Frames[m_Obj->m_CurrentFrameIndex].CommandList;
+    auto cmdList =
+        m_Obj->Frames[RHIAPI::Get().GetGraphicsContext().GetCurrentFrameIndex()].CommandList;
 
     RHIAPI::Get().DrawFrame(cmdList, [&](uint32 imageIndex) {
         cmdList.Begin();
@@ -68,20 +67,26 @@ void Renderer::Tick(float deltaTime) {
             auto swapchainTexHandle =
                 RHIAPI::Get().GetGraphicsContext().GetSwapchain().GetColorAttachment(imageIndex);
 
-            RHIAPI::Get().TransitionImageLayout(cmdList, swapchainTexHandle.GetImage(),
-                                                ImageLayout::ShaderReadOnlyOptimal);
-
             targets.push_back(swapchainTexHandle);
+
+            RHIAPI::Get().TransitionImageLayout(cmdList, swapchainTexHandle.GetImage(),
+                                                ImageLayout::ColorAttachmentOptimal);
 
             RHIAPI::Get().BeginRendering(cmdList, targets,
                                          false); // bClear = false (to preserve the scene)
+
             if (m_Obj->FinalPassDrawFunc) m_Obj->FinalPassDrawFunc(cmdList);
 
             RHIAPI::Get().EndRendering(cmdList);
+
+            RHIAPI::Get().TransitionImageLayout(cmdList, swapchainTexHandle.GetImage(),
+                                                ImageLayout::PresentSrc);
         }
 
         cmdList.End();
     });
+
+    RHIAPI::Get().GetGraphicsContext().End();
 }
 
 void Renderer::SetDrawFuncToFinalPass(const DrawFunc& func) { m_Obj->FinalPassDrawFunc = func; }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Header/Handle.h"
 #include <Runtime/RHI/CommandList.h>
 #include <Runtime/RHI/Texture.h>
 
@@ -18,5 +19,5 @@ public:
     ImTextureID GetTextureIDForRHITexture(Texture texture);
 
 private:
-    std::unordered_map<const Texture, ImTextureID> m_TextureIDCache;
+    HandleMap<Texture> m_TextureIDCache;
 };

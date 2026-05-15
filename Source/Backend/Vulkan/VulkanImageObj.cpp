@@ -26,10 +26,11 @@ VulkanImageObj::VulkanImageObj(const VulkanDeviceObj* deviceObj, const ImageSpec
 VulkanImageObj::~VulkanImageObj() {
     VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
 
+    for (auto& [spec, view] : m_ViewCache) {
+        vkDestroyImageView(logicalDevice, view, nullptr);
+    }
+
     if (!m_IsExternal) {
-        for (auto& [spec, view] : m_ViewCache) {
-            vkDestroyImageView(logicalDevice, view, nullptr);
-        }
 
         if (m_VmaAllocation != VK_NULL_HANDLE) {
             vmaDestroyImage(m_DeviceObj->GetVmaAllocator(), m_VkImage, m_VmaAllocation);

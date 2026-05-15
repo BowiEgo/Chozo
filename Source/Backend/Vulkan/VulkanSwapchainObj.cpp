@@ -25,27 +25,33 @@ VulkanSwapchainObj::VulkanSwapchainObj(const VulkanGraphicsContextObj* ctxObj,
     : SwapchainObj(spec), m_ContextObj(ctxObj) {
     Init();
 
-    m_ImageAvailableSemaphores.assign(
-        spec.MaxFramesInFlight,
-        Semaphore(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSemaphoreObj, ctxObj->m_DeviceObj)));
+    m_RenderFinishedSemaphores.reserve(m_ColorAttachments.size());
+    for (size_t i = 0; i < m_ColorAttachments.size(); ++i) {
+        m_RenderFinishedSemaphores.emplace_back(
+            CZ_NEW(MEMORY_USAGE_RENDER, VulkanSemaphoreObj, ctxObj->m_DeviceObj));
+    }
 
-    m_RenderFinishedSemaphores.assign(
-        spec.MaxFramesInFlight,
-        Semaphore(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSemaphoreObj, ctxObj->m_DeviceObj)));
+    m_ImageAvailableSemaphores.reserve(ctxObj->GetMaxFramesInFlight());
+    for (uint32_t i = 0; i < ctxObj->GetMaxFramesInFlight(); ++i) {
+        m_ImageAvailableSemaphores.emplace_back(
+            CZ_NEW(MEMORY_USAGE_RENDER, VulkanSemaphoreObj, ctxObj->m_DeviceObj));
+    }
 
-    m_InFlightFences.assign(
-        spec.MaxFramesInFlight,
-        Fence(CZ_NEW(MEMORY_USAGE_RENDER, VulkanFenceObj, ctxObj->m_DeviceObj)));
+    m_InFlightFences.reserve(ctxObj->GetMaxFramesInFlight());
+    for (uint32_t i = 0; i < ctxObj->GetMaxFramesInFlight(); ++i) {
+        m_InFlightFences.emplace_back(
+            CZ_NEW(MEMORY_USAGE_RENDER, VulkanFenceObj, ctxObj->m_DeviceObj));
+    }
 }
 
 VulkanSwapchainObj::~VulkanSwapchainObj() {
-    CZ_LOG(LogVulkanSwapchain, Error, "Swapchain destructed");
-
     auto deviceObj = m_ContextObj->m_DeviceObj;
 
     CZ_CORE_ASSERT(deviceObj, "Device is no longer valid during Swapchain destroying!");
 
     VkDevice logicalDevice = deviceObj->GetLogicalDevice();
+
+    deviceObj->WaitIdle();
 
     vkDestroySwapchainKHR(logicalDevice, m_VkSwapchain, nullptr);
 }
@@ -166,7 +172,7 @@ void VulkanSwapchainObj::Init() {
     createInfo.imageColorSpace  = surfaceFormat.colorSpace;
     createInfo.imageExtent      = extent;
     createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    createInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
     QueueFamilyIndices indices    = VulkanUtils::FindQueueFamilies(physicalDevice, vkSurface);
     uint32_t queueFamilyIndices[] = { indices.Graphics.value(), indices.Present.value() };

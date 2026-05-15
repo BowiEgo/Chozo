@@ -1,6 +1,7 @@
 #include <Core/DynamicLibrary/DynamicLibraryRegistry.h>
 
 #include <Core/Log/LogMacros.h>
+#include <Core/Platform/Platform.h>
 
 namespace CZ {
 

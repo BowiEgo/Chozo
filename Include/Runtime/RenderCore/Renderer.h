@@ -16,7 +16,6 @@ struct RendererObj;
 struct Renderer : Handle<struct RendererObj> {
     static Renderer Create(const RendererSpecification& spec);
 
-    void Init();
     void Shutdown();
     void Tick(float deltaTime);
 

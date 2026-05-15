@@ -12,10 +12,12 @@ set(MODULE_INCLUDE
     VulkanCommandBufferObj.h
     VulkanTextureObj.h
     VulkanImageObj.h
+    VulkanSamplerObj.h
 )
 
 set(MODULE_SRC
     VmaImpl.cpp
+    VulkanUtils.cpp
     VulkanAPIObj.cpp
     VulkanGraphicsContextObj.cpp
     VulkanDeviceObj.cpp
@@ -26,7 +28,7 @@ set(MODULE_SRC
     VulkanCommandBufferObj.cpp
     VulkanTextureObj.cpp
     VulkanImageObj.cpp
-    VulkanUtils.cpp
+    VulkanSamplerObj.cpp
 )
 
 add_chozo_module(

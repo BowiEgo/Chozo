@@ -5,7 +5,8 @@
 
 #include "../../../Backend/Vulkan/VulkanCommandBufferObj.h"
 #include "../../../Backend/Vulkan/VulkanGraphicsContextObj.h"
-// #include "../../../Backend/Vulkan/VulkanImageObj.h"
+#include "../../../Backend/Vulkan/VulkanImageObj.h"
+#include "../../../Backend/Vulkan/VulkanSamplerObj.h"
 #include "../../../Backend/Vulkan/VulkanUtils.h"
 
 #include <Runtime/App/Application.h>
@@ -130,16 +131,15 @@ ImTextureID VulkanImGuiRenderer::GetTextureIDForRHITexture(Texture texture) {
 
     // if (!texture->IsValid()) texture = m_DefaultBlackTexture.get();
 
-    // VkImageView imageView = texture.GetImage().As<VulkanImageObj>()->GetOrCreateVKView();
-    // // vk::Sampler sampler   = texture->GetSampler().As<CVulkanSampler>()->GetVKHandle();
+    VkImageView imageView = texture.GetImage().As<VulkanImageObj>()->GetOrCreateVKView();
+    VkSampler sampler     = texture.GetSampler().As<VulkanSamplerObj>()->GetVkSampler();
 
-    // // VkDescriptorSet descSet =
-    // //     ImGui_ImplVulkan_AddTexture(sampler, imageView,
-    // //     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VkDescriptorSet descSet =
+        ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    // ImTextureID id            = reinterpret_cast<ImTextureID>(descSet);
-    // m_TextureIDCache[texture] = id;
-    // return id;
+    ImTextureID id            = reinterpret_cast<ImTextureID>(descSet);
+    m_TextureIDCache[texture] = id;
+    return id;
 
     return 0;
 }

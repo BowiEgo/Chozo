@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     {
         auto& registry = CZ::DynamicLibraryRegistry::Get();
 
-        if (!registry.LoadLib("Editor", "./libCZEditor.dylib")) {
+        if (!registry.LoadLib("Editor", "libCZEditor.dylib")) {
             err = "Cannot load Editor.";
             return 0;
         }

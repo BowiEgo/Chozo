@@ -46,6 +46,8 @@ public:
 
     CommandPool CreateCommandPool(CommandPoolSpecification& spec) override;
 
+    Sampler CreateSampler(const SamplerSpecification spec) override;
+
     VkDevice GetLogicalDevice() const { return m_VkDevice; }
 
     VkPhysicalDevice GetPhysicalDevice() const { return m_VkPhysicalDevice; }

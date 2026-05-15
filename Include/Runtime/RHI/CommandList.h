@@ -24,7 +24,7 @@ struct RenderScissor {
 class CommandListObj;
 
 struct CommandList : Handle<class CommandListObj> {
-    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
+    template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     void Begin();
 

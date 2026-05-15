@@ -1,3 +1,4 @@
+#include <Runtime/RHI/RHIAPI.h>
 #include <Runtime/RHI/Texture.h>
 
 #include "TextureObj.h"
@@ -21,5 +22,9 @@ PixelFormat Texture::GetFormat() const { return m_Obj->GetFormat(); }
 TextureUsage Texture::GetUsage() const { return m_Obj->GetUsage(); }
 
 Image Texture::GetImage() { return m_Obj->GetImage(); }
+
+Sampler Texture::GetSampler(const SamplerSpecification spec) {
+    return RHIAPI::Get().GetSampler(spec);
+}
 
 } // namespace CZ

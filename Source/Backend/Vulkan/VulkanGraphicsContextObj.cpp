@@ -21,6 +21,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL
     DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                   VkDebugUtilsMessageTypeFlagsEXT messageType,
                   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+    (void)messageType;
+    (void)pUserData;
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
         CZ_LOG(LogVulkanGraphicsContext, Error, "Validation Layer: {0}", pCallbackData->pMessage);

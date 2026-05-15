@@ -90,7 +90,7 @@ struct TextureSpecification {
 class TextureObj;
 
 struct Texture : Handle<class TextureObj> {
-    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
+    template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     std::string GetName() const;
 
@@ -103,6 +103,8 @@ struct Texture : Handle<class TextureObj> {
     TextureUsage GetUsage() const;
 
     Image GetImage();
+
+    Sampler GetSampler(const SamplerSpecification spec = SamplerSpecification::LinearClamp());
 };
 
 } // namespace CZ

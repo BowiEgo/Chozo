@@ -73,19 +73,10 @@ struct ImageSpecification {
     }
 };
 
-class ImageObj {
-public:
-    ImageObj(const ImageSpecification& spec) : m_Spec(spec) {}
-    virtual ~ImageObj() = default;
-
-protected:
-    ImageSpecification m_Spec;
-
-    bool m_IsValid = true;
-};
+class ImageObj;
 
 struct Image : Handle<class ImageObj> {
-    template <typename T> T* As() { return static_cast<T*>(RHIInternalReader::Unwrap(*this)); }
+    template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };
 
 } // namespace CZ

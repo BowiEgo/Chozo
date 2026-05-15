@@ -35,6 +35,8 @@ public:
 
     GraphicsContext GetGraphicsContext() const;
 
+    Sampler GetSampler(const SamplerSpecification spec);
+
 private:
     RHIAPI() = default;
     ~RHIAPI() {

@@ -6,6 +6,6 @@ class SemaphoreObj {
 public:
     SemaphoreObj() = default;
 
-    virtual ~SemaphoreObj() { CZ_CORE_LOG(Error, "SemaphoreObj destructed"); }
+    virtual ~SemaphoreObj() = default;
 };
 } // namespace CZ

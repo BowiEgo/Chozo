@@ -15,9 +15,7 @@ VulkanTextureObj::VulkanTextureObj(const VulkanDeviceObj* deviceObj,
                                    const TextureSpecification& spec, Image image)
     : TextureObj(spec, image), m_DeviceObj(deviceObj) {}
 
-VulkanTextureObj::~VulkanTextureObj() {
-    CZ_LOG(LogVulkanTexture, Error, "VulkanTextureObj destructed.");
-}
+VulkanTextureObj::~VulkanTextureObj() {}
 
 VkRenderingAttachmentInfo VulkanTextureObj::GetColorAttachmentInfo(const VkClearValue clearColor,
                                                                    const bool bClear,

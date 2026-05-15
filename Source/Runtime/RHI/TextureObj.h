@@ -9,10 +9,7 @@ public:
 
     TextureObj(const TextureSpecification& spec, Image image) : m_Spec(spec), m_Image(image) {}
 
-    virtual ~TextureObj() {
-        CZ_CORE_LOG(Error, "TextureObj destructed.");
-        m_Image.Destroy();
-    }
+    virtual ~TextureObj() { m_Image.Destroy(); }
 
     std::string GetName() const { return m_Spec.Name; }
 
@@ -28,6 +25,7 @@ public:
 
 protected:
     TextureSpecification m_Spec;
+
     Image m_Image;
 };
 

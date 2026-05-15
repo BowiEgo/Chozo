@@ -36,8 +36,6 @@ VulkanCommandBufferObj::VulkanCommandBufferObj(VulkanCommandPoolObj* cmdPoolObj)
 }
 
 VulkanCommandBufferObj::~VulkanCommandBufferObj() {
-    CZ_CORE_LOG(Error, "VulkanCommandBufferObj destructed");
-
     // if (m_VkCommandBuffer == VK_NULL_HANDLE) return;
 
     auto deviceObj = m_CmdPoolObj->m_DeviceObj;
