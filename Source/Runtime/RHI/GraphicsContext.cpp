@@ -1,7 +1,7 @@
-#include <Runtime/RHI/GraphicsContext.h>
+#include <Core/Log/LogMacros.hpp>
+#include <Runtime/RHI/GraphicsContext.hpp>
 
-#include "Core/Log/LogMacros.h"
-#include "GraphicsContextObj.h"
+#include "GraphicsContextObj.hpp"
 
 namespace CZ {
 

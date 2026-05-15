@@ -1,6 +1,6 @@
-#include <Runtime/RHI/Image.h>
+#include <Runtime/RHI/Image.hpp>
 
-#include "ImageObj.h"
+#include "ImageObj.hpp"
 
 namespace CZ {
 

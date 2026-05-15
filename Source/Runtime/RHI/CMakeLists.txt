@@ -3,20 +3,20 @@ set(MODULE_NAME CZRHI)
 set(MODULE_TYPE RUNTIME)
 
 set(MODULE_INCLUDE
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHITypes.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHIUtils.h
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHITypes.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHIUtils.hpp
 
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/GraphicsContext.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHIAPI.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Device.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Swapchain.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Fence.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Semaphore.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/CommandPool.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/CommandList.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Texture.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Image.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Sampler.h
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/GraphicsContext.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHIAPI.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Device.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Swapchain.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Fence.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Semaphore.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/CommandPool.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/CommandList.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Texture.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Image.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Sampler.hpp
 )
 
 set(MODULE_SRC

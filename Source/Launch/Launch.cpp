@@ -1,8 +1,8 @@
-#include <Core/DynamicLibrary/DynamicLibraryRegistry.h>
-#include <Core/Memory/Memory.h>
-#include <Core/Memory/MemoryTypes.h>
-#include <Runtime/App/Application.h>
-#include <Runtime/App/StartupHost.h>
+#include <Core/DynamicLibrary/DynamicLibraryRegistry.hpp>
+#include <Core/Memory/Memory.hpp>
+#include <Core/Memory/MemoryTypes.hpp>
+#include <Runtime/App/Application.hpp>
+#include <Runtime/App/StartupHost.hpp>
 
 using namespace CZ;
 

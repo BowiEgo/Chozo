@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Core/Log/LogMacros.h>
-#include <Core/Memory/Memory.h>
-#include <Core/Memory/MemoryTypes.h>
+#include <Core/Log/LogMacros.hpp>
+#include <Core/Memory/Memory.hpp>
+#include <Core/Memory/MemoryTypes.hpp>
 
 #include <vulkan/vulkan_core.h>
 #define IM_VULKAN_HAS_DYNAMIC_RENDERING

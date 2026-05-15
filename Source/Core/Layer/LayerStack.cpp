@@ -1,6 +1,6 @@
-#include <Core/Layer/LayerStack.h>
+#include <Core/Layer/LayerStack.hpp>
 
-#include <Core/Log/LogMacros.h>
+#include <Core/Log/LogMacros.hpp>
 
 namespace CZ {
 

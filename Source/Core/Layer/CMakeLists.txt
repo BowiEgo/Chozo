@@ -3,8 +3,8 @@ set(MODULE_NAME CZLayer)
 set(MODULE_TYPE Core)
 
 set(MODULE_INCLUDE
-	${CHOZO_INCLUDE_DIR}/Core/Layer/Layer.h
-	${CHOZO_INCLUDE_DIR}/Core/Layer/LayerStack.h
+	${CHOZO_INCLUDE_DIR}/Core/Layer/Layer.hpp
+	${CHOZO_INCLUDE_DIR}/Core/Layer/LayerStack.hpp
 )
 
 set(MODULE_SRC

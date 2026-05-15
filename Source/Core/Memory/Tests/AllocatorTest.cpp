@@ -1,4 +1,4 @@
-#include <Core/Memory/Allocator.h>
+#include <Core/Memory/Allocator.hpp>
 
 #include <doctest/doctest.h>
 

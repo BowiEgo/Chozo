@@ -1,7 +1,7 @@
-#include "Editor.h"
+#include "Editor.hpp"
 
-#include <Runtime/App/Application.h>
-#include <Runtime/RHI/RHIAPI.h>
+#include <Runtime/App/Application.hpp>
+#include <Runtime/RHI/RHIAPI.hpp>
 
 using namespace CZ;
 

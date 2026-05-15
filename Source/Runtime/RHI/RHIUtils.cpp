@@ -1,4 +1,4 @@
-#include <Runtime/RHI/RHIUtils.h>
+#include <Runtime/RHI/RHIUtils.hpp>
 
 namespace CZ::RHIUtils {
 

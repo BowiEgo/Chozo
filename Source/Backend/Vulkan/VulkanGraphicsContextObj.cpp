@@ -1,8 +1,6 @@
-#include "VulkanGraphicsContextObj.h"
-#include "VulkanDeviceObj.h"
-#include "VulkanSwapchainObj.h"
-
-#include "VulkanUtils.h"
+#include "VulkanGraphicsContextObj.hpp"
+#include "VulkanDeviceObj.hpp"
+#include "VulkanSwapchainObj.hpp"
 
 namespace CZ {
 

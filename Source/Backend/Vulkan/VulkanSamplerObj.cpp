@@ -1,8 +1,7 @@
-#include "VulkanSamplerObj.h"
+#include "VulkanSamplerObj.hpp"
+#include "VulkanDeviceObj.hpp"
 
-#include "Runtime/RHI/Sampler.h"
-#include "VulkanDeviceObj.h"
-#include "VulkanUtils.h"
+#include <Runtime/RHI/Sampler.hpp>
 
 namespace CZ {
 

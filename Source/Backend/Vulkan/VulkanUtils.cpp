@@ -1,7 +1,7 @@
-#include "VulkanUtils.h"
+#include "VulkanUtils.hpp"
 
-#include <Core/Header/Assert.h>
-#include <Core/Log/LogMacros.h>
+#include <Core/Header/Assert.hpp>
+#include <Core/Log/LogMacros.hpp>
 
 namespace CZ::VulkanUtils {
 

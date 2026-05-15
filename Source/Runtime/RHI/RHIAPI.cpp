@@ -1,9 +1,9 @@
-#include <Runtime/RHI/RHIAPI.h>
+#include <Runtime/RHI/RHIAPI.hpp>
 
-#include <Core/DynamicLibrary/DynamicLibraryRegistry.h>
-#include <Runtime/RHI/GraphicsContext.h>
+#include <Core/DynamicLibrary/DynamicLibraryRegistry.hpp>
+#include <Runtime/RHI/GraphicsContext.hpp>
 
-#include "RHIAPIObj.h"
+#include "RHIAPIObj.hpp"
 
 namespace CZ {
 

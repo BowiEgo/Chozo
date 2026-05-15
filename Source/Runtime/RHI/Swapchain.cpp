@@ -1,7 +1,7 @@
-#include <Runtime/RHI/Swapchain.h>
+#include <Runtime/RHI/Swapchain.hpp>
 
-#include "SwapchainObj.h"
-#include <Runtime/RHI/RHIAPI.h>
+#include "SwapchainObj.hpp"
+#include <Runtime/RHI/RHIAPI.hpp>
 
 namespace CZ {
 

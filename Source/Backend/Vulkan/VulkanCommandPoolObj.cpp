@@ -1,12 +1,11 @@
-#include "VulkanCommandPoolObj.h"
+#include "VulkanCommandPoolObj.hpp"
 
-#include "VulkanCommandBufferObj.h"
-#include "VulkanDeviceObj.h"
-#include "VulkanUtils.h"
+#include "VulkanCommandBufferObj.hpp"
+#include "VulkanDeviceObj.hpp"
 
-#include <Core/Log/LogMacros.h>
-#include <Core/Memory/MemoryTypes.h>
-#include <Runtime/RHI/CommandList.h>
+#include <Core/Log/LogMacros.hpp>
+#include <Core/Memory/MemoryTypes.hpp>
+#include <Runtime/RHI/CommandList.hpp>
 
 namespace CZ {
 

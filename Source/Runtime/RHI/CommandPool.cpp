@@ -1,6 +1,6 @@
-#include <Runtime/RHI/CommandPool.h>
+#include <Runtime/RHI/CommandPool.hpp>
 
-#include "CommandPoolObj.h"
+#include "CommandPoolObj.hpp"
 
 namespace CZ {
 

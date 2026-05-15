@@ -1,18 +1,18 @@
 set(MODULE_NAME CZVulkan)
 
 set(MODULE_INCLUDE
-    VulkanAPIObj.h
-    VulkanRenderContext.h
-    VulkanGraphicsContextObj.h
-    VulkanDeviceObj.h
-    VulkanSwapchainObj.h
-    VulkanFenceObj.h
-    VulkanSemaphoreObj.h
-    VulkanCommandPoolObj.h
-    VulkanCommandBufferObj.h
-    VulkanTextureObj.h
-    VulkanImageObj.h
-    VulkanSamplerObj.h
+    VulkanAPIObj.hpp
+    VulkanRenderContext.hpp
+    VulkanGraphicsContextObj.hpp
+    VulkanDeviceObj.hpp
+    VulkanSwapchainObj.hpp
+    VulkanFenceObj.hpp
+    VulkanSemaphoreObj.hpp
+    VulkanCommandPoolObj.hpp
+    VulkanCommandBufferObj.hpp
+    VulkanTextureObj.hpp
+    VulkanImageObj.hpp
+    VulkanSamplerObj.hpp
 )
 
 set(MODULE_SRC

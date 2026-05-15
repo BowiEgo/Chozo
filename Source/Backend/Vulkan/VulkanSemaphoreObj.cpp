@@ -1,6 +1,5 @@
-#include "VulkanSemaphoreObj.h"
-#include "VulkanDeviceObj.h"
-#include "VulkanUtils.h"
+#include "VulkanSemaphoreObj.hpp"
+#include "VulkanDeviceObj.hpp"
 
 namespace CZ {
 

@@ -1,5 +1,5 @@
-#include <Core/Header/Assert.h>
-#include <Core/Memory/Memory.h>
+#include <Core/Header/Assert.hpp>
+#include <Core/Memory/Memory.hpp>
 
 #include <algorithm>
 #include <cstring>

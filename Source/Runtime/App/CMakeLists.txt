@@ -1,9 +1,9 @@
 set(MODULE_NAME CZApp)
 
 set(MODULE_INCLUDE
-    ${CHOZO_INCLUDE_DIR}/Runtime/App/Application.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/App/StartupHost.h
-    ${CHOZO_INCLUDE_DIR}/Runtime/App/Engine.h
+    ${CHOZO_INCLUDE_DIR}/Runtime/App/Application.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/App/StartupHost.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/App/Engine.hpp
 )
 
 set(MODULE_SRC

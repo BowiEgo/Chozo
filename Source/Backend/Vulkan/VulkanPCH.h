@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Core/Header/Assert.h>
+#include <Core/Header/Assert.hpp>
 #include <Core/Header/Macros.h>
-#include <Core/Log/LogMacros.h>
-#include <Core/Memory/Memory.h>
+#include <Core/Log/LogMacros.hpp>
+#include <Core/Memory/Memory.hpp>
 #include <Core/Platform/Platform.h>
 
-#include <Runtime/RHI/RHITypes.h>
+#include <Runtime/RHI/RHITypes.hpp>
 
 // ---------- Vulkan platform macros MUST come first ----------
 #ifdef CZ_PLATFORM_MACOS
@@ -25,7 +25,7 @@
     #include <vulkan/vulkan_metal.h>
 #endif
 
-#include "VulkanUtils.h"
+#include "VulkanUtils.hpp"
 
 #include <algorithm>
 #include <cstring>

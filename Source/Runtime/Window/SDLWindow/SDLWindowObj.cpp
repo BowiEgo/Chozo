@@ -1,13 +1,13 @@
-#include "SDLWindowObj.h"
+#include "SDLWindowObj.hpp"
 
-#include <Core/Event/AppEvent.h>
-#include <Core/Event/KeyEvent.h>
-#include <Core/Event/MouseEvent.h>
-#include <Core/Log/LogMacros.h>
+#include <Core/Event/AppEvent.hpp>
+#include <Core/Event/KeyEvent.hpp>
+#include <Core/Event/MouseEvent.hpp>
+#include <Core/Log/LogMacros.hpp>
 #include <Core/Platform/Platform.h>
 
-#include "Core/Header/Extent.h"
-#include "SDLKeyMap.h"
+#include "SDLKeyMap.hpp"
+#include <Core/Header/Extent.hpp>
 
 #include <SDL3/SDL_vulkan.h>
 

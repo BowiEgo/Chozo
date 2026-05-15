@@ -1,6 +1,6 @@
-#include <Runtime/App/Application.h>
-#include <Runtime/App/StartupHost.h>
-#include <Runtime/RHI/RHIAPI.h>
+#include <Runtime/App/Application.hpp>
+#include <Runtime/App/StartupHost.hpp>
+#include <Runtime/RHI/RHIAPI.hpp>
 
 namespace CZ {
 

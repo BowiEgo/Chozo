@@ -1,12 +1,11 @@
-#include "VulkanSwapchainObj.h"
+#include "VulkanSwapchainObj.hpp"
 
-#include "VulkanDeviceObj.h"
-#include "VulkanFenceObj.h"
-#include "VulkanGraphicsContextObj.h"
-#include "VulkanImageObj.h"
-#include "VulkanSemaphoreObj.h"
-#include "VulkanTextureObj.h"
-#include "VulkanUtils.h"
+#include "VulkanDeviceObj.hpp"
+#include "VulkanFenceObj.hpp"
+#include "VulkanGraphicsContextObj.hpp"
+#include "VulkanImageObj.hpp"
+#include "VulkanSemaphoreObj.hpp"
+#include "VulkanTextureObj.hpp"
 
 namespace CZ {
 

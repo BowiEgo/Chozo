@@ -1,6 +1,6 @@
-#include <Core/Header/Assert.h>
+#include <Core/Header/Assert.hpp>
 #include <Core/Header/Types.h>
-#include <Core/Memory/Allocator.h>
+#include <Core/Memory/Allocator.hpp>
 
 namespace CZ {
 
@@ -189,7 +189,7 @@ struct PoolAllocatorObj {
     }
 };
 
-static_assert(sizeof(PoolAllocatorObj::Block) == 16); // update Allocator.h
+static_assert(sizeof(PoolAllocatorObj::Block) == 16); // update Allocator.hpp
 
 PoolAllocator PoolAllocator::Create(const PoolAllocatorInfo& info) {
     CZ_CORE_ASSERT(info.BlockSize != 0 && info.PageSize > 0);

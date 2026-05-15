@@ -1,7 +1,7 @@
 set(MODULE_NAME CZRenderCore)
 
 set(MODULE_INCLUDE
-    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Renderer.h
+    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Renderer.hpp
 )
 
 set(MODULE_SRC

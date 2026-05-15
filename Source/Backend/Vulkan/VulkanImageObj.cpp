@@ -1,7 +1,6 @@
-#include "VulkanImageObj.h"
+#include "VulkanImageObj.hpp"
 
-#include "VulkanDeviceObj.h"
-#include "VulkanUtils.h"
+#include "VulkanDeviceObj.hpp"
 
 namespace CZ {
 

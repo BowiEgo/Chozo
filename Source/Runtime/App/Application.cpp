@@ -1,7 +1,7 @@
-#include "Runtime/Window/Window.h"
-#include <Runtime/App/Application.h>
+#include "Runtime/Window/Window.hpp"
+#include <Runtime/App/Application.hpp>
 
-#include <Core/Header/Assert.h>
+#include <Core/Header/Assert.hpp>
 #include <Core/Header/Macros.h>
 
 namespace CZ {

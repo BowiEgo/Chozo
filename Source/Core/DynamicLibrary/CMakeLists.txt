@@ -3,8 +3,8 @@ set(MODULE_NAME CZDynamicLibrary)
 set(MODULE_TYPE Core)
 
 set(MODULE_INCLUDE
-	${CHOZO_INCLUDE_DIR}/Core/DynamicLibrary/DynamicLibrary.h
-	${CHOZO_INCLUDE_DIR}/Core/DynamicLibrary/DynamicLibraryRegistry.h
+	${CHOZO_INCLUDE_DIR}/Core/DynamicLibrary/DynamicLibrary.hpp
+	${CHOZO_INCLUDE_DIR}/Core/DynamicLibrary/DynamicLibraryRegistry.hpp
 )
 
 set(MODULE_SRC

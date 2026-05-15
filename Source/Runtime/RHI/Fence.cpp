@@ -1,6 +1,6 @@
-#include <Runtime/RHI/Fence.h>
+#include <Runtime/RHI/Fence.hpp>
 
-#include "FenceObj.h"
+#include "FenceObj.hpp"
 
 namespace CZ {
 

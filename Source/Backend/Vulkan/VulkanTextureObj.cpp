@@ -1,7 +1,7 @@
-#include "VulkanTextureObj.h"
-#include "Core/Log/LogMacros.h"
-#include "Runtime/RHI/RHITypes.h"
-#include "VulkanImageObj.h"
+#include "VulkanTextureObj.hpp"
+#include "VulkanImageObj.hpp"
+#include <Core/Log/LogMacros.hpp>
+#include <Runtime/RHI/RHITypes.hpp>
 
 namespace CZ {
 

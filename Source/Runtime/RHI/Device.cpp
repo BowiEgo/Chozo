@@ -1,4 +1,4 @@
-#include "DeviceObj.h"
+#include "DeviceObj.hpp"
 
 namespace CZ {
 

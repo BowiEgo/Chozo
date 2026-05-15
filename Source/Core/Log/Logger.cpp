@@ -1,6 +1,6 @@
-#include "Core/Log/Logger.h"
+#include <Core/Log/Logger.hpp>
 
-#include "LogUtils.h"
+#include "LogUtils.hpp"
 
 #include <spdlog/fmt/fmt.h>
 #include <spdlog/sinks/base_sink.h>

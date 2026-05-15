@@ -1,9 +1,9 @@
-#include <Runtime/RHI/CommandList.h>
-#include <Runtime/RHI/CommandPool.h>
-#include <Runtime/RHI/RHIAPI.h>
-#include <Runtime/RenderCore/Renderer.h>
+#include <Runtime/RHI/CommandList.hpp>
+#include <Runtime/RHI/CommandPool.hpp>
+#include <Runtime/RHI/RHIAPI.hpp>
+#include <Runtime/RenderCore/Renderer.hpp>
 
-#include <Core/Log/LogMacros.h>
+#include <Core/Log/LogMacros.hpp>
 #include <cstddef>
 
 namespace CZ {

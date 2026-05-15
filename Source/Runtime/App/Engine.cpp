@@ -1,9 +1,9 @@
-#include "Runtime/RHI/GraphicsContext.h"
-#include <Runtime/App/Application.h>
-#include <Runtime/App/Engine.h>
+#include <Runtime/App/Application.hpp>
+#include <Runtime/App/Engine.hpp>
+#include <Runtime/RHI/GraphicsContext.hpp>
 
-#include <Core/Log/LogMacros.h>
-#include <Runtime/RHI/RHIAPI.h>
+#include <Core/Log/LogMacros.hpp>
+#include <Runtime/RHI/RHIAPI.hpp>
 
 namespace CZ {
 

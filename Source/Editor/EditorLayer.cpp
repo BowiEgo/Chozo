@@ -1,10 +1,10 @@
-#include "EditorLayer.h"
+#include "EditorLayer.hpp"
 
-#include "../Runtime/Window/SDLWindow/SDLWindowObj.h"
+#include "../Runtime/Window/SDLWindow/SDLWindowObj.hpp"
 #include "imgui.h"
 
-#include <Runtime/App/Application.h>
-#include <Runtime/RHI/RHIAPI.h>
+#include <Runtime/App/Application.hpp>
+#include <Runtime/RHI/RHIAPI.hpp>
 
 using namespace CZ;
 

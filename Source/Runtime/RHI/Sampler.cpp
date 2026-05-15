@@ -1,6 +1,6 @@
-#include <Runtime/RHI/Sampler.h>
+#include <Runtime/RHI/Sampler.hpp>
 
-#include "SamplerObj.h"
+#include "SamplerObj.hpp"
 
 namespace CZ {
 

@@ -1,6 +1,6 @@
-#include <Runtime/RHI/Semaphore.h>
+#include <Runtime/RHI/Semaphore.hpp>
 
-#include "SemaphoreObj.h"
+#include "SemaphoreObj.hpp"
 
 namespace CZ {
 

@@ -1,8 +1,8 @@
-#include <Runtime/Window/Window.h>
+#include <Runtime/Window/Window.hpp>
 
-#include <Core/Memory/Memory.h>
+#include <Core/Memory/Memory.hpp>
 
-#include "SDLWindow/SDLWindowObj.h"
+#include "SDLWindow/SDLWindowObj.hpp"
 
 namespace CZ {
 

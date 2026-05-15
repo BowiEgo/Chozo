@@ -1,4 +1,4 @@
-#include "VulkanFenceObj.h"
+#include "VulkanFenceObj.hpp"
 
 namespace CZ {
 

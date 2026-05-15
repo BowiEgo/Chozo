@@ -1,4 +1,4 @@
-#include <Core/Memory/TypeMemoryTracker.h>
+#include <Core/Memory/TypeMemoryTracker.hpp>
 
 #include <cstddef>
 #include <mutex>

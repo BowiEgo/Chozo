@@ -1,7 +1,7 @@
-#include <Runtime/RHI/RHIAPI.h>
-#include <Runtime/RHI/Texture.h>
+#include <Runtime/RHI/RHIAPI.hpp>
+#include <Runtime/RHI/Texture.hpp>
 
-#include "TextureObj.h"
+#include "TextureObj.hpp"
 
 namespace CZ {
 

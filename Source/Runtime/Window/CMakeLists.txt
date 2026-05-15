@@ -2,9 +2,9 @@ set(MODULE_NAME CZWindow)
 set(MODULE_TYPE RUNTIME)
 
 set(MODULE_INCLUDE
-    ${CHOZO_INCLUDE_DIR}/Runtime/Window/Window.h
-    WindowObj.h
-    SDLWindow/SDLWindowObj.h
+    ${CHOZO_INCLUDE_DIR}/Runtime/Window/Window.hpp
+    WindowObj.hpp
+    SDLWindow/SDLWindowObj.hpp
 )
 
 set(MODULE_SRC
