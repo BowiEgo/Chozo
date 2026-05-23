@@ -17,6 +17,9 @@ set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Texture.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Image.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Sampler.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/FrameBuffer.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Pipeline.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/SetLayout.hpp
 )
 
 set(MODULE_SRC
@@ -33,6 +36,9 @@ set(MODULE_SRC
     Texture.cpp
     Image.cpp
     Sampler.cpp
+    FrameBuffer.cpp
+    Pipeline.cpp
+    SetLayout.cpp
 )
 
 set(CZ_RUNTIME_RHI_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})

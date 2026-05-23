@@ -1,6 +1,8 @@
 #pragma once
 
-#include "../Source/Runtime/RHI/SwapchainObj.hpp"
+#include <Runtime/RHI/Swapchain.hpp>
+
+#include "VulkanUtils.hpp"
 
 namespace CZ {
 

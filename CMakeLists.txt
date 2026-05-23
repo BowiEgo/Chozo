@@ -74,7 +74,7 @@ include(CMake/ChozoModule.cmake)
 include(CMake/ChozoModuleTests.cmake)
 
 # Build extra libs
-add_subdirectory(${CHOZO_EXTERNAL_DIR}/stb)
+# add_subdirectory(${CHOZO_EXTERNAL_DIR}/stb)
 
 # Prerequisites
 # - third-party libs for all modules（like fmt）
@@ -92,11 +92,14 @@ target_link_libraries(CZEnginePrerequisites INTERFACE fmt::fmt)
 # - user facing API in ${CHOZO_INCLUDE_DIR}
 set(CZ_CORE_MODULE_FOLDER "Core")
 set(CZ_CORE_MODULE_LIST "" CACHE STRING "" FORCE)
-add_subdirectory(Source/Core/Platform)
+add_subdirectory(Source/Core/DynamicLibrary)
+add_subdirectory(Source/Core/FileSystem)
+add_subdirectory(Source/Core/Header)
+add_subdirectory(Source/Core/Layer)
 add_subdirectory(Source/Core/Log)
 add_subdirectory(Source/Core/Memory)
-add_subdirectory(Source/Core/DynamicLibrary)
-add_subdirectory(Source/Core/Layer)
+add_subdirectory(Source/Core/Platform)
+add_subdirectory(Source/Core/Utilities)
 
 add_library(CZCoreLibs INTERFACE)
 target_link_libraries(CZCoreLibs INTERFACE

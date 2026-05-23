@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Source/Runtime/RHI/CommandPoolObj.hpp"
+#include <Runtime/RHI/CommandPool.hpp>
 
 #include "VulkanCommandBufferObj.hpp"
 

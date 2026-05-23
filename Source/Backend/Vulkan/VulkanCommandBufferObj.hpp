@@ -2,8 +2,6 @@
 
 #include "VulkanCommandPoolObj.hpp"
 
-#include "../Source/Runtime/RHI/CommandListObj.hpp"
-
 #include <Runtime/RHI/CommandList.hpp>
 
 #include <vulkan/vulkan_core.h>

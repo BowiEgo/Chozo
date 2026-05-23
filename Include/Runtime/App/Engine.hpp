@@ -25,7 +25,7 @@ public:
     GraphicsContext GetGraphicContext() const { return m_GraphicsContext; }
 
     Texture GetSwapchainFramebuffer(uint32 index) {
-        return m_GraphicsContext.GetSwapchain().GetColorAttachment(index);
+        return m_GraphicsContext->GetSwapchain()->GetColorAttachment(index);
     }
 
 private:

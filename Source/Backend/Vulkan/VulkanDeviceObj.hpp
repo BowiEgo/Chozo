@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Source/Runtime/RHI/DeviceObj.hpp"
+#include <Runtime/RHI/Device.hpp>
 
 #ifndef VMA_IMPLEMENTATION
 typedef struct VmaAllocator_T* VmaAllocator;
@@ -47,6 +47,17 @@ public:
     CommandPool CreateCommandPool(CommandPoolSpecification& spec) override;
 
     Sampler CreateSampler(const SamplerSpecification spec) override;
+
+    FrameBuffer CreateFrameBuffer(const FrameBufferSpecification& spec) override;
+
+    ShaderRes CreateShaderRes(const ShaderResSpecification& spec,
+                              const std::vector<uint32_t>* binary) override;
+
+    Pipeline CreatePipeline(const PipelineSpecification& spec,
+                            const std::vector<ShaderRes>& shaders,
+                            const ShaderReflection& reflection) override;
+
+    SetLayout CreateSetLayout(const SetLayoutDescription& desc) override;
 
     VkDevice GetLogicalDevice() const { return m_VkDevice; }
 

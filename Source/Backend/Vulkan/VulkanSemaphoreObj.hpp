@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Source/Runtime/RHI/SemaphoreObj.hpp"
+#include <Runtime/RHI/Semaphore.hpp>
 
 namespace CZ {
 

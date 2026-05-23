@@ -1,13 +1,13 @@
 include(FetchContent)
 
-## Fetch doctest
+# Fetch doctest
 FetchContent_Declare(
   doctest
   GIT_REPOSITORY https://github.com/doctest/doctest.git
   GIT_TAG v2.4.11 
 )
 FetchContent_MakeAvailable(doctest)
-
+message(STATUS "CHOZO DOCTEST SOURCE DIR:     ${doctest_SOURCE_DIR}")
 
 ## Fetch fmt
 FetchContent_Declare(
@@ -16,6 +16,7 @@ FetchContent_Declare(
   GIT_TAG 10.2.1
 )
 FetchContent_MakeAvailable(fmt)
+message(STATUS "CHOZO FMT SOURCE DIR:     ${fmt_SOURCE_DIR}")
 
 ## Fetch spdlog
 FetchContent_Declare(
@@ -64,44 +65,118 @@ message(STATUS "CHOZO VMA SOURCE DIR:      ${vma_SOURCE_DIR}")
 
 ## Fetch ImGui
 FetchContent_Declare(
-  imgui
+  ChozoImGui
   GIT_REPOSITORY https://github.com/ocornut/imgui.git
   GIT_TAG docking
 )
-FetchContent_MakeAvailable(imgui)
-message(STATUS "CHOZO IMGUI SOURCE DIR:      ${imgui_SOURCE_DIR}")
+FetchContent_MakeAvailable(ChozoImGui)
+message(STATUS "CHOZO IMGUI SOURCE DIR:      ${ChozoImGui_SOURCE_DIR}")
 
-FetchContent_GetProperties(imgui SOURCE_DIR imgui_SOURCE_DIR)
-if(NOT imgui_SOURCE_DIR)
+FetchContent_GetProperties(ChozoImGui SOURCE_DIR ChozoImGui_SOURCE_DIR)
+if(NOT ChozoImGui_SOURCE_DIR)
     message(FATAL_ERROR "ImGui source directory not found")
 endif()
 
 set(IMGUI_CORE_SOURCES
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
+    ${ChozoImGui_SOURCE_DIR}/imgui.cpp
+    ${ChozoImGui_SOURCE_DIR}/imgui_draw.cpp
+    ${ChozoImGui_SOURCE_DIR}/imgui_tables.cpp
+    ${ChozoImGui_SOURCE_DIR}/imgui_widgets.cpp
+    ${ChozoImGui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
 )
 
 set(IMGUI_BACKEND_SOURCES
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+    ${ChozoImGui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
+    ${ChozoImGui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
 )
 
-add_library(imgui STATIC ${IMGUI_CORE_SOURCES} ${IMGUI_BACKEND_SOURCES})
+add_library(ChozoImGui STATIC ${IMGUI_CORE_SOURCES} ${IMGUI_BACKEND_SOURCES})
 
-target_include_directories(imgui PUBLIC
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
-    ${imgui_SOURCE_DIR}/misc/cpp
+target_include_directories(ChozoImGui PUBLIC
+    ${ChozoImGui_SOURCE_DIR}
+    ${ChozoImGui_SOURCE_DIR}/backends
+    ${ChozoImGui_SOURCE_DIR}/misc/cpp
 )
 
-target_compile_definitions(imgui PUBLIC IMGUI_DEFINE_MATH_OPERATORS)
+target_compile_definitions(ChozoImGui PUBLIC IMGUI_DEFINE_MATH_OPERATORS)
 
 find_package(Vulkan REQUIRED)
-target_link_libraries(imgui PUBLIC Vulkan::Vulkan SDL3::SDL3)
+target_link_libraries(ChozoImGui PUBLIC Vulkan::Vulkan SDL3::SDL3)
 
-target_precompile_headers(imgui PRIVATE ${imgui_SOURCE_DIR}/imgui.h)
+target_precompile_headers(ChozoImGui PRIVATE ${ChozoImGui_SOURCE_DIR}/imgui.h)
 
-add_library(imgui::imgui ALIAS imgui)
+add_library(Chozo::ImGui ALIAS ChozoImGui)
+
+## Fetch Slang
+set(SLANG_VERSION "2026.9.1") 
+
+# check platform and construct download URL
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+        set(SLANG_PLATFORM "windows-x86_64")
+        set(SLANG_ARCHIVE_SUFFIX ".zip")
+    elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+        set(SLANG_PLATFORM "windows-aarch64")
+        set(SLANG_ARCHIVE_SUFFIX ".zip")
+    else()
+        message(FATAL_ERROR "Unsupported Windows architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+        set(SLANG_PLATFORM "macos-x86_64")
+        set(SLANG_ARCHIVE_SUFFIX ".zip")
+    elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+        set(SLANG_PLATFORM "macos-aarch64")
+        set(SLANG_ARCHIVE_SUFFIX ".zip")
+    else()
+        message(FATAL_ERROR "Unsupported macOS architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+        set(SLANG_PLATFORM "linux-x86_64")
+        set(SLANG_ARCHIVE_SUFFIX ".tar.gz")
+    elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+        set(SLANG_PLATFORM "linux-aarch64")
+        set(SLANG_ARCHIVE_SUFFIX ".tar.gz")
+    else()
+        message(FATAL_ERROR "Unsupported Linux architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+
+else()
+    message(FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}")
+endif()
+
+# 3. build download from URL
+set(SLANG_ARCHIVE_NAME "slang-${SLANG_VERSION}-${SLANG_PLATFORM}${SLANG_ARCHIVE_SUFFIX}")
+set(SLANG_DOWNLOAD_URL "https://github.com/shader-slang/slang/releases/download/v${SLANG_VERSION}/${SLANG_ARCHIVE_NAME}")
+
+message(STATUS "Downloading Slang from: ${SLANG_DOWNLOAD_URL}")
+
+FetchContent_Declare(
+    slang_prebuilt
+    URL ${SLANG_DOWNLOAD_URL}
+)
+FetchContent_MakeAvailable(slang_prebuilt)
+
+FetchContent_GetProperties(slang_prebuilt)
+if(NOT slang_prebuilt_POPULATED)
+    FetchContent_Populate(slang_prebuilt)
+endif()
+
+set(SLANG_PREBUILT_DIR ${slang_prebuilt_SOURCE_DIR})
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(SLANG_LIBRARY ${SLANG_PREBUILT_DIR}/lib/slang.lib) # or slang.dll
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(SLANG_LIBRARY ${SLANG_PREBUILT_DIR}/lib/libslang.dylib)
+  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(SLANG_LIBRARY ${SLANG_PREBUILT_DIR}/lib/libslang.so)
+endif()
+
+add_library(slang::slang SHARED IMPORTED)
+set_target_properties(slang::slang PROPERTIES
+    IMPORTED_LOCATION ${SLANG_LIBRARY}
+    INTERFACE_INCLUDE_DIRECTORIES ${SLANG_PREBUILT_DIR}/include
+)

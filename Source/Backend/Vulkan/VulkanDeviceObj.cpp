@@ -1,7 +1,11 @@
 #include "VulkanDeviceObj.hpp"
 #include "VulkanCommandPoolObj.hpp"
+#include "VulkanFrameBufferObj.hpp"
 #include "VulkanGraphicsContextObj.hpp"
+#include "VulkanPipelineObj.hpp"
 #include "VulkanSamplerObj.hpp"
+#include "VulkanSetLayoutObj.hpp"
+#include "VulkanShaderResObj.hpp"
 
 #include <Core/Memory/MemoryTypes.hpp>
 #include <Runtime/RHI/CommandPool.hpp>
@@ -55,6 +59,26 @@ CommandPool VulkanDeviceObj::CreateCommandPool(CommandPoolSpecification& spec) {
 
 Sampler VulkanDeviceObj::CreateSampler(const SamplerSpecification spec) {
     return Sampler(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSamplerObj, this, spec));
+}
+
+FrameBuffer VulkanDeviceObj::CreateFrameBuffer(const FrameBufferSpecification& spec) {
+    return FrameBuffer(CZ_NEW(MEMORY_USAGE_RENDER, VulkanFrameBufferObj, this, spec));
+}
+
+ShaderRes VulkanDeviceObj::CreateShaderRes(const ShaderResSpecification& spec,
+                                           const std::vector<uint32_t>* binary) {
+    return ShaderRes(CZ_NEW(MEMORY_USAGE_RENDER, VulkanShaderResObj, this, spec, binary));
+}
+
+Pipeline VulkanDeviceObj::CreatePipeline(const PipelineSpecification& spec,
+                                         const std::vector<ShaderRes>& shaders,
+                                         const ShaderReflection& reflection) {
+    return Pipeline(
+        CZ_NEW(MEMORY_USAGE_RENDER, VulkanPipelineObj, this, spec, shaders, reflection));
+}
+
+SetLayout VulkanDeviceObj::CreateSetLayout(const SetLayoutDescription& desc) {
+    return SetLayout(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSetLayoutObj, this, desc));
 }
 
 bool VulkanDeviceObj::IsExtensionSupported(const std::string& extensionName) const {

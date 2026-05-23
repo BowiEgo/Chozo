@@ -1,8 +1,10 @@
 #include "Runtime/Window/Window.hpp"
 #include <Runtime/App/Application.hpp>
 
+#include <Core/FileSystem/VFS.hpp>
 #include <Core/Header/Assert.hpp>
 #include <Core/Header/Macros.h>
+#include <Core/Platform/Platform.h>
 
 namespace CZ {
 
@@ -18,6 +20,19 @@ Application::Application() {}
 Application::~Application() {}
 
 bool Application::Startup(const ApplicationSpecification& appSpec, std::string& err) {
+    // Setup VFS
+    std::filesystem::path projectRoot =
+        std::filesystem::absolute(Platform::File::GetExecutablePath()).parent_path();
+    CZ_LOG(LogApplication, Info, "Project Root set from environment variable: {0}",
+           projectRoot.string());
+    std::filesystem::path resourcesDir = projectRoot / "Resources";
+    VFS::Mount("engine", projectRoot);
+    VFS::Mount("shaders", projectRoot / "Shaders");
+    VFS::Mount("resources", resourcesDir);
+    VFS::Mount("fonts", resourcesDir / "Fonts");
+    VFS::Mount("svgs", resourcesDir / "SVGs");
+    VFS::Mount("textures", resourcesDir / "Textures");
+
     // Setup Window
     {
         WindowSpecifaciton spec;

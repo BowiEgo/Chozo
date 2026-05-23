@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Source/Runtime/RHI/GraphicsContextObj.hpp"
+#include <Runtime/RHI/GraphicsContext.hpp>
 
 #include "VulkanAPIObj.hpp"
 #include "VulkanDeviceObj.hpp"

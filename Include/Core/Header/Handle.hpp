@@ -22,6 +22,9 @@ public:
 
     bool operator==(const Handle& other) { return m_Obj == other.Unwrap(); }
 
+    TObject* operator->() { return m_Obj; }
+    const TObject* operator->() const { return m_Obj; }
+
     TObject* Unwrap(AccessKey) { return m_Obj; }
     const TObject* Unwrap(AccessKey) const { return m_Obj; }
 

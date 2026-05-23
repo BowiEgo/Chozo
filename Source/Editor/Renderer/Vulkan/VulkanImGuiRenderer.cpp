@@ -43,8 +43,8 @@ void VulkanImGuiRenderer::Init(ImGuiContext* ctx, SDL_Window* windowHandle) {
     // Setup Platform/Renderer backends
     // ================================================================
 
-    auto graphicsContext = RHIAPI::Get().GetGraphicsContext();
-    auto swapchain       = graphicsContext.GetSwapchain();
+    auto graphicsContext = RHIAPI::Get()->GetGraphicsContext();
+    auto swapchain       = graphicsContext->GetSwapchain();
     auto vulkanCtxWrapper =
         graphicsContext.As<VulkanGraphicsContextObj>()->GetVulkanContextWrapper();
 
@@ -56,7 +56,7 @@ void VulkanImGuiRenderer::Init(ImGuiContext* ctx, SDL_Window* windowHandle) {
     auto vkGlobalDescriptorPool = vulkanCtxWrapper.GlobalDescriptorPool;
 
     static VkFormat colorFormats[1];
-    colorFormats[0] = VulkanUtils::ToVkFormat(swapchain.GetImageFormat());
+    colorFormats[0] = VulkanUtils::ToVkFormat(swapchain->GetImageFormat());
 
     ImGui_ImplSDL3_InitForVulkan(windowHandle);
 
@@ -72,14 +72,14 @@ void VulkanImGuiRenderer::Init(ImGuiContext* ctx, SDL_Window* windowHandle) {
     init_info.DescriptorPool            = vkGlobalDescriptorPool;
     // init_info.DescriptorPoolSize = 1000;
     init_info.MinImageCount             = 2;
-    init_info.ImageCount                = swapchain.GetImageCount();
+    init_info.ImageCount                = swapchain->GetImageCount();
 
     VkPipelineRenderingCreateInfoKHR dynamic_rendering_info = {};
     dynamic_rendering_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
     dynamic_rendering_info.colorAttachmentCount    = 1;
     dynamic_rendering_info.pColorAttachmentFormats = colorFormats;
     dynamic_rendering_info.depthAttachmentFormat =
-        VulkanUtils::ToVkFormat(swapchain.GetDepthFormat());
+        VulkanUtils::ToVkFormat(swapchain->GetDepthFormat());
 
     init_info.UseDynamicRendering                          = true;
     init_info.PipelineInfoMain.PipelineRenderingCreateInfo = dynamic_rendering_info;
@@ -99,11 +99,11 @@ void VulkanImGuiRenderer::Init(ImGuiContext* ctx, SDL_Window* windowHandle) {
 }
 
 void VulkanImGuiRenderer::Shutdown() {
-    auto GraphicsContext = RHIAPI::Get().GetGraphicsContext();
+    auto GraphicsContext = RHIAPI::Get()->GetGraphicsContext();
 
-    auto device = GraphicsContext.GetDevice();
+    auto device = GraphicsContext->GetDevice();
 
-    device.WaitIdle();
+    device->WaitIdle();
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
@@ -131,8 +131,8 @@ ImTextureID VulkanImGuiRenderer::GetTextureIDForRHITexture(Texture texture) {
 
     // if (!texture->IsValid()) texture = m_DefaultBlackTexture.get();
 
-    VkImageView imageView = texture.GetImage().As<VulkanImageObj>()->GetOrCreateVKView();
-    VkSampler sampler     = texture.GetSampler().As<VulkanSamplerObj>()->GetVkSampler();
+    VkImageView imageView = texture->GetImage().As<VulkanImageObj>()->GetOrCreateVKView();
+    VkSampler sampler     = texture->GetSampler().As<VulkanSamplerObj>()->GetVkSampler();
 
     VkDescriptorSet descSet =
         ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

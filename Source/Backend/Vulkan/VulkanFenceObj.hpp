@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Source/Runtime/RHI/FenceObj.hpp"
+#include <Runtime/RHI/Fence.hpp>
 
 #include "VulkanDeviceObj.hpp"
 

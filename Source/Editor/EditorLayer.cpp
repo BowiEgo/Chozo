@@ -19,6 +19,9 @@ EditorLayer::EditorLayer() {}
 EditorLayer::~EditorLayer() {}
 
 void EditorLayer::OnAttach() {
+    m_ViewportRenderer = Application::Get().GetEngine()->GetRenderer();
+    m_Viewport = m_ViewportRenderer.CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
+
     auto window = Application::Get().GetWindow();
 
     window.As<SDLWindowObj>()->SetEventPreprocessor(
@@ -155,7 +158,7 @@ void EditorLayer::OnRender() {
     m_ViewportSize      = ImGui::GetContentRegionAvail();
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
-    auto tex              = Application::Get().GetEngine()->GetSwapchainFramebuffer(0);
+    auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
     ImTextureID textureID = m_ImGuiRenderer->GetTextureIDForRHITexture(tex);
     ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
 

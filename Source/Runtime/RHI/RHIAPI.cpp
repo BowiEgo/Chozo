@@ -3,8 +3,6 @@
 #include <Core/DynamicLibrary/DynamicLibraryRegistry.hpp>
 #include <Runtime/RHI/GraphicsContext.hpp>
 
-#include "RHIAPIObj.hpp"
-
 namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogRHIAPI, Info);
@@ -31,35 +29,11 @@ bool RHIAPI::Init(GraphicsContext ctx, std::string& err) {
         return false;
     }
 
-    m_Obj = createFn(ctx);
+    Get().m_Obj = createFn(ctx);
 
     return true;
 }
 
-void RHIAPI::Shutdown() { Destroy(); }
-
-void RHIAPI::WaitIdle() const { GetGraphicsContext().GetDevice().WaitIdle(); }
-
-void RHIAPI::BeginRendering(CommandList cmdList, std::vector<Texture>& targets, bool bClear,
-                            uint32_t faceIndex) {
-    m_Obj->BeginRendering(cmdList, targets, bClear, faceIndex);
-}
-
-void RHIAPI::DrawFrame(const CommandList cmdList, RecordCallback recordCallback) {
-    m_Obj->DrawFrame(cmdList, recordCallback);
-}
-
-void RHIAPI::EndRendering(CommandList cmdList) { m_Obj->EndRendering(cmdList); }
-
-void RHIAPI::TransitionImageLayout(CommandList cmdList, Image image, const ImageLayout newLayout,
-                                   uint32_t baseArrayLayer) {
-    m_Obj->TransitionImageLayout(cmdList, image, newLayout, baseArrayLayer);
-};
-
-GraphicsContext RHIAPI::GetGraphicsContext() const { return m_Obj->GetGraphicsContext(); }
-
-Sampler RHIAPI::GetSampler(const SamplerSpecification spec) {
-    return GetGraphicsContext().GetDevice().GetOrCreateSampler(spec);
-}
+void RHIAPI::Shutdown() { Get().Destroy(); }
 
 } // namespace CZ

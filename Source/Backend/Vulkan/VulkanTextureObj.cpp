@@ -9,7 +9,9 @@ DEFINE_LOG_CATEGORY_STATIC(LogVulkanTexture, Info);
 
 VulkanTextureObj::VulkanTextureObj(const VulkanDeviceObj* deviceObj,
                                    const TextureSpecification& spec)
-    : TextureObj(spec), m_DeviceObj(deviceObj) {}
+    : TextureObj(spec), m_DeviceObj(deviceObj) {
+    m_Image = Image(CZ_NEW(MEMORY_USAGE_RENDER, VulkanImageObj, deviceObj, spec.ToImageSpec()));
+}
 
 VulkanTextureObj::VulkanTextureObj(const VulkanDeviceObj* deviceObj,
                                    const TextureSpecification& spec, Image image)

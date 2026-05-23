@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Core/Layer/Layer.hpp>
+#include <Runtime/RenderCore/Renderer.hpp>
+#include <Runtime/RenderCore/Viewport.hpp>
 
 #include "Renderer/Vulkan/VulkanImGuiRenderer.hpp"
 
@@ -42,4 +44,7 @@ private:
     bool m_ViewportFocused{}, m_ViewportHovered{};
 
     Scope<VulkanImGuiRenderer> m_ImGuiRenderer;
+
+    Renderer m_ViewportRenderer;
+    Viewport m_Viewport;
 };

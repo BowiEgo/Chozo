@@ -13,12 +13,24 @@ struct CommandPoolSpecification {
     CommandPoolFlags Flags;
 };
 
-class CommandPoolObj;
+class CommandPoolObj {
+public:
+    CommandPoolObj(CommandPoolSpecification& spec) : m_Spec(spec) {}
+    virtual ~CommandPoolObj() = default;
+
+    CommandPoolObj(const CommandPoolObj&)            = delete;
+    CommandPoolObj& operator=(const CommandPoolObj&) = delete;
+    CommandPoolObj(CommandPoolObj&&)                 = delete;
+    CommandPoolObj& operator=(CommandPoolObj&&)      = delete;
+
+    virtual CommandList AllocateCommandBuffer() = 0;
+
+protected:
+    CommandPoolSpecification m_Spec;
+};
 
 struct CommandPool : Handle<class CommandPoolObj> {
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
-
-    CommandList AllocateCommandBuffer();
 };
 
 } // namespace CZ

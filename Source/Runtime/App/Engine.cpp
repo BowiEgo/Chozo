@@ -49,7 +49,7 @@ void Engine::Tick(float deltaTime) { m_Renderer.Tick(deltaTime); }
 void Engine::Shutdown() {
     m_Renderer.Shutdown();
 
-    RHIAPI::Get().Shutdown();
+    RHIAPI::Shutdown();
 
     m_GraphicsContext.Destroy();
 

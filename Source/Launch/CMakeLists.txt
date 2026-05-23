@@ -30,4 +30,9 @@ add_custom_command(TARGET Launch POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CHOZO_VULKAN_ICD_DIR}/MoltenVK_icd.json"
         "$<TARGET_FILE_DIR:Launch>"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/Shaders
+        $<TARGET_FILE_DIR:Launch>/Shaders
+    COMMENT "Copying Shaders to executable directory"
 )

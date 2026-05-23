@@ -74,7 +74,14 @@ struct SamplerSpecification {
     }
 };
 
-class SamplerObj;
+class SamplerObj {
+public:
+    SamplerObj(const SamplerSpecification& spec) : m_Spec(spec) {}
+    virtual ~SamplerObj() = default;
+
+protected:
+    SamplerSpecification m_Spec;
+};
 
 struct Sampler : Handle<class SamplerObj> {
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }

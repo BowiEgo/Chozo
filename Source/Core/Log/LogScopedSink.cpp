@@ -1,5 +1,5 @@
 #include "LogScopedSink.h"
-#include "Logger.h"
+#include "Logger.hpp"
 
 namespace CZ {
 

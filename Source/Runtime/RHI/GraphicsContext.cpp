@@ -1,16 +1,12 @@
 #include <Core/Log/LogMacros.hpp>
 #include <Runtime/RHI/GraphicsContext.hpp>
 
-#include "GraphicsContextObj.hpp"
-
 namespace CZ {
-
-DEFINE_LOG_CATEGORY_STATIC(LogGraphicsContext, Info);
 
 GraphicsContext GraphicsContext::Create(const GraphicsContextSpecification& spec) {
     auto& registry = DynamicLibraryRegistry::Get();
     if (!registry.LoadLib("vulkan_backend", "libCZVulkan.dylib")) {
-        CZ_LOG(LogGraphicsContext, Error, "CreateVulkanGraphicsContextObj not found in backend.");
+        CZ_CORE_LOG(Error, "CreateVulkanGraphicsContextObj not found in backend.");
         return {};
     }
 
@@ -19,7 +15,7 @@ GraphicsContext GraphicsContext::Create(const GraphicsContextSpecification& spec
             "vulkan_backend", "CreateVulkanGraphicsContextObj");
 
     if (!createFn) {
-        CZ_LOG(LogGraphicsContext, Error, "CreateVulkanGraphicsContextObj not found in backend.");
+        CZ_CORE_LOG(Error, "CreateVulkanGraphicsContextObj not found in backend.");
         return {};
     }
 
@@ -37,15 +33,5 @@ template <> void Handle<GraphicsContextObj>::Destroy() {
         m_Obj = nullptr;
     }
 }
-
-uint32 GraphicsContext::GetMaxFramesInFlight() const { return m_Obj->GetMaxFramesInFlight(); }
-
-uint32 GraphicsContext::GetCurrentFrameIndex() const { return m_Obj->GetCurrentFrameIndex(); }
-
-Device GraphicsContext::GetDevice() { return m_Obj->GetDevice(); }
-
-Swapchain GraphicsContext::GetSwapchain() { return m_Obj->GetSwapchain(); }
-
-void GraphicsContext::End() { m_Obj->End(); }
 
 } // namespace CZ

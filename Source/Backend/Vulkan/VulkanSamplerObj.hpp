@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Source/Runtime/RHI/SamplerObj.hpp"
+#include <Runtime/RHI/Sampler.hpp>
 
 namespace CZ {
 

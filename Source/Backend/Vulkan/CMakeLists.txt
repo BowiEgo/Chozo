@@ -13,6 +13,10 @@ set(MODULE_INCLUDE
     VulkanTextureObj.hpp
     VulkanImageObj.hpp
     VulkanSamplerObj.hpp
+    VulkanFrameBufferObj.hpp
+    VulkanShaderResObj.hpp
+    VulkanSetLayoutObj.hpp
+    VulkanPipelineObj.hpp
 )
 
 set(MODULE_SRC
@@ -29,6 +33,10 @@ set(MODULE_SRC
     VulkanTextureObj.cpp
     VulkanImageObj.cpp
     VulkanSamplerObj.cpp
+    VulkanFrameBufferObj.cpp
+    VulkanShaderResObj.cpp
+    VulkanSetLayoutObj.cpp
+    VulkanPipelineObj.cpp
 )
 
 add_chozo_module(

@@ -21,7 +21,7 @@ void VulkanAPIObj::BeginRendering(CommandList cmdList, std::vector<Texture>& tar
 
     VkCommandBuffer vkCmdBuffer = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
 
-    Extent2D firstSize = targets[0].GetSize();
+    Extent2D firstSize = targets[0]->GetSize();
     VkExtent2D extent{ firstSize.Width, firstSize.Height };
 
     VkClearValue clearValue{};
@@ -53,7 +53,7 @@ void VulkanAPIObj::BeginRendering(CommandList cmdList, std::vector<Texture>& tar
 }
 
 void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback) {
-    auto currentFrameIdx = m_GraphicsContext.GetCurrentFrameIndex();
+    auto currentFrameIdx = m_GraphicsContext->GetCurrentFrameIndex();
 
     auto vkGraphicsCtx = m_GraphicsContext.As<VulkanGraphicsContextObj>();
 
@@ -81,7 +81,7 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     // }
 
     // 1. CPU wait GPU make resources safety
-    bool waitSuccess = fence.WaitAndReset(UINT32_MAX);
+    bool waitSuccess = fence->WaitAndReset(UINT32_MAX);
     if (!waitSuccess) {
         CZ_CORE_LOG(Error, "Failed to wait for fence");
         // vkSync->RecreateSemaphores(device);
@@ -129,7 +129,7 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     submitInfo.pWaitSemaphores      = &vkAcquireWaitSem;
     submitInfo.pWaitDstStageMask    = &waitStages;
     submitInfo.commandBufferCount   = 1;
-    submitInfo.pCommandBuffers      = &vkCmdBuffer; // 假定 vkCmdBuffer 是 VkCommandBuffer 句柄
+    submitInfo.pCommandBuffers      = &vkCmdBuffer;
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores    = &vkImageSigSem;
 
@@ -146,7 +146,7 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores    = &vkImageSigSem;
     presentInfo.swapchainCount     = 1;
-    presentInfo.pSwapchains        = &vkSwapchain; // 假定 vkSwapchain 是 VkSwapchainKHR 句柄
+    presentInfo.pSwapchains        = &vkSwapchain;
     presentInfo.pImageIndices      = &imgIdx;
 
     VkResult presentResult = vkQueuePresentKHR(vkQueue, &presentInfo);

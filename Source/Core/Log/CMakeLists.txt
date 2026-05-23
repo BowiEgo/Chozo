@@ -3,8 +3,8 @@ set(MODULE_NAME CZLog)
 set(MODULE_TYPE Core)
 
 set(MODULE_INCLUDE
-	${CHOZO_INCLUDE_DIR}/Core/Log/Logger.h
-	${CHOZO_INCLUDE_DIR}/Core/Log/LogMacros.h
+	${CHOZO_INCLUDE_DIR}/Core/Log/Logger.hpp
+	${CHOZO_INCLUDE_DIR}/Core/Log/LogMacros.hpp
 )
 
 set(MODULE_SRC

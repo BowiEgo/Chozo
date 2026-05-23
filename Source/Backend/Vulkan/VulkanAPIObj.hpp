@@ -2,8 +2,6 @@
 
 #include <Runtime/RHI/RHIAPI.hpp>
 
-#include "../Source/Runtime/RHI/RHIAPIObj.hpp"
-
 namespace CZ {
 
 class VulkanAPIObj : public RHIAPIObj {

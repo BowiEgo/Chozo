@@ -87,24 +87,35 @@ struct TextureSpecification {
     }
 };
 
-class TextureObj;
+class TextureObj {
+public:
+    TextureObj(const TextureSpecification& spec) : m_Spec(spec) {}
+
+    TextureObj(const TextureSpecification& spec, Image image) : m_Spec(spec), m_Image(image) {}
+
+    virtual ~TextureObj() { m_Image.Destroy(); }
+
+    std::string GetName() const { return m_Spec.Name; }
+
+    TextureType GetType() const { return m_Spec.Type; }
+
+    Extent2D GetSize() const { return m_Spec.Size; }
+
+    PixelFormat GetFormat() const { return m_Spec.Format; }
+
+    TextureUsage GetUsage() const { return m_Spec.Usage; }
+
+    Image GetImage() { return m_Image; }
+
+    Sampler GetSampler(const SamplerSpecification spec = SamplerSpecification());
+
+protected:
+    TextureSpecification m_Spec;
+    Image m_Image;
+};
 
 struct Texture : Handle<class TextureObj> {
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
-
-    std::string GetName() const;
-
-    TextureType GetType() const;
-
-    Extent2D GetSize() const;
-
-    PixelFormat GetFormat() const;
-
-    TextureUsage GetUsage() const;
-
-    Image GetImage();
-
-    Sampler GetSampler(const SamplerSpecification spec = SamplerSpecification::LinearClamp());
 };
 
 } // namespace CZ

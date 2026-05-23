@@ -4,6 +4,12 @@
 
 namespace CZ {
 
+#define RETURN_ON_VULKAN_FAIL(result)                                                              \
+    if (result != VK_SUCCESS) {                                                                    \
+        CZ_CORE_LOG(Error, "{}", VulkanUtils::VkResultToString(result));                           \
+        return false;                                                                              \
+    }
+
 struct QueueFamilyIndices {
     std::optional<uint32_t> Graphics;
     std::optional<uint32_t> Present;

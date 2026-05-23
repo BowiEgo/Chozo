@@ -12,7 +12,7 @@ target_link_libraries(${MODULE_NAME} PRIVATE
     CZCoreLibs
     CZRuntimeLibs
     CZVulkan
-    imgui::imgui
+    Chozo::ImGui
 )
 
 target_precompile_headers(${MODULE_NAME} PRIVATE

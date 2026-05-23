@@ -1,15 +1,10 @@
 #include <Runtime/RHI/Swapchain.hpp>
 
-#include "SwapchainObj.hpp"
 #include <Runtime/RHI/RHIAPI.hpp>
 
 namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogSwapchain, Info);
-
-// DEFINE_HANDLE_BACKEND_DESTROY(SwapchainObj, "vulkan_backend", "DestroyVulkanSwapchainObj")
-
-// DEFINE_HANDLE_DESTROY(TextureObj)
 
 template <> void Handle<SwapchainObj>::Destroy() {
     if (m_Obj) {
@@ -19,18 +14,26 @@ template <> void Handle<SwapchainObj>::Destroy() {
     }
 }
 
-PixelFormat Swapchain::GetImageFormat() const { return m_Obj->GetImageFormat(); }
+void SwapchainObj::Destroy() {
+    for (auto& tex : m_ColorAttachments) {
+        tex.Destroy();
+    }
+    m_ColorAttachments.clear();
 
-PixelFormat Swapchain::GetDepthFormat() const { return m_Obj->GetDepthFormat(); }
+    for (auto& sem : m_ImageAvailableSemaphores) {
+        sem.Destroy();
+    }
+    m_ImageAvailableSemaphores.clear();
 
-uint32_t Swapchain::GetImageCount() const { return m_Obj->GetImageCount(); }
+    for (auto& sem : m_RenderFinishedSemaphores) {
+        sem.Destroy();
+    }
+    m_RenderFinishedSemaphores.clear();
 
-Fence Swapchain::GetFence(uint32 currentFrame) const { return m_Obj->GetFence(currentFrame); }
-
-Semaphore Swapchain::GetImageAvailableSemaphore(uint32 currentFrame) const {
-    return m_Obj->GetImageAvailableSemaphore(currentFrame);
+    for (auto& fence : m_InFlightFences) {
+        fence.Destroy();
+    }
+    m_InFlightFences.clear();
 }
-
-Texture Swapchain::GetColorAttachment(uint32 index) { return m_Obj->GetColorAttachment(index); }
 
 } // namespace CZ

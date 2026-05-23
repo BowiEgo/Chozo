@@ -5,8 +5,6 @@
 
 namespace CZ::VulkanUtils {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanUtils, Info);
-
 // Used for layer properties
 static const char* layerNameGetter(const VkLayerProperties& layer) { return layer.layerName; }
 // Used for extension properties
@@ -63,11 +61,11 @@ QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice, VkSurfaceK
     }
 
     if (indices.IsComplete()) {
-        CZ_LOG(LogVulkanUtils, Info, "Queue families: G={}, P={}, C={}", indices.Graphics.value(),
-               indices.Present.value(), indices.Compute.value());
+        CZ_CORE_LOG(Info, "Queue families: G={}, P={}, C={}", indices.Graphics.value(),
+                    indices.Present.value(), indices.Compute.value());
     } else {
-        CZ_LOG(LogVulkanUtils, Error,
-               "Failed to find complete queue families (Graphics/Present/Compute missing)");
+        CZ_CORE_LOG(Error,
+                    "Failed to find complete queue families (Graphics/Present/Compute missing)");
     }
     return indices;
 }
@@ -104,7 +102,7 @@ SwapchainSupportDetails QuerySwapchainSupport(VkPhysicalDevice physicalDevice,
 
     if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &details.Capabilities) !=
         VK_SUCCESS) {
-        CZ_LOG(LogVulkanUtils, Error, "Failed to get surface capabilities");
+        CZ_CORE_LOG(Error, "Failed to get surface capabilities");
         return {};
     }
 
@@ -130,7 +128,7 @@ SwapchainSupportDetails QuerySwapchainSupport(VkPhysicalDevice physicalDevice,
 VkSurfaceFormatKHR
     ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
     if (availableFormats.empty()) {
-        CZ_LOG(LogVulkanUtils, Error, "No surface formats available!");
+        CZ_CORE_LOG(Error, "No surface formats available!");
         return { VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
     }
 
@@ -299,9 +297,8 @@ void SetupBarrierSync(VkImageMemoryBarrier2* barrier, VkImageLayout oldLayout,
                                  VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT;
         barrier->dstAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
     } else {
-        CZ_LOG(LogVulkanUtils, Warning,
-               "General transition from {} to {} using AllCommands fallback.",
-               static_cast<uint32_t>(oldLayout), static_cast<uint32_t>(newLayout));
+        CZ_CORE_LOG(Warning, "General transition from {} to {} using AllCommands fallback.",
+                    static_cast<uint32_t>(oldLayout), static_cast<uint32_t>(newLayout));
     }
 }
 
@@ -400,7 +397,7 @@ VkDescriptorType ToVkDescType(UniformType type) {
         case UniformType::StorageBuffer: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
         case UniformType::InputAttachment: return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
         default:
-            CZ_LOG(LogVulkanUtils, Error, "Unsupported uniform type");
+            CZ_CORE_LOG(Error, "Unsupported uniform type");
             return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     }
 }
@@ -416,9 +413,7 @@ VkFormat ShaderDataTypeToVkFormat(ShaderDataType type) {
         case ShaderDataType::Int3: return VK_FORMAT_R32G32B32_SINT;
         case ShaderDataType::Int4: return VK_FORMAT_R32G32B32A32_SINT;
         case ShaderDataType::Bool: return VK_FORMAT_R32_SINT;
-        default:
-            CZ_LOG(LogVulkanUtils, Error, "Unknown shader data type");
-            return VK_FORMAT_UNDEFINED;
+        default: CZ_CORE_LOG(Error, "Unknown shader data type"); return VK_FORMAT_UNDEFINED;
     }
 }
 
@@ -470,24 +465,24 @@ void LogPhysicalDeviceInfo(const VkPhysicalDevice physicalDevice) {
     VkPhysicalDeviceProperties props;
     vkGetPhysicalDeviceProperties(physicalDevice, &props);
 
-    CZ_LOG(LogVulkanUtils, Info, "Device Name: {}", props.deviceName);
-    CZ_LOG(LogVulkanUtils, Info, "API Version: {}.{}.{}", VK_API_VERSION_MAJOR(props.apiVersion),
-           VK_API_VERSION_MINOR(props.apiVersion), VK_API_VERSION_PATCH(props.apiVersion));
+    CZ_CORE_LOG(Info, "Device Name: {}", props.deviceName);
+    CZ_CORE_LOG(Info, "API Version: {}.{}.{}", VK_API_VERSION_MAJOR(props.apiVersion),
+                VK_API_VERSION_MINOR(props.apiVersion), VK_API_VERSION_PATCH(props.apiVersion));
 }
 
 void LogMemoryBudget(const VkPhysicalDevice physicalDevice) {
     VkPhysicalDeviceMemoryProperties memProps;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProps);
 
-    CZ_LOG(LogVulkanUtils, Info, "--- GPU Memory Budget Report ---");
+    CZ_CORE_LOG(Info, "--- GPU Memory Budget Report ---");
     for (uint32_t i = 0; i < memProps.memoryHeapCount; i++) {
         float sizeGB =
             static_cast<float>(memProps.memoryHeaps[i].size) / (1024.0f * 1024.0f * 1024.0f);
         bool isLocal = (memProps.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) != 0;
-        CZ_LOG(LogVulkanUtils, Info, "Heap {}: [{}] Size: {:.2f} GB", i,
-               isLocal ? "Dedicated VRAM" : "Shared System Memory", sizeGB);
+        CZ_CORE_LOG(Info, "Heap {}: [{}] Size: {:.2f} GB", i,
+                    isLocal ? "Dedicated VRAM" : "Shared System Memory", sizeGB);
     }
-    CZ_LOG(LogVulkanUtils, Info, "---------------------------------");
+    CZ_CORE_LOG(Info, "---------------------------------");
 }
 
 } // namespace CZ::VulkanUtils

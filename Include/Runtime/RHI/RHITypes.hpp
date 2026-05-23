@@ -6,6 +6,7 @@
 
 #include <sstream>
 #include <unordered_map>
+#include <vector>
 
 namespace CZ {
 
@@ -67,13 +68,15 @@ struct ShaderMacro {
 
 // A collection of macros, providing helper methods for hashing
 // and string conversion
+using ShaderDefinitions = std::unordered_map<std::string, std::string>;
+
 class ShaderMacros {
 public:
     void Add(const std::string& name, const std::string& definition = "1") {
         m_Macros[name] = definition;
     }
 
-    void Add(const std::unordered_map<std::string, std::string>& definitions) {
+    void Add(const ShaderDefinitions& definitions) {
         for (const auto& [name, def] : definitions) {
             m_Macros[name] = def;
         }
@@ -243,107 +246,22 @@ struct AttributeInfo {
     }
 };
 
-struct ShaderReflection {
-    std::vector<UniformSpecification> Uniforms;
-    std::vector<AttributeInfo> Attributes;
-    std::unordered_map<std::string, uint32> UniformLocations;
-
-    std::string ToString() const {
-        std::stringstream ss;
-        ss << "--- Shader Reflection Report ---\n";
-
-        ss << " [Input Attributes]\n";
-        if (Attributes.empty()) ss << "   (None)\n";
-        for (const auto& attr : Attributes) {
-            ss << "   " << attr.ToString() << "\n";
-        }
-
-        ss << " [Resource Bindings]\n";
-        if (Uniforms.empty()) ss << "   (None)\n";
-        for (const auto& uni : Uniforms) {
-            ss << "   " << uni.ToString() << "\n";
-        }
-
-        // Optional: Only show the map if it's not redundant
-        if (!UniformLocations.empty()) {
-            ss << " [Name-to-Location Map]\n";
-            for (const auto& [name, loc] : UniformLocations) {
-                ss << "   " << name << " -> " << loc << "\n";
-            }
-        }
-
-        ss << "--------------------------------";
-        return ss.str();
-    }
-};
-
-struct RHIShaderResourceBinding {
-    uint32_t Binding;
-    UniformType Type;
-    uint32_t DescriptorCount;
-    ShaderStage StageFlags;
-
-    bool operator==(const RHIShaderResourceBinding& other) const {
-        return Binding == other.Binding && Type == other.Type &&
-               DescriptorCount == other.DescriptorCount && StageFlags == other.StageFlags;
-    }
-};
-
-struct FRHISetLayoutDescription {
-    std::vector<RHIShaderResourceBinding> Bindings;
-
-    void AddBinding(const uint32_t binding, const UniformType type, const uint32_t descriptorCount,
-                    const ShaderStage stage) {
-        Bindings.push_back(RHIShaderResourceBinding(binding, type, descriptorCount, stage));
-    }
-
-    size_t GetHash() const {
-        size_t h = 0;
-        for (const auto& b : Bindings) {
-            HashCombine(h, std::hash<uint32_t>{}(b.Binding));
-            HashCombine(h, std::hash<uint32_t>{}(static_cast<uint32_t>(b.Type)));
-            HashCombine(h, std::hash<uint32_t>{}(static_cast<uint32_t>(b.DescriptorCount)));
-            HashCombine(h, std::hash<uint32_t>{}(static_cast<uint32_t>(b.StageFlags)));
-        }
-        return h;
-    }
-
-    bool operator==(const FRHISetLayoutDescription& other) const {
-        return Bindings == other.Bindings;
-    }
-};
-
 struct PushConstantRange {
     ShaderStage StageFlags;
     uint32_t Offset;
     uint32_t Size;
 };
 
-struct PipelineLayoutDescription {
-    std::unordered_map<uint32_t, FRHISetLayoutDescription> SetLayouts;
-    std::vector<PushConstantRange> PushConstantRanges;
+struct ShaderResourceBinding {
+    uint32_t Binding;
+    UniformType Type;
+    uint32_t DescriptorCount;
+    ShaderStage StageFlags;
 
-    bool operator==(const PipelineLayoutDescription& other) const;
-};
-
-// Define the environment and parameters for a single shader compilation task
-struct ShaderCompilerInput {
-    std::string VirtualPath;
-    ShaderStage Stage;
-    ShaderMacros Macros;
-};
-
-struct ShaderCompilerMultiInput {
-    std::string VirtualPath;
-    std::vector<ShaderStage> Stages;
-    ShaderMacros Macros;
-};
-
-// The result of the compilation, including binaries and reflection data
-struct ShaderCompilerOutput {
-    std::vector<uint32> Binary;
-    ShaderReflection Reflection;
-    bool bSucceeded = false;
+    bool operator==(const ShaderResourceBinding& other) const {
+        return Binding == other.Binding && Type == other.Type &&
+               DescriptorCount == other.DescriptorCount && StageFlags == other.StageFlags;
+    }
 };
 
 struct BufferElement {
@@ -393,6 +311,14 @@ struct BufferElement {
         // CZ_CORE_ASSERT(false, "Unknown ShaderDataType!");
         return 0;
     }
+
+    std::string ToString() const {
+        std::stringstream ss;
+        ss << Name << " (Type: " << ShaderDataTypeToString(Type) << ", Size: " << Size
+           << " bytes, Offset: " << Offset << ", Location: " << Location
+           << ", Normalized: " << (Normalized ? "Yes" : "No") << ")";
+        return ss.str();
+    }
 };
 
 class VertexBufferLayout {
@@ -431,6 +357,89 @@ public:
     std::vector<BufferElement>::iterator end() { return m_Elements.end(); }
     std::vector<BufferElement>::const_iterator begin() const { return m_Elements.begin(); }
     std::vector<BufferElement>::const_iterator end() const { return m_Elements.end(); }
+};
+
+struct ShaderReflection {
+    std::vector<UniformSpecification> Uniforms;
+    std::vector<AttributeInfo> Attributes;
+    std::vector<PushConstantRange> PushConstants;
+    std::unordered_map<uint32_t, std::vector<ShaderResourceBinding>>
+        ResourceBindings; // set -> bindings
+    std::unordered_map<std::string, uint32> UniformLocations;
+    VertexBufferLayout VertexBufferLayout;
+
+    std::string ToString() const {
+        std::stringstream ss;
+        ss << "--- Shader Reflection Report ---\n";
+
+        ss << " [Input Attributes]\n";
+        if (Attributes.empty()) ss << "   (None)\n";
+        for (const auto& attr : Attributes) {
+            ss << "   " << attr.ToString() << "\n";
+        }
+
+        ss << " [Resource Bindings]\n";
+        if (Uniforms.empty()) ss << "   (None)\n";
+        for (const auto& uni : Uniforms) {
+            ss << "   " << uni.ToString() << "\n";
+        }
+
+        ss << " [Push Constants]\n";
+        if (PushConstants.empty()) ss << "   (None)\n";
+        for (const auto& pc : PushConstants) {
+            ss << "   " << "Stage: " << static_cast<uint32_t>(pc.StageFlags)
+               << ", Offset: " << pc.Offset << ", Size: " << pc.Size << "\n";
+        }
+
+        ss << " [Resource Bindings]\n";
+        if (ResourceBindings.empty()) ss << "   (None)\n";
+        for (const auto& [set, bindings] : ResourceBindings) {
+            ss << "   Set " << set << ":\n";
+            for (const auto& srb : bindings) {
+                ss << "      Binding: " << srb.Binding
+                   << ", Type: " << static_cast<uint32_t>(srb.Type)
+                   << ", DescriptorCount: " << srb.DescriptorCount
+                   << ", StageFlags: " << static_cast<uint32_t>(srb.StageFlags) << "\n";
+            }
+        }
+
+        ss << " [Vertex Buffer]\n";
+        if (VertexBufferLayout.GetElements().empty()) ss << "   (None)\n";
+        for (const auto& elem : VertexBufferLayout.GetElements()) {
+            ss << "   " << elem.ToString() << "\n";
+        }
+
+        // Optional: Only show the map if it's not redundant
+        if (!UniformLocations.empty()) {
+            ss << " [Name-to-Location Map]\n";
+            for (const auto& [name, loc] : UniformLocations) {
+                ss << "   " << name << " -> " << loc << "\n";
+            }
+        }
+
+        ss << "--------------------------------";
+        return ss.str();
+    }
+};
+
+// Define the environment and parameters for a single shader compilation task
+struct ShaderCompilerInput {
+    std::string VirtualPath;
+    ShaderStage Stage;
+    ShaderMacros Macros;
+};
+
+struct ShaderCompilerMultiInput {
+    std::string VirtualPath;
+    std::vector<ShaderStage> Stages;
+    ShaderMacros Macros;
+};
+
+// The result of the compilation, including binaries and reflection data
+struct ShaderCompilerOutput {
+    std::vector<uint32> Binary;
+    ShaderReflection Reflection;
+    bool bSucceeded = false;
 };
 
 // clang-format off

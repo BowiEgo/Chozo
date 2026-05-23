@@ -4,7 +4,12 @@
 
 namespace CZ {
 
-class SemaphoreObj;
+class SemaphoreObj {
+public:
+    SemaphoreObj() = default;
+
+    virtual ~SemaphoreObj() = default;
+};
 
 struct Semaphore : Handle<class SemaphoreObj> {
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }

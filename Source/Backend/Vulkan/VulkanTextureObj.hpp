@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Source/Runtime/RHI/TextureObj.hpp"
+#include <Runtime/RHI/Texture.hpp>
 
 #include "VulkanDeviceObj.hpp"
 
