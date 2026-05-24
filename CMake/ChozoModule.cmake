@@ -73,4 +73,10 @@ function(add_chozo_module)
     if(MODULE_PCH)
         target_precompile_headers(${MODULE_NAME} PRIVATE ${MODULE_PCH})
     endif()
+
+    # add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
+    #     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    #         "$<TARGET_FILE:${MODULE_NAME}>"
+    #         "$<TARGET_FILE_DIR:Launch>"
+    # )
 endfunction()

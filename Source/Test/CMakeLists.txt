@@ -22,3 +22,9 @@ target_include_directories(${MODULE_NAME} PRIVATE
     ${CHOZO_SOURCE_DIR}
     ${CHOZO_INCLUDE_DIR}
 )
+
+add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "$<TARGET_FILE:${MODULE_NAME}>"
+        "$<TARGET_FILE_DIR:Launch>"
+)

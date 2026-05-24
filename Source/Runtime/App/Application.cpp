@@ -24,10 +24,10 @@ bool Application::Startup(const ApplicationSpecification& appSpec, std::string& 
     std::filesystem::path projectRoot =
         std::filesystem::absolute(Platform::File::GetExecutablePath()).parent_path();
     CZ_APP_LOG(Info, "Project Root set from environment variable: {0}", projectRoot.string());
-    std::filesystem::path resourcesDir = projectRoot / "Resources";
+    std::filesystem::path resourcesDir = projectRoot / "../Resources";
     VFS::Mount("engine", projectRoot);
-    VFS::Mount("shaders", projectRoot / "Shaders");
     VFS::Mount("resources", resourcesDir);
+    VFS::Mount("shaders", resourcesDir / "Shaders");
     VFS::Mount("fonts", resourcesDir / "Fonts");
     VFS::Mount("svgs", resourcesDir / "SVGs");
     VFS::Mount("textures", resourcesDir / "Textures");

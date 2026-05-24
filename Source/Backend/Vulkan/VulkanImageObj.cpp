@@ -50,8 +50,6 @@ void VulkanImageObj::Init() {
 }
 
 void VulkanImageObj::CreateImageResources() {
-    CZ_CORE_ASSERT(m_DeviceObj, "Device is no longer valid during Image initialization!");
-
     VkImageCreateInfo imageInfo{};
     imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType     = VK_IMAGE_TYPE_2D;
@@ -116,8 +114,6 @@ VkImageView VulkanImageObj::GetOrCreateVKView(const ImageViewSpecification& spec
     if (m_ViewCache.contains(spec)) {
         return m_ViewCache[spec];
     }
-
-    CZ_CORE_ASSERT(deviceObj, "Device is no longer valid during ImageView creation!");
 
     VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
 

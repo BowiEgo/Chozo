@@ -20,7 +20,9 @@ public:
     ShaderResObj(const ShaderResSpecification& spec) : m_Spec(spec) {}
     virtual ~ShaderResObj() = default;
 
-    std::string GetEntryPoint() const { return m_Spec.EntryPoint; }
+    ShaderStage GetStage() const { return m_Spec.Stage; }
+
+    const std::string& GetEntryPoint() const { return m_Spec.EntryPoint; }
 
 protected:
     ShaderResSpecification m_Spec;

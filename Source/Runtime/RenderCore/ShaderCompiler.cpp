@@ -62,6 +62,12 @@ bool ShaderCompiler::Compile(const ShaderCompilerMultiInput& input,
     sessionDesc.preprocessorMacros     = macroDescs.data();
     sessionDesc.preprocessorMacroCount = macroDescs.size();
 
+    slang::CompilerOptionEntry entry;
+    entry.name                           = slang::CompilerOptionName::VulkanUseEntryPointName;
+    entry.value                          = slang::CompilerOptionValue{ .intValue0 = 1 };
+    sessionDesc.compilerOptionEntries    = &entry;
+    sessionDesc.compilerOptionEntryCount = 1;
+
     ComPtr<slang::ISession> session;
     RETURN_ON_FAIL(m_GlobalSession->createSession(sessionDesc, session.writeRef()));
 
@@ -99,7 +105,7 @@ bool ShaderCompiler::CompileFromSource(
         if (auto varDecl = decl->asVariable(); varDecl &&
                                                varDecl->findModifier(slang::Modifier::Const) &&
                                                varDecl->findModifier(slang::Modifier::Static)) {
-            CZ_RENDERCORE_LOG(Trace, "Found static const variable: {}", varDecl->getName());
+            // CZ_RENDERCORE_LOG(Trace, "Found static const variable: {}", varDecl->getName());
         }
     }
 
@@ -109,8 +115,8 @@ bool ShaderCompiler::CompileFromSource(
         ComPtr<slang::IEntryPoint> entryPoint;
         SLANG_RETURN_ON_FAIL(slangModule->getDefinedEntryPoint(i, entryPoint.writeRef()));
 
-        CZ_RENDERCORE_LOG(Trace, "Found entry point: {}",
-                          entryPoint->getFunctionReflection()->getName());
+        // CZ_RENDERCORE_LOG(Trace, "Found entry point: {}",
+        //                   entryPoint->getFunctionReflection()->getName());
 
         componentsToLink.push_back(entryPoint.get());
     }
@@ -164,8 +170,9 @@ bool ShaderCompiler::CompileToSpirvForAllEntryPoints(
         unsigned int entryPointCount = programLayout->getEntryPointCount();
         for (unsigned int i = 0; i < entryPointCount; ++i) {
             slang::EntryPointLayout* entryPointLayout = programLayout->getEntryPointByIndex(i);
-            // const char* name                          = entryPointLayout->getName();
-            SlangStage stage                          = entryPointLayout->getStage();
+            const char* epName                        = entryPointLayout->getName();
+            SlangStage epStage                        = entryPointLayout->getStage();
+            ShaderStage stage = ShaderUtils::GetShaderStageFromSlangStage(epStage);
 
             ShaderCompilerOutput output;
             ComPtr<slang::IBlob> spirvCode;
@@ -180,9 +187,12 @@ bool ShaderCompiler::CompileToSpirvForAllEntryPoints(
             const uint32_t* spirvData = static_cast<const uint32_t*>(spirvCode->getBufferPointer());
             size_t spirvSize          = spirvCode->getBufferSize() / sizeof(uint32_t);
 
-            output.Binary.assign(spirvData, spirvData + spirvSize);
-            outputs[ShaderUtils::GetShaderStageFromSlangStage(stage)] = std::move(output);
+            output.Stage      = stage;
+            output.EntryPoint = epName;
             output.Reflection = ReflectFromProgramLayout(programLayout);
+            output.Binary.assign(spirvData, spirvData + spirvSize);
+
+            outputs[stage] = std::move(output);
         }
     }
 

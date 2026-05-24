@@ -2,6 +2,7 @@
 
 #include "ShaderUtils.hpp"
 
+#include <Core/Log/LogMacros.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>
 
 namespace CZ {
@@ -27,7 +28,7 @@ void ShaderObj::CreateShaderResources() {
         ShaderResSpecification spec;
         spec.Name       = Spec.Name + "_" + ShaderUtils::StageToString(stage);
         spec.Stage      = stage;
-        spec.EntryPoint = Spec.EntryPoint;
+        spec.EntryPoint = output.EntryPoint;
 
         auto shaderRes = RHIAPI::Get()->CreateShaderRes(spec, &output.Binary);
 

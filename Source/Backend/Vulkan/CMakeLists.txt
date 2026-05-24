@@ -55,10 +55,4 @@ add_chozo_module(
 #     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/dyLibs"
 # )
 
-add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "$<TARGET_FILE:${MODULE_NAME}>"
-        "$<TARGET_FILE_DIR:Launch>"
-)
-
 add_chozo_module_tests()

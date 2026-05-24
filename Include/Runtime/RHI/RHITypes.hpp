@@ -5,6 +5,7 @@
 #include <Core/Header/Types.h>
 
 #include <sstream>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -437,8 +438,10 @@ struct ShaderCompilerMultiInput {
 
 // The result of the compilation, including binaries and reflection data
 struct ShaderCompilerOutput {
-    std::vector<uint32> Binary;
+    ShaderStage Stage;
+    std::string EntryPoint;
     ShaderReflection Reflection;
+    std::vector<uint32> Binary;
     bool bSucceeded = false;
 };
 
