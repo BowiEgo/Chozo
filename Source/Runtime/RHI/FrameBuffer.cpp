@@ -2,7 +2,13 @@
 
 namespace CZ {
 
-DEFINE_HANDLE_DESTROY(FrameBufferObj)
+template <> void Handle<FrameBufferObj>::Destroy() {
+    if (m_Obj) {
+        m_Obj->Clear();
+        Delete(m_Obj);
+        m_Obj = nullptr;
+    }
+}
 
 void FrameBufferObj::Clear() {
     for (auto& tex : m_ColorAttachments)

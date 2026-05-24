@@ -18,7 +18,23 @@ namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogRenderer, Info);
 
-DEFINE_HANDLE_DESTROY(RendererObj)
+static Shader testShader;
+static Pipeline testPipeline;
+
+template <> void Handle<RendererObj>::Destroy() {
+    if (m_Obj) {
+        for (auto& viewport : m_Obj->Viewports) {
+            viewport.Destroy();
+        }
+        m_Obj->Viewports.clear();
+
+        testShader.Destroy();
+        testPipeline.Destroy();
+
+        Delete(m_Obj);
+        m_Obj = nullptr;
+    }
+}
 
 Renderer Renderer::Create(const RendererSpecification& spec) {
     auto ctx         = RHIAPI::Get()->GetGraphicsContext();
@@ -34,8 +50,15 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
         obj->Frames[i].CommandList = obj->Frames[i].CommandPool->AllocateCommandBuffer();
     }
 
-    auto testShader = AssetManager::Get().GetOrLoadShader(
+    testShader = AssetManager::Get().GetOrLoadShader(
         { "Test", "shaders://Test.slang", { ShaderStage::Vertex, ShaderStage::Fragment }, "main" });
+
+    auto testPipelineSpec         = PipelineSpecification{};
+    testPipelineSpec.Name         = "TestPipeline";
+    testPipelineSpec.ColorFormats = { PixelFormat::RGBA16F };
+
+    testPipeline = ctx->GetDevice()->CreatePipeline(
+        testPipelineSpec, testShader->GetShaderResources(), testShader->GetReflection());
 
     // // Pipeline
     // {
@@ -79,6 +102,8 @@ void Renderer::Tick(float deltaTime) {
 
         for (auto& viewport : GetViewports()) {
             Texture viewportCanvas = viewport->GetFrameBuffer()->GetColorAttachment(0);
+            auto width             = viewport->GetWidth();
+            auto height            = viewport->GetHeight();
 
             std::vector<Texture> targets;
 
@@ -87,10 +112,15 @@ void Renderer::Tick(float deltaTime) {
             RHIAPI::Get()->TransitionImageLayout(cmdList, viewportCanvas->GetImage(),
                                                  ImageLayout::ColorAttachmentOptimal);
 
+            cmdList->BindPipeline(testPipeline);
+
             RHIAPI::Get()->BeginRendering(cmdList, targets,
                                           false); // bClear = false (to preserve the scene)
 
-            // cmdList->Draw(3, 1, 0, 0);
+            cmdList->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
+            cmdList->SetScissor({ 0, 0, width, height });
+
+            cmdList->Draw(3, 1, 0, 0);
 
             RHIAPI::Get()->EndRendering(cmdList);
 

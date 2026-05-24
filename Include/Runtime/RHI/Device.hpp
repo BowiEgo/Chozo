@@ -23,6 +23,8 @@ struct DeviceSpecification {
 };
 
 class DeviceObj {
+    friend class Handle<DeviceObj>;
+
 public:
     DeviceObj(const DeviceSpecification& spec) : m_Spec(spec) {}
     virtual ~DeviceObj() = default;
@@ -47,17 +49,7 @@ public:
     std::vector<SetLayout> CreateSetLayouts(
         const std::unordered_map<uint32_t, std::vector<ShaderResourceBinding>>& bindings);
 
-    Sampler GetOrCreateSampler(const SamplerSpecification spec) {
-        auto it = m_SamplerCache.find(spec);
-        if (it != m_SamplerCache.end()) {
-            return it->second;
-        }
-
-        Sampler sampler      = CreateSampler(spec);
-        m_SamplerCache[spec] = sampler;
-
-        return sampler;
-    }
+    Sampler GetOrCreateSampler(const SamplerSpecification spec);
 
 private:
     SetLayout GetOrCreateLayout(const std::vector<ShaderResourceBinding>& bindings);
@@ -67,8 +59,9 @@ private:
 protected:
     DeviceSpecification m_Spec;
 
-    std::unordered_map<SamplerSpecification, Sampler> m_SamplerCache;
     std::unordered_map<size_t, SetLayout> m_SetLayoutCache;
+
+    std::unordered_map<SamplerSpecification, Sampler> m_SamplerCache;
     SetLayout m_StaticSamplerLayout;
 };
 

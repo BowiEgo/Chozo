@@ -2,6 +2,11 @@
 
 namespace CZ {
 
-DEFINE_HANDLE_DESTROY(PipelineObj)
+template <> void Handle<PipelineObj>::Destroy() {
+    if (m_Obj) {
+        Delete(m_Obj);
+        m_Obj = nullptr;
+    }
+}
 
 } // namespace CZ

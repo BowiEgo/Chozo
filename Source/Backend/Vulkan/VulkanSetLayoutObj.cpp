@@ -10,7 +10,13 @@ VulkanSetLayoutObj::VulkanSetLayoutObj(const VulkanDeviceObj* deviceObj,
     Init();
 }
 
-VulkanSetLayoutObj::~VulkanSetLayoutObj() { CZ_CORE_LOG(Trace, "VulkanSetLayout destroying..."); }
+VulkanSetLayoutObj::~VulkanSetLayoutObj() {
+    CZ_CORE_LOG(Trace, "VulkanSetLayout destroying...");
+    if (m_VkSetLayout) {
+        vkDestroyDescriptorSetLayout(m_DeviceObj->GetLogicalDevice(), m_VkSetLayout, nullptr);
+        m_VkSetLayout = VK_NULL_HANDLE;
+    }
+}
 
 bool VulkanSetLayoutObj::Init() {
     VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();

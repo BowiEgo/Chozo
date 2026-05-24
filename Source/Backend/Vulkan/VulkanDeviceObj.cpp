@@ -73,8 +73,9 @@ ShaderRes VulkanDeviceObj::CreateShaderRes(const ShaderResSpecification& spec,
 Pipeline VulkanDeviceObj::CreatePipeline(const PipelineSpecification& spec,
                                          const std::vector<ShaderRes>& shaders,
                                          const ShaderReflection& reflection) {
-    return Pipeline(
-        CZ_NEW(MEMORY_USAGE_RENDER, VulkanPipelineObj, this, spec, shaders, reflection));
+    auto result = VulkanPipelineObj::Create(this, spec, shaders, reflection);
+    if (result) return Pipeline(result.value());
+    return Pipeline();
 }
 
 SetLayout VulkanDeviceObj::CreateSetLayout(const SetLayoutDescription& desc) {

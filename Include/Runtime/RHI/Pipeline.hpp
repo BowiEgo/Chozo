@@ -19,10 +19,14 @@ struct PipelineSpecification {
 };
 
 class PipelineObj {
+    friend class Handle<PipelineObj>;
+
 public:
     PipelineObj(const PipelineSpecification& spec) : m_Spec(spec) {}
 
     virtual ~PipelineObj() {};
+
+    PolygonMode GetPolygonMode() const { return m_Spec.PolygonMode; }
 
 protected:
     PipelineSpecification m_Spec;

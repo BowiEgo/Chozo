@@ -30,7 +30,6 @@ VulkanImageObj::~VulkanImageObj() {
     }
 
     if (!m_IsExternal) {
-
         if (m_VmaAllocation != VK_NULL_HANDLE) {
             vmaDestroyImage(m_DeviceObj->GetVmaAllocator(), m_VkImage, m_VmaAllocation);
             m_VkImage       = VK_NULL_HANDLE;

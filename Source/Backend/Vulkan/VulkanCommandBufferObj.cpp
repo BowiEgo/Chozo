@@ -2,6 +2,7 @@
 
 #include "VulkanCommandPoolObj.hpp"
 #include "VulkanDeviceObj.hpp"
+#include "VulkanPipelineObj.hpp"
 
 #include <Core/Log/LogMacros.hpp>
 
@@ -85,20 +86,21 @@ void VulkanCommandBufferObj::SetPolygonMode(PolygonMode mode) {
     deviceObj->GetDynamicState3Functions().vkCmdSetPolygonModeEXT(vkBuffer, vkMode);
 }
 
-// void VulkanCommandBufferObj::BindPipeline(Pipeline pipeline) {
-// m_CurrentPipeline = pipeline.As<CVulkanPipeline>();
-// auto vkPipeline   = m_CurrentPipeline->GetVKPipeline(); // 假设返回 VkPipeline
+void VulkanCommandBufferObj::BindPipeline(Pipeline pipeline) {
+    m_CurrentPipeline = pipeline;
 
-// SetPolygonMode(pipeline->GetPolygonMode());
+    auto vkPipeline = m_CurrentPipeline.As<VulkanPipelineObj>()->GetVKPipeline();
 
-// vkCmdBindPipeline(m_VKHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
-// }
+    SetPolygonMode(pipeline->GetPolygonMode());
+
+    vkCmdBindPipeline(m_VkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
+}
 
 // void VulkanCommandBufferObj::BindDescriptorSets(int set, DescriptorSet descSet) {
 //     auto vkDescSet = descSet.As<CVulkanDescriptorSet>()->GetVKHandle(); // 假设返回
 //     VkDescriptorSet VkPipelineLayout layout = m_CurrentPipeline->GetPipelineLayout();
 
-//     vkCmdBindDescriptorSets(m_VKHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, set, 1,
+//     vkCmdBindDescriptorSets(m_VkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, set, 1,
 //     &vkDescSet,
 //                             0, nullptr);
 // }

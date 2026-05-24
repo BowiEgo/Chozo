@@ -2,14 +2,21 @@
 
 #include "ShaderUtils.hpp"
 
-#include <Core/Log/LogMacros.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogViewport, Info);
+template <> void Handle<ShaderObj>::Destroy() {
+    if (m_Obj) {
+        for (auto& shaderRes : m_Obj->ShaderResources) {
+            shaderRes.Destroy();
+        }
+        m_Obj->ShaderResources.clear();
 
-DEFINE_HANDLE_DESTROY(ShaderObj)
+        Delete(m_Obj);
+        m_Obj = nullptr;
+    }
+}
 
 bool ShaderObj::LoadAndCompile() { return true; }
 

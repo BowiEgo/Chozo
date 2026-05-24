@@ -88,6 +88,8 @@ struct TextureSpecification {
 };
 
 class TextureObj {
+    friend class Handle<TextureObj>;
+
 public:
     TextureObj(const TextureSpecification& spec) : m_Spec(spec) {}
 

@@ -3,9 +3,14 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogTexture, Info);
+template <> void Handle<TextureObj>::Destroy() {
+    if (m_Obj) {
+        m_Obj->m_Image.Destroy();
 
-DEFINE_HANDLE_DESTROY(TextureObj)
+        Delete(m_Obj);
+        m_Obj = nullptr;
+    }
+}
 
 Sampler TextureObj::GetSampler(const SamplerSpecification spec) {
     return RHIAPI::Get()->GetSampler(spec);

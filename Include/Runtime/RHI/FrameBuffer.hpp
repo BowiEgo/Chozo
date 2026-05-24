@@ -17,6 +17,8 @@ struct FrameBufferSpecification {
 };
 
 class FrameBufferObj {
+    friend class Handle<FrameBufferObj>;
+
 public:
     FrameBufferObj(const FrameBufferSpecification& spec) : m_Spec(spec) {};
 

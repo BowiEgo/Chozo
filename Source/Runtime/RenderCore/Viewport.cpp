@@ -4,13 +4,16 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogViewport, Info);
-
-DEFINE_HANDLE_DESTROY(ViewportObj)
+template <> void Handle<ViewportObj>::Destroy() {
+    if (m_Obj) {
+        m_Obj->m_FrameBuffer.Destroy();
+        Delete(m_Obj);
+        m_Obj = nullptr;
+    }
+}
 
 ViewportObj::ViewportObj(const ViewportSpecification& spec) : m_Spec(spec) {
-    CZ_LOG(LogViewport, Info, "Viewport '{}' created with size {}x{}", spec.Name, spec.Width,
-           spec.Height);
+    CZ_CORE_LOG(Info, "Viewport '{}' created with size {}x{}", spec.Name, spec.Width, spec.Height);
 
     CreateFrameBuffer();
 }

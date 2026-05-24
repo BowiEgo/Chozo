@@ -64,6 +64,14 @@ struct ShaderObj {
         return ShaderResources;
     }
 
+    ShaderReflection GetReflection() const {
+        // Assuming all stages share the same reflection for simplicity
+        if (!Datas.empty()) {
+            return Datas.begin()->second.Reflection;
+        }
+        return ShaderReflection{};
+    }
+
     void CreateShaderResources();
 
     bool LoadAndCompile();

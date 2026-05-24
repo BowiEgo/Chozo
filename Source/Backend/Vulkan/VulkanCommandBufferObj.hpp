@@ -23,7 +23,7 @@ public:
 
     void SetPolygonMode(PolygonMode mode) override;
 
-    //  void BindPipeline(Pipeline pipeline) override;
+    void BindPipeline(Pipeline pipeline) override;
 
     //  void BindDescriptorSets(int set, DescriptorSet descSet) override;
 

@@ -6,45 +6,53 @@
 
 namespace CZ {
 
-VulkanPipelineObj::VulkanPipelineObj(VulkanDeviceObj* deviceObj, const PipelineSpecification& spec,
-                                     const std::vector<ShaderRes>& shaders,
-                                     const ShaderReflection& reflection)
-    : PipelineObj(spec), m_DeviceObj(deviceObj), m_Shaders(shaders), m_Reflection(reflection) {
-    Init();
-}
+VulkanPipelineObj::VulkanPipelineObj(VulkanDeviceObj* deviceObj, const PipelineSpecification& spec)
+    : PipelineObj(spec), m_DeviceObj(deviceObj) {}
 
 VulkanPipelineObj::~VulkanPipelineObj() {
-    CZ_LOG(LogVulkanPipeline, Trace, "VulkanPipeline destroying...");
+    CZ_CORE_LOG(Trace, "VulkanPipeline destroying...");
+    if (m_VkPipeline) {
+        vkDestroyPipeline(m_DeviceObj->GetLogicalDevice(), m_VkPipeline, nullptr);
+        m_VkPipeline = VK_NULL_HANDLE;
+    }
+    if (m_VkPipelineLayout) {
+        vkDestroyPipelineLayout(m_DeviceObj->GetLogicalDevice(), m_VkPipelineLayout, nullptr);
+        m_VkPipelineLayout = VK_NULL_HANDLE;
+    }
 }
 
-VkResult VulkanPipelineObj::Init() {
+VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
+                                 const ShaderReflection& reflection) {
     VkResult result;
     VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
 
     if (!logicalDevice) {
+        CZ_CORE_LOG(Error, "Logical device is not valid during pipeline initialization!");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     // ===== Push Constants =====
     VkPushConstantRange* pushConstantRanges = NULL;
     uint32_t pushConstantRangeCount         = 0;
-    if (m_Reflection.PushConstants.size() > 0) {
-        pushConstantRangeCount = m_Reflection.PushConstants.size();
+    if (reflection.PushConstants.size() > 0) {
+        pushConstantRangeCount = reflection.PushConstants.size();
         pushConstantRanges =
             (VkPushConstantRange*)malloc(pushConstantRangeCount * sizeof(VkPushConstantRange));
         for (uint32_t i = 0; i < pushConstantRangeCount; i++) {
             pushConstantRanges[i].stageFlags =
-                VulkanUtils::StageToFlagBits(m_Reflection.PushConstants[i].StageFlags);
-            pushConstantRanges[i].offset = m_Reflection.PushConstants[i].Offset;
-            pushConstantRanges[i].size   = m_Reflection.PushConstants[i].Size;
+                VulkanUtils::StageToFlagBits(reflection.PushConstants[i].StageFlags);
+            pushConstantRanges[i].offset = reflection.PushConstants[i].Offset;
+            pushConstantRanges[i].size   = reflection.PushConstants[i].Size;
         }
     }
 
     // ===== Descriptor Set Layouts =====
-    m_SetLayouts = m_DeviceObj->CreateSetLayouts(m_Reflection.ResourceBindings);
-    if (result != VK_SUCCESS) {
+    m_SetLayouts = m_DeviceObj->CreateSetLayouts(reflection.ResourceBindings);
+    if (m_SetLayouts.empty()) {
         free(pushConstantRanges);
-        return result;
+        CZ_CORE_LOG(Error,
+                    "Failed to create pipeline: No set layouts created from shader reflection");
+        return VK_ERROR_INITIALIZATION_FAILED;
     }
     std::vector<VkDescriptorSetLayout> vkSetLayouts(m_SetLayouts.size());
     for (size_t i = 0; i < m_SetLayouts.size(); i++) {
@@ -65,14 +73,15 @@ VkResult VulkanPipelineObj::Init() {
     result = vkCreatePipelineLayout(logicalDevice, &pipelineLayoutInfo, NULL, &m_VkPipelineLayout);
     free(pushConstantRanges);
     if (result != VK_SUCCESS) {
+        CZ_CORE_LOG(Error, "Failed to create pipeline layout");
         return result;
     }
 
     // ===== Shader Stages =====
     VkPipelineShaderStageCreateInfo* shaderStages = NULL;
     uint32_t stageCount                           = 0;
-    if (m_Shaders.size() > 0) {
-        stageCount   = m_Shaders.size();
+    if (shaders.size() > 0) {
+        stageCount   = shaders.size();
         shaderStages = (VkPipelineShaderStageCreateInfo*)malloc(
             stageCount * sizeof(VkPipelineShaderStageCreateInfo));
         for (uint32_t i = 0; i < stageCount; i++) {
@@ -80,9 +89,9 @@ VkResult VulkanPipelineObj::Init() {
                 .sType               = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .pNext               = NULL,
                 .flags               = 0,
-                .stage               = m_Shaders[i].As<VulkanShaderResObj>()->GetVkStage(),
-                .module              = m_Shaders[i].As<VulkanShaderResObj>()->GetVkShaderModule(),
-                .pName               = m_Shaders[i]->GetEntryPoint().c_str(),
+                .stage               = shaders[i].As<VulkanShaderResObj>()->GetVkStage(),
+                .module              = shaders[i].As<VulkanShaderResObj>()->GetVkShaderModule(),
+                .pName               = shaders[i]->GetEntryPoint().c_str(),
                 .pSpecializationInfo = NULL
             };
         }
@@ -94,21 +103,20 @@ VkResult VulkanPipelineObj::Init() {
     uint32_t bindingCount                             = 0;
     uint32_t attributeCount                           = 0;
 
-    if (!m_Reflection.VertexBufferLayout.GetElements().empty()) {
+    if (!reflection.VertexBufferLayout.GetElements().empty()) {
         bindingCount = 1;
         bindingDescs =
             (VkVertexInputBindingDescription*)malloc(sizeof(VkVertexInputBindingDescription));
         bindingDescs[0] =
             (VkVertexInputBindingDescription){ .binding = 0,
-                                               .stride =
-                                                   m_Reflection.VertexBufferLayout.GetStride(),
+                                               .stride  = reflection.VertexBufferLayout.GetStride(),
                                                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX };
 
-        attributeCount = m_Reflection.VertexBufferLayout.GetElements().size();
+        attributeCount = reflection.VertexBufferLayout.GetElements().size();
         attributeDescs = (VkVertexInputAttributeDescription*)malloc(
             attributeCount * sizeof(VkVertexInputAttributeDescription));
         for (uint32_t i = 0; i < attributeCount; i++) {
-            const auto& elem  = m_Reflection.VertexBufferLayout.GetElements()[i];
+            const auto& elem  = reflection.VertexBufferLayout.GetElements()[i];
             attributeDescs[i] = (VkVertexInputAttributeDescription){
                 .location = elem.Location,
                 .binding  = 0, // Assuming Offset is used as binding

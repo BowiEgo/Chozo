@@ -2,6 +2,7 @@
 
 #include <Core/Header/Assert.hpp>
 #include <Core/Header/Macros.h>
+#include <Core/Header/Result.hpp>
 #include <Core/Log/LogMacros.hpp>
 #include <Core/Memory/Memory.hpp>
 #include <Core/Platform/Platform.h>

@@ -2,7 +2,24 @@
 
 namespace CZ {
 
-DEFINE_HANDLE_DESTROY(DeviceObj)
+template <> void Handle<DeviceObj>::Destroy() {
+    if (m_Obj) {
+        for (auto& [_, layout] : m_Obj->m_SetLayoutCache) {
+            layout.Destroy();
+        }
+        m_Obj->m_SetLayoutCache.clear();
+
+        m_Obj->m_StaticSamplerLayout.Destroy();
+
+        for (auto& [_, sampler] : m_Obj->m_SamplerCache) {
+            sampler.Destroy();
+        }
+        m_Obj->m_SamplerCache.clear();
+
+        Delete(m_Obj);
+        m_Obj = nullptr;
+    }
+}
 
 std::vector<SetLayout> DeviceObj::CreateSetLayouts(
     const std::unordered_map<uint32_t, std::vector<ShaderResourceBinding>>& bindings) {
@@ -77,6 +94,18 @@ SetLayout DeviceObj::GetStaticSetLayout() {
     m_SetLayoutCache[hash] = staticLayout;
 
     return staticLayout;
+}
+
+Sampler DeviceObj::GetOrCreateSampler(const SamplerSpecification spec) {
+    auto it = m_SamplerCache.find(spec);
+    if (it != m_SamplerCache.end()) {
+        return it->second;
+    }
+
+    Sampler sampler      = CreateSampler(spec);
+    m_SamplerCache[spec] = sampler;
+
+    return sampler;
 }
 
 } // namespace CZ

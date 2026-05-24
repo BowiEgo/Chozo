@@ -145,8 +145,8 @@ bool ShaderCompiler::CompileFromSource(
         // SLANG_RETURN_ON_FAIL(
         //     collectEntryPointMetadata(program, targetIndex, definedEntryPointCount));
 
-        auto targetFormat = kTargets[targetIndex].format;
-        PrintProgramLayout(programLayout, targetFormat);
+        // auto targetFormat = kTargets[targetIndex].format;
+        // PrintProgramLayout(programLayout, targetFormat);
     }
 
     if (!CompileToSpirvForAllEntryPoints(program, programLayouts[0], outputs)) return false;

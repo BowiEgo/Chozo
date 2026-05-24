@@ -3,6 +3,7 @@
 #include <Core/Header/Handle.hpp>
 #include <Core/Header/Types.h>
 #include <Core/Memory/Memory.hpp>
+#include <Runtime/RHI/Pipeline.hpp>
 #include <Runtime/RHI/RHITypes.hpp>
 // #include <Runtime/RenderCore/Viewport.hpp>
 
@@ -39,7 +40,7 @@ public:
 
     virtual void SetPolygonMode(PolygonMode mode) = 0;
 
-    // virtual void BindPipeline(Pipeline pipeline) = 0;
+    virtual void BindPipeline(Pipeline pipeline) = 0;
 
     // virtual void BindDescriptorSets(int set, DescriptorSet descSet) = 0;
 
@@ -58,6 +59,9 @@ public:
                       uint32 firstInstance) = 0;
 
     virtual void End() = 0;
+
+protected:
+    Pipeline m_CurrentPipeline;
 };
 
 struct CommandList : Handle<class CommandListObj> {
