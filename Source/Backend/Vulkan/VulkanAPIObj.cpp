@@ -8,13 +8,6 @@
 
 namespace CZ {
 
-extern "C" {
-
-RHIAPIObj* CreateVulkanAPIObj(GraphicsContext ctx) {
-    return CZ_NEW(MEMORY_USAGE_RENDER, VulkanAPIObj, ctx);
-}
-}
-
 void VulkanAPIObj::BeginRendering(CommandList cmdList, std::vector<Texture>& targets, bool bClear,
                                   uint32_t faceIndex) {
     if (targets.empty()) return;
@@ -69,7 +62,7 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     VkCommandBuffer vkCmdBuffer = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
 
     // if (vkSync->WasJustRecreated()) {
-    //     CZ_CORE_LOG(Trace,
+    //     CZ_BACKEND_LOG(Trace,
     //            "Semaphores were just recreated, skipping one frame to stabilize");
     //     vkSync->ClearRecreatedFlag();
     //     return;
@@ -83,7 +76,7 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     // 1. CPU wait GPU make resources safety
     bool waitSuccess = fence->WaitAndReset(UINT32_MAX);
     if (!waitSuccess) {
-        CZ_CORE_LOG(Error, "Failed to wait for fence");
+        CZ_BACKEND_LOG(Error, "Failed to wait for fence");
         // vkSync->RecreateSemaphores(device);
         return;
     }
@@ -100,13 +93,14 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
         imgIdx = swapchain->AcquireNextImageIndex(vkAcquireWaitSem);
         if (imgIdx != INVALID_IMAGE_INDEX) break;
 
-        CZ_CORE_LOG(Warning, "Failed to acquire image (attempt {}/{})", retryCount + 1, maxRetries);
+        CZ_BACKEND_LOG(Warning, "Failed to acquire image (attempt {}/{})", retryCount + 1,
+                       maxRetries);
         retryCount++;
         // std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     if (imgIdx == INVALID_IMAGE_INDEX) {
-        CZ_CORE_LOG(Error, "Failed to acquire image after {} attempts", maxRetries);
+        CZ_BACKEND_LOG(Error, "Failed to acquire image after {} attempts", maxRetries);
         return;
     }
 
@@ -135,7 +129,7 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
 
     VkResult submitResult = vkQueueSubmit(vkQueue, 1, &submitInfo, vkFence);
     if (submitResult != VK_SUCCESS) {
-        CZ_CORE_LOG(Error, "Submit failed: {}", VulkanUtils::VkResultToString(submitResult));
+        CZ_BACKEND_LOG(Error, "Submit failed: {}", VulkanUtils::VkResultToString(submitResult));
         // acquireWaitSem.As<VulkanSemaphoreObj>()->Recreate();
         return;
     }
@@ -152,14 +146,14 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     VkResult presentResult = vkQueuePresentKHR(vkQueue, &presentInfo);
 
     if (presentResult == VK_ERROR_OUT_OF_DATE_KHR) {
-        CZ_CORE_LOG(Info, "Swapchain out of date, will recreate");
+        CZ_BACKEND_LOG(Info, "Swapchain out of date, will recreate");
         swapchain->MarkNeedsRecreation();
     } else if (presentResult == VK_SUBOPTIMAL_KHR) {
-        CZ_CORE_LOG(Warning, "Swapchain suboptimal, may need recreation");
+        CZ_BACKEND_LOG(Warning, "Swapchain suboptimal, may need recreation");
         swapchain->MarkNeedsRecreation();
     } else if (presentResult != VK_SUCCESS) {
-        CZ_CORE_LOG(Error, "Present failed with unexpected result: {}",
-                    VulkanUtils::VkResultToString(presentResult));
+        CZ_BACKEND_LOG(Error, "Present failed with unexpected result: {}",
+                       VulkanUtils::VkResultToString(presentResult));
     }
 }
 
@@ -170,7 +164,7 @@ void VulkanAPIObj::EndRendering(CommandList cmdList) {
 
 void VulkanAPIObj::TransitionImageLayout(CommandList cmdList, Image image,
                                          const ImageLayout newLayout, uint32_t baseArrayLayer) {
-    // CZ_CORE_LOG(Info, "TransitionImageLayout");
+    // CZ_BACKEND_LOG(Info, "TransitionImageLayout");
 
     auto imageObj = image.As<VulkanImageObj>();
 

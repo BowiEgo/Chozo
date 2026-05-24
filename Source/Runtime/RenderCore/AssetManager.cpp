@@ -31,7 +31,7 @@ Shader AssetManager::GetOrLoadShader(const ShaderSpecification& spec) {
     //     return it->second;
     // }
 
-    CZ_CORE_LOG(Trace, "Compiling Shader: {}", spec.Name);
+    CZ_RENDERCORE_LOG(Trace, "Compiling Shader: {}", spec.Name);
 
     ShaderCompilerMultiInput input;
     input.VirtualPath = spec.VirtualPath;

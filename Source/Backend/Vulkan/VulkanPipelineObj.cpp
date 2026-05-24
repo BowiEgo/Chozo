@@ -10,7 +10,7 @@ VulkanPipelineObj::VulkanPipelineObj(VulkanDeviceObj* deviceObj, const PipelineS
     : PipelineObj(spec), m_DeviceObj(deviceObj) {}
 
 VulkanPipelineObj::~VulkanPipelineObj() {
-    CZ_CORE_LOG(Trace, "VulkanPipeline destroying...");
+    CZ_BACKEND_LOG(Trace, "VulkanPipeline destroying...");
     if (m_VkPipeline) {
         vkDestroyPipeline(m_DeviceObj->GetLogicalDevice(), m_VkPipeline, nullptr);
         m_VkPipeline = VK_NULL_HANDLE;
@@ -27,7 +27,7 @@ VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
     VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
 
     if (!logicalDevice) {
-        CZ_CORE_LOG(Error, "Logical device is not valid during pipeline initialization!");
+        CZ_BACKEND_LOG(Error, "Logical device is not valid during pipeline initialization!");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -50,8 +50,8 @@ VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
     m_SetLayouts = m_DeviceObj->CreateSetLayouts(reflection.ResourceBindings);
     if (m_SetLayouts.empty()) {
         free(pushConstantRanges);
-        CZ_CORE_LOG(Error,
-                    "Failed to create pipeline: No set layouts created from shader reflection");
+        CZ_BACKEND_LOG(Error,
+                       "Failed to create pipeline: No set layouts created from shader reflection");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
     std::vector<VkDescriptorSetLayout> vkSetLayouts(m_SetLayouts.size());
@@ -73,7 +73,7 @@ VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
     result = vkCreatePipelineLayout(logicalDevice, &pipelineLayoutInfo, NULL, &m_VkPipelineLayout);
     free(pushConstantRanges);
     if (result != VK_SUCCESS) {
-        CZ_CORE_LOG(Error, "Failed to create pipeline layout");
+        CZ_BACKEND_LOG(Error, "Failed to create pipeline layout");
         return result;
     }
 

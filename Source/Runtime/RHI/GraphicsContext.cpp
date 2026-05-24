@@ -6,7 +6,7 @@ namespace CZ {
 GraphicsContext GraphicsContext::Create(const GraphicsContextSpecification& spec) {
     auto& registry = DynamicLibraryRegistry::Get();
     if (!registry.LoadLib("vulkan_backend", "libCZVulkan.dylib")) {
-        CZ_CORE_LOG(Error, "CreateVulkanGraphicsContextObj not found in backend.");
+        CZ_RHI_LOG(Error, "CreateVulkanGraphicsContextObj not found in backend.");
         return {};
     }
 
@@ -15,7 +15,7 @@ GraphicsContext GraphicsContext::Create(const GraphicsContextSpecification& spec
             "vulkan_backend", "CreateVulkanGraphicsContextObj");
 
     if (!createFn) {
-        CZ_CORE_LOG(Error, "CreateVulkanGraphicsContextObj not found in backend.");
+        CZ_RHI_LOG(Error, "CreateVulkanGraphicsContextObj not found in backend.");
         return {};
     }
 

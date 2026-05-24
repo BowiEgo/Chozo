@@ -8,12 +8,6 @@
 
 using namespace CZ;
 
-extern "C" {
-Layer* CreateEditorLayer() { return CZ_NEW(MEMORY_USAGE_RENDER, EditorLayer); }
-}
-
-DEFINE_LOG_CATEGORY(LogEditorLayer);
-
 EditorLayer::EditorLayer() {}
 
 EditorLayer::~EditorLayer() {}

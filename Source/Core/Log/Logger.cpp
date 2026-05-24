@@ -11,7 +11,6 @@ namespace CZ {
 
 template <typename Mutex> class LogCallbackSinkImpl : public spdlog::sinks::base_sink<Mutex> {
 public:
-    using LogCallback = std::function<void(const std::string&, LogVerbosity)>;
     explicit LogCallbackSinkImpl(LogCallback callback) : m_Callback(std::move(callback)) {}
 
 protected:
@@ -33,8 +32,10 @@ using LogCallbackSink_mt = LogCallbackSinkImpl<std::mutex>;
 // Pimpl structure to hide spdlog headers from Public API
 struct Logger::FImpl {
     std::shared_ptr<spdlog::logger> SpdLogger;
-    const std::string DefaultPattern =
-        "%^[%T] [%n] [%l]: %v%$"; // Pattern: [%Time] [%Category] [%Level]: %Message
+    // const std::string DefaultPattern =
+    //     "%^[%T] [%n] [%l]: %v%$"; // Pattern: [%Time] [%Category] [%Level]: %Message
+
+    const std::string DefaultPattern = "%^[%T]: %v%$"; // Pattern: [%Time]: %Message
 };
 
 Logger& Logger::Get() {
@@ -55,8 +56,7 @@ Logger::Logger() {
 
 Logger::~Logger() = default;
 
-Logger::SinkHandle Logger::AddCallbackSink(LogCallbackSink_mt::LogCallback callback,
-                                           const std::string& pattern) {
+Logger::SinkHandle Logger::AddCallbackSink(LogCallback callback, const std::string& pattern) {
     if (!callback) return nullptr; // Avoid registering null callbacks to prevent crashes
 
     auto& logger = Logger::Get();

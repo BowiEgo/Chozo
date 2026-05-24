@@ -28,7 +28,7 @@ ShaderCompiler& ShaderCompiler::Get() {
 
 ShaderCompiler::ShaderCompiler() {
     if (SLANG_FAILED(slang::createGlobalSession(m_GlobalSession.writeRef()))) {
-        CZ_CORE_LOG(Fatal, "Failed to create Slang global session.");
+        CZ_RENDERCORE_LOG(Fatal, "Failed to create Slang global session.");
     }
 }
 
@@ -99,7 +99,7 @@ bool ShaderCompiler::CompileFromSource(
         if (auto varDecl = decl->asVariable(); varDecl &&
                                                varDecl->findModifier(slang::Modifier::Const) &&
                                                varDecl->findModifier(slang::Modifier::Static)) {
-            CZ_CORE_LOG(Trace, "Found static const variable: {}", varDecl->getName());
+            CZ_RENDERCORE_LOG(Trace, "Found static const variable: {}", varDecl->getName());
         }
     }
 
@@ -109,7 +109,8 @@ bool ShaderCompiler::CompileFromSource(
         ComPtr<slang::IEntryPoint> entryPoint;
         SLANG_RETURN_ON_FAIL(slangModule->getDefinedEntryPoint(i, entryPoint.writeRef()));
 
-        CZ_CORE_LOG(Trace, "Found entry point: {}", entryPoint->getFunctionReflection()->getName());
+        CZ_RENDERCORE_LOG(Trace, "Found entry point: {}",
+                          entryPoint->getFunctionReflection()->getName());
 
         componentsToLink.push_back(entryPoint.get());
     }

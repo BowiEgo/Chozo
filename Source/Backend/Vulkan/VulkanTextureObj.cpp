@@ -5,8 +5,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanTexture, Info);
-
 VulkanTextureObj::VulkanTextureObj(const VulkanDeviceObj* deviceObj,
                                    const TextureSpecification& spec)
     : TextureObj(spec), m_DeviceObj(deviceObj) {

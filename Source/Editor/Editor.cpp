@@ -9,8 +9,6 @@ extern "C" {
 StartupHost CreateEditor() { return StartupHost(CZ_NEW(MEMORY_USAGE_RENDER, EditorObj)); }
 }
 
-DEFINE_LOG_CATEGORY(LogEditor);
-
 EditorObj::EditorObj() {
     m_bOffscreenRendering = true;
     m_StartupLayer        = CZ_NEW(MEMORY_USAGE_RENDER, EditorLayer);

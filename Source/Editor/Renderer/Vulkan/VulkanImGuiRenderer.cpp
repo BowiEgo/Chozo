@@ -17,18 +17,16 @@
 
 using namespace CZ;
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanImGuiRenderer, Info);
-
 static void CheckVKResult(VkResult err) {
     if (err == VK_SUCCESS) return;
 
     if (err < 0) {
         // [Note] Negative values are typically unrecoverable errors in Vulkan
-        CZ_CORE_LOG(Fatal, "[Vulkan] Error: VkResult = {}", VulkanUtils::VkResultToString(err));
+        CZ_EDITOR_LOG(Fatal, "[Vulkan] Error: VkResult = {}", VulkanUtils::VkResultToString(err));
 
     } else {
         // [Note] Log the error code
-        CZ_CORE_LOG(Error, "[Vulkan] Error: VkResult = {}", VulkanUtils::VkResultToString(err));
+        CZ_EDITOR_LOG(Error, "[Vulkan] Error: VkResult = {}", VulkanUtils::VkResultToString(err));
     }
 }
 

@@ -13,7 +13,7 @@ VulkanCommandBufferObj::VulkanCommandBufferObj(VulkanCommandPoolObj* cmdPoolObj)
     auto deviceObj = cmdPoolObj->m_DeviceObj;
 
     if (!deviceObj) {
-        CZ_CORE_LOG(Error, "Device is no longer valid during CommandBuffer creation!");
+        CZ_BACKEND_LOG(Error, "Device is no longer valid during CommandBuffer creation!");
         return;
     }
 
@@ -28,8 +28,8 @@ VulkanCommandBufferObj::VulkanCommandBufferObj(VulkanCommandPoolObj* cmdPoolObj)
     VkCommandBuffer cmdBuffer = VK_NULL_HANDLE;
     VkResult result           = vkAllocateCommandBuffers(logicalDevice, &allocInfo, &cmdBuffer);
     if (result != VK_SUCCESS) {
-        CZ_CORE_LOG(Error, "Failed to allocate command buffer: {}",
-                    VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "Failed to allocate command buffer: {}",
+                       VulkanUtils::VkResultToString(result));
         return;
     }
     m_VkCommandBuffer = cmdBuffer;
@@ -41,7 +41,7 @@ VulkanCommandBufferObj::~VulkanCommandBufferObj() {
     auto deviceObj = m_CmdPoolObj->m_DeviceObj;
 
     if (!deviceObj) {
-        CZ_CORE_LOG(Error, "Device is no longer valid during CommandBuffer creation!");
+        CZ_BACKEND_LOG(Error, "Device is no longer valid during CommandBuffer creation!");
         return;
     }
 
@@ -57,8 +57,8 @@ void VulkanCommandBufferObj::Begin() {
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VkResult result = vkBeginCommandBuffer(m_VkCommandBuffer, &beginInfo);
     if (result != VK_SUCCESS) {
-        CZ_CORE_LOG(Error, "vkBeginCommandBuffer failed: {}",
-                    VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "vkBeginCommandBuffer failed: {}",
+                       VulkanUtils::VkResultToString(result));
     }
 }
 
@@ -76,7 +76,7 @@ void VulkanCommandBufferObj::SetPolygonMode(PolygonMode mode) {
     auto deviceObj = m_CmdPoolObj->m_DeviceObj;
 
     if (!deviceObj) {
-        CZ_CORE_LOG(Error, "Device is no longer valid during CommandBuffer creation!");
+        CZ_BACKEND_LOG(Error, "Device is no longer valid during CommandBuffer creation!");
         return;
     }
 
@@ -173,7 +173,8 @@ void VulkanCommandBufferObj::Draw(uint32 vertexCount, uint32 instanceCount, uint
 void VulkanCommandBufferObj::End() {
     VkResult result = vkEndCommandBuffer(m_VkCommandBuffer);
     if (result != VK_SUCCESS) {
-        CZ_CORE_LOG(Error, "vkEndCommandBuffer failed: {}", VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "vkEndCommandBuffer failed: {}",
+                       VulkanUtils::VkResultToString(result));
     }
 }
 

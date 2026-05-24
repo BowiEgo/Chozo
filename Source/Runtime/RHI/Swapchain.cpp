@@ -4,8 +4,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogSwapchain, Info);
-
 template <> void Handle<SwapchainObj>::Destroy() {
     if (m_Obj) {
         m_Obj->Destroy();

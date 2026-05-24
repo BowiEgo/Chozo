@@ -9,16 +9,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanSwapchain, Info);
-
-extern "C" {
-
-// void DestroyVulkanSwapchainObj(SwapchainObj* obj) {
-//     obj->Destroy();
-//     Delete(obj);
-// }
-}
-
 VulkanSwapchainObj::VulkanSwapchainObj(const VulkanGraphicsContextObj* ctxObj,
                                        const SwapchainSpecification& spec)
     : SwapchainObj(spec), m_ContextObj(ctxObj) {
@@ -77,8 +67,8 @@ uint32 VulkanSwapchainObj::AcquireNextImageIndex(VkSemaphore sem) {
         m_NeedsRecreation = true;
         return INVALID_IMAGE_INDEX;
     } else {
-        CZ_LOG(LogVulkanSwapchain, Error, "vkAcquireNextImageKHR failed with {}",
-               VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "vkAcquireNextImageKHR failed with {}",
+                       VulkanUtils::VkResultToString(result));
         return INVALID_IMAGE_INDEX;
     }
 }
@@ -98,7 +88,7 @@ void VulkanSwapchainObj::Recreate(const Extent2D& frameBufferSize) {
 
 void VulkanSwapchainObj::MarkNeedsRecreation() {
     if (!m_NeedsRecreation) {
-        CZ_LOG(LogVulkanSwapchain, Trace, "Swapchain marked for recreation");
+        CZ_BACKEND_LOG(Trace, "Swapchain marked for recreation");
         m_NeedsRecreation = true;
     }
 }
@@ -126,12 +116,14 @@ void VulkanSwapchainObj::Init() {
     VulkanUtils::SwapchainSupportDetails details =
         VulkanUtils::QuerySwapchainSupport(physicalDevice, vkSurface);
 
-    CZ_LOG(LogVulkanSwapchain, Info, "Vulkan surface current extent: {}x{}",
-           details.Capabilities.currentExtent.width, details.Capabilities.currentExtent.height);
-    CZ_LOG(LogVulkanSwapchain, Info, "Vulkan surface min extent: {}x{}",
-           details.Capabilities.minImageExtent.width, details.Capabilities.minImageExtent.height);
-    CZ_LOG(LogVulkanSwapchain, Info, "Vulkan surface max extent: {}x{}",
-           details.Capabilities.maxImageExtent.width, details.Capabilities.maxImageExtent.height);
+    // CZ_BACKEND_LOG(Info, "Vulkan surface current extent: {}x{}",
+    //        details.Capabilities.currentExtent.width, details.Capabilities.currentExtent.height);
+    // CZ_BACKEND_LOG(Info, "Vulkan surface min extent: {}x{}",
+    //        details.Capabilities.minImageExtent.width,
+    //        details.Capabilities.minImageExtent.height);
+    // CZ_BACKEND_LOG(Info, "Vulkan surface max extent: {}x{}",
+    //        details.Capabilities.maxImageExtent.width,
+    //        details.Capabilities.maxImageExtent.height);
 
     int pixelWidth = m_Spec.FrameBufferSize.Width, pixelHeight = m_Spec.FrameBufferSize.Height;
 
@@ -145,14 +137,12 @@ void VulkanSwapchainObj::Init() {
         deviceObj->IsExtensionSupported(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
 
     if (hasSwapchainMaintenance) {
-        CZ_LOG(LogVulkanSwapchain, Info,
-               "VK_EXT_swapchain_maintenance1 supported, using physical size");
+        CZ_BACKEND_LOG(Info, "VK_EXT_swapchain_maintenance1 supported, using physical size");
         extent.width  = pixelWidth;
         extent.height = pixelHeight;
     } else {
-        CZ_LOG(LogVulkanSwapchain, Warning,
-               "VK_EXT_swapchain_maintenance1 not supported, falling back to "
-               "surface extent");
+        CZ_BACKEND_LOG(Warning, "VK_EXT_swapchain_maintenance1 not supported, falling back to "
+                                "surface extent");
         extent = VulkanUtils::ChooseSwapExtent(details.Capabilities, pixelWidth, pixelHeight);
     }
 
@@ -198,7 +188,7 @@ void VulkanSwapchainObj::Init() {
         scalingInfo.sType           = VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_SCALING_CREATE_INFO_EXT;
         scalingInfo.scalingBehavior = VK_PRESENT_SCALING_STRETCH_BIT_EXT;
         createInfo.pNext            = &scalingInfo;
-        CZ_LOG(LogVulkanSwapchain, Info, "Added present scaling info to swapchain creation");
+        CZ_BACKEND_LOG(Info, "Added present scaling info to swapchain creation");
     }
 
     // Preserve old swapchain for recreation
@@ -210,8 +200,8 @@ void VulkanSwapchainObj::Init() {
     VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
     VkResult result = vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &newSwapchain);
     if (result != VK_SUCCESS) {
-        CZ_LOG(LogVulkanSwapchain, Error, "Failed to create swapchain! VkResult = {}",
-               VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "Failed to create swapchain! VkResult = {}",
+                       VulkanUtils::VkResultToString(result));
         return;
     }
 
@@ -256,13 +246,14 @@ void VulkanSwapchainObj::Init() {
         m_ColorAttachments.push_back(texture);
     }
 
-    CZ_LOG(LogVulkanSwapchain, Info, "=== Swapchain Creation Debug ===");
-    CZ_LOG(LogVulkanSwapchain, Info, "Physical framebuffer size: {}x{}", pixelWidth, pixelHeight);
-    CZ_LOG(LogVulkanSwapchain, Info, "Vulkan surface current extent: {}x{}",
-           details.Capabilities.currentExtent.width, details.Capabilities.currentExtent.height);
-    CZ_LOG(LogVulkanSwapchain, Info, "Final chosen extent: {}x{}", extent.width, extent.height);
-    CZ_LOG(LogVulkanSwapchain, Info, "Swapchain created with {} images at {}x{}", images.size(),
-           extent.width, extent.height);
+    CZ_BACKEND_LOG(Info, "=== Swapchain Creation Debug ===");
+    CZ_BACKEND_LOG(Info, "Physical framebuffer size: {}x{}", pixelWidth, pixelHeight);
+    CZ_BACKEND_LOG(Info, "Vulkan surface current extent: {}x{}",
+                   details.Capabilities.currentExtent.width,
+                   details.Capabilities.currentExtent.height);
+    CZ_BACKEND_LOG(Info, "Final chosen extent: {}x{}", extent.width, extent.height);
+    CZ_BACKEND_LOG(Info, "Swapchain created with {} images at {}x{}", images.size(), extent.width,
+                   extent.height);
 }
 
 } // namespace CZ

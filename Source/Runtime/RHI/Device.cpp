@@ -70,7 +70,7 @@ SetLayout DeviceObj::GetEmptySetLayout() {
         return m_SetLayoutCache[emptyHash];
     }
 
-    CZ_CORE_LOG(Info, "Creating global Empty Descriptor Set Layout.");
+    CZ_RHI_LOG(Info, "Creating global Empty Descriptor Set Layout.");
 
     SetLayout emptyLayout       = CreateSetLayout({});
     m_SetLayoutCache[emptyHash] = emptyLayout;
@@ -88,7 +88,7 @@ SetLayout DeviceObj::GetStaticSetLayout() {
         return m_SetLayoutCache[hash];
     }
 
-    CZ_CORE_LOG(Info, "Creating global Static Descriptor Set Layout.");
+    CZ_RHI_LOG(Info, "Creating global Static Descriptor Set Layout.");
 
     SetLayout staticLayout = CreateSetLayout(desc);
     m_SetLayoutCache[hash] = staticLayout;

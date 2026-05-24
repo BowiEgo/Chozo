@@ -21,6 +21,7 @@ set(MODULE_INCLUDE
 
 set(MODULE_SRC
     VmaImpl.cpp
+    VulkanExternAPIs.cpp
     VulkanUtils.cpp
     VulkanAPIObj.cpp
     VulkanGraphicsContextObj.cpp

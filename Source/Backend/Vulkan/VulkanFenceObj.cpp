@@ -2,8 +2,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanFence, Info);
-
 VulkanFenceObj::VulkanFenceObj(const VulkanDeviceObj* deviceObj) : m_DeviceObj((deviceObj)) {
     VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
 
@@ -13,7 +11,7 @@ VulkanFenceObj::VulkanFenceObj(const VulkanDeviceObj* deviceObj) : m_DeviceObj((
     fenceInfo.flags             = VK_FENCE_CREATE_SIGNALED_BIT;
 
     if (vkCreateFence(logicalDevice, &fenceInfo, nullptr, &m_VkFence) != VK_SUCCESS) {
-        CZ_LOG(LogVulkanFence, Error, "Failed to create Vulkan fence!");
+        CZ_BACKEND_LOG(Error, "Failed to create Vulkan fence!");
     }
 }
 
@@ -25,7 +23,7 @@ VulkanFenceObj::~VulkanFenceObj() {
 
 bool VulkanFenceObj::WaitAndReset(uint64_t timeout) const {
     if (m_VkFence == VK_NULL_HANDLE) {
-        CZ_LOG(LogVulkanFence, Error, "Invalid fence in WaitAndResetFence");
+        CZ_BACKEND_LOG(Error, "Invalid fence in WaitAndResetFence");
         return VK_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -37,9 +35,9 @@ bool VulkanFenceObj::WaitAndReset(uint64_t timeout) const {
         vkResetFences(logicalDevice, 1, &m_VkFence);
         return true;
     } else if (result == VK_TIMEOUT) {
-        CZ_LOG(LogVulkanFence, Warning, "Fence wait timed out!");
+        CZ_BACKEND_LOG(Warning, "Fence wait timed out!");
     } else {
-        CZ_LOG(LogVulkanFence, Error, "Failed to wait for fence! Result: {}", (int)result);
+        CZ_BACKEND_LOG(Error, "Failed to wait for fence! Result: {}", (int)result);
     }
 
     return false;

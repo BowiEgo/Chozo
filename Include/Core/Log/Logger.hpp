@@ -3,10 +3,6 @@
 #include "LogEnum.hpp"
 #include <Core/Header/Macros.h>
 
-#include <functional>
-#include <mutex>
-#include <string>
-
 namespace CZ {
 
 class Logger {

@@ -65,4 +65,13 @@ struct LogCategoryBase {
 
 #define CZ_CORE_LOG(Verbosity, Format, ...) CZ_LOG(Core, Verbosity, Format, ##__VA_ARGS__)
 
+#define CZ_RHI_LOG(Verbosity, Format, ...) CZ_LOG(RHI, Verbosity, Format, ##__VA_ARGS__)
+
+#define CZ_BACKEND_LOG(Verbosity, Format, ...) CZ_LOG(Backend, Verbosity, Format, ##__VA_ARGS__)
+
+#define CZ_RENDERCORE_LOG(Verbosity, Format, ...)                                                  \
+    CZ_LOG(RenderCore, Verbosity, Format, ##__VA_ARGS__)
+
 #define CZ_APP_LOG(Verbosity, Format, ...) CZ_LOG(App, Verbosity, Format, ##__VA_ARGS__)
+
+#define CZ_EDITOR_LOG(Verbosity, Format, ...) CZ_LOG(Editor, Verbosity, Format, ##__VA_ARGS__)

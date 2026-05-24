@@ -4,8 +4,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanFrameBuffer, Info);
-
 VulkanFrameBufferObj::VulkanFrameBufferObj(const VulkanDeviceObj* deviceObj,
                                            const FrameBufferSpecification& spec)
     : FrameBufferObj(spec), m_DeviceObj((deviceObj)) {

@@ -13,7 +13,8 @@ template <> void Handle<ViewportObj>::Destroy() {
 }
 
 ViewportObj::ViewportObj(const ViewportSpecification& spec) : m_Spec(spec) {
-    CZ_CORE_LOG(Info, "Viewport '{}' created with size {}x{}", spec.Name, spec.Width, spec.Height);
+    CZ_RENDERCORE_LOG(Info, "Viewport '{}' created with size {}x{}", spec.Name, spec.Width,
+                      spec.Height);
 
     CreateFrameBuffer();
 }

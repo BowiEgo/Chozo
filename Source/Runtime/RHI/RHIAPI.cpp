@@ -5,8 +5,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogRHIAPI, Info);
-
 DEFINE_HANDLE_DESTROY(RHIAPIObj)
 
 RHIAPI& RHIAPI::Get() {
@@ -25,7 +23,7 @@ bool RHIAPI::Init(GraphicsContext ctx, std::string& err) {
     auto createFn = registry.GetFunction<RHIAPIObj* (*)(GraphicsContext)>("vulkan_backend",
                                                                           "CreateVulkanAPIObj");
     if (!createFn) {
-        CZ_LOG(LogRHIAPI, Error, "CreateVulkanAPIObj not found in backend.");
+        CZ_RHI_LOG(Error, "CreateVulkanAPIObj not found in backend.");
         return false;
     }
 

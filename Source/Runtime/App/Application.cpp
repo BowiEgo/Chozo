@@ -23,8 +23,7 @@ bool Application::Startup(const ApplicationSpecification& appSpec, std::string& 
     // Setup VFS
     std::filesystem::path projectRoot =
         std::filesystem::absolute(Platform::File::GetExecutablePath()).parent_path();
-    CZ_LOG(LogApplication, Info, "Project Root set from environment variable: {0}",
-           projectRoot.string());
+    CZ_APP_LOG(Info, "Project Root set from environment variable: {0}", projectRoot.string());
     std::filesystem::path resourcesDir = projectRoot / "Resources";
     VFS::Mount("engine", projectRoot);
     VFS::Mount("shaders", projectRoot / "Shaders");
@@ -72,7 +71,7 @@ void Application::Shutdown() {
 }
 
 void Application::Run() {
-    // CZ_LOG(LogApplication, Trace, "Running...");
+    // CZ_APP_LOG( Trace, "Running...");
     m_Window.OnUpdate();
 
     float deltaTime = 0.1;

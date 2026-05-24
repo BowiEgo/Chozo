@@ -11,7 +11,7 @@ VulkanSetLayoutObj::VulkanSetLayoutObj(const VulkanDeviceObj* deviceObj,
 }
 
 VulkanSetLayoutObj::~VulkanSetLayoutObj() {
-    CZ_CORE_LOG(Trace, "VulkanSetLayout destroying...");
+    CZ_BACKEND_LOG(Trace, "VulkanSetLayout destroying...");
     if (m_VkSetLayout) {
         vkDestroyDescriptorSetLayout(m_DeviceObj->GetLogicalDevice(), m_VkSetLayout, nullptr);
         m_VkSetLayout = VK_NULL_HANDLE;
@@ -28,7 +28,7 @@ bool VulkanSetLayoutObj::Init() {
         vkBindings = (VkDescriptorSetLayoutBinding*)malloc(bindingCount *
                                                            sizeof(VkDescriptorSetLayoutBinding));
         if (!vkBindings) {
-            CZ_CORE_LOG(Error, "Failed to allocate memory for layout bindings.");
+            CZ_BACKEND_LOG(Error, "Failed to allocate memory for layout bindings.");
             return false;
         }
 

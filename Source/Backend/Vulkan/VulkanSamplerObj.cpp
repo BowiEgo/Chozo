@@ -5,8 +5,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanSampler, Info);
-
 VulkanSamplerObj::VulkanSamplerObj(const VulkanDeviceObj* deviceObj,
                                    const SamplerSpecification& spec)
     : SamplerObj(spec), m_DeviceObj(deviceObj) {
@@ -23,7 +21,7 @@ VulkanSamplerObj::~VulkanSamplerObj() {
 
 void VulkanSamplerObj::Init() {
     if (!m_DeviceObj) {
-        CZ_LOG(LogVulkanSampler, Error, "Device is no longer valid during Sampler creation!");
+        CZ_BACKEND_LOG(Error, "Device is no longer valid during Sampler creation!");
         return;
     }
 
@@ -50,8 +48,8 @@ void VulkanSamplerObj::Init() {
     VkSampler vkSampler = VK_NULL_HANDLE;
     VkResult result     = vkCreateSampler(logicalDevice, &samplerInfo, nullptr, &vkSampler);
     if (result != VK_SUCCESS) {
-        CZ_LOG(LogVulkanSampler, Error, "Failed to create sampler: %s",
-               VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "Failed to create sampler: %s",
+                       VulkanUtils::VkResultToString(result));
         return;
     }
     m_VkSampler = vkSampler;

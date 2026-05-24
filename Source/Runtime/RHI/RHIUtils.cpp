@@ -2,8 +2,6 @@
 
 namespace CZ::RHIUtils {
 
-DEFINE_LOG_CATEGORY_STATIC(LogRHIUtils, Info);
-
 bool IsDepthFormat(PixelFormat format) {
     return format == PixelFormat::D32_SFLOAT || format == PixelFormat::D24_UNORM_S8_UINT ||
            format == PixelFormat::D16_UNORM;

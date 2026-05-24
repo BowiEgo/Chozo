@@ -4,8 +4,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanImage, Info);
-
 VulkanImageObj::VulkanImageObj(const VulkanDeviceObj* deviceObj, const ImageSpecification& spec)
     : ImageObj(spec), m_DeviceObj(deviceObj) {
     Init();
@@ -103,7 +101,7 @@ void VulkanImageObj::CreateImageResources() {
     VkResult result    = vmaCreateImage(m_DeviceObj->GetVmaAllocator(), &imageInfo, &allocInfo,
                                         &vkImageRaw, &m_VmaAllocation, nullptr);
     if (result != VK_SUCCESS) {
-        CZ_LOG(LogVulkanImage, Error, "vmaCreateImage failed");
+        CZ_BACKEND_LOG(Error, "vmaCreateImage failed");
         return;
     }
     m_VkImage  = vkImageRaw;
@@ -112,7 +110,7 @@ void VulkanImageObj::CreateImageResources() {
 
 VkImageView VulkanImageObj::GetOrCreateVKView(const ImageViewSpecification& spec) {
     if (!m_IsValid) {
-        CZ_LOG(LogVulkanImage, Warning, "Attempting to get ImageView for an invalid image!");
+        CZ_BACKEND_LOG(Warning, "Attempting to get ImageView for an invalid image!");
         return VK_NULL_HANDLE;
     }
     if (m_ViewCache.contains(spec)) {
@@ -148,8 +146,8 @@ VkImageView VulkanImageObj::GetOrCreateVKView(const ImageViewSpecification& spec
     VkImageView view = VK_NULL_HANDLE;
     VkResult result  = vkCreateImageView(logicalDevice, &viewInfo, nullptr, &view);
     if (result != VK_SUCCESS) {
-        CZ_LOG(LogVulkanImage, Error, "Failed to create ImageView: VkResult = {}",
-               VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "Failed to create ImageView: VkResult = {}",
+                       VulkanUtils::VkResultToString(result));
         return VK_NULL_HANDLE;
     }
 

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
+#include <string>
 
 namespace CZ {
 
@@ -14,5 +16,7 @@ enum class LogVerbosity : uint8 {
     Debug,   // Internal logic flow and variable states
     Trace    // High-frequency diagnostic or step-by-step tracing
 };
+
+using LogCallback = std::function<void(const std::string&, LogVerbosity)>;
 
 } // namespace CZ

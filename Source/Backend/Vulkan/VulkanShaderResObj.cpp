@@ -5,8 +5,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanShaderRes, Info);
-
 VulkanShaderResObj::VulkanShaderResObj(const VulkanDeviceObj* deviceObj,
                                        const ShaderResSpecification& spec,
                                        const std::vector<uint32_t>* binary)
@@ -24,7 +22,7 @@ VulkanShaderResObj::~VulkanShaderResObj() {
 
 void VulkanShaderResObj::Init(const std::vector<uint32_t>* binary) {
     if (!m_DeviceObj) {
-        CZ_LOG(LogVulkanShaderRes, Error, "Device is no longer valid during Shader creation!");
+        CZ_BACKEND_LOG(Error, "Device is no longer valid during Shader creation!");
         return;
     }
 
@@ -38,8 +36,8 @@ void VulkanShaderResObj::Init(const std::vector<uint32_t>* binary) {
     VkShaderModule vkModule = VK_NULL_HANDLE;
     VkResult result         = vkCreateShaderModule(logicalDevice, &moduleInfo, nullptr, &vkModule);
     if (result != VK_SUCCESS) {
-        CZ_LOG(LogVulkanShaderRes, Error, "Failed to create shader module: {}",
-               VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "Failed to create shader module: {}",
+                       VulkanUtils::VkResultToString(result));
         return;
     }
     m_VkModule = vkModule;

@@ -14,7 +14,7 @@ VulkanCommandPoolObj::VulkanCommandPoolObj(const VulkanDeviceObj* deviceObj,
     : CommandPoolObj(spec), m_DeviceObj(deviceObj) {
 
     if (!deviceObj) {
-        CZ_CORE_LOG(Error, "Device is no longer valid during CommandPool creation!");
+        CZ_BACKEND_LOG(Error, "Device is no longer valid during CommandPool creation!");
         return;
     }
 
@@ -27,7 +27,8 @@ VulkanCommandPoolObj::VulkanCommandPoolObj(const VulkanDeviceObj* deviceObj,
 
     VkResult result = vkCreateCommandPool(logicalDevice, &poolInfo, nullptr, &m_VkCommandPool);
     if (result != VK_SUCCESS) {
-        CZ_CORE_LOG(Error, "Create CommandPool failed: {}", VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "Create CommandPool failed: {}",
+                       VulkanUtils::VkResultToString(result));
     }
 }
 

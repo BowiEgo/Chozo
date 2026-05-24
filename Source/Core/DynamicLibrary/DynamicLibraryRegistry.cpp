@@ -5,8 +5,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogDynamicLibraryRegistry, Info);
-
 DynamicLibraryRegistry& DynamicLibraryRegistry::Get() {
     static DynamicLibraryRegistry instance;
     return instance;
@@ -15,13 +13,13 @@ DynamicLibraryRegistry& DynamicLibraryRegistry::Get() {
 bool DynamicLibraryRegistry::LoadLib(const std::string& libName, const std::string& libraryPath) {
     std::lock_guard<std::mutex> lock(m_Mutex);
     if (m_Libs.find(libName) != m_Libs.end()) {
-        CZ_LOG(LogDynamicLibraryRegistry, Warning, "Lib '{}' already loaded, skipping.", libName);
+        CZ_CORE_LOG(Warning, "Lib '{}' already loaded, skipping.", libName);
         return true;
     }
 
     auto lib = std::make_unique<DynamicLibrary>(libraryPath);
     if (!lib->isValid()) {
-        CZ_LOG(LogDynamicLibraryRegistry, Error, "Failed to load lib library: {}", libraryPath);
+        CZ_CORE_LOG(Error, "Failed to load lib library: {}", libraryPath);
         return false;
     }
 
@@ -29,14 +27,14 @@ bool DynamicLibraryRegistry::LoadLib(const std::string& libName, const std::stri
     data.Library    = std::move(lib);
     m_Libs[libName] = std::move(data);
 
-    CZ_LOG(LogDynamicLibraryRegistry, Info, "Lib '{}' loaded successfully.", libName);
+    CZ_CORE_LOG(Info, "Lib '{}' loaded successfully.", libName);
     return true;
 }
 
 void DynamicLibraryRegistry::UnloadLib(const std::string& libName) {
     std::lock_guard<std::mutex> lock(m_Mutex);
     m_Libs.erase(libName);
-    CZ_LOG(LogDynamicLibraryRegistry, Info, "Lib '{}' unloaded.", libName);
+    CZ_CORE_LOG(Info, "Lib '{}' unloaded.", libName);
 }
 
 } // namespace CZ

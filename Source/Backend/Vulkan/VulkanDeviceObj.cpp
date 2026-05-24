@@ -12,13 +12,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanDevice, Info);
-
-extern "C" {
-
-void DestroyVulkanDeviceObj(VulkanDeviceObj* obj) { Delete(obj); }
-}
-
 VulkanDeviceObj::VulkanDeviceObj(const VulkanGraphicsContextObj* ctxObj,
                                  const DeviceSpecification& spec)
     : DeviceObj(spec), m_GraphicContextObj(ctxObj) {
@@ -27,7 +20,7 @@ VulkanDeviceObj::VulkanDeviceObj(const VulkanGraphicsContextObj* ctxObj,
     CreateVmaAllocator();
 
     InitGlobalDescriptorPool();
-    CZ_LOG(LogVulkanDevice, Info, "VulkanDeviceObj created.");
+    CZ_BACKEND_LOG(Info, "VulkanDeviceObj created.");
 }
 
 VulkanDeviceObj::~VulkanDeviceObj() {
@@ -45,7 +38,7 @@ VulkanDeviceObj::~VulkanDeviceObj() {
         vmaDestroyAllocator(m_VmaAllocator);
     }
 
-    CZ_LOG(LogVulkanDevice, Info, "VulkanDeviceObj destroyed.");
+    CZ_BACKEND_LOG(Info, "VulkanDeviceObj destroyed.");
 }
 
 // --- Public ---
@@ -110,10 +103,10 @@ VkDescriptorPool
 
     VkResult res = vkCreateDescriptorPool(m_VkDevice, &poolInfo, nullptr, &result);
     if (res == VK_SUCCESS) {
-        CZ_LOG(LogVulkanDevice, Info, "Vulkan Descriptor Pool Created with max sets: {}", maxSets);
+        CZ_BACKEND_LOG(Info, "Vulkan Descriptor Pool Created with max sets: {}", maxSets);
     } else {
-        CZ_LOG(LogVulkanDevice, Error, "Failed to create Vulkan Descriptor Pool: %s",
-               VulkanUtils::VkResultToString(res));
+        CZ_BACKEND_LOG(Error, "Failed to create Vulkan Descriptor Pool: %s",
+                       VulkanUtils::VkResultToString(res));
     }
 
     return result;
@@ -127,7 +120,7 @@ void VulkanDeviceObj::PickPhysicalDevice() {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(vkInstance, &deviceCount, nullptr);
     if (deviceCount == 0) {
-        CZ_LOG(LogVulkanDevice, Fatal, "No Vulkan-capable GPUs found.");
+        CZ_BACKEND_LOG(Fatal, "No Vulkan-capable GPUs found.");
         return;
     }
     std::vector<VkPhysicalDevice> devices(deviceCount);
@@ -216,7 +209,7 @@ void VulkanDeviceObj::PickPhysicalDevice() {
     }
 
     if (selectedDevice == VK_NULL_HANDLE) {
-        CZ_LOG(LogVulkanDevice, Fatal, "Failed to find a suitable GPU with required features.");
+        CZ_BACKEND_LOG(Fatal, "Failed to find a suitable GPU with required features.");
         return;
     }
 
@@ -259,19 +252,19 @@ void VulkanDeviceObj::CreateLogicalDevice() {
     addExtensionIfNeeded(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
     if (hasSwapchainMaintenance && hasSurfaceMaintenance) {
-        CZ_LOG(LogVulkanDevice, Info,
-               "VK_EXT_swapchain_maintenance1 and VK_EXT_surface_maintenance1 are supported");
+        CZ_BACKEND_LOG(
+            Info, "VK_EXT_swapchain_maintenance1 and VK_EXT_surface_maintenance1 are supported");
         addExtensionIfNeeded(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
         addExtensionIfNeeded(VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME);
     }
 
     if (hasDynamicState3) {
-        CZ_LOG(LogVulkanDevice, Info, "VK_EXT_extended_dynamic_state_3 is supported");
+        CZ_BACKEND_LOG(Info, "VK_EXT_extended_dynamic_state_3 is supported");
         addExtensionIfNeeded(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME);
     }
 
     if (hasMemoryBudget) {
-        CZ_LOG(LogVulkanDevice, Info, "VK_EXT_memory_budget is supported");
+        CZ_BACKEND_LOG(Info, "VK_EXT_memory_budget is supported");
         addExtensionIfNeeded(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
     }
 
@@ -339,8 +332,8 @@ void VulkanDeviceObj::CreateLogicalDevice() {
     // Create logical device
     VkResult result = vkCreateDevice(m_VkPhysicalDevice, &deviceCreateInfo, nullptr, &m_VkDevice);
     if (result != VK_SUCCESS) {
-        CZ_LOG(LogVulkanDevice, Error, "Vulkan Device Creation Failed: {}",
-               VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "Vulkan Device Creation Failed: {}",
+                       VulkanUtils::VkResultToString(result));
         return;
     }
 
@@ -356,10 +349,10 @@ void VulkanDeviceObj::CreateLogicalDevice() {
 
     LoadDynamicState3Functions();
 
-    CZ_LOG(LogVulkanDevice, Info, "Queue Family Indices -> Graphics: {}, Present: {}, Compute: {}",
-           indices.Graphics.value(), indices.Present.value(), indices.Compute.value());
+    CZ_BACKEND_LOG(Info, "Queue Family Indices -> Graphics: {}, Present: {}, Compute: {}",
+                   indices.Graphics.value(), indices.Present.value(), indices.Compute.value());
 
-    CZ_LOG(LogVulkanDevice, Info, "Vulkan Logical Device Created.");
+    CZ_BACKEND_LOG(Info, "Vulkan Logical Device Created.");
 }
 
 void VulkanDeviceObj::CreateVmaAllocator() {
@@ -415,7 +408,7 @@ void VulkanDeviceObj::LoadDynamicState3Functions() {
 
 #undef LOAD_EXT_FUNC
     } else {
-        CZ_LOG(LogVulkanDevice, Warning, "VK_EXT_extended_dynamic_state_3 not supported");
+        CZ_BACKEND_LOG(Warning, "VK_EXT_extended_dynamic_state_3 not supported");
     }
 }
 

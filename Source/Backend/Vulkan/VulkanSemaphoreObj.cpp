@@ -3,8 +3,6 @@
 
 namespace CZ {
 
-DEFINE_LOG_CATEGORY_STATIC(LogVulkanSemaphore, Info);
-
 VulkanSemaphoreObj::VulkanSemaphoreObj(const VulkanDeviceObj* deviceObj)
     : m_DeviceObj((deviceObj)) {
     Recreate();
@@ -27,8 +25,8 @@ bool VulkanSemaphoreObj::Recreate() {
     if (result == VK_SUCCESS) {
         return true;
     } else {
-        CZ_LOG(LogVulkanSemaphore, Error, "Failed to wait for semaphore! Result: {}",
-               VulkanUtils::VkResultToString(result));
+        CZ_BACKEND_LOG(Error, "Failed to wait for semaphore! Result: {}",
+                       VulkanUtils::VkResultToString(result));
     }
 
     return false;
