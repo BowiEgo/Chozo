@@ -70,7 +70,6 @@ FetchContent_Declare(
   GIT_TAG docking
 )
 FetchContent_MakeAvailable(ChozoImGui)
-message(STATUS "CHOZO IMGUI SOURCE DIR:      ${ChozoImGui_SOURCE_DIR}")
 
 FetchContent_GetProperties(ChozoImGui SOURCE_DIR ChozoImGui_SOURCE_DIR)
 if(NOT ChozoImGui_SOURCE_DIR)
@@ -106,6 +105,8 @@ target_link_libraries(ChozoImGui PUBLIC Vulkan::Vulkan SDL3::SDL3)
 target_precompile_headers(ChozoImGui PRIVATE ${ChozoImGui_SOURCE_DIR}/imgui.h)
 
 add_library(Chozo::ImGui ALIAS ChozoImGui)
+
+message(STATUS "CHOZO IMGUI SOURCE DIR:      ${ChozoImGui_SOURCE_DIR}")
 
 ## Fetch Slang
 set(SLANG_VERSION "2026.9.1") 
@@ -180,3 +181,20 @@ set_target_properties(slang::slang PROPERTIES
     IMPORTED_LOCATION ${SLANG_LIBRARY}
     INTERFACE_INCLUDE_DIRECTORIES ${SLANG_PREBUILT_DIR}/include
 )
+
+message(STATUS "CHOZO SLANG SOURCE DIR:      ${SLANG_PREBUILT_DIR}")
+
+## Fetch Tracy Profiler
+option(TRACY_ON_DEMAND "" ON) 
+option(TRACY_ENABLE "" ON) 
+option(TRACY_ONLY_LOCALHOST "" ON)
+# option(TRACY_NO_EXIT "" OFF) 
+# option(TRACY_CALLSTACK "" OFF)
+
+FetchContent_Declare(
+  tracy
+  GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+  GIT_TAG v0.13.1
+)
+FetchContent_MakeAvailable(tracy)
+message(STATUS "CHOZO TRACY SOURCE DIR:    ${tracy_SOURCE_DIR}")

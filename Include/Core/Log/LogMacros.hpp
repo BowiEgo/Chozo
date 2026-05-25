@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Logger.hpp"
+#include <Core/Log/Logger.hpp>
 
 #include <fmt/core.h>
 

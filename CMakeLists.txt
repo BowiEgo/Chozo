@@ -107,10 +107,12 @@ add_subdirectory(Source/Core/Log)
 add_subdirectory(Source/Core/Memory)
 add_subdirectory(Source/Core/Platform)
 add_subdirectory(Source/Core/Utilities)
+add_subdirectory(Source/Core/Profile)
 
 add_library(CZCoreLibs INTERFACE)
 target_link_libraries(CZCoreLibs INTERFACE
     fmt::fmt
+    Tracy::TracyClient
     ${CZ_CORE_MODULE_LIST}
 )
 target_include_directories(CZCoreLibs INTERFACE

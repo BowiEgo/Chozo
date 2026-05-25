@@ -5,6 +5,7 @@
 #include <Core/Header/Assert.hpp>
 #include <Core/Header/Macros.h>
 #include <Core/Platform/Platform.h>
+#include <Core/Profile/TracyProfile.h>
 
 namespace CZ {
 
@@ -72,17 +73,35 @@ void Application::Shutdown() {
 
 void Application::Run() {
     // CZ_APP_LOG( Trace, "Running...");
-    m_Window.OnUpdate();
+    CZ_PROFILE_FRAME_MARK;
 
     float deltaTime = 0.1;
 
-    for (Layer* layer : m_LayerStack)
-        layer->OnUpdate(deltaTime);
+    {
+        CZ_PROFILE_SCOPE_NAME("Window Update");
 
-    for (Layer* layer : m_LayerStack)
-        layer->OnRender();
+        m_Window.OnUpdate();
+    }
 
-    m_Engine->Tick(deltaTime);
+    {
+        CZ_PROFILE_SCOPE_NAME("Layer Update");
+
+        for (Layer* layer : m_LayerStack)
+            layer->OnUpdate(deltaTime);
+    }
+
+    {
+        CZ_PROFILE_SCOPE_NAME("Layer Render");
+
+        for (Layer* layer : m_LayerStack)
+            layer->OnRender();
+    }
+
+    {
+        CZ_PROFILE_SCOPE_NAME("Engine Tick");
+
+        m_Engine->Tick(deltaTime);
+    }
 }
 
 bool Application::OnEvent(Event& e) {
