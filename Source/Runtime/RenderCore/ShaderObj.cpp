@@ -13,9 +13,6 @@ template <> void Handle<ShaderObj>::Destroy() {
             shaderRes.Destroy();
         }
         m_Obj->ShaderResources.clear();
-
-        Delete(m_Obj);
-        m_Obj = nullptr;
     }
 }
 

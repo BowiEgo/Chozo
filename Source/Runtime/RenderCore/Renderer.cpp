@@ -1,5 +1,7 @@
+#include "Runtime/App/Application.hpp"
 #include <Runtime/RenderCore/Renderer.hpp>
 
+#include <Runtime/App/Engine.hpp>
 #include <Runtime/RHI/CommandList.hpp>
 #include <Runtime/RHI/CommandPool.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>
@@ -18,7 +20,6 @@ namespace CZ {
 
 DEFINE_LOG_CATEGORY_STATIC(LogRenderer, Info);
 
-static Shader testShader;
 static Pipeline testPipeline;
 
 template <> void Handle<RendererObj>::Destroy() {
@@ -28,7 +29,6 @@ template <> void Handle<RendererObj>::Destroy() {
         }
         m_Obj->Viewports.clear();
 
-        testShader.Destroy();
         testPipeline.Destroy();
 
         Delete(m_Obj);
@@ -50,8 +50,8 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
         obj->Frames[i].CommandList = obj->Frames[i].CommandPool->AllocateCommandBuffer();
     }
 
-    testShader = AssetManager::Get().GetOrLoadShader(
-        { "Test", "shaders://Test.slang", { ShaderStage::Vertex, ShaderStage::Fragment }, "main" });
+    auto testShader =
+        Application::Get().GetEngine()->GetShaderRegistry()->LoadAsset("shaders://Test.slang");
 
     auto testPipelineSpec         = PipelineSpecification{};
     testPipelineSpec.Name         = "TestPipeline";

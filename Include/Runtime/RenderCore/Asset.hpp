@@ -10,6 +10,8 @@ using AssetHandle = UUID;
 
 enum class AssetType { Unknown, Scene, Texture, Mesh, Shader, Material };
 
+template <typename T> struct AssetTraits;
+
 template <typename TObject> class Asset : public Handle<TObject> {
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 

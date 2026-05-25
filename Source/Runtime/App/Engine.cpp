@@ -17,6 +17,8 @@ bool Engine::Init(std::string& err) {
     auto window = Application::Get().GetWindow();
     auto fbSize = window.GetFrameBufferSize();
 
+    m_ShaderRegistry = CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, ShaderRegistry);
+
     {
         GraphicsContextSpecification spec;
         spec.FrameBufferSize          = fbSize;
@@ -47,10 +49,11 @@ bool Engine::Init(std::string& err) {
 void Engine::Tick(float deltaTime) { m_Renderer.Tick(deltaTime); }
 
 void Engine::Shutdown() {
+    GetShaderRegistry()->Clear();
+
     m_Renderer.Shutdown();
 
     RHIAPI::Shutdown();
-
     m_GraphicsContext.Destroy();
 
     // GraphicsContext::Destroy(m_GraphicsContext);

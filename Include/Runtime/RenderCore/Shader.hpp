@@ -16,8 +16,9 @@ struct ShaderSpecification {
     ShaderDefinitions Definitions; // Macros for permutations, e.g., {"USE_ALBEDO": "1"}
 
     ShaderSpecification(const std::string name, const std::string path,
-                        const std::vector<ShaderStage> stages, const std::string entry,
-                        const ShaderDefinitions& defs = {})
+                        const std::vector<ShaderStage> stages = { ShaderStage::Vertex,
+                                                                  ShaderStage::Fragment },
+                        const std::string entry = "main", const ShaderDefinitions& defs = {})
         : Name(name), VirtualPath(path), Stages(stages), EntryPoint(entry), Definitions(defs) {}
 
     size_t GenHash() const {
@@ -93,6 +94,10 @@ public:
     AssetType GetType() const override { return AssetType::Shader; }
 
     const std::string GetName() const override { return (*this)->GetSpec().Name; }
+};
+
+template <> struct AssetTraits<ShaderObj> {
+    using AssetType = Shader;
 };
 
 } // namespace CZ

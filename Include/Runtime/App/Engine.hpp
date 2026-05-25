@@ -5,6 +5,8 @@
 #include <Runtime/RHI/Device.hpp>
 #include <Runtime/RHI/GraphicsContext.hpp>
 #include <Runtime/RenderCore/Renderer.hpp>
+#include <Runtime/RenderCore/Shader.hpp>
+#include <Runtime/RenderCore/ShaderRegistry.hpp>
 #include <Runtime/Window/Window.hpp>
 
 namespace CZ {
@@ -28,9 +30,13 @@ public:
         return m_GraphicsContext->GetSwapchain()->GetColorAttachment(index);
     }
 
+    ShaderRegistry* GetShaderRegistry() { return m_ShaderRegistry.get(); }
+
 private:
     Renderer m_Renderer;
     GraphicsContext m_GraphicsContext;
+
+    Scope<ShaderRegistry> m_ShaderRegistry;
 };
 
 } // namespace CZ
