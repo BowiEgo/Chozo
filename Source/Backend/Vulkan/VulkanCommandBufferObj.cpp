@@ -8,33 +8,6 @@
 
 namespace CZ {
 
-VulkanCommandBufferObj::VulkanCommandBufferObj(VulkanCommandPoolObj* cmdPoolObj)
-    : m_CmdPoolObj(cmdPoolObj) {
-    auto deviceObj = cmdPoolObj->m_DeviceObj;
-
-    if (!deviceObj) {
-        CZ_BACKEND_LOG(Error, "Device is no longer valid during CommandBuffer creation!");
-        return;
-    }
-
-    VkDevice logicalDevice = deviceObj->GetLogicalDevice();
-
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool        = cmdPoolObj->GetVkCommandPool();
-    allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = 1;
-
-    VkCommandBuffer cmdBuffer = VK_NULL_HANDLE;
-    VkResult result           = vkAllocateCommandBuffers(logicalDevice, &allocInfo, &cmdBuffer);
-    if (result != VK_SUCCESS) {
-        CZ_BACKEND_LOG(Error, "Failed to allocate command buffer: {}",
-                       VulkanUtils::VkResultToString(result));
-        return;
-    }
-    m_VkCommandBuffer = cmdBuffer;
-}
-
 VulkanCommandBufferObj::~VulkanCommandBufferObj() {
     // if (m_VkCommandBuffer == VK_NULL_HANDLE) return;
 
@@ -51,6 +24,8 @@ VulkanCommandBufferObj::~VulkanCommandBufferObj() {
 
     m_VkCommandBuffer = VK_NULL_HANDLE;
 }
+
+// ---- Public ----
 
 void VulkanCommandBufferObj::Begin() {
     VkCommandBufferBeginInfo beginInfo{};
@@ -176,6 +151,32 @@ void VulkanCommandBufferObj::End() {
         CZ_BACKEND_LOG(Error, "vkEndCommandBuffer failed: {}",
                        VulkanUtils::VkResultToString(result));
     }
+}
+
+// ---- Private ----
+
+VkResult VulkanCommandBufferObj::Init() {
+    VkResult result;
+
+    auto deviceObj         = m_CmdPoolObj->m_DeviceObj;
+    VkDevice logicalDevice = deviceObj->GetLogicalDevice();
+
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool        = m_CmdPoolObj->GetVkCommandPool();
+    allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer cmdBuffer = VK_NULL_HANDLE;
+    result                    = vkAllocateCommandBuffers(logicalDevice, &allocInfo, &cmdBuffer);
+    if (result != VK_SUCCESS) {
+        CZ_BACKEND_LOG(Error, "Failed to allocate command buffer: {}",
+                       VulkanUtils::VkResultToString(result));
+        return result;
+    }
+    m_VkCommandBuffer = cmdBuffer;
+
+    return result;
 }
 
 } // namespace CZ

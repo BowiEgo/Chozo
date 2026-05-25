@@ -12,8 +12,25 @@ class VulkanCommandPoolObj;
 
 class VulkanCommandBufferObj : public CommandListObj {
 public:
-    VulkanCommandBufferObj(VulkanCommandPoolObj* cmdPoolObj);
+    VulkanCommandBufferObj(VulkanCommandPoolObj* cmdPoolObj) : m_CmdPoolObj(cmdPoolObj) {};
     ~VulkanCommandBufferObj() override;
+
+    static Result<VulkanCommandBufferObj*, VkResult> Create(VulkanCommandPoolObj* cmdPoolObj) {
+        if (!cmdPoolObj)
+            return Result<VulkanCommandBufferObj*, VkResult>::Error(VK_ERROR_INITIALIZATION_FAILED);
+
+        auto* obj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanCommandBufferObj, cmdPoolObj);
+        if (!obj)
+            return Result<VulkanCommandBufferObj*, VkResult>::Error(VK_ERROR_OUT_OF_HOST_MEMORY);
+
+        VkResult res = obj->Init();
+        if (res != VK_SUCCESS) {
+            Delete(obj);
+            return Result<VulkanCommandBufferObj*, VkResult>::Error(res);
+        }
+
+        return Result<VulkanCommandBufferObj*, VkResult>::Success(obj);
+    }
 
     void Begin() override;
 
@@ -46,6 +63,7 @@ public:
     VkCommandBuffer GetVkCommandBuffer() const { return m_VkCommandBuffer; }
 
 private:
+    VkResult Init();
     // void PushConstants(VkShaderStageFlags stageFlags, const void* data, uint32_t size,
     //                    uint32_t offset);
 

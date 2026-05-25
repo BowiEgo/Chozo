@@ -1,17 +1,16 @@
 #pragma once
 
 #include "LogEnum.hpp"
-#include "Logger.hpp"
 
 namespace CZ {
 
-class FLogScopedSink {
+class LogScopedSink {
 public:
-    FLogScopedSink(LogCallback callback, const std::string& pattern);
-    ~FLogScopedSink();
+    LogScopedSink(LogCallback callback, const std::string& pattern);
+    ~LogScopedSink();
 
-    FLogScopedSink(const FLogScopedSink&)            = delete;
-    FLogScopedSink& operator=(const FLogScopedSink&) = delete;
+    LogScopedSink(const LogScopedSink&)            = delete;
+    LogScopedSink& operator=(const LogScopedSink&) = delete;
 
 private:
     struct Impl;

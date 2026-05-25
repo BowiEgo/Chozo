@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LogEnum.hpp"
+
 #include <Core/Header/Macros.h>
 
 namespace CZ {

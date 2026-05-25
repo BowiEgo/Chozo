@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Runtime/RHI/Device.hpp>
+#include <vulkan/vulkan_core.h>
 
 #ifndef VMA_IMPLEMENTATION
 typedef struct VmaAllocator_T* VmaAllocator;
@@ -39,8 +40,26 @@ class VulkanGraphicsContextObj;
 class VulkanDeviceObj : public DeviceObj {
 public:
     explicit VulkanDeviceObj(const VulkanGraphicsContextObj* ctxObj,
-                             const DeviceSpecification& spec);
+                             const DeviceSpecification& spec)
+        : DeviceObj(spec), m_GraphicContextObj(ctxObj) {}
     ~VulkanDeviceObj() override;
+
+    static Result<VulkanDeviceObj*, VkResult> Create(const VulkanGraphicsContextObj* ctxObj,
+                                                     const DeviceSpecification& spec) {
+        if (!ctxObj)
+            return Result<VulkanDeviceObj*, VkResult>::Error(VK_ERROR_INITIALIZATION_FAILED);
+
+        auto* obj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanDeviceObj, ctxObj, spec);
+        if (!obj) return Result<VulkanDeviceObj*, VkResult>::Error(VK_ERROR_OUT_OF_HOST_MEMORY);
+
+        VkResult res = obj->Init();
+        if (res != VK_SUCCESS) {
+            Delete(obj);
+            return Result<VulkanDeviceObj*, VkResult>::Error(res);
+        }
+
+        return Result<VulkanDeviceObj*, VkResult>::Success(obj);
+    }
 
     void WaitIdle() override;
 
@@ -79,9 +98,10 @@ public:
     DynamicState3Functions GetDynamicState3Functions() const { return m_DynamicState3Functions; }
 
 private:
-    void PickPhysicalDevice();
-    void CreateLogicalDevice();
-    void CreateVmaAllocator();
+    VkResult Init();
+    VkResult PickPhysicalDevice();
+    VkResult CreateLogicalDevice();
+    VkResult CreateVmaAllocator();
     void InitGlobalDescriptorPool();
     void LoadDynamicState3Functions();
 

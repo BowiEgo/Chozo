@@ -60,23 +60,6 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
     testPipeline = ctx->GetDevice()->CreatePipeline(
         testPipelineSpec, testShader->GetShaderResources(), testShader->GetReflection());
 
-    // // Pipeline
-    // {
-
-    //     PipelineSpecification spec;
-    //     spec.Name               = "Test";
-    //     spec.ShaderResources    = { testShader->GetShaderResources() };
-    //     spec.ColorFormats       = { PixelFormat::RGBA16F };
-    //     spec.VertexLayout       = { { ShaderDataType::Float3, "a_Position" },
-    //                                 { ShaderDataType::Float3, "a_Normal" },
-    //                                 { ShaderDataType::Float2, "a_TexCoord" },
-    //                                 { ShaderDataType::Float3, "a_Tangent" },
-    //                                 { ShaderDataType::Float3, "a_Bitangent" } };
-    //     spec.PushConstantRanges = { { 0, sizeof(uint32_t) } };
-
-    //     m_TestPipeline = RHIAPI::Get()->CreatePipeline(spec);
-    // }
-
     return { obj };
 }
 

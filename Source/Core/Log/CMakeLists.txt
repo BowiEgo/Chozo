@@ -9,6 +9,7 @@ set(MODULE_INCLUDE
 
 set(MODULE_SRC
 	Logger.cpp
+	LogScopedSink.cpp
 )
 
 add_chozo_module(

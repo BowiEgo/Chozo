@@ -63,6 +63,14 @@ void EditorLayer::OnAttach() {
 
     m_ImGuiRenderer = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, VulkanImGuiRenderer);
     m_ImGuiRenderer->Init(ImGui::GetCurrentContext(), window.As<SDLWindowObj>()->GetSDLWindow());
+
+    m_ConsolePanel.Open();
+    // m_SceneHierarchyPanel.Open();
+    // m_PropertiesPanel.Open();
+    // m_ContentBrowserPanel.Open();
+    // m_MaterialPanel.Open();
+    m_TextureViewerPanel.Open();
+    m_AssetsPanel.Open();
 }
 
 void EditorLayer::OnDetach() { m_ImGuiRenderer->Shutdown(); }
@@ -113,21 +121,61 @@ void EditorLayer::OnRender() {
     // ----------------------------------------------------------------------------
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("New", "Ctrl+N")) NewProject();
+            if (ImGui::MenuItem("Open...", "Ctrl+O")) OpenProject();
+            if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S", nullptr)) SaveProjectAs();
+            if (ImGui::MenuItem("Quit")) Application::Get().Close();
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Renderer")) {
             if (ImGui::MenuItem("Recompile Shaders")) {
+                // Renderer::GetShaderLibrary()->Recompile();
             }
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Settings")) {
+            // if (ImGui::MenuItem("Vertical Sync (VSync)", nullptr, &m_VSyncEnabled))
+            //     m_ViewportRenderer->GetWindow()->SetVSync(m_VSyncEnabled);
+
+            // if (ImGui::BeginMenu("PowerMode")) {
+            //     EAppPowerMode appPowerMode = Application::Get()->GetPowerMode();
+            //     if (ImGui::MenuItem("NoLimit", nullptr, appPowerMode == EAppPowerMode::NoLimit))
+            //         Application::Get()->SetPowerMode(EAppPowerMode::NoLimit);
+            //     if (ImGui::MenuItem("Extreme", nullptr, appPowerMode == EAppPowerMode::Extreme))
+            //         Application::Get()->SetPowerMode(EAppPowerMode::Extreme);
+            //     if (ImGui::MenuItem("Performance", nullptr,
+            //                         appPowerMode == EAppPowerMode::Performance))
+            //         Application::Get()->SetPowerMode(EAppPowerMode::Performance);
+
+            //     if (ImGui::MenuItem("Balanced", nullptr, appPowerMode ==
+            //     EAppPowerMode::Balanced))
+            //         Application::Get()->SetPowerMode(EAppPowerMode::Balanced);
+
+            //     if (ImGui::MenuItem("PowerSaving", nullptr,
+            //                         appPowerMode == EAppPowerMode::PowerSaving))
+            //         Application::Get()->SetPowerMode(EAppPowerMode::PowerSaving);
+            //     ImGui::EndMenu();
+            // }
             ImGui::EndMenu();
         }
 
         ImGui::EndMenuBar();
     }
+#pragma endregion
+
+#pragma region Editor Panels
+    // ----------------------------------------------------------------------------
+    // [Sub-Section] Sub-Panels Update
+    // ----------------------------------------------------------------------------
+    m_ConsolePanel.Draw("Console");
+    // m_SceneHierarchyPanel.Draw("Scene Hierarchy");
+    // m_PropertiesPanel.Draw("Properties");
+    // m_ContentBrowserPanel.Draw("Content Browser");
+    // m_MaterialPanel.Draw("Material");
+    // m_TextureViewerPanel.Draw("Texture Viewer");
+    m_AssetsPanel.Draw("Assets");
 #pragma endregion
 
 #pragma region Viewport Rendering
@@ -159,12 +207,12 @@ void EditorLayer::OnRender() {
     // // Integrated Debug Overlay
     // m_Overlay.Draw("Editor Overlay:", &m_IsOverlayOpen, [io]() {
     //     // Performance monitoring
-    //     auto appProfiler = CApplication::Get()->GetPerformanceProfiler();
-    //     float fps        = CApplication::Get()->GetFPSCounter()->GetFPS();
-    //     float latency    = CApplication::Get()->GetFPSCounter()->GetAvgLatency();
+    //     auto appProfiler = Application::Get()->GetPerformanceProfiler();
+    //     float fps        = Application::Get()->GetFPSCounter()->GetFPS();
+    //     float latency    = Application::Get()->GetFPSCounter()->GetAvgLatency();
 
     //     auto rendererProfiler =
-    //         CApplication::Get()->GetRenderEngine()->GetRenderer()->GetPerformanceProfiler();
+    //         Application::Get()->GetRenderEngine()->GetRenderer()->GetPerformanceProfiler();
 
     //     ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Engine FPS: %.1f", fps);
     //     ImGui::TextDisabled("Latency: %.3f ms", latency);
@@ -180,7 +228,7 @@ void EditorLayer::OnRender() {
     //         ImGui::Text("%-20s: %.3f ms", GRendererProfileSlotNames[i], time);
     //     }
 
-    //     auto gpuProfiler = CApplication::Get()->GetGPUProfiler();
+    //     auto gpuProfiler = Application::Get()->GetGPUProfiler();
     //     float mbSize     = 1024.0 * 1024.0;
 
     //     for (auto& heapInfo : gpuProfiler.Heaps) {
@@ -309,3 +357,17 @@ void EditorLayer::SetDarkThemeColors() {
     colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.46f, 0.46f, 0.50f, 1.00f);
     colors[ImGuiCol_ResizeGripActive]  = ImVec4(0.50f, 0.50f, 0.54f, 1.00f);
 }
+
+void EditorLayer::NewProject() {}
+
+void EditorLayer::OpenProject() {
+    // auto context = m_ViewportRenderer->GetGraphicContext();
+
+    // UFileDialog::Get().Open(
+    //     "TextureOpenDialog", "Open a texture",
+    //     "Image file (*.png;*.jpg;*.jpeg;*.bmp;*.tga){.png,.jpg,.jpeg,.bmp,.tga},.*");
+}
+
+void EditorLayer::OpenProject(const std::filesystem::path& path) {}
+
+void EditorLayer::SaveProjectAs() {}

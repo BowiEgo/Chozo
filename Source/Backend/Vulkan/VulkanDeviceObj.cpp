@@ -9,19 +9,9 @@
 
 #include <Core/Memory/MemoryTypes.hpp>
 #include <Runtime/RHI/CommandPool.hpp>
+#include <vulkan/vulkan_core.h>
 
 namespace CZ {
-
-VulkanDeviceObj::VulkanDeviceObj(const VulkanGraphicsContextObj* ctxObj,
-                                 const DeviceSpecification& spec)
-    : DeviceObj(spec), m_GraphicContextObj(ctxObj) {
-    PickPhysicalDevice();
-    CreateLogicalDevice();
-    CreateVmaAllocator();
-
-    InitGlobalDescriptorPool();
-    CZ_BACKEND_LOG(Info, "VulkanDeviceObj created.");
-}
 
 VulkanDeviceObj::~VulkanDeviceObj() {
     if (m_VkDevice) {
@@ -47,7 +37,10 @@ void VulkanDeviceObj::WaitIdle() { vkDeviceWaitIdle(m_VkDevice); }
 
 CommandPool VulkanDeviceObj::CreateCommandPool(CommandPoolSpecification& spec) {
     spec.QueueIndex = m_GraphicsQueueIndex;
-    return CommandPool(CZ_NEW(MEMORY_USAGE_RENDER, VulkanCommandPoolObj, this, spec));
+
+    auto result = VulkanCommandPoolObj::Create(this, spec);
+    if (result) return CommandPool(result.value());
+    return CommandPool();
 }
 
 Sampler VulkanDeviceObj::CreateSampler(const SamplerSpecification spec) {
@@ -113,7 +106,22 @@ VkDescriptorPool
 }
 // --- Private ---
 
-void VulkanDeviceObj::PickPhysicalDevice() {
+VkResult VulkanDeviceObj::Init() {
+    VkResult result;
+
+    result = PickPhysicalDevice();
+    if (result != VK_SUCCESS) return result;
+
+    CreateLogicalDevice();
+    CreateVmaAllocator();
+
+    InitGlobalDescriptorPool();
+    CZ_BACKEND_LOG(Info, "VulkanDeviceObj created.");
+
+    return result;
+}
+
+VkResult VulkanDeviceObj::PickPhysicalDevice() {
     VkInstance vkInstance = m_GraphicContextObj->GetVKInstance();
 
     // 1. Enumerate physical devices
@@ -121,7 +129,7 @@ void VulkanDeviceObj::PickPhysicalDevice() {
     vkEnumeratePhysicalDevices(vkInstance, &deviceCount, nullptr);
     if (deviceCount == 0) {
         CZ_BACKEND_LOG(Fatal, "No Vulkan-capable GPUs found.");
-        return;
+        return VK_ERROR_INITIALIZATION_FAILED;
     }
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(vkInstance, &deviceCount, devices.data());
@@ -210,16 +218,18 @@ void VulkanDeviceObj::PickPhysicalDevice() {
 
     if (selectedDevice == VK_NULL_HANDLE) {
         CZ_BACKEND_LOG(Fatal, "Failed to find a suitable GPU with required features.");
-        return;
+        return VK_ERROR_INITIALIZATION_FAILED;
     }
 
     m_VkPhysicalDevice = selectedDevice;
 
     VulkanUtils::LogPhysicalDeviceInfo(m_VkPhysicalDevice);
     VulkanUtils::LogMemoryBudget(m_VkPhysicalDevice);
+
+    return VK_SUCCESS;
 }
 
-void VulkanDeviceObj::CreateLogicalDevice() {
+VkResult VulkanDeviceObj::CreateLogicalDevice() {
     VkSurfaceKHR vkSurface = m_GraphicContextObj->GetVKSurface();
 
     QueueFamilyIndices indices = VulkanUtils::FindQueueFamilies(m_VkPhysicalDevice, vkSurface);
@@ -332,9 +342,8 @@ void VulkanDeviceObj::CreateLogicalDevice() {
     // Create logical device
     VkResult result = vkCreateDevice(m_VkPhysicalDevice, &deviceCreateInfo, nullptr, &m_VkDevice);
     if (result != VK_SUCCESS) {
-        CZ_BACKEND_LOG(Error, "Vulkan Device Creation Failed: {}",
-                       VulkanUtils::VkResultToString(result));
-        return;
+        CZ_BACKEND_LOG(Error, "Vulkan Device Creation Failed");
+        return result;
     }
 
     // Get queues
@@ -353,9 +362,11 @@ void VulkanDeviceObj::CreateLogicalDevice() {
                    indices.Graphics.value(), indices.Present.value(), indices.Compute.value());
 
     CZ_BACKEND_LOG(Info, "Vulkan Logical Device Created.");
+
+    return VK_SUCCESS;
 }
 
-void VulkanDeviceObj::CreateVmaAllocator() {
+VkResult VulkanDeviceObj::CreateVmaAllocator() {
     VkInstance vkInstance = m_GraphicContextObj->GetVKInstance();
 
     VmaAllocatorCreateInfo allocatorInfo = {};
@@ -363,7 +374,7 @@ void VulkanDeviceObj::CreateVmaAllocator() {
     allocatorInfo.device                 = m_VkDevice;
     allocatorInfo.instance               = vkInstance;
     allocatorInfo.flags                  = VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
-    vmaCreateAllocator(&allocatorInfo, &m_VmaAllocator);
+    return vmaCreateAllocator(&allocatorInfo, &m_VmaAllocator);
 }
 
 void VulkanDeviceObj::InitGlobalDescriptorPool() {

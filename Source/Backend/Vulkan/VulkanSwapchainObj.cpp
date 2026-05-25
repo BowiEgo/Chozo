@@ -28,8 +28,8 @@ VulkanSwapchainObj::VulkanSwapchainObj(const VulkanGraphicsContextObj* ctxObj,
 
     m_InFlightFences.reserve(ctxObj->GetMaxFramesInFlight());
     for (uint32_t i = 0; i < ctxObj->GetMaxFramesInFlight(); ++i) {
-        m_InFlightFences.emplace_back(
-            CZ_NEW(MEMORY_USAGE_RENDER, VulkanFenceObj, ctxObj->m_DeviceObj));
+        auto result = VulkanFenceObj::Create(ctxObj->m_DeviceObj);
+        if (result) m_InFlightFences.emplace_back(result.value());
     }
 }
 

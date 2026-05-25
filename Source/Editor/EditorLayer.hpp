@@ -6,6 +6,14 @@
 
 #include "Renderer/Vulkan/VulkanImGuiRenderer.hpp"
 
+#include "Panels/AssetsPanel.h"
+#include "Panels/ConsolePanel.h"
+// #include "Panels/ContentBrowserPanel.h"
+// #include "Panels/MaterialPanel.h"
+// #include "Panels/PropertiesPanel.h"
+// #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/TextureViewerPanel.h"
+
 using namespace CZ;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogEditorLayer, Info);
@@ -37,6 +45,11 @@ private:
 
     void SetDarkThemeColors();
 
+    void NewProject();
+    void OpenProject();
+    void OpenProject(const std::filesystem::path& path);
+    void SaveProjectAs();
+
     bool m_BlockEvents;
 
     ImVec2 m_ViewportSize{ 1080, 720 };
@@ -47,4 +60,13 @@ private:
 
     Renderer m_ViewportRenderer;
     Viewport m_Viewport;
+
+    // Panels
+    ConsolePanel m_ConsolePanel;
+    // SceneHierarchyPanel m_SceneHierarchyPanel;
+    // PropertiesPanel m_PropertiesPanel;
+    // ContentBrowserPanel m_ContentBrowserPanel;
+    // MaterialPanel m_MaterialPanel;
+    TextureViewerPanel m_TextureViewerPanel;
+    AssetsPanel m_AssetsPanel;
 };

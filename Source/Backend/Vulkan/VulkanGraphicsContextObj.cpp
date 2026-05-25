@@ -61,7 +61,10 @@ void VulkanGraphicsContextObj::Init() {
         spec.AppName    = "Chozo Engine";
         spec.AppVersion = 1;
 
-        m_DeviceObj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanDeviceObj, this, spec);
+        auto result = VulkanDeviceObj::Create(this, spec);
+        if (!result) return;
+
+        m_DeviceObj = result.value();
         m_Device    = Device(m_DeviceObj);
     }
 
