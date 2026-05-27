@@ -34,7 +34,6 @@ VulkanImageObj::~VulkanImageObj() {
             m_VmaAllocation = VK_NULL_HANDLE;
         } else {
             if (m_VkImage) vkDestroyImage(logicalDevice, m_VkImage, nullptr);
-            if (m_VkMemory) vkFreeMemory(logicalDevice, m_VkMemory, nullptr);
         }
     }
 
@@ -102,8 +101,7 @@ void VulkanImageObj::CreateImageResources() {
         CZ_BACKEND_LOG(Error, "vmaCreateImage failed");
         return;
     }
-    m_VkImage  = vkImageRaw;
-    m_VkMemory = VK_NULL_HANDLE;
+    m_VkImage = vkImageRaw;
 }
 
 VkImageView VulkanImageObj::GetOrCreateVKView(const ImageViewSpecification& spec) {

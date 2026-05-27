@@ -25,6 +25,8 @@ protected:
 using DrawFunc = std::function<void(CommandList)>;
 
 struct StartupHost : Handle<class StartupHostObj> {
+    template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
+
     static StartupHost Create();
 
     bool IsOffscreen() const;

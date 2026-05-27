@@ -16,7 +16,7 @@ public:
     void NewFrame();
     void Draw(ImDrawData* drawData, CommandList cmdList);
 
-    ImTextureID GetTextureIDForRHITexture(Texture texture);
+    ImTextureID GetTextureID(Texture texture);
 
 private:
     HandleMap<Texture> m_TextureIDCache;

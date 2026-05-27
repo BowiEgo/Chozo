@@ -21,6 +21,7 @@ set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Pipeline.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/SetLayout.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/ShaderRes.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/GraphicsBuffer.hpp
 )
 
 set(MODULE_SRC
@@ -41,6 +42,7 @@ set(MODULE_SRC
     Pipeline.cpp
     SetLayout.cpp
     ShaderRes.cpp
+    GraphicsBuffer.cpp
 )
 
 set(CZ_RUNTIME_RHI_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})

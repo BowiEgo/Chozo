@@ -3,15 +3,14 @@
 #include <Core/Header/Handle.hpp>
 #include <Core/Header/Types.h>
 #include <Core/Memory/Memory.hpp>
+#include <Runtime/RHI/GraphicsBuffer.hpp>
 #include <Runtime/RHI/Pipeline.hpp>
 #include <Runtime/RHI/RHITypes.hpp>
 // #include <Runtime/RenderCore/Viewport.hpp>
 
 namespace CZ {
 
-struct Pipeline;
 struct DescriptorSet;
-struct GraphicsBuffer;
 
 struct RenderViewport {
     float x, y, width, height, minDepth, maxDepth;
@@ -46,9 +45,9 @@ public:
 
     // virtual void PushConstants(const void* data, uint32 size, uint32 offset) = 0;
 
-    // virtual void BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) = 0;
+    virtual void BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) = 0;
 
-    // virtual void BindIndexBuffer(GraphicsBuffer indexBuffer) = 0;
+    virtual void BindIndexBuffer(GraphicsBuffer indexBuffer) = 0;
 
     virtual void DrawIndexed(uint32 indexCount) = 0;
 

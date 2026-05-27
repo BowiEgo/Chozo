@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Runtime/RHI/GraphicsBuffer.hpp"
 #include <Runtime/RHI/CommandList.hpp>
 #include <Runtime/RHI/Device.hpp>
 #include <Runtime/RHI/FrameBuffer.hpp>
@@ -51,6 +52,11 @@ public:
                             const std::vector<ShaderRes>& shaders,
                             const ShaderReflection& reflection) {
         return m_GraphicsContext->GetDevice()->CreatePipeline(spec, shaders, reflection);
+    }
+
+    GraphicsBuffer CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
+                                        const Buffer* initialData = nullptr) {
+        return m_GraphicsContext->GetDevice()->CreateGraphicsBuffer(spec, initialData);
     }
 
 protected:

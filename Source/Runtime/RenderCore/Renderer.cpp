@@ -5,7 +5,6 @@
 #include <Runtime/RHI/CommandList.hpp>
 #include <Runtime/RHI/CommandPool.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>
-#include <Runtime/RenderCore/AssetManager.hpp>
 #include <Runtime/RenderCore/Shader.hpp>
 #include <Runtime/RenderCore/Viewport.hpp>
 
@@ -17,8 +16,6 @@
 #include <vector>
 
 namespace CZ {
-
-DEFINE_LOG_CATEGORY_STATIC(LogRenderer, Info);
 
 static Pipeline testPipeline;
 
@@ -50,15 +47,45 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
         obj->Frames[i].CommandList = obj->Frames[i].CommandPool->AllocateCommandBuffer();
     }
 
-    auto testShader =
-        Application::Get().GetEngine()->GetShaderRegistry()->LoadAsset("shaders://Test.slang");
-
     auto testPipelineSpec         = PipelineSpecification{};
     testPipelineSpec.Name         = "TestPipeline";
     testPipelineSpec.ColorFormats = { PixelFormat::RGBA16F };
+#if 0
+    std::vector<std::string> files = { "shaders://Test.slang",        "shaders://Test copy.slang",
+                                       "shaders://Test copy 2.slang", "shaders://Test copy 3.slang",
+                                       "shaders://Test copy 4.slang", "shaders://Test copy 5.slang",
+                                       "shaders://Test copy 6.slang", "shaders://Test copy 7.slang",
+                                       "shaders://Test copy 8.slang", "shaders://Test copy 9.slang",
+                                       "shaders://Test copy 10.slang" };
+#else
+    std::vector<std::string> files = { "shaders://Test.slang" };
+#endif
 
-    testPipeline = ctx->GetDevice()->CreatePipeline(
-        testPipelineSpec, testShader->GetShaderResources(), testShader->GetReflection());
+#if 1
+    std::vector<std::future<Shader>> pendingShaders;
+    for (auto& path : files) {
+        pendingShaders.push_back(
+            Application::Get().GetEngine()->GetShaderRegistry()->LoadAssetAsync(path));
+    }
+
+    for (auto& f : pendingShaders) {
+        auto shader = f.get();
+        CZ_CORE_LOG(Trace, "Shader {} compiled", shader.GetName());
+        if (shader.GetName() == "Test")
+            testPipeline = ctx->GetDevice()->CreatePipeline(
+                testPipelineSpec, shader->GetShaderResources(), shader->GetReflection());
+    }
+#else
+    for (auto& path : files) {
+        auto shader = Application::Get().GetEngine()->GetShaderRegistry()->LoadAsset(path);
+        CZ_CORE_LOG(Trace, "Shader {} compiled", shader.GetName());
+
+        if (shader.GetName() == "Test")
+            testPipeline = ctx->GetDevice()->CreatePipeline(
+                testPipelineSpec, shader->GetShaderResources(), shader->GetReflection());
+    }
+
+#endif
 
     return { obj };
 }

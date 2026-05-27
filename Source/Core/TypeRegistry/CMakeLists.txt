@@ -1,13 +1,15 @@
-set(MODULE_NAME CZProfile)
+set(MODULE_NAME CZTypeRegistry)
 
 set(MODULE_TYPE Core)
 
 set(MODULE_INCLUDE
-    ${CHOZO_INCLUDE_DIR}/Core/Profile/TracyProfile.h
+    ${CHOZO_INCLUDE_DIR}/Core/TypeRegistry/TypeMask.hpp
+    ${CHOZO_INCLUDE_DIR}/Core/TypeRegistry/TypeRegistry.hpp
 )
 
 set(MODULE_SRC
-    TracyProfile.cpp
+    TypeMask.cpp
+    TypeRegistry.cpp
 )
 
 add_chozo_module(
@@ -15,7 +17,6 @@ add_chozo_module(
     TYPE    ${MODULE_TYPE}
     INCLUDE ${MODULE_INCLUDE}
     SOURCE  ${MODULE_SRC}
-    LINK    TracyClient
 )
 
 add_chozo_module_tests()

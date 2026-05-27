@@ -21,4 +21,6 @@ Scope<ShaderObj> ResourceLoaderTraits<ShaderObj>::Load(const std::string& virtua
     return nullptr;
 }
 
+template <> void AssetRegistry<ShaderObj>::Init() {}
+
 } // namespace CZ

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Runtime/RenderCore/AssetRegistry.hpp>
+#include <Runtime/RenderCore/Shader.hpp>
 
 namespace CZ {
 

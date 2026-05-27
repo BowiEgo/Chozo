@@ -46,9 +46,9 @@ public:
 
     // void PushConstants(const void* data, uint32 size, uint32 offset) override;
 
-    //  void BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) override;
+    void BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) override;
 
-    //  void BindIndexBuffer(GraphicsBuffer indexBuffer) override;
+    void BindIndexBuffer(GraphicsBuffer indexBuffer) override;
 
     void DrawIndexed(uint32 indexCount) override;
 

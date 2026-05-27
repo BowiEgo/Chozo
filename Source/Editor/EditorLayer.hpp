@@ -6,13 +6,13 @@
 
 #include "Renderer/Vulkan/VulkanImGuiRenderer.hpp"
 
-#include "Panels/AssetsPanel.h"
-#include "Panels/ConsolePanel.h"
-// #include "Panels/ContentBrowserPanel.h"
-// #include "Panels/MaterialPanel.h"
-// #include "Panels/PropertiesPanel.h"
-// #include "Panels/SceneHierarchyPanel.h"
-#include "Panels/TextureViewerPanel.h"
+#include "Panels/AssetsPanel.hpp"
+#include "Panels/ConsolePanel.hpp"
+// #include "Panels/ContentBrowserPanel.hpp"
+// #include "Panels/MaterialPanel.hpp"
+// #include "Panels/PropertiesPanel.hpp"
+#include "Panels/SceneHierarchyPanel.hpp"
+#include "Panels/TextureViewerPanel.hpp"
 
 using namespace CZ;
 
@@ -38,6 +38,8 @@ public:
 
     void Draw(CommandList cmdList);
 
+    VulkanImGuiRenderer* GetImGuiRenderer() const { return m_ImGuiRenderer.get(); }
+
 private:
     void Init();
 
@@ -61,9 +63,11 @@ private:
     Renderer m_ViewportRenderer;
     Viewport m_Viewport;
 
+    EditorNodeTree m_NodeTree;
+
     // Panels
     ConsolePanel m_ConsolePanel;
-    // SceneHierarchyPanel m_SceneHierarchyPanel;
+    SceneHierarchyPanel m_SceneHierarchyPanel;
     // PropertiesPanel m_PropertiesPanel;
     // ContentBrowserPanel m_ContentBrowserPanel;
     // MaterialPanel m_MaterialPanel;

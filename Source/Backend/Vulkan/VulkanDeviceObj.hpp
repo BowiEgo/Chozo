@@ -78,6 +78,9 @@ public:
 
     SetLayout CreateSetLayout(const SetLayoutDescription& desc) override;
 
+    GraphicsBuffer CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
+                                        const Buffer* initialData = nullptr) override;
+
     VkDevice GetLogicalDevice() const { return m_VkDevice; }
 
     VkPhysicalDevice GetPhysicalDevice() const { return m_VkPhysicalDevice; }

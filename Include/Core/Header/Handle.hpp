@@ -21,6 +21,7 @@ public:
     explicit operator bool() const { return m_Obj != nullptr; }
 
     bool operator==(const Handle& other) { return m_Obj == other.Unwrap(); }
+    bool EqualObj(TObject* obj) { return m_Obj == obj; }
 
     TObject* operator->() { return m_Obj; }
     const TObject* operator->() const { return m_Obj; }

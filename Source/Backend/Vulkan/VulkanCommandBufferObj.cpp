@@ -2,6 +2,7 @@
 
 #include "VulkanCommandPoolObj.hpp"
 #include "VulkanDeviceObj.hpp"
+#include "VulkanGraphicsBufferObj.hpp"
 #include "VulkanPipelineObj.hpp"
 
 #include <Core/Log/LogMacros.hpp>
@@ -89,46 +90,47 @@ void VulkanCommandBufferObj::BindPipeline(Pipeline pipeline) {
 // VkPipelineLayout pipelineLayout =
 //     m_CurrentPipeline->GetPipelineLayout(); // 假设返回 VkPipelineLayout
 // if (!pipelineLayout) {
-//     CZ_LOG(LogVulkan, Error, "Invalid pipeline layout");
+//     CZ_BACKEND_LOG( Error, "Invalid pipeline layout");
 //     return;
 // }
 
 // vkCmdPushConstants(m_VKHandle, pipelineLayout, stageFlags, offset, size, data);
 // }
 
-// void VulkanCommandBufferObj::BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) {
-// auto vkBuffer = vertexBuffer.As<CVulkanBuffer>();
-// if (!vkBuffer) {
-//     CZ_LOG(LogVulkanCommandBuffer, Error, "Invalid buffer type for Vertex Buffer binding");
-//     return;
-// }
+void VulkanCommandBufferObj::BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) {
+    auto vkBufferObj  = vertexBuffer.As<VulkanGraphicsBufferObj>();
+    VkBuffer vkBuffer = vkBufferObj->GetVKBuffer();
 
-// if (!HasFlag(vkBuffer->GetUsage(), EBufferUsage::VertexBuffer)) {
-//     CZ_LOG(LogVulkanCommandBuffer, Warning,
-//            "Binding non-vertex buffer as vertex buffer (flags: 0x%x)",
-//            static_cast<uint32>(vkBuffer->GetUsage()));
-// }
+    if (!vkBufferObj) {
+        CZ_BACKEND_LOG(Error, "Invalid buffer type for Vertex Buffer binding");
+        return;
+    }
 
-// VkBuffer buffer     = vkBuffer->GetVKBuffer();
-// VkDeviceSize offset = 0;
-// vkCmdBindVertexBuffers(m_VKHandle, binding, 1, &buffer, &offset);
-// }
+    if (!HasFlag(vkBufferObj->GetUsage(), BufferUsage::VertexBuffer)) {
+        CZ_BACKEND_LOG(Warning, "Binding non-vertex buffer as vertex buffer (flags: {})",
+                       static_cast<uint32>(vkBufferObj->GetUsage()));
+    }
 
-// void VulkanCommandBufferObj::BindIndexBuffer(GraphicsBuffer indexBuffer) {
-//     auto vkBuffer = indexBuffer.As<CVulkanBuffer>();
-//     if (!vkBuffer) {
-//         CZ_LOG(LogVulkanCommandBuffer, Error, "Invalid buffer type for Index Buffer binding");
-//         return;
-//     }
+    VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(m_VkCommandBuffer, binding, 1, &vkBuffer, &offset);
+}
 
-//     if (!HasFlag(vkBuffer->GetUsage(), EBufferUsage::IndexBuffer)) {
-//         CZ_LOG(LogVulkanCommandBuffer, Warning,
-//                "Binding non-index buffer as index buffer (flags: 0x%x)",
-//                static_cast<uint32>(vkBuffer->GetUsage()));
-//     }
+void VulkanCommandBufferObj::BindIndexBuffer(GraphicsBuffer indexBuffer) {
+    auto vkBufferObj  = indexBuffer.As<VulkanGraphicsBufferObj>();
+    VkBuffer vkBuffer = vkBufferObj->GetVKBuffer();
 
-//     vkCmdBindIndexBuffer(m_VKHandle, vkBuffer->GetVKBuffer(), 0, VK_INDEX_TYPE_UINT32);
-// }
+    if (!vkBufferObj) {
+        CZ_BACKEND_LOG(Error, "Invalid buffer type for Index Buffer binding");
+        return;
+    }
+
+    if (!HasFlag(vkBufferObj->GetUsage(), BufferUsage::IndexBuffer)) {
+        CZ_BACKEND_LOG(Warning, "Binding non-index buffer as index buffer (flags: {})",
+                       static_cast<uint32>(vkBufferObj->GetUsage()));
+    }
+
+    vkCmdBindIndexBuffer(m_VkCommandBuffer, vkBuffer, 0, VK_INDEX_TYPE_UINT32);
+}
 
 void VulkanCommandBufferObj::DrawIndexed(uint32 indexCount) {
     vkCmdDrawIndexed(m_VkCommandBuffer, indexCount, 1, 0, 0, 0);

@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <memory>
-#include <new>
 #include <utility>
 
 namespace CZ {

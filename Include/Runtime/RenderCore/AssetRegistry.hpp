@@ -3,8 +3,11 @@
 #include <Core/EntityRegistry/EntityRegistry.hpp>
 #include <Core/FileSystem/VFS.hpp>
 #include <Core/Header/Assert.hpp>
+#include <Core/JobSystem/JobSystem.h>
 #include <Core/Log/LogMacros.hpp>
 #include <Runtime/RenderCore/Asset.hpp>
+
+#include <future>
 
 namespace CZ {
 
@@ -16,6 +19,8 @@ template <typename T> struct ResourceLoaderTraits {
 
 template <typename T> struct ResourceStoragePolicy {
     T* Allocate(const std::string& path) {
+        std::lock_guard<std::mutex> lock(m_CacheMutex);
+
         auto it = m_Cache.find(path);
         if (it != m_Cache.end()) return it->second.get();
 
@@ -36,22 +41,59 @@ template <typename T> struct ResourceStoragePolicy {
 
 private:
     std::unordered_map<std::string, Scope<T>> m_Cache;
+    std::mutex m_CacheMutex;
 };
 
 template <typename T> class AssetRegistry : public EntityRegistry<T, ResourceStoragePolicy<T>> {
 public:
     using EntityRegistry<T, ResourceStoragePolicy<T>>::EntityRegistry;
-    using AssetType = typename AssetTraits<T>::AssetType;
+    using AssetClass = typename AssetTraits<T>::AssetClass;
 
-    AssetType LoadAsset(const std::string& path) {
+    void Init() override;
+
+    AssetClass LoadAsset(const std::string& path) {
         T* ptr = this->Allocate(path);
-        AssetType asset(ptr);
+
+        std::lock_guard<std::mutex> lock(m_CacheMutex);
+
+        for (auto& [handle, asset] : m_Cache) {
+            if (asset.EqualObj(ptr)) return asset;
+        }
+
+        AssetClass asset(ptr);
 
         AssetHandle handle = AssetHandle::Generate();
         asset.SetHandle(handle);
         m_Cache[handle] = asset;
 
         return asset;
+    }
+
+    std::future<AssetClass> LoadAssetAsync(const std::string& path) {
+        struct TaskData {
+            std::string Path;
+            AssetRegistry* Registry;
+            std::promise<AssetClass> Promise;
+        };
+
+        auto* rawData     = new TaskData;
+        rawData->Path     = path;
+        rawData->Registry = this;
+        auto future       = rawData->Promise.get_future();
+
+        JobHeader job{};
+        job.OnExecute = [](void* user) {
+            auto* data       = static_cast<TaskData*>(user);
+            AssetClass asset = data->Registry->LoadAsset(data->Path);
+            data->Promise.set_value(std::move(asset));
+        };
+        job.OnComplete = [](void* user) { delete static_cast<TaskData*>(user); };
+        job.User       = rawData;
+        job.Type       = 0;
+
+        JobSystem::Get().Submit(&job, JOB_DISPATCH_STANDARD);
+
+        return future;
     }
 
     void Clear() {
@@ -63,7 +105,8 @@ public:
     }
 
 private:
-    std::unordered_map<AssetHandle, AssetType> m_Cache;
+    std::unordered_map<AssetHandle, AssetClass> m_Cache;
+    std::mutex m_CacheMutex;
 };
 
 } // namespace CZ

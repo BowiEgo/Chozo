@@ -16,6 +16,8 @@ struct DefaultStoragePolicy {
 
 template <typename T, typename Policy = DefaultStoragePolicy> class EntityRegistry : public Policy {
 public:
+    virtual void Init() = 0;
+
     template <typename... Args> Handle<T> Create(Args&&... args) {
         T* ptr = this->Allocate(std::forward<Args>(args)...);
         return Handle<T>(ptr);

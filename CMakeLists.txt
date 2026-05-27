@@ -92,7 +92,7 @@ target_include_directories(CZEnginePrerequisites INTERFACE
     # ${CHOZO_SOURCE_DIR}
 )
 
-target_link_libraries(CZEnginePrerequisites INTERFACE fmt::fmt)
+target_link_libraries(CZEnginePrerequisites INTERFACE fmt::fmt glm::glm Tracy::TracyClient)
 
 # Chozo Core Modules
 # - strict dependency ordering
@@ -104,15 +104,17 @@ add_subdirectory(Source/Core/FileSystem)
 add_subdirectory(Source/Core/Header)
 add_subdirectory(Source/Core/Layer)
 add_subdirectory(Source/Core/Log)
+add_subdirectory(Source/Core/Math)
 add_subdirectory(Source/Core/Memory)
 add_subdirectory(Source/Core/Platform)
 add_subdirectory(Source/Core/Utilities)
-add_subdirectory(Source/Core/Profile)
+add_subdirectory(Source/Core/Profiler)
+add_subdirectory(Source/Core/TypeRegistry)
+add_subdirectory(Source/Core/JobSystem)
 
 add_library(CZCoreLibs INTERFACE)
 target_link_libraries(CZCoreLibs INTERFACE
     fmt::fmt
-    Tracy::TracyClient
     ${CZ_CORE_MODULE_LIST}
 )
 target_include_directories(CZCoreLibs INTERFACE

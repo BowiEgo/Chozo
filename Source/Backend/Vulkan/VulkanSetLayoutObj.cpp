@@ -6,9 +6,7 @@ namespace CZ {
 
 VulkanSetLayoutObj::VulkanSetLayoutObj(const VulkanDeviceObj* deviceObj,
                                        const SetLayoutDescription& desc)
-    : m_DeviceObj(deviceObj), m_Desc(desc) {
-    Init();
-}
+    : m_DeviceObj(deviceObj), m_Desc(desc) {}
 
 VulkanSetLayoutObj::~VulkanSetLayoutObj() {
     CZ_BACKEND_LOG(Trace, "VulkanSetLayout destroying...");
@@ -18,18 +16,20 @@ VulkanSetLayoutObj::~VulkanSetLayoutObj() {
     }
 }
 
-bool VulkanSetLayoutObj::Init() {
-    VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
+VkResult VulkanSetLayoutObj::Init() {
+    VkResult result;
 
-    uint32_t bindingCount = m_Desc.Bindings.size();
+    VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
+    uint32_t bindingCount  = m_Desc.Bindings.size();
 
     VkDescriptorSetLayoutBinding* vkBindings = NULL;
     if (bindingCount > 0) {
         vkBindings = (VkDescriptorSetLayoutBinding*)malloc(bindingCount *
                                                            sizeof(VkDescriptorSetLayoutBinding));
         if (!vkBindings) {
-            CZ_BACKEND_LOG(Error, "Failed to allocate memory for layout bindings.");
-            return false;
+            result = VK_ERROR_INITIALIZATION_FAILED;
+            RETURN_WITH_LOG_ON_VULKAN_FAIL(result,
+                                           "Failed to allocate memory for layout bindings.");
         }
 
         for (uint32_t i = 0; i < bindingCount; i++) {
@@ -52,13 +52,13 @@ bool VulkanSetLayoutObj::Init() {
         .pBindings    = vkBindings
     };
 
-    VkResult result = vkCreateDescriptorSetLayout(logicalDevice, &layoutInfo, NULL, &m_VkSetLayout);
+    result = vkCreateDescriptorSetLayout(logicalDevice, &layoutInfo, NULL, &m_VkSetLayout);
 
     free(vkBindings);
 
-    RETURN_ON_VULKAN_FAIL(result);
+    RETURN_WITH_LOG_ON_VULKAN_FAIL(result, "Failed to Create DescriptorSetLayout");
 
-    return true;
+    return result;
 }
 
 } // namespace CZ

@@ -1,10 +1,11 @@
 #include "EditorLayer.hpp"
 
-#include "../Runtime/Window/SDLWindow/SDLWindowObj.hpp"
-#include "imgui.h"
+#include "UIUtils.hpp"
 
 #include <Runtime/App/Application.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>
+
+#include "../Runtime/Window/SDLWindow/SDLWindowObj.hpp"
 
 using namespace CZ;
 
@@ -55,8 +56,8 @@ void EditorLayer::OnAttach() {
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
-    float pixelRatio = window.GetPixelRatio();
-    Extent2D fbScale = window.GetFrameBufferScale();
+    float pixelRatio = window->GetPixelRatio();
+    Extent2D fbScale = window->GetFrameBufferScale();
     style.ScaleAllSizes(fbScale.Width / pixelRatio);
 
     SetDarkThemeColors();
@@ -64,8 +65,11 @@ void EditorLayer::OnAttach() {
     m_ImGuiRenderer = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, VulkanImGuiRenderer);
     m_ImGuiRenderer->Init(ImGui::GetCurrentContext(), window.As<SDLWindowObj>()->GetSDLWindow());
 
+    m_NodeTree.Init();
+    m_SceneHierarchyPanel.SetNodeTree(&m_NodeTree);
+
     m_ConsolePanel.Open();
-    // m_SceneHierarchyPanel.Open();
+    m_SceneHierarchyPanel.Open();
     // m_PropertiesPanel.Open();
     // m_ContentBrowserPanel.Open();
     // m_MaterialPanel.Open();
@@ -170,7 +174,7 @@ void EditorLayer::OnRender() {
     // [Sub-Section] Sub-Panels Update
     // ----------------------------------------------------------------------------
     m_ConsolePanel.Draw("Console");
-    // m_SceneHierarchyPanel.Draw("Scene Hierarchy");
+    m_SceneHierarchyPanel.Draw("Scene Hierarchy");
     // m_PropertiesPanel.Draw("Properties");
     // m_ContentBrowserPanel.Draw("Content Browser");
     // m_MaterialPanel.Draw("Material");
@@ -201,7 +205,7 @@ void EditorLayer::OnRender() {
 
     // Get DescriptorSet from RHI Texture and draw it as ImGui image
     auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
-    ImTextureID textureID = m_ImGuiRenderer->GetTextureIDForRHITexture(tex);
+    ImTextureID textureID = GET_IM_TEXTURE_ID(tex);
     ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
 
     // // Integrated Debug Overlay

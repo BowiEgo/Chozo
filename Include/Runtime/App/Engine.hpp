@@ -4,6 +4,7 @@
 #include <Core/Memory/Memory.hpp>
 #include <Runtime/RHI/Device.hpp>
 #include <Runtime/RHI/GraphicsContext.hpp>
+#include <Runtime/RenderCore/MeshRegistry.hpp>
 #include <Runtime/RenderCore/Renderer.hpp>
 #include <Runtime/RenderCore/Shader.hpp>
 #include <Runtime/RenderCore/ShaderRegistry.hpp>
@@ -37,6 +38,7 @@ private:
     GraphicsContext m_GraphicsContext;
 
     Scope<ShaderRegistry> m_ShaderRegistry;
+    Scope<MeshRegistry> m_MeshRegistry;
 };
 
 } // namespace CZ

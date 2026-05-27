@@ -1,9 +1,9 @@
-#include "TextureViewerPanel.h"
+#include "TextureViewerPanel.hpp"
 
 void TextureViewerPanel::Draw(const char* title) {
-    if (!m_bOpen) return;
+    if (!m_IsOpen) return;
 
-    if (!ImGui::Begin(title, &m_bOpen)) {
+    if (!ImGui::Begin(title, &m_IsOpen)) {
         ImGui::End();
         return;
     }

@@ -4,9 +4,12 @@ set(MODULE_SRC
     Editor.cpp
     EditorLayer.cpp
     Renderer/Vulkan/VulkanImGuiRenderer.cpp
+    EditorNode/EditorNode.cpp
+    EditorNode/EditorNodeTree.cpp
     Panels/AssetsPanel.cpp
     Panels/ConsolePanel.cpp
     Panels/TextureViewerPanel.cpp
+    Panels/SceneHierarchyPanel.cpp
 )
 
 add_library(${MODULE_NAME} SHARED ${MODULE_SRC})

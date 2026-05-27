@@ -90,6 +90,7 @@ public:
 
     Shader() = default;
     explicit Shader(ShaderObj* obj) : Asset<ShaderObj>(obj) {}
+    virtual ~Shader() = default;
 
     AssetType GetType() const override { return AssetType::Shader; }
 
@@ -97,7 +98,7 @@ public:
 };
 
 template <> struct AssetTraits<ShaderObj> {
-    using AssetType = Shader;
+    using AssetClass = Shader;
 };
 
 } // namespace CZ

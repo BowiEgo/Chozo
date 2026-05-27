@@ -17,6 +17,7 @@ set(MODULE_INCLUDE
     VulkanShaderResObj.hpp
     VulkanSetLayoutObj.hpp
     VulkanPipelineObj.hpp
+    VulkanGraphicsBufferObj.hpp
 )
 
 set(MODULE_SRC
@@ -38,6 +39,7 @@ set(MODULE_SRC
     VulkanShaderResObj.cpp
     VulkanSetLayoutObj.cpp
     VulkanPipelineObj.cpp
+    VulkanGraphicsBufferObj.cpp
 )
 
 add_chozo_module(

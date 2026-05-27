@@ -18,7 +18,7 @@ namespace CZ {
 
 #define WITH_ARRAY() for (int _i = (beginArray(), 1); _i; _i = (endArray(), 0))
 
-inline void diagnoseIfNeeded(slang::IBlob* diagnosticBlob) {
+inline void DiagnoseIfNeeded(slang::IBlob* diagnosticBlob) {
     if (diagnosticBlob != nullptr) {
         CZ_CORE_LOG(Error, "Slang loadModule error: {}",
                     (const char*)diagnosticBlob->getBufferPointer());

@@ -1,6 +1,7 @@
 #include "VulkanDeviceObj.hpp"
 #include "VulkanCommandPoolObj.hpp"
 #include "VulkanFrameBufferObj.hpp"
+#include "VulkanGraphicsBufferObj.hpp"
 #include "VulkanGraphicsContextObj.hpp"
 #include "VulkanPipelineObj.hpp"
 #include "VulkanSamplerObj.hpp"
@@ -65,7 +66,16 @@ Pipeline VulkanDeviceObj::CreatePipeline(const PipelineSpecification& spec,
 }
 
 SetLayout VulkanDeviceObj::CreateSetLayout(const SetLayoutDescription& desc) {
-    return SetLayout(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSetLayoutObj, this, desc));
+    auto result = VulkanSetLayoutObj::Create(this, desc);
+    if (result) return SetLayout(result.value());
+    return SetLayout();
+}
+
+GraphicsBuffer VulkanDeviceObj::CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
+                                                     const Buffer* initialData) {
+    auto result = VulkanGraphicsBufferObj::Create(this, spec, initialData);
+    if (result) return GraphicsBuffer(result.value());
+    return GraphicsBuffer();
 }
 
 bool VulkanDeviceObj::IsExtensionSupported(const std::string& extensionName) const {

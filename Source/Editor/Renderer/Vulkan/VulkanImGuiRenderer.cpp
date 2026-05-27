@@ -121,7 +121,7 @@ void VulkanImGuiRenderer::Draw(ImDrawData* drawData, CommandList cmdList) {
     ImGui_ImplVulkan_RenderDrawData(drawData, vkCmdBuffer);
 }
 
-ImTextureID VulkanImGuiRenderer::GetTextureIDForRHITexture(Texture texture) {
+ImTextureID VulkanImGuiRenderer::GetTextureID(Texture texture) {
     auto it = m_TextureIDCache.find(texture);
     if (it != m_TextureIDCache.end()) {
         return it->second;

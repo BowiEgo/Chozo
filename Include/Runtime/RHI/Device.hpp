@@ -4,6 +4,7 @@
 #include <Core/Memory/Memory.hpp>
 #include <Runtime/RHI/CommandPool.hpp>
 #include <Runtime/RHI/FrameBuffer.hpp>
+#include <Runtime/RHI/GraphicsBuffer.hpp>
 #include <Runtime/RHI/Pipeline.hpp>
 #include <Runtime/RHI/Sampler.hpp>
 #include <Runtime/RHI/SetLayout.hpp>
@@ -45,6 +46,9 @@ public:
                                     const ShaderReflection& reflection) = 0;
 
     virtual SetLayout CreateSetLayout(const SetLayoutDescription& desc) = 0;
+
+    virtual GraphicsBuffer CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
+                                                const Buffer* initialData = nullptr) = 0;
 
     std::vector<SetLayout> CreateSetLayouts(
         const std::unordered_map<uint32_t, std::vector<ShaderResourceBinding>>& bindings);

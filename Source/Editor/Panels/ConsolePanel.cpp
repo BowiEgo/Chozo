@@ -1,4 +1,4 @@
-#include "ConsolePanel.h"
+#include "ConsolePanel.hpp"
 #include "Core/Memory/Memory.hpp"
 #include "Core/Memory/MemoryTypes.hpp"
 
@@ -69,10 +69,10 @@ ConsolePanel::~ConsolePanel() {
 }
 
 void ConsolePanel::Draw(const char* title) {
-    if (!m_bOpen) return;
+    if (!m_IsOpen) return;
 
     ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(title, &m_bOpen)) {
+    if (!ImGui::Begin(title, &m_IsOpen)) {
         ImGui::End();
         return;
     }
@@ -81,7 +81,7 @@ void ConsolePanel::Draw(const char* title) {
     // represent the title bar. So e.g. IsItemHovered() will return true when hovering the title
     // bar. Here we create a context menu only available from the title bar.
     if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem("Close Console")) m_bOpen = false;
+        if (ImGui::MenuItem("Close Console")) m_IsOpen = false;
         ImGui::EndPopup();
     }
 

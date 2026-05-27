@@ -1,4 +1,6 @@
 #pragma once
+
+#include <Runtime/App/Application.hpp>
 #include <Runtime/App/StartupHost.hpp>
 
 #include "EditorLayer.hpp"
@@ -7,10 +9,16 @@ using namespace CZ;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogEditor, Info);
 
-class EditorObj : public StartupHostObj {
+class Editor : public StartupHostObj {
 public:
-    EditorObj();
-    ~EditorObj();
+    Editor();
+    ~Editor();
+
+    static VulkanImGuiRenderer* GetImGuiRenderer() {
+        return Application::Get().GetStartupHost().As<Editor>()->m_StartupLayer->GetImGuiRenderer();
+    }
+
+    static Window GetWindow() { return Application::Get().GetWindow(); }
 
     Layer* GetStartupLayer() const override { return m_StartupLayer; }
 

@@ -6,8 +6,25 @@ namespace CZ {
 
 #define RETURN_ON_VULKAN_FAIL(result)                                                              \
     if (result != VK_SUCCESS) {                                                                    \
-        CZ_CORE_LOG(Error, "{}", VulkanUtils::VkResultToString(result));                           \
+        return result;                                                                             \
+    }
+
+#define RETURN_WITH_LOG_ON_VULKAN_FAIL(result, msg)                                                \
+    if (result != VK_SUCCESS) {                                                                    \
+        CZ_BACKEND_LOG(Error, msg);                                                                \
+        return result;                                                                             \
+    }
+
+#define RETURN_FALSE_ON_VULKAN_FAIL(format, result)                                                \
+    if (result != VK_SUCCESS) {                                                                    \
+        CZ_BACKEND_LOG(Error, format, VulkanUtils::VkResultToString(result));                      \
         return false;                                                                              \
+    }
+
+#define RETURN_NULL_ON_VULKAN_FAIL(format, result)                                                 \
+    if (result != VK_SUCCESS) {                                                                    \
+        CZ_BACKEND_LOG(Error, format, VulkanUtils::VkResultToString(result));                      \
+        return NULL;                                                                               \
     }
 
 struct QueueFamilyIndices {

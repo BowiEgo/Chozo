@@ -1,11 +1,10 @@
-#include "Runtime/Window/Window.hpp"
 #include <Runtime/App/Application.hpp>
 
 #include <Core/FileSystem/VFS.hpp>
 #include <Core/Header/Assert.hpp>
 #include <Core/Header/Macros.h>
 #include <Core/Platform/Platform.h>
-#include <Core/Profile/TracyProfile.h>
+#include <Core/Profiler/TracyProfiler.h>
 
 namespace CZ {
 
@@ -40,8 +39,8 @@ bool Application::Startup(const ApplicationSpecification& appSpec, std::string& 
         spec.Size  = { WINDOW_WIDTH, WINDOW_HEIGHT };
 
         m_Window = Window::Create(spec);
-        m_Window.Init(err);
-        m_Window.SetEventCallback(CZ_BIND_FN(OnEvent));
+        m_Window->Init(err);
+        m_Window->SetEventCallback(CZ_BIND_FN(OnEvent));
     }
 
     // Setup Engine
@@ -65,14 +64,13 @@ void Application::Shutdown() {
     m_Engine->Shutdown();
     m_Engine.reset();
 
-    m_Window.Shutdown();
+    m_Window->Shutdown();
     m_Window.Destroy();
 
     ReportMemoryLeaks();
 }
 
 void Application::Run() {
-    // CZ_APP_LOG( Trace, "Running...");
     CZ_PROFILE_FRAME_MARK;
 
     float deltaTime = 0.1;
@@ -80,7 +78,7 @@ void Application::Run() {
     {
         CZ_PROFILE_SCOPE_NAME("Window Update");
 
-        m_Window.OnUpdate();
+        m_Window->OnUpdate();
     }
 
     {

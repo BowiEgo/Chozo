@@ -36,7 +36,7 @@ public:
     Application& operator=(const Application&) = delete;
 
     bool Startup(const ApplicationSpecification& spec, std::string& err);
-    bool ShouldClose() { return m_Window.ShouldClose() || m_ShouldClose; }
+    bool ShouldClose() { return m_Window->ShouldClose() || m_ShouldClose; }
     void Close() { m_ShouldClose = true; }
     void Shutdown();
     void Run();

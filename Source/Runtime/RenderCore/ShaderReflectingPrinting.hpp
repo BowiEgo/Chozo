@@ -675,7 +675,7 @@ struct ReflectingPrinting {
             SLANG_RETURN_ON_FAIL(program->getEntryPointMetadata(entryPointIndex, targetIndex,
                                                                 entryPointMetadata.writeRef(),
                                                                 diagnostics.writeRef()));
-            diagnoseIfNeeded(diagnostics);
+            DiagnoseIfNeeded(diagnostics);
 
             _metadataForEntryPoints[entryPointIndex] = entryPointMetadata;
         }

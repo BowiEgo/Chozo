@@ -32,13 +32,11 @@ ShaderCompiler::ShaderCompiler() {
     }
 }
 
-bool ShaderCompiler::Compile(const ShaderCompilerMultiInput& input,
-                             std::unordered_map<ShaderStage, ShaderCompilerOutput>& outputs) {
+ComPtr<slang::ISession> ShaderCompiler::CreateSession(const ShaderCompilerMultiInput& input) {
     std::filesystem::path sourcePath = VFS::Resolve(input.VirtualPath);
 
     // ShaderCompilerOutput output;
     std::string parentPath = sourcePath.parent_path().string();
-    std::string fileName   = sourcePath.filename().string();
 
     slang::SessionDesc sessionDesc = {};
 
@@ -69,22 +67,14 @@ bool ShaderCompiler::Compile(const ShaderCompilerMultiInput& input,
     sessionDesc.compilerOptionEntryCount = 1;
 
     ComPtr<slang::ISession> session;
-    RETURN_ON_FAIL(m_GlobalSession->createSession(sessionDesc, session.writeRef()));
+    SLANG_RETURN_NULL_ON_FAIL(m_GlobalSession->createSession(sessionDesc, session.writeRef()));
 
-    // ComPtr<slang::IComponentType> shaderProgram;
-    // ComPtr<slang::ProgramLayout> programLayout;
-
-    if (!CompileFromSource(session, fileName, outputs)) return false;
-
-    // if (!CompileToSpirvForAllEntryPoints(shaderProgram, programLayout, outputs)) return false;
-
-    return true;
+    return session;
 }
 
 bool ShaderCompiler::CompileFromSource(
     slang::ISession* session, const std::string fileName,
     std::unordered_map<ShaderStage, ShaderCompilerOutput>& outputs) {
-
     ComPtr<slang::IBlob> diagnostics;
     SlangResult result = SLANG_OK;
 
@@ -92,7 +82,7 @@ bool ShaderCompiler::CompileFromSource(
     {
         slangModule = session->loadModule(fileName.c_str(), diagnostics.writeRef());
 
-        diagnoseIfNeeded(diagnostics.get());
+        DiagnoseIfNeeded(diagnostics.get());
         if (!slangModule) {
             return false;
         }
@@ -127,12 +117,12 @@ bool ShaderCompiler::CompileFromSource(
     ComPtr<slang::IComponentType> composed;
     result = session->createCompositeComponentType(componentsToLink.data(), componentsToLink.size(),
                                                    composed.writeRef(), diagnostics.writeRef());
-    diagnoseIfNeeded(diagnostics);
-    RETURN_ON_FAIL(result);
+    DiagnoseIfNeeded(diagnostics);
+    SLANG_RETURN_FALSE_ON_FAIL(result);
 
     ComPtr<slang::IComponentType> program;
     result = composed->link(program.writeRef(), diagnostics.writeRef());
-    diagnoseIfNeeded(diagnostics);
+    DiagnoseIfNeeded(diagnostics);
     SLANG_RETURN_ON_FAIL(result);
 
     // ### Getting the Program Layout
@@ -143,7 +133,7 @@ bool ShaderCompiler::CompileFromSource(
         auto programLayout          = program->getLayout(targetIndex, diagnostics.writeRef());
         programLayouts[targetIndex] = programLayout;
 
-        diagnoseIfNeeded(diagnostics);
+        DiagnoseIfNeeded(diagnostics);
         if (!programLayout) {
             result = SLANG_FAIL;
             continue;
@@ -180,8 +170,8 @@ bool ShaderCompiler::CompileToSpirvForAllEntryPoints(
                 ComPtr<slang::IBlob> diagnosticsBlob;
                 SlangResult result = shaderProgram->getEntryPointCode(i, 0, spirvCode.writeRef(),
                                                                       diagnosticsBlob.writeRef());
-                diagnoseIfNeeded(diagnosticsBlob);
-                RETURN_ON_FAIL(result);
+                DiagnoseIfNeeded(diagnosticsBlob);
+                SLANG_RETURN_FALSE_ON_FAIL(result);
             }
 
             const uint32_t* spirvData = static_cast<const uint32_t*>(spirvCode->getBufferPointer());

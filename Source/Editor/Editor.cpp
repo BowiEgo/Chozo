@@ -6,14 +6,14 @@
 using namespace CZ;
 
 extern "C" {
-StartupHost CreateEditor() { return StartupHost(CZ_NEW(MEMORY_USAGE_RENDER, EditorObj)); }
+StartupHost CreateEditor() { return StartupHost(CZ_NEW(MEMORY_USAGE_RENDER, Editor)); }
 }
 
-EditorObj::EditorObj() {
+Editor::Editor() {
     m_bOffscreenRendering = true;
     m_StartupLayer        = CZ_NEW(MEMORY_USAGE_RENDER, EditorLayer);
 }
 
-EditorObj::~EditorObj() {}
+Editor::~Editor() {}
 
-void EditorObj::Draw(CommandList cmdList) { m_StartupLayer->Draw(cmdList); }
+void Editor::Draw(CommandList cmdList) { m_StartupLayer->Draw(cmdList); }

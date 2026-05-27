@@ -32,14 +32,13 @@ private:
 
     const VulkanDeviceObj* m_DeviceObj;
 
+    VmaAllocation m_VmaAllocation = VK_NULL_HANDLE;
+
     VkFormat m_VkFormat           = VK_FORMAT_UNDEFINED;
     VkImageLayout m_VkImageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     VkImage m_VkImage             = VK_NULL_HANDLE;
-    VkDeviceMemory m_VkMemory     = VK_NULL_HANDLE;
 
     std::unordered_map<ImageViewSpecification, VkImageView> m_ViewCache;
-
-    VmaAllocation m_VmaAllocation = VK_NULL_HANDLE;
 
     bool m_IsExternal = false; // Whether this image owns the VkImage (i.e. should destroy it)
 };

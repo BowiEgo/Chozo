@@ -2,6 +2,8 @@
 #include <Runtime/App/Engine.hpp>
 #include <Runtime/RHI/GraphicsContext.hpp>
 
+#include <Core/Header/RendererAPI.hpp>
+#include <Core/JobSystem/JobSystem.h>
 #include <Core/Log/LogMacros.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>
 
@@ -14,16 +16,25 @@ Engine::~Engine() {}
 bool Engine::Init(std::string& err) {
     bool success = false;
 
-    auto window = Application::Get().GetWindow();
-    auto fbSize = window.GetFrameBufferSize();
+    JobSystemInfo jsInfo;
+    jsInfo.ImmediateQueueCapacity = 64;
+    jsInfo.StandardQueueCapacity  = 256;
+    JobSystem::Init(jsInfo);
 
     m_ShaderRegistry = CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, ShaderRegistry);
+    m_ShaderRegistry->Init();
+
+    m_MeshRegistry = CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, MeshRegistry);
+    m_MeshRegistry->Init();
+
+    auto window = Application::Get().GetWindow();
+    auto fbSize = window->GetFrameBufferSize();
 
     {
         GraphicsContextSpecification spec;
         spec.FrameBufferSize          = fbSize;
-        spec.NativeWindow             = window.GetNativeHandle();
-        spec.WindowRequiredExtensions = window.GetRequiredExtensions(err);
+        spec.NativeWindow             = window->GetNativeHandle();
+        spec.WindowRequiredExtensions = window->GetRequiredExtensions(err);
 #ifdef CZ_DEBUG
         spec.EnableValidationLayers = true;
 #else
@@ -36,6 +47,8 @@ bool Engine::Init(std::string& err) {
     }
 
     {
+        RendererAPI::SetType(RendererAPI::Type::Vulkan);
+
         RendererSpecification spec;
         spec.Window = window;
 
@@ -49,7 +62,11 @@ bool Engine::Init(std::string& err) {
 void Engine::Tick(float deltaTime) { m_Renderer.Tick(deltaTime); }
 
 void Engine::Shutdown() {
+    JobSystem::Get().WaitAll();
+
     GetShaderRegistry()->Clear();
+
+    JobSystem::Shutdown();
 
     m_Renderer.Shutdown();
 

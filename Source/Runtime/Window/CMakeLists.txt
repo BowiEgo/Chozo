@@ -3,7 +3,6 @@ set(MODULE_TYPE RUNTIME)
 
 set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/Window/Window.hpp
-    WindowObj.hpp
     SDLWindow/SDLWindowObj.hpp
 )
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Panel.h"
+#include "Panel.hpp"
 
 class TextureViewerPanel : public Panel {
 public:
