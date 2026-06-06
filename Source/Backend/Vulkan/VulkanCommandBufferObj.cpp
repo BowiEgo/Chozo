@@ -147,6 +147,17 @@ void VulkanCommandBufferObj::Draw(uint32 vertexCount, uint32 instanceCount, uint
     vkCmdDraw(m_VkCommandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
+void VulkanCommandBufferObj::Draw(Mesh mesh) {
+    if (!mesh->GetVertexBuffer() || !mesh->GetIndexBuffer()) {
+        CZ_LOG(LogProceduralMesh, Error, "Buffers not uploaded");
+        return;
+    }
+
+    BindVertexBuffer(mesh->GetVertexBuffer(), 0);
+    BindIndexBuffer(mesh->GetIndexBuffer());
+    DrawIndexed(mesh->GetIndexCount());
+}
+
 void VulkanCommandBufferObj::End() {
     VkResult result = vkEndCommandBuffer(m_VkCommandBuffer);
     if (result != VK_SUCCESS) {

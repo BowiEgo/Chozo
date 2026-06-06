@@ -12,20 +12,6 @@ static void SetAxisValue(Vector3& target, const std::string& axis, float value) 
     }
 }
 
-Cube::Cube(const float width, const float height, const float depth, const uint32 widthSegments,
-           const uint32 heightSegments, const uint32 depthSegments) {
-    SetWidth(width);
-    SetHeight(height);
-    SetDepth(depth);
-    SetWidthSegments(widthSegments);
-    SetHeightSegments(heightSegments);
-    SetDepthSegments(depthSegments);
-
-    GenerateBuffer();
-}
-
-Cube::Cube(const CubeParams& params) : m_Params(params) { GenerateBuffer(); }
-
 // Cube::Cube(const CubeParams& params, const MeshBuffer* data)
 //     : FProceduralMesh(data), m_Params(params) {}
 
@@ -34,19 +20,21 @@ MeshBuffer* Cube::GenerateBuffer() {
 
     (*this)->MeshBuffer.Clear();
 
+    auto params = m_Params.As<CubeParamsObj>();
+
     // build each side of the box geometry
-    BuildPlane("z", "y", "x", -1, -1, m_Params.Depth, m_Params.Height, m_Params.Width,
-               m_Params.DepthSegments, m_Params.HeightSegments, totalVertexCounter); // px
-    BuildPlane("z", "y", "x", 1, -1, m_Params.Depth, m_Params.Height, -m_Params.Width,
-               m_Params.DepthSegments, m_Params.HeightSegments, totalVertexCounter); // nx
-    BuildPlane("x", "z", "y", 1, 1, m_Params.Width, m_Params.Depth, m_Params.Height,
-               m_Params.WidthSegments, m_Params.DepthSegments, totalVertexCounter); // py
-    BuildPlane("x", "z", "y", 1, -1, m_Params.Width, m_Params.Depth, -m_Params.Height,
-               m_Params.WidthSegments, m_Params.DepthSegments, totalVertexCounter); // ny
-    BuildPlane("x", "y", "z", 1, -1, m_Params.Width, m_Params.Height, m_Params.Depth,
-               m_Params.WidthSegments, m_Params.HeightSegments, totalVertexCounter); // pz
-    BuildPlane("x", "y", "z", -1, -1, m_Params.Width, m_Params.Height, -m_Params.Depth,
-               m_Params.WidthSegments, m_Params.HeightSegments, totalVertexCounter); // nz
+    BuildPlane("z", "y", "x", -1, -1, params->Depth, params->Height, params->Width,
+               params->DepthSegments, params->HeightSegments, totalVertexCounter); // px
+    BuildPlane("z", "y", "x", 1, -1, params->Depth, params->Height, -params->Width,
+               params->DepthSegments, params->HeightSegments, totalVertexCounter); // nx
+    BuildPlane("x", "z", "y", 1, 1, params->Width, params->Depth, params->Height,
+               params->WidthSegments, params->DepthSegments, totalVertexCounter); // py
+    BuildPlane("x", "z", "y", 1, -1, params->Width, params->Depth, -params->Height,
+               params->WidthSegments, params->DepthSegments, totalVertexCounter); // ny
+    BuildPlane("x", "y", "z", 1, -1, params->Width, params->Height, params->Depth,
+               params->WidthSegments, params->HeightSegments, totalVertexCounter); // pz
+    BuildPlane("x", "y", "z", -1, -1, params->Width, params->Height, -params->Depth,
+               params->WidthSegments, params->HeightSegments, totalVertexCounter); // nz
 
     return &(*this)->MeshBuffer;
 }

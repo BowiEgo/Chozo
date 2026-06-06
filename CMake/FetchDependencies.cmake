@@ -82,6 +82,7 @@ endif()
 message(STATUS "CHOZO VMA SOURCE DIR:      ${vma_SOURCE_DIR}")
 
 ## Fetch ImGui
+set(FETCHCONTENT_UPDATES_DISCONNECTED_chozoimgui ON)
 FetchContent_Declare(
   ChozoImGui
   GIT_REPOSITORY https://github.com/ocornut/imgui.git

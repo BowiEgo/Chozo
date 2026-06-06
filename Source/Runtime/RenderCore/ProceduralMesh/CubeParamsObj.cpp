@@ -1,4 +1,5 @@
-#include <Runtime/RenderCore/ProceduralMesh/CubeParams.hpp>
+#include "Runtime/RenderCore/MeshParams.hpp"
+#include <Runtime/RenderCore/ProceduralMesh/CubeParamsObj.hpp>
 
 namespace CZ {
 
@@ -17,7 +18,7 @@ inline const ParamControllerConfig kSegmentsConfig{ .Type  = ParamControllerType
     PARAM(uint32_t, HeightSegments, "Height Segments", kSegmentsConfig)                            \
     PARAM(uint32_t, DepthSegments, "Depth Segments", kSegmentsConfig)
 
-size_t CubeParams::GetHash() const {
+size_t CubeParamsObj::GetHash() const {
     size_t h = 0;
 #define PARAM(type, member, ...) HashCombine(h, std::hash<type>{}(member));
     PARAMS_LIST
@@ -25,7 +26,7 @@ size_t CubeParams::GetHash() const {
     return h;
 }
 
-std::any CubeParams::GetParamValue(const std::string& name) const {
+std::any CubeParamsObj::GetParamValue(const std::string& name) const {
 #define PARAM(type, member, ...)                                                                   \
     if (name == #member) return member;
     PARAMS_LIST
@@ -34,8 +35,8 @@ std::any CubeParams::GetParamValue(const std::string& name) const {
 }
 
 // ===== IMaterialParams Implementation =====
-bool CubeParams::Equals_Internal(const Params& other) const {
-    const auto* otherMat = dynamic_cast<const CubeParams*>(&other);
+bool CubeParamsObj::Equals_Internal(MeshParamsObj& other) {
+    auto* otherMat = dynamic_cast<CubeParamsObj*>(&other);
     if (!otherMat) return false;
 
 #define PARAM(type, member, ...)                                                                   \
@@ -46,19 +47,31 @@ bool CubeParams::Equals_Internal(const Params& other) const {
     return true;
 }
 
-void CubeParams::Accept_Internal(ParamsVisitor& visitor) {
+bool CubeParamsObj::Equals_Internal(const MeshParamsObj& other) const {
+    const auto* otherMat = dynamic_cast<const CubeParamsObj*>(&other);
+    if (!otherMat) return false;
+
+#define PARAM(type, member, ...)                                                                   \
+    if (member != otherMat->member) return false;
+    PARAMS_LIST
+#undef PARAM
+
+    return true;
+}
+
+void CubeParamsObj::Accept_Internal(ParamsVisitor& visitor) {
 #define PARAM(type, member, display, config, ...) visitor.Visit(member, display, config);
     PARAMS_LIST
 #undef PARAM
 }
 
-void CubeParams::Accept_Internal(ConstParamsVisitor& visitor) const {
+void CubeParamsObj::Accept_Internal(ConstParamsVisitor& visitor) const {
 #define PARAM(type, member, display, config, ...) visitor.Visit(member, display, config);
     PARAMS_LIST
 #undef PARAM
 }
 
-const std::vector<std::string>& CubeParams::GetAllParamNames_Internal() {
+const std::vector<std::string>& CubeParamsObj::GetAllParamNames_Internal() {
     static const std::vector<std::string> names = [] {
         std::vector<std::string> result;
 #define PARAM(type, member, display, ...) result.push_back(#member);

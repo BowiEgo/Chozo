@@ -45,8 +45,6 @@ void TransformComponent::SetScale(const Vector3& scale) {
 
 void TransformComponent::SetTransformParams(const TransformParams params) {
     if (Params == params) return;
-    CZ_CORE_LOG(Trace, "SetTransformParams: translation={:3}, rotation={:3}, scale={:3}",
-                params->Translation, params->Rotation, params->Scale);
     auto cloned = params.Clone();
     Params      = cloned;
 

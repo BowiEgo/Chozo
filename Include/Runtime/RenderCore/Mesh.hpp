@@ -4,7 +4,6 @@
 #include <Core/Math/Vector2.hpp>
 #include <Core/Math/Vector3.hpp>
 #include <Core/Math/Vector4.hpp>
-#include <Runtime/RHI/CommandList.hpp>
 #include <Runtime/RHI/GraphicsBuffer.hpp>
 #include <Runtime/RenderCore/Asset.hpp>
 
@@ -97,7 +96,6 @@ struct MeshObj {
     uint32 GetIndexCount() const { return MeshBuffer.GetIndexCount(); }
 
     void Upload();
-    void Draw(CommandList cmdList) const;
 };
 
 class Mesh : public Asset<MeshObj> {

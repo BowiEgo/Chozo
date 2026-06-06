@@ -58,6 +58,8 @@ public:
     void Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex,
               uint32 firstInstance) override;
 
+    void Draw(Mesh mesh) override;
+
     void End() override;
 
     VkCommandBuffer GetVkCommandBuffer() const { return m_VkCommandBuffer; }

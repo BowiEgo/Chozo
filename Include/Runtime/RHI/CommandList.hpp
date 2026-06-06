@@ -6,6 +6,7 @@
 #include <Runtime/RHI/GraphicsBuffer.hpp>
 #include <Runtime/RHI/Pipeline.hpp>
 #include <Runtime/RHI/RHITypes.hpp>
+#include <Runtime/RenderCore/Mesh.hpp>
 // #include <Runtime/RenderCore/Viewport.hpp>
 
 namespace CZ {
@@ -56,6 +57,8 @@ public:
 
     virtual void Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex,
                       uint32 firstInstance) = 0;
+
+    virtual void Draw(Mesh mesh) = 0;
 
     virtual void End() = 0;
 

@@ -1,4 +1,4 @@
-#include "Runtime/App/Application.hpp"
+#include <Runtime/App/Application.hpp>
 #include <Runtime/RenderCore/Renderer.hpp>
 
 #include <Runtime/App/Engine.hpp>
@@ -7,6 +7,8 @@
 #include <Runtime/RHI/RHIAPI.hpp>
 #include <Runtime/RenderCore/Shader.hpp>
 #include <Runtime/RenderCore/Viewport.hpp>
+
+#include <Runtime/RenderCore/ProceduralMesh/Cube.hpp>
 
 #include <Core/Log/LogMacros.hpp>
 #include <Core/Memory/Memory.hpp>
@@ -18,6 +20,7 @@
 namespace CZ {
 
 static Pipeline testPipeline;
+static Mesh testCube;
 
 template <> void Handle<RendererObj>::Destroy() {
     if (m_Obj) {
@@ -27,6 +30,7 @@ template <> void Handle<RendererObj>::Destroy() {
         m_Obj->Viewports.clear();
 
         testPipeline.Destroy();
+        testCube.Destroy();
 
         Delete(m_Obj);
         m_Obj = nullptr;
@@ -87,6 +91,9 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
 
 #endif
 
+    testCube = Cube::Create(1.0f, 1.0f, 1.0f, 1, 1, 1);
+    testCube->Upload();
+
     return { obj };
 }
 
@@ -130,7 +137,9 @@ void Renderer::Tick(float deltaTime) {
             cmdList->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
             cmdList->SetScissor({ 0, 0, width, height });
 
-            cmdList->Draw(3, 1, 0, 0);
+            cmdList->Draw(testCube);
+
+            // cmdList->Draw(3, 1, 0, 0);
 
             RHIAPI::Get()->EndRendering(cmdList);
 

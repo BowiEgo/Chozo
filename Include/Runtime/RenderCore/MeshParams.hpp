@@ -95,6 +95,8 @@ class MeshParams : public Handle<struct MeshParamsObj> {
 public:
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
+    using Handle<struct MeshParamsObj>::Handle;
+
     // ===== Type Info =====
     static const char* GetStaticTypeName() { return "MeshParams"; }
 

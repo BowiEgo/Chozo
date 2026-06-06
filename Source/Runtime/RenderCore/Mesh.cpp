@@ -66,15 +66,4 @@ void MeshObj::Upload() {
                       MeshBuffer.GetVertexCount(), MeshBuffer.GetIndexCount());
 }
 
-void MeshObj::Draw(CommandList cmdList) const {
-    if (!VertexBuffer || !IndexBuffer) {
-        CZ_RENDERCORE_LOG(Error, "Buffers not uploaded");
-        return;
-    }
-
-    cmdList->BindVertexBuffer(VertexBuffer, 0);
-    cmdList->BindIndexBuffer(IndexBuffer);
-    cmdList->DrawIndexed(MeshBuffer.GetIndexCount());
-}
-
 } // namespace CZ

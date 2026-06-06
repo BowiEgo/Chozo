@@ -15,6 +15,11 @@
 namespace CZ {
 
 VulkanDeviceObj::~VulkanDeviceObj() {
+    if (m_VmaAllocator) {
+        vmaDestroyAllocator(m_VmaAllocator);
+        m_VmaAllocator = VK_NULL_HANDLE;
+    }
+
     if (m_VkDevice) {
 
         if (m_GlobalDescriptorPool != VK_NULL_HANDLE) {
@@ -23,10 +28,6 @@ VulkanDeviceObj::~VulkanDeviceObj() {
         }
 
         vkDestroyDevice(m_VkDevice, nullptr);
-    }
-
-    if (m_VmaAllocator) {
-        vmaDestroyAllocator(m_VmaAllocator);
     }
 
     CZ_BACKEND_LOG(Info, "VulkanDeviceObj destroyed.");

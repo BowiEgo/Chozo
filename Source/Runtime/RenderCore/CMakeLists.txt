@@ -13,6 +13,7 @@ set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/MeshParams.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Mesh.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/ProceduralMesh/Cube.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Scene/Entity.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Scene/Scene.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Scene/TransformSystem.hpp
@@ -26,8 +27,11 @@ set(MODULE_SRC
     ShaderObj.cpp
     ShaderRegistry.cpp
     Mesh.cpp
+    MeshParams.cpp
     MeshRegistry.cpp
     ProceduralMesh/ProceduralMesh.cpp
+    ProceduralMesh/Cube.cpp
+    ProceduralMesh/CubeParamsObj.cpp
     Components/TransformParams.cpp
     Components/TransformComponent.cpp
     Scene/Entity.cpp
