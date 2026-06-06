@@ -34,6 +34,12 @@ std::string Matrix3::ToString() const {
                        m_Data[7], m_Data[8]);
 }
 
+std::string Matrix3::ToStringCompact() const {
+    return fmt::format("[{:6.3f},{:6.3f},{:6.3f},{:6.3f},{:6.3f},{:6.3f},{:6.3f},{:6.3f},{:6.3f}]",
+                       m_Data[0], m_Data[1], m_Data[2], m_Data[3], m_Data[4], m_Data[5], m_Data[6],
+                       m_Data[7], m_Data[8]);
+}
+
 Matrix3 Matrix3::Identity() {
     Matrix3 result;
     result.SetIdentity();

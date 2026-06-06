@@ -13,6 +13,7 @@ set(MODULE_INCLUDE
 )
 
 set(MODULE_SRC
+	MathUtils.cpp
 	Matrix3.cpp
 	Matrix4.cpp
 	Quaternion.cpp

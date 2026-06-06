@@ -19,6 +19,10 @@ bool EditorNodeRegistry::Test(TypeMask mask, std::initializer_list<std::string> 
     return true;
 }
 
+bool EditorNodeRegistry::IsRootType(TypeMask mask) { return TestSingle(mask, "Node_Root"); }
+
+bool EditorNodeRegistry::IsRegularType(TypeMask mask) { return TestSingle(mask, "Node_Regular"); }
+
 bool EditorNodeRegistry::HasMeshType(TypeMask mask) {
     const TypeMask& meshMask = TypeRegister::Get().GetMeshMask();
     return (mask & meshMask).Any();
@@ -48,10 +52,16 @@ TypeMask EditorNodeRegistry::GetNodeMask(std::initializer_list<std::string> name
 // ===== Constructor & Destructor =====
 EditorNode::EditorNode(const std::string& name, TypeMask typeMask)
     : m_ID(s_NextID.fetch_add(1)), m_Name(name), m_TypeMask(typeMask) {
+    if (HasTransform()) {
+        TransformParams params(1.0f, 1.0f, 1.0f);
+        SetTransformParams(params);
+    }
     // CZ_EDITOR_LOG(Trace, "Created node '{}' with ID {}", name, m_ID);
 }
 
 EditorNode::~EditorNode() {
+    if (HasTransform()) m_TransformParams.Destroy();
+
     while (!m_Children.empty()) {
         Delete(m_Children.back());
     }

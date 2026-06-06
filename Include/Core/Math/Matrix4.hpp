@@ -213,23 +213,29 @@ template <> struct formatter<CZ::Matrix4> {
 
     constexpr auto parse(format_parse_context& ctx) {
         auto it = ctx.begin();
-        if (it != ctx.end() && *it == ':') {
+
+        if (it == ctx.end() || *it == '}') {
+            return it;
+        }
+
+        if (*it == 'c') {
+            compact = true;
             ++it;
-            // Simple format parsing: e.g., {:4.2c}
-            if (*it == 'c') {
-                compact = true;
+        } else if (*it >= '0' && *it <= '9') {
+            precision = 0;
+            while (it != ctx.end() && *it >= '0' && *it <= '9') {
+                precision = precision * 10 + (*it - '0');
                 ++it;
             }
-            // Parse precision
-            if (*it != '}') {
-                char* end;
-                precision = std::strtol(it, &end, 10);
-                it        = end;
-            }
+        } else {
+            throw format_error("invalid format specifier");
         }
-        if (it != ctx.end() && *it != '}') {
+
+        if (it == ctx.end() || *it != '}') {
             throw format_error("invalid format");
         }
+
+        ctx.advance_to(it);
         return it;
     }
 

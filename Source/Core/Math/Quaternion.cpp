@@ -8,6 +8,20 @@ static_assert(alignof(glm::quat) == 4, "glm::quat should be 4-byte aligned");
 
 namespace CZ {
 
+Quaternion& Quaternion::operator*=(const Quaternion& q) {
+    *this = *this * q;
+    return *this;
+}
+
+Vector3 Quaternion::operator*(const Vector3& v) const {
+    return FromGLM(glm::quat(w, x, y, z) * ToGLM(v));
+}
+
+bool Quaternion::operator==(const Quaternion& q) const {
+    return x == q.x && y == q.y && z == q.z && w == q.w;
+}
+bool Quaternion::operator!=(const Quaternion& q) const { return !(*this == q); }
+
 Quaternion Quaternion::Identity() { return Quaternion(0.0f, 0.0f, 0.0f, 1.0f); }
 
 Quaternion Quaternion::FromAxisAngle(const Vector3& axis, float degrees) {
@@ -33,6 +47,11 @@ Quaternion Quaternion::FromMatrix(const Matrix3& matrix) {
 
 Quaternion Quaternion::FromMatrix(const Matrix4& matrix) {
     return FromGLM(glm::quat_cast(ToGLM(matrix)));
+}
+
+Vector3 Quaternion::ToEuler() const {
+    glm::vec3 euler = glm::eulerAngles(glm::quat(w, x, y, z));
+    return Vector3(glm::degrees(euler.x), glm::degrees(euler.y), glm::degrees(euler.z));
 }
 
 Matrix3 Quaternion::ToMatrix3() const { return FromGLM(glm::mat3_cast(glm::quat(w, x, y, z))); }
@@ -69,15 +88,6 @@ void Quaternion::Normalize() {
 
 Quaternion Quaternion::operator*(const Quaternion& q) const {
     return FromGLM(glm::quat(w, x, y, z) * glm::quat(q.w, q.x, q.y, q.z));
-}
-
-Quaternion& Quaternion::operator*=(const Quaternion& q) {
-    *this = *this * q;
-    return *this;
-}
-
-Vector3 Quaternion::operator*(const Vector3& v) const {
-    return FromGLM(glm::quat(w, x, y, z) * ToGLM(v));
 }
 
 Quaternion Quaternion::Slerp(const Quaternion& target, float t) const {

@@ -11,9 +11,14 @@ Scope<MeshObj> ResourceLoaderTraits<MeshObj>::Load(const std::string& virtualPat
     return CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, MeshObj);
 }
 
+Scope<MeshObj> Create(const MeshParams& params) {
+    (void)params;
+    return nullptr;
+}
+
 template <> void AssetRegistry<MeshObj>::Init() {
-    TypeRegister::Get().RegisterType("Mesh_Cube", true, TypeCategory::Mesh);
-    TypeRegister::Get().RegisterType("Mesh_Sphere", true, TypeCategory::Mesh);
+    TypeRegister::Get().RegisterType("ProceduralMesh_Cube", true, TypeCategory::Mesh);
+    TypeRegister::Get().RegisterType("ProceduralMesh_Sphere", true, TypeCategory::Mesh);
 }
 
 } // namespace CZ

@@ -36,6 +36,15 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glm)
 message(STATUS "CHOZO GLM SOURCE DIR:     ${glm_SOURCE_DIR}")
 
+## Fetch entt
+FetchContent_Declare(
+  entt
+  GIT_REPOSITORY https://github.com/skypjack/entt.git
+  GIT_TAG v3.16.0
+)
+FetchContent_MakeAvailable(entt)
+message(STATUS "CHOZO ENTT SOURCE DIR:     ${entt_SOURCE_DIR}")
+
 ## Fetch SDL3
 FetchContent_Declare(
   sdl3

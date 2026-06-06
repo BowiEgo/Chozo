@@ -3,6 +3,7 @@ set(MODULE_NAME CZEditor)
 set(MODULE_SRC
     Editor.cpp
     EditorLayer.cpp
+    SyncBridge.cpp
     Renderer/Vulkan/VulkanImGuiRenderer.cpp
     EditorNode/EditorNode.cpp
     EditorNode/EditorNodeTree.cpp
@@ -10,6 +11,7 @@ set(MODULE_SRC
     Panels/ConsolePanel.cpp
     Panels/TextureViewerPanel.cpp
     Panels/SceneHierarchyPanel.cpp
+    Panels/PropertiesPanel.cpp
 )
 
 add_library(${MODULE_NAME} SHARED ${MODULE_SRC})

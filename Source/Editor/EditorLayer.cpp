@@ -1,5 +1,6 @@
 #include "EditorLayer.hpp"
 
+#include "Core/Memory/Memory.hpp"
 #include "UIUtils.hpp"
 
 #include <Runtime/App/Application.hpp>
@@ -14,9 +15,6 @@ EditorLayer::EditorLayer() {}
 EditorLayer::~EditorLayer() {}
 
 void EditorLayer::OnAttach() {
-    m_ViewportRenderer = Application::Get().GetEngine()->GetRenderer();
-    m_Viewport = m_ViewportRenderer.CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
-
     auto window = Application::Get().GetWindow();
 
     window.As<SDLWindowObj>()->SetEventPreprocessor(
@@ -65,22 +63,65 @@ void EditorLayer::OnAttach() {
     m_ImGuiRenderer = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, VulkanImGuiRenderer);
     m_ImGuiRenderer->Init(ImGui::GetCurrentContext(), window.As<SDLWindowObj>()->GetSDLWindow());
 
+    m_ViewportRenderer = Application::Get().GetEngine()->GetRenderer();
+    m_Viewport = m_ViewportRenderer.CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
+
+    m_Scene      = Scene::Create();
+    m_SyncBridge = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, SyncBridge, m_Scene);
+
+    CallbackHandle handle = m_NodeTree.RegisterEventCallback([this](const NodeEvent& event) {
+        switch (event.GetType()) {
+            case EditorNodeEventType::Created:
+                m_SyncBridge->RegisterNode(event.GetNode());
+                CZ_LOG(LogEditorLayer, Trace, "Node created: {}", event.GetNode()->GetName());
+                break;
+            case EditorNodeEventType::Deleted:
+                m_SyncBridge->UnregisterNode(event.GetNode());
+                CZ_LOG(LogEditorLayer, Trace, "Node deleted: {}", event.GetNode()->GetName());
+                break;
+            case EditorNodeEventType::Renamed:
+                CZ_LOG(LogEditorLayer, Trace, "Node renamed: {} -> {}", event.GetOldName(),
+                       event.GetNode()->GetName());
+                break;
+            case EditorNodeEventType::Moved:
+                CZ_LOG(LogEditorLayer, Trace, "Node parent changed: {}",
+                       event.GetNode()->GetName());
+                break;
+            case EditorNodeEventType::Selected:
+                CZ_LOG(LogEditorLayer, Trace, "Node selected: {}", event.GetNode()->GetName());
+                break;
+            case EditorNodeEventType::DirtyChanged:
+                CZ_LOG(LogEditorLayer, Trace, "Node dirty changed: {}", event.GetNode()->GetName());
+                break;
+            default:
+                CZ_LOG(LogEditorLayer, Warning, "Unknown event type: {}",
+                       static_cast<int>(event.GetType()));
+                break;
+        }
+    });
+
     m_NodeTree.Init();
+
     m_SceneHierarchyPanel.SetNodeTree(&m_NodeTree);
+    m_PropertiesPanel.SetNodeTree(&m_NodeTree);
 
     m_ConsolePanel.Open();
     m_SceneHierarchyPanel.Open();
-    // m_PropertiesPanel.Open();
+    m_PropertiesPanel.Open();
     // m_ContentBrowserPanel.Open();
     // m_MaterialPanel.Open();
     m_TextureViewerPanel.Open();
     m_AssetsPanel.Open();
 }
 
-void EditorLayer::OnDetach() { m_ImGuiRenderer->Shutdown(); }
+void EditorLayer::OnDetach() {
+    m_ImGuiRenderer->Shutdown();
+    m_Scene.Destroy();
+}
 
 void EditorLayer::OnUpdate(float deltaTime) {
     // CZ_LOG(LogEditorLayer, Trace, "OnUpdate: {}", deltaTime);
+    m_SyncBridge->SyncAllNodesToEntities();
 }
 
 void EditorLayer::OnRender() {
@@ -175,7 +216,7 @@ void EditorLayer::OnRender() {
     // ----------------------------------------------------------------------------
     m_ConsolePanel.Draw("Console");
     m_SceneHierarchyPanel.Draw("Scene Hierarchy");
-    // m_PropertiesPanel.Draw("Properties");
+    m_PropertiesPanel.Draw("Properties");
     // m_ContentBrowserPanel.Draw("Content Browser");
     // m_MaterialPanel.Draw("Material");
     // m_TextureViewerPanel.Draw("Texture Viewer");

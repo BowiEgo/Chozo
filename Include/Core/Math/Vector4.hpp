@@ -95,3 +95,54 @@ template <> struct hash<CZ::Vector4> {
     }
 };
 } // namespace std
+
+// ===== String formatting for logs =====
+// CZ_LOG(LogTemp, Info, "Vector4: {}", vec);   Default (1.000000, 2.500000, 3.140000, 4.200000)
+// CZ_LOG(LogTemp, Info, "Vector4: {:2}", vec); Specific precision  (1.00, 2.50, 3.14, 4.20)
+// CZ_LOG(LogTemp, Info, "Vector4: {:c}", vec); Compact 1.000000, 2.500000, 3.140000, 4.200000
+namespace fmt {
+inline namespace v10 {
+template <> struct formatter<CZ::Vector4> {
+    // Optional format specifiers
+    int precision = 6;
+    bool compact  = false;
+
+    constexpr auto parse(format_parse_context& ctx) {
+        auto it = ctx.begin();
+
+        if (it == ctx.end() || *it == '}') {
+            return it;
+        }
+
+        if (*it == 'c') {
+            compact = true;
+            ++it;
+        } else if (*it >= '0' && *it <= '9') {
+            precision = 0;
+            while (it != ctx.end() && *it >= '0' && *it <= '9') {
+                precision = precision * 10 + (*it - '0');
+                ++it;
+            }
+        } else {
+            throw format_error("invalid format specifier");
+        }
+
+        if (it == ctx.end() || *it != '}') {
+            throw format_error("invalid format");
+        }
+
+        ctx.advance_to(it);
+        return it;
+    }
+
+    template <typename FormatContext> auto format(const CZ::Vector4& v, FormatContext& ctx) const {
+        if (compact) {
+            return fmt::format_to(ctx.out(), "{:.{}f}, {:.{}f}, {:.{}f}, {:.{}f}", v.x, precision,
+                                  v.y, precision, v.z, precision, v.w, precision);
+        }
+        return fmt::format_to(ctx.out(), "({:.{}f}, {:.{}f}, {:.{}f}, {:.{}f})", v.x, precision,
+                              v.y, precision, v.z, precision, v.w, precision);
+    }
+};
+} // namespace v10
+} // namespace fmt

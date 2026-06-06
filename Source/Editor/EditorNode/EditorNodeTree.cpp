@@ -9,10 +9,10 @@ static EditorNode* CreateDemoTree(EditorNodeTree* tree) {
     const int multiplier                      = 2;
 
     auto rootNodeMask   = GET_NODE_MASK("Node_Root");
-    auto sphereNodeMask = GET_NODE_MASK("Node_Regular", "Mesh_Sphere");
-    auto cubeNodeMask   = GET_NODE_MASK("Node_Regular", "Mesh_Cube");
+    auto sphereNodeMask = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Sphere");
+    auto cubeNodeMask   = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Cube");
 
-    if (EditorNodeRegistry::Test(sphereNodeMask, { "Node_Regular", "Mesh_Sphere" })) {
+    if (EditorNodeRegistry::Test(sphereNodeMask, { "Node_Regular", "ProceduralMesh_Sphere" })) {
         CZ_CORE_LOG(Info, "sphere node mask test success");
     }
 

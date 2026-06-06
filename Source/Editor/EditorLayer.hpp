@@ -5,12 +5,13 @@
 #include <Runtime/RenderCore/Viewport.hpp>
 
 #include "Renderer/Vulkan/VulkanImGuiRenderer.hpp"
+#include "SyncBridge.hpp"
 
 #include "Panels/AssetsPanel.hpp"
 #include "Panels/ConsolePanel.hpp"
 // #include "Panels/ContentBrowserPanel.hpp"
 // #include "Panels/MaterialPanel.hpp"
-// #include "Panels/PropertiesPanel.hpp"
+#include "Panels/PropertiesPanel.hpp"
 #include "Panels/SceneHierarchyPanel.hpp"
 #include "Panels/TextureViewerPanel.hpp"
 
@@ -61,14 +62,16 @@ private:
     Scope<VulkanImGuiRenderer> m_ImGuiRenderer;
 
     Renderer m_ViewportRenderer;
+    Scene m_Scene;
     Viewport m_Viewport;
 
     EditorNodeTree m_NodeTree;
+    Scope<SyncBridge> m_SyncBridge;
 
     // Panels
     ConsolePanel m_ConsolePanel;
     SceneHierarchyPanel m_SceneHierarchyPanel;
-    // PropertiesPanel m_PropertiesPanel;
+    PropertiesPanel m_PropertiesPanel;
     // ContentBrowserPanel m_ContentBrowserPanel;
     // MaterialPanel m_MaterialPanel;
     TextureViewerPanel m_TextureViewerPanel;

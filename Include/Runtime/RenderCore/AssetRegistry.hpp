@@ -13,6 +13,11 @@ namespace CZ {
 
 template <typename T> struct ResourceLoaderTraits {
     static Scope<T> Load(const std::string& virtualPath) {
+        (void)virtualPath;
+        CZ_CORE_ASSERT(false, "ResourceLoaderTraits not specialized for this type");
+    }
+
+    template <typename... Args> static Scope<T> Create([[maybe_unused]] Args&&... args) {
         CZ_CORE_ASSERT(false, "ResourceLoaderTraits not specialized for this type");
     }
 };
@@ -51,12 +56,25 @@ public:
 
     void Init() override;
 
+    template <typename... Args> AssetClass CreateMemoryAssetInstance(Args&&... args) {
+        auto obj = ResourceLoaderTraits<T>::Create(std::forward<Args>(args)...);
+        T* ptr   = obj.get();
+
+        AssetClass asset(ptr);
+
+        AssetHandle handle = AssetHandle::Generate();
+        asset.SetHandle(handle);
+        m_MemoryCache[handle] = asset;
+
+        return asset;
+    }
+
     AssetClass LoadAsset(const std::string& path) {
         T* ptr = this->Allocate(path);
 
-        std::lock_guard<std::mutex> lock(m_CacheMutex);
+        std::lock_guard<std::mutex> lock(m_DiskCacheMutex);
 
-        for (auto& [handle, asset] : m_Cache) {
+        for (auto& [handle, asset] : m_DiskCache) {
             if (asset.EqualObj(ptr)) return asset;
         }
 
@@ -64,7 +82,7 @@ public:
 
         AssetHandle handle = AssetHandle::Generate();
         asset.SetHandle(handle);
-        m_Cache[handle] = asset;
+        m_DiskCache[handle] = asset;
 
         return asset;
     }
@@ -97,16 +115,17 @@ public:
     }
 
     void Clear() {
-        for (auto& [_, asset] : m_Cache) {
+        for (auto& [_, asset] : m_DiskCache) {
             asset.Destroy();
         }
-        m_Cache.clear();
+        m_DiskCache.clear();
         this->ResourceStoragePolicy<T>::Shutdown();
     }
 
 private:
-    std::unordered_map<AssetHandle, AssetClass> m_Cache;
-    std::mutex m_CacheMutex;
+    std::unordered_map<AssetHandle, AssetClass> m_DiskCache;
+    std::unordered_map<AssetHandle, AssetClass> m_MemoryCache;
+    std::mutex m_DiskCacheMutex;
 };
 
 } // namespace CZ

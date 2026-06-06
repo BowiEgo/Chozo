@@ -9,6 +9,8 @@
 // #include "Vector3.h"
 // #include "Matrix4.h"
 #include <Core/TypeRegistry/TypeRegistry.hpp>
+#include <Runtime/RenderCore/Components/TransformParams.hpp>
+#include <Runtime/RenderCore/MeshParams.hpp>
 
 using namespace CZ;
 
@@ -22,6 +24,8 @@ public:
 
     static bool TestSingle(TypeMask mask, const std::string& name);
     static bool Test(TypeMask mask, std::initializer_list<std::string> names);
+    static bool IsRootType(TypeMask mask);
+    static bool IsRegularType(TypeMask mask);
     static bool HasMeshType(TypeMask mask);
 
     void Init();
@@ -91,16 +95,13 @@ public:
     }
 
     // ===== Transform =====
-    // bool HasTransform() const {
-    //     auto regNodeBit = TypeRegister::Get().GetBit("Node_Regular");
-    //     return (m_TypeMask & regNodeBit) != 0;
-    // }
-    // void SetTransformParams(const TransformParams& params) {
-    //     m_TransformParams = params;
-    //     MarkDirty();
-    // }
-    // const TransformParams* GetTransformParams() const { return &m_TransformParams; }
-    // TransformParams* GetTransformParams() { return &m_TransformParams; }
+    bool HasTransform() const { return EditorNodeRegistry::IsRegularType(m_TypeMask); }
+    void SetTransformParams(const TransformParams params) {
+        m_TransformParams = params;
+        MarkDirty();
+    }
+    const TransformParams GetTransformParams() const { return m_TransformParams; }
+    TransformParams GetTransformParams() { return m_TransformParams; }
 
     // ===== HDRIBackdrop =====
     // bool HasHDRIBackdrop() const {
@@ -116,15 +117,17 @@ public:
 
     // // ===== Mesh =====
     bool HasMesh() const { return EditorNodeRegistry::HasMeshType(m_TypeMask); }
-    // void SetMeshParamsWrapper(const MeshParamsWrapper& props) {
-    //     m_MeshParamsWrapper = props;
-    //     MarkDirty();
-    // } void SetMeshParamsWrapper(const std::string& typeName) {
-    //     m_MeshParamsWrapper = FMeshRegister::Get().CreateParams(typeName);
+    void SetMeshParams(const MeshParams& props) {
+        m_MeshParams.Destroy();
+        m_MeshParams = props;
+        MarkDirty();
+    }
+    // void SetMeshParams(const std::string& typeName) {
+    //     m_MeshParams = MeshRegister::Get().CreateParams(typeName);
     //     MarkDirty();
     // }
-    // const MeshParamsWrapper* GetMeshParamsWrapper() const { return &m_MeshParamsWrapper; }
-    // MeshParamsWrapper* GetMeshParamsWrapper() { return &m_MeshParamsWrapper; }
+    const MeshParams GetMeshParams() const { return m_MeshParams; }
+    MeshParams GetMeshParams() { return m_MeshParams; }
 
     // ===== Material =====
 
@@ -145,9 +148,9 @@ private:
     std::vector<EditorNode*> m_Children;
 
     // Components
-    // TransformParams m_TransformParams;
+    TransformParams m_TransformParams;
     // HDRIBackdropParams m_HDRIBackdropParams;
-    // MeshParamsWrapper m_MeshParamsWrapper;
+    MeshParams m_MeshParams;
 
     // State
     bool m_IsDirty = false;

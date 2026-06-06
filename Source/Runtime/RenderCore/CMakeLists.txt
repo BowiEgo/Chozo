@@ -13,6 +13,9 @@ set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/MeshParams.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Mesh.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Scene/Entity.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Scene/Scene.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Scene/TransformSystem.hpp
 )
 
 set(MODULE_SRC
@@ -25,6 +28,11 @@ set(MODULE_SRC
     Mesh.cpp
     MeshRegistry.cpp
     ProceduralMesh/ProceduralMesh.cpp
+    Components/TransformParams.cpp
+    Components/TransformComponent.cpp
+    Scene/Entity.cpp
+    Scene/Scene.cpp
+    Scene/TransformSystem.cpp
 )
 
 add_chozo_module(
@@ -32,7 +40,7 @@ add_chozo_module(
     TYPE    RUNTIME
     INCLUDE ${MODULE_INCLUDE}
     SOURCE  ${MODULE_SRC}
-    LINK    CZCoreLibs slang::slang
+    LINK    CZCoreLibs slang::slang EnTT::EnTT
 )
 
 add_chozo_module_tests()

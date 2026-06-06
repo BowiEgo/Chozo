@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/format.h>
 #include <functional>
 
 namespace CZ {
@@ -101,3 +102,53 @@ template <> struct hash<CZ::Vector3> {
     }
 };
 } // namespace std
+
+// ===== String formatting for logs =====
+// CZ_LOG(LogTemp, Info, "Vector3: {}", vec);     // Defaut         (1.000000, 2.500000, 3.140000)
+// CZ_LOG(LogTemp, Info, "Vector3: {:2}", vec);   // Compact        (1.00, 2.50, 3.14)
+// CZ_LOG(LogTemp, Info, "Vector3: {:c}", vec);   // Specific precision 1.000000, 2.500000, 3.140000
+namespace fmt {
+inline namespace v10 {
+template <> struct formatter<CZ::Vector3> {
+    int precision = 6;
+    bool compact  = false;
+
+    constexpr auto parse(format_parse_context& ctx) {
+        auto it = ctx.begin();
+
+        if (it == ctx.end() || *it == '}') {
+            return it;
+        }
+
+        if (*it == 'c') {
+            compact = true;
+            ++it;
+        } else if (*it >= '0' && *it <= '9') {
+            precision = 0;
+            while (it != ctx.end() && *it >= '0' && *it <= '9') {
+                precision = precision * 10 + (*it - '0');
+                ++it;
+            }
+        } else {
+            throw format_error("invalid format specifier");
+        }
+
+        if (it == ctx.end() || *it != '}') {
+            throw format_error("invalid format");
+        }
+
+        ctx.advance_to(it);
+        return it;
+    }
+
+    template <typename FormatContext> auto format(const CZ::Vector3& v, FormatContext& ctx) const {
+        if (compact) {
+            return fmt::format_to(ctx.out(), "{:.{}f}, {:.{}f}, {:.{}f}", v.x, precision, v.y,
+                                  precision, v.z, precision);
+        }
+        return fmt::format_to(ctx.out(), "({:.{}f}, {:.{}f}, {:.{}f})", v.x, precision, v.y,
+                              precision, v.z, precision);
+    }
+};
+} // namespace v10
+} // namespace fmt

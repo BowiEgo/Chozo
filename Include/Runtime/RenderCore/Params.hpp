@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Core/Memory/Memory.hpp"
-#include "Core/Memory/MemoryTypes.hpp"
 #include <Core/Math/Quaternion.hpp>
 #include <Core/Math/Vector2.hpp>
 #include <Core/Math/Vector3.hpp>
@@ -128,10 +126,9 @@ struct ConstParamsVisitor {
  * Abstract parameter interface
  */
 struct Params {
-    virtual ~Params()                              = default;
-    virtual Params* Clone() const                  = 0;
-    virtual bool Equals(const Params& other) const = 0;
-    virtual size_t GetHash() const                 = 0;
+    virtual ~Params()              = default;
+    virtual Params* Clone() const  = 0;
+    virtual size_t GetHash() const = 0;
 
     virtual size_t GetParamCount()                 = 0;
     virtual std::string GetParamName(size_t index) = 0;

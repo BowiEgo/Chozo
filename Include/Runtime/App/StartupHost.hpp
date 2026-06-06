@@ -9,8 +9,8 @@ namespace CZ {
 
 class StartupHostObj {
 public:
-    StartupHostObj()  = default;
-    ~StartupHostObj() = default;
+    StartupHostObj()          = default;
+    virtual ~StartupHostObj() = default;
 
     virtual void Draw(CommandList cmdList) = 0;
 
