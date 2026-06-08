@@ -18,7 +18,8 @@ template <typename T, typename Policy = DefaultStoragePolicy> class EntityRegist
 public:
     virtual ~EntityRegistry() = default;
 
-    virtual void Init() = 0;
+    virtual void Init()     = 0;
+    virtual void Shutdown() = 0;
 
     template <typename... Args> Handle<T> Create(Args&&... args) {
         T* ptr = this->Allocate(std::forward<Args>(args)...);

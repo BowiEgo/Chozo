@@ -85,6 +85,10 @@ protected:
 
 struct Sampler : Handle<class SamplerObj> {
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
+
+    template <typename T> const T* As() const {
+        return static_cast<const T*>(InternalHandleReader::Unwrap(*this));
+    }
 };
 } // namespace CZ
 

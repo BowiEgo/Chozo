@@ -142,8 +142,8 @@ bool ShaderCompiler::CompileFromSource(
         // SLANG_RETURN_ON_FAIL(
         //     collectEntryPointMetadata(program, targetIndex, definedEntryPointCount));
 
-        // auto targetFormat = kTargets[targetIndex].format;
-        // PrintProgramLayout(programLayout, targetFormat);
+        auto targetFormat = kTargets[targetIndex].format;
+        PrintProgramLayout(programLayout, targetFormat);
     }
 
     if (!CompileToSpirvForAllEntryPoints(program, programLayouts[0], outputs)) return false;
@@ -209,14 +209,22 @@ ShaderReflection ShaderCompiler::ReflectFromProgramLayout(slang::ProgramLayout* 
 
             if (category != slang::ParameterCategory::VertexInput) continue;
 
-            const char* attrName = param->getName();
-            if (!attrName) attrName = "unnamed";
-
-            int location = param->getSemanticIndex(); // [[vk::location(location)]]
             slang::TypeLayoutReflection* typeLayout = param->getTypeLayout();
-            ShaderDataType dataType = SlangTypeToShaderDataType(typeLayout->getType());
-
-            reflection.Attributes.emplace_back(attrName, (uint32)location, dataType);
+            slang::TypeReflection* type             = typeLayout->getType();
+            if (type->getKind() == slang::TypeReflection::Kind::Struct) {
+                for (unsigned int f = 0; f < typeLayout->getFieldCount(); ++f) {
+                    slang::VariableLayoutReflection* field = typeLayout->getFieldByIndex(f);
+                    int location =
+                        static_cast<int>(field->getOffset(slang::ParameterCategory::VaryingInput));
+                    ShaderDataType dataType =
+                        SlangTypeToShaderDataType(field->getTypeLayout()->getType());
+                    reflection.Attributes.emplace_back(field->getName(), location, dataType);
+                }
+            } else {
+                int location            = param->getSemanticIndex();
+                ShaderDataType dataType = SlangTypeToShaderDataType(type);
+                reflection.Attributes.emplace_back(param->getName(), location, dataType);
+            }
         }
 
         std::vector<AttributeInfo> sortedAttribs = reflection.Attributes;
@@ -241,12 +249,15 @@ ShaderReflection ShaderCompiler::ReflectFromProgramLayout(slang::ProgramLayout* 
         slang::TypeLayoutReflection* typeLayout = varLayout->getTypeLayout();
         slang::ParameterCategory category       = typeLayout->getParameterCategory();
 
+        slang::TypeLayoutReflection* contentLayout = typeLayout->getElementTypeLayout();
+        uint32_t sizeInBytes = contentLayout ? static_cast<uint32_t>(contentLayout->getSize()) : 0;
+
         // ---- Fill Push Constant ----
         if (category == slang::ParameterCategory::PushConstantBuffer) {
             PushConstantRange range;
             range.StageFlags = allStagesMask;
             range.Offset     = 0;
-            range.Size       = static_cast<uint32_t>(typeLayout->getSize());
+            range.Size       = sizeInBytes;
             reflection.PushConstants.push_back(range);
             continue;
         }
@@ -263,7 +274,7 @@ ShaderReflection ShaderCompiler::ReflectFromProgramLayout(slang::ProgramLayout* 
         spec.Binding   = binding;
         spec.Type      = utype;
         spec.ArraySize = 1;
-        spec.Size      = (uint32_t)typeLayout->getSize();
+        spec.Size      = sizeInBytes;
 
         reflection.Uniforms.push_back(spec);
         reflection.UniformLocations[name] = binding;

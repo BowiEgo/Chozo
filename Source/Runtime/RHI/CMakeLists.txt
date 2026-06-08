@@ -8,12 +8,14 @@ set(MODULE_INCLUDE
 
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/GraphicsContext.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHIAPI.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/RHIResource.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Device.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Swapchain.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Fence.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Semaphore.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/CommandPool.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/CommandList.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RHI/DescriptorSet.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Texture.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Image.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RHI/Sampler.hpp
@@ -35,6 +37,7 @@ set(MODULE_SRC
     Semaphore.cpp
     CommandPool.cpp
     CommandList.cpp
+    DescriptorSet.cpp
     Texture.cpp
     Image.cpp
     Sampler.cpp

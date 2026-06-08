@@ -155,6 +155,14 @@ typedef enum class MouseButton : uint16_t {
     Middle  = Button2
 } Button;
 
+namespace ChozoKey {
+using enum KeyCode;
+}
+
+namespace ChozoButton {
+using enum MouseButton;
+}
+
 inline std::ostream& operator<<(std::ostream& os, KeyCode keyCode) {
     os << static_cast<int32_t>(keyCode);
     return os;

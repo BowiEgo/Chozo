@@ -42,9 +42,11 @@ public:
 
     void BindPipeline(Pipeline pipeline) override;
 
-    //  void BindDescriptorSets(int set, DescriptorSet descSet) override;
+    // void BindMaterial(Material material) override;
 
-    // void PushConstants(const void* data, uint32 size, uint32 offset) override;
+    void BindDescriptorSets(int set, DescriptorSet descSet) override;
+
+    void PushConstants(const void* data, uint32 size, uint32 offset) override;
 
     void BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) override;
 
@@ -66,8 +68,8 @@ public:
 
 private:
     VkResult Init();
-    // void PushConstants(VkShaderStageFlags stageFlags, const void* data, uint32_t size,
-    //                    uint32_t offset);
+    void PushConstants(VkShaderStageFlags stageFlags, const void* data, uint32_t size,
+                       uint32_t offset);
 
     VkCommandBuffer m_VkCommandBuffer;
 

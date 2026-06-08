@@ -3,15 +3,17 @@
 #include <Core/Header/Handle.hpp>
 #include <Core/Header/Types.h>
 #include <Core/Memory/Memory.hpp>
+#include <Runtime/RHI/DescriptorSet.hpp>
 #include <Runtime/RHI/GraphicsBuffer.hpp>
 #include <Runtime/RHI/Pipeline.hpp>
 #include <Runtime/RHI/RHITypes.hpp>
+#include <Runtime/RenderCore/Camera/Camera.hpp>
+#include <Runtime/RenderCore/Camera/CameraManager.hpp>
 #include <Runtime/RenderCore/Mesh.hpp>
+#include <Runtime/RenderCore/Scene/Scene.hpp>
 // #include <Runtime/RenderCore/Viewport.hpp>
 
 namespace CZ {
-
-struct DescriptorSet;
 
 struct RenderViewport {
     float x, y, width, height, minDepth, maxDepth;
@@ -42,9 +44,11 @@ public:
 
     virtual void BindPipeline(Pipeline pipeline) = 0;
 
-    // virtual void BindDescriptorSets(int set, DescriptorSet descSet) = 0;
+    // virtual void BindMaterial(Material material) = 0;
 
-    // virtual void PushConstants(const void* data, uint32 size, uint32 offset) = 0;
+    virtual void BindDescriptorSets(int set, DescriptorSet descSet) = 0;
+
+    virtual void PushConstants(const void* data, uint32 size, uint32 offset) = 0;
 
     virtual void BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) = 0;
 
@@ -61,6 +65,8 @@ public:
     virtual void Draw(Mesh mesh) = 0;
 
     virtual void End() = 0;
+
+    void Draw(Scene scene, Camera camera);
 
 protected:
     Pipeline m_CurrentPipeline;

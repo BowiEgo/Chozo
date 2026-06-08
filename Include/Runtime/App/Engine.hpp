@@ -32,6 +32,7 @@ public:
     }
 
     ShaderRegistry* GetShaderRegistry() { return m_ShaderRegistry.get(); }
+    MeshRegistry* GetMeshRegistry() { return m_MeshRegistry.get(); }
 
 private:
     Renderer m_Renderer;

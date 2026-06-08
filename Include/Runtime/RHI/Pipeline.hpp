@@ -3,6 +3,7 @@
 #include <Core/Header/Handle.hpp>
 #include <Runtime/RHI/RHITypes.hpp>
 #include <Runtime/RHI/SetLayout.hpp>
+#include <Runtime/RHI/ShaderRes.hpp>
 
 namespace CZ {
 
@@ -16,6 +17,10 @@ struct PipelineSpecification {
     bool bDepthTestEnable    = true;
     bool bDepthWriteEnable   = true;
     CompareOp DepthCompareOp = CompareOp::Less;
+
+    std::unordered_map<uint32_t, SetLayout> SetLayouts;
+    VertexBufferLayout VertexLayout;
+    std::vector<PushConstantRange> PushConstantRanges;
 };
 
 class PipelineObj {
@@ -28,9 +33,13 @@ public:
 
     PolygonMode GetPolygonMode() const { return m_Spec.PolygonMode; }
 
+    const SetLayout GetSetLayout(uint32_t set) {
+        if (set < m_SetLayouts.size()) return m_SetLayouts[set];
+        return SetLayout();
+    }
+
 protected:
     PipelineSpecification m_Spec;
-
     std::vector<SetLayout> m_SetLayouts;
 };
 

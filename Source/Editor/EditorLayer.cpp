@@ -60,42 +60,49 @@ void EditorLayer::OnAttach() {
 
     SetDarkThemeColors();
 
+    auto fbSize = window->GetFrameBufferSize();
+
     m_ImGuiRenderer = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, VulkanImGuiRenderer);
     m_ImGuiRenderer->Init(ImGui::GetCurrentContext(), window.As<SDLWindowObj>()->GetSDLWindow());
 
-    m_ViewportRenderer = Application::Get().GetEngine()->GetRenderer();
-    m_Viewport = m_ViewportRenderer.CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
-
     m_Scene      = Scene::Create();
     m_SyncBridge = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, SyncBridge, m_Scene);
+
+    m_ViewportRenderer = Application::Get().GetEngine()->GetRenderer();
+    m_Viewport = m_ViewportRenderer.CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
+    m_Viewport->SetScene(m_Scene);
+
+    auto mainCamera = m_Viewport->GetCamera();
+    m_EditorCamera.SetActiveCamera(mainCamera);
+    mainCamera->SetPerspective(45.0f, (float)fbSize.Width / fbSize.Height, 0.1f, 1000.0f);
+    mainCamera->SetPosition(Vector3(0, 0, 5));
 
     CallbackHandle handle = m_NodeTree.RegisterEventCallback([this](const NodeEvent& event) {
         switch (event.GetType()) {
             case EditorNodeEventType::Created:
                 m_SyncBridge->RegisterNode(event.GetNode());
-                CZ_LOG(LogEditorLayer, Trace, "Node created: {}", event.GetNode()->GetName());
+                // CZ_EDITOR_LOG(Trace, "Node created: {}", event.GetNode()->GetName());
                 break;
             case EditorNodeEventType::Deleted:
                 m_SyncBridge->UnregisterNode(event.GetNode());
-                CZ_LOG(LogEditorLayer, Trace, "Node deleted: {}", event.GetNode()->GetName());
+                // CZ_EDITOR_LOG(Trace, "Node deleted: {}", event.GetNode()->GetName());
                 break;
             case EditorNodeEventType::Renamed:
-                CZ_LOG(LogEditorLayer, Trace, "Node renamed: {} -> {}", event.GetOldName(),
-                       event.GetNode()->GetName());
+                // CZ_EDITOR_LOG(Trace, "Node renamed: {} -> {}", event.GetOldName(),
+                //   event.GetNode()->GetName());
                 break;
             case EditorNodeEventType::Moved:
-                CZ_LOG(LogEditorLayer, Trace, "Node parent changed: {}",
-                       event.GetNode()->GetName());
+                // CZ_EDITOR_LOG(Trace, "Node parent changed: {}", event.GetNode()->GetName());
                 break;
             case EditorNodeEventType::Selected:
-                CZ_LOG(LogEditorLayer, Trace, "Node selected: {}", event.GetNode()->GetName());
+                // CZ_EDITOR_LOG(Trace, "Node selected: {}", event.GetNode()->GetName());
                 break;
             case EditorNodeEventType::DirtyChanged:
-                CZ_LOG(LogEditorLayer, Trace, "Node dirty changed: {}", event.GetNode()->GetName());
+                // CZ_EDITOR_LOG(Trace, "Node dirty changed: {}", event.GetNode()->GetName());
                 break;
             default:
-                CZ_LOG(LogEditorLayer, Warning, "Unknown event type: {}",
-                       static_cast<int>(event.GetType()));
+                // CZ_EDITOR_LOG(Warning, "Unknown event type: {}",
+                // static_cast<int>(event.GetType()));
                 break;
         }
     });
@@ -120,7 +127,9 @@ void EditorLayer::OnDetach() {
 }
 
 void EditorLayer::OnUpdate(float deltaTime) {
-    // CZ_LOG(LogEditorLayer, Trace, "OnUpdate: {}", deltaTime);
+    // CZ_EDITOR_LOG(Trace, "OnUpdate: {}", deltaTime);
+    m_Viewport->Resize(m_ViewportSize.x, m_ViewportSize.y);
+    m_EditorCamera.OnUpdate(deltaTime, m_ViewportFocused);
     m_SyncBridge->SyncAllNodesToEntities();
 }
 
@@ -315,13 +324,13 @@ void EditorLayer::OnEvent(Event& e) {
 }
 
 bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
-    CZ_LOG(LogEditorLayer, Trace, "{}}", e.ToString());
+    CZ_EDITOR_LOG(Trace, "{}}", e.ToString());
 
     return true;
 }
 
 void EditorLayer::Draw(CommandList cmdList) {
-    // CZ_LOG(LogEditorLayer, Trace, "Draw");
+    // CZ_EDITOR_LOG(Trace, "Draw");
 
     m_ImGuiRenderer->Draw(ImGui::GetDrawData(), cmdList);
 }
@@ -332,7 +341,7 @@ void EditorLayer::SetFont(std::string font) {
     // std::filesystem::path fontPath = VFS::Resolve("fonts://" + font);
 
     // if (!std::filesystem::exists(fontPath)) {
-    //     CZ_LOG(LogImGuiLayer, Error, "Font file not found: {}", fontPath.string());
+    //     CZ_EDITOR_LOG(Error, "Font file not found: {}", fontPath.string());
     //     return;
     // }
 

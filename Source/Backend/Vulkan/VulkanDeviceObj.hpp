@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Runtime/RHI/Device.hpp>
+
 #include <vulkan/vulkan_core.h>
 
 #ifndef VMA_IMPLEMENTATION
@@ -78,6 +79,9 @@ public:
 
     SetLayout CreateSetLayout(const SetLayoutDescription& desc) override;
 
+    DescriptorSet CreateDescriptorSet(SetLayout setLayout,
+                                      std::vector<DescriptorBinding>& bindings) override;
+
     GraphicsBuffer CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
                                         const Buffer* initialData = nullptr) override;
 
@@ -95,6 +99,8 @@ public:
 
     VkDescriptorPool CreateDescriptorPool(uint32_t maxSets,
                                           const std::vector<VkDescriptorPoolSize>& poolSizes);
+
+    VkDescriptorSet AllocateSetFromPool(VkDescriptorSetLayout layout) const;
 
     VmaAllocator GetVmaAllocator() const { return m_VmaAllocator; }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/Event/Event.hpp>
+#include <Core/Event/InputImpl.hpp>
 #include <Core/Header/Extent.hpp>
 #include <Core/Header/Handle.hpp>
 
@@ -74,6 +75,7 @@ protected:
 protected:
     WindowSpecifaciton m_Spec;
     WindowHandle m_Window{ nullptr };
+    Scope<InputImpl> m_InputImpl;
     std::atomic_bool m_VSyncDirty{ false };
 
     // std::function<void(const SDL_Event&)> m_EventPreprocessor;

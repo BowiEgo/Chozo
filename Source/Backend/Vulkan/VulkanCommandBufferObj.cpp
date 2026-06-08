@@ -1,11 +1,13 @@
 #include "VulkanCommandBufferObj.hpp"
 
 #include "VulkanCommandPoolObj.hpp"
+#include "VulkanDescriptorSetObj.hpp"
 #include "VulkanDeviceObj.hpp"
 #include "VulkanGraphicsBufferObj.hpp"
 #include "VulkanPipelineObj.hpp"
 
 #include <Core/Log/LogMacros.hpp>
+#include <Runtime/RenderCore/Camera/CameraManager.hpp>
 
 namespace CZ {
 
@@ -72,30 +74,47 @@ void VulkanCommandBufferObj::BindPipeline(Pipeline pipeline) {
     vkCmdBindPipeline(m_VkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 }
 
-// void VulkanCommandBufferObj::BindDescriptorSets(int set, DescriptorSet descSet) {
-//     auto vkDescSet = descSet.As<CVulkanDescriptorSet>()->GetVKHandle(); // 假设返回
-//     VkDescriptorSet VkPipelineLayout layout = m_CurrentPipeline->GetPipelineLayout();
+// void VulkanCommandBufferObj::BindMaterial(Material material) {
+//     auto deviceObj = m_CmdPoolObj->m_DeviceObj;
 
-//     vkCmdBindDescriptorSets(m_VkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, set, 1,
-//     &vkDescSet,
-//                             0, nullptr);
+//     BindPipeline(material->GetPipeline());
+//     SetPolygonMode(material->GetPolygonMode());
+//     BindDescriptorSets(1, material->GetDescriptorSet());
+
+//     auto setLayout                          = material->GetShader()->GetSetLayout(0);
+//     std::vector<DescriptorBinding> bindings = {
+//         { 0, UniformType::UniformBuffer, cameraBuffer.get(), nullptr },
+//     };
+//     auto descSet = deviceObj->GetOrCreateDescriptorSet(setLayout, bindings);
+
+//     BindDescriptorSets(0, descSet);
 // }
 
-// void VulkanCommandBufferObj::PushConstants(const void* data, uint32 size, uint32 offset) {
-//     PushConstants(VK_SHADER_STAGE_VERTEX_BIT, data, size, offset);
-// }
+void VulkanCommandBufferObj::BindDescriptorSets(int set, DescriptorSet descSet) {
+    auto vkDescSet = descSet.As<VulkanDescriptorSetObj>()->GetVkDescriptorSet();
+    VkPipelineLayout pipelineLayout =
+        m_CurrentPipeline.As<VulkanPipelineObj>()->GetVKPipelineLayout();
 
-// void VulkanCommandBufferObj::PushConstants(VkShaderStageFlags stageFlags, const void* data,
-//                                            uint32_t size, uint32_t offset) {
-// VkPipelineLayout pipelineLayout =
-//     m_CurrentPipeline->GetPipelineLayout(); // 假设返回 VkPipelineLayout
-// if (!pipelineLayout) {
-//     CZ_BACKEND_LOG( Error, "Invalid pipeline layout");
-//     return;
-// }
+    vkCmdBindDescriptorSets(m_VkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, set,
+                            1, &vkDescSet, 0, nullptr);
+}
 
-// vkCmdPushConstants(m_VKHandle, pipelineLayout, stageFlags, offset, size, data);
-// }
+void VulkanCommandBufferObj::PushConstants(const void* data, uint32 size, uint32 offset) {
+    PushConstants(VK_SHADER_STAGE_VERTEX_BIT, data, size, offset);
+}
+
+void VulkanCommandBufferObj::PushConstants(VkShaderStageFlags stageFlags, const void* data,
+                                           uint32_t size, uint32_t offset) {
+    VkPipelineLayout pipelineLayout =
+        m_CurrentPipeline.As<VulkanPipelineObj>()->GetVKPipelineLayout();
+
+    if (!pipelineLayout) {
+        CZ_BACKEND_LOG(Error, "Invalid pipeline layout");
+        return;
+    }
+
+    vkCmdPushConstants(m_VkCommandBuffer, pipelineLayout, stageFlags, offset, size, data);
+}
 
 void VulkanCommandBufferObj::BindVertexBuffer(GraphicsBuffer vertexBuffer, int binding) {
     auto vkBufferObj  = vertexBuffer.As<VulkanGraphicsBufferObj>();

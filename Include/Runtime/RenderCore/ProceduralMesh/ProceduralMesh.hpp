@@ -1,25 +1,46 @@
 #pragma once
 
+#include <Core/TypeRegistry/TypeRegistry.hpp>
 #include <Runtime/RenderCore/Asset.hpp>
 #include <Runtime/RenderCore/Mesh.hpp>
 #include <Runtime/RenderCore/MeshParams.hpp>
 
 namespace CZ {
 
+struct MeshGenerator {
+    virtual ~MeshGenerator()                                                  = default;
+    virtual MeshBuffer* GenerateBuffer(MeshParams params, MeshBuffer* buffer) = 0;
+};
+
 class ProceduralMesh : public Mesh {
 public:
     explicit ProceduralMesh(MeshObj* obj) : Mesh(obj) {
         m_Obj->MemoryType = MemoryType::HostVisible | MemoryType::HostCoherent;
     }
-    virtual ~ProceduralMesh() { m_Params.Destroy(); }
+    ~ProceduralMesh() { m_Params.Destroy(); }
 
-    virtual const std::string GetName() const override { return "ProceduralMesh"; }
+    const std::string GetName() const override { return "ProceduralMesh"; }
 
-    virtual MeshBuffer* GenerateBuffer()            = 0;
-    virtual void SetParams(const MeshParams params) = 0;
+    void SetParams(const MeshParams params) { m_Params = params.Clone(); }
+
+    const std::string GetTypeName() const { return m_Params->GetTypeName(); }
+
+    MeshBuffer* GenerateBuffer();
+
+    static void RegisterType(const std::string& typeName, Scope<MeshGenerator> generator) {
+        TypeRegister::Get().RegisterType("ProceduralMesh_" + typeName, true, TypeCategory::Mesh);
+        s_Generators[typeName] = std::move(generator);
+    }
+
+    static void Shutdown() {
+        for (auto& [name, generator] : s_Generators) {
+            generator.reset();
+        }
+    }
 
 protected:
     MeshParams m_Params;
+    static std::unordered_map<std::string, Scope<MeshGenerator>> s_Generators;
 };
 
 } // namespace CZ

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Core/Header/Handle.hpp>
+#include <Runtime/RHI/RHIResource.hpp>
 #include <Runtime/RHI/RHITypes.hpp>
 
 namespace CZ {
@@ -27,15 +28,20 @@ struct SetLayoutDescription {
     bool operator==(const SetLayoutDescription& other) const { return Bindings == other.Bindings; }
 };
 
-class SetLayoutObj {
+class SetLayoutObj : public RHIResource {
 public:
-    SetLayoutObj() = default;
-
+    SetLayoutObj()          = default;
     virtual ~SetLayoutObj() = default;
+
+    ResourceType GetResourceType() const override { return ResourceType::SetLayout; }
 };
 
 struct SetLayout : Handle<class SetLayoutObj> {
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
+
+    template <typename T> T* As() const {
+        return static_cast<T*>(InternalHandleReader::Unwrap(*this));
+    }
 };
 
 } // namespace CZ

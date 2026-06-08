@@ -1,6 +1,8 @@
-#include "Core/TypeRegistry/TypeRegistry.hpp"
 #include <Runtime/RenderCore/Mesh.hpp>
 #include <Runtime/RenderCore/MeshRegistry.hpp>
+#include <Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp>
+
+#include "./ProceduralMesh/CubeGenerator.hpp"
 
 namespace CZ {
 
@@ -11,14 +13,24 @@ Scope<MeshObj> ResourceLoaderTraits<MeshObj>::Load(const std::string& virtualPat
     return CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, MeshObj);
 }
 
-Scope<MeshObj> Create(const MeshParams& params) {
-    (void)params;
-    return nullptr;
+Scope<MeshObj> ResourceGeneratorTraits<MeshObj>::Generate(const MeshParams params) {
+    auto* meshObj = CZ_NEW(MEMORY_USAGE_ASSET, MeshObj);
+    auto mesh     = ProceduralMesh(meshObj);
+    mesh.SetParams(params);
+    mesh.GenerateBuffer();
+
+    return Scope<MeshObj>(meshObj);
 }
 
 template <> void AssetRegistry<MeshObj>::Init() {
-    TypeRegister::Get().RegisterType("ProceduralMesh_Cube", true, TypeCategory::Mesh);
-    TypeRegister::Get().RegisterType("ProceduralMesh_Sphere", true, TypeCategory::Mesh);
+    // TypeRegister::Get().RegisterType("ProceduralMesh_Sphere", true, TypeCategory::Mesh);
+
+    ProceduralMesh::RegisterType("Cube", CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, CubeGenerator));
+}
+
+template <> void AssetRegistry<MeshObj>::Shutdown() {
+    Clear();
+    ProceduralMesh::Shutdown();
 }
 
 } // namespace CZ

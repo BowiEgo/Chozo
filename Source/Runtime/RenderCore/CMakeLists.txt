@@ -13,10 +13,12 @@ set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/MeshParams.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Mesh.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp
-    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/ProceduralMesh/Cube.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Scene/Entity.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Scene/Scene.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Scene/TransformSystem.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Camera/Camera.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Camera/CameraManager.hpp
+    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Camera/SceneCamera.hpp
 )
 
 set(MODULE_SRC
@@ -30,13 +32,14 @@ set(MODULE_SRC
     MeshParams.cpp
     MeshRegistry.cpp
     ProceduralMesh/ProceduralMesh.cpp
-    ProceduralMesh/Cube.cpp
     ProceduralMesh/CubeParamsObj.cpp
     Components/TransformParams.cpp
     Components/TransformComponent.cpp
     Scene/Entity.cpp
     Scene/Scene.cpp
     Scene/TransformSystem.cpp
+    Camera/Camera.cpp
+    Camera/CameraManager.cpp
 )
 
 add_chozo_module(

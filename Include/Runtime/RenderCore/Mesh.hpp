@@ -98,10 +98,12 @@ struct MeshObj {
     void Upload();
 };
 
-class Mesh : public Asset<MeshObj> {
+class Mesh : public Asset<struct MeshObj> {
 public:
     Mesh() = default;
     explicit Mesh(MeshObj* obj) : Asset<MeshObj>(obj) {}
+
+    MeshObj* Raw() { return InternalHandleReader::Unwrap(*this); }
 
     AssetType GetType() const override { return AssetType::Mesh; }
     const std::string GetName() const override;

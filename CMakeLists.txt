@@ -100,6 +100,7 @@ target_link_libraries(CZEnginePrerequisites INTERFACE fmt::fmt glm::glm Tracy::T
 set(CZ_CORE_MODULE_FOLDER "Core")
 set(CZ_CORE_MODULE_LIST "" CACHE STRING "" FORCE)
 add_subdirectory(Source/Core/DynamicLibrary)
+add_subdirectory(Source/Core/Event)
 add_subdirectory(Source/Core/FileSystem)
 add_subdirectory(Source/Core/Header)
 add_subdirectory(Source/Core/Layer)

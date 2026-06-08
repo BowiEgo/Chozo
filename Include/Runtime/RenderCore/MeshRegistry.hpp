@@ -10,8 +10,10 @@ struct MeshObj;
 
 template <> struct ResourceLoaderTraits<MeshObj> {
     static Scope<MeshObj> Load(const std::string& virtualPath);
+};
 
-    static Scope<MeshObj> Create(const MeshParams& params);
+template <> struct ResourceGeneratorTraits<MeshObj> {
+    static Scope<MeshObj> Generate(const MeshParams params);
 };
 
 using MeshRegistry = AssetRegistry<MeshObj>;

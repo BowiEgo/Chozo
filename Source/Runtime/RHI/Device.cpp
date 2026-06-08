@@ -1,4 +1,5 @@
 #include <Runtime/RHI/Device.hpp>
+#include <Runtime/RHI/RHIAPI.hpp>
 
 namespace CZ {
 
@@ -16,6 +17,11 @@ template <> void Handle<DeviceObj>::Destroy() {
         }
         m_Obj->m_SamplerCache.clear();
 
+        for (auto& [_, desc] : m_Obj->m_DescriptorSetCache) {
+            desc.Destroy();
+        }
+        m_Obj->m_DescriptorSetCache.clear();
+
         Delete(m_Obj);
         m_Obj = nullptr;
     }
@@ -24,6 +30,8 @@ template <> void Handle<DeviceObj>::Destroy() {
 std::vector<SetLayout> DeviceObj::CreateSetLayouts(
     const std::unordered_map<uint32_t, std::vector<ShaderResourceBinding>>& bindings) {
     std::vector<SetLayout> result;
+
+    if (bindings.empty()) return result;
 
     uint32_t maxSet = 0;
     for (auto const& [setIndex, _] : bindings) {
@@ -106,6 +114,25 @@ Sampler DeviceObj::GetOrCreateSampler(const SamplerSpecification spec) {
     m_SamplerCache[spec] = sampler;
 
     return sampler;
+}
+
+DescriptorSet DeviceObj::GetOrCreateDescriptorSet(SetLayout setLayout,
+                                                  std::vector<DescriptorBinding>& bindings) {
+    DescriptorSetKey key;
+    key.LayoutID = setLayout->GetID();
+    key.BindingResources.resize(bindings.size() * 2);
+    for (const auto& b : bindings) {
+        if (b.m_Buffer) key.BindingResources.push_back(b.m_Buffer->GetID());
+        if (b.m_Texture) key.BindingResources.push_back(b.m_Texture->GetID());
+    }
+
+    auto it       = m_DescriptorSetCache.find(key);
+    key.LastFrame = RHIAPI::Get()->GetGraphicsContext()->GetCurrentFrame();
+    if (it != m_DescriptorSetCache.end()) return it->second;
+
+    auto descSet              = CreateDescriptorSet(setLayout, bindings);
+    m_DescriptorSetCache[key] = descSet;
+    return descSet;
 }
 
 } // namespace CZ

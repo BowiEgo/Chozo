@@ -5,8 +5,6 @@
 
 namespace CZ {
 
-struct ShaderObj;
-
 template <> struct ResourceLoaderTraits<ShaderObj> {
     static Scope<ShaderObj> Load(const std::string& virtualPath);
 };

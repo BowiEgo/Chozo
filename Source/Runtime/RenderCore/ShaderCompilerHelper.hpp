@@ -30,12 +30,21 @@ inline UniformType GetUniformTypeFromSlangCategory(slang::TypeLayoutReflection* 
 
     ParameterCategory category = typeLayout->getParameterCategory();
 
+    if (category == ParameterCategory::DescriptorTableSlot) {
+        slang::TypeLayoutReflection* contentLayout = typeLayout->getElementTypeLayout();
+        if (contentLayout) {
+            category   = contentLayout->getParameterCategory();
+            typeLayout = contentLayout;
+        }
+    }
+
     switch (category) {
-        case ParameterCategory::ConstantBuffer:
-        case ParameterCategory::PushConstantBuffer: return UniformType::UniformBuffer;
+        case ParameterCategory::Uniform:
+        case ParameterCategory::ConstantBuffer: return UniformType::UniformBuffer;
 
         case ParameterCategory::SamplerState: return UniformType::Sampler;
 
+        case ParameterCategory::PushConstantBuffer:
         case ParameterCategory::SpecializationConstant: return UniformType::PushConstant;
 
         case ParameterCategory::ShaderResource: {
@@ -98,6 +107,11 @@ inline ShaderDataType SlangTypeToShaderDataType(slang::TypeReflection* type) {
                     if (count == 2) return ShaderDataType::Int2;
                     if (count == 3) return ShaderDataType::Int3;
                     if (count == 4) return ShaderDataType::Int4;
+                    break;
+                case TypeReflection::ScalarType::UInt32:
+                    if (count == 2) return ShaderDataType::UInt2;
+                    if (count == 3) return ShaderDataType::UInt3;
+                    if (count == 4) return ShaderDataType::UInt4;
                     break;
                 default: break;
             }

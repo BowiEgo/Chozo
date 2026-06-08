@@ -40,7 +40,7 @@ VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
             (VkPushConstantRange*)malloc(pushConstantRangeCount * sizeof(VkPushConstantRange));
         for (uint32_t i = 0; i < pushConstantRangeCount; i++) {
             pushConstantRanges[i].stageFlags =
-                VulkanUtils::StageToFlagBits(reflection.PushConstants[i].StageFlags);
+                VulkanUtils::StageToFlags(reflection.PushConstants[i].StageFlags);
             pushConstantRanges[i].offset = reflection.PushConstants[i].Offset;
             pushConstantRanges[i].size   = reflection.PushConstants[i].Size;
         }
@@ -48,12 +48,13 @@ VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
 
     // ===== Descriptor Set Layouts =====
     m_SetLayouts = m_DeviceObj->CreateSetLayouts(reflection.ResourceBindings);
-    if (m_SetLayouts.empty()) {
-        free(pushConstantRanges);
-        CZ_BACKEND_LOG(Error,
-                       "Failed to create pipeline: No set layouts created from shader reflection");
-        return VK_ERROR_INITIALIZATION_FAILED;
-    }
+    // if (m_SetLayouts.empty()) {
+    //     free(pushConstantRanges);
+    //     CZ_BACKEND_LOG(Error,
+    //                    "Failed to create pipeline: No set layouts created from shader
+    //                    reflection");
+    //     return VK_ERROR_INITIALIZATION_FAILED;
+    // }
     std::vector<VkDescriptorSetLayout> vkSetLayouts(m_SetLayouts.size());
     for (size_t i = 0; i < m_SetLayouts.size(); i++) {
         vkSetLayouts[i] = m_SetLayouts[i].As<VulkanSetLayoutObj>()->GetVkSetLayout();

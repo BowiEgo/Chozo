@@ -10,6 +10,7 @@ set(MODULE_INCLUDE
     VulkanSemaphoreObj.hpp
     VulkanCommandPoolObj.hpp
     VulkanCommandBufferObj.hpp
+    VulkanDescriptorSetObj.hpp
     VulkanTextureObj.hpp
     VulkanImageObj.hpp
     VulkanSamplerObj.hpp
@@ -32,6 +33,7 @@ set(MODULE_SRC
     VulkanSemaphoreObj.cpp
     VulkanCommandPoolObj.cpp
     VulkanCommandBufferObj.cpp
+    VulkanDescriptorSetObj.cpp
     VulkanTextureObj.cpp
     VulkanImageObj.cpp
     VulkanSamplerObj.cpp

@@ -3,6 +3,7 @@
 #include <Core/Header/Handle.hpp>
 #include <Core/Memory/Memory.hpp>
 #include <Runtime/RHI/Image.hpp>
+#include <Runtime/RHI/RHIResource.hpp>
 #include <Runtime/RHI/RHITypes.hpp>
 #include <Runtime/RHI/Sampler.hpp>
 
@@ -87,7 +88,7 @@ struct TextureSpecification {
     }
 };
 
-class TextureObj {
+class TextureObj : public RHIResource {
     friend class Handle<TextureObj>;
 
 public:
@@ -96,6 +97,8 @@ public:
     TextureObj(const TextureSpecification& spec, Image image) : m_Spec(spec), m_Image(image) {}
 
     virtual ~TextureObj() { m_Image.Destroy(); }
+
+    ResourceType GetResourceType() const override { return ResourceType::Texture; }
 
     std::string GetName() const { return m_Spec.Name; }
 
@@ -107,7 +110,7 @@ public:
 
     TextureUsage GetUsage() const { return m_Spec.Usage; }
 
-    Image GetImage() { return m_Image; }
+    Image GetImage() const { return m_Image; }
 
     Sampler GetSampler(const SamplerSpecification spec = SamplerSpecification());
 
@@ -118,6 +121,10 @@ protected:
 
 struct Texture : Handle<class TextureObj> {
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
+
+    template <typename T> const T* As() const {
+        return static_cast<const T*>(InternalHandleReader::Unwrap(*this));
+    }
 };
 
 } // namespace CZ

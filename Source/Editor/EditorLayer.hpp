@@ -4,6 +4,7 @@
 #include <Runtime/RenderCore/Renderer.hpp>
 #include <Runtime/RenderCore/Viewport.hpp>
 
+#include "EditorCamera.hpp"
 #include "Renderer/Vulkan/VulkanImGuiRenderer.hpp"
 #include "SyncBridge.hpp"
 
@@ -64,6 +65,7 @@ private:
     Renderer m_ViewportRenderer;
     Scene m_Scene;
     Viewport m_Viewport;
+    EditorCamera m_EditorCamera;
 
     EditorNodeTree m_NodeTree;
     Scope<SyncBridge> m_SyncBridge;

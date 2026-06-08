@@ -4,6 +4,7 @@ set(MODULE_TYPE RUNTIME)
 set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/Window/Window.hpp
     SDLWindow/SDLWindowObj.hpp
+    SDLWindow/SDLInputImpl.hpp
 )
 
 set(MODULE_SRC

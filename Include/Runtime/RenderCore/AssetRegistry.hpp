@@ -11,15 +11,12 @@
 
 namespace CZ {
 
-template <typename T> struct ResourceLoaderTraits {
-    static Scope<T> Load(const std::string& virtualPath) {
-        (void)virtualPath;
-        CZ_CORE_ASSERT(false, "ResourceLoaderTraits not specialized for this type");
-    }
+template <typename T> struct ResourceGeneratorTraits {
+    template <typename... Args> static Scope<T> Generate(Args&&... args) = delete;
+};
 
-    template <typename... Args> static Scope<T> Create([[maybe_unused]] Args&&... args) {
-        CZ_CORE_ASSERT(false, "ResourceLoaderTraits not specialized for this type");
-    }
+template <typename T> struct ResourceLoaderTraits {
+    static Scope<T> Load(const std::string& virtualPath) = delete;
 };
 
 template <typename T> struct ResourceStoragePolicy {
@@ -55,6 +52,23 @@ public:
     using AssetClass = typename AssetTraits<T>::AssetClass;
 
     void Init() override;
+    void Shutdown() override;
+
+    template <typename... Args> AssetClass GenerateAsset(Args&&... args) {
+        Scope<T> obj = ResourceGeneratorTraits<T>::Generate(std::forward<Args>(args)...);
+        T* ptr       = obj.release();
+
+        AssetClass asset(ptr);
+        AssetHandle handle = AssetHandle::Generate();
+        asset.SetHandle(handle);
+
+        {
+            std::lock_guard<std::mutex> lock(m_CacheMutex);
+            m_MemoryCache[handle] = asset;
+        }
+
+        return asset;
+    }
 
     template <typename... Args> AssetClass CreateMemoryAssetInstance(Args&&... args) {
         auto obj = ResourceLoaderTraits<T>::Create(std::forward<Args>(args)...);
@@ -72,7 +86,7 @@ public:
     AssetClass LoadAsset(const std::string& path) {
         T* ptr = this->Allocate(path);
 
-        std::lock_guard<std::mutex> lock(m_DiskCacheMutex);
+        std::lock_guard<std::mutex> lock(m_CacheMutex);
 
         for (auto& [handle, asset] : m_DiskCache) {
             if (asset.EqualObj(ptr)) return asset;
@@ -114,6 +128,18 @@ public:
         return future;
     }
 
+    AssetClass GetAsset(AssetHandle handle) {
+        std::lock_guard<std::mutex> lock(m_CacheMutex);
+
+        auto it = m_DiskCache.find(handle);
+        if (it != m_DiskCache.end()) return it->second;
+
+        auto memIt = m_MemoryCache.find(handle);
+        if (memIt != m_MemoryCache.end()) return memIt->second;
+
+        return AssetClass();
+    }
+
     void Clear() {
         for (auto& [_, asset] : m_DiskCache) {
             asset.Destroy();
@@ -125,7 +151,7 @@ public:
 private:
     std::unordered_map<AssetHandle, AssetClass> m_DiskCache;
     std::unordered_map<AssetHandle, AssetClass> m_MemoryCache;
-    std::mutex m_DiskCacheMutex;
+    std::mutex m_CacheMutex;
 };
 
 } // namespace CZ

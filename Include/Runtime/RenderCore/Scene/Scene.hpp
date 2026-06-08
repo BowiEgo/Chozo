@@ -1,9 +1,10 @@
 #pragma once
 
-#include <Runtime/RHI/CommandList.hpp>
 #include <Runtime/RHI/GraphicsBuffer.hpp>
 #include <Runtime/RenderCore/Asset.hpp>
 #include <Runtime/RenderCore/Components/TransformParams.hpp>
+// #include <Runtime/RenderCore/Material.hpp>
+#include <Runtime/RenderCore/Mesh.hpp>
 #include <Runtime/RenderCore/MeshParams.hpp>
 #include <Runtime/RenderCore/Scene/Entity.hpp>
 #include <Runtime/RenderCore/Scene/TransformSystem.hpp>
@@ -11,6 +12,17 @@
 namespace CZ {
 
 struct SceneImpl;
+
+struct ScenePushConstants {
+    Matrix4 ModelMatrix;
+    Matrix3 NormalMatrix;
+};
+
+struct RenderData {
+    // Material Material;
+    ScenePushConstants PushConstants;
+    Mesh Mesh;
+};
 
 struct SceneObj {
     Scope<SceneImpl> m_Impl;
@@ -21,7 +33,6 @@ struct SceneObj {
     ~SceneObj() = default;
 
     void Update(float deltaTime);
-    void Draw(CommandList cmdList, GraphicsBuffer cameraBuffer);
     Entity CreateEntity(const std::string& name = "");
     void DestroyEntity(Entity entity);
     bool IsValid(Entity entity) const;
@@ -30,6 +41,8 @@ struct SceneObj {
     std::vector<Entity> GetChildren(Entity entity);
     void SetTransform(Entity entity, const TransformParams params);
     void SetMesh(Entity entity, const MeshParams props);
+
+    std::vector<RenderData> GetRenderDatas();
 
     // // ===== Component Operations =====
     template <typename T, typename... Args> T& AddComponent(Entity entity, Args&&... args);

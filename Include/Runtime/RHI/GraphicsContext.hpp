@@ -45,9 +45,13 @@ public:
     GraphicsContextObj(GraphicsContextObj&&)                 = delete;
     GraphicsContextObj& operator=(GraphicsContextObj&&)      = delete;
 
+    void SetCurrentFrame(uint32 frame) { m_CurrentFrame = frame; }
+
     uint32 GetMaxFramesInFlight() const { return 2; }
 
     uint32 GetCurrentFrameIndex() const { return m_CurrentFrameIndex; }
+
+    uint32 GetCurrentFrame() const { return m_CurrentFrame; }
 
     Device GetDevice() { return m_Device; }
 
@@ -62,6 +66,7 @@ protected:
     Swapchain m_Swapchain;
 
     uint32 m_CurrentFrameIndex = 0;
+    uint32 m_CurrentFrame      = 0;
 };
 
 struct GraphicsContext : Handle<class GraphicsContextObj> {

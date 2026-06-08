@@ -1,3 +1,4 @@
+#include <Runtime/App/Application.hpp>
 #include <Runtime/RenderCore/Components/Components.hpp>
 #include <Runtime/RenderCore/MeshRegistry.hpp>
 #include <Runtime/RenderCore/Scene/Scene.hpp>
@@ -26,8 +27,6 @@ void SceneObj::Update(float deltaTime) {
     //     }
     // }
 }
-
-void SceneObj::Draw(CommandList cmdList, GraphicsBuffer cameraBuffer) {}
 
 // ===== Entity Management =====
 Entity SceneObj::CreateEntity(const std::string& name) {
@@ -169,6 +168,37 @@ void SceneObj::SetMesh(Entity entity, const MeshParams params) {
     // auto& comp =
     //     hasMeshComp ? GetComponent<MeshComponent>(entity) : AddComponent<MeshComponent>(entity);
     // comp.SetMeshParamsWrapper(params);
+}
+
+std::vector<RenderData> SceneObj::GetRenderDatas() {
+    std::vector<RenderData> result;
+
+    auto view = View<MeshComponent, TransformComponent>();
+    for (auto entity : view) {
+        auto& meshComp = view.get<MeshComponent>(entity);
+        if (!meshComp.IsValid()) continue;
+
+        RenderData renderData;
+        renderData.Mesh =
+            Application::Get().GetEngine()->GetMeshRegistry()->GetAsset(meshComp.m_Handle);
+        auto& transformComp = view.get<TransformComponent>(entity);
+
+        // auto matHandle = meshComp.MeshParamsWrapper.Get()->Material;
+        // if (matHandle.IsValid()) {
+        //     renderData.Material = AssetManager::Get()
+        //                               .GetAsset(meshComp.MeshParamsWrapper.Get()->Material)
+        //                               .As<Material>();
+        // }
+
+        ScenePushConstants pushConstants;
+
+        pushConstants.ModelMatrix  = transformComp.WorldMatrix;
+        pushConstants.NormalMatrix = transformComp.WorldNormalMatrix;
+        renderData.PushConstants   = pushConstants;
+        result.push_back(renderData);
+    }
+
+    return result;
 }
 
 template <typename T> inline entt::id_type GetComponentTypeID() {

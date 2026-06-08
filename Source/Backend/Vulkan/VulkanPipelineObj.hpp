@@ -32,7 +32,7 @@ public:
     }
 
     VkPipeline GetVKPipeline() const { return m_VkPipeline; }
-    VkPipelineLayout GetPipelineLayout() const { return m_VkPipelineLayout; }
+    VkPipelineLayout GetVKPipelineLayout() const { return m_VkPipelineLayout; }
 
 private:
     VkResult Init(const std::vector<ShaderRes>& shaders, const ShaderReflection& reflection);

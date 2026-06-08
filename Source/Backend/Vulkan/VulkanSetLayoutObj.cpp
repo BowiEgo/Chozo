@@ -22,6 +22,11 @@ VkResult VulkanSetLayoutObj::Init() {
     VkDevice logicalDevice = m_DeviceObj->GetLogicalDevice();
     uint32_t bindingCount  = m_Desc.Bindings.size();
 
+    if (bindingCount == 0) {
+        CZ_BACKEND_LOG(Info, "Empty set layout, skipping creation.");
+        return VK_SUCCESS;
+    }
+
     VkDescriptorSetLayoutBinding* vkBindings = NULL;
     if (bindingCount > 0) {
         vkBindings = (VkDescriptorSetLayoutBinding*)malloc(bindingCount *
@@ -39,7 +44,7 @@ VkResult VulkanSetLayoutObj::Init() {
             b->binding            = binding->Binding;
             b->descriptorType     = VulkanUtils::ToVkDescType(binding->Type);
             b->descriptorCount    = binding->DescriptorCount;
-            b->stageFlags         = VulkanUtils::StageToFlagBits(binding->StageFlags);
+            b->stageFlags         = VulkanUtils::StageToFlags(binding->StageFlags);
             b->pImmutableSamplers = NULL;
         }
     }

@@ -47,8 +47,8 @@ void SyncBridge::RegisterNode(EditorNode* node) {
     // Mark as dirty
     m_DirtyNodes.insert(node);
 
-    CZ_EDITOR_LOG(Trace, "Registered node '{}' -> Entity[{}]", node->GetName(),
-                  static_cast<uint32_t>(entity.GetHandle()));
+    // CZ_EDITOR_LOG(Trace, "Registered node '{}' -> Entity[{}]", node->GetName(),
+    //               static_cast<uint32_t>(entity.GetHandle()));
 
     // Trigger callback
     if (m_OnNodeSynced) {

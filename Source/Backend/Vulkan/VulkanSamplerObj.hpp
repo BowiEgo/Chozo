@@ -11,7 +11,7 @@ public:
     VulkanSamplerObj(const VulkanDeviceObj* deviceObj, const SamplerSpecification& spec);
     ~VulkanSamplerObj() override;
 
-    VkSampler GetVkSampler() { return m_VkSampler; }
+    VkSampler GetVkSampler() const { return m_VkSampler; }
 
 private:
     void Init();

@@ -21,6 +21,7 @@ public:
     explicit operator bool() const { return m_Obj != nullptr; }
 
     bool operator==(const Handle& other) { return m_Obj == other.m_Obj; }
+    bool operator==(const Handle& other) const { return m_Obj == other.m_Obj; }
     bool EqualObj(TObject* obj) { return m_Obj == obj; }
 
     TObject* operator->() { return m_Obj; }

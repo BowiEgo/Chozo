@@ -1,11 +1,14 @@
 #include "SDLWindowObj.hpp"
 
 #include <Core/Event/AppEvent.hpp>
+#include <Core/Event/Input.hpp>
 #include <Core/Event/KeyEvent.hpp>
 #include <Core/Event/MouseEvent.hpp>
 #include <Core/Log/LogMacros.hpp>
 #include <Core/Platform/Platform.h>
 
+#include "Core/Memory/Memory.hpp"
+#include "SDLInputImpl.hpp"
 #include "SDLKeyMap.hpp"
 #include <Core/Header/Extent.hpp>
 
@@ -131,6 +134,9 @@ bool SDLWindowObj::Init(std::string& err) {
         SDL_Quit();
         return false;
     }
+
+    m_InputImpl = CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, SDLInputImpl);
+    Input::Init(m_InputImpl.get());
 
     return true;
 }

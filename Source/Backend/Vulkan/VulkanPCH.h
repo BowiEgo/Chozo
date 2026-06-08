@@ -20,6 +20,7 @@
 #endif
 
 // Now VMA header, which internally includes vulkan.h, will see the macro
+#define VMA_LEAK_LOG_FORMAT(format, ...) printf(format, __VA_ARGS__)
 #include "vk_mem_alloc.h"
 #include <vulkan/vulkan.h> // redundant but harmless due to include guard
 #ifdef VK_USE_PLATFORM_METAL_EXT

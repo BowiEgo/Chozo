@@ -41,6 +41,8 @@ namespace CZ::VulkanUtils {
 
 VkShaderStageFlagBits StageToFlagBits(ShaderStage shaderStage);
 
+VkShaderStageFlags StageToFlags(ShaderStage stage);
+
 const std::vector<const char*> ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 
 // ---------- helper to check required extensions/layers ----------

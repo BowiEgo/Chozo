@@ -3,6 +3,7 @@
 #include <Core/Header/Handle.hpp>
 #include <Core/Memory/Memory.hpp>
 #include <Runtime/RHI/RHITypes.hpp>
+#include <Runtime/RHI/SetLayout.hpp>
 #include <Runtime/RHI/ShaderRes.hpp>
 #include <Runtime/RenderCore/Asset.hpp>
 
@@ -39,10 +40,42 @@ struct ShaderSpecification {
     }
 };
 
-struct ShaderObj {
-    ShaderSpecification Spec;
-    std::unordered_map<ShaderStage, ShaderCompilerOutput> Datas;
-    mutable std::vector<ShaderRes> ShaderResources;
+class ShaderObj {
+    friend class Handle<ShaderObj>;
+
+public:
+    ShaderObj(const ShaderSpecification& spec,
+              const std::unordered_map<ShaderStage, ShaderCompilerOutput>& compiledOutputs)
+        : m_Spec(spec), m_Datas(compiledOutputs) {}
+
+    ShaderSpecification GetSpec() const { return m_Spec; }
+
+    SetLayout GetSetLayout(uint32_t set);
+    const std::unordered_map<uint32_t, SetLayout>& GetAllSetLayouts() const { return m_SetLayouts; }
+    const VertexBufferLayout GetVertexLayout();
+    const std::vector<PushConstantRange>& GetPushConstantRanges();
+
+    const std::vector<ShaderRes>& GetShaderResources() {
+        if (m_ShaderResources.empty()) CreateShaderResources();
+        return m_ShaderResources;
+    }
+
+    ShaderReflection GetReflection() const {
+        // Assuming all stages share the same reflection for simplicity
+        if (!m_Datas.empty()) {
+            return m_Datas.begin()->second.Reflection;
+        }
+        return ShaderReflection{};
+    }
+
+    void CreateShaderResources();
+
+private:
+    ShaderSpecification m_Spec;
+    std::unordered_map<ShaderStage, ShaderCompilerOutput> m_Datas;
+    mutable std::vector<ShaderRes> m_ShaderResources;
+    mutable std::vector<PushConstantRange> m_PushConstantRanges;
+    mutable std::unordered_map<uint32_t, SetLayout> m_SetLayouts;
 
     // std::string m_Name;
     // std::filesystem::path m_VirtualPath;
@@ -53,32 +86,9 @@ struct ShaderObj {
     // std::unordered_map<ShaderStage, std::vector<uint32_t>> m_SPIRVBlobs;
 
     // std::unordered_map<ShaderStage, ShaderReflection> m_Reflections;
-
-    ShaderObj(const ShaderSpecification& spec,
-              const std::unordered_map<ShaderStage, ShaderCompilerOutput>& compiledOutputs)
-        : Spec(spec), Datas(compiledOutputs) {}
-
-    ShaderSpecification GetSpec() const { return Spec; }
-
-    const std::vector<ShaderRes>& GetShaderResources() {
-        if (ShaderResources.empty()) CreateShaderResources();
-        return ShaderResources;
-    }
-
-    ShaderReflection GetReflection() const {
-        // Assuming all stages share the same reflection for simplicity
-        if (!Datas.empty()) {
-            return Datas.begin()->second.Reflection;
-        }
-        return ShaderReflection{};
-    }
-
-    void CreateShaderResources();
-
-    bool LoadAndCompile();
 };
 
-class Shader : public Asset<struct ShaderObj> {
+class Shader : public Asset<class ShaderObj> {
 public:
     static Shader
         Create(const ShaderSpecification& spec,

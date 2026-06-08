@@ -1,11 +1,12 @@
 #include <Runtime/App/Application.hpp>
 #include <Runtime/App/Engine.hpp>
 #include <Runtime/RHI/GraphicsContext.hpp>
+#include <Runtime/RHI/RHIAPI.hpp>
+#include <Runtime/RenderCore/Camera/CameraManager.hpp>
 
 #include <Core/Header/RendererAPI.hpp>
 #include <Core/JobSystem/JobSystem.h>
 #include <Core/Log/LogMacros.hpp>
-#include <Runtime/RHI/RHIAPI.hpp>
 
 namespace CZ {
 
@@ -66,9 +67,13 @@ void Engine::Shutdown() {
 
     GetShaderRegistry()->Clear();
 
+    GetMeshRegistry()->Shutdown();
+
     JobSystem::Shutdown();
 
     m_Renderer.Shutdown();
+
+    CameraManager::Get().Shutdown();
 
     RHIAPI::Shutdown();
     m_GraphicsContext.Destroy();

@@ -16,11 +16,11 @@ static void SetAxisValue(Vector3& target, const std::string& axis, float value) 
 //     : FProceduralMesh(data), m_Params(params) {}
 
 MeshBuffer* Cube::GenerateBuffer() {
-    int totalVertexCounter = 0;
+    auto params = m_Params.As<CubeParamsObj>();
 
     (*this)->MeshBuffer.Clear();
 
-    auto params = m_Params.As<CubeParamsObj>();
+    int totalVertexCounter = 0;
 
     // build each side of the box geometry
     BuildPlane("z", "y", "x", -1, -1, params->Depth, params->Height, params->Width,

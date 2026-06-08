@@ -1,5 +1,6 @@
 #include "VulkanDeviceObj.hpp"
 #include "VulkanCommandPoolObj.hpp"
+#include "VulkanDescriptorSetObj.hpp"
 #include "VulkanFrameBufferObj.hpp"
 #include "VulkanGraphicsBufferObj.hpp"
 #include "VulkanGraphicsContextObj.hpp"
@@ -7,6 +8,7 @@
 #include "VulkanSamplerObj.hpp"
 #include "VulkanSetLayoutObj.hpp"
 #include "VulkanShaderResObj.hpp"
+#include "VulkanUtils.hpp"
 
 #include <Core/Memory/MemoryTypes.hpp>
 #include <Runtime/RHI/CommandPool.hpp>
@@ -72,6 +74,13 @@ SetLayout VulkanDeviceObj::CreateSetLayout(const SetLayoutDescription& desc) {
     return SetLayout();
 }
 
+DescriptorSet VulkanDeviceObj::CreateDescriptorSet(SetLayout setLayout,
+                                                   std::vector<DescriptorBinding>& bindings) {
+    auto result = VulkanDescriptorSetObj::Create(this, setLayout, bindings);
+    if (result) return DescriptorSet(result.value());
+    return DescriptorSet();
+}
+
 GraphicsBuffer VulkanDeviceObj::CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
                                                      const Buffer* initialData) {
     auto result = VulkanGraphicsBufferObj::Create(this, spec, initialData);
@@ -115,6 +124,23 @@ VkDescriptorPool
 
     return result;
 }
+
+VkDescriptorSet VulkanDeviceObj::AllocateSetFromPool(VkDescriptorSetLayout layout) const {
+    VkDescriptorSetAllocateInfo allocInfo = { .sType =
+                                                  VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+                                              .pNext              = NULL,
+                                              .descriptorPool     = m_GlobalDescriptorPool,
+                                              .descriptorSetCount = 1,
+                                              .pSetLayouts        = &layout };
+
+    VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+    VkResult result = vkAllocateDescriptorSets(m_VkDevice, &allocInfo, &descriptorSet);
+
+    RETURN_NULL_ON_VULKAN_FAIL("AllocateSetFromPool failed: {}", result);
+
+    return descriptorSet;
+}
+
 // --- Private ---
 
 VkResult VulkanDeviceObj::Init() {

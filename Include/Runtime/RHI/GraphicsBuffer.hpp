@@ -3,6 +3,7 @@
 #include <Core/Header/Handle.hpp>
 #include <Core/Memory/Buffer.hpp>
 #include <Core/Memory/Memory.hpp>
+#include <Runtime/RHI/RHIResource.hpp>
 #include <Runtime/RHI/RHITypes.hpp>
 
 namespace CZ {
@@ -17,7 +18,7 @@ struct GraphicsBufferSpecification {
     size_t MinAlignment = 0;
 };
 
-class GraphicsBufferObj {
+class GraphicsBufferObj : public RHIResource {
 public:
     GraphicsBufferObj(const GraphicsBufferSpecification& spec) : m_Spec(spec) {}
     virtual ~GraphicsBufferObj() = default;
@@ -25,6 +26,8 @@ public:
     // Disable copy
     GraphicsBufferObj(const GraphicsBufferObj&)            = delete;
     GraphicsBufferObj& operator=(const GraphicsBufferObj&) = delete;
+
+    ResourceType GetResourceType() const override { return ResourceType::GraphicsBuffer; }
 
     // Core functionality
     virtual void* Map(size_t offset = 0, size_t size = 0)       = 0;
@@ -44,6 +47,10 @@ protected:
 
 struct GraphicsBuffer : Handle<class GraphicsBufferObj> {
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
+
+    template <typename T> const T* As() const {
+        return static_cast<const T*>(InternalHandleReader::Unwrap(*this));
+    }
 };
 
 } // namespace CZ

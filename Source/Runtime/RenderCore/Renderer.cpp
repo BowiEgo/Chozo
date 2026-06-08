@@ -5,10 +5,12 @@
 #include <Runtime/RHI/CommandList.hpp>
 #include <Runtime/RHI/CommandPool.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>
+#include <Runtime/RenderCore/Camera/CameraManager.hpp>
 #include <Runtime/RenderCore/Shader.hpp>
 #include <Runtime/RenderCore/Viewport.hpp>
 
-#include <Runtime/RenderCore/ProceduralMesh/Cube.hpp>
+#include <Runtime/RenderCore/MeshRegistry.hpp>
+#include <Runtime/RenderCore/ProceduralMesh/CubeParamsObj.hpp>
 
 #include <Core/Log/LogMacros.hpp>
 #include <Core/Memory/Memory.hpp>
@@ -62,7 +64,7 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
                                        "shaders://Test copy 8.slang", "shaders://Test copy 9.slang",
                                        "shaders://Test copy 10.slang" };
 #else
-    std::vector<std::string> files = { "shaders://Test.slang" };
+    std::vector<std::string> files = { "shaders://Basic.slang" };
 #endif
 
 #if 1
@@ -75,7 +77,9 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
     for (auto& f : pendingShaders) {
         auto shader = f.get();
         CZ_CORE_LOG(Trace, "Shader {} compiled", shader.GetName());
-        if (shader.GetName() == "Test")
+        CZ_CORE_LOG(Trace, "Shader {} reflection: ", shader->GetReflection().ToString());
+
+        if (shader.GetName() == "Basic")
             testPipeline = ctx->GetDevice()->CreatePipeline(
                 testPipelineSpec, shader->GetShaderResources(), shader->GetReflection());
     }
@@ -84,15 +88,18 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
         auto shader = Application::Get().GetEngine()->GetShaderRegistry()->LoadAsset(path);
         CZ_CORE_LOG(Trace, "Shader {} compiled", shader.GetName());
 
-        if (shader.GetName() == "Test")
+        if (shader.GetName() == "Basic")
             testPipeline = ctx->GetDevice()->CreatePipeline(
                 testPipelineSpec, shader->GetShaderResources(), shader->GetReflection());
     }
 
 #endif
 
-    testCube = Cube::Create(1.0f, 1.0f, 1.0f, 1, 1, 1);
+    auto cubeParams =
+        MeshParams(CZ_NEW(MEMORY_USAGE_ASSET, CubeParamsObj, 1.0f, 1.0f, 1.0f, 1, 1, 1));
+    testCube = Application::Get().GetEngine()->GetMeshRegistry()->GenerateAsset(cubeParams);
     testCube->Upload();
+    cubeParams.Destroy();
 
     return { obj };
 }
@@ -107,12 +114,18 @@ void Renderer::Shutdown() {
 
     m_Obj->Frames.clear();
 
+    CameraManager::Get().Shutdown();
+
     Destroy();
 }
 
 void Renderer::Tick(float deltaTime) {
+    RHIAPI::Get()->GetGraphicsContext()->SetCurrentFrame(deltaTime);
+
     auto cmdList =
         m_Obj->Frames[RHIAPI::Get()->GetGraphicsContext()->GetCurrentFrameIndex()].CommandList;
+
+    CameraManager::Get().UpdateAllCameras();
 
     RHIAPI::Get()->DrawFrame(cmdList, [&](uint32 imageIndex) {
         cmdList->Begin();
@@ -137,7 +150,9 @@ void Renderer::Tick(float deltaTime) {
             cmdList->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
             cmdList->SetScissor({ 0, 0, width, height });
 
-            cmdList->Draw(testCube);
+            // cmdList->Draw(testCube);
+
+            cmdList->Draw(viewport->GetScene(), viewport->GetCamera());
 
             // cmdList->Draw(3, 1, 0, 0);
 

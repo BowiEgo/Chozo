@@ -428,6 +428,20 @@ VkShaderStageFlagBits StageToFlagBits(ShaderStage stage) {
     }
 }
 
+VkShaderStageFlags StageToFlags(ShaderStage stage) {
+    VkShaderStageFlags flags = 0;
+    if (static_cast<uint16_t>(stage) == 0) return 0;
+
+#define CHECK_AND_ADD(ENUM, LOWER, UPPER, SHORT, GLSL, VULKAN, VULKAN_UPPER)                       \
+    if ((stage & ShaderStage::ENUM) != ShaderStage::None) {                                        \
+        flags |= VK_SHADER_STAGE_##VULKAN_UPPER##_BIT;                                             \
+    }
+    FOREACH_SHADER_STAGE(CHECK_AND_ADD)
+#undef CHECK_AND_ADD
+
+    return flags;
+}
+
 VkPolygonMode GetVulkanPolygonMode(PolygonMode mode) {
     switch (mode) {
         case PolygonMode::Fill: return VK_POLYGON_MODE_FILL;

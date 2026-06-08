@@ -4,6 +4,7 @@ set(MODULE_SRC
     Editor.cpp
     EditorLayer.cpp
     SyncBridge.cpp
+    EditorCamera.cpp
     Renderer/Vulkan/VulkanImGuiRenderer.cpp
     EditorNode/EditorNode.cpp
     EditorNode/EditorNodeTree.cpp
