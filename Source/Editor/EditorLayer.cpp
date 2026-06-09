@@ -119,6 +119,20 @@ void EditorLayer::OnAttach() {
     // m_MaterialPanel.Open();
     m_TextureViewerPanel.Open();
     m_AssetsPanel.Open();
+
+    {
+        // Material
+
+        auto cubeNodeMask   = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Cube");
+        EditorNode* newNode = m_NodeTree.CreateNode("Cube", cubeNodeMask, nullptr);
+        m_NodeTree.SelectNode(newNode);
+
+        // auto pbrMat = m_ViewportRenderer->GetPBRMaterial();
+        // static_cast<FSphereParams*>(newNode->GetMeshParamsWrapper()->Get())->Material =
+        //     pbrMat->GetHandle();
+
+        // auto meshProps = newNode->GetMeshParamsWrapper();
+    }
 }
 
 void EditorLayer::OnDetach() {

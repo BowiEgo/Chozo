@@ -1,4 +1,5 @@
 #include "VulkanDescriptorSetObj.hpp"
+#include "Core/Log/LogMacros.hpp"
 #include "VulkanDeviceObj.hpp"
 #include "VulkanGraphicsBufferObj.hpp"
 #include "VulkanImageObj.hpp"
@@ -62,23 +63,28 @@ VkResult VulkanDescriptorSetObj::Init() {
         w->dstBinding      = binding.m_Binding;
         w->descriptorCount = 1;
 
-        if (binding.m_Buffer) {
-            VkDescriptorBufferInfo* info = &bufferInfos[bufferInfoCount++];
-            info->buffer = binding.m_Buffer.As<VulkanGraphicsBufferObj>()->GetVKBuffer();
-            info->offset = 0;
-            info->range  = binding.m_Buffer->GetSize();
+        if (binding.m_Type == ResourceType::GraphicsBuffer) {
+            if (binding.m_Buffer) {
+                VkDescriptorBufferInfo* info = &bufferInfos[bufferInfoCount++];
+                info->buffer = binding.m_Buffer.As<VulkanGraphicsBufferObj>()->GetVKBuffer();
+                info->offset = 0;
+                info->range  = binding.m_Buffer->GetSize();
 
-            w->descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            w->pBufferInfo    = info;
-        } else if (binding.m_Texture) {
-            auto image                  = binding.m_Texture->GetImage().As<VulkanImageObj>();
-            VkDescriptorImageInfo* info = &imageInfos[imageInfoCount++];
-            info->sampler               = binding.m_Sampler.As<VulkanSamplerObj>()->GetVkSampler();
-            info->imageView             = image->GetOrCreateVKView();
-            info->imageLayout           = image->GetVkImageLayout();
+                w->descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                w->pBufferInfo    = info;
+            }
 
-            w->descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            w->pImageInfo     = info;
+        } else if (binding.m_Type == ResourceType::Texture) {
+            if (binding.m_Texture) {
+                auto image                  = binding.m_Texture->GetImage().As<VulkanImageObj>();
+                VkDescriptorImageInfo* info = &imageInfos[imageInfoCount++];
+                info->sampler     = binding.m_Sampler.As<VulkanSamplerObj>()->GetVkSampler();
+                info->imageView   = image->GetOrCreateVKView();
+                info->imageLayout = image->GetVkImageLayout();
+
+                w->descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                w->pImageInfo     = info;
+            }
         }
     }
 

@@ -117,9 +117,9 @@ public:
 
     // // ===== Mesh =====
     bool HasMesh() const { return EditorNodeRegistry::HasMeshType(m_TypeMask); }
-    void SetMeshParams(const MeshParams& props) {
+    void SetMeshParams(const MeshParams& params) {
         m_MeshParams.Destroy();
-        m_MeshParams = props;
+        m_MeshParams = params;
         MarkDirty();
     }
     // void SetMeshParams(const std::string& typeName) {

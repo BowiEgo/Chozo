@@ -51,6 +51,8 @@ struct GraphicsBuffer : Handle<class GraphicsBufferObj> {
     template <typename T> const T* As() const {
         return static_cast<const T*>(InternalHandleReader::Unwrap(*this));
     }
+
+    GraphicsBufferObj* Raw() { return InternalHandleReader::Unwrap(*this); }
 };
 
 } // namespace CZ

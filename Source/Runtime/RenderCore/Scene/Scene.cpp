@@ -14,18 +14,19 @@ SceneObj::SceneObj() : m_Impl(CZ_NEW(MEMORY_USAGE_SCENE, SceneImpl)) {}
 void SceneObj::Update(float deltaTime) {
     // m_TransformSystem.Update();
 
-    // auto view = View<MeshComponent, TransformComponent>();
-    // for (auto entity : view) {
-    //     auto& meshComp = view.get<MeshComponent>(entity);
-    //     if (meshComp.IsValid()) {
-    //         auto mesh = MeshRegistry::Get().GetMesh(meshComp.MeshHandle);
-    //         if (meshComp.IsDirty()) {
-    //             meshComp.UpdateMesh();
-    //             mesh->Upload();
-    //             CZ_LOG(LogScene, Trace, "UpdateMesh");
-    //         }
-    //     }
-    // }
+    auto view = View<MeshComponent, TransformComponent>();
+    for (auto entity : view) {
+        auto& meshComp = view.get<MeshComponent>(entity);
+        if (meshComp.IsValid()) {
+            auto mesh =
+                Application::Get().GetEngine()->GetMeshRegistry()->GetAsset(meshComp.m_Handle);
+            if (meshComp.IsDirty()) {
+                meshComp.UpdateMesh();
+                mesh->Upload();
+                CZ_LOG(LogScene, Trace, "UpdateMesh");
+            }
+        }
+    }
 }
 
 // ===== Entity Management =====
@@ -164,10 +165,10 @@ void SceneObj::SetTransform(Entity entity, const TransformParams params) {
 }
 
 void SceneObj::SetMesh(Entity entity, const MeshParams params) {
-    // bool hasMeshComp = HasComponent<MeshComponent>(entity);
-    // auto& comp =
-    //     hasMeshComp ? GetComponent<MeshComponent>(entity) : AddComponent<MeshComponent>(entity);
-    // comp.SetMeshParamsWrapper(params);
+    bool hasMeshComp = HasComponent<MeshComponent>(entity);
+    auto& comp =
+        hasMeshComp ? GetComponent<MeshComponent>(entity) : AddComponent<MeshComponent>(entity);
+    comp.SetMeshParams(params);
 }
 
 std::vector<RenderData> SceneObj::GetRenderDatas() {
@@ -212,7 +213,7 @@ template <typename T> inline entt::id_type GetComponentTypeID() {
 
 INSTANTIATE_TEMPLATES(NameComponent)
 INSTANTIATE_TEMPLATES(TransformComponent)
-// INSTANTIATE_TEMPLATES(MeshComponent)
+INSTANTIATE_TEMPLATES(MeshComponent)
 
 Scene Scene::Create() {
     auto obj = CZ_NEW(MEMORY_USAGE_ASSET, SceneObj);

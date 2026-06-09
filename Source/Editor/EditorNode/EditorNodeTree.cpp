@@ -1,22 +1,20 @@
 #include "EditorNodeTree.hpp"
+#include "EditorNode.hpp"
 
 #include <algorithm>
 
-static EditorNode* CreateDemoTree(EditorNodeTree* tree) {
+static EditorNode* CreateDemoTree(EditorNodeTree* tree, EditorNode* root) {
     const std::vector<std::string> fruitNames = { "Apple",      "Banana",    "Cherry", "Kiwi",
                                                   "Mango",      "Orange",    "Pear",   "Pineapple",
                                                   "Strawberry", "Watermelon" };
     const int multiplier                      = 2;
 
-    auto rootNodeMask   = GET_NODE_MASK("Node_Root");
     auto sphereNodeMask = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Sphere");
     auto cubeNodeMask   = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Cube");
 
     if (EditorNodeRegistry::Test(sphereNodeMask, { "Node_Regular", "ProceduralMesh_Sphere" })) {
         CZ_CORE_LOG(Info, "sphere node mask test success");
     }
-
-    auto root = CZ_NEW(CZ::MEMORY_USAGE_UI, EditorNode, "Root", rootNodeMask);
 
     for (size_t i = 0; i < fruitNames.size() * multiplier; ++i) {
         size_t fruitIndex = i / multiplier;
@@ -48,7 +46,10 @@ EditorNodeTree::~EditorNodeTree() {
 void EditorNodeTree::Init() {
     EditorNodeRegistry::Get().Init();
 
-    m_RootNode = CreateDemoTree(this);
+    auto rootNodeMask = GET_NODE_MASK("Node_Root");
+    m_RootNode        = CZ_NEW(CZ::MEMORY_USAGE_UI, EditorNode, "Root", rootNodeMask);
+
+    // CreateDemoTree(this, m_RootNode);
     UpdateNodeCache(m_RootNode);
 }
 

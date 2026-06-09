@@ -145,6 +145,12 @@ public:
             asset.Destroy();
         }
         m_DiskCache.clear();
+
+        for (auto& [_, asset] : m_MemoryCache) {
+            asset.Destroy();
+        }
+        m_MemoryCache.clear();
+
         this->ResourceStoragePolicy<T>::Shutdown();
     }
 

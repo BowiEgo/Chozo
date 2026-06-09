@@ -100,7 +100,7 @@ void VulkanCommandBufferObj::BindDescriptorSets(int set, DescriptorSet descSet) 
 }
 
 void VulkanCommandBufferObj::PushConstants(const void* data, uint32 size, uint32 offset) {
-    PushConstants(VK_SHADER_STAGE_VERTEX_BIT, data, size, offset);
+    PushConstants(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, data, size, offset);
 }
 
 void VulkanCommandBufferObj::PushConstants(VkShaderStageFlags stageFlags, const void* data,

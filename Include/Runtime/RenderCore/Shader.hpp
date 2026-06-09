@@ -52,7 +52,7 @@ public:
 
     SetLayout GetSetLayout(uint32_t set);
     const std::unordered_map<uint32_t, SetLayout>& GetAllSetLayouts() const { return m_SetLayouts; }
-    const VertexBufferLayout GetVertexLayout();
+    const VertexBufferLayout GetVertexLayout() { return GetReflection().VertexBufferLayout; }
     const std::vector<PushConstantRange>& GetPushConstantRanges();
 
     const std::vector<ShaderRes>& GetShaderResources() {

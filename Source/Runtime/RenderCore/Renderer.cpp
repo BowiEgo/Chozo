@@ -22,7 +22,6 @@
 namespace CZ {
 
 static Pipeline testPipeline;
-static Mesh testCube;
 
 template <> void Handle<RendererObj>::Destroy() {
     if (m_Obj) {
@@ -32,7 +31,6 @@ template <> void Handle<RendererObj>::Destroy() {
         m_Obj->Viewports.clear();
 
         testPipeline.Destroy();
-        testCube.Destroy();
 
         Delete(m_Obj);
         m_Obj = nullptr;
@@ -95,11 +93,11 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
 
 #endif
 
-    auto cubeParams =
-        MeshParams(CZ_NEW(MEMORY_USAGE_ASSET, CubeParamsObj, 1.0f, 1.0f, 1.0f, 1, 1, 1));
-    testCube = Application::Get().GetEngine()->GetMeshRegistry()->GenerateAsset(cubeParams);
-    testCube->Upload();
-    cubeParams.Destroy();
+    // auto cubeParams =
+    //     MeshParams(CZ_NEW(MEMORY_USAGE_ASSET, CubeParamsObj, 1.0f, 1.0f, 1.0f, 1, 1, 1));
+    // testCube = Application::Get().GetEngine()->GetMeshRegistry()->GenerateAsset(cubeParams);
+    // testCube->Upload();
+    // cubeParams.Destroy();
 
     return { obj };
 }
@@ -131,6 +129,8 @@ void Renderer::Tick(float deltaTime) {
         cmdList->Begin();
 
         for (auto& viewport : GetViewports()) {
+            viewport->GetScene()->Update(deltaTime);
+
             Texture viewportCanvas = viewport->GetFrameBuffer()->GetColorAttachment(0);
             auto width             = viewport->GetWidth();
             auto height            = viewport->GetHeight();

@@ -15,7 +15,7 @@ void CommandListObj::Draw(Scene scene, Camera camera) {
             auto cameraBuffer = CameraManager::Get().GetCameraBuffer(camera.Raw());
 
             std::vector<DescriptorBinding> bindings = {
-                { 0, cameraBuffer },
+                { 0, ResourceType::GraphicsBuffer, cameraBuffer },
             };
             auto descSet =
                 RHIAPI::Get()->GetGraphicsContext()->GetDevice()->GetOrCreateDescriptorSet(

@@ -1,5 +1,7 @@
 #include "EditorNode.hpp"
 
+#include <Runtime/RenderCore/ProceduralMesh/CubeParamsObj.hpp>
+
 std::atomic<uint32_t> EditorNode::s_NextID{ 1 };
 
 EditorNodeRegistry& EditorNodeRegistry::Get() {
@@ -56,11 +58,22 @@ EditorNode::EditorNode(const std::string& name, TypeMask typeMask)
         TransformParams params(1.0f, 1.0f, 1.0f);
         SetTransformParams(params);
     }
+
+    if (HasMesh()) {
+        if (EditorNodeRegistry::Test(GetTypeMask(), { "Node_Regular", "ProceduralMesh_Cube" })) {
+            auto params =
+                MeshParams(CZ_NEW(MEMORY_USAGE_ASSET, CubeParamsObj, 1.0f, 1.0f, 1.0f, 1, 1, 1));
+            SetMeshParams(params);
+        }
+    }
+
     // CZ_EDITOR_LOG(Trace, "Created node '{}' with ID {}", name, m_ID);
 }
 
 EditorNode::~EditorNode() {
     if (HasTransform()) m_TransformParams.Destroy();
+
+    if (HasMesh()) m_MeshParams.Destroy();
 
     while (!m_Children.empty()) {
         Delete(m_Children.back());

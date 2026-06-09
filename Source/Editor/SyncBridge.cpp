@@ -252,11 +252,11 @@ void SyncBridge::SyncComponents(EditorNode* node, Entity entity) {
     }
 
     // Handle Mesh Component - store only parameters
-    // if (node->HasMesh()) {
-    //     SyncMeshComponent(entity, node->GetMeshParams());
-    // } else if (m_Scene->HasComponent<MeshComponent>(entity)) {
-    //     m_Scene->RemoveComponent<MeshComponent>(entity);
-    // }
+    if (node->HasMesh()) {
+        SyncMeshComponent(entity, node->GetMeshParams());
+    } else if (m_Scene->HasComponent<MeshComponent>(entity)) {
+        m_Scene->RemoveComponent<MeshComponent>(entity);
+    }
 }
 
 // ===== Component Creation Helpers =====
