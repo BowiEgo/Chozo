@@ -1,7 +1,20 @@
 include(FetchContent)
 
+macro(FetchContent_Declare_Fast name)
+    set(args_list ${ARGN})
+    
+    list(TRANSFORM args_list REPLACE "https://github.com/" "https://ghfast.top/https://github.com/")
+    
+    _FetchContent_Declare(${name} ${args_list})
+endmacro()
+
+# Overwrite standard declaration
+macro(FetchContent_Declare name)
+    FetchContent_Declare_Fast(${name} ${ARGN})
+endmacro()
+
 # Fetch doctest
-FetchContent_Declare(
+FetchContent_Declare_Fast(
   doctest
   GIT_REPOSITORY https://github.com/doctest/doctest.git
   GIT_TAG v2.4.11 
@@ -10,7 +23,7 @@ FetchContent_MakeAvailable(doctest)
 message(STATUS "CHOZO DOCTEST SOURCE DIR:     ${doctest_SOURCE_DIR}")
 
 ## Fetch fmt
-FetchContent_Declare(
+FetchContent_Declare_Fast(
   fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
   GIT_TAG 10.2.1
@@ -19,7 +32,7 @@ FetchContent_MakeAvailable(fmt)
 message(STATUS "CHOZO FMT SOURCE DIR:     ${fmt_SOURCE_DIR}")
 
 ## Fetch spdlog
-FetchContent_Declare(
+FetchContent_Declare_Fast(
   spdlog
   GIT_REPOSITORY https://github.com/gabime/spdlog.git
   GIT_TAG v1.17.0
@@ -28,7 +41,7 @@ FetchContent_MakeAvailable(spdlog)
 message(STATUS "CHOZO SPDLOG SOURCE DIR:     ${spdlog_SOURCE_DIR}")
 
 ## Fetch glm
-FetchContent_Declare(
+FetchContent_Declare_Fast(
   glm
   URL https://github.com/g-truc/glm/releases/download/1.0.3/glm-1.0.3.zip
   URL_HASH SHA256=1c0a0fced9b0d87c7b7bc94e40be490cff6d4c83c25db8488d8f33754e7fdeb2
@@ -37,7 +50,7 @@ FetchContent_MakeAvailable(glm)
 message(STATUS "CHOZO GLM SOURCE DIR:     ${glm_SOURCE_DIR}")
 
 ## Fetch entt
-FetchContent_Declare(
+FetchContent_Declare_Fast(
   entt
   GIT_REPOSITORY https://github.com/skypjack/entt.git
   GIT_TAG v3.16.0
@@ -46,7 +59,7 @@ FetchContent_MakeAvailable(entt)
 message(STATUS "CHOZO ENTT SOURCE DIR:     ${entt_SOURCE_DIR}")
 
 ## Fetch SDL3
-FetchContent_Declare(
+FetchContent_Declare_Fast(
   sdl3
   GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
   GIT_TAG release-3.4.8
@@ -64,7 +77,7 @@ FetchContent_MakeAvailable(sdl3)
 message(STATUS "CHOZO SDL3 SOURCE DIR:     ${sdl3_SOURCE_DIR}")
 
 ## Fetch Vulkan Memory Allocator
-FetchContent_Declare(
+FetchContent_Declare_Fast(
   vma
   GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
   GIT_TAG v3.3.0
@@ -82,7 +95,7 @@ endif()
 message(STATUS "CHOZO VMA SOURCE DIR:      ${vma_SOURCE_DIR}")
 
 ## Fetch ImGui
-FetchContent_Declare(
+FetchContent_Declare_Fast(
   ChozoImGui
   GIT_REPOSITORY https://github.com/ocornut/imgui.git
   GIT_TAG docking
@@ -174,7 +187,7 @@ set(SLANG_DOWNLOAD_URL "https://github.com/shader-slang/slang/releases/download/
 
 message(STATUS "Downloading Slang from: ${SLANG_DOWNLOAD_URL}")
 
-FetchContent_Declare(
+FetchContent_Declare_Fast(
     slang_prebuilt
     URL ${SLANG_DOWNLOAD_URL}
 )
@@ -210,7 +223,7 @@ option(TRACY_ONLY_LOCALHOST "" ON)
 # option(TRACY_NO_EXIT "" OFF)
 # option(TRACY_CALLSTACK "" OFF)
 
-FetchContent_Declare(
+FetchContent_Declare_Fast(
   tracy
   GIT_REPOSITORY https://github.com/wolfpld/tracy.git
   GIT_TAG v0.13.1
