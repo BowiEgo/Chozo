@@ -11,10 +11,11 @@ DECLARE_LOG_CATEGORY_EXTERN(LogEditorCamera, Info);
 class EditorCamera {
 public:
     EditorCamera() = default;
-    EditorCamera(float fov, float aspectRatio, float nearClip, float farClip);
 
     void OnUpdate(float deltaTime, bool bUpdateInput);
     void OnEvent(Event& e);
+
+    /// The editor camera only drives a camera owned elsewhere (the viewport owns it).
     void SetActiveCamera(SceneCamera camera) { m_ActiveCamera = camera; }
     void CopyTo(SceneCamera target) const {
         if (m_ActiveCamera && m_ActiveCamera != target) target.SyncFrom(m_ActiveCamera);

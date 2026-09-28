@@ -22,8 +22,7 @@ struct ViewportObj {
     void SetScene(Scene scene) { m_Scene = scene; }
 
     Scene GetScene() const { return m_Scene; }
-    SceneCamera GetCamera() { return m_Camera; }
-    const SceneCamera GetCamera() const { return m_Camera; }
+    SceneCamera GetCamera() const { return SceneCamera(m_Camera.get()); }
     FrameBuffer GetFrameBuffer() const { return m_FrameBuffer; }
 
     const std::string& GetName() const { return m_Spec.Name; }
@@ -39,7 +38,10 @@ struct ViewportObj {
     ViewportSpecification m_Spec;
 
     Scene m_Scene;
-    SceneCamera m_Camera;
+
+    // Owned; handed out as `SceneCamera` views. The camera unregisters itself from
+    // `CameraManager` on destruction.
+    Scope<CameraObj> m_Camera;
     FrameBuffer m_FrameBuffer;
 };
 

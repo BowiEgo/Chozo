@@ -55,15 +55,14 @@ TypeMask EditorNodeRegistry::GetNodeMask(std::initializer_list<std::string> name
 EditorNode::EditorNode(const std::string& name, TypeMask typeMask)
     : m_ID(s_NextID.fetch_add(1)), m_Name(name), m_TypeMask(typeMask) {
     if (HasTransform()) {
-        TransformParams params(1.0f, 1.0f, 1.0f);
-        SetTransformParams(params);
+        SetTransformParams(
+            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, TransformParamsObj, Vector3(1.0f, 1.0f, 1.0f)));
     }
 
     if (HasMesh()) {
         if (EditorNodeRegistry::Test(GetTypeMask(), { "Node_Regular", "ProceduralMesh_Cube" })) {
-            auto params =
-                MeshParams(CZ_NEW(MEMORY_USAGE_ASSET, CubeParamsObj, 1.0f, 1.0f, 1.0f, 1, 1, 1));
-            SetMeshParams(params);
+            SetMeshParams(
+                CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, CubeParamsObj, 1.0f, 1.0f, 1.0f, 1, 1, 1));
         }
     }
 
@@ -71,10 +70,7 @@ EditorNode::EditorNode(const std::string& name, TypeMask typeMask)
 }
 
 EditorNode::~EditorNode() {
-    if (HasTransform()) m_TransformParams.Destroy();
-
-    if (HasMesh()) m_MeshParams.Destroy();
-
+    // Parameters are owned by Scope members and released automatically.
     while (!m_Children.empty()) {
         Delete(m_Children.back());
     }

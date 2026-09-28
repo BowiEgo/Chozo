@@ -7,9 +7,14 @@
 
 namespace CZ {
 
+/**
+ * Mesh component.
+ *
+ * The component owns nothing but an asset handle: the mesh object (owned by `MeshRegistry`)
+ * owns the parameters it was generated from, so there is nothing to clone or free here.
+ */
 struct MeshComponent {
     // ===== Core Data =====
-    MeshParams m_Params;
     AssetHandle m_Handle = AssetHandle::Invalid();
 
     // ===== State =====
@@ -24,61 +29,63 @@ struct MeshComponent {
 
     void ClearDirty() const { m_bIsDirty = false; }
     bool IsDirty() const { return m_bIsDirty; }
-    bool IsValid() const { return !!m_Params; }
+    bool IsValid() const { return m_Handle.IsValid(); }
 
     // ===== Constructors =====
     MeshComponent() = default;
-    explicit MeshComponent(MeshParams params) : m_Params(params) {
-        m_Handle =
-            Application::Get().GetEngine()->GetMeshRegistry()->GenerateAsset(params).GetHandle();
+    explicit MeshComponent(const MeshParams& params) { SetMeshParams(params); }
+
+    // ===== Params =====
+    MeshParams GetMeshParams() const {
+        auto mesh = GetMeshAsset();
+        return mesh ? mesh->GetParams() : MeshParams();
     }
 
-    // ===== Type Helpers =====
-    // EMeshType GetType() const { return MeshParams.GetType(); }
-    std::string GetTypeName() const { return m_Params->GetTypeName(); }
-
     void SetMeshParams(const MeshParams params) {
-        if (m_Params == params) return;
-        m_Params = params.Clone();
+        if (!params) return;
+
+        auto* registry = GetMeshRegistry();
 
         if (!m_Handle.IsValid()) {
-            m_Handle = Application::Get()
-                           .GetEngine()
-                           ->GetMeshRegistry()
-                           ->GenerateAsset(m_Params)
-                           .GetHandle();
+            m_Handle = registry->GenerateAsset(params).GetHandle();
+            MarkDirty();
+            return;
         }
 
+        auto mesh = registry->GetAsset(m_Handle);
+        if (!mesh) return;
+
+        MeshParams current = mesh->GetParams();
+        if (current && *current.Get() == params.Get()) return;
+
+        mesh->SetParams(params);
         MarkDirty();
     }
 
+    /// Regenerates the CPU side mesh data for the current parameters.
     void UpdateMesh() {
-        if (m_bIsDirty) {
-            if (m_Handle.IsValid()) {
-                auto meshObj =
-                    Application::Get().GetEngine()->GetMeshRegistry()->GetAsset(m_Handle).Raw();
+        if (!m_bIsDirty || !m_Handle.IsValid()) return;
 
-                auto mesh = ProceduralMesh(meshObj);
-                mesh.SetParams(m_Params);
-                mesh.GenerateBuffer();
-            } else {
-                m_Handle = Application::Get()
-                               .GetEngine()
-                               ->GetMeshRegistry()
-                               ->GenerateAsset(m_Params)
-                               .GetHandle();
-            }
+        auto mesh = GetMeshAsset();
+        if (!mesh) return;
 
-            ClearDirty();
-        }
+        ProceduralMesh(mesh.Raw()).GenerateBuffer();
+        ClearDirty();
     }
 
     // ===== Comparison =====
-    bool operator==(const MeshComponent& other) const { return m_Params == other.m_Params; }
+    bool operator==(const MeshComponent& other) const { return m_Handle == other.m_Handle; }
     bool operator!=(const MeshComponent& other) const { return !(*this == other); }
 
-    // ===== Hash =====
-    size_t GetHash() const { return m_Params->GetHash(); }
+private:
+    Mesh GetMeshAsset() const {
+        if (!m_Handle.IsValid()) return Mesh();
+        return GetMeshRegistry()->GetAsset(m_Handle);
+    }
+
+    static MeshRegistry* GetMeshRegistry() {
+        return Application::Get().GetEngine()->GetMeshRegistry();
+    }
 };
 
 } // namespace CZ

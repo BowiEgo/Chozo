@@ -14,12 +14,13 @@ Scope<MeshObj> ResourceLoaderTraits<MeshObj>::Load(const std::string& virtualPat
 }
 
 Scope<MeshObj> ResourceGeneratorTraits<MeshObj>::Generate(const MeshParams params) {
-    auto* meshObj = CZ_NEW(MEMORY_USAGE_ASSET, MeshObj);
-    auto mesh     = ProceduralMesh(meshObj);
-    mesh.SetParams(params);
-    mesh.GenerateBuffer();
+    auto meshObj = CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, MeshObj);
 
-    return Scope<MeshObj>(meshObj);
+    // The mesh owns its parameters from here on; generation reads them back from the object.
+    meshObj->SetParams(params);
+    ProceduralMesh(meshObj.get()).GenerateBuffer();
+
+    return meshObj;
 }
 
 template <> void AssetRegistry<MeshObj>::Init() {

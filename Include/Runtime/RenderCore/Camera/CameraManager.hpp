@@ -15,6 +15,8 @@ class CameraManager {
 public:
     static CameraManager& Get();
 
+    /// Releases the per-camera upload buffers and forgets all cameras. Cameras themselves are
+    /// owned by their creators, so they are never deleted here. Safe to call more than once.
     void Shutdown();
 
     void RegisterCamera(CameraObj* camera);
@@ -30,7 +32,7 @@ private:
 
 private:
     struct CameraEntry {
-        CameraObj* Camera;
+        CameraObj* Camera = nullptr; // non-owning
         GraphicsBuffer Buffer;
         CameraData CachedData;
     };

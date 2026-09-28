@@ -7,13 +7,11 @@
 
 namespace CZ {
 
-template <> void Handle<ShaderObj>::Destroy() {
-    if (m_Obj) {
-        for (auto& shaderRes : m_Obj->m_ShaderResources) {
-            shaderRes.Destroy();
-        }
-        m_Obj->m_ShaderResources.clear();
+ShaderObj::~ShaderObj() {
+    for (auto& shaderRes : m_ShaderResources) {
+        shaderRes.Destroy();
     }
+    m_ShaderResources.clear();
 }
 
 SetLayout ShaderObj::GetSetLayout(uint32_t set) {

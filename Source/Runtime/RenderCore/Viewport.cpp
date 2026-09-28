@@ -16,8 +16,8 @@ ViewportObj::ViewportObj(const ViewportSpecification& spec) : m_Spec(spec) {
     CZ_RENDERCORE_LOG(Info, "Viewport '{}' created with size {}x{}", spec.Name, spec.Width,
                       spec.Height);
 
-    m_Camera = SceneCamera(
-        CZ_NEW(MEMORY_USAGE_SCENE, CameraObj, 45.0f, m_Spec.Width / m_Spec.Height, 0.1f, 1000.0f));
+    m_Camera = CZ_CREATE_SCOPE(MEMORY_USAGE_SCENE, CameraObj, 45.0f, m_Spec.Width / m_Spec.Height,
+                               0.1f, 1000.0f);
 
     CreateFrameBuffer();
 }

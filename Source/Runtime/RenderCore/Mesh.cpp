@@ -6,14 +6,10 @@ namespace CZ {
 
 const std::string Mesh::GetName() const { return m_Obj->GetName(); }
 
-template <> void Handle<MeshObj>::Destroy() {
-    if (m_Obj) {
-        m_Obj->VertexBuffer.Destroy();
-        m_Obj->IndexBuffer.Destroy();
-
-        Delete(m_Obj);
-        m_Obj = nullptr;
-    }
+MeshObj::~MeshObj() {
+    // The mesh owns its GPU buffers; releasing them goes through the RHI.
+    VertexBuffer.Destroy();
+    IndexBuffer.Destroy();
 }
 
 void MeshObj::Upload() {

@@ -30,22 +30,20 @@ public:
 
 TEST_SUITE("EntityRegistry") {
 
-    TEST_CASE("Create/Get/Destroy keep the handle consistent") {
+    TEST_CASE("Create returns a usable handle and Get resolves it") {
         DummyRegistry registry;
 
         Handle<DummyObject> handle = registry.Create();
         REQUIRE(static_cast<bool>(handle));
         CHECK(registry.Get(handle) == InternalHandleReader::Unwrap(handle));
 
-        registry.Destroy(handle);
-        CHECK_FALSE(static_cast<bool>(handle));
+        delete registry.Get(handle);
     }
 
-    TEST_CASE("Destroying a default constructed handle is a no-op") {
+    TEST_CASE("Get on a default constructed handle is null") {
         DummyRegistry registry;
 
         Handle<DummyObject> handle;
-        CHECK_NOTHROW(registry.Destroy(handle));
-        CHECK_FALSE(static_cast<bool>(handle));
+        CHECK(registry.Get(handle) == nullptr);
     }
 }

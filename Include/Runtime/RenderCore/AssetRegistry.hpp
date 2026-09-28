@@ -19,6 +19,7 @@ template <typename T> struct ResourceLoaderTraits {
     static Scope<T> Load(const std::string& virtualPath) = delete;
 };
 
+/// OWNS the assets loaded from disk (a `Scope<T>` per unique path) and de-duplicates by path.
 template <typename T> struct ResourceStoragePolicy {
     T* Allocate(const std::string& path) {
         std::lock_guard<std::mutex> lock(m_CacheMutex);
@@ -26,17 +27,21 @@ template <typename T> struct ResourceStoragePolicy {
         auto it = m_Cache.find(path);
         if (it != m_Cache.end()) return it->second.get();
 
-        auto obj      = ResourceLoaderTraits<T>::Load(path);
+        Scope<T> obj = ResourceLoaderTraits<T>::Load(path);
+        if (!obj) return nullptr;
+
         T* ptr        = obj.get();
         m_Cache[path] = std::move(obj);
         return ptr;
     }
 
-    void Deallocate(T* ptr) {}
-
-    void Shutdown() { m_Cache.clear(); }
-
     T* Get(T* ptr) { return ptr; }
+
+    /// Releases every asset owned by this policy.
+    void Shutdown() {
+        std::lock_guard<std::mutex> lock(m_CacheMutex);
+        m_Cache.clear();
+    }
 
     auto begin() { return m_Cache.begin(); }
     auto end() { return m_Cache.end(); }
@@ -46,6 +51,13 @@ private:
     std::mutex m_CacheMutex;
 };
 
+/**
+ * Asset registry.
+ *
+ * The registry is the single owner of every asset it hands out: generated assets live in
+ * `m_Owned`, file assets are owned by `ResourceStoragePolicy`. Callers only ever hold
+ * non-owning `AssetClass` views, so `Clear()` is the only place assets are released.
+ */
 template <typename T> class AssetRegistry : public EntityRegistry<T, ResourceStoragePolicy<T>> {
 public:
     using EntityRegistry<T, ResourceStoragePolicy<T>>::EntityRegistry;
@@ -56,49 +68,40 @@ public:
 
     template <typename... Args> AssetClass GenerateAsset(Args&&... args) {
         Scope<T> obj = ResourceGeneratorTraits<T>::Generate(std::forward<Args>(args)...);
-        T* ptr       = obj.release();
+        if (!obj) return AssetClass();
 
-        AssetClass asset(ptr);
-        AssetHandle handle = AssetHandle::Generate();
-        asset.SetHandle(handle);
+        const AssetHandle handle = AssetHandle::Generate();
+        T* ptr                   = obj.get();
 
         {
             std::lock_guard<std::mutex> lock(m_CacheMutex);
-            m_MemoryCache[handle] = asset;
+            m_Owned[handle] = std::move(obj);
+            m_Views[handle] = ptr;
         }
 
-        return asset;
-    }
-
-    template <typename... Args> AssetClass CreateMemoryAssetInstance(Args&&... args) {
-        auto obj = ResourceLoaderTraits<T>::Create(std::forward<Args>(args)...);
-        T* ptr   = obj.get();
-
-        AssetClass asset(ptr);
-
-        AssetHandle handle = AssetHandle::Generate();
-        asset.SetHandle(handle);
-        m_MemoryCache[handle] = asset;
-
-        return asset;
+        return MakeView(handle, ptr);
     }
 
     AssetClass LoadAsset(const std::string& path) {
-        T* ptr = this->Allocate(path);
-
-        std::lock_guard<std::mutex> lock(m_CacheMutex);
-
-        for (auto& [handle, asset] : m_DiskCache) {
-            if (asset.EqualObj(ptr)) return asset;
+        {
+            std::lock_guard<std::mutex> lock(m_CacheMutex);
+            if (auto it = m_PathToHandle.find(path); it != m_PathToHandle.end()) {
+                return MakeView(it->second);
+            }
         }
 
-        AssetClass asset(ptr);
+        T* ptr = this->Allocate(path); // owned by the storage policy
+        if (!ptr) return AssetClass();
 
-        AssetHandle handle = AssetHandle::Generate();
-        asset.SetHandle(handle);
-        m_DiskCache[handle] = asset;
+        const AssetHandle handle = AssetHandle::Generate();
 
-        return asset;
+        {
+            std::lock_guard<std::mutex> lock(m_CacheMutex);
+            m_PathToHandle[path] = handle;
+            m_Views[handle]      = ptr;
+        }
+
+        return MakeView(handle, ptr);
     }
 
     std::future<AssetClass> LoadAssetAsync(const std::string& path) {
@@ -131,32 +134,42 @@ public:
     AssetClass GetAsset(AssetHandle handle) {
         std::lock_guard<std::mutex> lock(m_CacheMutex);
 
-        auto it = m_DiskCache.find(handle);
-        if (it != m_DiskCache.end()) return it->second;
+        auto it = m_Views.find(handle);
+        if (it == m_Views.end()) return AssetClass();
 
-        auto memIt = m_MemoryCache.find(handle);
-        if (memIt != m_MemoryCache.end()) return memIt->second;
-
-        return AssetClass();
+        return MakeView(handle, it->second);
     }
 
+    /// Releases every asset owned by this registry.
     void Clear() {
-        for (auto& [_, asset] : m_DiskCache) {
-            asset.Destroy();
-        }
-        m_DiskCache.clear();
+        {
+            std::lock_guard<std::mutex> lock(m_CacheMutex);
 
-        for (auto& [_, asset] : m_MemoryCache) {
-            asset.Destroy();
+            m_Owned.clear(); // frees generated assets
+            m_Views.clear();
+            m_PathToHandle.clear();
         }
-        m_MemoryCache.clear();
 
-        this->ResourceStoragePolicy<T>::Shutdown();
+        ResourceStoragePolicy<T>::Shutdown(); // frees file assets
     }
 
 private:
-    std::unordered_map<AssetHandle, AssetClass> m_DiskCache;
-    std::unordered_map<AssetHandle, AssetClass> m_MemoryCache;
+    AssetClass MakeView(AssetHandle handle) {
+        auto it = m_Views.find(handle);
+        return it != m_Views.end() ? MakeView(handle, it->second) : AssetClass();
+    }
+
+    static AssetClass MakeView(AssetHandle handle, T* ptr) {
+        if (!ptr) return AssetClass();
+
+        AssetClass asset(ptr);
+        asset.SetHandle(handle);
+        return asset;
+    }
+
+    std::unordered_map<AssetHandle, Scope<T>> m_Owned;
+    std::unordered_map<AssetHandle, T*> m_Views;
+    std::unordered_map<std::string, AssetHandle> m_PathToHandle;
     std::mutex m_CacheMutex;
 };
 

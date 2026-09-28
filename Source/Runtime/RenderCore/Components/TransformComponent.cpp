@@ -14,31 +14,31 @@ TransformComponent TransformComponent::operator*(const TransformComponent& other
 }
 
 void TransformComponent::SetMatrix(const Matrix4& matrix) {
-    auto translation = GetTranslation();
-    auto rotation    = GetRotation();
-    auto scale       = GetScale();
-    MathUtils::DecomposeTransform(matrix, translation, rotation, scale);
+    MathUtils::DecomposeTransform(matrix, Translation, Rotation, Scale);
     MarkDirty();
 }
 
 void TransformComponent::SetTranslation(const Vector3& translation) {
-    if (Params->Translation != translation) {
-        Params->Translation = translation;
+    if (Translation != translation) {
+        Translation = translation;
         MarkDirty();
     }
 }
+
 void TransformComponent::SetRotation(const Quaternion& rotation) {
-    if (Params->Rotation != rotation) {
-        Params->Rotation = rotation;
+    if (Rotation != rotation) {
+        Rotation = rotation;
         MarkDirty();
     }
 }
+
 void TransformComponent::SetRotationEuler(const Vector3& eulerDegrees) {
     SetRotation(Quaternion::FromEuler(eulerDegrees));
 }
+
 void TransformComponent::SetScale(const Vector3& scale) {
-    if (Params->Scale != scale) {
-        Params->Scale = scale;
+    if (Scale != scale) {
+        Scale = scale;
         MarkDirty();
     }
 }
@@ -47,35 +47,35 @@ void TransformComponent::SetTransformParams(const TransformParams params) {
     const TransformParamsObj* incoming = InternalHandleReader::Unwrap(params);
     if (!incoming) return;
 
-    // Same object, or identical values: nothing to sync.
-    if (Params && *Params.Unwrap() == incoming) return;
-
-    if (Params) {
-        // Update the params object this component already owns in place, so that a
-        // stream of edits from the editor does not allocate a new object every frame.
-        *Params.Unwrap() = *incoming;
-    } else {
-        Params = params.Clone();
+    if (Translation == incoming->Translation && Rotation == incoming->Rotation &&
+        Scale == incoming->Scale) {
+        return;
     }
+
+    Translation = incoming->Translation;
+    Rotation    = incoming->Rotation;
+    Scale       = incoming->Scale;
 
     MarkDirty();
 }
 
 Vector3 TransformComponent::TransformPoint(const Vector3& point) const {
-    return GetTranslation() + GetRotation() * (GetScale() * point);
+    return Translation + Rotation * (Scale * point);
 }
+
 Vector3 TransformComponent::TransformDirection(const Vector3& direction) const {
-    return GetRotation() * direction;
+    return Rotation * direction;
 }
+
 Vector3 TransformComponent::TransformVector(const Vector3& vector) const {
-    return GetRotation() * (GetScale() * vector);
+    return Rotation * (Scale * vector);
 }
 
 TransformComponent TransformComponent::Inverse() const {
     TransformComponent result;
-    result.SetRotation(GetRotation().Conjugated());
-    result.SetScale(Vector3(1.0f / GetScale().x, 1.0f / GetScale().y, 1.0f / GetScale().z));
-    result.SetTranslation(-(result.GetRotation() * (GetTranslation() * result.GetScale())));
+    result.SetRotation(Rotation.Conjugated());
+    result.SetScale(Vector3(1.0f / Scale.x, 1.0f / Scale.y, 1.0f / Scale.z));
+    result.SetTranslation(-(result.GetRotation() * (Translation * result.GetScale())));
     return result;
 }
 
@@ -83,9 +83,10 @@ TransformComponent TransformComponent::Lerp(const TransformComponent& target, fl
     t = MathUtils::Clamp(t, 0.0f, 1.0f);
 
     TransformComponent result;
-    result.SetTranslation(GetTranslation().Lerp(target.GetTranslation(), t));
-    result.SetRotation(GetRotation().Slerp(target.GetRotation(), t));
-    result.SetScale(GetScale().Lerp(target.GetScale(), t));
+    result.SetTranslation(Translation.Lerp(target.GetTranslation(), t));
+    result.SetRotation(Rotation.Slerp(target.GetRotation(), t));
+    result.SetScale(Scale.Lerp(target.GetScale(), t));
     return result;
 }
+
 } // namespace CZ

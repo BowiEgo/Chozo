@@ -9,15 +9,20 @@ CameraManager& CameraManager::Get() {
 }
 
 void CameraManager::Shutdown() {
-    for (auto camera : m_Cameras) {
-        Delete(camera.Camera);
-        camera.Buffer.Destroy();
+    std::lock_guard<std::mutex> lock(m_Mutex);
+
+    // Cameras are owned by their creators (e.g. `ViewportObj`); this table only tracks them.
+    for (auto& entry : m_Cameras) {
+        entry.Buffer.Destroy();
     }
+
     m_Cameras.clear();
 }
 
 void CameraManager::RegisterCamera(CameraObj* camera) {
     std::lock_guard<std::mutex> lock(m_Mutex);
+
+    if (!camera) return;
 
     for (auto& entry : m_Cameras) {
         if (entry.Camera == camera) return;
@@ -45,6 +50,10 @@ void CameraManager::UnregisterCamera(CameraObj* camera) {
                              [camera](const CameraEntry& entry) { return entry.Camera == camera; });
 
     if (it != m_Cameras.end()) {
+        for (auto entry = it; entry != m_Cameras.end(); ++entry) {
+            entry->Buffer.Destroy();
+        }
+
         m_Cameras.erase(it, m_Cameras.end());
         CZ_RENDERCORE_LOG(Info, "Camera unregistered: {}", (void*)camera);
     }

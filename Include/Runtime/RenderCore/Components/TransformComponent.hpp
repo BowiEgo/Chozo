@@ -10,10 +10,13 @@
 namespace CZ {
 
 struct TransformComponent {
-    // Always holds a valid params object: the transform system reads it unconditionally.
-    // The component owns this instance (see SetTransformParams).
-    TransformParams Params = TransformParams(Vector3::Zero, Quaternion::Identity(), Vector3::One);
-    Matrix4 WorldMatrix    = Matrix4::Identity();
+    // Value semantics: the transform owns its own data, so there is nothing to free and the
+    // ECS storage may copy or move the component freely.
+    Vector3 Translation = Vector3::Zero;
+    Quaternion Rotation = Quaternion::Identity();
+    Vector3 Scale       = Vector3::One;
+
+    Matrix4 WorldMatrix       = Matrix4::Identity();
     Matrix3 WorldNormalMatrix = Matrix3::Identity();
 
     // ===== State =====
@@ -33,30 +36,21 @@ struct TransformComponent {
     // ===== Constructors =====
     TransformComponent() = default;
 
-    // Deep-copies the incoming params so the component never aliases state owned by
-    // the caller, which may be destroyed as soon as this call returns.
-    explicit TransformComponent(const TransformParams& params) : Params(params.Clone()) {}
+    explicit TransformComponent(const TransformParams& params) { SetTransformParams(params); }
 
     TransformComponent operator*(const TransformComponent& other) const;
 
     // ===== Property Getters =====
-    Vector3 GetTranslation() { return Params->Translation; }
-    Quaternion GetRotation() { return Params->Rotation; }
-    Vector3 GetScale() { return Params->Scale; }
-    Vector3 GetTranslation() const { return Params->Translation; }
-    Quaternion GetRotation() const { return Params->Rotation; }
-    Vector3 GetScale() const { return Params->Scale; }
-    Vector3 GetForward() const { return Params->Rotation * Vector3::Forward; }
-    Vector3 GetRight() const { return Params->Rotation * Vector3::Right; }
-    Vector3 GetUp() const { return Params->Rotation * Vector3::Up; }
-    Vector3 GetRotationEuler() const { return Params->Rotation.ToEuler(); }
+    Vector3 GetTranslation() const { return Translation; }
+    Quaternion GetRotation() const { return Rotation; }
+    Vector3 GetScale() const { return Scale; }
+    Vector3 GetForward() const { return Rotation * Vector3::Forward; }
+    Vector3 GetRight() const { return Rotation * Vector3::Right; }
+    Vector3 GetUp() const { return Rotation * Vector3::Up; }
+    Vector3 GetRotationEuler() const { return Rotation.ToEuler(); }
     Matrix4 GetLocalMatrix() const {
         // T * R * S
-        Matrix4 translationMatrix = Matrix4::Translate(GetTranslation());
-        Matrix4 rotationMatrix    = GetRotation().ToMatrix4();
-        Matrix4 scaleMatrix       = Matrix4::Scale(GetScale());
-
-        return translationMatrix * rotationMatrix * scaleMatrix;
+        return Matrix4::Translate(Translation) * Rotation.ToMatrix4() * Matrix4::Scale(Scale);
     }
 
     Matrix3 GetNormalMatrix(const Matrix4& model) const {

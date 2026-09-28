@@ -6,6 +6,7 @@
 #include <Core/Math/Vector4.hpp>
 #include <Runtime/RHI/GraphicsBuffer.hpp>
 #include <Runtime/RenderCore/Asset.hpp>
+#include <Runtime/RenderCore/MeshParams.hpp>
 
 #include <cfloat>
 #include <cstdint>
@@ -95,7 +96,17 @@ struct MeshObj {
     GraphicsBuffer GetIndexBuffer() const { return IndexBuffer; }
     uint32 GetIndexCount() const { return MeshBuffer.GetIndexCount(); }
 
+    /// The mesh owns the parameters it was generated from; callers get a view.
+    void SetParams(const MeshParams& params) { m_Params.reset(params ? params->Clone() : nullptr); }
+
+    MeshParams GetParams() const { return m_Params ? MeshParams(m_Params.get()) : MeshParams(); }
+
     void Upload();
+
+    ~MeshObj();
+
+private:
+    Scope<MeshParamsObj> m_Params;
 };
 
 class Mesh : public Asset<struct MeshObj> {

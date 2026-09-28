@@ -9,11 +9,6 @@
 
 DEFINE_LOG_CATEGORY(LogEditorCamera);
 
-EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip) {
-    // m_ActiveCamera = CreateRef<CSceneCamera>(fov, aspectRatio, nearClip, farClip);
-    m_ActiveCamera = SceneCamera::Create(fov, aspectRatio, nearClip, farClip);
-}
-
 void EditorCamera::OnUpdate(float deltaTime, bool bUpdateInput) {
     if (Input::IsKeyPressed(CZ_KEY(LeftAlt))) {
         const Vector2& mouse{ Input::GetMouseX(), Input::GetMouseY() };

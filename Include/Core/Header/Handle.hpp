@@ -4,6 +4,14 @@
 
 namespace CZ {
 
+/**
+ * Non-owning view over an object that is managed elsewhere.
+ *
+ * A `Handle` never owns what it points at: it is copyable, cheap, and becomes dangling if the
+ * owner is destroyed. Ownership is expressed with `Scope<T>` (`std::unique_ptr` + `Delete`),
+ * held by the object that owns the resource, or by a container such as `AssetRegistry`.
+ * Use `ViewOf()` to derive a view from an owner.
+ */
 template <typename TObject> class Handle {
 public:
     class AccessKey {
@@ -29,6 +37,11 @@ public:
     TObject* Unwrap(AccessKey) { return m_Obj; }
     const TObject* Unwrap(AccessKey) const { return m_Obj; }
 
+    /// Raw pointer access; the handle stays non-owning.
+    TObject* Get() const { return m_Obj; }
+
+    /// Legacy path: freeing will move to the owner. Kept until every resource type has been
+    /// migrated to `Scope` ownership (see docs/TODO.md, item P1-1).
     void Destroy();
 
 protected:
@@ -56,6 +69,16 @@ public:
         return handle.Unwrap(key);
     }
 };
+
+/// Derives a non-owning view from an owning `Scope`.
+template <typename TObject> Handle<TObject> ViewOf(const Scope<TObject>& owner) {
+    return Handle<TObject>(owner.get());
+}
+
+template <typename TObject, typename TDeleter>
+Handle<TObject> ViewOf(const std::unique_ptr<TObject, TDeleter>& owner) {
+    return Handle<TObject>(owner.get());
+}
 
 template <typename HandleType> struct HandleHash {
     size_t operator()(const HandleType& h) const {

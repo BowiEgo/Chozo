@@ -48,6 +48,9 @@ public:
               const std::unordered_map<ShaderStage, ShaderCompilerOutput>& compiledOutputs)
         : m_Spec(spec), m_Datas(compiledOutputs) {}
 
+    /// Releases the shader modules owned by this shader.
+    ~ShaderObj();
+
     ShaderSpecification GetSpec() const { return m_Spec; }
 
     SetLayout GetSetLayout(uint32_t set);

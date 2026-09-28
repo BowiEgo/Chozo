@@ -3,15 +3,6 @@
 
 namespace CZ {
 
-template <> void Handle<CameraObj>::Destroy() {
-    if (m_Obj) {
-        CameraManager::Get().UnregisterCamera(m_Obj);
-
-        Delete(m_Obj);
-        m_Obj = nullptr;
-    }
-}
-
 CameraObj::CameraObj() {
     RecalculateViewMatrix();
     RecalculateProjectionMatrix();
@@ -27,7 +18,7 @@ CameraObj::CameraObj(float fov, float aspectRatio, float nearClip, float farClip
     CameraManager::Get().RegisterCamera(this);
 }
 
-CameraObj::~CameraObj() {}
+CameraObj::~CameraObj() { CameraManager::Get().UnregisterCamera(this); }
 
 void CameraObj::SetPerspective(float fov, float aspectRatio, float nearClip, float farClip) {
     m_ProjectionMode = CameraProjectionMode::Perspective;

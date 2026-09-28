@@ -96,12 +96,22 @@ public:
 
     // ===== Transform =====
     bool HasTransform() const { return EditorNodeRegistry::IsRegularType(m_TypeMask); }
+
+    /// Takes a deep copy: the node owns its parameters (editors mutate them in place).
     void SetTransformParams(const TransformParams params) {
-        m_TransformParams = params;
+        m_TransformParams.reset(params ? params->Clone() : nullptr);
         MarkDirty();
     }
-    const TransformParams GetTransformParams() const { return m_TransformParams; }
-    TransformParams GetTransformParams() { return m_TransformParams; }
+
+    /// Adopts ownership of an already-built params object.
+    void SetTransformParams(Scope<TransformParamsObj>&& params) {
+        m_TransformParams = std::move(params);
+        MarkDirty();
+    }
+
+    TransformParams GetTransformParams() const {
+        return m_TransformParams ? TransformParams(m_TransformParams.get()) : TransformParams();
+    }
 
     // ===== HDRIBackdrop =====
     // bool HasHDRIBackdrop() const {
@@ -117,17 +127,27 @@ public:
 
     // // ===== Mesh =====
     bool HasMesh() const { return EditorNodeRegistry::HasMeshType(m_TypeMask); }
+
+    /// Takes a deep copy: the node owns its parameters (editors mutate them in place).
     void SetMeshParams(const MeshParams& params) {
-        m_MeshParams.Destroy();
-        m_MeshParams = params;
+        m_MeshParams.reset(params ? params->Clone() : nullptr);
         MarkDirty();
     }
+
+    /// Adopts ownership of an already-built params object.
+    void SetMeshParams(Scope<MeshParamsObj>&& params) {
+        m_MeshParams = std::move(params);
+        MarkDirty();
+    }
+
     // void SetMeshParams(const std::string& typeName) {
     //     m_MeshParams = MeshRegister::Get().CreateParams(typeName);
     //     MarkDirty();
     // }
-    const MeshParams GetMeshParams() const { return m_MeshParams; }
-    MeshParams GetMeshParams() { return m_MeshParams; }
+
+    MeshParams GetMeshParams() const {
+        return m_MeshParams ? MeshParams(m_MeshParams.get()) : MeshParams();
+    }
 
     // ===== Material =====
 
@@ -147,10 +167,10 @@ private:
     EditorNode* m_Parent = nullptr;
     std::vector<EditorNode*> m_Children;
 
-    // Components
-    TransformParams m_TransformParams;
+    // Components, owned by the node.
+    Scope<TransformParamsObj> m_TransformParams;
     // HDRIBackdropParams m_HDRIBackdropParams;
-    MeshParams m_MeshParams;
+    Scope<MeshParamsObj> m_MeshParams;
 
     // State
     bool m_IsDirty = false;

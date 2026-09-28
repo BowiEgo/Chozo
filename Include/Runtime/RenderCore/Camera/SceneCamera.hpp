@@ -8,10 +8,11 @@ class SceneCamera : public Camera {
 public:
     using Camera::Camera;
 
-    static SceneCamera Create(float fovDegrees, float aspectRatio, float nearClip, float farClip) {
-        auto obj =
-            CZ_NEW(MEMORY_USAGE_RENDER, CameraObj, fovDegrees, aspectRatio, nearClip, farClip);
-        return SceneCamera(obj);
+    /// Creates a camera owned by the caller.
+    static Scope<CameraObj> Create(float fovDegrees, float aspectRatio, float nearClip,
+                                   float farClip) {
+        return CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, CameraObj, fovDegrees, aspectRatio, nearClip,
+                               farClip);
     }
 
     void SyncFrom(const SceneCamera& source) {

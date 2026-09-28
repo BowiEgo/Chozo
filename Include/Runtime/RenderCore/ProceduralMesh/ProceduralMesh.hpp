@@ -17,14 +17,15 @@ public:
     explicit ProceduralMesh(MeshObj* obj) : Mesh(obj) {
         m_Obj->MemoryType = MemoryType::HostVisible | MemoryType::HostCoherent;
     }
-    ~ProceduralMesh() { m_Params.Destroy(); }
 
     const std::string GetName() const override { return "ProceduralMesh"; }
 
-    void SetParams(const MeshParams params) { m_Params = params.Clone(); }
+    const std::string GetTypeName() const {
+        MeshParams params = m_Obj->GetParams();
+        return params ? params->GetTypeName() : std::string();
+    }
 
-    const std::string GetTypeName() const { return m_Params->GetTypeName(); }
-
+    /// Regenerates the CPU mesh buffer from the parameters owned by the mesh object.
     MeshBuffer* GenerateBuffer();
 
     static void RegisterType(const std::string& typeName, Scope<MeshGenerator> generator) {
@@ -39,7 +40,6 @@ public:
     }
 
 protected:
-    MeshParams m_Params;
     static std::unordered_map<std::string, Scope<MeshGenerator>> s_Generators;
 };
 

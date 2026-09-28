@@ -4,6 +4,11 @@
 
 namespace CZ {
 
+/**
+ * Policies decide how a registry allocates and (for container-backed policies) owns objects.
+ * `EntityRegistry` deliberately exposes no `Destroy`: freeing belongs to whoever owns the object
+ * (the policy's container, or the caller when it holds a `Scope`).
+ */
 struct DefaultStoragePolicy {
     template <typename T, typename... Args> T* Allocate(Args&&... args) {
         return new T(std::forward<Args>(args)...);
@@ -26,13 +31,6 @@ public:
         return Handle<T>(ptr);
     }
 
-    void Destroy(Handle<T>& handle) {
-        if (T* ptr = InternalHandleReader::Unwrap(handle)) {
-            this->Deallocate(ptr);
-            handle = Handle<T>();
-        }
-    }
-
     T* Get(Handle<T> handle) { return Policy::Get(InternalHandleReader::Unwrap(handle)); }
 
     /// Iteration accessors, provided by policies that keep a container of objects.
@@ -41,6 +39,5 @@ public:
 
 protected:
     using Policy::Allocate;
-    using Policy::Deallocate;
 };
 } // namespace CZ
