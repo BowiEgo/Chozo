@@ -6,6 +6,7 @@
 // #include <Runtime/RenderCore/Material.hpp>
 #include <Runtime/RenderCore/Mesh.hpp>
 #include <Runtime/RenderCore/MeshParams.hpp>
+#include <Runtime/RenderCore/MeshRegistry.hpp>
 #include <Runtime/RenderCore/Scene/Entity.hpp>
 #include <Runtime/RenderCore/Scene/TransformSystem.hpp>
 
@@ -27,6 +28,12 @@ struct SceneObj {
     Scope<SceneImpl> m_Impl;
     std::string m_Name;
     TransformSystem m_TransformSystem{ this };
+
+    /// Non-owning reference to the mesh assets the scene resolves for its mesh components.
+    /// Set by the object that creates the scene (see RendererObj::CreateViewport) so that the
+    /// scene does not have to reach for the application singleton.
+    void SetMeshRegistry(MeshRegistry* registry) { m_MeshRegistry = registry; }
+    MeshRegistry* GetMeshRegistry() const { return m_MeshRegistry; }
 
     SceneObj();
     ~SceneObj();
@@ -57,7 +64,8 @@ struct SceneObj {
 
     template <typename... Components> auto View() const;
 
-    // ----- Serialization -----
+private:
+    MeshRegistry* m_MeshRegistry = nullptr;
 };
 
 class Scene : public Asset<struct SceneObj> {

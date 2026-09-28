@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Runtime/App/Application.hpp>
 #include <Runtime/RenderCore/MeshParams.hpp>
 #include <Runtime/RenderCore/MeshRegistry.hpp>
 #include <Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp>
@@ -12,6 +11,10 @@ namespace CZ {
  *
  * The component owns nothing but an asset handle: the mesh object (owned by `MeshRegistry`)
  * owns the parameters it was generated from, so there is nothing to clone or free here.
+ *
+ * The registry is passed in by the caller (`SceneObj` holds the one it was configured with)
+ * instead of being looked up through a global, which keeps the scene and its components
+ * independent of the application singleton and therefore testable without a renderer.
  */
 struct MeshComponent {
     // ===== Core Data =====
@@ -33,26 +36,23 @@ struct MeshComponent {
 
     // ===== Constructors =====
     MeshComponent() = default;
-    explicit MeshComponent(const MeshParams& params) { SetMeshParams(params); }
 
     // ===== Params =====
-    MeshParams GetMeshParams() const {
-        auto mesh = GetMeshAsset();
+    MeshParams GetMeshParams(MeshRegistry& registry) {
+        Mesh mesh = GetMeshAsset(registry);
         return mesh ? mesh->GetParams() : MeshParams();
     }
 
-    void SetMeshParams(const MeshParams params) {
+    void SetMeshParams(const MeshParams params, MeshRegistry& registry) {
         if (!params) return;
 
-        auto* registry = GetMeshRegistry();
-
         if (!m_Handle.IsValid()) {
-            m_Handle = registry->GenerateAsset(params).GetHandle();
+            m_Handle = registry.GenerateAsset(params).GetHandle();
             MarkDirty();
             return;
         }
 
-        auto mesh = registry->GetAsset(m_Handle);
+        Mesh mesh = registry.GetAsset(m_Handle);
         if (!mesh) return;
 
         MeshParams current = mesh->GetParams();
@@ -63,10 +63,10 @@ struct MeshComponent {
     }
 
     /// Regenerates the CPU side mesh data for the current parameters.
-    void UpdateMesh() {
+    void UpdateMesh(MeshRegistry& registry) {
         if (!m_bIsDirty || !m_Handle.IsValid()) return;
 
-        auto mesh = GetMeshAsset();
+        Mesh mesh = GetMeshAsset(registry);
         if (!mesh) return;
 
         ProceduralMesh(mesh.Raw()).GenerateBuffer();
@@ -78,13 +78,9 @@ struct MeshComponent {
     bool operator!=(const MeshComponent& other) const { return !(*this == other); }
 
 private:
-    Mesh GetMeshAsset() const {
+    Mesh GetMeshAsset(MeshRegistry& registry) {
         if (!m_Handle.IsValid()) return Mesh();
-        return GetMeshRegistry()->GetAsset(m_Handle);
-    }
-
-    static MeshRegistry* GetMeshRegistry() {
-        return Application::Get().GetEngine()->GetMeshRegistry();
+        return registry.GetAsset(m_Handle);
     }
 };
 

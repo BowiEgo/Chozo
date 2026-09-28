@@ -41,8 +41,8 @@ struct PoolAllocator : Handle<struct PoolAllocatorObj> {
     class Iterator {
     public:
         Iterator& operator++();
-        inline bool operator==(const Iterator& other) { return m_Block == other.m_Block; }
-        inline bool operator!=(const Iterator& other) { return m_Block != other.m_Block; }
+        inline bool operator==(const Iterator& other) const { return m_Block == other.m_Block; }
+        inline bool operator!=(const Iterator& other) const { return m_Block != other.m_Block; }
         Iterator(Byte* page, Byte* block, size_t blocksLeft);
         inline void* Data() { return m_Block + 16; };
         inline operator bool() const { return m_Page != nullptr; }

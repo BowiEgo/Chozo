@@ -1,4 +1,3 @@
-#include <Runtime/App/Application.hpp>
 #include <Runtime/RenderCore/Components/Components.hpp>
 #include <Runtime/RenderCore/MeshRegistry.hpp>
 #include <Runtime/RenderCore/Scene/Scene.hpp>
@@ -16,17 +15,17 @@ void SceneObj::Update(float deltaTime) {
 
     m_TransformSystem.Update();
 
+    if (!m_MeshRegistry) return;
+
     auto view = View<MeshComponent, TransformComponent>();
     for (auto entity : view) {
         auto& meshComp = view.get<MeshComponent>(entity);
-        if (meshComp.IsValid()) {
-            auto mesh =
-                Application::Get().GetEngine()->GetMeshRegistry()->GetAsset(meshComp.m_Handle);
-            if (meshComp.IsDirty()) {
-                meshComp.UpdateMesh();
-                mesh->Upload();
-                CZ_LOG(LogScene, Trace, "UpdateMesh");
-            }
+        if (!meshComp.IsValid()) continue;
+
+        Mesh mesh = m_MeshRegistry->GetAsset(meshComp.m_Handle);
+        if (meshComp.IsDirty()) {
+            meshComp.UpdateMesh(*m_MeshRegistry);
+            if (mesh) mesh->Upload();
         }
     }
 }
@@ -157,10 +156,13 @@ void SceneObj::SetTransform(Entity entity, const TransformParams params) {
 }
 
 void SceneObj::SetMesh(Entity entity, const MeshParams params) {
+    CZ_CORE_ASSERT(m_MeshRegistry, "Scene has no mesh registry; call SetMeshRegistry() first.");
+    if (!m_MeshRegistry) return;
+
     bool hasMeshComp = HasComponent<MeshComponent>(entity);
     auto& comp =
         hasMeshComp ? GetComponent<MeshComponent>(entity) : AddComponent<MeshComponent>(entity);
-    comp.SetMeshParams(params);
+    comp.SetMeshParams(params, *m_MeshRegistry);
 }
 
 std::vector<RenderData> SceneObj::GetRenderDatas() {
@@ -172,8 +174,7 @@ std::vector<RenderData> SceneObj::GetRenderDatas() {
         if (!meshComp.IsValid()) continue;
 
         RenderData renderData;
-        renderData.Mesh =
-            Application::Get().GetEngine()->GetMeshRegistry()->GetAsset(meshComp.m_Handle);
+        renderData.Mesh     = m_MeshRegistry ? m_MeshRegistry->GetAsset(meshComp.m_Handle) : Mesh();
         auto& transformComp = view.get<TransformComponent>(entity);
 
         //                               .GetAsset(meshComp.MeshParamsWrapper.Get()->Material)

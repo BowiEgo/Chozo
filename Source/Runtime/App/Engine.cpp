@@ -55,7 +55,9 @@ bool Engine::Init(std::string& err) {
         RendererAPI::SetType(RendererAPI::Type::Vulkan);
 
         RendererSpecification spec;
-        spec.Window = window;
+        spec.Window         = window;
+        spec.MeshRegistry   = m_MeshRegistry.get();
+        spec.ShaderRegistry = m_ShaderRegistry.get();
 
         m_Renderer = Renderer::Create(spec);
     }

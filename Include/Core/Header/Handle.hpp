@@ -27,8 +27,10 @@ public:
 
     explicit operator bool() const { return m_Obj != nullptr; }
 
-    bool operator==(const Handle& other) { return m_Obj == other.m_Obj; }
+    // A single const overload: declaring both const and non-const versions makes `a == b`
+    // ambiguous in C++20 (the reversed candidate `b == a` becomes viable).
     bool operator==(const Handle& other) const { return m_Obj == other.m_Obj; }
+    bool operator!=(const Handle& other) const { return !(*this == other); }
     bool EqualObj(TObject* obj) { return m_Obj == obj; }
 
     TObject* operator->() { return m_Obj; }

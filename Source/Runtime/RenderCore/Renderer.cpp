@@ -1,4 +1,3 @@
-#include <Runtime/App/Application.hpp>
 #include <Runtime/RenderCore/Renderer.hpp>
 
 #include <Runtime/App/Engine.hpp>
@@ -35,17 +34,23 @@ Scope<RendererObj> Renderer::Create(const RendererSpecification& spec) {
         obj->Frames[i].List = obj->Frames[i].Pool->AllocateCommandBuffer();
     }
 
+    obj->MeshRegistry = spec.MeshRegistry;
+
     auto testPipelineSpec         = PipelineSpecification{};
     testPipelineSpec.Name         = "TestPipeline";
     testPipelineSpec.ColorFormats = { PixelFormat::RGBA16F };
+
+    if (!spec.ShaderRegistry) {
+        CZ_CORE_LOG(Error, "Renderer created without a shader registry; no pipeline will exist.");
+        return obj;
+    }
 
     const std::vector<std::string> files = { "shaders://Basic.slang" };
 
     // Compile the shaders on the job system and wait for the results before creating the pipeline.
     std::vector<std::future<Shader>> pendingShaders;
     for (auto& path : files) {
-        pendingShaders.push_back(
-            Application::Get().GetEngine()->GetShaderRegistry()->LoadAssetAsync(path));
+        pendingShaders.push_back(spec.ShaderRegistry->LoadAssetAsync(path));
     }
 
     for (auto& f : pendingShaders) {
@@ -149,7 +154,10 @@ Viewport Renderer::CreateViewport(const std::string name, uint32 width, uint32 h
 
     m_Obj->Viewports.push_back(Viewport::Create(spec));
 
-    return ViewAs<Viewport>(m_Obj->Viewports.back());
+    Viewport viewport = ViewAs<Viewport>(m_Obj->Viewports.back());
+    viewport->GetScene()->SetMeshRegistry(m_Obj->MeshRegistry);
+
+    return viewport;
 }
 
 std::vector<Viewport> Renderer::GetViewports() {

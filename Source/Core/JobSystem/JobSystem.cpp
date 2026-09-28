@@ -112,12 +112,11 @@ static void WorkerThreadMain(void* thread);
 static void ExecuteJob(const JobHeader& job) {
     CZ_PROFILE_SCOPE;
 
-    uint64_t tid;
-    pthread_threadid_np(nullptr, &tid);
     job.OnExecute(job.User);
 
     if (job.OnComplete) job.OnComplete(job.User);
 
+    // Publish completion: the last job wakes whoever is waiting in WaitAll().
     if (s_Obj->JobCounter.fetch_sub(1, std::memory_order_acq_rel) == 1) {
         std::unique_lock<std::mutex> lock(s_Obj->WaitAllMutex);
         s_Obj->WaitAllCV.notify_one();
@@ -138,7 +137,13 @@ JobSystemObj::JobSystemObj(const JobSystemInfo& info)
 }
 
 JobSystemObj::~JobSystemObj() {
-    IsRunning = false;
+    {
+        // The flag must flip while holding the mutex the workers wait on: otherwise a worker can
+        // evaluate its predicate (still running) and go to sleep after this notification, and
+        // join() below would block forever.
+        std::unique_lock<std::mutex> lock(WakeMutex);
+        IsRunning = false;
+    }
 
     WakeCV.notify_all();
 
@@ -193,13 +198,9 @@ int JobSystem::GetWorkerThreadCount() { return (int)m_Obj->WorkerThreads.size();
 void JobSystem::WaitAll() {
     CZ_PROFILE_SCOPE;
 
-    bool allDispatched;
-
-    do {
-        m_Obj->WakeCV.notify_one();
-
-        allDispatched = m_Obj->ImmQueue.empty() && m_Obj->StdQueue.empty();
-    } while (!allDispatched);
+    // Workers may all be asleep while jobs are queued (notifications are per-submit), so wake
+    // them once and then simply wait for the outstanding job count to reach zero.
+    m_Obj->WakeCV.notify_all();
 
     std::unique_lock<std::mutex> lock(m_Obj->WaitAllMutex);
     m_Obj->WaitAllCV.wait(lock,
@@ -209,14 +210,16 @@ void JobSystem::WaitAll() {
 void JobSystem::Submit(const JobHeader* job, JobDispatchType type) {
     JobQueue* queue = (type == JOB_DISPATCH_IMMEDIATE) ? &m_Obj->ImmQueue : &m_Obj->StdQueue;
 
+    // Register the job *before* it becomes visible to the workers. Incrementing afterwards lets
+    // a worker complete (and decrement) it first, which wraps the counter and makes WaitAll()
+    // wait forever.
+    s_Obj->JobCounter.fetch_add(1, std::memory_order_acq_rel);
+
     if (queue->Enqueue(*job)) {
-        s_Obj->JobCounter.fetch_add(1);
         s_Obj->WakeCV.notify_one();
     } else {
-        s_Obj->JobCounter.fetch_add(1);
-
-        // TODO: currently it is possible that the main thread
-        //       starts executing a large job and freezes the app.
+        // The queue is full: run the job on the calling thread. (A blocking submit would be
+        // preferable, see docs/TODO.md P1-7.)
         ExecuteJob(*job);
     }
 }

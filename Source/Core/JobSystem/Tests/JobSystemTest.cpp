@@ -143,6 +143,51 @@ TEST_SUITE("JobSystem") {
         JobSystem::Get().Shutdown();
     }
 
+    TEST_CASE("Jobs submitted from several threads are all accounted for") {
+        if (std::thread::hardware_concurrency() == 0) {
+            MESSAGE("skipped: hardware_concurrency() is not available");
+            return;
+        }
+
+        // Regression net for the submit/counter ordering: registering the job after publishing it
+        // let a worker complete it first, which wrapped the outstanding-job counter and made
+        // WaitAll() wait forever.
+        JobSystem::Init(TestInfo());
+        REQUIRE(!!JobSystem::Get());
+
+        JobCounters counters;
+        constexpr int kSubmitters    = 4;
+        constexpr int kJobsPerThread = 64;
+
+        std::vector<std::vector<JobHeader>> jobStorage(kSubmitters);
+        std::vector<std::thread> submitters;
+
+        for (int t = 0; t < kSubmitters; ++t) {
+            jobStorage[t].resize(kJobsPerThread);
+            for (auto& job : jobStorage[t]) {
+                job           = JobHeader{};
+                job.Type      = 0;
+                job.OnExecute = Accumulate;
+                job.User      = &counters;
+            }
+
+            submitters.emplace_back([&, t] {
+                for (auto& job : jobStorage[t]) {
+                    JobSystem::Get().Submit(&job, JOB_DISPATCH_STANDARD);
+                }
+            });
+        }
+
+        for (auto& submitter : submitters)
+            submitter.join();
+
+        JobSystem::Get().WaitAll();
+
+        CHECK_EQ(counters.Sum.load(), kSubmitters * kJobsPerThread);
+
+        JobSystem::Get().Shutdown();
+    }
+
     TEST_CASE("Init and Shutdown are idempotent") {
         if (std::thread::hardware_concurrency() == 0) {
             MESSAGE("skipped: hardware_concurrency() is not available");

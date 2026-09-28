@@ -3,6 +3,7 @@
 #include <Core/Header/Types.h>
 #include <Runtime/App/StartupHost.hpp>
 #include <Runtime/RHI/GraphicsContext.hpp>
+#include <Runtime/RenderCore/ShaderRegistry.hpp>
 #include <Runtime/RenderCore/Viewport.hpp>
 #include <Runtime/Window/Window.hpp>
 
@@ -10,6 +11,11 @@ namespace CZ {
 
 struct RendererSpecification {
     Window Window;
+
+    // Registries the renderer hands to the scenes it creates viewports for. Non-owning; the
+    // engine owns them and they outlive the renderer.
+    MeshRegistry* MeshRegistry     = nullptr;
+    ShaderRegistry* ShaderRegistry = nullptr;
 };
 
 struct FrameResource {
@@ -21,6 +27,7 @@ struct RendererObj {
     uint32 CurrentFrameIndex = 0;
     Window Window;
     DrawFunc FinalPassDrawFunc;
+    MeshRegistry* MeshRegistry = nullptr;
 
     // Owned resources; the renderer hands out views.
     std::vector<FrameResource> Frames;

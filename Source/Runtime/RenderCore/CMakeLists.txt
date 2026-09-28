@@ -46,4 +46,15 @@ add_chozo_module(
     LINK    CZCoreLibs CZRHI slang::slang EnTT::EnTT
 )
 
-add_chozo_module_tests()
+# RenderCore tests link the module (and therefore Slang) but need no GPU: they cover the
+# scene/ECS, transform and parameter layers. They get their own executable so that the core-only
+# CZTest stays free of runtime dependencies.
+file(GLOB RENDERCORE_TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*Test.cpp")
+
+if(RENDERCORE_TEST_SOURCES)
+    add_executable(CZRenderCoreTests Tests/Main.cpp ${RENDERCORE_TEST_SOURCES})
+    set_target_properties(CZRenderCoreTests PROPERTIES FOLDER "Tests")
+    target_link_libraries(CZRenderCoreTests PRIVATE CZRenderCore CZRHI CZCoreLibs doctest::doctest)
+    target_include_directories(CZRenderCoreTests PRIVATE ${CHOZO_SOURCE_DIR} ${CHOZO_INCLUDE_DIR})
+    add_test(NAME CZRenderCoreTests COMMAND CZRenderCoreTests)
+endif()
