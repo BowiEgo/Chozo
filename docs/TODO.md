@@ -3,7 +3,7 @@
 > **用途**：跟踪代码评审中定级为 P0、P1 的问题，作为后续迭代的施工清单。
 > **来源**：2026-09-28 全量评审（完整构建 + `-Wall -Wextra` 全 TU 扫描 + 运行验证 + 格式检查）。
 > **范围**：仅收录 **P0（确定性缺陷）** 与 **P1（设计 / 资源管理风险）**。P2 级工程化问题（CI、测试覆盖、死代码、文档）见附录 B，不在本清单内。
-> **状态**：P0 共 7 项，已在分支 `dev-0.1.x` 修复并验证；P1 共 11 项，待处理。
+> **状态**：P0 共 7 项已修复；P1-1（所有权模型）已按「无引用计数」方案修复，P1-2 部分修复（键构造），其余 P1 待处理。
 > **维护约定**：修完一项后，把它从第二章移到第一章表格，并附上 commit 与验证方式；新增问题请标出文件:行号与复现方式。
 
 ## 严重度定义
@@ -50,8 +50,7 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 | 2 | P1-2 DescriptorSet 缓存 | 与 P1-10 的校验层报错高度相关，先修可缩小排查面 |
 | 3 | P1-10 校验层 descriptor 报错 | 定位类任务，修完才能信任渲染日志 |
 | 4 | P1-3 命令缓冲判空/空函数指针 | 崩溃隐患，改动小 |
-| 5 | P1-1 所有权模型 | 工作量最大，是 P1-11、资源泄漏类问题的根因 |
-| 6 | P1-11 帧延迟删除 | 依赖 P1-1 的生命周期决策 |
+| 5 | P1-11 帧延迟删除 | 依赖 P1-1 的生命周期决策（已完成） |
 | 7 | P1-5 Buffer 内存语义 | 独立小改动，消除双重释放风险 |
 | 8 | P1-6 线程安全策略 | 需要先定线程契约，工作量中等 |
 | 9 | P1-4 Vulkan 队列族 | 影响特定硬件，改动力度中等 |
@@ -60,57 +59,73 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 
 ---
 
-### P1-1 所有权模型缺失（`Handle` 可拷贝 + 手工 `Destroy`）
+### P1-1 所有权模型缺失 —— 已完成（无引用计数方案）
 
-**位置**
+**提交**：`0c96f2b`（引擎数据）、`07d3bb2`（RHI 资源 + `CZMemory` 共享化）
 
-- `Include/Core/Header/Handle.hpp`（句柄可自由拷贝，`Destroy()` 手工调用）
-- `Include/Runtime/RenderCore/AssetRegistry.hpp:35`（`ResourceStoragePolicy::Deallocate` 是空实现）
-- `Source/Runtime/RenderCore/Camera/CameraManager.cpp:11-19`（`Shutdown()` 直接 `Delete(camera.Camera)`）
-- `Source/Runtime/RenderCore/Renderer.cpp:24`（`static Pipeline testPipeline` 全局对象）
-- `Include/Runtime/RenderCore/Components/TransformComponent.hpp:15`、`Include/Runtime/RenderCore/Components/MeshComponent.hpp`
+**最终模型**
 
-**现象与影响**
+- `Handle<T>` 是**非拥有视图**：可拷贝、可比较、默认 null，**没有 `Destroy()`**。
+- 所有权只有两种表达：
+  - `Scope<T>`（`unique_ptr` + `DeleteDeleter`）成员或局部变量；
+  - 容器 / 管理器持有（`AssetRegistry`、`DeviceObj` 的缓存、`SwapchainObj`、`GraphicsContextObj` 等）。
+- 每个拥有者在自己的析构里释放子对象：`TextureObj` → `ImageObj`、`FrameBufferObj` → 附件、`ViewportObj` → scene/camera/framebuffer、`RendererObj` → frames/viewports/pipeline、`MeshObj` → vertex/index buffer、`ShaderObj` → shader modules、`Application` → window/startup host。
 
-- 一次句柄拷贝就产生多个"看似拥有"的引用，谁该调用 `Destroy()` 完全靠约定；双重释放、悬垂、泄漏都只是时间问题。
-- 实测（运行一次编辑器后退出）`ReportMemoryLeaks` 残留 2 处：
-  - `TransformParamsObj`（48 B，`TransformParams.hpp:96`）——每个 `TransformComponent` 自有一份且从不释放；
-  - `CubeParamsObj`（72 B，`CubeParamsObj.hpp:30`）——编辑器节点持有的 Mesh 参数。
-- `CameraManager::Shutdown()` 删除的 `CameraObj` 仍被 `Viewport::m_Camera`（`SceneCamera` 句柄）引用 → 关闭后句柄悬垂；且该方法被 `Renderer::Shutdown`（`Renderer.cpp:115`）与 `Engine::Shutdown`（`Engine.cpp:76`）各调用一次。
-- `AssetRegistry` 的 `Deallocate` 为空，`EntityRegistry::Destroy` 会静默泄漏（当前无调用方，属于埋雷）。
+**顺带修掉的问题**
 
-**建议方案**
+- `TransformComponent` 改为值语义（每组件一次堆分配 + 其泄漏消失）。
+- `MeshObj` 拥有自身参数，`MeshComponent` / `ProceduralMesh` 只持视图（消除每次同步的 clone 与泄漏）。
+- `CameraManager` 不再拥有相机，`CameraObj` 在析构时自行注销（消除 `Viewport` 悬垂句柄）。
+- `AssetRegistry` 自持生成资产，`Clear()` 的双重释放隐患消除。
+- `CZMemory` 改为共享库：此前每个镜像各一份统计/追踪状态，导致「无泄漏」报告不可信，且跨镜像释放会触发堆下溢。
 
-1. 明确区分两类句柄：**非拥有视图**（可拷贝，不负责释放）与**拥有句柄**（`Scope<T, Deleter>` 或带引用计数的 `Ref<T>`）。
-2. 把 `Destroy()` 从公共接口移出（例如只允许通过 `AccessKey` 或 owner 类型调用），让"谁能释放"在编译期可见。
-3. RHI 资源（`GraphicsBuffer`/`Image`/`FrameBuffer`/`Pipeline`/`Sampler`/`DescriptorSet`/`SetLayout`）统一为引用计数或统一归 `DeviceObj` 托管。
-4. `CameraManager` 改为不拥有相机对象（只存弱引用/原始指针表），销毁责任回归创建者；`Shutdown()` 保证幂等。
+**验收**：编辑器运行并退出时输出 `No active allocations.`（进程级统计）；CZTest 13/13。
 
-**验收标准**
-
-- 正常使用并退出编辑器后 `ReportMemoryLeaks` 无残留。
-- `Viewport` 在相机销毁后不会被解引用（可加断言或弱引用检查 + 单测）。
-- 重复调用 `Shutdown()` 幂等，且有测试覆盖。
-
-**预估**：2–3 天（含回归与单测）。
+**遗留跟踪项（新）**：引擎核心静态库仍同时链接进可执行文件与各 dylib，除 `CZMemory` 外的单例（`Logger`、`TypeRegister`、`CameraManager`、`AssetRegistry`、`Application`…）仍是每镜像一份 → 见 P1-12。
 
 ---
 
-### P1-2 DescriptorSet 缓存：键构造错误、无淘汰、无并发保护
+### P1-12 引擎核心库在每个镜像中重复链接（单例分裂）
 
-**位置**：`Source/Runtime/RHI/Device.cpp:119-135`、`Include/Runtime/RHI/Device.hpp:98-103`
+**位置**：`CMakeLists.txt`（`CZCoreLibs` / `CZRuntimeLibs` 由静态库聚合）、`Source/Editor/CMakeLists.txt`、`Source/Backend/Vulkan/CMakeLists.txt`
 
 **现象与影响**
 
-- `GetOrCreateDescriptorSet` 中 `key.BindingResources.resize(bindings.size() * 2)` 之后仍然 `push_back`，导致缓存键由「2N 个零 UUID + 实际资源 UUID」组成（应为 `reserve`）。
-- `key.LastFrame` 只在查找时写入，且没有任何基于它的淘汰逻辑 → 缓存无上限增长。
-- 三份缓存（SetLayout / Sampler / DescriptorSet）均无锁；而 `AssetRegistry::LoadAssetAsync` 会在 Job 线程创建资源 → 数据竞争。
+- 静态模块被同时链接进可执行文件与各 dylib，于是 `Logger`、`TypeRegister`、`CameraManager`、`AssetRegistry`、`JobSystem`、`Application` 等单例在进程内各存在一份，跨镜像调用会看到不同状态。
+- 已修一部分：`CZMemory` 改为共享库（`07d3bb2`）。此前内存统计与泄漏追踪每镜像一份，跨镜像释放还会触发 `HeapFree underflow`。
+- 仍存在：编辑器 dylib 里的 `Application::Get()` / `Logger::Get()` 与可执行文件里的不是同一实例（控制台面板只看得到 dylib 侧日志；`Editor::GetImGuiRenderer()` 依赖 exe 导出符号才不会出错）。
 
 **建议方案**
 
-- `resize` 改 `reserve`（或 `clear()` + `push_back`），并补一个键构造的单元测试（不同 binding 集合/顺序/资源不得误命中）。
-- 实现基于 `LastFrame` 的 LRU 淘汰（帧号超过阈值即释放）。
+- 把引擎核心编译为**一个共享库**（如 `libCZCore.dylib`：Core + Runtime + RHI 的公共部分），可执行文件、Editor、Vulkan 后端统一链接它；或
+- 显式采用「exe 导出符号 + dylib 不重复链接核心静态库」的模型（导出列表 / `-Wl,-undefined,dynamic_lookup`），并用测试锁定。
+- 完成前不要在 dylib 边界两侧依赖任何单例状态。
+
+**验收标准**
+
+- 进程内每个单例只有一个实例（可用打印地址的测试验证）。
+- 编辑器控制台能看到后端与引擎的全部日志。
+
+**预估**：1–2 天（以构建结构调整为主）。
+
+---
+
+### P1-2 DescriptorSet 缓存：淘汰与并发保护
+
+**位置**：`Source/Runtime/RHI/Device.cpp`（`GetOrCreateDescriptorSet`）、`Include/Runtime/RHI/Device.hpp`（`m_DescriptorSetCache`）
+
+**状态**：键构造已修（`resize` → `reserve`，随 `07d3bb2`）；淘汰与并发保护仍待处理。
+
+**剩余问题**
+
+- 缓存条目只记录 `LastFrame`，没有基于它的淘汰逻辑 → 无上限增长。
+- 三份缓存（SetLayout / Sampler / DescriptorSet）均无锁；`AssetRegistry::LoadAssetAsync` 会在 Job 线程创建资源 → 数据竞争。
+
+**建议方案**
+
+- 实现基于 `LastFrame` 的 LRU 淘汰（帧号超过 `MaxFramesInFlight` 阈值即释放条目）。
 - 给缓存加锁，或在 API 上标注 main-thread-only 并加断言；与 P1-6 的线程契约一起定。
+- 补一个键构造 / 命中行为的单元测试。
 
 **验收标准**
 
@@ -261,6 +276,7 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 **现象与影响**
 
 - 手写 union 版 `Result`：无拷贝赋值；错误态下 `value()` 返回未构造的 union 成员引用 → UB；无 `value_or`/`map`/`and_then` 等配套接口。
+- 已确认的阻塞点：union 成员的默认构造被删除，因此 `Result` 无法承载 move-only 类型（如 `Scope<T>`）。RHI 工厂的 `Result<..., VkResult>` 已在 `07d3bb2` 中移除，改为返回 `Scope`（失败返回空）。
 - 错误处理风格混用，调用方无法判断"某个失败需要检查还是已经被吞掉"。
 
 **建议方案**
@@ -381,12 +397,14 @@ cmake -S . -B build && cmake --build build -j8
 
 | 变化 | 说明 |
 |---|---|
-| `CZ_DEBUGBREAK()` 在 Debug 下真正中断 | 泄漏报告、堆下溢、Fatal 日志现在会 `__builtin_trap()`。当前退出时因 P1-1 的 2 处残留会被中断；修完 P1-1 即可消失 |
+| `CZ_DEBUGBREAK()` 在 Debug 下真正中断 | 泄漏报告、堆下溢、Fatal 日志现在会 `__builtin_trap()`；退出时已无残留分配，不会再中断 |
 | `Handle` 默认构造为 `nullptr` | 之前是未初始化值；依赖"默认句柄非空"的代码（如有）会暴露出来 |
 | 移除 `Handle(const TObject*)` 重载 | 该重载永远无法编译（const 指针赋给非 const 成员），全仓库无调用方 |
 | `EntityRegistry::ForEach` → `Begin()` / `End()` | 原实现无法实例化；若后续需要遍历请用新接口 |
-| `TransformComponent` 默认构造会分配一份 params | 每个组件一次堆分配，且随组件销毁不释放（属 P1-1 范围） |
+| `TransformComponent` 改为值语义 | 不再分配 params 对象；`SetTransformParams` 只做字段拷贝 |
 | 网格重新上传会 `WaitIdle()` | 见 P1-11，属过渡方案 |
+| `Handle<T>` 不再有 `Destroy()` | 释放只能经由拥有者（`Scope` 或容器）；`ViewOf()` / `ViewAs<T>()` 从拥有者派生视图 |
+| `CZMemory` 变为共享库 | 内存统计与泄漏追踪现在是进程级唯一的；bundle 的 Frameworks 目录会多出 `libCZMemory.dylib` |
 | `TransformSystem` 开始运行 | `WorldMatrix` 现在会真正被计算；此前恒为单位阵 |
 
 ---
