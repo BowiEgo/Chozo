@@ -1,4 +1,6 @@
 #pragma once
+#include <ostream>
+
 #include <tuple>
 #include <unordered_map>
 #include <utility>

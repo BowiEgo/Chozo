@@ -28,8 +28,9 @@ struct AllocRecord {
     const char* file;
     uint32_t line;
 };
-static std::unordered_map<void*, AllocRecord> g_AllocTracker;
-static std::mutex g_AllocTrackerMutex;
+// Only populated in Debug builds, where every allocation records its origin.
+[[maybe_unused]] static std::unordered_map<void*, AllocRecord> g_AllocTracker;
+[[maybe_unused]] static std::mutex g_AllocTrackerMutex;
 
 struct {
     MemoryProfile profile;
@@ -73,6 +74,9 @@ void* HeapMallocDebug(std::size_t size, MemoryUsage usage, const char* file, uin
 #ifdef CZ_DEBUG
     header->file = file;
     header->line = line;
+#else
+    (void)file;
+    (void)line;
 #endif
     {
         std::unique_lock<std::mutex> lock(sTable[usage].mutex);

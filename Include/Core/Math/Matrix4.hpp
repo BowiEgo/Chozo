@@ -1,4 +1,6 @@
 #pragma once
+#include <ostream>
+
 #include <cmath>
 #include <string>
 
