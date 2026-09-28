@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include <Core/Log/LogMacros.hpp>
 #include <Core/Platform/Platform.h>
 #include <Core/Utilities/StringUtils.hpp>

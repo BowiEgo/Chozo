@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include <Runtime/RenderCore/ShaderCompiler.hpp>
 
 #include <Runtime/RHI/RHITypes.hpp>

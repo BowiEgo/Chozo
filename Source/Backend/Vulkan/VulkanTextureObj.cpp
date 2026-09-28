@@ -1,5 +1,7 @@
-#include "VulkanTextureObj.hpp"
+#include <cstdint>
+
 #include "VulkanImageObj.hpp"
+#include "VulkanTextureObj.hpp"
 #include <Core/Log/LogMacros.hpp>
 #include <Runtime/RHI/RHITypes.hpp>
 

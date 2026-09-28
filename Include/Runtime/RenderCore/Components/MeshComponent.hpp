@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 #include <Runtime/RenderCore/MeshParams.hpp>
 #include <Runtime/RenderCore/MeshRegistry.hpp>

@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include <Core/FileSystem/VFS.hpp>
 
 #include <Core/Log/LogMacros.hpp>

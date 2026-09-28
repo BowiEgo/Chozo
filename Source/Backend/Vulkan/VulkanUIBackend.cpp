@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "VulkanUIBackend.hpp"
 
 #include "VulkanCommandBufferObj.hpp"

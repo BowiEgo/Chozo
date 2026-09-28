@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include <Core/TypeRegistry/TypeMask.hpp>
 
 namespace CZ {

@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include <Core/TypeRegistry/TypeRegistry.hpp>
 
 namespace CZ {

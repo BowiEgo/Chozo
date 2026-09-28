@@ -1,5 +1,7 @@
-#include "VulkanShaderResObj.hpp"
+#include <cstdint>
+
 #include "VulkanDeviceObj.hpp"
+#include "VulkanShaderResObj.hpp"
 
 #include <Runtime/RHI/Sampler.hpp>
 

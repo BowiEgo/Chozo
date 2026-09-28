@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include "Runtime/RenderCore/MeshParams.hpp"
 #include <Runtime/RenderCore/ProceduralMesh/CubeParamsObj.hpp>
 

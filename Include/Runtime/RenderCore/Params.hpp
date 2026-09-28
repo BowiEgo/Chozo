@@ -1,4 +1,6 @@
 #pragma once
+#include <cstddef>
+#include <cstdint>
 
 #include <Core/Math/Quaternion.hpp>
 #include <Core/Math/Vector2.hpp>

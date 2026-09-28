@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include <Runtime/RenderCore/Camera/Camera.hpp>
 #include <Runtime/RenderCore/Camera/CameraManager.hpp>
 

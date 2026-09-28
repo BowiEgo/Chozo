@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include "ConsolePanel.hpp"
 #include "Core/Memory/Memory.hpp"
 #include "Core/Memory/MemoryTypes.hpp"

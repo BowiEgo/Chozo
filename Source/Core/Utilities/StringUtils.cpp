@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include <Core/Utilities/StringUtils.hpp>
 
 namespace CZ::StringUtils {

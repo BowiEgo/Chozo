@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include <Runtime/RenderCore/Shader.hpp>
 
 #include "ShaderUtils.hpp"

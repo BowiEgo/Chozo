@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include <Core/Header/Assert.hpp>
 #include <Core/Memory/Memory.hpp>
 

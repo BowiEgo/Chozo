@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 #include "Runtime/RHI/GraphicsBuffer.hpp"
 #include <Runtime/RHI/CommandList.hpp>

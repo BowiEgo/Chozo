@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include <Runtime/RHI/Device.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>
 

@@ -84,6 +84,11 @@ message(STATUS "CHOZO INCLUDE DIR                ${CHOZO_INCLUDE_DIR}")
 message(STATUS "CHOZO EXTERNAL DIR               ${CHOZO_EXTERNAL_DIR}")
 message(STATUS "CHOZO BUILD DIR                  ${CHOZO_BUILD_DIR}")
 
+# CMake 4 removed compatibility with projects requiring less than 3.5; some dependencies (doctest
+# 2.4.11) still declare `cmake_minimum_required(VERSION 3.0)`. This is the documented escape hatch
+# and is ignored by older CMake releases.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum CMake policy version for dependencies")
+
 # Fetch dependencies via CMake FetchContent
 include(CMake/FetchDependencies.cmake)
 

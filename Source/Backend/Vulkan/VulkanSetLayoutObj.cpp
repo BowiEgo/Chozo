@@ -1,5 +1,7 @@
-#include "VulkanSetLayoutObj.hpp"
+#include <cstdint>
+
 #include "VulkanDeviceObj.hpp"
+#include "VulkanSetLayoutObj.hpp"
 #include "VulkanUtils.hpp"
 
 namespace CZ {

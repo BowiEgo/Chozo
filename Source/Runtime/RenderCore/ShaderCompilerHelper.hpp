@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 #include <Core/Log/LogMacros.hpp>
 #include <Runtime/RHI/RHITypes.hpp>

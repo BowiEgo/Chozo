@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "SDLWindowObj.hpp"
 
 #include <Core/Event/AppEvent.hpp>

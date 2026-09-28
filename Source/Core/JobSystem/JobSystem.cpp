@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include <Core/JobSystem/JobSystem.h>
 #include <Core/Log/LogMacros.hpp>
 #include <Core/Memory/Memory.hpp>

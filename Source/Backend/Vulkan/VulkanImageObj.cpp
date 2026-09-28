@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "VulkanImageObj.hpp"
 
 #include "VulkanDeviceObj.hpp"

@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "VulkanFenceObj.hpp"
 
 namespace CZ {

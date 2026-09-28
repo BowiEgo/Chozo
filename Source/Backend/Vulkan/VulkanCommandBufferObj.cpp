@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "VulkanCommandBufferObj.hpp"
 
 #include "VulkanCommandPoolObj.hpp"

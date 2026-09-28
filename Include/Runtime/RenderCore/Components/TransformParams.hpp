@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 
 #include "Core/Memory/MemoryTypes.hpp"
 #include <Runtime/RenderCore/Params.hpp>

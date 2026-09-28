@@ -1,5 +1,7 @@
-#include "VulkanDescriptorSetObj.hpp"
+#include <cstdint>
+
 #include "Core/Log/LogMacros.hpp"
+#include "VulkanDescriptorSetObj.hpp"
 #include "VulkanDeviceObj.hpp"
 #include "VulkanGraphicsBufferObj.hpp"
 #include "VulkanImageObj.hpp"

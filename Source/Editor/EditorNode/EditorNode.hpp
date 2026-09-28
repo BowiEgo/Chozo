@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 // #include "Components.h"
 // #include "EditorNodeRegister.h"

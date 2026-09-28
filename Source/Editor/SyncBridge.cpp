@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "SyncBridge.hpp"
 
 #include <Runtime/RenderCore/Components/Components.hpp>

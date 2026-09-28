@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "VulkanUtils.hpp"
 
 #include <Core/Header/Assert.hpp>

@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "EditorNode.hpp"
 
 #include <Runtime/RenderCore/ProceduralMesh/CubeParamsObj.hpp>

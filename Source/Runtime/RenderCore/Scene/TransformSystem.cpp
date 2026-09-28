@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include <Runtime/RenderCore/Components/RelationshipComponent.hpp>
 #include <Runtime/RenderCore/Components/TransformComponent.hpp>
 #include <Runtime/RenderCore/Scene/Scene.hpp>

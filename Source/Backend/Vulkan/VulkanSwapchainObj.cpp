@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+
 #include "VulkanSwapchainObj.hpp"
 
 #include "VulkanDeviceObj.hpp"

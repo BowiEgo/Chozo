@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 
 #include <Core/Header/Handle.hpp>
 #include <Core/Memory/Memory.hpp>

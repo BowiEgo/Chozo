@@ -1,3 +1,5 @@
+#include <cstddef>
+
 #include <Core/Platform/Linux/LinuxFile.h>
 
 #include <climits>

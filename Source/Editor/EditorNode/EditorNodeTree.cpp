@@ -1,5 +1,7 @@
-#include "EditorNodeTree.hpp"
+#include <cstddef>
+
 #include "EditorNode.hpp"
+#include "EditorNodeTree.hpp"
 
 #include <algorithm>
 

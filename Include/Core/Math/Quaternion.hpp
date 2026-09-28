@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 
 #include <Core/Math/Matrix3.hpp>
 #include <Core/Math/Matrix4.hpp>

@@ -1,3 +1,5 @@
+#include <cstdint>
+
 #include "VulkanAPIObj.hpp"
 #include "VulkanCommandBufferObj.hpp"
 #include "VulkanFenceObj.hpp"

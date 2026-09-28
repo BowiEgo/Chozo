@@ -1,6 +1,8 @@
-#include "VulkanDeviceObj.hpp"
+#include <cstdint>
+
 #include "VulkanCommandPoolObj.hpp"
 #include "VulkanDescriptorSetObj.hpp"
+#include "VulkanDeviceObj.hpp"
 #include "VulkanFrameBufferObj.hpp"
 #include "VulkanGraphicsBufferObj.hpp"
 #include "VulkanGraphicsContextObj.hpp"

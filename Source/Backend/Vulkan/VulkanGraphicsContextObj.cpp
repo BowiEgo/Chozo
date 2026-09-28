@@ -1,5 +1,7 @@
-#include "VulkanGraphicsContextObj.hpp"
+#include <cstdint>
+
 #include "VulkanDeviceObj.hpp"
+#include "VulkanGraphicsContextObj.hpp"
 #include "VulkanSwapchainObj.hpp"
 
 namespace CZ {

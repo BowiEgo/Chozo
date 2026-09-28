@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 #include <Runtime/RHI/Fence.hpp>
 #include <vulkan/vulkan_core.h>
