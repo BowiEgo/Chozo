@@ -11,7 +11,9 @@ Scope<ShaderObj> ResourceLoaderTraits<ShaderObj>::Load(const std::string& virtua
     auto realPath = VFS::Resolve(virtualPath);
     auto name     = realPath.stem();
 
-    ShaderSpecification spec{ name, virtualPath };
+    // `path` only converts implicitly to its native string type, which is not std::string on
+    // Windows, so the conversion is explicit.
+    ShaderSpecification spec(name.string(), virtualPath);
 
     ShaderCompilerMultiInput input;
     input.VirtualPath = virtualPath;

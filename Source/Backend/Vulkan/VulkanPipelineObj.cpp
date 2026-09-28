@@ -86,7 +86,7 @@ VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
         shaderStages = (VkPipelineShaderStageCreateInfo*)malloc(
             stageCount * sizeof(VkPipelineShaderStageCreateInfo));
         for (uint32_t i = 0; i < stageCount; i++) {
-            shaderStages[i] = (VkPipelineShaderStageCreateInfo){
+            shaderStages[i] = VkPipelineShaderStageCreateInfo{
                 .sType               = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                 .pNext               = NULL,
                 .flags               = 0,
@@ -109,16 +109,16 @@ VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
         bindingDescs =
             (VkVertexInputBindingDescription*)malloc(sizeof(VkVertexInputBindingDescription));
         bindingDescs[0] =
-            (VkVertexInputBindingDescription){ .binding = 0,
-                                               .stride  = reflection.VertexBufferLayout.GetStride(),
-                                               .inputRate = VK_VERTEX_INPUT_RATE_VERTEX };
+            VkVertexInputBindingDescription{ .binding   = 0,
+                                             .stride    = reflection.VertexBufferLayout.GetStride(),
+                                             .inputRate = VK_VERTEX_INPUT_RATE_VERTEX };
 
         attributeCount = reflection.VertexBufferLayout.GetElements().size();
         attributeDescs = (VkVertexInputAttributeDescription*)malloc(
             attributeCount * sizeof(VkVertexInputAttributeDescription));
         for (uint32_t i = 0; i < attributeCount; i++) {
             const auto& elem  = reflection.VertexBufferLayout.GetElements()[i];
-            attributeDescs[i] = (VkVertexInputAttributeDescription){
+            attributeDescs[i] = VkVertexInputAttributeDescription{
                 .location = elem.Location,
                 .binding  = 0, // Assuming Offset is used as binding
                 .format   = VulkanUtils::ShaderDataTypeToVkFormat(
