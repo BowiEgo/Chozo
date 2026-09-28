@@ -49,7 +49,7 @@ bool TypeRegister::IsNodeType(Type type) const {
 
 bool TypeRegister::IsLightType(Type type) const {
     std::shared_lock lock(m_Mutex);
-    return m_MeshMask.Test(type);
+    return m_LightMask.Test(type);
 }
 
 bool TypeRegister::IsMeshType(Type type) const {
