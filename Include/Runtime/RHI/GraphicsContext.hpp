@@ -71,6 +71,8 @@ protected:
 };
 
 struct GraphicsContext : Handle<class GraphicsContextObj> {
+    using Handle<class GraphicsContextObj>::Handle;
+
     /// Creates a context owned by the caller.
     static Scope<GraphicsContextObj> Create(const GraphicsContextSpecification& spec);
 

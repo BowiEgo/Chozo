@@ -31,6 +31,8 @@ protected:
 };
 
 struct CommandPool : Handle<class CommandPoolObj> {
+    using Handle<class CommandPoolObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };
 

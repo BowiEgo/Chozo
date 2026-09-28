@@ -89,6 +89,8 @@ protected:
 };
 
 struct Image : Handle<class ImageObj> {
+    using Handle<class ImageObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };
 

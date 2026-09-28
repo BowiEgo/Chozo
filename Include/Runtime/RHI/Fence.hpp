@@ -15,6 +15,8 @@ public:
 };
 
 struct Fence : Handle<class FenceObj> {
+    using Handle<class FenceObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };
 

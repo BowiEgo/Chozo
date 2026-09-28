@@ -27,6 +27,8 @@ protected:
 using DrawFunc = std::function<void(CommandList)>;
 
 struct StartupHost : Handle<class StartupHostObj> {
+    using Handle<class StartupHostObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     static StartupHost Create();

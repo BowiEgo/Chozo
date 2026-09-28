@@ -53,6 +53,8 @@ protected:
 };
 
 struct FrameBuffer : Handle<class FrameBufferObj> {
+    using Handle<class FrameBufferObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };
 

@@ -16,7 +16,7 @@ struct SetLayoutDescription {
 
     void AddBinding(const uint32_t binding, const UniformType type, const uint32_t descriptorCount,
                     const ShaderStage stage) {
-        Bindings.push_back(ShaderResourceBinding(binding, type, descriptorCount, stage));
+        Bindings.push_back(ShaderResourceBinding{ binding, type, descriptorCount, stage });
     }
 
     size_t GetHash() const {
@@ -40,6 +40,8 @@ public:
 };
 
 struct SetLayout : Handle<class SetLayoutObj> {
+    using Handle<class SetLayoutObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     template <typename T> T* As() const {

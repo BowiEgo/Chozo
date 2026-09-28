@@ -123,6 +123,8 @@ protected:
 };
 
 struct Device : Handle<class DeviceObj> {
+    using Handle<class DeviceObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };
 

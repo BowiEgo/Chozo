@@ -45,6 +45,8 @@ protected:
 };
 
 struct GraphicsBuffer : Handle<class GraphicsBufferObj> {
+    using Handle<class GraphicsBufferObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     template <typename T> const T* As() const {

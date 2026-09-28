@@ -30,6 +30,8 @@ protected:
 };
 
 struct ShaderRes : Handle<class ShaderResObj> {
+    using Handle<class ShaderResObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     template <typename T> const T* As() const {

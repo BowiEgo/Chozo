@@ -48,6 +48,8 @@ struct ViewportObj {
 };
 
 struct Viewport : Handle<struct ViewportObj> {
+    using Handle<struct ViewportObj>::Handle;
+
     /// Creates a viewport owned by the caller.
     static Scope<ViewportObj> Create(const ViewportSpecification& spec) {
         return CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, ViewportObj, spec);

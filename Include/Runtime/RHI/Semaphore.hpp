@@ -12,6 +12,8 @@ public:
 };
 
 struct Semaphore : Handle<class SemaphoreObj> {
+    using Handle<class SemaphoreObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };
 

@@ -49,6 +49,8 @@ protected:
 };
 
 struct Pipeline : Handle<class PipelineObj> {
+    using Handle<class PipelineObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };
 

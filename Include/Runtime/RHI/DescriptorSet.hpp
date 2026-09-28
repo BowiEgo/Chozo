@@ -48,6 +48,8 @@ protected:
 };
 
 struct DescriptorSet : Handle<class DescriptorSetObj> {
+    using Handle<class DescriptorSetObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };
 

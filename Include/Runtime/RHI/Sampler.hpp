@@ -87,6 +87,8 @@ protected:
 };
 
 struct Sampler : Handle<class SamplerObj> {
+    using Handle<class SamplerObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
     template <typename T> const T* As() const {

@@ -73,6 +73,8 @@ protected:
 };
 
 struct CommandList : Handle<class CommandListObj> {
+    using Handle<class CommandListObj>::Handle;
+
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };
 

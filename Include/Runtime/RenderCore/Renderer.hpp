@@ -38,6 +38,8 @@ struct RendererObj {
 };
 
 struct Renderer : Handle<struct RendererObj> {
+    using Handle<struct RendererObj>::Handle;
+
     /// Creates a renderer owned by the caller.
     static Scope<RendererObj> Create(const RendererSpecification& spec);
 

@@ -94,6 +94,8 @@ protected:
 };
 
 struct Window : Handle<class WindowObj> {
+    using Handle<class WindowObj>::Handle;
+
     /// Creates a window owned by the caller.
     static Scope<WindowObj> Create(const WindowSpecifaciton& spec);
 
