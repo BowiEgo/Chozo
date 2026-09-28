@@ -7,6 +7,10 @@ project(Chozo LANGUAGES C CXX)
 # the first target is created.
 if(WIN32)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
+    # windows.h defines min/max as macros, which breaks every std::min/std::max in the engine.
+    # Third-party headers (SDL, Vulkan) pull it in, so the guard has to be global.
+    add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
