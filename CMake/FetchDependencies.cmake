@@ -204,11 +204,14 @@ endif()
 
 set(SLANG_PREBUILT_DIR ${slang_prebuilt_SOURCE_DIR})
 
+# On Windows a shared library needs both halves: the import library to link against and the DLL
+# to load at run time.
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(SLANG_LIBRARY ${SLANG_PREBUILT_DIR}/lib/slang.lib) # or slang.dll
+    set(SLANG_LIBRARY ${SLANG_PREBUILT_DIR}/lib/slang.lib)
+    set(SLANG_RUNTIME_LIBRARY ${SLANG_PREBUILT_DIR}/bin/slang.dll)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(SLANG_LIBRARY ${SLANG_PREBUILT_DIR}/lib/libslang.dylib)
-  elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(SLANG_LIBRARY ${SLANG_PREBUILT_DIR}/lib/libslang.so)
 endif()
 
@@ -217,6 +220,13 @@ set_target_properties(slang::slang PROPERTIES
     IMPORTED_LOCATION ${SLANG_LIBRARY}
     INTERFACE_INCLUDE_DIRECTORIES ${SLANG_PREBUILT_DIR}/include
 )
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set_target_properties(slang::slang PROPERTIES
+        IMPORTED_LOCATION ${SLANG_RUNTIME_LIBRARY}
+        IMPORTED_IMPLIB ${SLANG_LIBRARY}
+    )
+endif()
 
 message(STATUS "CHOZO SLANG SOURCE DIR:      ${SLANG_PREBUILT_DIR}")
 

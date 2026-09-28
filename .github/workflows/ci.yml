@@ -130,7 +130,12 @@ jobs:
       - name: Check project warnings
         run: bash .github/scripts/check-warnings.sh build.log 0
       - name: Test
-        run: ctest --preset full-release -C Release --output-on-failure --timeout 300
+        # slang.dll sits in the prebuilt SDK, so it has to be reachable for the test binaries.
+        shell: pwsh
+        run: |
+          $slang = Get-ChildItem build/full-release/_deps/slang_prebuilt-src -Directory | Select-Object -First 1
+          $env:PATH = "$($slang.FullName)\bin;$env:PATH"
+          ctest --preset full-release -C Release --output-on-failure --timeout 300
 
   # macOS runners consume ten times the minutes of a Linux runner, so the complete build only
   # runs for pull requests, the weekly schedule and manual dispatches - not for every push.
