@@ -122,22 +122,70 @@ void VulkanImGuiRenderer::Draw(ImDrawData* drawData, CommandList cmdList) {
 }
 
 ImTextureID VulkanImGuiRenderer::GetTextureID(Texture texture) {
-    auto it = m_TextureIDCache.find(texture);
-    if (it != m_TextureIDCache.end()) {
-        return it->second;
+    if (!texture) return ImTextureID_Invalid;
+
+    const UUID id = texture->GetID();
+
+    if (auto it = m_TextureIDCache.find(id); it != m_TextureIDCache.end()) {
+        if (it->second.TextureRef.Get() == texture.Get()) {
+            return reinterpret_cast<ImTextureID>(it->second.DescriptorSet);
+        }
+
+        // Should not happen (ids are unique), but never hand out a registration that may point at
+        // a destroyed image view.
+        CZ_EDITOR_LOG(Warning,
+                      "ImGui texture id {} is bound to a different texture; re-registering.",
+                      id.ToString());
+        ReleaseTexture(id);
     }
 
-    // if (!texture->IsValid()) texture = m_DefaultBlackTexture.get();
+    auto* image = texture->GetImage().As<VulkanImageObj>();
+    if (!image) {
+        CZ_EDITOR_LOG(Error, "Texture '{}' has no image; drawing it is not possible.",
+                      texture->GetName());
+        return ImTextureID_Invalid;
+    }
 
-    VkImageView imageView = texture->GetImage().As<VulkanImageObj>()->GetOrCreateVKView();
-    VkSampler sampler     = texture->GetSampler().As<VulkanSamplerObj>()->GetVkSampler();
+    VkImageView imageView = image->GetOrCreateVKView();
+    if (imageView == VK_NULL_HANDLE) {
+        CZ_EDITOR_LOG(Error, "Texture '{}' has no valid image view; drawing it is not possible.",
+                      texture->GetName());
+        return ImTextureID_Invalid;
+    }
 
     VkDescriptorSet descSet =
-        ImGui_ImplVulkan_AddTexture(sampler, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        ImGui_ImplVulkan_AddTexture(imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    if (descSet == VK_NULL_HANDLE) {
+        CZ_EDITOR_LOG(Error, "Failed to register texture '{}' with ImGui.", texture->GetName());
+        return ImTextureID_Invalid;
+    }
 
-    ImTextureID id            = reinterpret_cast<ImTextureID>(descSet);
-    m_TextureIDCache[texture] = id;
-    return id;
+    m_TextureIDCache[id] = TextureEntry{ texture, descSet };
 
-    return 0;
+    return reinterpret_cast<ImTextureID>(descSet);
+}
+
+void VulkanImGuiRenderer::ReleaseTexture(const UUID& textureID) {
+    auto it = m_TextureIDCache.find(textureID);
+    if (it == m_TextureIDCache.end()) return;
+
+    if (it->second.DescriptorSet != VK_NULL_HANDLE) {
+        ImGui_ImplVulkan_RemoveTexture(it->second.DescriptorSet);
+    }
+
+    m_TextureIDCache.erase(it);
+}
+
+void VulkanImGuiRenderer::ReleaseAllTextures() {
+    // Shutdown path: in-flight frames may still reference the descriptor sets we are about to
+    // free.
+    RHIAPI::Get()->WaitIdle();
+
+    for (auto& [id, entry] : m_TextureIDCache) {
+        if (entry.DescriptorSet != VK_NULL_HANDLE) {
+            ImGui_ImplVulkan_RemoveTexture(entry.DescriptorSet);
+        }
+    }
+
+    m_TextureIDCache.clear();
 }

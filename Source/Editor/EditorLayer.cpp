@@ -135,7 +135,12 @@ void EditorLayer::OnAttach() {
     }
 }
 
-void EditorLayer::OnDetach() { m_ImGuiRenderer->Shutdown(); }
+void EditorLayer::OnDetach() {
+    if (m_ImGuiRenderer) {
+        m_ImGuiRenderer->ReleaseAllTextures();
+        m_ImGuiRenderer->Shutdown();
+    }
+}
 
 void EditorLayer::OnUpdate(float deltaTime) {
     // CZ_EDITOR_LOG(Trace, "OnUpdate: {}", deltaTime);
@@ -264,8 +269,19 @@ void EditorLayer::OnRender() {
     auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
     m_ViewportSize      = ImGui::GetContentRegionAvail();
 
-    // Get DescriptorSet from RHI Texture and draw it as ImGui image
-    auto tex              = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
+    // Get DescriptorSet from RHI Texture and draw it as ImGui image. The viewport framebuffer is
+    // recreated on resize, so the previously registered texture (and its ImGui descriptor set,
+    // which references the old image view) has to be released first.
+    auto tex = m_Viewport->GetFrameBuffer()->GetColorAttachment(0);
+
+    if (tex && tex->GetID() != m_ViewportTextureID) {
+        if (m_ViewportTextureID.IsValid()) {
+            m_ImGuiRenderer->ReleaseTexture(m_ViewportTextureID);
+        }
+
+        m_ViewportTextureID = tex->GetID();
+    }
+
     ImTextureID textureID = GET_IM_TEXTURE_ID(tex);
     ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
 

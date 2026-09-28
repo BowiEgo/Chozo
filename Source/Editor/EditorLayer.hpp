@@ -64,6 +64,9 @@ private:
 
     Renderer m_ViewportRenderer;
     Scene m_Scene; // view; owned by the viewport
+
+    // Stable id of the texture currently registered with ImGui for the viewport image.
+    UUID m_ViewportTextureID = UUID::Invalid();
     Viewport m_Viewport;
     EditorCamera m_EditorCamera;
 
