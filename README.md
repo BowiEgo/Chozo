@@ -1,147 +1,78 @@
-# Engine Refactoring Roadmap
+# Chozo
 
-A comprehensive, phased plan to modernize the engine core, rendering, tools, and editor architecture.
+一个自研的 C++20 游戏引擎与编辑器：自建内存系统、句柄式 RHI（Vulkan 后端）、Slang 着色器编译、基于 EnTT 的场景、ImGui 编辑器，以及 Tracy 性能分析集成。当前以 macOS + MoltenVK 为唯一验证过的平台。
 
----
+> 状态：**开发中（WIP）**。分支 `dev-0.1.x` 已清掉评审列出的全部 P0 缺陷与部分 P1 项（见 `docs/TODO.md`），编辑器可运行、可渲染、退出时无残留分配；渲染功能仍在演进（当前只有单个测试管线 + 程序化网格）。
 
-## Phase 1: Foundation & Core Abstractions
+## 环境要求
 
-- [ ] **Build System & CI/CD**
-    - [ ] Migrate from xmake to CMake
-        - [x] Top-level `CMakeLists.txt` using modern CMake style (`target_*` commands, PUBLIC/PRIVATE separation).
-        - [x] Per-module `CMakeLists.txt` (e.g., `Core/`, `RHI/`, `UI/`).
-        - [ ] Configure compilation options, feature flags (`option()`), and default build types.
-        - [x] Integrate third-party libraries (glm, volk, Vulkan SDK, Tracy, slang, etc.) via `FetchContent` or `find_package`.
-    - [ ] Set up CI/CD pipeline (GitHub Actions / GitLab CI)
-        - [ ] Automated builds (Debug/Release) and unit tests.
-        - [ ] Static code analysis (clang-tidy, cppcheck) and code formatting checks (clang-format).
-        - [ ] Archive executables and debug symbols upon success.
+| 用途 | 要求 |
+|---|---|
+| 通用 | CMake ≥ 3.28、支持 C++20 的编译器（Clang）、Git |
+| 完整构建（含渲染器与编辑器） | Vulkan SDK（或 Homebrew 的 `molten-vk` + `vulkan-loader` + `vulkan-headers`）、macOS + Xcode Command Line Tools |
+| 仅核心构建（CI/快速迭代） | 无需 Vulkan/SDL/Slang —— 只编译 13 个 Core 模块与测试 |
 
-- [ ] **Header File Reorganization**
-    - [ ] Centralize public includes into `include/Engine/`, sub‑directories per module.
-    - [ ] Define header classification conventions:
-        - `Core/Defines.h` – global macros, platform detection, export macros.
-        - `Core/Types.h` – fundamental type aliases (`int32`, `uint64`, ...).
-        - `Core/STL.h` – STL extensions and allocator‑aware containers.
-    - [ ] Each module exposes only a limited set of public headers; internal ones stay in `Source/`.
+首次配置会通过 `FetchContent` 拉取依赖（fmt、spdlog、glm、doctest、Tracy；完整构建还会拉取 SDL3、EnTT、VMA、ImGui、Slang 预编译包）。网络受限时可加 `-DCHOZO_GITHUB_MIRROR=https://ghfast.top/https://github.com` 走镜像。
 
-- [ ] **Handle‑Body Pattern & Entity Registry**
-    - [x] Implement `Handle<T>` template.
-    - [ ] Implement `EntityRegistry<T>` for cameras, components, resources, etc.
+## 构建与运行
 
-- [ ] **Core Utility Modules**
-    - [ ] **Logging System**
-        - [ ] Multi‑sink support (console, file, network, Tracy channel).
-        - [ ] Compile‑time and runtime log level control.
-        - [ ] Format library integration (e.g., fmt).
-        - [ ] Macros: `ENGINE_LOG(Channel, Level, ...)`.
-    - [ ] **File System Abstraction**
-        - [ ] Cross‑platform path handling, file I/O, memory mapping.
-        - [ ] Virtual file system with mount points for packaged assets.
-    - [ ] **Command‑line Module**
-        - [ ] Argument parser, reusable for the console later.
-        - [ ] Registerable command callbacks.
+```bash
+# 仅核心（秒级，无需 Vulkan）
+cmake --preset core-debug
+cmake --build --preset core-debug
+ctest --preset core-debug
 
-- [ ] **Memory Management Foundation**
-    - [x] Custom `new`/`delete` operators (centralized in `Core/Memory.h`).
-    - [x] Implement **Linear Allocator** (per‑frame) and **Pool Allocator** (fixed‑size objects).
-    - [ ] Implement **Memory Arena** system (Arena, FrameArena, SceneArena, ...).
-    - [ ] Tracy integration: instrument allocations, locks, rendering areas.
+# 完整引擎（需要 Vulkan SDK）
+cmake --preset full-release
+cmake --build --preset full-release
 
-- [ ] **Application & Window Boundary Cleanup**
-    - [ ] **Application module**: game loop, event pump, main thread scheduling.
-    - [ ] **Window module**: window creation, input events collection (independent of rendering API).
+# 运行编辑器（产物在 .app bundle 中）
+./build/dist/Release/Chozo.app/Contents/MacOS/Launch
+```
 
----
+可用的 preset：`core-{debug,release,asan}`、`full-{debug,release}`（`cmake --list-presets`）。本地与 CI 使用同一组命令。
 
-## Phase 2: Rendering & Shader Modernization
+若使用 LunarG SDK，确保 `VULKAN_SDK` 指向 SDK 根目录；使用 Homebrew 时 `VULKAN_SDK=/opt/homebrew`。CMake 从 `find_package(Vulkan)` 找到的 loader 推导其余路径，不假设特定的 SDK 目录布局。
 
-- [ ] **Rendering Backend Refactor**
-    - [ ] Proper split of synchronization primitives:
-        - `Semaphore`, `Fence` as standalone objects (no more generic `SyncObject`).
-    - [ ] Resource type clarity:
-        - `Texture`, `Image`, `ImageView`, `Sampler` – each with distinct role.
-    - [ ] Introduce `RenderPass` abstraction (backed by `vk::RenderPass` or dynamic rendering).
-    - [ ] **Command buffer abstraction**:
-        - Explicit `CommandPool` and `CommandList` lifecycle.
-        - Standardized sequence: `Begin`, `Submit Queue`, `Draw*`, `End`.
+## 测试与质量门禁
 
-- [ ] **Render API Top‑Level Rename**
-    - [ ] `IRHIAPI` → `RenderServer` (a modern facade for the entire rendering backend).
+```bash
+ctest --preset core-asan                    # ASan + UBSan 跑全部核心测试
+.github/scripts/check-format.sh             # clang-format 22.1.5（版本需与 CI 一致）
+.github/scripts/check-warnings.sh build.log 4   # 项目源码告警预算（第三方 _deps 不计）
+```
 
-- [ ] **Shading Language Migration**
-    - [ ] Migrate all shaders from GLSL to **Slang**:
-        - [ ] Configure Slang compiler toolchain to generate SPIR‑V.
-        - [ ] Adapt existing shaders (skybox, PBR, post‑process).
-        - [ ] Leverage Slang’s module system and interface capabilities.
+CI（`.github/workflows/ci.yml`）包含四个 job：`format`、`core`（Debug/Release 矩阵）、`full-macos`（完整构建 + 编辑器）、`sanitizers`。
 
-- [ ] **RenderGraph 2.0**
-    - [ ] Resource aliasing and automatic texture lifetime management.
-    - [ ] Multi‑queue asynchronous compute + graphics scheduling.
-    - [ ] Built‑in barrier generation based on resource state tracking.
-    - [ ] Visual debug output: export of graph structure.
+## 目录结构
 
-- [ ] **Screen Picking Component**
-    - [ ] Compute‑based picking: ID render + readback via `PickingManager`.
-    - [ ] Integration with editor object selection.
+```
+Include/           公共头文件（Core/ 与 Runtime/ 两层，供引擎与插件使用）
+Source/
+  Core/            13 个基础模块：Memory、Log、Event、JobSystem、TypeRegistry、Math、Platform…
+  Runtime/         RHI（抽象层）、RenderCore（渲染/场景/资产）、Window、App（引擎与主循环）
+  Backend/Vulkan/  Vulkan 后端实现（以 dylib 形式加载）
+  Editor/          编辑器（ImGui 面板、节点树、同步桥；编译为 dylib 插件）
+  Launch/          可执行入口与 .app bundle 装配
+  Test/            doctest 测试可执行文件（收集各模块的 Tests/*Test.cpp）
+CMake/             模块化构建辅助（add_chozo_module、依赖获取、Vulkan 定位）
+External/          vendored 第三方代码（当前 stb 未接入构建）
+Resources/Shaders/ Slang 着色器
+docs/              设计文档与计划（见下）
+```
 
----
+## 文档索引
 
-## Phase 3: Systems & Toolchain
+| 文档 | 内容 |
+|---|---|
+| `docs/ownership.md` | **必读**：句柄/所有权约定（`Handle` 视图 vs `Scope` 所有者）与新资源检查清单 |
+| `docs/TODO.md` | P0/P1 缺陷清单：已完成项与待处理项（含文件:行号与验收标准） |
+| `docs/P2-PLAN.md` | P2 工程化方案：CI、测试、死代码、文档、构建、分层、跨平台 |
+| `docs/ROADMAP.md` | 分阶段路线图（引擎重构与后续功能规划） |
 
-- [ ] **Job System**
-    - [ ] Thread‑based work‑stealing job system.
-    - [ ] Support job dependencies and sync points.
-    - [ ] Tracy‑level visualization of task scheduling.
+## 已知限制
 
-- [ ] **Serializer Module**
-    - [ ] Binary serialization/deserialization with versioning (forward/backward compatibility).
-    - [ ] Optional lightweight compression (e.g., LZ4).
-
-- [ ] **Data Structures & Algorithms Module (DSA)**
-    - [ ] Custom containers: fixed‑capacity arrays, hash tables, graphs, etc.
-    - [ ] Integrated with custom allocators.
-
-- [ ] **ECS & Scene Optimization**
-    - [ ] Manage component lifecycle via `EntityRegistry`.
-    - [ ] Archetype‑based storage with component caching and dirty‑flag propagation.
-    - [ ] System scheduler integrated with the Job System.
-    - [ ] Scene graph rebuilt on top of ECS, with support for deferred loading and spatial partitioning.
-
-- [ ] **Performance Profiling Upgrade**
-    - [ ] Full Tracy coverage: frame markers, memory counters, GPU zones, thread activity.
-    - [ ] In‑engine dashboard for live performance metrics.
-
----
-
-## Phase 4: Editor, UI, and Ecosystem
-
-- [ ] **Project Module**
-    - [ ] Asset database, project settings, module registration.
-
-- [ ] **Editor Core**
-    - [ ] Viewport management and basic docking (initially with ImGui docking branch).
-    - [ ] In‑editor console integrating the command‑line module.
-    - [ ] Port existing editor features (content browser, gizmos) to new architecture.
-
-- [ ] **UI Abstraction & Decoupling**
-    - [ ] Define `IRHIWindow`, `IUIRenderBackend` interfaces to isolate ImGui.
-    - [ ] Develop a prototype self‑built UI library (Clay + Nuklear style) as an alternative backend.
-    - [ ] Keep the ImGui compatibility path operational to avoid blocking editor development.
-
-- [ ] **Final Polish**
-    - [ ] Documentation: coding standards, module dependency graph, architecture decision records (ADR).
-    - [ ] Performance benchmarks comparing critical paths (rendering, loading) before and after refactoring.
-    - [ ] Migration of remaining legacy tools/features.
-
----
-
-## Estimated Timeline
-
-Phase 1 ████████████░░░░░░░░░░░░░░░░░░░░ 3–5 weeks
-
-Phase 2 ░░░░░░░░░░░░████████████████░░░░░ 4–7 weeks
-
-Phase 3 ░░░░░░░░░░░░░░░░░░░░░░░░████████ 4–6 weeks
-
-Phase 4 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░████ 6–8 weeks
+- 仅 macOS 被验证；Windows/Linux 的构建分支存在但不完整（详见 `docs/P2-PLAN.md` 的 G7）。
+- 渲染器当前只有一条测试管线与被当作样例的程序化网格，材质/光照尚未接入。
+- 编辑器面板为骨架（场景层级、属性、控制台可用；内容浏览器/材质面板尚未实现）。
+- 校验层仍有 4 条已知告警（`Basic.slang` 顶点属性声明与消费不一致），见 `docs/TODO.md` P1-10 的遗留项。

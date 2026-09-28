@@ -1,10 +1,9 @@
 # Chozo 引擎待办清单（P0 / P1）
 
-> **用途**：跟踪代码评审中定级为 P0、P1 的问题，作为后续迭代的施工清单。
+> **用途**：跟踪代码评审中定级为 P0、P1 的问题。
 > **来源**：2026-09-28 全量评审（完整构建 + `-Wall -Wextra` 全 TU 扫描 + 运行验证 + 格式检查）。
-> **范围**：仅收录 **P0（确定性缺陷）** 与 **P1（设计 / 资源管理风险）**。P2 级工程化问题（CI、测试覆盖、死代码、文档）见附录 B，不在本清单内。
-> **状态**：P0 共 7 项已修复；P1-1（所有权模型）、P1-10（ImGui 纹理描述符）已完成，P1-2 部分修复（键构造），其余 P1 待处理。
-> **维护约定**：修完一项后，把它从第二章移到第一章表格，并附上 commit 与验证方式；新增问题请标出文件:行号与复现方式。
+> **范围**：仅 P0/P1 缺陷；P2 级工程化问题见 `docs/P2-PLAN.md`。
+> **维护约定**：修完一项后把它移到「已完成」表并附上 commit 与验证方式；新增问题请注明文件:行号与复现方式。
 
 ## 严重度定义
 
@@ -12,77 +11,23 @@
 |---|---|---|
 | **P0** | 可复现的正确性缺陷：内存安全（UB/UAF/泄漏）、逻辑错误、功能未生效 | 立即修，阻塞其他工作 |
 | **P1** | 不立刻崩溃，但会导致资源泄漏、数据竞争、UB 或严重维护风险 | 本迭代内修完 |
-| **P2** | 工程化 / 可维护性问题（CI、测试、死代码、文档、构建整洁度） | 见附录 B |
+| **P2** | 工程化 / 可维护性问题（CI、测试、死代码、文档、构建） | 见 `docs/P2-PLAN.md` |
 
----
+## 一、已完成
 
-## 一、P0：已修复（分支 `dev-0.1.x`）
+| 编号 | 问题 | 提交 | 验证 |
+|---|---|---|---|
+| P0-1 | `Handle()` 默认构造时 `m_Obj` 未初始化（-O0/-O2 行为不一致） | `40f25d7` | 新增 `HandleTest`；复现程序输出 `0x0` |
+| P0-2 | `TransformComponent::SetTransformParams` 克隆后立刻 `Destroy()`（use-after-free） | `5077e41` | 改为原地更新/深拷贝；组件默认构造即持有有效参数 |
+| P0-3 | `EntityRegistry::Destroy/Get` 调用不存在的 `Handle::get()`；`Create`/`ForEach` 无法实例化 | `1cca7f5` | 新增 `EntityRegistryTest` |
+| P0-4 | `SceneObj::Update` 中变换系统从未运行（世界矩阵恒为单位阵） | `8b8b627` | 启用并加固失效实体/环状层级 |
+| P0-5 | 网格重传泄漏上一份 VkBuffer/VMA 分配 | `4294d2d` | 退出日志中 buffer 均被释放 |
+| P0-6 | `TypeRegister::IsLightType` 返回 Mesh 掩码 | `b1dc1b6` | `TypeRegistryTest` 回归用例 |
+| P0-7 | `CZ_DEBUGBREAK()` 在 Debug/Release 均为空实现 | `6fd3387` | Debug 下 SIGTRAP，Release 下无操作 |
+| P1-1 | 所有权模型缺失（`Handle` 可拷贝 + 手工 `Destroy`） | `0c96f2b`,`07d3bb2` | 见 `docs/ownership.md`；退出 `No active allocations.` |
+| P1-10 | ImGui 纹理描述符集合引用了已销毁的 image view（`VUID-vkCmdDrawIndexed-None-08114`） | `bbcbd21` | 确定性复现 9 次 → 0 次 |
 
-分支基于 `refactor@934d034`，共 7 个提交，每个 P0 一个提交。
-
-| 编号 | 问题 | 影响 | 提交 | 验证方式 |
-|---|---|---|---|---|
-| P0-1 | `Handle()` 默认构造时 `m_Obj` 未初始化 | 默认句柄持有不确定指针，`operator bool`/`IsValid`/`operator==` 读垃圾值；实测同一份代码 `-O0` 返回 1、`-O2` 返回 0 | `40f25d7` | 新增 `Source/Core/Header/Tests/HandleTest.cpp`；最小复现程序输出 `m_Obj = 0x0` |
-| P0-2 | `TransformComponent::SetTransformParams` 克隆后立刻 `Destroy()` | 组件持有的 `Params` 立即悬垂；每次编辑器改 Transform（属性面板 → SyncBridge → `Scene::SetTransform`）后读写即 use-after-free | `5077e41` | 改为原地更新自有权重对象；默认构造保证 params 有效；新增显式 `TransformParamsObj::operator=` |
-| P0-3 | `EntityRegistry::Destroy/Get` 调用不存在的 `Handle::get()`；`Create`/`ForEach` 无法实例化 | 注册表 API 一旦被调用即编译失败 | `1cca7f5` | 新增 `Source/Core/Header/Tests/EntityRegistryTest.cpp`（create/get/destroy + 空句柄） |
-| P0-4 | `SceneObj::Update` 中 `TransformSystem::Update()` 被注释，系统从未运行 | `WorldMatrix` 恒为单位阵，渲染提交的 `ModelMatrix` 不随节点变化 | `8b8b627` | 启用更新并加固：跳过已销毁/缺组件的实体，层级遍历加上限防环 |
-| P0-5 | `MeshObj::Upload` 覆盖旧 `VertexBuffer`/`IndexBuffer` 句柄 | 每次按参数重建网格泄漏一对 VkBuffer + VMA 分配 | `4294d2d` | 运行验证：退出日志中两个 buffer 均被正确销毁 |
-| P0-6 | `TypeRegister::IsLightType` 返回 `m_MeshMask` | 光源类型查询恒等于 Mesh 掩码 | `b1dc1b6` | 代码审查（当前无调用方，防回归） |
-| P0-7 | `CZ_DEBUGBREAK()` 在 Debug/Release 均为空实现 | 断言失败、堆下溢、Fatal 日志、泄漏报告都无法中断到调试器 | `6fd3387` | 独立验证：Debug 下触发 SIGTRAP（exit 133），Release 下为空操作 |
-
-**回归基线（当前值）**
-
-```bash
-cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修复前一致（12 条，均为既有问题）
-./build/Source/Test/CZTest                        # 13 test cases / 75 assertions, all pass
-./build/dist/Debug/Chozo.app/Contents/MacOS/Launch  # 正常启动、渲染、退出
-```
-
----
-
-## 二、P1：待处理
-
-### 建议处理顺序
-
-| 顺序 | 编号 | 理由 |
-|---|---|---|
-| 1 | P1-9 断言开关写反 | 改动最小，但决定后续所有调试手段是否有效 |
-| 2 | P1-2 DescriptorSet 缓存 | 与 P1-10 的校验层报错高度相关，先修可缩小排查面 |
-| 3 | P1-3 命令缓冲判空/空函数指针 | 崩溃隐患，改动小 |
-| 4 | P1-11 帧延迟删除 | 依赖 P1-1 的生命周期决策（已完成） |
-| 7 | P1-5 Buffer 内存语义 | 独立小改动，消除双重释放风险 |
-| 8 | P1-6 线程安全策略 | 需要先定线程契约，工作量中等 |
-| 9 | P1-4 Vulkan 队列族 | 影响特定硬件，改动力度中等 |
-| 10 | P1-7 JobSystem | 影响跨平台构建与 CPU 占用 |
-| 11 | P1-8 Result / 错误处理统一 | 影响面广，放在其他项之后统一收口 |
-
----
-
-### P1-1 所有权模型缺失 —— 已完成（无引用计数方案）
-
-**提交**：`0c96f2b`（引擎数据）、`07d3bb2`（RHI 资源 + `CZMemory` 共享化）
-
-**最终模型**
-
-- `Handle<T>` 是**非拥有视图**：可拷贝、可比较、默认 null，**没有 `Destroy()`**。
-- 所有权只有两种表达：
-  - `Scope<T>`（`unique_ptr` + `DeleteDeleter`）成员或局部变量；
-  - 容器 / 管理器持有（`AssetRegistry`、`DeviceObj` 的缓存、`SwapchainObj`、`GraphicsContextObj` 等）。
-- 每个拥有者在自己的析构里释放子对象：`TextureObj` → `ImageObj`、`FrameBufferObj` → 附件、`ViewportObj` → scene/camera/framebuffer、`RendererObj` → frames/viewports/pipeline、`MeshObj` → vertex/index buffer、`ShaderObj` → shader modules、`Application` → window/startup host。
-
-**顺带修掉的问题**
-
-- `TransformComponent` 改为值语义（每组件一次堆分配 + 其泄漏消失）。
-- `MeshObj` 拥有自身参数，`MeshComponent` / `ProceduralMesh` 只持视图（消除每次同步的 clone 与泄漏）。
-- `CameraManager` 不再拥有相机，`CameraObj` 在析构时自行注销（消除 `Viewport` 悬垂句柄）。
-- `AssetRegistry` 自持生成资产，`Clear()` 的双重释放隐患消除。
-- `CZMemory` 改为共享库：此前每个镜像各一份统计/追踪状态，导致「无泄漏」报告不可信，且跨镜像释放会触发堆下溢。
-
-**验收**：编辑器运行并退出时输出 `No active allocations.`（进程级统计）；CZTest 13/13。
-
-**遗留跟踪项（新）**：引擎核心静态库仍同时链接进可执行文件与各 dylib，除 `CZMemory` 外的单例（`Logger`、`TypeRegister`、`CameraManager`、`AssetRegistry`、`Application`…）仍是每镜像一份 → 见 P1-12。
-
----
+## 二、待处理（P1）
 
 ### P1-12 引擎核心库在每个镜像中重复链接（单例分裂）
 
@@ -106,6 +51,8 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 - 编辑器控制台能看到后端与引擎的全部日志。
 
 **预估**：1–2 天（以构建结构调整为主）。
+
+---
 
 ---
 
@@ -136,6 +83,8 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 
 ---
 
+---
+
 ### P1-3 RHI 命令缓冲：参数校验顺序错误、空函数指针调用
 
 **位置**：`Source/Backend/Vulkan/VulkanCommandBufferObj.cpp:53-64`、`:72`、`:119-126`、`:137-144`
@@ -156,6 +105,8 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 - clang-tidy 的 `bugprone-*` 无相关告警。
 
 **预估**：0.5 天。
+
+---
 
 ---
 
@@ -183,6 +134,8 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 
 ---
 
+---
+
 ### P1-5 `Buffer` / `SafeBuffer` 内存语义不安全
 
 **位置**：`Include/Core/Memory/Buffer.hpp:18-52`、`:66-77`、`:95-120`
@@ -206,6 +159,8 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 - ASan 下无 double-free / leak；新增单测覆盖拷贝、移动、`Release` 与空 buffer。
 
 **预估**：0.5 天。
+
+---
 
 ---
 
@@ -240,6 +195,8 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 
 ---
 
+---
+
 ### P1-7 JobSystem：可移植性与实现质量
 
 **位置**：`Source/Core/JobSystem/JobSystem.cpp:110-125`、`:116`、`:193-200`、`:218-221`
@@ -268,6 +225,8 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 
 ---
 
+---
+
 ### P1-8 `Result<T,E>` 实现缺陷与错误处理风格不统一
 
 **位置**：`Include/Core/Header/Result.hpp`；风格混用示例：`CZ_CORE_ASSERT`（多处）、`Result`（`VulkanDeviceObj::Create*`）、`throw std::runtime_error`（`Source/Backend/Vulkan/VulkanGraphicsContextObj.cpp`）、只打日志（`VulkanDeviceObj::CreateDescriptorPool`）
@@ -289,6 +248,8 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 - 至少一条初始化失败路径被测试覆盖（`Startup` 返回 false 并给出可读错误）。
 
 **预估**：0.5–1 天。
+
+---
 
 ---
 
@@ -314,27 +275,6 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 **预估**：0.5 天（含筛选会立即触发的既有断言）。
 
 ---
-
-### P1-10 校验层报错：Set 0 Binding 0 采样图未绑定 —— 已完成
-
-**提交**：`bbcbd21`
-
-**根因**（已定位并确定性复现）
-
-- `_Texture` 是 ImGui 后端着色器的变量名（引擎着色器里没有），所以报错来自 ImGui 的绘制，而不是引擎的场景绘制。
-- `VulkanImGuiRenderer::m_TextureIDCache` 以 `Texture` **裸指针**为键，且从不失效。视口 framebuffer 在 resize 时被重建 → 旧纹理销毁 → 分配器把**同一地址**复用给新纹理 → 缓存命中并返回**旧描述符集**，而它引用的 imageView 已被销毁。
-- 复现方式：每帧重建 framebuffer（交替视口宽高 1080/1081），每次运行稳定产生 9 次该报错。
-
-**修复**
-
-- 缓存改为以纹理的稳定 `UUID`（`RHIResource::GetID()`，永不复用）为键，并额外校验存活的句柄；地址复用不再可能命中旧条目。
-- 视口纹理变化时释放旧注册（`ReleaseTexture`），`OnDetach` 时 `ReleaseAllTextures()`；释放只使用描述符集句柄值，因此对已悬垂的句柄也安全；顺带消除 ImGui 描述符集在池中的泄漏。
-- 关闭前先 `WaitIdle`（在飞帧可能仍引用这些描述符集）。
-- imageView 为空或 `ImGui_ImplVulkan_AddTexture` 失败时改为明确报错，不再静默注册空纹理；改用当前的两参数 API（sampler 自 ImGui 2026-04 改版后由后端自持）。
-
-**验收**：确定性复现场景下报错 0 次；正常连跑 5 次均为 0；退出仍为 `No active allocations.`。剩余校验层消息为 MoltenVK 提示与 Basic.slang 顶点属性告警（见下）。
-
-**遗留小项**：`vkCreateGraphicsPipelines` 每次报 4 条 "Vertex attribute at location 1..4 not consumed by vertex shader"——`Basic.slang` 声明了 Normal/UV/Tangent/Bitangent 却不使用，而管线按网格顶点布局声明了这些属性。要么在着色器里使用，要么按反射裁剪属性列表。
 
 ---
 
@@ -362,36 +302,27 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 
 ---
 
-## 三、回归基线（每个 P1 修复都必须跑）
+
+## 三、回归基线
 
 ```bash
-# 1. 核心改动（快，无需 Vulkan SDK）：配置 + 构建 + 测试
+# 核心改动（快，无需 Vulkan SDK）
 cmake --preset core-debug && cmake --build --preset core-debug && ctest --preset core-debug
 cmake --preset core-release && cmake --build --preset core-release && ctest --preset core-release
 cmake --preset core-asan && cmake --build --preset core-asan && ctest --preset core-asan
 
-# 2. 完整引擎（需要 Vulkan SDK）
+# 完整引擎（需要 Vulkan SDK）
 cmake --preset full-release && cmake --build --preset full-release
 
-# 3. 运行验证：Debug + 校验层跑 60s，检查日志
+# 运行验证：Debug + 校验层跑 60s，检查日志与退出报告
 ./build/dist/Debug/Chozo.app/Contents/MacOS/Launch
 
-# 4. 退出时检查泄漏报告（当前基线：`No active allocations.`）
-
-# 5. 门禁脚本（CI 与本机一致）
+# 门禁脚本（与 CI 一致）
 .github/scripts/check-format.sh
 .github/scripts/check-warnings.sh <build.log> 4
 ```
 
-CI（`.github/workflows/ci.yml`）会跑上面的 1 与 5；完整构建见 `full-build.yml`（手动触发）。
-
-**建议补充**
-
-- ASan/UBSan 构建 + 测试（覆盖 P1-1、P1-5）。
-- TSan 跑"启动 + 异步加载 + 退出"（覆盖 P1-2、P1-6、P1-7）。
-- 引入 CI（P2，见附录 B），把上述 1–4 步自动化。
-
----
+CI 见 `.github/workflows/ci.yml`：`format` / `core`（Debug+Release 矩阵）/ `full-macos` / `sanitizers`。
 
 ## 附录 A：`dev-0.1.x` 引入的行为变化与注意事项
 
@@ -408,12 +339,3 @@ CI（`.github/workflows/ci.yml`）会跑上面的 1 与 5；完整构建见 `ful
 | `TransformSystem` 开始运行 | `WorldMatrix` 现在会真正被计算；此前恒为单位阵 |
 
 ---
-
-## 附录 B：P2 摘要（不在本清单内）
-
-- **CI/测试**：无 `.github/`；单测仅覆盖 allocator（9）与 Handle/EntityRegistry（4），RHI/RenderCore/Window/Log/Event 无测试。
-- **死代码**：约 622 处注释掉的代码；`Renderer.cpp` 的 `#if 0`/`#if 1` 与 `static Pipeline testPipeline`；`Resources/Shaders/Test copy*.slang` 共 11 份重复文件；`Scripts/Embed.py` 与 `CMake/EmbedRuntime.cmake` 已停用。
-- **文档**：根 `README.md` 是路线图而非使用说明；`Components/README.md`、`Scene/README.md` 与现状不符。
-- **构建**：`FetchDependencies.cmake` 硬编码 `ghfast.top` 镜像前缀；ImGui 使用移动分支 `GIT_TAG docking`；各模块 `LINK` 未声明真实依赖（依赖顶层聚合库兜底）。
-- **分层**：Editor 直接 `#include` Backend/Vulkan 与 SDL 内部头（`EditorLayer.cpp`、`VulkanImGuiRenderer.cpp`）。
-- **跨平台**：CMake 有 Windows/Linux 分支，但 `CreateVKSurface` 只有 Win32/macOS，`Source/Core/Platform` 仅有 `Mac/`。

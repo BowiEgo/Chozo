@@ -1,3 +1,6 @@
+> **历史设计草案（未完全实现）**：本文描述的是场景/同步层的早期设计，其中 `Sync Layer`、`Serialization`、`MovementSystem` 等尚未按本文落地，字段与命名也与当前代码有出入。
+> **当前实现以头文件与 `docs/ownership.md` 为准**；本文仅作为设计意图的参考保留。
+
 # Chozo Engine Scene Architecture Design Document
 
 ## 1. Overview
