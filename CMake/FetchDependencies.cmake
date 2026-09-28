@@ -13,14 +13,16 @@ macro(FetchContent_Declare name)
     FetchContent_Declare_Fast(${name} ${ARGN})
 endmacro()
 
-# Fetch doctest
-FetchContent_Declare_Fast(
-  doctest
-  GIT_REPOSITORY https://github.com/doctest/doctest.git
-  GIT_TAG v2.4.11 
-)
-FetchContent_MakeAvailable(doctest)
-message(STATUS "CHOZO DOCTEST SOURCE DIR:     ${doctest_SOURCE_DIR}")
+# Fetch doctest (tests only)
+if(BUILD_TESTING)
+    FetchContent_Declare_Fast(
+      doctest
+      GIT_REPOSITORY https://github.com/doctest/doctest.git
+      GIT_TAG v2.4.11 
+    )
+    FetchContent_MakeAvailable(doctest)
+    message(STATUS "CHOZO DOCTEST SOURCE DIR:     ${doctest_SOURCE_DIR}")
+endif()
 
 ## Fetch fmt
 FetchContent_Declare_Fast(
@@ -49,6 +51,7 @@ FetchContent_Declare_Fast(
 FetchContent_MakeAvailable(glm)
 message(STATUS "CHOZO GLM SOURCE DIR:     ${glm_SOURCE_DIR}")
 
+if(CZ_OPTION_BUILD_RUNTIME)
 ## Fetch entt
 FetchContent_Declare_Fast(
   entt
@@ -215,6 +218,8 @@ set_target_properties(slang::slang PROPERTIES
 )
 
 message(STATUS "CHOZO SLANG SOURCE DIR:      ${SLANG_PREBUILT_DIR}")
+
+endif() # CZ_OPTION_BUILD_RUNTIME
 
 ## Fetch Tracy Profiler
 option(TRACY_ON_DEMAND "" ON)

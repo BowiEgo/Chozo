@@ -1,0 +1,8 @@
+# Third-party sources are vendored as-is.
+External/*
+build/*
+
+# Objective-C++ sources: .clang-format is C++-only (adding an ObjC section is tracked in
+# docs/P2-PLAN.md, group G5).
+*.m
+*.mm

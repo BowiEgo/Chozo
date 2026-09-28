@@ -1,7 +1,7 @@
-# Find Vulkan
-# - require SPIRV-Cross for reflection
-# - require glslang for SPIRV compilation
-find_package(Vulkan REQUIRED SPIRV-Tools)
+# Find Vulkan (only needed by the runtime stack; SPIRV-Tools is not used yet)
+if(CZ_OPTION_BUILD_RUNTIME)
+    find_package(Vulkan REQUIRED)
+endif()
 
 set(CHOZO_VULKAN_INCLUDE_DIR ${Vulkan_INCLUDE_DIR})
 set(CHOZO_VULKAN_LIB_DIR     ${Vulkan_INCLUDE_DIR}/../Lib)

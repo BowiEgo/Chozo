@@ -1,0 +1,132 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "core-base",
+            "hidden": true,
+            "displayName": "Core only (no Vulkan/SDL/Slang)",
+            "description": "Builds the 13 core modules and CZTest. No Vulkan SDK, SDL or Slang required.",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CZ_OPTION_BUILD_RUNTIME": "OFF",
+                "BUILD_TESTING": "ON",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "core-debug",
+            "inherits": "core-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "core-release",
+            "inherits": "core-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "core-asan",
+            "inherits": "core-base",
+            "displayName": "Core only, ASan + UBSan",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_C_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer",
+                "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer",
+                "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined"
+            }
+        },
+        {
+            "name": "full-base",
+            "hidden": true,
+            "displayName": "Full engine (runtime, Vulkan backend, editor, launcher)",
+            "description": "Requires the Vulkan SDK (VULKAN_SDK) and downloads SDL/Slang/ImGui/Tracy.",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CZ_OPTION_BUILD_RUNTIME": "ON",
+                "BUILD_TESTING": "ON",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "full-debug",
+            "inherits": "full-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "full-release",
+            "inherits": "full-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "core-debug",
+            "configurePreset": "core-debug"
+        },
+        {
+            "name": "core-release",
+            "configurePreset": "core-release"
+        },
+        {
+            "name": "core-asan",
+            "configurePreset": "core-asan"
+        },
+        {
+            "name": "full-debug",
+            "configurePreset": "full-debug"
+        },
+        {
+            "name": "full-release",
+            "configurePreset": "full-release"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "core-debug",
+            "configurePreset": "core-debug",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "core-release",
+            "configurePreset": "core-release",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "core-asan",
+            "configurePreset": "core-asan",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "full-debug",
+            "configurePreset": "full-debug",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "full-release",
+            "configurePreset": "full-release",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ]
+}

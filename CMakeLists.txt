@@ -43,6 +43,16 @@ message(STATUS "CZ_OPTION_BUILD_BENCHMARKS:       ${CZ_OPTION_BUILD_BENCHMARKS}"
 option(CZ_OPTION_EMBED_RUNTIME "" ON)
 message(STATUS "CZ_OPTION_EMBED_RUNTIME:          ${CZ_OPTION_EMBED_RUNTIME}")
 
+# Runtime stack (RHI / RenderCore / Window / App), Vulkan backend, editor and launcher.
+# Turning this OFF yields a core-only build (13 core modules + CZTest) that needs no
+# Vulkan SDK, no SDL and no Slang - used by the fast CI configurations.
+option(CZ_OPTION_BUILD_RUNTIME "" ON)
+message(STATUS "CZ_OPTION_BUILD_RUNTIME:          ${CZ_OPTION_BUILD_RUNTIME}")
+
+set(BUILD_TESTING ON CACHE BOOL "Build the unit tests")
+
+include(CTest)
+
 if (CZ_OPTION_COMPILE_WITH_PROFILER)
     set(TRACY_ENABLE ON CACHE BOOL "" FORCE)
     add_compile_definitions(TRACY_ENABLE=1)
@@ -127,11 +137,14 @@ target_include_directories(CZCoreLibs INTERFACE
 # - links with CZCoreLibs
 set(CZ_RUNTIME_MODULE_FOLDER "Runtime")
 set(CZ_RUNTIME_MODULE_LIST "" CACHE STRING "" FORCE)
-add_subdirectory(Source/Runtime/RHI)
-# add_subdirectory(Source/Runtime/UI)
-add_subdirectory(Source/Runtime/RenderCore)
-add_subdirectory(Source/Runtime/Window)
-add_subdirectory(Source/Runtime/App)
+
+if(CZ_OPTION_BUILD_RUNTIME)
+    add_subdirectory(Source/Runtime/RHI)
+    # add_subdirectory(Source/Runtime/UI)
+    add_subdirectory(Source/Runtime/RenderCore)
+    add_subdirectory(Source/Runtime/Window)
+    add_subdirectory(Source/Runtime/App)
+endif()
 
 add_library(CZRuntimeLibs INTERFACE)
 target_link_libraries(CZRuntimeLibs INTERFACE
@@ -147,7 +160,9 @@ target_include_directories(CZRuntimeLibs INTERFACE
 set(CZ_BACKEND_MODULE_FOLDER "Backend")
 set(CZ_BACKEND_MODULE_LIST "" CACHE STRING "" FORCE)
 
-add_subdirectory(Source/Backend/Vulkan)
+if(CZ_OPTION_BUILD_RUNTIME)
+    add_subdirectory(Source/Backend/Vulkan)
+endif()
 
 add_library(CZBackendLibs INTERFACE)
 target_link_libraries(CZBackendLibs INTERFACE
@@ -161,11 +176,13 @@ target_include_directories(CZBackendLibs INTERFACE
 # Chozo Editor
 # - links with CZCoreLibs
 set(CZ_EDITOR_MODULE_FOLDER "Editor")
-add_subdirectory(Source/Editor)
+if(CZ_OPTION_BUILD_RUNTIME)
+    add_subdirectory(Source/Editor)
 
-# Chozo Launch
-set(CZ_LAUNCH_MODULE_FOLDER "Launch")
-add_subdirectory(Source/Launch)
+    # Chozo Launch
+    set(CZ_LAUNCH_MODULE_FOLDER "Launch")
+    add_subdirectory(Source/Launch)
+endif()
 
 # include(CMake/EmbedRuntime.cmake)
 
@@ -173,4 +190,6 @@ add_subdirectory(Source/Launch)
 # - standalone test framework
 # - links with CZCoreLibs
 set(CZ_TEST_MODULE_FOLDER "Test")
-add_subdirectory(Source/Test)
+if(BUILD_TESTING)
+    add_subdirectory(Source/Test)
+endif()
