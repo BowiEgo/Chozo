@@ -1,3 +1,5 @@
+#include <bit>
+
 #include <algorithm>
 #include <vector>
 
