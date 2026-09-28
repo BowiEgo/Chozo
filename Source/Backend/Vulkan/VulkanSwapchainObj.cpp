@@ -226,7 +226,7 @@ void VulkanSwapchainObj::Init() {
         // Wrap each VkImage into RHI Texture object
         TextureSpecification texSpec;
         texSpec.Name   = "Swapchain_ColorAttachment_" + std::to_string(m_ColorAttachments.size());
-        texSpec.Size   = Extent2D(m_VkExtent.width, m_VkExtent.height);
+        texSpec.Size   = Extent2D{ m_VkExtent.width, m_VkExtent.height };
         texSpec.Format = VulkanUtils::FromVKFormat(m_VkImageFormat);
         texSpec.Usage  = TextureUsage::Attachment;
 

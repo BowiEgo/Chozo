@@ -16,7 +16,10 @@ add_library(${MODULE_NAME} SHARED ${MODULE_SRC})
 
 # The editor talks to the graphics backend exclusively through public interfaces
 # (`UIRenderBackendObj`, RHI); the backend module itself is loaded at runtime.
+# This module is built by hand instead of through `add_chozo_module`, so the shared prerequisites
+# (fmt, glm, Tracy) have to be linked explicitly: `EditorCamera` uses glm's GLM_GTX helpers.
 target_link_libraries(${MODULE_NAME} PRIVATE
+    CZEnginePrerequisites
     CZCoreLibs
     CZRuntimeLibs
     Chozo::ImGui
