@@ -92,8 +92,5 @@ bool Engine::OnEvent(Event& e) {
     return true;
 }
 
-void Engine::OnWindowResize(WindowResizedEvent& e) {
-    (void)e;
-    // CZ_LOG(LogEngine, Trace, e.ToString());
-}
+void Engine::OnWindowResize(WindowResizedEvent& e) { (void)e; }
 } // namespace CZ

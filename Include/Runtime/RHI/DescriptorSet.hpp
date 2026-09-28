@@ -21,8 +21,6 @@ struct DescriptorBinding {
                       UniformType uniformType = UniformType::UniformBuffer)
         : m_Binding(binding), m_Type(type), m_UniformType(uniformType), m_Buffer(buffer) {}
 
-    // DescriptorBinding(uint32_t binding = 0, GraphicsBuffer buffer = GraphicsBuffer(),
-    //                   UniformType type = UniformType::UniformBuffer)
     //     : m_Binding(binding), m_Type(type), m_Buffer(buffer) {}
 
     DescriptorBinding(uint32_t binding, ResourceType type, Texture texture = Texture(),

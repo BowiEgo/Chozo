@@ -48,13 +48,8 @@ VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
 
     // ===== Descriptor Set Layouts =====
     m_SetLayouts = m_DeviceObj->CreateSetLayouts(reflection.ResourceBindings);
-    // if (m_SetLayouts.empty()) {
-    //     free(pushConstantRanges);
-    //     CZ_BACKEND_LOG(Error,
     //                    "Failed to create pipeline: No set layouts created from shader
     //                    reflection");
-    //     return VK_ERROR_INITIALIZATION_FAILED;
-    // }
     std::vector<VkDescriptorSetLayout> vkSetLayouts(m_SetLayouts.size());
     for (size_t i = 0; i < m_SetLayouts.size(); i++) {
         vkSetLayouts[i] = m_SetLayouts[i].As<VulkanSetLayoutObj>()->GetVkSetLayout();
@@ -316,12 +311,6 @@ VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
         if (m_VkPipelineLayout != VK_NULL_HANDLE) {
             vkDestroyPipelineLayout(logicalDevice, m_VkPipelineLayout, NULL);
         }
-        // if (m_DescriptorSetLayouts) {
-        //     for (uint32_t i = 0; i < m_DescriptorSetLayoutCount; i++) {
-        //         vkDestroyDescriptorSetLayout(logicalDevice, m_DescriptorSetLayouts[i], NULL);
-        //     }
-        //     free(m_DescriptorSetLayouts);
-        // }
 
         return result;
     }

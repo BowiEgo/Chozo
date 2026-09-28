@@ -36,8 +36,6 @@ public:
 
     void BindPipeline(Pipeline pipeline) override;
 
-    // void BindMaterial(Material material) override;
-
     void BindDescriptorSets(int set, DescriptorSet descSet) override;
 
     void PushConstants(const void* data, uint32 size, uint32 offset) override;

@@ -117,8 +117,6 @@ template <typename T, typename... Args> Scope<T> CreateScope(MemoryUsage usage, 
 }
 
 // template <typename T, typename... Args> Scope<T> CreateScope(Args&&... args) {
-//     return CreateScope<T>(MemoryTraits<T>::Usage, std::forward<Args>(args)...);
-// }
 
 template <typename T, typename... Args>
 Scope<T> CreateScopeDebug(MemoryUsage usage, const char* file, uint32_t line, Args&&... args) {

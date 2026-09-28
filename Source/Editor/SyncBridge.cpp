@@ -22,14 +22,8 @@ void SyncBridge::RegisterNode(EditorNode* node) {
     Entity entity = m_Scene->CreateEntity(node->GetName());
 
     // Add Mesh component if applicable
-    // if (node->HasMesh()) {
-    // SyncMeshComponent(entity, node->GetMesh());
-    // }
 
     // Add Material component if applicable
-    // if (node->HasMaterial()) {
-    //     SyncMaterialComponent(entity, node->GetMaterial());
-    // }
 
     // Add Relationship component if parent exists
     EditorNode* parentNode = node->GetParent();
@@ -46,9 +40,6 @@ void SyncBridge::RegisterNode(EditorNode* node) {
 
     // Mark as dirty
     m_DirtyNodes.insert(node);
-
-    // CZ_EDITOR_LOG(Trace, "Registered node '{}' -> Entity[{}]", node->GetName(),
-    //               static_cast<uint32_t>(entity.GetHandle()));
 
     // Trigger callback
     if (m_OnNodeSynced) {
@@ -110,7 +101,6 @@ void SyncBridge::SyncNodeToEntity(EditorNode* node) {
     Entity entity = it->second;
 
     // // Sync Name
-    // SyncName(node, entity);
 
     // Sync Components
     SyncComponents(node, entity);

@@ -140,7 +140,6 @@ void TransformSystem::UpdateEntity(Entity entity, uint32_t recursionDepth) {
 
 void TransformSystem::MarkDirty(Entity entity) {
     auto& transform = m_SceneObj->GetComponent<TransformComponent>(entity);
-    // if (transform.IsDirty()) return;
 
     transform.MarkDirty();
     m_DirtySet.push_back(entity);

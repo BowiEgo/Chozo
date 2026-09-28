@@ -14,7 +14,6 @@ inline uint32_t CalculateMipLevels(Extent2D size) {
     if (side == 0) return 1;
 
     // Simple version using logarithm, but can be less efficient due to floating-point operations
-    // return static_cast<uint32_t>(std::floor(std::log2(side))) + 1;
 
     // Better version using bitwise operations, more efficient on modern CPUs
     uint32_t levels = 1;
@@ -99,8 +98,6 @@ public:
         : m_Spec(spec), m_Image(std::move(image)) {}
 
     virtual ~TextureObj() = default;
-
-    ResourceType GetResourceType() const override { return ResourceType::Texture; }
 
     std::string GetName() const { return m_Spec.Name; }
 

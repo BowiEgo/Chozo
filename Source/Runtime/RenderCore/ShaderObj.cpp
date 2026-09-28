@@ -67,7 +67,5 @@ void ShaderObj::CreateShaderResources() {
 
         m_ShaderResources.push_back(std::move(shaderRes));
     }
-
-    // BuildLayouts();
 }
 } // namespace CZ

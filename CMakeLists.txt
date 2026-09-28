@@ -24,8 +24,6 @@ endif()
 
 message(STATUS "CMAKE_BUILD_TYPE:                 ${CMAKE_BUILD_TYPE}")
 
-set(CPP_RTTI_ENABLED OFF CACHE INTERNAL "")
-
 # Output directories
 set(BUNDLE_DIR "${CMAKE_BINARY_DIR}/dist/$<CONFIG>/Chozo.app")
 
@@ -36,12 +34,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BUNDLE_DIR}/Contents/Frameworks/)
 # Build options
 option(CZ_OPTION_COMPILE_WITH_PROFILER "" ON)
 message(STATUS "CZ_OPTION_COMPILE_WITH_PROFILER:  ${CZ_OPTION_COMPILE_WITH_PROFILER}")
-
-option(CZ_OPTION_BUILD_BENCHMARKS "" ON)
-message(STATUS "CZ_OPTION_BUILD_BENCHMARKS:       ${CZ_OPTION_BUILD_BENCHMARKS}")
-
-option(CZ_OPTION_EMBED_RUNTIME "" ON)
-message(STATUS "CZ_OPTION_EMBED_RUNTIME:          ${CZ_OPTION_EMBED_RUNTIME}")
 
 # Runtime stack (RHI / RenderCore / Window / App), Vulkan backend, editor and launcher.
 # Turning this OFF yields a core-only build (13 core modules + CZTest) that needs no
@@ -66,17 +58,14 @@ message(STATUS "CHOZO TRACY_ENABLE:              ${TRACY_ENABLE}")
 # Build Environment
 set(CHOZO_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Source)
 set(CHOZO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Include)
-set(CHOZO_SCRIPTS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Scripts)
 set(CHOZO_EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/External)
 set(CHOZO_BUILD_DIR ${CMAKE_BINARY_DIR})
-set(CHOZO_BUILD_EMBED_DIR ${CMAKE_BINARY_DIR}/Embed)
 set(CHOZO_DYNAMIC_LIB_DIR ${CMAKE_BINARY_DIR}/dyLibs)
 
 message(STATUS "CHOZO SOURCE DIR                 ${CHOZO_SOURCE_DIR}")
 message(STATUS "CHOZO INCLUDE DIR                ${CHOZO_INCLUDE_DIR}")
 message(STATUS "CHOZO EXTERNAL DIR               ${CHOZO_EXTERNAL_DIR}")
 message(STATUS "CHOZO BUILD DIR                  ${CHOZO_BUILD_DIR}")
-message(STATUS "CHOZO BUILD EMBED DIR            ${CHOZO_BUILD_EMBED_DIR}")
 
 # Fetch dependencies via CMake FetchContent
 include(CMake/FetchDependencies.cmake)
@@ -89,9 +78,6 @@ include(CMake/ChozoModule.cmake)
 
 # Add test
 include(CMake/ChozoModuleTests.cmake)
-
-# Build extra libs
-# add_subdirectory(${CHOZO_EXTERNAL_DIR}/stb)
 
 # Prerequisites
 # - third-party libs for all modules（like fmt）
@@ -183,8 +169,6 @@ if(CZ_OPTION_BUILD_RUNTIME)
     set(CZ_LAUNCH_MODULE_FOLDER "Launch")
     add_subdirectory(Source/Launch)
 endif()
-
-# include(CMake/EmbedRuntime.cmake)
 
 # Chozo Test
 # - standalone test framework

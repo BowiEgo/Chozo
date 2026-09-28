@@ -12,7 +12,6 @@
 namespace CZ {
 
 VulkanCommandBufferObj::~VulkanCommandBufferObj() {
-    // if (m_VkCommandBuffer == VK_NULL_HANDLE) return;
 
     auto deviceObj = m_CmdPoolObj->m_DeviceObj;
 
@@ -73,22 +72,6 @@ void VulkanCommandBufferObj::BindPipeline(Pipeline pipeline) {
 
     vkCmdBindPipeline(m_VkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 }
-
-// void VulkanCommandBufferObj::BindMaterial(Material material) {
-//     auto deviceObj = m_CmdPoolObj->m_DeviceObj;
-
-//     BindPipeline(material->GetPipeline());
-//     SetPolygonMode(material->GetPolygonMode());
-//     BindDescriptorSets(1, material->GetDescriptorSet());
-
-//     auto setLayout                          = material->GetShader()->GetSetLayout(0);
-//     std::vector<DescriptorBinding> bindings = {
-//         { 0, UniformType::UniformBuffer, cameraBuffer.get(), nullptr },
-//     };
-//     auto descSet = deviceObj->GetOrCreateDescriptorSet(setLayout, bindings);
-
-//     BindDescriptorSets(0, descSet);
-// }
 
 void VulkanCommandBufferObj::BindDescriptorSets(int set, DescriptorSet descSet) {
     auto vkDescSet = descSet.As<VulkanDescriptorSetObj>()->GetVkDescriptorSet();

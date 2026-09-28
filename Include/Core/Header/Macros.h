@@ -15,11 +15,8 @@ static constexpr bool GIsDebug = false;
 // // External declaration to avoid "identifier not found" errors
 // #ifdef CZ_DEBUG
 // // [Note] Provide the missing implementation
-// void CZ_DumpStackTrace() {
 //     // TODO: Implement platform specific stack walking
 //     // std::cout << "Stack trace dumping is not implemented yet." <<
-//     std::endl;
-// }
 // #endif
 
 // --- Platform Detection (Internal) ---

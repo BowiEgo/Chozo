@@ -4,8 +4,6 @@
 #include <ostream>
 
 // example
-// if (SInput::IsKeyPressed(CZ_KEY(LeftAlt)))
-// if (SInput::IsMousePressed(CZ_BUTTON(Left)))
 
 namespace CZ {
 

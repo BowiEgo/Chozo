@@ -104,8 +104,6 @@ template <> struct hash<CZ::Vector3> {
 } // namespace std
 
 // ===== String formatting for logs =====
-// CZ_LOG(LogTemp, Info, "Vector3: {}", vec);     // Defaut         (1.000000, 2.500000, 3.140000)
-// CZ_LOG(LogTemp, Info, "Vector3: {:2}", vec);   // Compact        (1.00, 2.50, 3.14)
 // CZ_LOG(LogTemp, Info, "Vector3: {:c}", vec);   // Specific precision 1.000000, 2.500000, 3.140000
 namespace fmt {
 inline namespace v10 {

@@ -41,15 +41,3 @@ struct Renderer : Handle<struct RendererObj> {
 };
 
 } // namespace CZ
-
-#if 1
-  // Create a unique timer variable named e.g., timer123
-    #define CZ_RENDERER_SCOPE_PERF(slot)                                                           \
-        ScopePerfTimer CZ_CONCAT(timer, __LINE__)(static_cast<uint32_t>(slot),                     \
-                                                  this -> GetPerformanceProfiler())
-
-    #define CZ_RENDERER_SCOPE_TIMER(name) ScopedTimer CZ_CONCAT(timer, __LINE__)(name);
-#else
-    #define CZ_RENDERER_SCOPE_PERF(slot)
-    #define CZ_RENDERER_SCOPE_TIMER(name)
-#endif

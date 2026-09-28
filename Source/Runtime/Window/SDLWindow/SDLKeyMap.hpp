@@ -6,16 +6,8 @@
 
 namespace CZ {
 
-// EMouseButton MapSDLMouseButtonToEngine(Uint8 sdlButton) {
-//     switch (sdlButton) {
-//         case SDL_BUTTON_LEFT: return EMouseButton::Left;
-//         case SDL_BUTTON_RIGHT: return EMouseButton::Right;
-//         case SDL_BUTTON_MIDDLE: return EMouseButton::Middle;
 //         // case SDL_BUTTON_X1: return EMouseButton::Side1;
 //         // case SDL_BUTTON_X2: return EMouseButton::Side2;
-//         default: return EMouseButton::Left;
-//     }
-// }
 
 KeyCode SDLScancodeToEngineKey(SDL_Scancode scancode) {
     switch (scancode) {

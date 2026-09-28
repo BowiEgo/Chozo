@@ -15,9 +15,7 @@ namespace CZ {
 //     X(TYPE_CATEGORY_NONE) \
 //     X(TYPE_CATEGORY_NODE) \
 //     X(TYPE_CATEGORY_LIGHT) \
-//     X(TYPE_CATEGORY_MESH) \ X(TYPE_CATEGORY_MATERIAL)
 
-// #define X(name) name,
 // enum TypeCategory : uint32_t { TYPE_CATEGORY_LIST };
 // #undef X
 
@@ -25,10 +23,7 @@ namespace CZ {
 // constexpr int s_TypeCategoryCount = TYPE_CATEGORY_LIST;
 // #undef X
 
-// #define X(name) #name,
-// static constexpr std::array<const char*, s_TypeCategoryCount> TypeCategoryStrings = {
 //     TYPE_CATEGORY_LIST
-// };
 // #undef X
 
 namespace TypeCategory {

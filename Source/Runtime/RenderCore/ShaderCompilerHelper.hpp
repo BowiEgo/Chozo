@@ -74,8 +74,6 @@ inline UniformType GetUniformTypeFromSlangCategory(slang::TypeLayoutReflection* 
 
     // special case for input attachments (Vulkan-specific)
     // if shader variable has [[vk::input_attachment_index]] modifier, we treat it as
-    // InputAttachment if (varLayout->findModifier(slang::Modifier::InputAttachmentIndex))
-    // return UniformType::InputAttachment;
 
     return UniformType::None;
 }

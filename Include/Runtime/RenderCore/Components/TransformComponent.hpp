@@ -54,7 +54,6 @@ struct TransformComponent {
     }
 
     Matrix3 GetNormalMatrix(const Matrix4& model) const {
-        // glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
         return model.ToMatrix3().Inverse().Transpose();
     }
 

@@ -74,7 +74,6 @@ private:
     // ===== Component Creation Helpers =====
     void SyncTransformComponent(Entity entity, const TransformParams transformParams);
     void SyncMeshComponent(Entity entity, const MeshParams props);
-    // void SyncMaterialComponent(Entity entity, const FMaterialComponent& material);
     void SyncRelationshipComponent(Entity entity, Entity parent);
 
     // ===== Validation =====
@@ -92,7 +91,6 @@ private:
     std::unordered_set<EditorNode*> m_DirtyNodes;
     std::unordered_set<Entity> m_DirtyEntities;
 
-    // Thread safety (if used from multiple threads)
     mutable std::mutex m_Mutex;
 
     // Callbacks

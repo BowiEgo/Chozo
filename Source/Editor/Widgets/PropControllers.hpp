@@ -343,15 +343,6 @@ bool DrawDefaultController(T& value, const std::string& name, float speed = 0.01
         return false;
     } else if constexpr (std::is_same_v<T, AssetHandle>) {
         char buffer[64];
-        // Asset asset = AssetManager::Get().GetAsset(value);
-        // if (asset) {
-        //     if (asset->GetType() == AssetType::Texture) {
-        //         return DrawTextureControl(id, asset.As<Texture>());
-        //     }
-        //     if (asset->GetType() == AssetType::Material) {
-        //         return DrawMaterialControl(id, asset);
-        //     }
-        // }
         return false;
     } else {
         static_assert(sizeof(T) == 0, "Unsupported type for DrawController");

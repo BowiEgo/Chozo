@@ -49,7 +49,6 @@ void EditorNodeTree::Init() {
     auto rootNodeMask = GET_NODE_MASK("Node_Root");
     m_RootNode        = CZ_NEW(CZ::MEMORY_USAGE_UI, EditorNode, "Root", rootNodeMask);
 
-    // CreateDemoTree(this, m_RootNode);
     UpdateNodeCache(m_RootNode);
 }
 

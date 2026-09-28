@@ -29,13 +29,8 @@ using ShaderID = uint32;
          TESSELLATION_EVALUATION)
 
 // enum class ShaderStage : uint16 {
-// #define GENERATE_ENUM(ENUM, ...) ENUM,
-//     FOREACH_SHADER_STAGE(GENERATE_ENUM)
 // #undef GENERATE_ENUM
 //         None
-// };
-
-// static constexpr size_t kShaderStageCount = static_cast<size_t>(ShaderStage::None);
 
 enum class ShaderStageIndex : uint16 {
 #define GENERATE_INDEX(ENUM, ...) ENUM,
@@ -181,7 +176,6 @@ static uint32 ShaderDataTypeSize(ShaderDataType type) {
         case ShaderDataType::Bool: return 1;
     }
 
-    // CZ_CORE_ASSERT(false, "Unknown ShaderDataType!");
     return 0;
 }
 
@@ -309,7 +303,6 @@ struct BufferElement {
             case ShaderDataType::Bool: return 1;
         }
 
-        // CZ_CORE_ASSERT(false, "Unknown ShaderDataType!");
         return 0;
     }
 

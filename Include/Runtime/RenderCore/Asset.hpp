@@ -16,9 +16,7 @@ template <typename TObject> class Asset : public Handle<TObject> {
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 
 public:
-    // Asset() : m_Handle(AssetHandle::Invalid()) {}
     explicit Asset(TObject* ptr) : Handle<TObject>(ptr) {}
-    // explicit Asset(const AssetHandle& handle) : m_Handle(handle) {}
     Asset()  = default;
     ~Asset() = default;
 

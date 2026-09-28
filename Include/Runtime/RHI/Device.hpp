@@ -46,7 +46,6 @@ struct DeviceSpecification {
     // --- Feature Toggles ---
     // [Note] High-level feature requests that RHI will try to fulfill
     // bool PreferIntegratedGPU = false; // Whether to use iGPU for power saving
-    // bool RequireRayTracing   = false;
 };
 
 class DeviceObj {

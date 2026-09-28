@@ -65,8 +65,6 @@ EditorNode::EditorNode(const std::string& name, TypeMask typeMask)
                 CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, CubeParamsObj, 1.0f, 1.0f, 1.0f, 1, 1, 1));
         }
     }
-
-    // CZ_EDITOR_LOG(Trace, "Created node '{}' with ID {}", name, m_ID);
 }
 
 EditorNode::~EditorNode() {
@@ -78,8 +76,6 @@ EditorNode::~EditorNode() {
     if (m_Parent) {
         m_Parent->RemoveChild(this);
     }
-
-    // CZ_EDITOR_LOG(Trace, "Destroyed node '{}' with ID {}", m_Name, m_ID);
 }
 
 // ===== Hierarchy Management =====
@@ -111,8 +107,6 @@ void EditorNode::AddChild(EditorNode* child) {
 
     MarkDirty();
     child->MarkDirty();
-
-    // CZ_EDITOR_LOG(Trace, "Added child '{}' to node '{}'", child->GetName(), m_Name);
 }
 
 void EditorNode::RemoveChild(EditorNode* child) {
@@ -133,8 +127,6 @@ void EditorNode::RemoveChild(EditorNode* child) {
 
     MarkDirty();
     child->MarkDirty();
-
-    // CZ_EDITOR_LOG(Trace, "Removed child '{}' from node '{}'", child->GetName(), m_Name);
 }
 
 void EditorNode::SetParent(EditorNode* parent) {
@@ -214,31 +206,14 @@ int EditorNode::GetDepth() const {
 }
 
 // ===== Serialization =====
-// void EditorNode::Serialize(FArchive& ar) {
 //     ar << m_Name;
 //     ar << static_cast<int32_t>(m_Type);
 //     ar << m_Transform;
 
-//     uint32_t childCount = static_cast<uint32_t>(m_Children.size());
 //     ar << childCount;
 
-//     for (auto* child : m_Children) {
-//         child->Serialize(ar);
-//     }
-// }
-
-// void EditorNode::Deserialize(FArchive& ar) {
 //     ar >> m_Name;
-//     int32_t type;
 //     ar >> type;
-//     m_Type = static_cast<ENodeType>(type);
 //     ar >> m_Transform;
 
-//     uint32_t childCount;
 //     ar >> childCount;
-//     for (uint32_t i = 0; i < childCount; i++) {
-//         auto* child = new EditorNode();
-//         child->Deserialize(ar);
-//         AddChild(child);
-//     }
-// }

@@ -106,8 +106,6 @@ void ConsolePanel::Draw(const char* title) {
     }
     ImGui::SameLine();
     bool copy_to_clipboard = ImGui::SmallButton("Copy");
-    // static float t = 0.0f; if (ImGui::GetTime() - t > 0.02f) { t = ImGui::GetTime();
-    // AddLog("Spam %f", t); }
 
     ImGui::Separator();
 
@@ -135,20 +133,13 @@ void ConsolePanel::Draw(const char* title) {
         }
 
         // Display every line as a separate entry so we can change their color or add custom
-        // widgets. If you only want raw text you can use ImGui::TextUnformatted(log.begin(),
         // log.end()); NB- if you have thousands of entries this approach may be too inefficient
         // and may require user-side clipping to only process visible items. The clipper will
         // automatically measure the height of your first item and then "seek" to display only
         // items in the visible area. To use the clipper we can replace your standard loop:
-        //      for (int i = 0; i < m_Items.Size; i++)
         //   With:
-        //      ImGuiListClipper clipper;
-        //      clipper.Begin(m_Items.Size);
-        //      while (clipper.Step())
-        //         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
         // - That your items are evenly spaced (same height)
         // - That you have cheap random access to your elements (you can access them given their
-        // index,
         //   without processing all the ones before)
         // You cannot this code as-is if a filter is active because it breaks the 'cheap
         // random-access' property. We would need random-access on the post-filtered list. A
@@ -224,7 +215,6 @@ void ConsolePanel::AddLog(const char* message, LogVerbosity level) {
 }
 
 void ConsolePanel::ExecCommand(const char* command_line) {
-    // AddLog("# %s\n", command_line);
     CZ_LOG(LogConsolePanel, Trace, "# {}", command_line);
 
     // Insert into history. First find match and delete it so it can be pushed to the back.
@@ -259,8 +249,6 @@ void ConsolePanel::ExecCommand(const char* command_line) {
 }
 
 int ConsolePanel::TextEditCallback(ImGuiInputTextCallbackData* data) {
-    // AddLog("cursor: %d, selection: %d-%d", data->CursorPos, data->SelectionStart,
-    // data->SelectionEnd);
     switch (data->EventFlag) {
         case ImGuiInputTextFlags_CallbackCompletion: {
             // Example of TEXT COMPLETION
@@ -282,7 +270,6 @@ int ConsolePanel::TextEditCallback(ImGuiInputTextCallbackData* data) {
 
             if (candidates.Size == 0) {
                 // No match
-                // AddLog("No match for \"%.*s\"!\n", (int)(word_end - word_start), word_start);
                 std::string_view word(word_start, static_cast<size_t>(word_end - word_start));
                 CZ_LOG(LogConsolePanel, Warning, "No match for \"%{}\"!", word);
             } else if (candidates.Size == 1) {
@@ -314,10 +301,8 @@ int ConsolePanel::TextEditCallback(ImGuiInputTextCallbackData* data) {
                 }
 
                 // List matches
-                // AddLog("Possible matches:\n");
                 CZ_LOG(LogConsolePanel, Trace, "Possible matches:");
                 for (int i = 0; i < candidates.Size; i++)
-                    // AddLog("- %s\n", candidates[i]);
                     CZ_LOG(LogConsolePanel, Trace, "- {}", candidates[i]);
             }
 

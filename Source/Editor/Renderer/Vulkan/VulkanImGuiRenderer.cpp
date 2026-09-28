@@ -66,9 +66,7 @@ void VulkanImGuiRenderer::Init(ImGuiContext* ctx, SDL_Window* windowHandle) {
     init_info.Device                    = vkDevice;
     init_info.QueueFamily               = vulkanCtxWrapper.GraphicsQueueIndex;
     init_info.Queue                     = vkQueue;
-    // init_info.PipelineCache = VK_NULL_HANDLE;
     init_info.DescriptorPool            = vkGlobalDescriptorPool;
-    // init_info.DescriptorPoolSize = 1000;
     init_info.MinImageCount             = 2;
     init_info.ImageCount                = swapchain->GetImageCount();
 
@@ -82,15 +80,9 @@ void VulkanImGuiRenderer::Init(ImGuiContext* ctx, SDL_Window* windowHandle) {
     init_info.UseDynamicRendering                          = true;
     init_info.PipelineInfoMain.PipelineRenderingCreateInfo = dynamic_rendering_info;
     // init_info.PipelineInfoMain.PipelineRenderingCreateInfo.sType =
-    //     VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
-    // init_info.PipelineInfoMain.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
     // init_info.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats =
     // colorFormats; init_info.PipelineInfoMain.PipelineRenderingCreateInfo.depthAttachmentFormat =
-    //     static_cast<VkFormat>(swapchain->GetVKDepthFormat());
     init_info.PipelineInfoMain.MSAASamples                 = VK_SAMPLE_COUNT_1_BIT;
-    // init_info.PipelineInfoMain.RenderPass = *swapchain->GetVKRenderPass();
-    // init_info.PipelineInfoMain.Subpass = 0;
-    // init_info.PipelineInfoForViewports = init_info.PipelineInfoMain;
     init_info.CheckVkResultFn                              = CheckVKResult;
 
     ImGui_ImplVulkan_Init(&init_info);

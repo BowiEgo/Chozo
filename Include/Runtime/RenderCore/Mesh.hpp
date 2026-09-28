@@ -63,13 +63,7 @@ struct MeshBuffer {
         }
     }
 
-    void Optimize() {
-        // DeduplicateVertices();
-        // OptimizeIndexOrder();
-        // CalculateNormalsIfMissing();
-
-        // IndexCount = static_cast<uint32_t>(Indices.size());
-    }
+    void Optimize() {}
 
     void Clear() {
         Vertices.clear();
@@ -86,7 +80,6 @@ struct MeshObj {
     MemoryType MemoryType = MemoryType::Unknown;
 
     MeshBuffer MeshBuffer;
-    Matrix4 LocalTransform;
 
     std::string GetName() const { return Name; }
     GraphicsBuffer GetVertexBuffer() const { return ViewAs<GraphicsBuffer>(m_VertexBuffer); }

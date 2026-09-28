@@ -93,7 +93,6 @@ void SceneHierarchyPanel::DrawNodeContextMenu(EditorNode* node) {
     if (ImGui::MenuItem("Delete", "Delete Key", false, node != m_NodeTree->GetRoot())) {
         // Logic to remove node from parent's Childs vector
         // Note: Actual deletion should happen outside the rendering loop to avoid crash
-        // PendingDeleteNode = node;
         m_NodeTree->DeleteNode(node);
     }
     ImGui::Separator();
@@ -172,7 +171,6 @@ void SceneHierarchyPanel::DrawFlattenedNode(EditorNode* node, int depth) {
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (depth * indent_step));
 
     ImGuiID node_id = ImGui::GetID((void*)(intptr_t)node->GetID());
-    // ImGui::PushID(node->GetID());
     UIUtils::ScopedID id(node_id);
 
     ImGuiTreeNodeFlags tree_flags =

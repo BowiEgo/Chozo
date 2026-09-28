@@ -8,5 +8,4 @@ struct HDRIBackdropComponent {
     HDRIBackdropParams Params;
 
     HDRIBackdropComponent() = default;
-    // explicit HDRIBackdropComponent() {};
 };

@@ -26,9 +26,6 @@ void CommandListObj::Draw(Scene scene, Camera camera) {
     auto renderDatas = scene->GetRenderDatas();
     for (auto& [pushConstants, mesh] : renderDatas) {
         if (mesh) {
-            // if (material) {
-            //     BindMaterial(material);
-            // }
             PushConstants(&pushConstants, sizeof(pushConstants), 0);
             Draw(mesh);
         }

@@ -51,7 +51,6 @@ public:
 
     // ===== Node Attributes =====
     void RenameNode(EditorNode* node, const std::string& newName);
-    // void SetNodeType(EditorNode* node, Type type);
     void SetNodeParent(EditorNode* node, EditorNode* newParent);
 
     // ===== Node Query =====

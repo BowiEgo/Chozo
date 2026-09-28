@@ -11,44 +11,35 @@ using Slang::ComPtr;
 
 // The `ReflectingPrinting` Type
 // -------------------------
-//
 // We wrap most of the code for this example in a `struct`
 // type, in order to provide a bit more freedom in order
 // of declaration.
-//
 // When possible, we will follow the order of declarations
 // in the accompanying document, to help readers who want
 // to following along in the code while reading.
-//
 struct ReflectingPrinting {
     slang::ProgramLayout* _programLayout = nullptr;
     // Scoping things in a type allows us to declare functions
     // out of order more easily, but we still have to forward-declare
     // types when they will be used before they are declared.
-    //
     struct AccessPath;
 
     // Output Formatting
     // -----------------
-    //
     // This example program outputs reflection information in a format
     // that is (or at least is intended to be) compatible with YAML.
-    //
     // We do not want the code to be overly complicated with issues
     // around formatting, so the details of the actual printing logic
     // are largely left until later. However, there are a pair of
     // macros that help to keep things tidy that we need to introduce
     // here, before they are used.
-    //
 #define WITH_ARRAY() for (int _i = (beginArray(), 1); _i; _i = (endArray(), 0))
 
 #define SCOPED_OBJECT() ScopedObject scopedObject##__COUNTER__(this)
 
     // Types and Variables
     // -------------------
-    //
     // ### Variables
-    //
     void printVariable(slang::VariableReflection* variable) {
         SCOPED_OBJECT();
 
@@ -68,7 +59,6 @@ struct ReflectingPrinting {
     }
 
     // ### Types
-    //
     void printType(slang::TypeReflection* type) {
         SCOPED_OBJECT();
 
@@ -84,14 +74,12 @@ struct ReflectingPrinting {
         // print for both types and type layouts, so
         // we will factor the common logic into a
         // subroutine so that we can share the code.
-        //
         printCommonTypeInfo(type);
 
         switch (type->getKind()) {
             default: break;
 
             // #### Structure Types
-            //
             case slang::TypeReflection::Kind::Struct: {
                 key("fields");
                 int fieldCount = type->getFieldCount();
@@ -108,7 +96,6 @@ struct ReflectingPrinting {
             // #### Array Types
             // #### Vector Types
             // #### Matrix Types
-            //
             case slang::TypeReflection::Kind::Array:
             case slang::TypeReflection::Kind::Vector:
             case slang::TypeReflection::Kind::Matrix: {
@@ -117,14 +104,12 @@ struct ReflectingPrinting {
             } break;
 
             // #### Resource Types
-            //
             case slang::TypeReflection::Kind::Resource: {
                 key("result type");
                 printType(type->getResourceResultType());
             } break;
 
             // #### Single-Element Container Types
-            //
             case slang::TypeReflection::Kind::ConstantBuffer:
             case slang::TypeReflection::Kind::ParameterBlock:
             case slang::TypeReflection::Kind::TextureBuffer:
@@ -136,7 +121,6 @@ struct ReflectingPrinting {
     }
 
     // #### Array Types
-    //
     void printPossiblyUnbounded(size_t value) {
         if (value == ~size_t(0)) {
             printf("unbounded");
@@ -148,28 +132,24 @@ struct ReflectingPrinting {
     void printCommonTypeInfo(slang::TypeReflection* type) {
         switch (type->getKind()) {
             // #### Scalar Types
-            //
             case slang::TypeReflection::Kind::Scalar: {
                 key("scalar type");
                 printScalarType(type->getScalarType());
             } break;
 
             // #### Array Types
-            //
             case slang::TypeReflection::Kind::Array: {
                 key("element count");
                 printPossiblyUnbounded(type->getElementCount());
             } break;
 
             // #### Vector Types
-            //
             case slang::TypeReflection::Kind::Vector: {
                 key("element count");
                 print(type->getElementCount());
             } break;
 
             // #### Matrix Types
-            //
             case slang::TypeReflection::Kind::Matrix: {
                 key("row count");
                 print(type->getRowCount());
@@ -179,7 +159,6 @@ struct ReflectingPrinting {
             } break;
 
             // #### Resource Types
-            //
             case slang::TypeReflection::Kind::Resource: {
                 key("shape");
                 printResourceShape(type->getResourceShape());
@@ -194,9 +173,7 @@ struct ReflectingPrinting {
 
     // Layout for Types and Variables
     // ------------------------------
-    //
     // ### Variable Layouts
-    //
     void printVariableLayout(slang::VariableLayoutReflection* variableLayout,
                              AccessPath accessPath) {
         SCOPED_OBJECT();
@@ -259,7 +236,6 @@ struct ReflectingPrinting {
     }
 
     // ### Type Layouts
-    //
     void printTypeLayout(slang::TypeLayoutReflection* typeLayout, AccessPath accessPath) {
         SCOPED_OBJECT();
 
@@ -275,7 +251,6 @@ struct ReflectingPrinting {
     }
 
     // #### Size
-    //
     void printSizes(slang::TypeLayoutReflection* typeLayout) {
         key("size");
 
@@ -312,11 +287,9 @@ struct ReflectingPrinting {
     }
 
     // #### Kind-Specific Information
-    //
     void printKindSpecificInfo(slang::TypeLayoutReflection* typeLayout, AccessPath accessPath) {
         switch (typeLayout->getKind()) {
             // #### Structure Type Layouts
-            //
             case slang::TypeReflection::Kind::Struct: {
                 key("fields");
 
@@ -331,14 +304,12 @@ struct ReflectingPrinting {
             } break;
 
             // #### Array Type Layouts
-            //
             case slang::TypeReflection::Kind::Array: {
                 key("element type layout");
                 printTypeLayout(typeLayout->getElementTypeLayout(), AccessPath());
             } break;
 
             // #### Matrix Type Layouts
-            //
             case slang::TypeReflection::Kind::Matrix: {
                 key("matrix layout mode");
                 printMatrixLayoutMode(typeLayout->getMatrixLayoutMode());
@@ -353,7 +324,6 @@ struct ReflectingPrinting {
             } break;
 
             // #### Single-Element Containers
-            //
             case slang::TypeReflection::Kind::ConstantBuffer:
             case slang::TypeReflection::Kind::ParameterBlock:
             case slang::TypeReflection::Kind::TextureBuffer:
@@ -404,7 +374,6 @@ struct ReflectingPrinting {
 
     // Programs and Scopes
     // -------------------
-    //
     void printProgramLayout(slang::ProgramLayout* programLayout, SlangCompileTarget targetFormat) {
         SCOPED_OBJECT();
 
@@ -430,14 +399,12 @@ struct ReflectingPrinting {
     }
 
     // ### Global Scope
-    //
     void printScope(slang::VariableLayoutReflection* scopeVarLayout, AccessPath accessPath) {
         ExtendedAccessPath scopeOffsets(accessPath, scopeVarLayout);
 
         auto scopeTypeLayout = scopeVarLayout->getTypeLayout();
         switch (scopeTypeLayout->getKind()) {
             // #### Parameters are Grouped Into a Structure
-            //
             case slang::TypeReflection::Kind::Struct: {
                 key("parameters");
 
@@ -452,7 +419,6 @@ struct ReflectingPrinting {
             } break;
 
             // #### Wrapped in a Constant Buffer If Needed
-            //
             case slang::TypeReflection::Kind::ConstantBuffer:
                 key("automatically-introduced constant buffer");
                 {
@@ -464,7 +430,6 @@ struct ReflectingPrinting {
                 break;
 
             // #### Wrapped in a Parameter Block If Needed
-            //
             case slang::TypeReflection::Kind::ParameterBlock:
                 key("automatically-introduced parameter block");
                 {
@@ -479,7 +444,6 @@ struct ReflectingPrinting {
                 // Note that this default case is never expected to
                 // arise with the current Slang compiler and reflection
                 // API, but we include it here as a kind of failsafe.
-                //
                 key("variable layout");
                 printVariableLayout(scopeVarLayout, accessPath);
                 break;
@@ -487,7 +451,6 @@ struct ReflectingPrinting {
     }
 
     // ### Entry Points
-    //
     void printEntryPointLayout(slang::EntryPointReflection* entryPointLayout,
                                AccessPath accessPath) {
         SCOPED_OBJECT();
@@ -507,7 +470,6 @@ struct ReflectingPrinting {
     }
 
     // #### Stage-Specific Information
-    //
     void printStageSpecificInfo(slang::EntryPointReflection* entryPointLayout) {
         switch (entryPointLayout->getStage()) {
             default: break;
@@ -535,7 +497,6 @@ struct ReflectingPrinting {
     }
 
     // #### Varying Parameters
-    //
     void printVaryingParameterInfo(slang::VariableLayoutReflection* variableLayout) {
         if (auto semanticName = variableLayout->getSemanticName()) {
             key("semantic");
@@ -549,7 +510,6 @@ struct ReflectingPrinting {
 
     // Calculating Cumulative Offsets
     // ------------------------------
-    //
     struct CumulativeOffset {
         size_t value = 0;
         size_t space = 0;
@@ -625,7 +585,6 @@ struct ReflectingPrinting {
         CumulativeOffset result;
         switch (layoutUnit) {
             // #### Layout Units That Don't Require Special Handling
-            //
             default:
                 for (auto node = accessPath.leaf; node != nullptr; node = node->outer) {
                     result.value += node->variableLayout->getOffset(layoutUnit);
@@ -633,7 +592,6 @@ struct ReflectingPrinting {
                 break;
 
             // #### Bytes
-            //
             case slang::ParameterCategory::Uniform:
                 for (auto node = accessPath.leaf; node != accessPath.deepestConstantBufer;
                      node      = node->outer) {
@@ -642,7 +600,6 @@ struct ReflectingPrinting {
                 break;
 
             // #### Layout Units That Care About Spaces
-            //
             case slang::ParameterCategory::ConstantBuffer:
             case slang::ParameterCategory::ShaderResource:
             case slang::ParameterCategory::UnorderedAccess:
@@ -748,13 +705,10 @@ struct ReflectingPrinting {
 
     // Formatting
     // ----------
-    //
     // Here we'll cover the logic for how we implement
     // the various formatting operations used in the
     // code above.
-    //
     // ### Indentation
-    //
     // We track a global indentation level, and whenever
     // we begin a new line, we'll emit a corresponding
     // amount of space (two spaces per indent, consistent
@@ -769,7 +723,6 @@ struct ReflectingPrinting {
     }
 
     // ### Objects and Arrays
-    //
     // Both objects and arrays can be marked up purely
     // with indentation in YAML. If we eventually
     // change the output format to something like JSON,
@@ -785,12 +738,10 @@ struct ReflectingPrinting {
     void endArray() { indentation--; }
 
     // #### Scope-Based Objects
-    //
     // In order to make it easier to keep the `beginObject()`
     // and `endObject()` calls properly paired, we introduce
     // a helper type that uses an RAII idiom to automatically
     // pair up the calls.
-    //
     struct ScopedObject {
         ScopedObject(ReflectingPrinting* outer) : outer(outer) { outer->beginObject(); }
 
@@ -800,12 +751,10 @@ struct ReflectingPrinting {
     };
 
     // ### Starting New Lines
-    //
     // Typically, when we are about to emit a key
     // in an object, or an element in an array,
     // we need to start a new line (and print
     // the appropriate indentation).
-    //
     void newLine() {
         printf("\n");
         printIndentation();
@@ -815,7 +764,6 @@ struct ReflectingPrinting {
     // emitted the `- ` for an array element then
     // we don't need to start a new line if
     // the next thing we emit is an object key.
-    //
     // We *also* don't need to start a new line
     // at the very beginning of the output, so
     // we handle that by setting the intial state
@@ -824,7 +772,6 @@ struct ReflectingPrinting {
     bool afterArrayElement = true;
 
     // ### Array Elements
-    //
     void element() {
         newLine();
         printf("- ");
@@ -832,7 +779,6 @@ struct ReflectingPrinting {
     }
 
     // ### Object Keys
-    //
     void key(char const* key) {
         if (!afterArrayElement) {
             newLine();
@@ -843,7 +789,6 @@ struct ReflectingPrinting {
     }
 
     // ### Printing Simple Values
-    //
     // Simple scalar values like strings,
     // `bool`s, and numbers don't need
     // much special handling.
@@ -863,12 +808,10 @@ struct ReflectingPrinting {
     // YAML supports comments, but JSON doesn't.
     // This function could be stubbed out if
     // we switch up the output format.
-    //
     void printComment(char const* text) { printf("# %s", text); }
 
     // Printing Enumerants
     // -------------------
-    //
     // Here we'll gather all the logic for printing the various
     // `enum` types that we've worked with in the logic above.
 

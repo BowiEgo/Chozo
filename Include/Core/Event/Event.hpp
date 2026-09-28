@@ -95,7 +95,10 @@ class EventBus {
     using FEventListener = std::pair<bool, EventCallback>;
 
 public:
-    static EventBus& Get() { return *s_Instance; }
+    static EventBus& Get() {
+        static EventBus instance;
+        return instance;
+    }
 
     void AddListener(const EventType type, const EventCallback& callback, bool destroy = false) {
         m_Listeners[type].emplace_back(destroy, callback);
@@ -123,8 +126,6 @@ public:
 private:
     EventBus()  = default;
     ~EventBus() = default;
-
-    static EventBus* s_Instance;
 
     std::unordered_map<EventType, std::vector<FEventListener>> m_Listeners;
 };

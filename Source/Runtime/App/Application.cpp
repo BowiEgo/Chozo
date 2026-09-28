@@ -80,7 +80,12 @@ void Application::Shutdown() {
 void Application::Run() {
     CZ_PROFILE_FRAME_MARK;
 
-    float deltaTime = 0.1;
+    // Real frame time, clamped so that a long stall (breakpoint, file dialog, resize) does not
+    // produce a huge step for the systems that consume it.
+    const auto now  = std::chrono::steady_clock::now();
+    float deltaTime = std::chrono::duration<float>(now - m_LastFrameTime).count();
+    m_LastFrameTime = now;
+    deltaTime       = std::min(deltaTime, 0.1f);
 
     {
         CZ_PROFILE_SCOPE_NAME("Window Update");
@@ -115,7 +120,6 @@ bool Application::OnEvent(Event& e) {
         if (e.isHandled()) break;
     }
     return m_Engine->OnEvent(e);
-    return true;
 }
 
 } // namespace CZ

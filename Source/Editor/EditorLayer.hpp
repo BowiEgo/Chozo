@@ -8,13 +8,11 @@
 #include "Renderer/Vulkan/VulkanImGuiRenderer.hpp"
 #include "SyncBridge.hpp"
 
-#include "Panels/AssetsPanel.hpp"
 #include "Panels/ConsolePanel.hpp"
 // #include "Panels/ContentBrowserPanel.hpp"
 // #include "Panels/MaterialPanel.hpp"
 #include "Panels/PropertiesPanel.hpp"
 #include "Panels/SceneHierarchyPanel.hpp"
-#include "Panels/TextureViewerPanel.hpp"
 
 using namespace CZ;
 
@@ -77,8 +75,4 @@ private:
     ConsolePanel m_ConsolePanel;
     SceneHierarchyPanel m_SceneHierarchyPanel;
     PropertiesPanel m_PropertiesPanel;
-    // ContentBrowserPanel m_ContentBrowserPanel;
-    // MaterialPanel m_MaterialPanel;
-    TextureViewerPanel m_TextureViewerPanel;
-    AssetsPanel m_AssetsPanel;
 };

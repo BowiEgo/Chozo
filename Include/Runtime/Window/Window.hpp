@@ -63,22 +63,12 @@ public:
 
     bool CheckAndResetVSyncDirty() { return m_VSyncDirty.exchange(false); }
 
-    // void SetEventPreprocessor(std::function<void(const SDL_Event&)> preprocessor) {
-    //     m_EventPreprocessor = preprocessor;
-    // }
-
 protected:
-    // void ProcessEventWithPreprocessor(const SDL_Event& event) {
-    //     if (m_EventPreprocessor) m_EventPreprocessor(event);
-    // }
-
 protected:
     WindowSpecifaciton m_Spec;
     WindowHandle m_Window{ nullptr };
     Scope<InputImpl> m_InputImpl;
     std::atomic_bool m_VSyncDirty{ false };
-
-    // std::function<void(const SDL_Event&)> m_EventPreprocessor;
 
     bool m_BackendInitialized = false;
     bool m_ShouldClose        = false;

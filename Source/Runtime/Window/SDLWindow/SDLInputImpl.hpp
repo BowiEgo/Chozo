@@ -28,8 +28,6 @@ public:
             case MouseButton::Left: return (buttons & SDL_BUTTON_LMASK) != 0;
             case MouseButton::Right: return (buttons & SDL_BUTTON_RMASK) != 0;
             case MouseButton::Middle: return (buttons & SDL_BUTTON_MMASK) != 0;
-            // case MouseButton::Side1: return (buttons & SDL_BUTTON_X1MASK) != 0;
-            // case MouseButton::Side2: return (buttons & SDL_BUTTON_X2MASK) != 0;
             default: return false;
         }
     }

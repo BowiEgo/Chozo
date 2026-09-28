@@ -87,16 +87,6 @@ private:
     mutable std::vector<Scope<ShaderResObj>> m_ShaderResources;
     mutable std::vector<PushConstantRange> m_PushConstantRanges;
     mutable std::unordered_map<uint32_t, SetLayout> m_SetLayouts;
-
-    // std::string m_Name;
-    // std::filesystem::path m_VirtualPath;
-    // std::vector<ShaderStage> m_Stages;
-    // std::string m_EntryPoint;
-    // ShaderDefinitions m_Definitions;
-
-    // std::unordered_map<ShaderStage, std::vector<uint32_t>> m_SPIRVBlobs;
-
-    // std::unordered_map<ShaderStage, ShaderReflection> m_Reflections;
 };
 
 class Shader : public Asset<class ShaderObj> {

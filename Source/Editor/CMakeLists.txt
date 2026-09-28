@@ -8,9 +8,7 @@ set(MODULE_SRC
     Renderer/Vulkan/VulkanImGuiRenderer.cpp
     EditorNode/EditorNode.cpp
     EditorNode/EditorNodeTree.cpp
-    Panels/AssetsPanel.cpp
     Panels/ConsolePanel.cpp
-    Panels/TextureViewerPanel.cpp
     Panels/SceneHierarchyPanel.cpp
     Panels/PropertiesPanel.cpp
 )

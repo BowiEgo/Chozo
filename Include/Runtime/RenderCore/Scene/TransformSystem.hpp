@@ -15,9 +15,6 @@ public:
 
     void Update();
     void MarkDirty(Entity entity);
-    // void SetParent(Entity child, Entity parent);
-    // void SetLocalTransform(Entity entity, const FVector3& pos, const FQuaternion& rot,
-    //                        const FVector3& scale);
 
 private:
     void ComputeDepth(Entity entity, uint32_t depth);

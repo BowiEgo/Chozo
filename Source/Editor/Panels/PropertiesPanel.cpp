@@ -43,9 +43,7 @@ void PropertiesPanel::DrawComponentHeader(const std::string& name, bool bDefault
     }
 
     if (open) {
-        // ImGui::Indent();
         drawContentFunc();
-        // ImGui::Unindent();
         ImGui::TreePop();
     }
 }
@@ -90,26 +88,6 @@ void PropertiesPanel::DrawTransformProperties(EditorNode* node) {
     });
 }
 
-void PropertiesPanel::DrawHDRIBackdropProperties(EditorNode* node) {
-    // if (!node) return;
-    // if (!node->HasHDRIBackdrop()) return;
+void PropertiesPanel::DrawHDRIBackdropProperties(EditorNode* node) {}
 
-    // DrawComponentHeader("HDRI Backdrop", true, [this, node]() {
-    //     auto params = node->GetHDRIBackdropParams();
-    //     if (DrawColumnProperties("HDRI Backdrop", params)) {
-    //         node->MarkDirty();
-    //     }
-    // });
-}
-
-void PropertiesPanel::DrawMeshProperties(EditorNode* node) {
-    // if (!node) return;
-    // if (!node->HasMesh()) return;
-
-    // DrawComponentHeader("Mesh", true, [this, node]() {
-    //     auto params = node->GetMeshParamsWrapper()->Get();
-    //     if (DrawColumnProperties("Mesh", params)) {
-    //         node->MarkDirty();
-    //     }
-    // });
-}
+void PropertiesPanel::DrawMeshProperties(EditorNode* node) {}

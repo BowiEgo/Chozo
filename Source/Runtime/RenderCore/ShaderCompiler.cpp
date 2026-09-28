@@ -16,7 +16,6 @@ static const struct {
     SlangCompileTarget format;
     const char* profile;
 } kTargets[] = {
-    // { SLANG_DXIL, "sm_6_0" },
     { SLANG_SPIRV, "spirv_1_5" },
 };
 static const int kTargetCount = SLANG_COUNT_OF(kTargets);
@@ -35,7 +34,6 @@ ShaderCompiler::ShaderCompiler() {
 ComPtr<slang::ISession> ShaderCompiler::CreateSession(const ShaderCompilerMultiInput& input) {
     std::filesystem::path sourcePath = VFS::Resolve(input.VirtualPath);
 
-    // ShaderCompilerOutput output;
     std::string parentPath = sourcePath.parent_path().string();
 
     slang::SessionDesc sessionDesc = {};
@@ -95,7 +93,6 @@ bool ShaderCompiler::CompileFromSource(
         if (auto varDecl = decl->asVariable(); varDecl &&
                                                varDecl->findModifier(slang::Modifier::Const) &&
                                                varDecl->findModifier(slang::Modifier::Static)) {
-            // CZ_RENDERCORE_LOG(Trace, "Found static const variable: {}", varDecl->getName());
         }
     }
 
@@ -104,9 +101,6 @@ bool ShaderCompiler::CompileFromSource(
     for (int i = 0; i < definedEntryPointCount; i++) {
         ComPtr<slang::IEntryPoint> entryPoint;
         SLANG_RETURN_ON_FAIL(slangModule->getDefinedEntryPoint(i, entryPoint.writeRef()));
-
-        // CZ_RENDERCORE_LOG(Trace, "Found entry point: {}",
-        //                   entryPoint->getFunctionReflection()->getName());
 
         componentsToLink.push_back(entryPoint.get());
     }
@@ -140,7 +134,6 @@ bool ShaderCompiler::CompileFromSource(
         }
 
         // SLANG_RETURN_ON_FAIL(
-        //     collectEntryPointMetadata(program, targetIndex, definedEntryPointCount));
 
         auto targetFormat = kTargets[targetIndex].format;
         PrintProgramLayout(programLayout, targetFormat);

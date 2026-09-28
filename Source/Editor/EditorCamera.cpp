@@ -37,7 +37,6 @@ bool EditorCamera::OnMouseScroll(MouseScrolledEvent& e) {
     float delta = e.GetYOffset() * 0.1f;
     MouseZoom(delta);
     m_ActiveCamera->MarkViewDirty();
-    // CZ_LOG(LogEditorCamera, Trace, e.ToString());
 
     return false;
 }

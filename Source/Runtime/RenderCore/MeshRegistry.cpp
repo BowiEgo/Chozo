@@ -24,7 +24,6 @@ Scope<MeshObj> ResourceGeneratorTraits<MeshObj>::Generate(const MeshParams param
 }
 
 template <> void AssetRegistry<MeshObj>::Init() {
-    // TypeRegister::Get().RegisterType("ProceduralMesh_Sphere", true, TypeCategory::Mesh);
 
     ProceduralMesh::RegisterType("Cube", CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, CubeGenerator));
 }

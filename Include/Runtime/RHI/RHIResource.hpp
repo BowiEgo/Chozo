@@ -16,12 +16,12 @@ enum class ResourceType {
     // ...
 };
 
+/// Base for RHI objects that need a stable identity (descriptor cache keys, ImGui texture ids).
+/// It deliberately carries no type tag: `ResourceType` describes descriptor bindings, not objects.
 class RHIResource {
 public:
     RHIResource() : m_ID(UUID::Generate()) {}
-    ~RHIResource() = default;
-
-    virtual ResourceType GetResourceType() const = 0;
+    virtual ~RHIResource() = default;
 
     UUID GetID() const { return m_ID; }
 

@@ -146,7 +146,6 @@ VkResult VulkanGraphicsBufferObj::Init(const Buffer* initialData) {
         allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
     }
 
-    // result = vkCreateBuffer(logicalDevice, &bufferInfo, NULL, &m_VkBuffer);
     VmaAllocationInfo allocInfo = {};
     result = vmaCreateBuffer(m_DeviceObj->GetVmaAllocator(), &bufferInfo, &allocCreateInfo,
                              &m_VkBuffer, &m_VmaAllocation, &allocInfo);

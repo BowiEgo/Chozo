@@ -14,7 +14,6 @@ struct GraphicsBufferSpecification {
     MemoryType MemoryType = MemoryType::Unknown;
     std::string Name; // For debugging
 
-    // Alignment requirements (0 = default)
     size_t MinAlignment = 0;
 };
 
@@ -27,12 +26,9 @@ public:
     GraphicsBufferObj(const GraphicsBufferObj&)            = delete;
     GraphicsBufferObj& operator=(const GraphicsBufferObj&) = delete;
 
-    ResourceType GetResourceType() const override { return ResourceType::GraphicsBuffer; }
-
     // Core functionality
     virtual void* Map(size_t offset = 0, size_t size = 0)       = 0;
     virtual void Unmap()                                        = 0;
-    // Upload data (convenience)
     virtual void SetData(const Buffer* data, size_t offset = 0) = 0;
 
     // Getters

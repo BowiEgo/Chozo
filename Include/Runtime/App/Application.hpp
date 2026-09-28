@@ -7,6 +7,7 @@
 #include <Runtime/App/StartupHost.hpp>
 #include <Runtime/Window/Window.hpp>
 
+#include <chrono>
 #include <string>
 
 namespace CZ {
@@ -53,7 +54,8 @@ public:
     Engine* GetEngine() { return m_Engine.get(); }
 
 private:
-    bool m_ShouldClose = false;
+    bool m_ShouldClose                                    = false;
+    std::chrono::steady_clock::time_point m_LastFrameTime = std::chrono::steady_clock::now();
 
     // Owned by the application.
     Scope<WindowObj> m_Window;

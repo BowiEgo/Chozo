@@ -38,18 +38,10 @@ Scope<RendererObj> Renderer::Create(const RendererSpecification& spec) {
     auto testPipelineSpec         = PipelineSpecification{};
     testPipelineSpec.Name         = "TestPipeline";
     testPipelineSpec.ColorFormats = { PixelFormat::RGBA16F };
-#if 0
-    std::vector<std::string> files = { "shaders://Test.slang",        "shaders://Test copy.slang",
-                                       "shaders://Test copy 2.slang", "shaders://Test copy 3.slang",
-                                       "shaders://Test copy 4.slang", "shaders://Test copy 5.slang",
-                                       "shaders://Test copy 6.slang", "shaders://Test copy 7.slang",
-                                       "shaders://Test copy 8.slang", "shaders://Test copy 9.slang",
-                                       "shaders://Test copy 10.slang" };
-#else
-    std::vector<std::string> files = { "shaders://Basic.slang" };
-#endif
 
-#if 1
+    const std::vector<std::string> files = { "shaders://Basic.slang" };
+
+    // Compile the shaders on the job system and wait for the results before creating the pipeline.
     std::vector<std::future<Shader>> pendingShaders;
     for (auto& path : files) {
         pendingShaders.push_back(
@@ -65,17 +57,6 @@ Scope<RendererObj> Renderer::Create(const RendererSpecification& spec) {
             obj->TestPipeline = ctx->GetDevice()->CreatePipeline(
                 testPipelineSpec, shader->GetShaderResources(), shader->GetReflection());
     }
-#else
-    for (auto& path : files) {
-        auto shader = Application::Get().GetEngine()->GetShaderRegistry()->LoadAsset(path);
-        CZ_CORE_LOG(Trace, "Shader {} compiled", shader.GetName());
-
-        if (shader.GetName() == "Basic")
-            obj->TestPipeline = ctx->GetDevice()->CreatePipeline(
-                testPipelineSpec, shader->GetShaderResources(), shader->GetReflection());
-    }
-
-#endif
 
     return obj;
 }
@@ -123,11 +104,7 @@ void Renderer::Tick(float deltaTime) {
             cmdList->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
             cmdList->SetScissor({ 0, 0, width, height });
 
-            // cmdList->Draw(testCube);
-
             cmdList->Draw(viewport->GetScene(), viewport->GetCamera());
-
-            // cmdList->Draw(3, 1, 0, 0);
 
             RHIAPI::Get()->EndRendering(cmdList);
 

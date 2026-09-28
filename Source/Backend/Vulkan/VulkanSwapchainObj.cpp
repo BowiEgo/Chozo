@@ -117,15 +117,6 @@ void VulkanSwapchainObj::Init() {
     VulkanUtils::SwapchainSupportDetails details =
         VulkanUtils::QuerySwapchainSupport(physicalDevice, vkSurface);
 
-    // CZ_BACKEND_LOG(Info, "Vulkan surface current extent: {}x{}",
-    //        details.Capabilities.currentExtent.width, details.Capabilities.currentExtent.height);
-    // CZ_BACKEND_LOG(Info, "Vulkan surface min extent: {}x{}",
-    //        details.Capabilities.minImageExtent.width,
-    //        details.Capabilities.minImageExtent.height);
-    // CZ_BACKEND_LOG(Info, "Vulkan surface max extent: {}x{}",
-    //        details.Capabilities.maxImageExtent.width,
-    //        details.Capabilities.maxImageExtent.height);
-
     int pixelWidth = m_Spec.FrameBufferSize.Width, pixelHeight = m_Spec.FrameBufferSize.Height;
 
     VkSurfaceFormatKHR surfaceFormat = VulkanUtils::ChooseSwapSurfaceFormat(details.Formats);

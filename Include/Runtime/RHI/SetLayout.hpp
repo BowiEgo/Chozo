@@ -32,8 +32,6 @@ class SetLayoutObj : public RHIResource {
 public:
     SetLayoutObj()          = default;
     virtual ~SetLayoutObj() = default;
-
-    ResourceType GetResourceType() const override { return ResourceType::SetLayout; }
 };
 
 struct SetLayout : Handle<class SetLayoutObj> {

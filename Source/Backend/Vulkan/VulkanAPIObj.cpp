@@ -40,7 +40,6 @@ void VulkanAPIObj::BeginRendering(CommandList cmdList, std::vector<Texture>& tar
     renderingInfo.pColorAttachments    = colorAttachmentInfos.data();
 
     // 如有深度附件可在此设置：
-    // renderingInfo.pDepthAttachment = &depthAttachmentInfo;
 
     vkCmdBeginRendering(vkCmdBuffer, &renderingInfo);
 }
@@ -61,23 +60,12 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
 
     VkCommandBuffer vkCmdBuffer = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
 
-    // if (vkSync->WasJustRecreated()) {
-    //     CZ_BACKEND_LOG(Trace,
     //            "Semaphores were just recreated, skipping one frame to stabilize");
-    //     vkSync->ClearRecreatedFlag();
-    //     return;
-    // }
-
-    // if (swapchain->RecreateIfNeeded()) {
-    //     vkSync->RecreateSemaphores(device);
-    //     return;
-    // }
 
     // 1. CPU wait GPU make resources safety
     bool waitSuccess = fence->WaitAndReset(UINT32_MAX);
     if (!waitSuccess) {
         CZ_BACKEND_LOG(Error, "Failed to wait for fence");
-        // vkSync->RecreateSemaphores(device);
         return;
     }
 
@@ -96,7 +84,6 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
         CZ_BACKEND_LOG(Warning, "Failed to acquire image (attempt {}/{})", retryCount + 1,
                        maxRetries);
         retryCount++;
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     if (imgIdx == INVALID_IMAGE_INDEX) {
@@ -130,7 +117,6 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     VkResult submitResult = vkQueueSubmit(vkQueue, 1, &submitInfo, vkFence);
     if (submitResult != VK_SUCCESS) {
         CZ_BACKEND_LOG(Error, "Submit failed: {}", VulkanUtils::VkResultToString(submitResult));
-        // acquireWaitSem.As<VulkanSemaphoreObj>()->Recreate();
         return;
     }
 
@@ -164,7 +150,6 @@ void VulkanAPIObj::EndRendering(CommandList cmdList) {
 
 void VulkanAPIObj::TransitionImageLayout(CommandList cmdList, Image image,
                                          const ImageLayout newLayout, uint32_t baseArrayLayer) {
-    // CZ_BACKEND_LOG(Info, "TransitionImageLayout");
 
     auto imageObj = image.As<VulkanImageObj>();
 

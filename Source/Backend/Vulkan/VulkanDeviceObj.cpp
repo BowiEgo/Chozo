@@ -312,7 +312,6 @@ VkResult VulkanDeviceObj::CreateLogicalDevice() {
     }
 
     // ----- Device features -----
-    // VkPhysicalDeviceFeatures deviceFeatures{};
 
     // pNext chain
     VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchainMaintenanceFeatures{};

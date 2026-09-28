@@ -114,15 +114,6 @@ public:
     }
 
     // ===== HDRIBackdrop =====
-    // bool HasHDRIBackdrop() const {
-    //     bool isHDRIBackdrop = FLightRegister::Get().IsHDRIBackdropType(m_TypeMask);
-    //     return isHDRIBackdrop;
-    // }
-    // void SetHDRIBackdropParams(const HDRIBackdropParams& params) {
-    //     m_HDRIBackdropParams = params;
-    //     MarkDirty();
-    // }
-    // const HDRIBackdropParams* GetHDRIBackdropParams() const { return &m_HDRIBackdropParams; }
     // HDRIBackdropParams* GetHDRIBackdropParams() { return &m_HDRIBackdropParams; }
 
     // // ===== Mesh =====
@@ -140,11 +131,6 @@ public:
         MarkDirty();
     }
 
-    // void SetMeshParams(const std::string& typeName) {
-    //     m_MeshParams = MeshRegister::Get().CreateParams(typeName);
-    //     MarkDirty();
-    // }
-
     MeshParams GetMeshParams() const {
         return m_MeshParams ? MeshParams(m_MeshParams.get()) : MeshParams();
     }
@@ -152,8 +138,6 @@ public:
     // ===== Material =====
 
     // ===== Serialization =====
-    // void Serialize(FArchive& ar);
-    // void Deserialize(FArchive& ar);
 
 private:
     static std::atomic<NodeID> s_NextID;
@@ -169,7 +153,6 @@ private:
 
     // Components, owned by the node.
     Scope<TransformParamsObj> m_TransformParams;
-    // HDRIBackdropParams m_HDRIBackdropParams;
     Scope<MeshParamsObj> m_MeshParams;
 
     // State

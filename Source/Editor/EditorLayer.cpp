@@ -28,9 +28,6 @@ void EditorLayer::OnAttach() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   // Enable Multi-Viewport
-    // io.ConfigViewportsNoAutoMerge = true; io.ConfigViewportsNoTaskBarIcon = true;
-
-    // SetFont("Titillium_Web/TitilliumWeb-Regular.ttf");
 
 #ifdef CZ_PLATFORM_WINDOWS
     ImFontConfig config;
@@ -43,7 +40,6 @@ void EditorLayer::OnAttach() {
 #endif
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    // ImGui::StyleColorsLight();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look
     // identical to regular ones.
@@ -79,31 +75,13 @@ void EditorLayer::OnAttach() {
 
     CallbackHandle handle = m_NodeTree.RegisterEventCallback([this](const NodeEvent& event) {
         switch (event.GetType()) {
-            case EditorNodeEventType::Created:
-                m_SyncBridge->RegisterNode(event.GetNode());
-                // CZ_EDITOR_LOG(Trace, "Node created: {}", event.GetNode()->GetName());
-                break;
-            case EditorNodeEventType::Deleted:
-                m_SyncBridge->UnregisterNode(event.GetNode());
-                // CZ_EDITOR_LOG(Trace, "Node deleted: {}", event.GetNode()->GetName());
-                break;
-            case EditorNodeEventType::Renamed:
-                // CZ_EDITOR_LOG(Trace, "Node renamed: {} -> {}", event.GetOldName(),
-                //   event.GetNode()->GetName());
-                break;
-            case EditorNodeEventType::Moved:
-                // CZ_EDITOR_LOG(Trace, "Node parent changed: {}", event.GetNode()->GetName());
-                break;
-            case EditorNodeEventType::Selected:
-                // CZ_EDITOR_LOG(Trace, "Node selected: {}", event.GetNode()->GetName());
-                break;
-            case EditorNodeEventType::DirtyChanged:
-                // CZ_EDITOR_LOG(Trace, "Node dirty changed: {}", event.GetNode()->GetName());
-                break;
-            default:
-                // CZ_EDITOR_LOG(Warning, "Unknown event type: {}",
-                // static_cast<int>(event.GetType()));
-                break;
+            case EditorNodeEventType::Created: m_SyncBridge->RegisterNode(event.GetNode()); break;
+            case EditorNodeEventType::Deleted: m_SyncBridge->UnregisterNode(event.GetNode()); break;
+            case EditorNodeEventType::Renamed: break;
+            case EditorNodeEventType::Moved: break;
+            case EditorNodeEventType::Selected: break;
+            case EditorNodeEventType::DirtyChanged: break;
+            default: break;
         }
     });
 
@@ -115,10 +93,6 @@ void EditorLayer::OnAttach() {
     m_ConsolePanel.Open();
     m_SceneHierarchyPanel.Open();
     m_PropertiesPanel.Open();
-    // m_ContentBrowserPanel.Open();
-    // m_MaterialPanel.Open();
-    m_TextureViewerPanel.Open();
-    m_AssetsPanel.Open();
 
     {
         // Material
@@ -127,11 +101,7 @@ void EditorLayer::OnAttach() {
         EditorNode* newNode = m_NodeTree.CreateNode("Cube", cubeNodeMask, nullptr);
         m_NodeTree.SelectNode(newNode);
 
-        // auto pbrMat = m_ViewportRenderer->GetPBRMaterial();
         // static_cast<FSphereParams*>(newNode->GetMeshParamsWrapper()->Get())->Material =
-        //     pbrMat->GetHandle();
-
-        // auto meshProps = newNode->GetMeshParamsWrapper();
     }
 }
 
@@ -143,7 +113,6 @@ void EditorLayer::OnDetach() {
 }
 
 void EditorLayer::OnUpdate(float deltaTime) {
-    // CZ_EDITOR_LOG(Trace, "OnUpdate: {}", deltaTime);
     m_Viewport->Resize(m_ViewportSize.x, m_ViewportSize.y);
     m_EditorCamera.OnUpdate(deltaTime, m_ViewportFocused);
     m_SyncBridge->SyncAllNodesToEntities();
@@ -182,9 +151,6 @@ void EditorLayer::OnRender() {
     }
     style.WindowMinSize.x = minWinSizeX;
 
-    // for (auto Layer : m_Layers)
-    //     Layer.OnRender();
-
 #pragma region Main Menu Bar
     // ----------------------------------------------------------------------------
     // [Sub-Section] Main Menu Bar
@@ -200,34 +166,14 @@ void EditorLayer::OnRender() {
 
         if (ImGui::BeginMenu("Renderer")) {
             if (ImGui::MenuItem("Recompile Shaders")) {
-                // Renderer::GetShaderLibrary()->Recompile();
             }
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Settings")) {
-            // if (ImGui::MenuItem("Vertical Sync (VSync)", nullptr, &m_VSyncEnabled))
-            //     m_ViewportRenderer->GetWindow()->SetVSync(m_VSyncEnabled);
-
-            // if (ImGui::BeginMenu("PowerMode")) {
-            //     EAppPowerMode appPowerMode = Application::Get()->GetPowerMode();
-            //     if (ImGui::MenuItem("NoLimit", nullptr, appPowerMode == EAppPowerMode::NoLimit))
-            //         Application::Get()->SetPowerMode(EAppPowerMode::NoLimit);
-            //     if (ImGui::MenuItem("Extreme", nullptr, appPowerMode == EAppPowerMode::Extreme))
-            //         Application::Get()->SetPowerMode(EAppPowerMode::Extreme);
-            //     if (ImGui::MenuItem("Performance", nullptr,
-            //                         appPowerMode == EAppPowerMode::Performance))
-            //         Application::Get()->SetPowerMode(EAppPowerMode::Performance);
 
             //     if (ImGui::MenuItem("Balanced", nullptr, appPowerMode ==
-            //     EAppPowerMode::Balanced))
-            //         Application::Get()->SetPowerMode(EAppPowerMode::Balanced);
 
-            //     if (ImGui::MenuItem("PowerSaving", nullptr,
-            //                         appPowerMode == EAppPowerMode::PowerSaving))
-            //         Application::Get()->SetPowerMode(EAppPowerMode::PowerSaving);
-            //     ImGui::EndMenu();
-            // }
             ImGui::EndMenu();
         }
 
@@ -242,10 +188,6 @@ void EditorLayer::OnRender() {
     m_ConsolePanel.Draw("Console");
     m_SceneHierarchyPanel.Draw("Scene Hierarchy");
     m_PropertiesPanel.Draw("Properties");
-    // m_ContentBrowserPanel.Draw("Content Browser");
-    // m_MaterialPanel.Draw("Material");
-    // m_TextureViewerPanel.Draw("Texture Viewer");
-    m_AssetsPanel.Draw("Assets");
 #pragma endregion
 
 #pragma region Viewport Rendering
@@ -286,45 +228,17 @@ void EditorLayer::OnRender() {
     ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
 
     // // Integrated Debug Overlay
-    // m_Overlay.Draw("Editor Overlay:", &m_IsOverlayOpen, [io]() {
     //     // Performance monitoring
-    //     auto appProfiler = Application::Get()->GetPerformanceProfiler();
-    //     float fps        = Application::Get()->GetFPSCounter()->GetFPS();
-    //     float latency    = Application::Get()->GetFPSCounter()->GetAvgLatency();
 
     //     auto rendererProfiler =
-    //         Application::Get()->GetRenderEngine()->GetRenderer()->GetPerformanceProfiler();
 
-    //     ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Engine FPS: %.1f", fps);
-    //     ImGui::TextDisabled("Latency: %.3f ms", latency);
-    //     for (uint32_t i = 1; i < (uint32_t)EAppProfileSlot::COUNT; ++i) {
-    //         const float time = appProfiler->GetSmoothedAverage((uint32_t)(EAppProfileSlot)i);
-    //         ImGui::Text("%-20s: %.3f ms", GAppProfileSlotNames[i], time);
-    //     }
-
-    //     ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Renderer:");
-    //     for (uint32_t i = 1; i < (uint32_t)ERendererProfileSlot::COUNT; ++i) {
     //         const float time =
-    //             rendererProfiler->GetSmoothedAverage((uint32_t)(ERendererProfileSlot)i);
-    //         ImGui::Text("%-20s: %.3f ms", GRendererProfileSlotNames[i], time);
-    //     }
-
-    //     auto gpuProfiler = Application::Get()->GetGPUProfiler();
-    //     float mbSize     = 1024.0 * 1024.0;
-
-    //     for (auto& heapInfo : gpuProfiler.Heaps) {
-    //         ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "GPU: %s", heapInfo.Type.c_str());
-    //         ImGui::Text("Size: %.3f MB", heapInfo.Size / mbSize);
-    //         ImGui::Text("Budget: %.3f MB", heapInfo.Budget / mbSize);
-    //         ImGui::Text("Usage: %.3f MB", heapInfo.Usage / mbSize);
-    //     }
 
     //     // Mouse Position
     //     // if (ImGui::IsMousePosValid())
     //     //     ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
     //     // else
     //     //     ImGui::Text("Mouse Position: <invalid>");
-    // });
 
     ImGui::End();
     ImGui::PopStyleVar();
@@ -357,7 +271,6 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
 }
 
 void EditorLayer::Draw(CommandList cmdList) {
-    // CZ_EDITOR_LOG(Trace, "Draw");
 
     m_ImGuiRenderer->Draw(ImGui::GetDrawData(), cmdList);
 }
@@ -365,21 +278,10 @@ void EditorLayer::Draw(CommandList cmdList) {
 void EditorLayer::Init() {}
 
 void EditorLayer::SetFont(std::string font) {
-    // std::filesystem::path fontPath = VFS::Resolve("fonts://" + font);
-
-    // if (!std::filesystem::exists(fontPath)) {
-    //     CZ_EDITOR_LOG(Error, "Font file not found: {}", fontPath.string());
-    //     return;
-    // }
 
     // ImGuiIO& io       = ImGui::GetIO();
-    // float fontSize    = 18.0f;
-    // float pixelRatio  = m_Window->GetPixelRatio();
-    // FExtent2D fbScale = m_Window->GetFrameBufferScale();
 
-    // io.Fonts->Clear();
     // io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontSize * fbScale.Width /
-    // pixelRatio); io.FontDefault = io.Fonts->Fonts.back();
 }
 
 void EditorLayer::SetDarkThemeColors() {
@@ -442,7 +344,6 @@ void EditorLayer::SetDarkThemeColors() {
 void EditorLayer::NewProject() {}
 
 void EditorLayer::OpenProject() {
-    // auto context = m_ViewportRenderer->GetGraphicContext();
 
     // UFileDialog::Get().Open(
     //     "TextureOpenDialog", "Open a texture",

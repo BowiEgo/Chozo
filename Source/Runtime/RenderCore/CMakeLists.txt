@@ -9,7 +9,6 @@ set(MODULE_INCLUDE
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/AssetRegistry.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/ShaderRegistry.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Params.hpp
-    ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/MeshParamsInternal.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/MeshParams.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/Mesh.hpp
     ${CHOZO_INCLUDE_DIR}/Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp
@@ -33,7 +32,6 @@ set(MODULE_SRC
     ProceduralMesh/ProceduralMesh.cpp
     ProceduralMesh/CubeParamsObj.cpp
     Components/TransformComponent.cpp
-    Scene/Entity.cpp
     Scene/Scene.cpp
     Scene/TransformSystem.cpp
     Camera/Camera.cpp

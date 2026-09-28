@@ -484,9 +484,6 @@ inline void DrawButtonImageByRatio(Texture image, Vector2 size) {
 //=========================================================================================
 // IconButton
 static bool IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32 bgPressed) {
-    // ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 0.0f));
-    // ScopedFrameStyle<float> frameRounding(ImGuiStyleType::FrameRounding, 2.0f);
-    // ScopedFontStyle<float> font(ImGuiFontStyle::Scale, 1.2f);
     ScopedColorStack buttonColors(ImGuiCol_Button, bgNormal, ImGuiCol_ButtonHovered, bgHovered,
                                   ImGuiCol_ButtonActive, bgPressed);
 
@@ -495,35 +492,11 @@ static bool IconButton(std::string label, ImU32 bgNormal, ImU32 bgHovered, ImU32
 
 //=========================================================================================
 // FileButton
-// static void FileButton(std::string* filePath) {
-//     ImGui::Button("...", ImVec2(40.0f, 0.0f));
-//     if (ImGui::BeginDragDropTarget()) {
-//         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-//             const wchar_t* path = (const wchar_t*)payload->Data;
-//             fs::path fullPath = Utils::File::GetAssetDirectory() / fs::path((char*)path);
 
-//             CZ_INFO("FileButton: {0}", fullPath.string().c_str());
 //             *filePath = fullPath.string();
-//         }
 
-//         ImGui::EndDragDropTarget();
-//     }
-// }
 //=========================================================================================
 // DragAndDrop
-// static void BeginDragAndDrop(std::function<void(AssetHandle handle)>&& func) {
-//     if (ImGui::BeginDragDropTarget()) {
-//         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM")) {
-//             const wchar_t* handle_wchar = (const wchar_t*)payload->Data;
-//             AssetHandle handle = Utils::WChar::WCharToUint64(handle_wchar);
-//             CZ_INFO("Drop target: {0}", std::to_string(handle));
-
-//             func(handle);
-//         }
-
-//         ImGui::EndDragDropTarget();
-//     }
-// }
 
 static void DrawDashedRect(ImVec2 min, ImVec2 max, ImU32 color, float thickness = 1.0f,
                            float dashLength = 5.0f, float gapLength = 5.0f) {

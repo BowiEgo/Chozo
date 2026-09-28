@@ -7,24 +7,25 @@
 using namespace CZ;
 
 int main(int argc, char** argv) {
-    std::string err;
+    (void)argc;
+    (void)argv;
 
-    Layer* editorLayer;
+    std::string err;
     StartupHost editor;
 
-    // Load libraries
+    // Load the editor module, which provides the startup host (and with it the main layer).
     {
         auto& registry = CZ::DynamicLibraryRegistry::Get();
 
         if (!registry.LoadLib("Editor", "libCZEditor.dylib")) {
-            err = "Cannot load Editor.";
-            return 0;
+            CZ_APP_LOG(Error, "Cannot load the Editor module.");
+            return 1;
         }
 
         auto createEditorFn = registry.GetFunction<StartupHost (*)()>("Editor", "CreateEditor");
         if (!createEditorFn) {
-            CZ_LOG(LogUI, Error, "CreateEditor not found in editor module.");
-            return 0;
+            CZ_APP_LOG(Error, "CreateEditor not found in the editor module.");
+            return 1;
         }
 
         editor = createEditorFn();
@@ -36,14 +37,15 @@ int main(int argc, char** argv) {
     app.SetStartupHost(editor);
 
     if (!app.Startup(spec, err)) {
-        CZ_APP_LOG(Error, "{}", err);
+        CZ_APP_LOG(Error, "Startup failed: {}", err);
+        return 1;
     }
 
-    while (true) {
+    while (!app.ShouldClose()) {
         app.Run();
-
-        if (app.ShouldClose()) break;
     }
 
     app.Shutdown();
+
+    return 0;
 }

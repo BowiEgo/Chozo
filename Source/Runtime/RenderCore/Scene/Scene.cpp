@@ -52,9 +52,6 @@ Entity SceneObj::CreateEntity(const std::string& name) {
     // Add empty Relationship component (for hierarchy)
     AddComponent<RelationshipComponent>(entity);
 
-    // CZ_LOG(LogScene, Trace, "Created entity [{}] with name '{}'", static_cast<uint32_t>(handle),
-    //        name.empty() ? "Unnamed" : name);
-
     return entity;
 }
 
@@ -85,8 +82,6 @@ void SceneObj::DestroyEntity(Entity entity) {
 
     // Destroy the entity and all its components
     m_Impl->m_Registry.destroy(EntityToEntt(entity));
-
-    // CZ_LOG(LogScene, Trace, "Destroyed entity [{}]", static_cast<uint32_t>(handle));
 }
 
 bool SceneObj::IsValid(Entity entity) const {
@@ -139,15 +134,10 @@ void SceneObj::SetParent(Entity child, Entity parent) {
         childRel.Parent = parent;
         parentRel.Children.push_back(child);
     } else {
-        // No parent (root node)
         if (HasComponent<RelationshipComponent>(child)) {
             GetComponent<RelationshipComponent>(child).Parent = Entity();
         }
     }
-
-    // CZ_LOG(LogScene, Trace, "Set parent for entity [{}] -> [{}]",
-    //        static_cast<uint32_t>(child.GetHandle()),
-    //        parent.IsValid() ? static_cast<uint32_t>(parent.GetHandle()) : 0);
 }
 
 std::vector<Entity> SceneObj::GetChildren(Entity entity) {
@@ -186,12 +176,8 @@ std::vector<RenderData> SceneObj::GetRenderDatas() {
             Application::Get().GetEngine()->GetMeshRegistry()->GetAsset(meshComp.m_Handle);
         auto& transformComp = view.get<TransformComponent>(entity);
 
-        // auto matHandle = meshComp.MeshParamsWrapper.Get()->Material;
-        // if (matHandle.IsValid()) {
-        //     renderData.Material = AssetManager::Get()
         //                               .GetAsset(meshComp.MeshParamsWrapper.Get()->Material)
         //                               .As<Material>();
-        // }
 
         ScenePushConstants pushConstants;
 

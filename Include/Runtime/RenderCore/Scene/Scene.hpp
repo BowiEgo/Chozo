@@ -19,7 +19,6 @@ struct ScenePushConstants {
 };
 
 struct RenderData {
-    // Material Material;
     ScenePushConstants PushConstants;
     Mesh Mesh;
 };
@@ -59,8 +58,6 @@ struct SceneObj {
     template <typename... Components> auto View() const;
 
     // ----- Serialization -----
-    // void Serialize(FArchive& ar) override;
-    // void Deserialize(FArchive& ar) override;
 };
 
 class Scene : public Asset<struct SceneObj> {
