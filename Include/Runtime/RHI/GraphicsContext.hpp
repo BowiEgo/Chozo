@@ -53,24 +53,26 @@ public:
 
     uint32 GetCurrentFrame() const { return m_CurrentFrame; }
 
-    Device GetDevice() { return m_Device; }
+    Device GetDevice() { return ViewAs<Device>(m_DeviceOwner); }
 
-    Swapchain GetSwapchain() { return m_Swapchain; }
+    Swapchain GetSwapchain() { return ViewAs<Swapchain>(m_SwapchainOwner); }
 
     void End() { m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % GetMaxFramesInFlight(); }
 
 protected:
     GraphicsContextSpecification m_Spec;
 
-    Device m_Device;
-    Swapchain m_Swapchain;
+    // The context owns the device and the swapchain; `GetDevice`/`GetSwapchain` return views.
+    Scope<DeviceObj> m_DeviceOwner;
+    Scope<SwapchainObj> m_SwapchainOwner;
 
     uint32 m_CurrentFrameIndex = 0;
     uint32 m_CurrentFrame      = 0;
 };
 
 struct GraphicsContext : Handle<class GraphicsContextObj> {
-    static GraphicsContext Create(const GraphicsContextSpecification& spec);
+    /// Creates a context owned by the caller.
+    static Scope<GraphicsContextObj> Create(const GraphicsContextSpecification& spec);
 
     template <typename T> T* As() { return static_cast<T*>(InternalHandleReader::Unwrap(*this)); }
 };

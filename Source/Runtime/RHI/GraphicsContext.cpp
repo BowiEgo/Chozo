@@ -3,11 +3,11 @@
 
 namespace CZ {
 
-GraphicsContext GraphicsContext::Create(const GraphicsContextSpecification& spec) {
+Scope<GraphicsContextObj> GraphicsContext::Create(const GraphicsContextSpecification& spec) {
     auto& registry = DynamicLibraryRegistry::Get();
     if (!registry.LoadLib("vulkan_backend", "libCZVulkan.dylib")) {
         CZ_RHI_LOG(Error, "CreateVulkanGraphicsContextObj not found in backend.");
-        return {};
+        return nullptr;
     }
 
     auto createFn =
@@ -16,22 +16,10 @@ GraphicsContext GraphicsContext::Create(const GraphicsContextSpecification& spec
 
     if (!createFn) {
         CZ_RHI_LOG(Error, "CreateVulkanGraphicsContextObj not found in backend.");
-        return {};
+        return nullptr;
     }
 
-    auto obj = createFn(spec);
-
-    return { obj };
-}
-
-template <> void Handle<GraphicsContextObj>::Destroy() {
-    if (m_Obj) {
-        m_Obj->GetSwapchain().Destroy();
-        m_Obj->GetDevice().Destroy();
-
-        Delete(m_Obj);
-        m_Obj = nullptr;
-    }
+    return Scope<GraphicsContextObj>(createFn(spec));
 }
 
 } // namespace CZ

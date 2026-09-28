@@ -58,27 +58,22 @@ public:
 
     virtual void WaitIdle() = 0;
 
-    virtual CommandPool CreateCommandPool(CommandPoolSpecification& spec) = 0;
+    // --- Caller-owned resources (the caller keeps the returned Scope) ---
+    virtual Scope<CommandPoolObj> CreateCommandPool(CommandPoolSpecification& spec) = 0;
 
-    virtual Sampler CreateSampler(const SamplerSpecification spec) = 0;
+    virtual Scope<FrameBufferObj> CreateFrameBuffer(const FrameBufferSpecification& spec) = 0;
 
-    virtual FrameBuffer CreateFrameBuffer(const FrameBufferSpecification& spec) = 0;
+    virtual Scope<ShaderResObj> CreateShaderRes(const ShaderResSpecification& spec,
+                                                const std::vector<uint32_t>* binary) = 0;
 
-    virtual ShaderRes CreateShaderRes(const ShaderResSpecification& spec,
-                                      const std::vector<uint32_t>* binary) = 0;
+    virtual Scope<PipelineObj> CreatePipeline(const PipelineSpecification& spec,
+                                              const std::vector<ShaderRes>& shaders,
+                                              const ShaderReflection& reflection) = 0;
 
-    virtual Pipeline CreatePipeline(const PipelineSpecification& spec,
-                                    const std::vector<ShaderRes>& shaders,
-                                    const ShaderReflection& reflection) = 0;
+    virtual Scope<GraphicsBufferObj> CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
+                                                          const Buffer* initialData = nullptr) = 0;
 
-    virtual SetLayout CreateSetLayout(const SetLayoutDescription& desc) = 0;
-
-    virtual DescriptorSet CreateDescriptorSet(SetLayout setLayout,
-                                              std::vector<DescriptorBinding>& bindings) = 0;
-
-    virtual GraphicsBuffer CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
-                                                const Buffer* initialData = nullptr) = 0;
-
+    // --- Device-owned (cached) resources, handed out as views ---
     std::vector<SetLayout> CreateSetLayouts(
         const std::unordered_map<uint32_t, std::vector<ShaderResourceBinding>>& bindings);
 
@@ -86,6 +81,22 @@ public:
 
     DescriptorSet GetOrCreateDescriptorSet(SetLayout setLayout,
                                            std::vector<DescriptorBinding>& bindings);
+
+protected:
+    /// Releases every cached (device-owned) object. Backends must call this before destroying
+    /// their native device, because the caches outlive the derived destructor body.
+    void ReleaseCachedResources() {
+        m_DescriptorSetCache.clear();
+        m_SamplerCache.clear();
+        m_SetLayoutCache.clear();
+    }
+
+    virtual Scope<SamplerObj> CreateSamplerImpl(const SamplerSpecification& spec) = 0;
+
+    virtual Scope<SetLayoutObj> CreateSetLayoutImpl(const SetLayoutDescription& desc) = 0;
+
+    virtual Scope<DescriptorSetObj>
+        CreateDescriptorSetImpl(SetLayout setLayout, std::vector<DescriptorBinding>& bindings) = 0;
 
 private:
     SetLayout GetOrCreateLayout(const std::vector<ShaderResourceBinding>& bindings);
@@ -95,12 +106,14 @@ private:
 protected:
     DeviceSpecification m_Spec;
 
-    std::unordered_map<size_t, SetLayout> m_SetLayoutCache;
+    struct DescriptorSetEntry {
+        Scope<DescriptorSetObj> Set;
+        float LastFrame = 0.0f;
+    };
 
-    std::unordered_map<SamplerSpecification, Sampler> m_SamplerCache;
-    SetLayout m_StaticSamplerLayout;
-
-    std::unordered_map<DescriptorSetKey, DescriptorSet> m_DescriptorSetCache;
+    std::unordered_map<size_t, Scope<SetLayoutObj>> m_SetLayoutCache;
+    std::unordered_map<SamplerSpecification, Scope<SamplerObj>> m_SamplerCache;
+    std::unordered_map<DescriptorSetKey, DescriptorSetEntry> m_DescriptorSetCache;
 };
 
 struct Device : Handle<class DeviceObj> {

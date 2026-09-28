@@ -43,8 +43,12 @@ bool Engine::Init(std::string& err) {
 #endif
 
         m_GraphicsContext = GraphicsContext::Create(spec);
+        if (!m_GraphicsContext) {
+            err = "Failed to create the graphics context.";
+            return false;
+        }
 
-        success = RHIAPI::Get().Init(m_GraphicsContext, err);
+        success = RHIAPI::Get().Init(GetGraphicContext(), err);
     }
 
     {
@@ -60,7 +64,7 @@ bool Engine::Init(std::string& err) {
     return success;
 }
 
-void Engine::Tick(float deltaTime) { m_Renderer.Tick(deltaTime); }
+void Engine::Tick(float deltaTime) { GetRenderer().Tick(deltaTime); }
 
 void Engine::Shutdown() {
     JobSystem::Get().WaitAll();
@@ -71,14 +75,13 @@ void Engine::Shutdown() {
 
     JobSystem::Shutdown();
 
-    m_Renderer.Shutdown();
+    GetRenderer().Shutdown();
+    m_Renderer.reset();
 
     CameraManager::Get().Shutdown();
 
     RHIAPI::Shutdown();
-    m_GraphicsContext.Destroy();
-
-    // GraphicsContext::Destroy(m_GraphicsContext);
+    m_GraphicsContext.reset();
 }
 
 bool Engine::OnEvent(Event& e) {

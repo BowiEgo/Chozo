@@ -16,20 +16,21 @@ VulkanSwapchainObj::VulkanSwapchainObj(const VulkanGraphicsContextObj* ctxObj,
 
     m_RenderFinishedSemaphores.reserve(m_ColorAttachments.size());
     for (size_t i = 0; i < m_ColorAttachments.size(); ++i) {
-        m_RenderFinishedSemaphores.emplace_back(
-            CZ_NEW(MEMORY_USAGE_RENDER, VulkanSemaphoreObj, ctxObj->m_DeviceObj));
+        m_RenderFinishedSemaphores.push_back(
+            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanSemaphoreObj, ctxObj->m_DeviceObj));
     }
 
     m_ImageAvailableSemaphores.reserve(ctxObj->GetMaxFramesInFlight());
     for (uint32_t i = 0; i < ctxObj->GetMaxFramesInFlight(); ++i) {
-        m_ImageAvailableSemaphores.emplace_back(
-            CZ_NEW(MEMORY_USAGE_RENDER, VulkanSemaphoreObj, ctxObj->m_DeviceObj));
+        m_ImageAvailableSemaphores.push_back(
+            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanSemaphoreObj, ctxObj->m_DeviceObj));
     }
 
     m_InFlightFences.reserve(ctxObj->GetMaxFramesInFlight());
     for (uint32_t i = 0; i < ctxObj->GetMaxFramesInFlight(); ++i) {
-        auto result = VulkanFenceObj::Create(ctxObj->m_DeviceObj);
-        if (result) m_InFlightFences.emplace_back(result.value());
+        if (auto fence = VulkanFenceObj::Create(ctxObj->m_DeviceObj)) {
+            m_InFlightFences.push_back(std::move(fence));
+        }
     }
 }
 
@@ -231,19 +232,14 @@ void VulkanSwapchainObj::Init() {
         texSpec.Format = VulkanUtils::FromVKFormat(m_VkImageFormat);
         texSpec.Usage  = TextureUsage::Attachment;
 
-        // Create a VulkanImage that holds the external swapchain image
-        VulkanImageObj* imageObj =
-            CZ_NEW(MEMORY_USAGE_RENDER, VulkanImageObj, m_ContextObj->m_DeviceObj,
-                   texSpec.ToImageSpec(), rawImage, true);
+        // The swapchain owns the image (which wraps the external VkImage) and the texture.
+        Scope<ImageObj> imageObj =
+            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanImageObj, m_ContextObj->m_DeviceObj,
+                            texSpec.ToImageSpec(), rawImage, true);
 
-        Image image(imageObj);
-
-        VulkanTextureObj* textureObj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanTextureObj,
-                                              m_ContextObj->m_DeviceObj, texSpec, image);
-
-        Texture texture(textureObj);
-
-        m_ColorAttachments.push_back(texture);
+        m_ColorAttachments.push_back(CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanTextureObj,
+                                                     m_ContextObj->m_DeviceObj, texSpec,
+                                                     std::move(imageObj)));
     }
 
     CZ_BACKEND_LOG(Info, "=== Swapchain Creation Debug ===");

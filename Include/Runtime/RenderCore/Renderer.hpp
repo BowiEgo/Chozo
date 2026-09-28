@@ -13,8 +13,8 @@ struct RendererSpecification {
 };
 
 struct FrameResource {
-    CommandPool CommandPool;
-    CommandList CommandList;
+    Scope<CommandPoolObj> Pool;
+    Scope<CommandListObj> List;
 };
 
 struct RendererObj {
@@ -22,13 +22,15 @@ struct RendererObj {
     Window Window;
     DrawFunc FinalPassDrawFunc;
 
+    // Owned resources; the renderer hands out views.
     std::vector<FrameResource> Frames;
-
-    std::vector<Viewport> Viewports;
+    std::vector<Scope<ViewportObj>> Viewports;
+    Scope<PipelineObj> TestPipeline;
 };
 
 struct Renderer : Handle<struct RendererObj> {
-    static Renderer Create(const RendererSpecification& spec);
+    /// Creates a renderer owned by the caller.
+    static Scope<RendererObj> Create(const RendererSpecification& spec);
 
     void Shutdown();
     void Tick(float deltaTime);

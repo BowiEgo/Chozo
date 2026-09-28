@@ -23,7 +23,8 @@ public:
     CommandPoolObj(CommandPoolObj&&)                 = delete;
     CommandPoolObj& operator=(CommandPoolObj&&)      = delete;
 
-    virtual CommandList AllocateCommandBuffer() = 0;
+    /// Allocates a command buffer owned by the caller.
+    virtual Scope<CommandListObj> AllocateCommandBuffer() = 0;
 
 protected:
     CommandPoolSpecification m_Spec;

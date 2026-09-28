@@ -13,24 +13,17 @@ public:
         : GraphicsBufferObj(spec), m_DeviceObj(deviceObj) {}
     ~VulkanGraphicsBufferObj() override;
 
-    static Result<VulkanGraphicsBufferObj*, VkResult>
-        Create(VulkanDeviceObj* deviceObj, const GraphicsBufferSpecification& spec,
-               const Buffer* initialData) {
-        if (!deviceObj)
-            return Result<VulkanGraphicsBufferObj*, VkResult>::Error(
-                VK_ERROR_INITIALIZATION_FAILED);
+    static Scope<VulkanGraphicsBufferObj> Create(VulkanDeviceObj* deviceObj,
+                                                 const GraphicsBufferSpecification& spec,
+                                                 const Buffer* initialData) {
+        if (!deviceObj) return nullptr;
 
-        auto* obj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanGraphicsBufferObj, deviceObj, spec);
-        if (!obj)
-            return Result<VulkanGraphicsBufferObj*, VkResult>::Error(VK_ERROR_OUT_OF_HOST_MEMORY);
+        auto obj = CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanGraphicsBufferObj, deviceObj, spec);
 
         VkResult res = obj->Init(initialData);
-        if (res != VK_SUCCESS) {
-            Delete(obj);
-            return Result<VulkanGraphicsBufferObj*, VkResult>::Error(res);
-        }
+        if (res != VK_SUCCESS) return nullptr;
 
-        return Result<VulkanGraphicsBufferObj*, VkResult>::Success(obj);
+        return obj;
     }
 
     virtual void* Map(size_t offset, size_t size) override;

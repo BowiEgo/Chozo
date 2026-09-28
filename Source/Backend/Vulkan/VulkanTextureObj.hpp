@@ -9,8 +9,8 @@ namespace CZ {
 class VulkanTextureObj : public TextureObj {
 public:
     VulkanTextureObj(const VulkanDeviceObj* device, const TextureSpecification& spec);
-
-    VulkanTextureObj(const VulkanDeviceObj* device, const TextureSpecification& spec, Image image);
+    VulkanTextureObj(const VulkanDeviceObj* device, const TextureSpecification& spec,
+                     Scope<ImageObj> image);
 
     ~VulkanTextureObj() override;
 

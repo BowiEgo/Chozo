@@ -65,12 +65,12 @@ void EditorLayer::OnAttach() {
     m_ImGuiRenderer = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, VulkanImGuiRenderer);
     m_ImGuiRenderer->Init(ImGui::GetCurrentContext(), window.As<SDLWindowObj>()->GetSDLWindow());
 
-    m_Scene      = Scene::Create();
-    m_SyncBridge = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, SyncBridge, m_Scene);
-
     m_ViewportRenderer = Application::Get().GetEngine()->GetRenderer();
     m_Viewport = m_ViewportRenderer.CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
-    m_Viewport->SetScene(m_Scene);
+
+    // The viewport owns the scene; the editor only holds a view of it.
+    m_Scene      = m_Viewport->GetScene();
+    m_SyncBridge = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, SyncBridge, m_Scene);
 
     auto mainCamera = m_Viewport->GetCamera();
     m_EditorCamera.SetActiveCamera(mainCamera);
@@ -135,10 +135,7 @@ void EditorLayer::OnAttach() {
     }
 }
 
-void EditorLayer::OnDetach() {
-    m_ImGuiRenderer->Shutdown();
-    m_Scene.Destroy();
-}
+void EditorLayer::OnDetach() { m_ImGuiRenderer->Shutdown(); }
 
 void EditorLayer::OnUpdate(float deltaTime) {
     // CZ_EDITOR_LOG(Trace, "OnUpdate: {}", deltaTime);

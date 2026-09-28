@@ -19,25 +19,19 @@ public:
         : CommandPoolObj(spec), m_DeviceObj(deviceObj) {}
     ~VulkanCommandPoolObj() override;
 
-    static Result<VulkanCommandPoolObj*, VkResult> Create(const VulkanDeviceObj* deviceObj,
-                                                          CommandPoolSpecification& spec) {
-        if (!deviceObj)
-            return Result<VulkanCommandPoolObj*, VkResult>::Error(VK_ERROR_INITIALIZATION_FAILED);
+    static Scope<VulkanCommandPoolObj> Create(const VulkanDeviceObj* deviceObj,
+                                              CommandPoolSpecification& spec) {
+        if (!deviceObj) return nullptr;
 
-        auto* obj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanCommandPoolObj, deviceObj, spec);
-        if (!obj)
-            return Result<VulkanCommandPoolObj*, VkResult>::Error(VK_ERROR_OUT_OF_HOST_MEMORY);
+        auto obj = CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanCommandPoolObj, deviceObj, spec);
 
         VkResult res = obj->Init();
-        if (res != VK_SUCCESS) {
-            Delete(obj);
-            return Result<VulkanCommandPoolObj*, VkResult>::Error(res);
-        }
+        if (res != VK_SUCCESS) return nullptr;
 
-        return Result<VulkanCommandPoolObj*, VkResult>::Success(obj);
+        return obj;
     }
 
-    CommandList AllocateCommandBuffer() override;
+    Scope<CommandListObj> AllocateCommandBuffer() override;
 
     VkCommandPool GetVkCommandPool() { return m_VkCommandPool; }
 

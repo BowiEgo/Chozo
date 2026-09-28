@@ -19,11 +19,12 @@ struct ViewportObj {
 
     void Resize(uint32_t width, uint32_t height);
 
-    void SetScene(Scene scene) { m_Scene = scene; }
+    /// Replaces the scene owned by this viewport.
+    void SetScene(Scope<SceneObj> scene) { m_Scene = std::move(scene); }
 
-    Scene GetScene() const { return m_Scene; }
+    Scene GetScene() const { return ViewAs<Scene>(m_Scene); }
     SceneCamera GetCamera() const { return SceneCamera(m_Camera.get()); }
-    FrameBuffer GetFrameBuffer() const { return m_FrameBuffer; }
+    FrameBuffer GetFrameBuffer() const { return ViewAs<FrameBuffer>(m_FrameBuffer); }
 
     const std::string& GetName() const { return m_Spec.Name; }
 
@@ -37,17 +38,17 @@ struct ViewportObj {
 
     ViewportSpecification m_Spec;
 
-    Scene m_Scene;
-
-    // Owned; handed out as `SceneCamera` views. The camera unregisters itself from
-    // `CameraManager` on destruction.
+    // All owned; handed out as views. The camera unregisters itself from `CameraManager`
+    // on destruction.
+    Scope<SceneObj> m_Scene;
     Scope<CameraObj> m_Camera;
-    FrameBuffer m_FrameBuffer;
+    Scope<FrameBufferObj> m_FrameBuffer;
 };
 
 struct Viewport : Handle<struct ViewportObj> {
-    static Viewport Create(const ViewportSpecification& spec) {
-        return Viewport(CZ_NEW(MEMORY_USAGE_RUNTIME, ViewportObj, spec));
+    /// Creates a viewport owned by the caller.
+    static Scope<ViewportObj> Create(const ViewportSpecification& spec) {
+        return CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, ViewportObj, spec);
     }
 };
 

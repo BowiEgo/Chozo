@@ -11,21 +11,16 @@ public:
     VulkanSetLayoutObj(const VulkanDeviceObj* deviceObj, const SetLayoutDescription& desc);
     ~VulkanSetLayoutObj() override;
 
-    static Result<VulkanSetLayoutObj*, VkResult> Create(VulkanDeviceObj* deviceObj,
-                                                        const SetLayoutDescription& desc) {
-        if (!deviceObj)
-            return Result<VulkanSetLayoutObj*, VkResult>::Error(VK_ERROR_INITIALIZATION_FAILED);
+    static Scope<VulkanSetLayoutObj> Create(VulkanDeviceObj* deviceObj,
+                                            const SetLayoutDescription& desc) {
+        if (!deviceObj) return nullptr;
 
-        auto* obj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanSetLayoutObj, deviceObj, desc);
-        if (!obj) return Result<VulkanSetLayoutObj*, VkResult>::Error(VK_ERROR_OUT_OF_HOST_MEMORY);
+        auto obj = CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanSetLayoutObj, deviceObj, desc);
 
         VkResult res = obj->Init();
-        if (res != VK_SUCCESS) {
-            Delete(obj);
-            return Result<VulkanSetLayoutObj*, VkResult>::Error(res);
-        }
+        if (res != VK_SUCCESS) return nullptr;
 
-        return Result<VulkanSetLayoutObj*, VkResult>::Success(obj);
+        return obj;
     }
 
     bool Recreate();

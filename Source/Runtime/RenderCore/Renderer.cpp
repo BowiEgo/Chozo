@@ -21,34 +21,18 @@
 
 namespace CZ {
 
-static Pipeline testPipeline;
-
-template <> void Handle<RendererObj>::Destroy() {
-    if (m_Obj) {
-        for (auto& viewport : m_Obj->Viewports) {
-            viewport.Destroy();
-        }
-        m_Obj->Viewports.clear();
-
-        testPipeline.Destroy();
-
-        Delete(m_Obj);
-        m_Obj = nullptr;
-    }
-}
-
-Renderer Renderer::Create(const RendererSpecification& spec) {
-    auto ctx         = RHIAPI::Get()->GetGraphicsContext();
-    RendererObj* obj = CZ_NEW(MEMORY_USAGE_RENDER, RendererObj);
+Scope<RendererObj> Renderer::Create(const RendererSpecification& spec) {
+    auto ctx = RHIAPI::Get()->GetGraphicsContext();
+    auto obj = CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, RendererObj);
 
     obj->Window = spec.Window;
 
     obj->Frames.resize(ctx->GetMaxFramesInFlight());
     for (uint32 i = 0; i < ctx->GetMaxFramesInFlight(); i++) {
         CommandPoolSpecification poolSpec;
-        poolSpec.Flags             = CommandPoolFlags::ResetCommandBuffer;
-        obj->Frames[i].CommandPool = ctx->GetDevice()->CreateCommandPool(poolSpec);
-        obj->Frames[i].CommandList = obj->Frames[i].CommandPool->AllocateCommandBuffer();
+        poolSpec.Flags      = CommandPoolFlags::ResetCommandBuffer;
+        obj->Frames[i].Pool = ctx->GetDevice()->CreateCommandPool(poolSpec);
+        obj->Frames[i].List = obj->Frames[i].Pool->AllocateCommandBuffer();
     }
 
     auto testPipelineSpec         = PipelineSpecification{};
@@ -78,7 +62,7 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
         CZ_CORE_LOG(Trace, "Shader {} reflection: ", shader->GetReflection().ToString());
 
         if (shader.GetName() == "Basic")
-            testPipeline = ctx->GetDevice()->CreatePipeline(
+            obj->TestPipeline = ctx->GetDevice()->CreatePipeline(
                 testPipelineSpec, shader->GetShaderResources(), shader->GetReflection());
     }
 #else
@@ -87,41 +71,30 @@ Renderer Renderer::Create(const RendererSpecification& spec) {
         CZ_CORE_LOG(Trace, "Shader {} compiled", shader.GetName());
 
         if (shader.GetName() == "Basic")
-            testPipeline = ctx->GetDevice()->CreatePipeline(
+            obj->TestPipeline = ctx->GetDevice()->CreatePipeline(
                 testPipelineSpec, shader->GetShaderResources(), shader->GetReflection());
     }
 
 #endif
 
-    // auto cubeParams =
-    //     MeshParams(CZ_NEW(MEMORY_USAGE_ASSET, CubeParamsObj, 1.0f, 1.0f, 1.0f, 1, 1, 1));
-    // testCube = Application::Get().GetEngine()->GetMeshRegistry()->GenerateAsset(cubeParams);
-    // testCube->Upload();
-    // cubeParams.Destroy();
-
-    return { obj };
+    return obj;
 }
 
 void Renderer::Shutdown() {
     RHIAPI::Get()->WaitIdle();
 
-    for (size_t i = 0; i < m_Obj->Frames.size(); i++) {
-        m_Obj->Frames[i].CommandList.Destroy();
-        m_Obj->Frames[i].CommandPool.Destroy();
-    }
-
     m_Obj->Frames.clear();
+    m_Obj->Viewports.clear();
+    m_Obj->TestPipeline.reset();
 
     CameraManager::Get().Shutdown();
-
-    Destroy();
 }
 
 void Renderer::Tick(float deltaTime) {
     RHIAPI::Get()->GetGraphicsContext()->SetCurrentFrame(deltaTime);
 
-    auto cmdList =
-        m_Obj->Frames[RHIAPI::Get()->GetGraphicsContext()->GetCurrentFrameIndex()].CommandList;
+    auto cmdList = ViewAs<CommandList>(
+        m_Obj->Frames[RHIAPI::Get()->GetGraphicsContext()->GetCurrentFrameIndex()].List);
 
     CameraManager::Get().UpdateAllCameras();
 
@@ -142,7 +115,7 @@ void Renderer::Tick(float deltaTime) {
             RHIAPI::Get()->TransitionImageLayout(cmdList, viewportCanvas->GetImage(),
                                                  ImageLayout::ColorAttachmentOptimal);
 
-            cmdList->BindPipeline(testPipeline);
+            cmdList->BindPipeline(ViewAs<Pipeline>(m_Obj->TestPipeline));
 
             RHIAPI::Get()->BeginRendering(cmdList, targets,
                                           false); // bClear = false (to preserve the scene)
@@ -197,12 +170,20 @@ Viewport Renderer::CreateViewport(const std::string name, uint32 width, uint32 h
     spec.Width  = width;
     spec.Height = height;
 
-    auto viewport = Viewport::Create(spec);
-    m_Obj->Viewports.push_back(viewport);
+    m_Obj->Viewports.push_back(Viewport::Create(spec));
 
-    return viewport;
+    return ViewAs<Viewport>(m_Obj->Viewports.back());
 }
 
-std::vector<Viewport> Renderer::GetViewports() { return m_Obj->Viewports; }
+std::vector<Viewport> Renderer::GetViewports() {
+    std::vector<Viewport> views;
+    views.reserve(m_Obj->Viewports.size());
+
+    for (const auto& viewport : m_Obj->Viewports) {
+        views.push_back(ViewAs<Viewport>(viewport));
+    }
+
+    return views;
+}
 
 } // namespace CZ

@@ -39,23 +39,23 @@ public:
         return m_GraphicsContext->GetDevice()->GetOrCreateSampler(spec);
     }
 
-    FrameBuffer CreateFrameBuffer(const FrameBufferSpecification& spec) {
+    Scope<FrameBufferObj> CreateFrameBuffer(const FrameBufferSpecification& spec) {
         return m_GraphicsContext->GetDevice()->CreateFrameBuffer(spec);
     }
 
-    ShaderRes CreateShaderRes(const ShaderResSpecification& spec,
-                              const std::vector<uint32_t>* binary) {
+    Scope<ShaderResObj> CreateShaderRes(const ShaderResSpecification& spec,
+                                        const std::vector<uint32_t>* binary) {
         return m_GraphicsContext->GetDevice()->CreateShaderRes(spec, binary);
     }
 
-    Pipeline CreatePipeline(const PipelineSpecification& spec,
-                            const std::vector<ShaderRes>& shaders,
-                            const ShaderReflection& reflection) {
+    Scope<PipelineObj> CreatePipeline(const PipelineSpecification& spec,
+                                      const std::vector<ShaderRes>& shaders,
+                                      const ShaderReflection& reflection) {
         return m_GraphicsContext->GetDevice()->CreatePipeline(spec, shaders, reflection);
     }
 
-    GraphicsBuffer CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
-                                        const Buffer* initialData = nullptr) {
+    Scope<GraphicsBufferObj> CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
+                                                  const Buffer* initialData = nullptr) {
         return m_GraphicsContext->GetDevice()->CreateGraphicsBuffer(spec, initialData);
     }
 
@@ -63,7 +63,8 @@ protected:
     GraphicsContext m_GraphicsContext;
 };
 
-struct RHIAPI : Handle<class RHIAPIObj> {
+/// Owns the backend API object; every caller only sees `operator->`.
+struct RHIAPI {
 public:
     RHIAPI(const RHIAPI&)            = delete;
     RHIAPI& operator=(const RHIAPI&) = delete;
@@ -74,10 +75,12 @@ public:
 
     static void Shutdown();
 
+    RHIAPIObj* operator->() const { return m_Obj.get(); }
+
 private:
-    RHIAPI() = default;
-    ~RHIAPI() {
-        if (m_Obj) Shutdown();
-    }
+    RHIAPI()  = default;
+    ~RHIAPI() = default;
+
+    Scope<RHIAPIObj> m_Obj;
 };
 } // namespace CZ

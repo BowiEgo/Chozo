@@ -58,9 +58,17 @@ public:
     const VertexBufferLayout GetVertexLayout() { return GetReflection().VertexBufferLayout; }
     const std::vector<PushConstantRange>& GetPushConstantRanges();
 
-    const std::vector<ShaderRes>& GetShaderResources() {
+    std::vector<ShaderRes> GetShaderResources() {
         if (m_ShaderResources.empty()) CreateShaderResources();
-        return m_ShaderResources;
+
+        std::vector<ShaderRes> views;
+        views.reserve(m_ShaderResources.size());
+
+        for (const auto& res : m_ShaderResources) {
+            views.push_back(ViewAs<ShaderRes>(res));
+        }
+
+        return views;
     }
 
     ShaderReflection GetReflection() const {
@@ -76,7 +84,7 @@ public:
 private:
     ShaderSpecification m_Spec;
     std::unordered_map<ShaderStage, ShaderCompilerOutput> m_Datas;
-    mutable std::vector<ShaderRes> m_ShaderResources;
+    mutable std::vector<Scope<ShaderResObj>> m_ShaderResources;
     mutable std::vector<PushConstantRange> m_PushConstantRanges;
     mutable std::unordered_map<uint32_t, SetLayout> m_SetLayouts;
 

@@ -63,7 +63,7 @@ private:
     Scope<VulkanImGuiRenderer> m_ImGuiRenderer;
 
     Renderer m_ViewportRenderer;
-    Scene m_Scene;
+    Scene m_Scene; // view; owned by the viewport
     Viewport m_Viewport;
     EditorCamera m_EditorCamera;
 

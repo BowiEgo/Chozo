@@ -40,22 +40,10 @@ public:
     /// Raw pointer access; the handle stays non-owning.
     TObject* Get() const { return m_Obj; }
 
-    /// Legacy path: freeing will move to the owner. Kept until every resource type has been
-    /// migrated to `Scope` ownership (see docs/TODO.md, item P1-1).
-    void Destroy();
-
 protected:
     // Always start out null so that default-constructed handles are safe to test.
     TObject* m_Obj = nullptr;
 };
-
-#define DEFINE_HANDLE_DESTROY(T)                                                                   \
-    template <> void Handle<T>::Destroy() {                                                        \
-        if (m_Obj) {                                                                               \
-            Delete(m_Obj);                                                                         \
-            m_Obj = nullptr;                                                                       \
-        }                                                                                          \
-    }
 
 class InternalHandleReader {
 public:
@@ -78,6 +66,11 @@ template <typename TObject> Handle<TObject> ViewOf(const Scope<TObject>& owner) 
 template <typename TObject, typename TDeleter>
 Handle<TObject> ViewOf(const std::unique_ptr<TObject, TDeleter>& owner) {
     return Handle<TObject>(owner.get());
+}
+
+/// Derives a view of a specific handle type (e.g. `Texture`) from an owning `Scope`.
+template <typename TView, typename TObject> TView ViewAs(const Scope<TObject>& owner) {
+    return TView(owner.get());
 }
 
 template <typename HandleType> struct HandleHash {

@@ -30,7 +30,7 @@ struct SceneObj {
     TransformSystem m_TransformSystem{ this };
 
     SceneObj();
-    ~SceneObj() = default;
+    ~SceneObj();
 
     void Update(float deltaTime);
     Entity CreateEntity(const std::string& name = "");
@@ -65,7 +65,8 @@ struct SceneObj {
 
 class Scene : public Asset<struct SceneObj> {
 public:
-    static Scene Create();
+    /// Creates a scene owned by the caller.
+    static Scope<SceneObj> Create();
 
     Scene() = default;
     explicit Scene(SceneObj* obj) : Asset<SceneObj>(obj) {}

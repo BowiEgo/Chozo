@@ -12,10 +12,7 @@ void CameraManager::Shutdown() {
     std::lock_guard<std::mutex> lock(m_Mutex);
 
     // Cameras are owned by their creators (e.g. `ViewportObj`); this table only tracks them.
-    for (auto& entry : m_Cameras) {
-        entry.Buffer.Destroy();
-    }
-
+    // The per-camera upload buffers are owned here and released by the Scope members.
     m_Cameras.clear();
 }
 
@@ -50,10 +47,6 @@ void CameraManager::UnregisterCamera(CameraObj* camera) {
                              [camera](const CameraEntry& entry) { return entry.Camera == camera; });
 
     if (it != m_Cameras.end()) {
-        for (auto entry = it; entry != m_Cameras.end(); ++entry) {
-            entry->Buffer.Destroy();
-        }
-
         m_Cameras.erase(it, m_Cameras.end());
         CZ_RENDERCORE_LOG(Info, "Camera unregistered: {}", (void*)camera);
     }
@@ -78,7 +71,7 @@ GraphicsBuffer CameraManager::GetCameraBuffer(const CameraObj* camera) {
 
     for (auto& entry : m_Cameras) {
         if (entry.Camera == camera) {
-            return entry.Buffer;
+            return ViewAs<GraphicsBuffer>(entry.Buffer);
         }
     }
 

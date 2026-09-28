@@ -33,7 +33,7 @@ private:
 private:
     struct CameraEntry {
         CameraObj* Camera = nullptr; // non-owning
-        GraphicsBuffer Buffer;
+        Scope<GraphicsBufferObj> Buffer;
         CameraData CachedData;
     };
 

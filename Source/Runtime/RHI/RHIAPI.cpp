@@ -5,8 +5,6 @@
 
 namespace CZ {
 
-DEFINE_HANDLE_DESTROY(RHIAPIObj)
-
 RHIAPI& RHIAPI::Get() {
     static RHIAPI instance;
 
@@ -27,11 +25,11 @@ bool RHIAPI::Init(GraphicsContext ctx, std::string& err) {
         return false;
     }
 
-    Get().m_Obj = createFn(ctx);
+    Get().m_Obj.reset(createFn(ctx));
 
     return true;
 }
 
-void RHIAPI::Shutdown() { Get().Destroy(); }
+void RHIAPI::Shutdown() { Get().m_Obj.reset(); }
 
 } // namespace CZ

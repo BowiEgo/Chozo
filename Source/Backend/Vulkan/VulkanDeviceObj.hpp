@@ -45,46 +45,46 @@ public:
         : DeviceObj(spec), m_GraphicContextObj(ctxObj) {}
     ~VulkanDeviceObj() override;
 
-    static Result<VulkanDeviceObj*, VkResult> Create(const VulkanGraphicsContextObj* ctxObj,
-                                                     const DeviceSpecification& spec) {
-        if (!ctxObj)
-            return Result<VulkanDeviceObj*, VkResult>::Error(VK_ERROR_INITIALIZATION_FAILED);
+    static Scope<VulkanDeviceObj> Create(const VulkanGraphicsContextObj* ctxObj,
+                                         const DeviceSpecification& spec) {
+        if (!ctxObj) return nullptr;
 
-        auto* obj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanDeviceObj, ctxObj, spec);
-        if (!obj) return Result<VulkanDeviceObj*, VkResult>::Error(VK_ERROR_OUT_OF_HOST_MEMORY);
+        auto obj = CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanDeviceObj, ctxObj, spec);
 
         VkResult res = obj->Init();
-        if (res != VK_SUCCESS) {
-            Delete(obj);
-            return Result<VulkanDeviceObj*, VkResult>::Error(res);
-        }
+        if (res != VK_SUCCESS) return nullptr;
 
-        return Result<VulkanDeviceObj*, VkResult>::Success(obj);
+        return obj;
     }
 
     void WaitIdle() override;
 
-    CommandPool CreateCommandPool(CommandPoolSpecification& spec) override;
+    // --- Caller-owned resources ---
+    Scope<CommandPoolObj> CreateCommandPool(CommandPoolSpecification& spec) override;
 
-    Sampler CreateSampler(const SamplerSpecification spec) override;
+    Scope<FrameBufferObj> CreateFrameBuffer(const FrameBufferSpecification& spec) override;
 
-    FrameBuffer CreateFrameBuffer(const FrameBufferSpecification& spec) override;
+    Scope<ShaderResObj> CreateShaderRes(const ShaderResSpecification& spec,
+                                        const std::vector<uint32_t>* binary) override;
 
-    ShaderRes CreateShaderRes(const ShaderResSpecification& spec,
-                              const std::vector<uint32_t>* binary) override;
+    Scope<PipelineObj> CreatePipeline(const PipelineSpecification& spec,
+                                      const std::vector<ShaderRes>& shaders,
+                                      const ShaderReflection& reflection) override;
 
-    Pipeline CreatePipeline(const PipelineSpecification& spec,
-                            const std::vector<ShaderRes>& shaders,
-                            const ShaderReflection& reflection) override;
+    Scope<GraphicsBufferObj> CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
+                                                  const Buffer* initialData = nullptr) override;
 
-    SetLayout CreateSetLayout(const SetLayoutDescription& desc) override;
+protected:
+    // --- Device-owned (cached) resources ---
+    Scope<SamplerObj> CreateSamplerImpl(const SamplerSpecification& spec) override;
 
-    DescriptorSet CreateDescriptorSet(SetLayout setLayout,
-                                      std::vector<DescriptorBinding>& bindings) override;
+    Scope<SetLayoutObj> CreateSetLayoutImpl(const SetLayoutDescription& desc) override;
 
-    GraphicsBuffer CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
-                                        const Buffer* initialData = nullptr) override;
+    Scope<DescriptorSetObj>
+        CreateDescriptorSetImpl(SetLayout setLayout,
+                                std::vector<DescriptorBinding>& bindings) override;
 
+public:
     VkDevice GetLogicalDevice() const { return m_VkDevice; }
 
     VkPhysicalDevice GetPhysicalDevice() const { return m_VkPhysicalDevice; }

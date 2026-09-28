@@ -23,9 +23,9 @@ public:
     bool OnEvent(Event& e);
     void OnWindowResize(WindowResizedEvent& e);
 
-    Renderer GetRenderer() const { return m_Renderer; }
+    Renderer GetRenderer() const { return ViewAs<Renderer>(m_Renderer); }
 
-    GraphicsContext GetGraphicContext() const { return m_GraphicsContext; }
+    GraphicsContext GetGraphicContext() const { return ViewAs<GraphicsContext>(m_GraphicsContext); }
 
     Texture GetSwapchainFramebuffer(uint32 index) {
         return m_GraphicsContext->GetSwapchain()->GetColorAttachment(index);
@@ -35,8 +35,8 @@ public:
     MeshRegistry* GetMeshRegistry() { return m_MeshRegistry.get(); }
 
 private:
-    Renderer m_Renderer;
-    GraphicsContext m_GraphicsContext;
+    Scope<RendererObj> m_Renderer;
+    Scope<GraphicsContextObj> m_GraphicsContext;
 
     Scope<ShaderRegistry> m_ShaderRegistry;
     Scope<MeshRegistry> m_MeshRegistry;

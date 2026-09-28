@@ -6,11 +6,7 @@ namespace CZ {
 
 const std::string Mesh::GetName() const { return m_Obj->GetName(); }
 
-MeshObj::~MeshObj() {
-    // The mesh owns its GPU buffers; releasing them goes through the RHI.
-    VertexBuffer.Destroy();
-    IndexBuffer.Destroy();
-}
+// The mesh owns its GPU buffers; they are released by the Scope members.
 
 void MeshObj::Upload() {
     if (!MeshBuffer.IsValid()) {
@@ -18,15 +14,15 @@ void MeshObj::Upload() {
         return;
     }
 
-    if (VertexBuffer || IndexBuffer) {
+    if (m_VertexBuffer || m_IndexBuffer) {
         // Re-uploading: release the buffers created by the previous upload instead of
         // orphaning them. They may still be referenced by in-flight frames, so idle the
         // device first (same policy as Viewport::Resize). A frame-deferred deletion
         // queue in the RHI would remove the need for this stall.
         RHIAPI::Get()->WaitIdle();
 
-        VertexBuffer.Destroy();
-        IndexBuffer.Destroy();
+        m_VertexBuffer.reset();
+        m_IndexBuffer.reset();
     }
 
     {
@@ -38,8 +34,8 @@ void MeshObj::Upload() {
 
         SafeBuffer data = SafeBuffer::Copy(MeshBuffer.Vertices.data(), spec.Size);
 
-        VertexBuffer = RHIAPI::Get()->CreateGraphicsBuffer(spec, &data);
-        if (!VertexBuffer) {
+        m_VertexBuffer = RHIAPI::Get()->CreateGraphicsBuffer(spec, &data);
+        if (!m_VertexBuffer) {
             CZ_RENDERCORE_LOG(Error, "Failed to create vertex buffer");
             return;
         }
@@ -62,8 +58,8 @@ void MeshObj::Upload() {
 
         SafeBuffer data = SafeBuffer::Copy(flatIndices.data(), spec.Size);
 
-        IndexBuffer = RHIAPI::Get()->CreateGraphicsBuffer(spec, &data);
-        if (!IndexBuffer) {
+        m_IndexBuffer = RHIAPI::Get()->CreateGraphicsBuffer(spec, &data);
+        if (!m_IndexBuffer) {
             CZ_RENDERCORE_LOG(Error, "Failed to create index buffer");
             return;
         }

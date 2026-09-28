@@ -12,23 +12,18 @@ public:
     VulkanPipelineObj(VulkanDeviceObj* deviceObj, const PipelineSpecification& spec);
     ~VulkanPipelineObj() override;
 
-    static Result<VulkanPipelineObj*, VkResult> Create(VulkanDeviceObj* deviceObj,
-                                                       const PipelineSpecification& spec,
-                                                       const std::vector<ShaderRes>& shaderRes,
-                                                       const ShaderReflection& reflection) {
-        if (!deviceObj)
-            return Result<VulkanPipelineObj*, VkResult>::Error(VK_ERROR_INITIALIZATION_FAILED);
+    static Scope<VulkanPipelineObj> Create(VulkanDeviceObj* deviceObj,
+                                           const PipelineSpecification& spec,
+                                           const std::vector<ShaderRes>& shaderRes,
+                                           const ShaderReflection& reflection) {
+        if (!deviceObj) return nullptr;
 
-        auto* obj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanPipelineObj, deviceObj, spec);
-        if (!obj) return Result<VulkanPipelineObj*, VkResult>::Error(VK_ERROR_OUT_OF_HOST_MEMORY);
+        auto obj = CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanPipelineObj, deviceObj, spec);
 
         VkResult res = obj->Init(shaderRes, reflection);
-        if (res != VK_SUCCESS) {
-            Delete(obj);
-            return Result<VulkanPipelineObj*, VkResult>::Error(res);
-        }
+        if (res != VK_SUCCESS) return nullptr;
 
-        return Result<VulkanPipelineObj*, VkResult>::Success(obj);
+        return obj;
     }
 
     VkPipeline GetVKPipeline() const { return m_VkPipeline; }

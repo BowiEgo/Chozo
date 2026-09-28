@@ -7,12 +7,7 @@
 
 namespace CZ {
 
-ShaderObj::~ShaderObj() {
-    for (auto& shaderRes : m_ShaderResources) {
-        shaderRes.Destroy();
-    }
-    m_ShaderResources.clear();
-}
+ShaderObj::~ShaderObj() { m_ShaderResources.clear(); }
 
 SetLayout ShaderObj::GetSetLayout(uint32_t set) {
     if (m_ShaderResources.empty()) {
@@ -26,7 +21,8 @@ const std::vector<PushConstantRange>& ShaderObj::GetPushConstantRanges() {
     if (!m_PushConstantRanges.empty()) return m_PushConstantRanges;
 
     std::unordered_map<uint32_t, PushConstantRange> tempMap;
-    for (const auto& shaderRes : GetShaderResources()) {
+    std::vector<ShaderRes> shaderResources = GetShaderResources();
+    for (const auto& shaderRes : shaderResources) {
         ShaderStage stage      = shaderRes->GetStage();
         const auto& reflection = GetReflection();
         for (const auto& uniform : reflection.Uniforms) {
@@ -69,7 +65,7 @@ void ShaderObj::CreateShaderResources() {
 
         auto shaderRes = RHIAPI::Get()->CreateShaderRes(spec, &output.Binary);
 
-        m_ShaderResources.push_back(shaderRes);
+        m_ShaderResources.push_back(std::move(shaderRes));
     }
 
     // BuildLayouts();

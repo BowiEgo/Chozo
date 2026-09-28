@@ -15,21 +15,15 @@ public:
     VulkanCommandBufferObj(VulkanCommandPoolObj* cmdPoolObj) : m_CmdPoolObj(cmdPoolObj) {};
     ~VulkanCommandBufferObj() override;
 
-    static Result<VulkanCommandBufferObj*, VkResult> Create(VulkanCommandPoolObj* cmdPoolObj) {
-        if (!cmdPoolObj)
-            return Result<VulkanCommandBufferObj*, VkResult>::Error(VK_ERROR_INITIALIZATION_FAILED);
+    static Scope<VulkanCommandBufferObj> Create(VulkanCommandPoolObj* cmdPoolObj) {
+        if (!cmdPoolObj) return nullptr;
 
-        auto* obj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanCommandBufferObj, cmdPoolObj);
-        if (!obj)
-            return Result<VulkanCommandBufferObj*, VkResult>::Error(VK_ERROR_OUT_OF_HOST_MEMORY);
+        auto obj = CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanCommandBufferObj, cmdPoolObj);
 
         VkResult res = obj->Init();
-        if (res != VK_SUCCESS) {
-            Delete(obj);
-            return Result<VulkanCommandBufferObj*, VkResult>::Error(res);
-        }
+        if (res != VK_SUCCESS) return nullptr;
 
-        return Result<VulkanCommandBufferObj*, VkResult>::Success(obj);
+        return obj;
     }
 
     void Begin() override;

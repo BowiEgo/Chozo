@@ -25,6 +25,11 @@ VulkanGraphicsContextObj::VulkanGraphicsContextObj(const GraphicsContextSpecific
 }
 
 VulkanGraphicsContextObj::~VulkanGraphicsContextObj() {
+    // The device must die before the instance it was created from, so release the scopes here
+    // instead of letting the base class members run after this body.
+    m_SwapchainOwner.reset();
+    m_DeviceOwner.reset();
+
     if (m_Surface != VK_NULL_HANDLE) {
         vkDestroySurfaceKHR(m_Instance, m_Surface, nullptr);
     }
@@ -61,11 +66,10 @@ void VulkanGraphicsContextObj::Init() {
         spec.AppName    = "Chozo Engine";
         spec.AppVersion = 1;
 
-        auto result = VulkanDeviceObj::Create(this, spec);
-        if (!result) return;
+        m_DeviceOwner = VulkanDeviceObj::Create(this, spec);
+        if (!m_DeviceOwner) return;
 
-        m_DeviceObj = result.value();
-        m_Device    = Device(m_DeviceObj);
+        m_DeviceObj = static_cast<VulkanDeviceObj*>(m_DeviceOwner.get());
     }
 
     {
@@ -74,8 +78,8 @@ void VulkanGraphicsContextObj::Init() {
         spec.NativeWindow      = m_Spec.NativeWindow;
         spec.MaxFramesInFlight = GetMaxFramesInFlight();
 
-        m_SwapchainObj = CZ_NEW(MEMORY_USAGE_RENDER, VulkanSwapchainObj, this, spec);
-        m_Swapchain    = Swapchain(m_SwapchainObj);
+        m_SwapchainOwner = CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanSwapchainObj, this, spec);
+        m_SwapchainObj   = static_cast<VulkanSwapchainObj*>(m_SwapchainOwner.get());
     }
 }
 

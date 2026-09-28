@@ -8,12 +8,12 @@ namespace CZ {
 VulkanTextureObj::VulkanTextureObj(const VulkanDeviceObj* deviceObj,
                                    const TextureSpecification& spec)
     : TextureObj(spec), m_DeviceObj(deviceObj) {
-    m_Image = Image(CZ_NEW(MEMORY_USAGE_RENDER, VulkanImageObj, deviceObj, spec.ToImageSpec()));
+    m_Image = CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanImageObj, deviceObj, spec.ToImageSpec());
 }
 
 VulkanTextureObj::VulkanTextureObj(const VulkanDeviceObj* deviceObj,
-                                   const TextureSpecification& spec, Image image)
-    : TextureObj(spec, image), m_DeviceObj(deviceObj) {}
+                                   const TextureSpecification& spec, Scope<ImageObj> image)
+    : TextureObj(spec, std::move(image)), m_DeviceObj(deviceObj) {}
 
 VulkanTextureObj::~VulkanTextureObj() {}
 

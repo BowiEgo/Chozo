@@ -39,7 +39,13 @@ bool Application::Startup(const ApplicationSpecification& appSpec, std::string& 
         spec.Size  = { WINDOW_WIDTH, WINDOW_HEIGHT };
 
         m_Window = Window::Create(spec);
-        m_Window->Init(err);
+        if (!m_Window) {
+            err = "Failed to create the window.";
+            return false;
+        }
+
+        if (!m_Window->Init(err)) return false;
+
         m_Window->SetEventCallback(CZ_BIND_FN(OnEvent));
     }
 
@@ -49,23 +55,24 @@ bool Application::Startup(const ApplicationSpecification& appSpec, std::string& 
         m_Engine->Init(err);
     }
 
-    m_LayerStack.PushLayer(m_StartupHost.GetStartupLayer());
-    if (m_StartupHost.IsOffscreen()) {
-        m_Engine->GetRenderer().SetDrawFuncToFinalPass(CZ_BIND_FN(m_StartupHost.Draw));
+    m_LayerStack.PushLayer(m_StartupHost->GetStartupLayer());
+    if (m_StartupHost->IsOffscreen()) {
+        m_Engine->GetRenderer().SetDrawFuncToFinalPass(
+            CZ_BIND_FN(ViewAs<StartupHost>(m_StartupHost).Draw));
     }
 
     return true;
 }
 
 void Application::Shutdown() {
-    m_StartupHost.Destroy();
+    m_StartupHost.reset();
     m_LayerStack.Clear();
 
     m_Engine->Shutdown();
     m_Engine.reset();
 
     m_Window->Shutdown();
-    m_Window.Destroy();
+    m_Window.reset();
 
     ReportMemoryLeaks();
 }

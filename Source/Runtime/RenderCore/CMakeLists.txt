@@ -29,11 +29,9 @@ set(MODULE_SRC
     ShaderObj.cpp
     ShaderRegistry.cpp
     Mesh.cpp
-    MeshParams.cpp
     MeshRegistry.cpp
     ProceduralMesh/ProceduralMesh.cpp
     ProceduralMesh/CubeParamsObj.cpp
-    Components/TransformParams.cpp
     Components/TransformComponent.cpp
     Scene/Entity.cpp
     Scene/Scene.cpp

@@ -29,3 +29,8 @@ target_precompile_headers(${MODULE_NAME} PRIVATE
 )
 
 target_link_options(${MODULE_NAME} PRIVATE -rdynamic)
+
+set_target_properties(${MODULE_NAME} PROPERTIES
+    BUILD_RPATH "@loader_path;@executable_path/../Frameworks"
+    INSTALL_RPATH "@loader_path;@executable_path/../Frameworks"
+)

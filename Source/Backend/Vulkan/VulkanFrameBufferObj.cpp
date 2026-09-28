@@ -30,7 +30,7 @@ void VulkanFrameBufferObj::Init() {
         texSpec.Usage  = TextureUsage::Attachment;
 
         m_ColorAttachments.push_back(
-            Texture(CZ_NEW(MEMORY_USAGE_RENDER, VulkanTextureObj, m_DeviceObj, texSpec)));
+            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanTextureObj, m_DeviceObj, texSpec));
     }
 
     if (m_Spec.DepthFormat != PixelFormat::Unknown) {
@@ -41,7 +41,7 @@ void VulkanFrameBufferObj::Init() {
         texSpec.Usage  = TextureUsage::Attachment;
 
         m_DepthAttachment =
-            Texture(CZ_NEW(MEMORY_USAGE_RENDER, VulkanTextureObj, m_DeviceObj, texSpec));
+            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanTextureObj, m_DeviceObj, texSpec);
     }
 }
 

@@ -12,24 +12,18 @@ public:
                            std::vector<DescriptorBinding>& bindings);
     ~VulkanDescriptorSetObj() override;
 
-    static Result<VulkanDescriptorSetObj*, VkResult>
-        Create(const VulkanDeviceObj* deviceObj, SetLayout setLayout,
-               std::vector<DescriptorBinding>& bindings) {
-        if (!deviceObj)
-            return Result<VulkanDescriptorSetObj*, VkResult>::Error(VK_ERROR_INITIALIZATION_FAILED);
+    static Scope<VulkanDescriptorSetObj> Create(const VulkanDeviceObj* deviceObj,
+                                                SetLayout setLayout,
+                                                std::vector<DescriptorBinding>& bindings) {
+        if (!deviceObj) return nullptr;
 
-        auto* obj =
-            CZ_NEW(MEMORY_USAGE_RENDER, VulkanDescriptorSetObj, deviceObj, setLayout, bindings);
-        if (!obj)
-            return Result<VulkanDescriptorSetObj*, VkResult>::Error(VK_ERROR_OUT_OF_HOST_MEMORY);
+        auto obj = CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanDescriptorSetObj, deviceObj,
+                                   setLayout, bindings);
 
         VkResult res = obj->Init();
-        if (res != VK_SUCCESS) {
-            Delete(obj);
-            return Result<VulkanDescriptorSetObj*, VkResult>::Error(res);
-        }
+        if (res != VK_SUCCESS) return nullptr;
 
-        return Result<VulkanDescriptorSetObj*, VkResult>::Success(obj);
+        return obj;
     }
 
     void* GetRawHandle() const override { return (void*)GetVkDescriptorSet(); }

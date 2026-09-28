@@ -3,30 +3,6 @@
 
 namespace CZ {
 
-template <> void Handle<DeviceObj>::Destroy() {
-    if (m_Obj) {
-        for (auto& [_, layout] : m_Obj->m_SetLayoutCache) {
-            layout.Destroy();
-        }
-        m_Obj->m_SetLayoutCache.clear();
-
-        m_Obj->m_StaticSamplerLayout.Destroy();
-
-        for (auto& [_, sampler] : m_Obj->m_SamplerCache) {
-            sampler.Destroy();
-        }
-        m_Obj->m_SamplerCache.clear();
-
-        for (auto& [_, desc] : m_Obj->m_DescriptorSetCache) {
-            desc.Destroy();
-        }
-        m_Obj->m_DescriptorSetCache.clear();
-
-        Delete(m_Obj);
-        m_Obj = nullptr;
-    }
-}
-
 std::vector<SetLayout> DeviceObj::CreateSetLayouts(
     const std::unordered_map<uint32_t, std::vector<ShaderResourceBinding>>& bindings) {
     std::vector<SetLayout> result;
@@ -58,14 +34,17 @@ SetLayout DeviceObj::GetOrCreateLayout(const std::vector<ShaderResourceBinding>&
 
     size_t hash = desc.GetHash();
 
-    if (m_SetLayoutCache.contains(hash)) {
-        return m_SetLayoutCache[hash];
+    if (auto it = m_SetLayoutCache.find(hash); it != m_SetLayoutCache.end()) {
+        return ViewAs<SetLayout>(it->second);
     }
 
-    SetLayout newLayout    = CreateSetLayout(desc);
-    m_SetLayoutCache[hash] = newLayout;
+    Scope<SetLayoutObj> newLayout = CreateSetLayoutImpl(desc);
+    if (!newLayout) return SetLayout();
 
-    return newLayout;
+    SetLayout view         = ViewAs<SetLayout>(newLayout);
+    m_SetLayoutCache[hash] = std::move(newLayout);
+
+    return view;
 }
 
 SetLayout DeviceObj::GetEmptySetLayout() {
@@ -74,16 +53,19 @@ SetLayout DeviceObj::GetEmptySetLayout() {
 
     size_t emptyHash = emptyDesc.GetHash();
 
-    if (m_SetLayoutCache.contains(emptyHash)) {
-        return m_SetLayoutCache[emptyHash];
+    if (auto it = m_SetLayoutCache.find(emptyHash); it != m_SetLayoutCache.end()) {
+        return ViewAs<SetLayout>(it->second);
     }
 
     CZ_RHI_LOG(Info, "Creating global Empty Descriptor Set Layout.");
 
-    SetLayout emptyLayout       = CreateSetLayout({});
-    m_SetLayoutCache[emptyHash] = emptyLayout;
+    Scope<SetLayoutObj> emptyLayout = CreateSetLayoutImpl({});
+    if (!emptyLayout) return SetLayout();
 
-    return emptyLayout;
+    SetLayout view              = ViewAs<SetLayout>(emptyLayout);
+    m_SetLayoutCache[emptyHash] = std::move(emptyLayout);
+
+    return view;
 }
 
 SetLayout DeviceObj::GetStaticSetLayout() {
@@ -92,47 +74,62 @@ SetLayout DeviceObj::GetStaticSetLayout() {
 
     size_t hash = desc.GetHash();
 
-    if (m_SetLayoutCache.contains(hash)) {
-        return m_SetLayoutCache[hash];
+    if (auto it = m_SetLayoutCache.find(hash); it != m_SetLayoutCache.end()) {
+        return ViewAs<SetLayout>(it->second);
     }
 
     CZ_RHI_LOG(Info, "Creating global Static Descriptor Set Layout.");
 
-    SetLayout staticLayout = CreateSetLayout(desc);
-    m_SetLayoutCache[hash] = staticLayout;
+    Scope<SetLayoutObj> staticLayout = CreateSetLayoutImpl(desc);
+    if (!staticLayout) return SetLayout();
 
-    return staticLayout;
+    SetLayout view         = ViewAs<SetLayout>(staticLayout);
+    m_SetLayoutCache[hash] = std::move(staticLayout);
+
+    return view;
 }
 
 Sampler DeviceObj::GetOrCreateSampler(const SamplerSpecification spec) {
-    auto it = m_SamplerCache.find(spec);
-    if (it != m_SamplerCache.end()) {
-        return it->second;
+    if (auto it = m_SamplerCache.find(spec); it != m_SamplerCache.end()) {
+        return ViewAs<Sampler>(it->second);
     }
 
-    Sampler sampler      = CreateSampler(spec);
-    m_SamplerCache[spec] = sampler;
+    Scope<SamplerObj> sampler = CreateSamplerImpl(spec);
+    if (!sampler) return Sampler();
 
-    return sampler;
+    Sampler view         = ViewAs<Sampler>(sampler);
+    m_SamplerCache[spec] = std::move(sampler);
+
+    return view;
 }
 
 DescriptorSet DeviceObj::GetOrCreateDescriptorSet(SetLayout setLayout,
                                                   std::vector<DescriptorBinding>& bindings) {
     DescriptorSetKey key;
     key.LayoutID = setLayout->GetID();
-    key.BindingResources.resize(bindings.size() * 2);
+    key.BindingResources.reserve(bindings.size() * 2);
+
     for (const auto& b : bindings) {
         if (b.m_Buffer) key.BindingResources.push_back(b.m_Buffer->GetID());
         if (b.m_Texture) key.BindingResources.push_back(b.m_Texture->GetID());
     }
 
-    auto it       = m_DescriptorSetCache.find(key);
-    key.LastFrame = RHIAPI::Get()->GetGraphicsContext()->GetCurrentFrame();
-    if (it != m_DescriptorSetCache.end()) return it->second;
+    if (auto it = m_DescriptorSetCache.find(key); it != m_DescriptorSetCache.end()) {
+        it->second.LastFrame = RHIAPI::Get()->GetGraphicsContext()->GetCurrentFrame();
+        return ViewAs<DescriptorSet>(it->second.Set);
+    }
 
-    auto descSet              = CreateDescriptorSet(setLayout, bindings);
-    m_DescriptorSetCache[key] = descSet;
-    return descSet;
+    Scope<DescriptorSetObj> descSet = CreateDescriptorSetImpl(setLayout, bindings);
+    if (!descSet) return DescriptorSet();
+
+    DescriptorSet view = ViewAs<DescriptorSet>(descSet);
+
+    DescriptorSetEntry entry;
+    entry.Set                 = std::move(descSet);
+    entry.LastFrame           = RHIAPI::Get()->GetGraphicsContext()->GetCurrentFrame();
+    m_DescriptorSetCache[key] = std::move(entry);
+
+    return view;
 }
 
 } // namespace CZ

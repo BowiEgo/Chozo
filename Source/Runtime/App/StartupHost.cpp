@@ -4,8 +4,6 @@
 
 namespace CZ {
 
-DEFINE_HANDLE_DESTROY(StartupHostObj)
-
 bool StartupHost::IsOffscreen() const { return m_Obj->IsOffscreen(); }
 
 Layer* StartupHost::GetStartupLayer() const { return m_Obj->GetStartupLayer(); }

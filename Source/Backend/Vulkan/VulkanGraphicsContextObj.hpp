@@ -46,8 +46,9 @@ private:
     PFN_vkCreateDebugUtilsMessengerEXT m_vkCreateDebugUtilsMessengerEXT   = nullptr;
     PFN_vkDestroyDebugUtilsMessengerEXT m_vkDestroyDebugUtilsMessengerEXT = nullptr;
 
-    VulkanDeviceObj* m_DeviceObj;
-    VulkanSwapchainObj* m_SwapchainObj;
+    // Non-owning views of the scopes owned by `GraphicsContextObj`.
+    VulkanDeviceObj* m_DeviceObj       = nullptr;
+    VulkanSwapchainObj* m_SwapchainObj = nullptr;
 };
 
 } // namespace CZ

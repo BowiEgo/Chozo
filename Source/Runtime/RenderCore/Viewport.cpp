@@ -4,20 +4,13 @@
 
 namespace CZ {
 
-template <> void Handle<ViewportObj>::Destroy() {
-    if (m_Obj) {
-        m_Obj->m_FrameBuffer.Destroy();
-        Delete(m_Obj);
-        m_Obj = nullptr;
-    }
-}
-
 ViewportObj::ViewportObj(const ViewportSpecification& spec) : m_Spec(spec) {
     CZ_RENDERCORE_LOG(Info, "Viewport '{}' created with size {}x{}", spec.Name, spec.Width,
                       spec.Height);
 
     m_Camera = CZ_CREATE_SCOPE(MEMORY_USAGE_SCENE, CameraObj, 45.0f, m_Spec.Width / m_Spec.Height,
                                0.1f, 1000.0f);
+    m_Scene  = Scene::Create();
 
     CreateFrameBuffer();
 }
@@ -30,6 +23,7 @@ void ViewportObj::CreateFrameBuffer() {
     fbSpec.DepthFormat  = PixelFormat::D32_SFLOAT;
 
     m_FrameBuffer = RHIAPI::Get()->CreateFrameBuffer(fbSpec);
+    CZ_CORE_ASSERT(m_FrameBuffer, "Failed to create the viewport framebuffer");
 }
 
 void ViewportObj::Resize(uint32 width, uint32 height) {
@@ -39,7 +33,7 @@ void ViewportObj::Resize(uint32 width, uint32 height) {
     auto device = RHIAPI::Get()->GetGraphicsContext()->GetDevice();
     device->WaitIdle();
 
-    m_FrameBuffer.Destroy();
+    m_FrameBuffer.reset();
     // auto oldFrameBuffer = m_FrameBuffer;
     // device->EnqueueCleanup([oldFrameBuffer]() mutable {
     //     //

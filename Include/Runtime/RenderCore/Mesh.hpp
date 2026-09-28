@@ -85,15 +85,12 @@ struct MeshObj {
     std::string Name;
     MemoryType MemoryType = MemoryType::Unknown;
 
-    GraphicsBuffer VertexBuffer;
-    GraphicsBuffer IndexBuffer;
-
     MeshBuffer MeshBuffer;
     Matrix4 LocalTransform;
 
     std::string GetName() const { return Name; }
-    GraphicsBuffer GetVertexBuffer() const { return VertexBuffer; }
-    GraphicsBuffer GetIndexBuffer() const { return IndexBuffer; }
+    GraphicsBuffer GetVertexBuffer() const { return ViewAs<GraphicsBuffer>(m_VertexBuffer); }
+    GraphicsBuffer GetIndexBuffer() const { return ViewAs<GraphicsBuffer>(m_IndexBuffer); }
     uint32 GetIndexCount() const { return MeshBuffer.GetIndexCount(); }
 
     /// The mesh owns the parameters it was generated from; callers get a view.
@@ -103,10 +100,12 @@ struct MeshObj {
 
     void Upload();
 
-    ~MeshObj();
-
 private:
     Scope<MeshParamsObj> m_Params;
+
+    // Owned GPU buffers.
+    Scope<GraphicsBufferObj> m_VertexBuffer;
+    Scope<GraphicsBufferObj> m_IndexBuffer;
 };
 
 class Mesh : public Asset<struct MeshObj> {

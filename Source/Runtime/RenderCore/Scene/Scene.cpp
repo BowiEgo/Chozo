@@ -7,9 +7,9 @@
 
 namespace CZ {
 
-DEFINE_HANDLE_DESTROY(SceneObj)
-
 SceneObj::SceneObj() : m_Impl(CZ_NEW(MEMORY_USAGE_SCENE, SceneImpl)) {}
+
+SceneObj::~SceneObj() = default;
 
 void SceneObj::Update(float deltaTime) {
     (void)deltaTime; // TODO: drive per-system time once systems consume it.
@@ -217,9 +217,6 @@ INSTANTIATE_TEMPLATES(NameComponent)
 INSTANTIATE_TEMPLATES(TransformComponent)
 INSTANTIATE_TEMPLATES(MeshComponent)
 
-Scene Scene::Create() {
-    auto obj = CZ_NEW(MEMORY_USAGE_ASSET, SceneObj);
-    return Scene(obj);
-}
+Scope<SceneObj> Scene::Create() { return CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, SceneObj); }
 
 } // namespace CZ

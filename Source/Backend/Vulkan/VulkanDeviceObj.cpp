@@ -17,6 +17,10 @@
 namespace CZ {
 
 VulkanDeviceObj::~VulkanDeviceObj() {
+    // Cached layouts/samplers/descriptor sets live in the base class and would otherwise be
+    // released after the device is gone.
+    ReleaseCachedResources();
+
     if (m_VmaAllocator) {
         vmaDestroyAllocator(m_VmaAllocator);
         m_VmaAllocator = VK_NULL_HANDLE;
@@ -39,53 +43,45 @@ VulkanDeviceObj::~VulkanDeviceObj() {
 
 void VulkanDeviceObj::WaitIdle() { vkDeviceWaitIdle(m_VkDevice); }
 
-CommandPool VulkanDeviceObj::CreateCommandPool(CommandPoolSpecification& spec) {
+Scope<CommandPoolObj> VulkanDeviceObj::CreateCommandPool(CommandPoolSpecification& spec) {
     spec.QueueIndex = m_GraphicsQueueIndex;
 
-    auto result = VulkanCommandPoolObj::Create(this, spec);
-    if (result) return CommandPool(result.value());
-    return CommandPool();
+    return VulkanCommandPoolObj::Create(this, spec);
 }
 
-Sampler VulkanDeviceObj::CreateSampler(const SamplerSpecification spec) {
-    return Sampler(CZ_NEW(MEMORY_USAGE_RENDER, VulkanSamplerObj, this, spec));
+Scope<SamplerObj> VulkanDeviceObj::CreateSamplerImpl(const SamplerSpecification& spec) {
+    return CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanSamplerObj, this, spec);
 }
 
-FrameBuffer VulkanDeviceObj::CreateFrameBuffer(const FrameBufferSpecification& spec) {
-    return FrameBuffer(CZ_NEW(MEMORY_USAGE_RENDER, VulkanFrameBufferObj, this, spec));
+Scope<FrameBufferObj> VulkanDeviceObj::CreateFrameBuffer(const FrameBufferSpecification& spec) {
+    return CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanFrameBufferObj, this, spec);
 }
 
-ShaderRes VulkanDeviceObj::CreateShaderRes(const ShaderResSpecification& spec,
-                                           const std::vector<uint32_t>* binary) {
-    return ShaderRes(CZ_NEW(MEMORY_USAGE_RENDER, VulkanShaderResObj, this, spec, binary));
+Scope<ShaderResObj> VulkanDeviceObj::CreateShaderRes(const ShaderResSpecification& spec,
+                                                     const std::vector<uint32_t>* binary) {
+    return CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanShaderResObj, this, spec, binary);
 }
 
-Pipeline VulkanDeviceObj::CreatePipeline(const PipelineSpecification& spec,
-                                         const std::vector<ShaderRes>& shaders,
-                                         const ShaderReflection& reflection) {
-    auto result = VulkanPipelineObj::Create(this, spec, shaders, reflection);
-    if (result) return Pipeline(result.value());
-    return Pipeline();
+Scope<PipelineObj> VulkanDeviceObj::CreatePipeline(const PipelineSpecification& spec,
+                                                   const std::vector<ShaderRes>& shaders,
+                                                   const ShaderReflection& reflection) {
+    return VulkanPipelineObj::Create(this, spec, shaders, reflection);
 }
 
-SetLayout VulkanDeviceObj::CreateSetLayout(const SetLayoutDescription& desc) {
-    auto result = VulkanSetLayoutObj::Create(this, desc);
-    if (result) return SetLayout(result.value());
-    return SetLayout();
+Scope<SetLayoutObj> VulkanDeviceObj::CreateSetLayoutImpl(const SetLayoutDescription& desc) {
+    return VulkanSetLayoutObj::Create(this, desc);
 }
 
-DescriptorSet VulkanDeviceObj::CreateDescriptorSet(SetLayout setLayout,
-                                                   std::vector<DescriptorBinding>& bindings) {
-    auto result = VulkanDescriptorSetObj::Create(this, setLayout, bindings);
-    if (result) return DescriptorSet(result.value());
-    return DescriptorSet();
+Scope<DescriptorSetObj>
+    VulkanDeviceObj::CreateDescriptorSetImpl(SetLayout setLayout,
+                                             std::vector<DescriptorBinding>& bindings) {
+    return VulkanDescriptorSetObj::Create(this, setLayout, bindings);
 }
 
-GraphicsBuffer VulkanDeviceObj::CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
-                                                     const Buffer* initialData) {
-    auto result = VulkanGraphicsBufferObj::Create(this, spec, initialData);
-    if (result) return GraphicsBuffer(result.value());
-    return GraphicsBuffer();
+Scope<GraphicsBufferObj>
+    VulkanDeviceObj::CreateGraphicsBuffer(const GraphicsBufferSpecification& spec,
+                                          const Buffer* initialData) {
+    return VulkanGraphicsBufferObj::Create(this, spec, initialData);
 }
 
 bool VulkanDeviceObj::IsExtensionSupported(const std::string& extensionName) const {

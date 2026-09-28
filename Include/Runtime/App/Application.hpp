@@ -42,20 +42,24 @@ public:
     void Run();
     bool OnEvent(Event& e);
 
-    StartupHost GetStartupHost() { return m_StartupHost; }
-    void SetStartupHost(StartupHost StartupHost) { m_StartupHost = StartupHost; }
+    StartupHost GetStartupHost() { return ViewAs<StartupHost>(m_StartupHost); }
 
-    Window GetWindow() { return m_Window; }
-    Window GetWindow() const { return m_Window; }
+    /// Takes ownership of the startup host (usually created by the editor dylib).
+    void SetStartupHost(StartupHost host) { m_StartupHost.reset(host.Get()); }
+
+    Window GetWindow() { return ViewAs<Window>(m_Window); }
+    Window GetWindow() const { return ViewAs<Window>(m_Window); }
 
     Engine* GetEngine() { return m_Engine.get(); }
 
 private:
     bool m_ShouldClose = false;
-    Window m_Window;
-    Scope<Engine> m_Engine;
 
-    StartupHost m_StartupHost;
+    // Owned by the application.
+    Scope<WindowObj> m_Window;
+    Scope<Engine> m_Engine;
+    Scope<StartupHostObj> m_StartupHost;
+
     LayerStack m_LayerStack;
 };
 

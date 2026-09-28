@@ -17,10 +17,8 @@ VulkanCommandPoolObj::~VulkanCommandPoolObj() {
     }
 }
 
-CommandList VulkanCommandPoolObj::AllocateCommandBuffer() {
-    auto result = VulkanCommandBufferObj::Create(this);
-    if (result) return CommandList(result.value());
-    return CommandList();
+Scope<CommandListObj> VulkanCommandPoolObj::AllocateCommandBuffer() {
+    return VulkanCommandBufferObj::Create(this);
 }
 
 // ---- Private ----

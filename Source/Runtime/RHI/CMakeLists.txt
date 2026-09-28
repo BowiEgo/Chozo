@@ -32,20 +32,8 @@ set(MODULE_SRC
     GraphicsContext.cpp
     RHIAPI.cpp
     Device.cpp
-    Swapchain.cpp
-    Fence.cpp
-    Semaphore.cpp
-    CommandPool.cpp
     CommandList.cpp
-    DescriptorSet.cpp
     Texture.cpp
-    Image.cpp
-    Sampler.cpp
-    FrameBuffer.cpp
-    Pipeline.cpp
-    SetLayout.cpp
-    ShaderRes.cpp
-    GraphicsBuffer.cpp
 )
 
 set(CZ_RUNTIME_RHI_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})

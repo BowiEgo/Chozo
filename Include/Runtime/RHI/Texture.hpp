@@ -92,11 +92,13 @@ class TextureObj : public RHIResource {
     friend class Handle<TextureObj>;
 
 public:
-    TextureObj(const TextureSpecification& spec) : m_Spec(spec) {}
+    explicit TextureObj(const TextureSpecification& spec) : m_Spec(spec) {}
 
-    TextureObj(const TextureSpecification& spec, Image image) : m_Spec(spec), m_Image(image) {}
+    /// Adopts an already-created image (the texture owns it from here on).
+    TextureObj(const TextureSpecification& spec, Scope<ImageObj> image)
+        : m_Spec(spec), m_Image(std::move(image)) {}
 
-    virtual ~TextureObj() { m_Image.Destroy(); }
+    virtual ~TextureObj() = default;
 
     ResourceType GetResourceType() const override { return ResourceType::Texture; }
 
@@ -110,13 +112,15 @@ public:
 
     TextureUsage GetUsage() const { return m_Spec.Usage; }
 
-    Image GetImage() const { return m_Image; }
+    Image GetImage() const { return ViewAs<Image>(m_Image); }
 
     Sampler GetSampler(const SamplerSpecification spec = SamplerSpecification());
 
 protected:
     TextureSpecification m_Spec;
-    Image m_Image;
+
+    /// Owned by the texture.
+    Scope<ImageObj> m_Image;
 };
 
 struct Texture : Handle<class TextureObj> {

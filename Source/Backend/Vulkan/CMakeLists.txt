@@ -60,3 +60,8 @@ add_chozo_module(
 # )
 
 add_chozo_module_tests()
+
+set_target_properties(${MODULE_NAME} PROPERTIES
+    BUILD_RPATH "@loader_path;@executable_path/../Frameworks"
+    INSTALL_RPATH "@loader_path;@executable_path/../Frameworks"
+)
