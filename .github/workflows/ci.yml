@@ -124,10 +124,13 @@ jobs:
       - name: Configure
         run: cmake --preset full-release
       - name: Build
+        # Git Bash: the runners default to PowerShell, which does not know `set -o pipefail`.
+        shell: bash
         run: |
           set -o pipefail
           cmake --build --preset full-release --config Release 2>&1 | tee build.log
       - name: Check project warnings
+        shell: bash
         run: bash .github/scripts/check-warnings.sh build.log 0
       - name: Test
         # slang.dll sits in the prebuilt SDK, so it has to be reachable for the test binaries.
