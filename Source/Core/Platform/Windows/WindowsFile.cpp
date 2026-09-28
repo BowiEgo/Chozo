@@ -19,8 +19,8 @@ std::filesystem::path GetExecutablePath() {
 
     for (;;) {
         written = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
-        if (written == 0) return {};                    // failure
-        if (written < buffer.size()) break;             // the whole path fits
+        if (written == 0) return {};        // failure
+        if (written < buffer.size()) break; // the whole path fits
 
         buffer.resize(buffer.size() * 2);
     }
