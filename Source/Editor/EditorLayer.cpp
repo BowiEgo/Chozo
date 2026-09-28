@@ -6,8 +6,6 @@
 #include <Runtime/App/Application.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>
 
-#include "../Runtime/Window/SDLWindow/SDLWindowObj.hpp"
-
 using namespace CZ;
 
 EditorLayer::EditorLayer() {}
@@ -16,9 +14,6 @@ EditorLayer::~EditorLayer() {}
 
 void EditorLayer::OnAttach() {
     auto window = Application::Get().GetWindow();
-
-    window.As<SDLWindowObj>()->SetEventPreprocessor(
-        [](const SDL_Event& event) -> void { ImGui_ImplSDL3_ProcessEvent(&event); });
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -58,8 +53,21 @@ void EditorLayer::OnAttach() {
 
     auto fbSize = window->GetFrameBufferSize();
 
-    m_ImGuiRenderer = CZ_CREATE_SCOPE(MEMORY_USAGE_UI, VulkanImGuiRenderer);
-    m_ImGuiRenderer->Init(ImGui::GetCurrentContext(), window.As<SDLWindowObj>()->GetSDLWindow());
+    {
+        std::string uiError;
+        m_ImGuiRenderer = CreateUIRenderBackend(uiError);
+
+        if (m_ImGuiRenderer &&
+            !m_ImGuiRenderer->Init(window, Application::Get().GetEngine()->GetGraphicContext(),
+                                   uiError)) {
+            CZ_EDITOR_LOG(Error, "Failed to initialise the UI backend: {}", uiError);
+            m_ImGuiRenderer.reset();
+        }
+
+        if (!m_ImGuiRenderer) {
+            CZ_EDITOR_LOG(Error, "The editor runs without a UI backend: {}", uiError);
+        }
+    }
 
     m_ViewportRenderer = Application::Get().GetEngine()->GetRenderer();
     m_Viewport = m_ViewportRenderer.CreateViewport("Editor", m_ViewportSize.x, m_ViewportSize.y);
@@ -109,7 +117,10 @@ void EditorLayer::OnDetach() {
     if (m_ImGuiRenderer) {
         m_ImGuiRenderer->ReleaseAllTextures();
         m_ImGuiRenderer->Shutdown();
+        m_ImGuiRenderer.reset();
     }
+
+    ImGui::DestroyContext();
 }
 
 void EditorLayer::OnUpdate(float deltaTime) {

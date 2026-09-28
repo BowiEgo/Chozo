@@ -5,8 +5,8 @@
 #include <Runtime/RenderCore/Viewport.hpp>
 
 #include "EditorCamera.hpp"
-#include "Renderer/Vulkan/VulkanImGuiRenderer.hpp"
 #include "SyncBridge.hpp"
+#include <Runtime/UI/UIRenderBackend.hpp>
 
 #include "Panels/ConsolePanel.hpp"
 // #include "Panels/ContentBrowserPanel.hpp"
@@ -38,7 +38,7 @@ public:
 
     void Draw(CommandList cmdList);
 
-    VulkanImGuiRenderer* GetImGuiRenderer() const { return m_ImGuiRenderer.get(); }
+    UIRenderBackendObj* GetImGuiRenderer() const { return m_ImGuiRenderer.get(); }
 
 private:
     void Init();
@@ -58,7 +58,7 @@ private:
 
     bool m_ViewportFocused{}, m_ViewportHovered{};
 
-    Scope<VulkanImGuiRenderer> m_ImGuiRenderer;
+    UIRenderBackendPtr m_ImGuiRenderer;
 
     Renderer m_ViewportRenderer;
     Scene m_Scene; // view; owned by the viewport

@@ -34,16 +34,9 @@ public:
 
     SDL_Window* GetSDLWindow() const { return static_cast<SDL_Window*>(m_Window); }
 
-    void SetEventPreprocessor(std::function<void(const SDL_Event&)> preprocessor) {
-        m_EventPreprocessor = preprocessor;
-    }
-
-    void ProcessEventWithPreprocessor(const SDL_Event& event) {
-        if (m_EventPreprocessor) m_EventPreprocessor(event);
-    }
+    void ProcessEventWithPreprocessor(const SDL_Event& event) { ProcessEventPreprocessor(&event); }
 
 private:
-    std::function<void(const SDL_Event&)> m_EventPreprocessor;
 };
 
 } // namespace CZ

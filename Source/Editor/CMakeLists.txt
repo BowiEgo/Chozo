@@ -5,7 +5,6 @@ set(MODULE_SRC
     EditorLayer.cpp
     SyncBridge.cpp
     EditorCamera.cpp
-    Renderer/Vulkan/VulkanImGuiRenderer.cpp
     EditorNode/EditorNode.cpp
     EditorNode/EditorNodeTree.cpp
     Panels/ConsolePanel.cpp
@@ -15,10 +14,11 @@ set(MODULE_SRC
 
 add_library(${MODULE_NAME} SHARED ${MODULE_SRC})
 
+# The editor talks to the graphics backend exclusively through public interfaces
+# (`UIRenderBackendObj`, RHI); the backend module itself is loaded at runtime.
 target_link_libraries(${MODULE_NAME} PRIVATE
     CZCoreLibs
     CZRuntimeLibs
-    CZVulkan
     Chozo::ImGui
 )
 

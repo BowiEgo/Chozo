@@ -13,7 +13,7 @@
 
 using namespace CZ;
 
-#define GET_IM_TEXTURE_ID(tex) Editor::GetImGuiRenderer()->GetTextureID(tex)
+#define GET_IM_TEXTURE_ID(tex) Editor::GetImGuiRenderer()->RegisterTexture(tex)
 
 #define IMGUI_DPI_SCALE (Editor::GetWindow()->GetPixelRatio())
 

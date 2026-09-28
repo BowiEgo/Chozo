@@ -126,9 +126,9 @@ set(CZ_RUNTIME_MODULE_LIST "" CACHE STRING "" FORCE)
 
 if(CZ_OPTION_BUILD_RUNTIME)
     add_subdirectory(Source/Runtime/RHI)
-    # add_subdirectory(Source/Runtime/UI)
     add_subdirectory(Source/Runtime/RenderCore)
     add_subdirectory(Source/Runtime/Window)
+    add_subdirectory(Source/Runtime/UI)
     add_subdirectory(Source/Runtime/App)
 endif()
 

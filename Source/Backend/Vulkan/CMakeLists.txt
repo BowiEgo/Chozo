@@ -42,6 +42,7 @@ set(MODULE_SRC
     VulkanSetLayoutObj.cpp
     VulkanPipelineObj.cpp
     VulkanGraphicsBufferObj.cpp
+    VulkanUIBackend.cpp
 )
 
 add_chozo_module(
@@ -50,7 +51,7 @@ add_chozo_module(
     LIBRARY_TYPE  SHARED
     INCLUDE ${MODULE_INCLUDE} ${CZ_RUNTIME_RHI_INCLUDE}
     SOURCE  ${MODULE_SRC}
-    LINK    Vulkan::Vulkan VulkanMemoryAllocator CZCoreLibs CZRHI
+    LINK    Vulkan::Vulkan VulkanMemoryAllocator Chozo::ImGui CZCoreLibs CZRHI CZUI
     PCH     VulkanPCH.h
 )
 

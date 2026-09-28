@@ -14,7 +14,7 @@ public:
     Editor();
     ~Editor();
 
-    static VulkanImGuiRenderer* GetImGuiRenderer() {
+    static UIRenderBackendObj* GetImGuiRenderer() {
         return Application::Get().GetStartupHost().As<Editor>()->m_StartupLayer->GetImGuiRenderer();
     }
 

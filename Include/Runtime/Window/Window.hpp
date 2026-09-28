@@ -5,6 +5,7 @@
 #include <Core/Header/Extent.hpp>
 #include <Core/Header/Handle.hpp>
 
+#include <functional>
 #include <string>
 
 namespace CZ {
@@ -49,9 +50,23 @@ public:
 
     virtual WindowHandle GetNativeHandle() const = 0;
 
+    /// Optional hook that sees platform events before they are translated into engine events.
+    /// The pointer is platform specific and opaque to callers (SDL events on the SDL backend);
+    /// this is what lets a UI backend consume input without the window knowing about ImGui.
+    using EventPreprocessor = std::function<void(const void* event)>;
+    void SetEventPreprocessor(EventPreprocessor preprocessor) {
+        m_EventPreprocessor = std::move(preprocessor);
+    }
+
     WindowHandle GetWindowWrapper() const { return m_Window; }
 
     void SetEventCallback(const EventCallback& callback) { m_Spec.EventCallback = callback; }
+
+    /// Called by the platform backend before an event is translated; keeps `EventPreprocessor`
+    /// a window-internal detail.
+    void ProcessEventPreprocessor(const void* event) const {
+        if (m_EventPreprocessor) m_EventPreprocessor(event);
+    }
 
     void SetVSync(bool enabled) {
         if (m_Spec.VSync != enabled) {
@@ -67,6 +82,7 @@ protected:
 protected:
     WindowSpecifaciton m_Spec;
     WindowHandle m_Window{ nullptr };
+    EventPreprocessor m_EventPreprocessor;
     Scope<InputImpl> m_InputImpl;
     std::atomic_bool m_VSyncDirty{ false };
 

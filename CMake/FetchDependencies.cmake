@@ -123,7 +123,9 @@ set(IMGUI_BACKEND_SOURCES
     ${ChozoImGui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
 )
 
-add_library(ChozoImGui STATIC ${IMGUI_CORE_SOURCES} ${IMGUI_BACKEND_SOURCES})
+# Shared: ImGui keeps its context in a global, so the editor and the graphics backend (which owns
+# the ImGui render backend) must link the same instance instead of one copy each.
+add_library(ChozoImGui SHARED ${IMGUI_CORE_SOURCES} ${IMGUI_BACKEND_SOURCES})
 
 target_include_directories(ChozoImGui PUBLIC
     ${ChozoImGui_SOURCE_DIR}
