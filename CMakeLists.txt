@@ -45,6 +45,11 @@ else()
     set(CHOZO_RUNTIME_OUTPUT_DIR "${BUNDLE_DIR}/bin")
 endif()
 
+# Several modules are shared libraries (CZMemory, the editor, the backend) that link the core's
+# static libraries. On Linux those must be built as position independent code; macOS implies it,
+# which is why the problem only shows up in CI.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CHOZO_LIBRARY_OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CHOZO_RUNTIME_OUTPUT_DIR})
 
