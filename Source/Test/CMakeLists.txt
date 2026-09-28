@@ -23,8 +23,5 @@ target_include_directories(${MODULE_NAME} PRIVATE
     ${CHOZO_INCLUDE_DIR}
 )
 
-add_custom_command(TARGET ${MODULE_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "$<TARGET_FILE:${MODULE_NAME}>"
-        "$<TARGET_FILE_DIR:Launch>"
-)
+# Register with CTest so `ctest --preset <name>` (and CI) can run the suites.
+add_test(NAME CZTest COMMAND ${MODULE_NAME})
