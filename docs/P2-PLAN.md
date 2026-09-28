@@ -46,7 +46,8 @@
 
 - `CZ_OPTION_BUILD_RUNTIME`（默认 ON）：关闭时只构建 13 个 Core 模块 + `CZTest`，不 Fetch SDL/slang/ImGui/VMA/entt，也不需要 Vulkan SDK。核心配置实测 **configure 35s / build 6s**。
 - `CMakePresets.json`：`core-{debug,release,asan}` 与 `full-{debug,release}` 的 configure/build/test preset，本地与 CI 跑同一组命令。
-- `.github/workflows/ci.yml`：`format`（固定 clang-format 22.1.5，PR 上只检查改动文件）、`core`（Debug+Release 矩阵，构建 → 告警预算 → `ctest`）、`sanitizers`（ASan+UBSan 跑测试）。
+- `.github/workflows/ci.yml`：`format`（固定 clang-format 22.1.5，PR 上只检查改动文件）、`core`（Debug+Release 矩阵，构建 → 告警预算 → `ctest`）、`windows-core`（MSVC 核心构建，见 G7）、`sanitizers`（ASan+UBSan 跑测试）、`full-macos`（完整引擎）。
+- **额度策略**：私有仓库按 Linux ×1 / Windows ×2 / macOS ×10 计费，`full-macos` 因此只在 PR、每周定时与手动触发时运行（每次 push 省下约 100 分钟额度）；每个 job 设 `timeout-minutes`，`ctest` 设 `--timeout`，避免挂死的测试把整段额度烧完。
 - `.github/workflows/full-build.yml`：完整 macOS 构建（LunarG SDK 缓存安装），当前仅 `workflow_dispatch`，待 G5 完成后并入主 CI。
 - `.github/scripts/check-format.sh`、`.github/scripts/check-warnings.sh`（本地可直接运行，避免"CI 专用逻辑"）；`.clang-format-ignore` 排除 `External/`、`build/` 与 ObjC++ 源文件。
 - 格式化 3 个不合规文件（`VulkanGraphicsBufferObj.cpp` 等）；告警预算：core 为 0，full 暂为 4（P1-10 顶点属性 4 条）。

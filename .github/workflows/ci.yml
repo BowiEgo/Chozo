@@ -6,6 +6,9 @@ on:
   push:
     branches: [main, refactor, 'dev-*']
   pull_request:
+  # Weekly safety net: everything runs once a week, including the expensive macOS full build.
+  schedule:
+    - cron: '0 3 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -25,6 +28,7 @@ jobs:
   format:
     name: clang-format
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,6 +49,7 @@ jobs:
   core:
     name: core ${{ matrix.preset }}
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     env:
       CC: clang
       CXX: clang++
@@ -71,11 +76,12 @@ jobs:
       - name: Check project warnings
         run: .github/scripts/check-warnings.sh build.log 0
       - name: Test
-        run: ctest --preset ${{ matrix.preset }}
+        run: ctest --preset ${{ matrix.preset }} --timeout 120
 
   windows-core:
     name: core windows (MSVC)
     runs-on: windows-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - name: Cache FetchContent dependencies
@@ -89,11 +95,15 @@ jobs:
       - name: Build
         run: cmake --build --preset core-debug --config Debug
       - name: Test
-        run: ctest --preset core-debug -C Debug --output-on-failure
+        run: ctest --preset core-debug -C Debug --output-on-failure --timeout 120
 
+  # macOS runners consume ten times the minutes of a Linux runner, so the complete build only
+  # runs for pull requests, the weekly schedule and manual dispatches - not for every push.
   full-macos:
     name: full build (macOS + Vulkan)
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: macos-14
+    timeout-minutes: 60
     # The Vulkan loader, headers and MoltenVK come from Homebrew; VULKAN_SDK points CMake at that
     # prefix, so no assumption about a LunarG SDK layout is needed.
     env:
@@ -119,11 +129,12 @@ jobs:
       - name: Check project warnings
         run: .github/scripts/check-warnings.sh build.log 4
       - name: Test
-        run: ctest --preset full-release --output-on-failure
+        run: ctest --preset full-release --output-on-failure --timeout 300
 
   sanitizers:
     name: core asan+ubsan
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     env:
       CC: clang
       CXX: clang++
@@ -143,4 +154,4 @@ jobs:
         env:
           ASAN_OPTIONS: detect_leaks=1:strict_string_checks=1
           UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
-        run: ctest --preset core-asan
+        run: ctest --preset core-asan --timeout 120
