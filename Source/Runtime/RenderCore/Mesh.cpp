@@ -22,6 +22,17 @@ void MeshObj::Upload() {
         return;
     }
 
+    if (VertexBuffer || IndexBuffer) {
+        // Re-uploading: release the buffers created by the previous upload instead of
+        // orphaning them. They may still be referenced by in-flight frames, so idle the
+        // device first (same policy as Viewport::Resize). A frame-deferred deletion
+        // queue in the RHI would remove the need for this stall.
+        RHIAPI::Get()->WaitIdle();
+
+        VertexBuffer.Destroy();
+        IndexBuffer.Destroy();
+    }
+
     {
         GraphicsBufferSpecification spec;
         spec.Size       = MeshBuffer.GetVertexBufferSize();
