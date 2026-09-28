@@ -365,17 +365,25 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 ## 三、回归基线（每个 P1 修复都必须跑）
 
 ```bash
-# 1. 构建（不得引入新警告；当前基线为 12 条既有告警）
-cmake -S . -B build && cmake --build build -j8
+# 1. 核心改动（快，无需 Vulkan SDK）：配置 + 构建 + 测试
+cmake --preset core-debug && cmake --build --preset core-debug && ctest --preset core-debug
+cmake --preset core-release && cmake --build --preset core-release && ctest --preset core-release
+cmake --preset core-asan && cmake --build --preset core-asan && ctest --preset core-asan
 
-# 2. 单元测试（当前 13 cases / 75 assertions）
-./build/Source/Test/CZTest
+# 2. 完整引擎（需要 Vulkan SDK）
+cmake --preset full-release && cmake --build --preset full-release
 
 # 3. 运行验证：Debug + 校验层跑 60s，检查日志
 ./build/dist/Debug/Chozo.app/Contents/MacOS/Launch
 
-# 4. 退出时检查泄漏报告（注意：Debug 下会 CZ_DEBUGBREAK 中断）
+# 4. 退出时检查泄漏报告（当前基线：`No active allocations.`）
+
+# 5. 门禁脚本（CI 与本机一致）
+.github/scripts/check-format.sh
+.github/scripts/check-warnings.sh <build.log> 4
 ```
+
+CI（`.github/workflows/ci.yml`）会跑上面的 1 与 5；完整构建见 `full-build.yml`（手动触发）。
 
 **建议补充**
 
