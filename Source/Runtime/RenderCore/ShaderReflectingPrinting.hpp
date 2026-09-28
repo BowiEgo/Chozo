@@ -648,8 +648,8 @@ struct ReflectingPrinting {
 
     StageMask calculateParameterStageMask(slang::ParameterCategory layoutUnit,
                                           CumulativeOffset offset) {
-        unsigned mask        = 0;
-        auto entryPointCount = _metadataForEntryPoints.size();
+        unsigned mask              = 0;
+        const auto entryPointCount = static_cast<int>(_metadataForEntryPoints.size());
         for (int i = 0; i < entryPointCount; ++i) {
             bool isUsed = false;
             _metadataForEntryPoints[i]->isParameterLocationUsed(SlangParameterCategory(layoutUnit),
@@ -683,8 +683,8 @@ struct ReflectingPrinting {
 
         key("used by stages");
         WITH_ARRAY()
-        for (int i = 0; i < SLANG_STAGE_COUNT; i++) {
-            if (stageMask & (1 << i)) {
+        for (int i = 0; i < static_cast<int>(SLANG_STAGE_COUNT); i++) {
+            if (stageMask & (1u << i)) {
                 element();
                 printStage(SlangStage(i));
             }

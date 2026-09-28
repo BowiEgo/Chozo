@@ -25,13 +25,13 @@ int main(int argc, char** argv) {
             return 1;
         }
 
-        auto createEditorFn = registry.GetFunction<StartupHost (*)()>("Editor", "CreateEditor");
+        auto createEditorFn = registry.GetFunction<StartupHostObj* (*)()>("Editor", "CreateEditor");
         if (!createEditorFn) {
             CZ_APP_LOG(Error, "CreateEditor not found in the editor module.");
             return 1;
         }
 
-        editor = createEditorFn();
+        editor = StartupHost(createEditorFn());
     }
 
     Application& app = Application::Get();

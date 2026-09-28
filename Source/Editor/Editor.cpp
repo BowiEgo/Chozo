@@ -6,7 +6,8 @@
 using namespace CZ;
 
 extern "C" {
-StartupHost CreateEditor() { return StartupHost(CZ_NEW(MEMORY_USAGE_RENDER, Editor)); }
+// Returns a plain pointer so the exported symbol has a C-compatible signature.
+StartupHostObj* CreateEditor() { return CZ_NEW(MEMORY_USAGE_RENDER, Editor); }
 }
 
 Editor::Editor() {

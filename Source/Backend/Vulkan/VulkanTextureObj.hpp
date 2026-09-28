@@ -10,16 +10,13 @@ namespace CZ {
 class VulkanTextureObj : public TextureObj {
 public:
     VulkanTextureObj(const VulkanDeviceObj* device, const TextureSpecification& spec);
-    VulkanTextureObj(const VulkanDeviceObj* device, const TextureSpecification& spec,
-                     Scope<ImageObj> image);
+    /// Wraps an image created elsewhere (the swapchain); the device is not needed here.
+    VulkanTextureObj(const TextureSpecification& spec, Scope<ImageObj> image);
 
     ~VulkanTextureObj() override;
 
     VkRenderingAttachmentInfo GetColorAttachmentInfo(const VkClearValue clearColor,
                                                      const bool bClear, uint32_t);
-
-private:
-    const VulkanDeviceObj* m_DeviceObj;
 };
 
 } // namespace CZ

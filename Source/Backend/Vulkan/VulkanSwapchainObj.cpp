@@ -44,7 +44,12 @@ VulkanSwapchainObj::VulkanSwapchainObj(const VulkanGraphicsContextObj* ctxObj,
 VulkanSwapchainObj::~VulkanSwapchainObj() {
     auto deviceObj = m_ContextObj->m_DeviceObj;
 
-    CZ_CORE_ASSERT(deviceObj, "Device is no longer valid during Swapchain destroying!");
+    // Report instead of asserting: an assertion can throw (release builds keep them) and a
+    // destructor is implicitly noexcept.
+    if (!deviceObj) {
+        CZ_BACKEND_LOG(Error, "Device is no longer valid while destroying the swapchain.");
+        return;
+    }
 
     VkDevice logicalDevice = deviceObj->GetLogicalDevice();
 
@@ -235,9 +240,8 @@ void VulkanSwapchainObj::Init() {
             CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanImageObj, m_ContextObj->m_DeviceObj,
                             texSpec.ToImageSpec(), rawImage, true);
 
-        m_ColorAttachments.push_back(CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanTextureObj,
-                                                     m_ContextObj->m_DeviceObj, texSpec,
-                                                     std::move(imageObj)));
+        m_ColorAttachments.push_back(
+            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, VulkanTextureObj, texSpec, std::move(imageObj)));
     }
 
     CZ_BACKEND_LOG(Info, "=== Swapchain Creation Debug ===");
