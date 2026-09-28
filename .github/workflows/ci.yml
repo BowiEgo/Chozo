@@ -19,8 +19,6 @@ env:
   # Must match the version used by the developers, otherwise the format gate reports
   # differences that only exist between clang-format releases.
   CLANG_FORMAT_VERSION: 22.1.5
-  CC: clang
-  CXX: clang++
   CMAKE_BUILD_PARALLEL_LEVEL: 4
 
 jobs:
@@ -47,6 +45,9 @@ jobs:
   core:
     name: core ${{ matrix.preset }}
     runs-on: ubuntu-24.04
+    env:
+      CC: clang
+      CXX: clang++
     strategy:
       fail-fast: false
       matrix:
@@ -71,6 +72,24 @@ jobs:
         run: .github/scripts/check-warnings.sh build.log 0
       - name: Test
         run: ctest --preset ${{ matrix.preset }}
+
+  windows-core:
+    name: core windows (MSVC)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache FetchContent dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/core-debug/_deps
+          key: ${{ runner.os }}-core-debug-deps-${{ hashFiles('CMake/FetchDependencies.cmake') }}
+          restore-keys: ${{ runner.os }}-core-debug-deps-
+      - name: Configure
+        run: cmake --preset core-debug
+      - name: Build
+        run: cmake --build --preset core-debug --config Debug
+      - name: Test
+        run: ctest --preset core-debug -C Debug --output-on-failure
 
   full-macos:
     name: full build (macOS + Vulkan)
@@ -105,6 +124,9 @@ jobs:
   sanitizers:
     name: core asan+ubsan
     runs-on: ubuntu-24.04
+    env:
+      CC: clang
+      CXX: clang++
     steps:
       - uses: actions/checkout@v4
       - name: Cache FetchContent dependencies

@@ -1,4 +1,5 @@
 #include <Core/DynamicLibrary/DynamicLibraryRegistry.hpp>
+#include <Core/DynamicLibrary/ModuleNames.hpp>
 #include <Core/Memory/Memory.hpp>
 #include <Core/Memory/MemoryTypes.hpp>
 #include <Runtime/App/Application.hpp>
@@ -17,7 +18,7 @@ int main(int argc, char** argv) {
     {
         auto& registry = CZ::DynamicLibraryRegistry::Get();
 
-        if (!registry.LoadLib("Editor", "libCZEditor.dylib")) {
+        if (!registry.LoadLib("Editor", Modules::EditorFile)) {
             CZ_APP_LOG(Error, "Cannot load the Editor module.");
             return 1;
         }

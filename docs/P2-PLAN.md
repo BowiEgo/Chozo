@@ -15,7 +15,7 @@
 | **G4** 文档重建 —— 已完成 | 根 README 可用化 + 所有权模型留档 | ★★★★ | 1 天 | — | P1-1 的约定固化 |
 | **G5** 构建与依赖卫生 —— 已完成 | 依赖可复现、`LINK` 声明真实、镜像可关、SDK 定位不写死 | ★★★ | 1–1.5 天 | — | P1-12 的前置 |
 | **G6** 分层解耦 | Editor 不再直接依赖 Vulkan/SDL 内部实现 | ★★★ | 1.5–2 天 | G5 | P1-11 的落点 |
-| **G7** 跨平台 | 先定目标平台，再分期落地 | ★★ | 3–5 天 | G1、P1-7 | P1-7（Linux 门禁逼出） |
+| **G7** 跨平台 —— 进行中（平台可移植性已完成，Windows 完整构建待验证） | 先定目标平台，再分期落地 | ★★ | 3–5 天 | G1、P1-7 | P1-7（Linux 门禁逼出） |
 | **G8** 渲染/着色器契约 —— 部分完成 | 顶点属性一致性、静默不绑定的兜底 | ★★ | 0.5 天 | — | P1-10 遗留项 |
 
 ## 当前证据基线（已核实）
@@ -225,24 +225,27 @@
 
 ---
 
-## G7 跨平台
+## G7 跨平台 —— 进行中
 
-**决策点**：只维护 macOS（现状）？还是 Windows 优先？还是 Linux/Steam Deck？
+**平台决策（2026-09-28）**：**Windows 优先，macOS 其次，Linux 先占位。**
 
-**若加入 Linux 的最小工作集**
+**已完成（平台可移植性改造）**
 
-1. `CreateVKSurface` 增加 XCB/Wayland 分支；
-2. `Source/Core/Platform` 增加 `Linux/`（可执行路径等，`MacFile.mm`/`MacUtils.mm` 的对应实现）；
-3. 去掉 `pthread_threadid_np`（P1-7）；
-4. CMake 的 `-rdynamic`/`.app`/Info.plist/MoltenVK 拷贝按平台分支；
-5. CI 增加 Linux job（**最便宜**：`CZCoreLibs + CZTest` 无需 Vulkan，先跑起来再谈渲染）；
-6. `Launch.cpp` 里 `libCZEditor.dylib` 的硬编码文件名需要按平台切换。
+- **模块名不再硬编码**：新增 `Include/Core/DynamicLibrary/ModuleNames.hpp`，`Launch`（编辑器模块）与 `GraphicsContext`（图形后端模块）按平台取文件名（`CZVulkan.dll` / `libCZVulkan.dylib` / `libCZVulkan.so`），不再写死 `.dylib`。
+- **平台层**：新增 `Platform/Windows/WindowsFile.cpp`（`GetModuleFileNameW`）与 `Platform/Linux/LinuxFile.cpp`（`/proc/self/exe`）实现 `Platform::File::GetExecutablePath()`，`Platform.h` 按平台包含对应头文件；macOS 实现保持原样。
+- **Vulkan 平台宏**：`VulkanPCH.h` 为 Windows 定义 `VK_USE_PLATFORM_WIN32_KHR` 并包含 `<windows.h>`；Linux 的 surface 创建改为显式报错（"not implemented yet (XCB/Wayland)"），不再静默失败。
+- **构建布局按平台分支**：macOS 仍是 `.app` bundle；Windows/Linux 输出到 `dist/<config>/bin`，资源复制到 `dist/<config>/Resources`（与引擎"相对可执行文件上级目录找 Resources"的约定一致）。`-rdynamic`/rpath 只在 Apple/UNIX 生效；Windows 打开 `CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS`（模块按名加载，DLL 必须导出符号）。
+- **CI 增加 `windows-core` job**（`windows-latest` + MSVC，跑 `core-debug` 预设与 `ctest`）：不需要 Vulkan SDK，先验证模块系统、PCH、平台层与测试在 MSVC 下可用。告警门禁的脚本也已识别 MSVC 的 `warning C####:` 形式。
 
-**验收**：Linux 上构建 + `ctest` 通过（不要求渲染）；渲染路径在目标平台手动验证。
+**仍待完成（Windows 转正）**
 
-**预估**：3–5 天。**风险**：没有 CI 时做跨平台等于持续回归 → 必须先有 G1。
+1. 让 `windows-core` 变绿并修 MSVC 报出的告警/错误（首次运行大概率需要一轮修正）。
+2. Windows **完整构建**：CI 安装 Vulkan SDK（`choco install vulkan-sdk` 或 LunarG Windows ZIP + `VULKAN_SDK`），跑 `full-*` 预设；验证 `vkCreateWin32SurfaceKHR` 分支（代码已存在但从未在 Windows 上执行）。
+3. Windows 的运行时装配：DLL 与 `Launch.exe` 同目录（已由输出目录保证）、`SDL3.dll`/`slang.dll`/`ChozoImGui.dll` 等依赖的拷贝步骤、以及 `Launch` 加载 `CZVulkan.dll` 的路径解析。
+4. Linux 占位转正需要：XCB/Wayland surface、`Platform/Linux` 的窗口属性对接、CI 的 `libvulkan-dev`/X11 依赖，以及把 `windows-core` 的 Linux 对应 job 扩到完整构建。
+5. 平台验证矩阵：目前只有 macOS 被实机验证；Windows/Linux 的结论必须来自 CI。
 
----
+**预估**：Windows 转正 1–2 天（含一轮 CI 迭代）；Linux 转正 2–3 天。
 
 ## G8 渲染/着色器契约 —— 部分完成
 

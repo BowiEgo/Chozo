@@ -20,7 +20,9 @@ while IFS= read -r line; do
         *_deps*|*External/*) continue ;;
     esac
 
-    if [[ "$line" =~ ^[^[:space:]]+\.(c|cc|cpp|cxx|h|hh|hpp|hxx|m|mm):([0-9]+:)?([0-9]+:)?[[:space:]]warning: ]]; then
+    # clang/gcc: "path/file.cpp:12:3: warning: ..."   MSVC: "path/file.cpp(12): warning C4996: ..."
+    if [[ "$line" =~ ^[^[:space:]]+\.(c|cc|cpp|cxx|h|hh|hpp|hxx|m|mm):([0-9]+:)?([0-9]+:)?[[:space:]]warning: ]] ||
+       [[ "$line" =~ ^[^[:space:]]+\.(c|cc|cpp|cxx|h|hh|hpp|hxx|m|mm)\([0-9]+(:[0-9]+)?\):[[:space:]]warning[[:space:]]C[0-9]+: ]]; then
         echo "::error::$line"
         count=$((count + 1))
     fi

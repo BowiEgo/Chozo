@@ -1,6 +1,8 @@
 # Chozo
 
-一个自研的 C++20 游戏引擎与编辑器：自建内存系统、句柄式 RHI（Vulkan 后端）、Slang 着色器编译、基于 EnTT 的场景、ImGui 编辑器，以及 Tracy 性能分析集成。当前以 macOS + MoltenVK 为唯一验证过的平台。
+一个自研的 C++20 游戏引擎与编辑器：自建内存系统、句柄式 RHI（Vulkan 后端）、Slang 着色器编译、基于 EnTT 的场景、ImGui 编辑器，以及 Tracy 性能分析集成。
+
+**平台状态**：macOS 已实机验证（MoltenVK）；Windows 为目标平台之一，构建已按平台分支、CI 有 `windows-core` job，但完整构建尚未验证；Linux 为占位（仅核心模块可构建，Vulkan surface 未实现）。详见 `docs/P2-PLAN.md` 的 G7。
 
 > 状态：**开发中（WIP）**。分支 `dev-0.1.x` 已清掉评审列出的全部 P0 缺陷与部分 P1 项（见 `docs/TODO.md`），编辑器可运行、可渲染、退出时无残留分配；渲染功能仍在演进（当前只有单个测试管线 + 程序化网格）。
 
@@ -9,7 +11,7 @@
 | 用途 | 要求 |
 |---|---|
 | 通用 | CMake ≥ 3.28、支持 C++20 的编译器（Clang）、Git |
-| 完整构建（含渲染器与编辑器） | Vulkan SDK（或 Homebrew 的 `molten-vk` + `vulkan-loader` + `vulkan-headers`）、macOS + Xcode Command Line Tools |
+| 完整构建（含渲染器与编辑器） | Vulkan SDK（macOS 可用 Homebrew 的 `molten-vk` + `vulkan-loader` + `vulkan-headers`；Windows 用 LunarG SDK）、macOS 需 Xcode Command Line Tools |
 | 仅核心构建（CI/快速迭代） | 无需 Vulkan/SDL/Slang —— 只编译 13 个 Core 模块与测试 |
 
 首次配置会通过 `FetchContent` 拉取依赖（fmt、spdlog、glm、doctest、Tracy；完整构建还会拉取 SDL3、EnTT、VMA、ImGui、Slang 预编译包）。网络受限时可加 `-DCHOZO_GITHUB_MIRROR=https://ghfast.top/https://github.com` 走镜像。
@@ -72,7 +74,7 @@ docs/              设计文档与计划（见下）
 
 ## 已知限制
 
-- 仅 macOS 被验证；Windows/Linux 的构建分支存在但不完整（详见 `docs/P2-PLAN.md` 的 G7）。
+- 仅 macOS 被实机验证；Windows 的构建/平台层已就位但未验证，Linux 为占位（详见 `docs/P2-PLAN.md` 的 G7）。
 - 渲染器当前只有一条测试管线与被当作样例的程序化网格，材质/光照尚未接入。
 - 编辑器面板为骨架（场景层级、属性、控制台可用；内容浏览器/材质面板尚未实现）。
 - 校验层仍有 4 条已知告警（`Basic.slang` 顶点属性声明与消费不一致），见 `docs/TODO.md` P1-10 的遗留项。

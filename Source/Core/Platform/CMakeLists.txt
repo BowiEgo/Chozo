@@ -10,6 +10,7 @@ if(WIN32)
     message("//----------------- Platform: Windows -----------------//")
     set(platform_definitions CZ_PLATFORM_WINDOWS)
     set(MODULE_SRC
+        Windows/WindowsFile.cpp
     )
 elseif(UNIX)
     if(APPLE)
@@ -22,6 +23,9 @@ elseif(UNIX)
     else()
         message("//----------------- Platform: Linux -----------------//")
         set(platform_definitions CZ_PLATFORM_LINUX)
+        set(MODULE_SRC
+            Linux/LinuxFile.cpp
+        )
     endif()
 else()
     message("//----------------- Platform: Unsupported -----------------//")

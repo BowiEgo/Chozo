@@ -26,9 +26,18 @@ target_precompile_headers(${MODULE_NAME} PRIVATE
     EditorPCH.h
 )
 
-target_link_options(${MODULE_NAME} PRIVATE -rdynamic)
+if(NOT WIN32)
+    target_link_options(${MODULE_NAME} PRIVATE -rdynamic)
+endif()
 
-set_target_properties(${MODULE_NAME} PROPERTIES
-    BUILD_RPATH "@loader_path;@executable_path/../Frameworks"
-    INSTALL_RPATH "@loader_path;@executable_path/../Frameworks"
-)
+if(APPLE)
+    set_target_properties(${MODULE_NAME} PROPERTIES
+        BUILD_RPATH "@loader_path;@executable_path/../Frameworks"
+        INSTALL_RPATH "@loader_path;@executable_path/../Frameworks"
+    )
+elseif(UNIX)
+    set_target_properties(${MODULE_NAME} PROPERTIES
+        BUILD_RPATH "$ORIGIN"
+        INSTALL_RPATH "$ORIGIN"
+    )
+endif()

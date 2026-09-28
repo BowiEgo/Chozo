@@ -1,3 +1,4 @@
+#include <Core/DynamicLibrary/ModuleNames.hpp>
 #include <Core/Log/LogMacros.hpp>
 #include <Runtime/RHI/GraphicsContext.hpp>
 
@@ -5,7 +6,7 @@ namespace CZ {
 
 Scope<GraphicsContextObj> GraphicsContext::Create(const GraphicsContextSpecification& spec) {
     auto& registry = DynamicLibraryRegistry::Get();
-    if (!registry.LoadLib("vulkan_backend", "libCZVulkan.dylib")) {
+    if (!registry.LoadLib(Modules::GraphicsBackendName, Modules::GraphicsBackendFile)) {
         CZ_RHI_LOG(Error, "CreateVulkanGraphicsContextObj not found in backend.");
         return nullptr;
     }

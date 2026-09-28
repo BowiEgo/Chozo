@@ -191,6 +191,12 @@ void VulkanGraphicsContextObj::CreateVKSurface(const void* nativeWindowHandle) {
     surfaceInfo.sType  = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
     surfaceInfo.pLayer = static_cast<const CAMetalLayer*>(metalLayer);
     result             = vkCreateMetalSurfaceEXT(m_Instance, &surfaceInfo, nullptr, &m_Surface);
+#elif defined(CZ_PLATFORM_LINUX)
+    // Placeholder: Linux needs the XCB/Wayland surface extensions (and the corresponding window
+    // properties). Reported explicitly instead of failing later with an unknown Vulkan error.
+    CZ_BACKEND_LOG(Fatal, "Vulkan surface creation is not implemented for Linux yet "
+                          "(XCB/Wayland); see docs/P2-PLAN.md, group G7.");
+    result = VK_ERROR_EXTENSION_NOT_PRESENT;
 #endif
 
     if (result != VK_SUCCESS) {

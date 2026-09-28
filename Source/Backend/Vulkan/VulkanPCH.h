@@ -14,6 +14,12 @@
     #define VK_USE_PLATFORM_METAL_EXT
 #endif
 
+#ifdef CZ_PLATFORM_WINDOWS
+    #define VK_USE_PLATFORM_WIN32_KHR
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+#endif
+
 // Optional portability subset fallback
 #ifndef VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
     #define VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME "VK_KHR_portability_subset"

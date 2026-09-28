@@ -24,12 +24,28 @@ endif()
 
 message(STATUS "CMAKE_BUILD_TYPE:                 ${CMAKE_BUILD_TYPE}")
 
-# Output directories
-set(BUNDLE_DIR "${CMAKE_BINARY_DIR}/dist/$<CONFIG>/Chozo.app")
+# Output directories.
+#   macOS   : dist/<config>/Chozo.app with libraries in Contents/Frameworks
+#   Windows : dist/<config>/bin with the DLLs next to the executable
+#   Linux   : dist/<config>/bin (shared libraries are loaded by name)
+if(APPLE)
+    set(BUNDLE_DIR "${CMAKE_BINARY_DIR}/dist/$<CONFIG>/Chozo.app")
+    set(CHOZO_LIBRARY_OUTPUT_DIR "${BUNDLE_DIR}/Contents/Frameworks")
+    set(CHOZO_RUNTIME_OUTPUT_DIR "${BUNDLE_DIR}/Contents/MacOS")
+else()
+    set(BUNDLE_DIR "${CMAKE_BINARY_DIR}/dist/$<CONFIG>")
+    set(CHOZO_LIBRARY_OUTPUT_DIR "${BUNDLE_DIR}/bin")
+    set(CHOZO_RUNTIME_OUTPUT_DIR "${BUNDLE_DIR}/bin")
+endif()
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BUNDLE_DIR}/Contents/Frameworks/)
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUNDLE_DIR}/Contents/MacOS/)
-# set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BUNDLE_DIR}/Contents/Frameworks/)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CHOZO_LIBRARY_OUTPUT_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CHOZO_RUNTIME_OUTPUT_DIR})
+
+# MSVC does not export symbols from a DLL unless asked to; the engine modules are loaded by name
+# at runtime, so exporting everything keeps the module boundaries working.
+if(WIN32)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
 
 # Build options
 option(CZ_OPTION_COMPILE_WITH_PROFILER "" ON)
