@@ -37,8 +37,7 @@ static constexpr bool GIsDebug = false;
 // --- Public Debug Break Macro ---
 // Only active in Debug builds to prevent accidental breaks in Release
 #ifdef CZ_DEBUG
-    // #define CZ_DEBUGBREAK() CZ_INTERNAL_DEBUGBREAK()
-    #define CZ_DEBUGBREAK()
+    #define CZ_DEBUGBREAK() CZ_INTERNAL_DEBUGBREAK()
 #else
     #define CZ_DEBUGBREAK()
 #endif
