@@ -1,6 +1,8 @@
 #include <Core/Platform/Windows/WindowsFile.h>
 
 // clang-format off
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 // clang-format on
 
@@ -10,13 +12,18 @@
 namespace CZ::Platform::File {
 
 std::filesystem::path GetExecutablePath() {
-    // Query the required size first, then read the UTF-16 path and convert it.
-    DWORD size = GetModuleFileNameW(nullptr, nullptr, 0);
-    if (size == 0) return {};
+    // GetModuleFileNameW truncates instead of reporting the required size, so grow the buffer
+    // until the returned length fits.
+    std::wstring buffer(MAX_PATH, L'\0');
+    DWORD written = 0;
 
-    std::wstring buffer(size, L'\0');
-    DWORD written = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
-    if (written == 0) return {};
+    for (;;) {
+        written = GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()));
+        if (written == 0) return {};                    // failure
+        if (written < buffer.size()) break;             // the whole path fits
+
+        buffer.resize(buffer.size() * 2);
+    }
 
     buffer.resize(written);
 

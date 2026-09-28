@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.28)
 
 project(Chozo LANGUAGES C CXX)
 
+# MSVC does not export symbols from a DLL unless asked to; the engine modules are loaded by name
+# at runtime, so exporting everything keeps the module boundaries working. Has to be set before
+# the first target is created.
+if(WIN32)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -40,12 +47,6 @@ endif()
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CHOZO_LIBRARY_OUTPUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CHOZO_RUNTIME_OUTPUT_DIR})
-
-# MSVC does not export symbols from a DLL unless asked to; the engine modules are loaded by name
-# at runtime, so exporting everything keeps the module boundaries working.
-if(WIN32)
-    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
 
 # Build options
 option(CZ_OPTION_COMPILE_WITH_PROFILER "" ON)
