@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+#include <string_view>
 
 #include <Runtime/RHI/RHITypes.hpp>
 

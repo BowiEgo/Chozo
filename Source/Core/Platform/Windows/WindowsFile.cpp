@@ -1,3 +1,5 @@
+#include <filesystem>
+
 #include <Core/Platform/Windows/WindowsFile.h>
 
 // clang-format off

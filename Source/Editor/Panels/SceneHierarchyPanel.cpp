@@ -1,6 +1,8 @@
-#include "SceneHierarchyPanel.hpp"
+#include <string>
+
 #include "../UIUtils.hpp"
 #include "Core/TypeRegistry/TypeRegistry.hpp"
+#include "SceneHierarchyPanel.hpp"
 
 #include <imgui_internal.h>
 

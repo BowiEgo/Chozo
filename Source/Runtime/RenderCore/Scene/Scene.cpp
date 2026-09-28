@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <string>
+#include <vector>
+
 #include <cstdint>
 
 #include <Runtime/RenderCore/Components/Components.hpp>

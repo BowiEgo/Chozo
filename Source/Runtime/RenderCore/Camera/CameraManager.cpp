@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <mutex>
+#include <utility>
+
 #include <Runtime/RHI/RHIAPI.hpp>
 #include <Runtime/RenderCore/Camera/CameraManager.hpp>
 

@@ -1,4 +1,6 @@
 #pragma once
+#include <mutex>
+#include <vector>
 
 #include <Core/Math/Matrix4.hpp>
 #include <Runtime/RHI/GraphicsBuffer.hpp>

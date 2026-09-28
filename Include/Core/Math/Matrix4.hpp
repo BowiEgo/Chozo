@@ -1,4 +1,6 @@
 #pragma once
+#include <cmath>
+#include <string>
 
 #include <Core/Header/RendererAPI.hpp>
 #include <Core/Math/Vector3.hpp>

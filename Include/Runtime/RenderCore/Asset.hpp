@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 #include <Core/Header/Handle.hpp>
 #include <Core/Header/UUID.hpp>

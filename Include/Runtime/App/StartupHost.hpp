@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include <Core/Layer/LayerStack.hpp>
 #include <Core/Memory/Memory.hpp>
 #include <Runtime/RHI/CommandList.hpp>

@@ -1,3 +1,9 @@
+#include <algorithm>
+#include <filesystem>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #include <cstddef>
 #include <cstdint>
 

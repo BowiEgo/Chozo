@@ -1,3 +1,8 @@
+#include <memory>
+#include <mutex>
+#include <string>
+#include <utility>
+
 #include <Core/DynamicLibrary/DynamicLibraryRegistry.hpp>
 
 #include <Core/Log/LogMacros.hpp>

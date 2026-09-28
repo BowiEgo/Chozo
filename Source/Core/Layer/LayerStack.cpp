@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <Core/Layer/LayerStack.hpp>
 
 #include <Core/Log/LogMacros.hpp>

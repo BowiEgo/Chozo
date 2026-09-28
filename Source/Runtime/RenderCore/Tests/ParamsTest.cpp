@@ -1,5 +1,7 @@
 // Parameter objects: value semantics, the visitor interface that drives the properties panel,
 // and the factory used to clone/default them per type.
+#include <any>
+
 #include <Runtime/RenderCore/Components/TransformParams.hpp>
 #include <Runtime/RenderCore/MeshParams.hpp>
 #include <Runtime/RenderCore/Params.hpp>

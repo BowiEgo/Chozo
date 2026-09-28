@@ -1,4 +1,6 @@
 #pragma once
+#include <cstddef>
+#include <type_traits>
 
 #include <Core/Memory/MemoryTypes.hpp>
 #include <Core/Memory/TypeMemoryTracker.hpp>

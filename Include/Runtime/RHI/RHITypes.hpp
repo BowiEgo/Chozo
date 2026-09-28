@@ -1,4 +1,7 @@
 #pragma once
+#include <array>
+#include <functional>
+#include <initializer_list>
 
 #include <Core/Header/Enum.h>
 #include <Core/Header/Macros.h>

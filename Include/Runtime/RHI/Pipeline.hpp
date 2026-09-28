@@ -1,4 +1,8 @@
 #pragma once
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include <cstdint>
 
 #include <Core/Header/Handle.hpp>

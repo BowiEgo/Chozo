@@ -1,4 +1,7 @@
 #pragma once
+#include <type_traits>
+#include <vector>
+
 #include <cstddef>
 #include <cstdint>
 

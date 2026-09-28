@@ -1,4 +1,9 @@
 #pragma once
+#include <algorithm>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #include "Editor.hpp"
 

@@ -1,4 +1,8 @@
 #pragma once
+#include <algorithm>
+#include <string>
+#include <utility>
+
 #include <cstdint>
 
 #include <Core/Header/Handle.hpp>

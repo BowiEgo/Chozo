@@ -2,6 +2,9 @@
 //
 // `SceneObj` resolves mesh assets through the registry it was configured with, so these tests
 // create one explicitly instead of relying on the application singleton.
+#include <string>
+#include <vector>
+
 #include <Runtime/RenderCore/Components/Components.hpp>
 #include <Runtime/RenderCore/MeshRegistry.hpp>
 #include <Runtime/RenderCore/ProceduralMesh/CubeParamsObj.hpp>

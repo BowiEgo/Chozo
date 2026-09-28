@@ -1,3 +1,5 @@
+#include <string>
+
 #include <Core/Math/Matrix3.hpp>
 
 #include "MathGLMInterop.hpp"

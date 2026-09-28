@@ -1,4 +1,8 @@
 #pragma once
+#include <tuple>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include <Core/Header/Macros.h>
 

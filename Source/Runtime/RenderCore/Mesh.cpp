@@ -1,3 +1,6 @@
+#include <string>
+#include <vector>
+
 #include <Core/Memory/Memory.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>
 #include <Runtime/RenderCore/Mesh.hpp>

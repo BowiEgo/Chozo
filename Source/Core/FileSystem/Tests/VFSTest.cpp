@@ -1,3 +1,5 @@
+#include <string>
+
 #include <Core/FileSystem/VFS.hpp>
 
 #include <doctest/doctest.h>

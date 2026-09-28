@@ -1,3 +1,7 @@
+#include <memory>
+#include <string>
+#include <utility>
+
 #include <Core/Log/LogScopedSink.hpp>
 #include <Core/Log/Logger.hpp>
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 #include <Core/Event/AppEvent.hpp>
 #include <Core/Memory/Memory.hpp>

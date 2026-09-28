@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <utility>
+
 #include "EditorCamera.hpp"
 
 #include <Core/Event/Input.hpp>

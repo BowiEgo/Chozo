@@ -1,4 +1,8 @@
 #pragma once
+#include <cstring>
+#include <optional>
+#include <vector>
+
 #include <cstdint>
 
 #include <Runtime/RHI/RHITypes.hpp>

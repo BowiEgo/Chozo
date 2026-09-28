@@ -1,3 +1,5 @@
+#include <string>
+
 #include <Runtime/RenderCore/Mesh.hpp>
 #include <Runtime/RenderCore/MeshRegistry.hpp>
 #include <Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp>

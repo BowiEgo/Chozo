@@ -1,3 +1,5 @@
+#include <string>
+
 #include <Runtime/UI/UIRenderBackend.hpp>
 
 #include <Core/DynamicLibrary/DynamicLibraryRegistry.hpp>

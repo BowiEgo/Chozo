@@ -1,4 +1,8 @@
 #pragma once
+#include <mutex>
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 #include <Core/EntityRegistry/EntityRegistry.hpp>
 #include <Core/FileSystem/VFS.hpp>

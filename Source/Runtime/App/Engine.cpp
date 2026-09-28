@@ -1,3 +1,6 @@
+#include <string>
+#include <typeinfo>
+
 #include <Runtime/App/Application.hpp>
 #include <Runtime/App/Engine.hpp>
 #include <Runtime/RHI/GraphicsContext.hpp>

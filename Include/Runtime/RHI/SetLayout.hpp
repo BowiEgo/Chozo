@@ -1,4 +1,7 @@
 #pragma once
+#include <functional>
+#include <vector>
+
 #include <cstddef>
 #include <cstdint>
 

@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+#include <vector>
 
 #include <Core/Header/Extent.hpp>
 #include <Core/Header/Handle.hpp>

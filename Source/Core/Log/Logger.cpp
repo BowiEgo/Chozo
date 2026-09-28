@@ -1,3 +1,9 @@
+#include <algorithm>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <utility>
+
 #include <Core/Log/Logger.hpp>
 
 #include "LogUtils.hpp"

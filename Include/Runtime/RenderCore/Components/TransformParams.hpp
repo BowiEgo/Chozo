@@ -1,4 +1,8 @@
 #pragma once
+#include <any>
+#include <functional>
+#include <string>
+
 #include <cstddef>
 
 #include "Core/Memory/MemoryTypes.hpp"

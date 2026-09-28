@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+#include <unordered_map>
 
 #include <Core/Memory/MemoryTypes.hpp>
 #include <Core/Memory/TypeMemoryTracker.hpp>

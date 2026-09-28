@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+#include <vector>
 
 #include <Runtime/RHI/GraphicsBuffer.hpp>
 #include <Runtime/RenderCore/Asset.hpp>

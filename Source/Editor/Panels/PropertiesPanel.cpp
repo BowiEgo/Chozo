@@ -1,3 +1,6 @@
+#include <functional>
+#include <string>
+
 #include "PropertiesPanel.hpp"
 
 #include "../Widgets/PropControllers.hpp"

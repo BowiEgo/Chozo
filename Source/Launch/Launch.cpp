@@ -1,3 +1,5 @@
+#include <string>
+
 #include <Core/DynamicLibrary/DynamicLibraryRegistry.hpp>
 #include <Core/DynamicLibrary/ModuleNames.hpp>
 #include <Core/Memory/Memory.hpp>

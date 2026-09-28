@@ -1,3 +1,5 @@
+#include <string>
+
 #include <cstdint>
 
 #include "VulkanUIBackend.hpp"

@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+
 #include <cstddef>
 
 #include <Core/Header/Handle.hpp>

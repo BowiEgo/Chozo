@@ -1,4 +1,7 @@
 #pragma once
+#include <string>
+#include <vector>
+
 #include <cstdint>
 
 #include <Core/Header/Extent.hpp>

@@ -1,3 +1,6 @@
+#include <string>
+#include <unordered_map>
+
 #include <Runtime/RenderCore/Shader.hpp>
 #include <Runtime/RenderCore/ShaderCompiler.hpp>
 #include <Runtime/RenderCore/ShaderRegistry.hpp>

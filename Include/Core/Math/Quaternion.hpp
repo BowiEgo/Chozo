@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+
 #include <cstddef>
 
 #include <Core/Math/Matrix3.hpp>

@@ -1,3 +1,5 @@
+#include <utility>
+
 #include <Core/EntityRegistry/EntityRegistry.hpp>
 
 #include <doctest/doctest.h>

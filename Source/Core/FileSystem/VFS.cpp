@@ -1,3 +1,7 @@
+#include <filesystem>
+#include <string>
+#include <unordered_map>
+
 #include <cstddef>
 
 #include <Core/FileSystem/VFS.hpp>

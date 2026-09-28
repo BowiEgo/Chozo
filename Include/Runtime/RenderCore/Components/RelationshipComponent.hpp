@@ -1,4 +1,7 @@
 #pragma once
+#include <algorithm>
+#include <vector>
+
 #include <cstdint>
 
 #include <Runtime/RenderCore/Scene/Entity.hpp>

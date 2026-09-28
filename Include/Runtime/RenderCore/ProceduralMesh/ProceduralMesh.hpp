@@ -1,4 +1,7 @@
 #pragma once
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 #include <Core/TypeRegistry/TypeRegistry.hpp>
 #include <Runtime/RenderCore/Asset.hpp>

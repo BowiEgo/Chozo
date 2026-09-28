@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 #include <Runtime/RenderCore/ProceduralMesh/CubeParamsObj.hpp>
 #include <Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp>

@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <Core/Memory/TypeMemoryTracker.hpp>
 
 #include <cstddef>

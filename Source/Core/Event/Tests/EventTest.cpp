@@ -1,3 +1,5 @@
+#include <string>
+
 #include <Core/Event/AppEvent.hpp>
 #include <Core/Event/Event.hpp>
 #include <Core/Event/KeyEvent.hpp>

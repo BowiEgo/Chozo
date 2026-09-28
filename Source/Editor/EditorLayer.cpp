@@ -1,3 +1,6 @@
+#include <filesystem>
+#include <string>
+
 #include "EditorLayer.hpp"
 
 #include "Core/Memory/Memory.hpp"

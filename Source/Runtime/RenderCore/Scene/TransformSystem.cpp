@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <vector>
+
 #include <cstdint>
 
 #include <Runtime/RenderCore/Components/RelationshipComponent.hpp>

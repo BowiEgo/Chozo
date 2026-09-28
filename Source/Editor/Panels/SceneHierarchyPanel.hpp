@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+#include <vector>
 
 #include "../EditorNode/EditorNode.hpp"
 #include "../EditorNode/EditorNodeTree.hpp"

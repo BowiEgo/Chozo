@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <vector>
+
 #include <cstddef>
 #include <cstdint>
 

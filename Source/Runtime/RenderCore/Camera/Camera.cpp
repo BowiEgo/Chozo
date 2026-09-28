@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <cstdint>
 
 #include <Runtime/RenderCore/Camera/Camera.hpp>

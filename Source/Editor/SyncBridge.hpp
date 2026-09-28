@@ -1,4 +1,8 @@
 #pragma once
+#include <functional>
+#include <mutex>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <Runtime/RenderCore/Scene/Scene.hpp>
 

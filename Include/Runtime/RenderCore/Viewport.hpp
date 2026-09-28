@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+#include <utility>
 
 #include <Core/Header/Handle.hpp>
 #include <Core/Header/Types.h>

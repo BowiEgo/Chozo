@@ -1,3 +1,5 @@
+#include <filesystem>
+
 #include <cstddef>
 
 #include <Core/Platform/Linux/LinuxFile.h>

@@ -1,4 +1,7 @@
 #pragma once
+#include <functional>
+#include <string>
+
 #include <cstdint>
 
 #include "Runtime/RHI/GraphicsBuffer.hpp"

@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <Core/Memory/Allocator.hpp>
 
 #include <doctest/doctest.h>

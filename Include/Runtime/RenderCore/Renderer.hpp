@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+#include <vector>
 
 #include <Core/Header/Types.h>
 #include <Runtime/App/StartupHost.hpp>

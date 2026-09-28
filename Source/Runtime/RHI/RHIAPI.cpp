@@ -1,3 +1,5 @@
+#include <string>
+
 #include <Runtime/RHI/RHIAPI.hpp>
 
 #include <Core/DynamicLibrary/DynamicLibraryRegistry.hpp>

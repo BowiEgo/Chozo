@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <string>
+#include <string_view>
+
 #include <cstdint>
 
 #include <Core/Utilities/StringUtils.hpp>

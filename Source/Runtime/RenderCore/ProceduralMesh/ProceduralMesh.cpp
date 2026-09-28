@@ -1,3 +1,6 @@
+#include <string>
+#include <unordered_map>
+
 #include <Core/Log/LogMacros.hpp>
 #include <Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp>
 

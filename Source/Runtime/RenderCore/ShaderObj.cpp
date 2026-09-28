@@ -1,3 +1,8 @@
+#include <algorithm>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 #include <cstdint>
 
 #include <Runtime/RenderCore/Shader.hpp>

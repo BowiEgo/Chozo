@@ -1,4 +1,9 @@
 #pragma once
+#include <functional>
+#include <initializer_list>
+#include <string>
+#include <vector>
+
 #include <cstdint>
 
 #include "EditorNode.hpp"

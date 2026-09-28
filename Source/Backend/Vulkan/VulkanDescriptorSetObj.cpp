@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <cstdint>
 
 #include "Core/Log/LogMacros.hpp"

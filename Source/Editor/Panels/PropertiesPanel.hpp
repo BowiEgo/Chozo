@@ -1,4 +1,6 @@
 #pragma once
+#include <functional>
+#include <string>
 
 #include "../EditorNode/EditorNodeTree.hpp"
 #include "Panel.hpp"

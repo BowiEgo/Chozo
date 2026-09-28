@@ -1,3 +1,5 @@
+#include <string_view>
+
 #include "ShaderUtils.hpp"
 
 #include <Core/Utilities/StringUtils.hpp>

@@ -1,3 +1,6 @@
+#include <stdexcept>
+#include <vector>
+
 #include <cstdint>
 
 #include "VulkanDeviceObj.hpp"

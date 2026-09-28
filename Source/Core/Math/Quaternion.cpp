@@ -1,3 +1,6 @@
+#include <cmath>
+#include <string>
+
 #include <Core/Math/Quaternion.hpp>
 
 #include "MathGLMInterop.hpp"

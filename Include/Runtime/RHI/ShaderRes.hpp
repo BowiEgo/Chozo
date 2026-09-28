@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 #include <Core/Header/Handle.hpp>
 #include <Runtime/RHI/RHITypes.hpp>

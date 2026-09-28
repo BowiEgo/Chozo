@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include <Core/Math/Vector2.hpp>
 
 // Ensure memory layout matches GLM

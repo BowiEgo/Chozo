@@ -1,3 +1,5 @@
+#include <string>
+
 #include <Core/TypeRegistry/TypeRegistry.hpp>
 
 #include <doctest/doctest.h>

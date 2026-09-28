@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+
 #include <cstdint>
 
 #include <Core/Math/Matrix4.hpp>

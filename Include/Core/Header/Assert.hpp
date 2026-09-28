@@ -1,4 +1,5 @@
 #pragma once
+#include <stdexcept>
 
 #include <Core/Header/Macros.h>
 #include <Core/Log/LogEnum.hpp>

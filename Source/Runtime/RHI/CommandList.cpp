@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <Core/Log/LogMacros.hpp>
 #include <Runtime/RHI/CommandList.hpp>
 #include <Runtime/RHI/RHIAPI.hpp>

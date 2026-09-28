@@ -1,3 +1,8 @@
+#include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <string>
+
 #include <Runtime/App/Application.hpp>
 
 #include <Core/FileSystem/VFS.hpp>

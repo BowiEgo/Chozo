@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 #include <Core/Event/Event.hpp>
 #include <Core/Event/KeyCodes.hpp>

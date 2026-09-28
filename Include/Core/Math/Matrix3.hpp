@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 #include <Core/Math/Matrix4.hpp>
 #include <Core/Math/Vector3.hpp>

@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 #include <Runtime/RenderCore/AssetRegistry.hpp>
 #include <Runtime/RenderCore/Mesh.hpp>

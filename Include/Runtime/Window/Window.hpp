@@ -1,4 +1,7 @@
 #pragma once
+#include <atomic>
+#include <utility>
+#include <vector>
 
 #include <Core/Event/Event.hpp>
 #include <Core/Event/InputImpl.hpp>

@@ -1,3 +1,9 @@
+#include <algorithm>
+#include <filesystem>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 #include <cstddef>
 #include <cstdint>
 

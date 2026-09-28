@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+
 #include <cstdint>
 
 #include <Runtime/RHI/ShaderRes.hpp>
