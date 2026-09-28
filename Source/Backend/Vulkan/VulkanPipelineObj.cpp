@@ -128,6 +128,24 @@ VkResult VulkanPipelineObj::Init(const std::vector<ShaderRes>& shaders,
         }
     }
 
+    // Contract check: the vertex layout comes from the mesh vertex struct, while the pipeline only
+    // declares what the shader consumes. An attribute the shader reads but the layout does not
+    // provide renders garbage without any validation error, so report it here.
+    for (const auto& attribute : reflection.Attributes) {
+        const auto& elements = reflection.VertexBufferLayout.GetElements();
+        const bool provided =
+            std::any_of(elements.begin(), elements.end(), [&](const BufferElement& element) {
+                return element.Location == attribute.Location;
+            });
+
+        if (!provided) {
+            CZ_BACKEND_LOG(Error,
+                           "Pipeline '{}': the shader reads vertex input at location {} ('{}') but "
+                           "the vertex layout does not provide it.",
+                           m_Spec.Name, attribute.Location, attribute.Name);
+        }
+    }
+
     VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
         .sType                         = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext                         = NULL,

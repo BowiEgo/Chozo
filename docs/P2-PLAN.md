@@ -2,7 +2,7 @@
 
 > **用途**：`docs/TODO.md` 收录 P0/P1 缺陷；本文档收录 **P2 级工程化问题**的施工方案（CI、测试、死代码、文档、构建、分层、跨平台）。
 > **来源**：2026-09-28 评审的 P2 清单 + P0/P1 修复过程中新发现的问题；所有证据均按 `dev-0.1.x` 当前代码重新核实（部分 P2 证据因 P1-1 重构而过期，已更新）。
-> **状态**：Batch 1（G1/G2）、Batch 2（G3/G4/G5）已完成；Batch 3 进行中：G2 剩余已补齐（含渲染核心测试与三个并发/UB 缺陷修复），G8 部分完成，G6 待做，G7 待平台决策。
+> **状态**：Batch 1（G1/G2）、Batch 2（G3/G4/G5）、Batch 3（G2 剩余、G6、G7 可移植性、G8 部分）已完成。CI 已在 `dev-0.1.x` 上全绿：format、core（Linux Debug/Release/ASan）、windows-core（MSVC）、full-macos（完整引擎）、full-windows（完整引擎，首次运行待观察）。
 > **维护约定**：每组完成后把标题改成「—— 已完成」，附上 commit 与验证方式；新增 P2 问题请注明文件:行号与复现方式。
 
 ## 分组总览
@@ -52,7 +52,24 @@
 - `.github/scripts/check-format.sh`、`.github/scripts/check-warnings.sh`（本地可直接运行，避免"CI 专用逻辑"）；`.clang-format-ignore` 排除 `External/`、`build/` 与 ObjC++ 源文件。
 - 格式化 3 个不合规文件（`VulkanGraphicsBufferObj.cpp` 等）；告警预算：core 为 0，full 暂为 4（P1-10 顶点属性 4 条）。
 
-**验收结果**：core-debug / core-release / core-asan 三种配置构建 + 测试全绿；`check-format.sh` 247 文件 0 失败；`check-warnings.sh` 报告项目告警 0 条（core）。
+**验收结果**：core-debug / core-release / core-asan 三种配置构建 + 测试全绿；`check-format.sh` 249 文件 0 失败；`check-warnings.sh` 报告项目告警 0 条（core 与完整构建均为 0）。
+
+**CI 实践记录（首次接入 CI 时暴露的 8 类问题）**
+
+CI 的价值在第一次运行就体现出来了：本地 macOS 全绿，CI 上 6 个 job 有 4 个红。按暴露顺序：
+
+| # | 现象 | 根因 | 修法 |
+|---|---|---|---|
+| 1 | Windows Configure 失败 | CI 是 CMake 4，doctest 2.4.11 声明 `cmake_minimum_required(3.0)` | 顶层 `CMAKE_POLICY_VERSION_MINIMUM=3.5` |
+| 2 | Linux 编译失败（`uint32_t`/`std::shared_ptr`/`std::find`…） | libc++ 会传递包含这些设施，libstdc++ 不会 | `.github/scripts/check-includes.py` 审计 + 按需补 include（236 个文件累计） |
+| 3 | Linux 链接失败 `relocation R_X86_64_TPOFF32` | 静态库默认非 PIC，却被共享库 `libCZMemory.so` 链接 | `CMAKE_POSITION_INDEPENDENT_CODE ON` |
+| 4 | Windows `<string_view>` 大量 C2027 | `Event.hpp` 仅凭 `<iosfwd>` 前向声明就定义 `operator<<` | 补 `<ostream>`（审计加入流类型规则） |
+| 5 | Windows `std::countr_zero` 未找到 | 缺 `<bit>` | 补 `<bit>`（审计加入 `<bit>/<span>/<format>/<numbers>/<charconv>/<ranges>` 等） |
+| 6 | macOS 编译失败（`Device(ptr)`、`Extent2D(w,h)`、`ShaderResourceBinding(...)`） | 使用了 C++20 P0960 括号聚合初始化，CI 的旧 AppleClang 未实现 | 22 个 view 类型补 `using Handle<>::Handle;`，聚合改用花括号 |
+| 7 | macOS 链接失败（`HasComponent<RelationshipComponent>`、`AddComponent<NameComponent>` 未定义） | 组件容器模板定义在私有头中，Release 把 `Scene.cpp` 内的调用内联掉 | 显式实例化列表补 `AddComponent` 与 `RelationshipComponent` |
+| 8 | 编辑器找不到 `glm/gtx/*` | 编辑器模块不走 `add_chozo_module`，未继承 `CZEnginePrerequisites` | 显式链接前置依赖 |
+
+**由此形成的约定**：公共头必须自包含（`check-includes.py --check` 可本地复现）；不使用 P0960；跨 TU 使用的场景模板必须显式实例化；模块若绕过 `add_chozo_module` 需自行链接前置依赖；告警预算保持 0。
 
 **步骤**
 
@@ -238,19 +255,28 @@
 - **构建布局按平台分支**：macOS 仍是 `.app` bundle；Windows/Linux 输出到 `dist/<config>/bin`，资源复制到 `dist/<config>/Resources`（与引擎"相对可执行文件上级目录找 Resources"的约定一致）。`-rdynamic`/rpath 只在 Apple/UNIX 生效；Windows 打开 `CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS`（模块按名加载，DLL 必须导出符号）。
 - **CI 增加 `windows-core` job**（`windows-latest` + MSVC，跑 `core-debug` 预设与 `ctest`）：不需要 Vulkan SDK，先验证模块系统、PCH、平台层与测试在 MSVC 下可用。告警门禁的脚本也已识别 MSVC 的 `warning C####:` 形式。
 
+**CI 验证结果**
+
+- `windows-core`（MSVC，核心 13 模块 + 62 用例）**已通过** ✓ —— 首次运行暴露的 MSVC 问题（`<string_view>` 需要 `<ostream>`、`std::countr_zero` 需要 `<bit>`）都已修复。
+- `full-windows` job 已加入（`choco install vulkan-sdk` + 自动导出 `VULKAN_SDK` + `full-release` 预设 + 0 告警预算）；它验证 `vkCreateWin32SurfaceKHR` 分支能否编译链接，但**首次运行结果待观察**。
+- `full-macos`（Homebrew Vulkan/MoltenVK + 完整引擎 + 测试）**已通过** ✓。
+
 **仍待完成（Windows 转正）**
 
-1. 让 `windows-core` 变绿并修 MSVC 报出的告警/错误（首次运行大概率需要一轮修正）。
-2. Windows **完整构建**：CI 安装 Vulkan SDK（`choco install vulkan-sdk` 或 LunarG Windows ZIP + `VULKAN_SDK`），跑 `full-*` 预设；验证 `vkCreateWin32SurfaceKHR` 分支（代码已存在但从未在 Windows 上执行）。
-3. Windows 的运行时装配：DLL 与 `Launch.exe` 同目录（已由输出目录保证）、`SDL3.dll`/`slang.dll`/`ChozoImGui.dll` 等依赖的拷贝步骤、以及 `Launch` 加载 `CZVulkan.dll` 的路径解析。
-4. Linux 占位转正需要：XCB/Wayland surface、`Platform/Linux` 的窗口属性对接、CI 的 `libvulkan-dev`/X11 依赖，以及把 `windows-core` 的 Linux 对应 job 扩到完整构建。
-5. 平台验证矩阵：目前只有 macOS 被实机验证；Windows/Linux 的结论必须来自 CI。
+1. 让 `full-windows` 变绿并按报错迭代（首次运行大概率需要一轮修正，Windows 的 DLL 装配与 slang/SDL 预编译包是主要风险点）。
+2. 在 Windows 上**实际运行**编辑器（CI 只做构建与无 GPU 的测试；`vkCreateWin32SurfaceKHR`、`LoadLibrary` 加载 `CZVulkan.dll` 需要一次人工验证）。
+3. Windows 运行时装配清单：DLL 与 `Launch.exe` 同目录（输出目录已保证）、SDL3/slang/ChozoImGui 等依赖的拷贝、VFS 的 `../Resources` 布局（已按平台分支）。
+4. Linux 占位转正：XCB/Wayland surface、`Platform/Linux` 对接窗口属性、CI 增加 `libvulkan-dev`/X11 依赖并把 Linux job 扩到完整构建。
 
 **预估**：Windows 转正 1–2 天（含一轮 CI 迭代）；Linux 转正 2–3 天。
 
 ## G8 渲染/着色器契约 —— 部分完成
 
-**已完成**：`CommandListObj::Draw(Scene, Camera)` 的静默失败改为"每个条件只告警一次"（缺 set 0、相机未注册、空场景、未绑定管线），并跳过未上传的网格。
+**已完成**
+
+- `CommandListObj::Draw(Scene, Camera)` 的静默失败改为"每个条件只告警一次"（缺 set 0、相机未注册、空场景、未绑定管线），并跳过未上传的网格。
+- **契约检查**：管线创建时比对"着色器读取的顶点输入（reflection.Attributes）"与"顶点布局（VertexBufferLayout，来自网格顶点结构）"，缺失即报错。这是唯一会静默渲染出错误结果的方向（布局多声明只是校验层告警，即 P1-10 的遗留项）。
+- **默认纹理兜底：暂缓**。当前没有任何着色器声明纹理（`Basic.slang` 只有相机 UBO），先实现等于引入无人使用的机制；等材质系统落地时与它的 set/采样器约定一起做。
 
 | 项 | 方案 |
 |---|---|

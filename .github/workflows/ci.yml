@@ -97,6 +97,41 @@ jobs:
       - name: Test
         run: ctest --preset core-debug -C Debug --output-on-failure --timeout 120
 
+  # Windows first: the complete build (Vulkan backend + editor) needs the Vulkan SDK from
+  # Chocolatey. Like the macOS full build it only runs for pull requests, the weekly schedule and
+  # manual dispatches.
+  full-windows:
+    name: full build (Windows + Vulkan)
+    if: github.event_name == 'pull_request' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vulkan SDK
+        run: choco install vulkan-sdk --no-progress -y
+      - name: Export VULKAN_SDK
+        shell: pwsh
+        run: |
+          $sdk = Get-ChildItem C:\VulkanSDK -Directory | Sort-Object Name -Descending | Select-Object -First 1
+          "VULKAN_SDK=$($sdk.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "using $($sdk.FullName)"
+      - name: Cache FetchContent dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/full-release/_deps
+          key: ${{ runner.os }}-full-release-deps-${{ hashFiles('CMake/FetchDependencies.cmake') }}
+          restore-keys: ${{ runner.os }}-full-release-deps-
+      - name: Configure
+        run: cmake --preset full-release
+      - name: Build
+        run: |
+          set -o pipefail
+          cmake --build --preset full-release --config Release 2>&1 | tee build.log
+      - name: Check project warnings
+        run: bash .github/scripts/check-warnings.sh build.log 0
+      - name: Test
+        run: ctest --preset full-release -C Release --output-on-failure --timeout 300
+
   # macOS runners consume ten times the minutes of a Linux runner, so the complete build only
   # runs for pull requests, the weekly schedule and manual dispatches - not for every push.
   full-macos:
