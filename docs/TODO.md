@@ -3,7 +3,7 @@
 > **用途**：跟踪代码评审中定级为 P0、P1 的问题，作为后续迭代的施工清单。
 > **来源**：2026-09-28 全量评审（完整构建 + `-Wall -Wextra` 全 TU 扫描 + 运行验证 + 格式检查）。
 > **范围**：仅收录 **P0（确定性缺陷）** 与 **P1（设计 / 资源管理风险）**。P2 级工程化问题（CI、测试覆盖、死代码、文档）见附录 B，不在本清单内。
-> **状态**：P0 共 7 项已修复；P1-1（所有权模型）已按「无引用计数」方案修复，P1-2 部分修复（键构造），其余 P1 待处理。
+> **状态**：P0 共 7 项已修复；P1-1（所有权模型）、P1-10（ImGui 纹理描述符）已完成，P1-2 部分修复（键构造），其余 P1 待处理。
 > **维护约定**：修完一项后，把它从第二章移到第一章表格，并附上 commit 与验证方式；新增问题请标出文件:行号与复现方式。
 
 ## 严重度定义
@@ -48,9 +48,8 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 |---|---|---|
 | 1 | P1-9 断言开关写反 | 改动最小，但决定后续所有调试手段是否有效 |
 | 2 | P1-2 DescriptorSet 缓存 | 与 P1-10 的校验层报错高度相关，先修可缩小排查面 |
-| 3 | P1-10 校验层 descriptor 报错 | 定位类任务，修完才能信任渲染日志 |
-| 4 | P1-3 命令缓冲判空/空函数指针 | 崩溃隐患，改动小 |
-| 5 | P1-11 帧延迟删除 | 依赖 P1-1 的生命周期决策（已完成） |
+| 3 | P1-3 命令缓冲判空/空函数指针 | 崩溃隐患，改动小 |
+| 4 | P1-11 帧延迟删除 | 依赖 P1-1 的生命周期决策（已完成） |
 | 7 | P1-5 Buffer 内存语义 | 独立小改动，消除双重释放风险 |
 | 8 | P1-6 线程安全策略 | 需要先定线程契约，工作量中等 |
 | 9 | P1-4 Vulkan 队列族 | 影响特定硬件，改动力度中等 |
@@ -316,33 +315,26 @@ cmake -S . -B build && cmake --build build -j8   # 0 error；警告集合与修�
 
 ---
 
-### P1-10 校验层报错：Set 0 Binding 0 采样图未绑定
+### P1-10 校验层报错：Set 0 Binding 0 采样图未绑定 —— 已完成
 
-**位置 / 证据**
+**提交**：`bbcbd21`
 
-- 运行 Debug 构建（校验层已启用，见 `Source/Backend/Vulkan/VulkanGraphicsContextObj.cpp`），首个场景绘制起每帧报：
+**根因**（已定位并确定性复现）
 
-  ```text
-  VUID-vkCmdDrawIndexed-None-08114: the sampled image descriptor
-  [VkDescriptorSet 0x290000000029, Set 0, Binding 0, Index 0, variable "_Texture"]
-  is using imageView VkImageView 0x0 that is invalid or has been destroyed.
-  ```
+- `_Texture` 是 ImGui 后端着色器的变量名（引擎着色器里没有），所以报错来自 ImGui 的绘制，而不是引擎的场景绘制。
+- `VulkanImGuiRenderer::m_TextureIDCache` 以 `Texture` **裸指针**为键，且从不失效。视口 framebuffer 在 resize 时被重建 → 旧纹理销毁 → 分配器把**同一地址**复用给新纹理 → 缓存命中并返回**旧描述符集**，而它引用的 imageView 已被销毁。
+- 复现方式：每帧重建 framebuffer（交替视口宽高 1080/1081），每次运行稳定产生 9 次该报错。
 
-**已知信息（尚未定位到根因）**
+**修复**
 
-- `Basic.slang` 的反射是 `[Set 0, Binding 0] u_Camera (Type: 4, Size: 128)`（uniform buffer），`CommandListObj::Draw(Scene, Camera)`（`Source/Runtime/RHI/CommandList.cpp:10-27`）绑定的也是相机缓冲 —— 与报错中的"采样图"不符。
-- 编辑器侧 `VulkanImGuiRenderer::GetTextureID`（`Source/Editor/Renderer/Vulkan/VulkanImGuiRenderer.cpp:123-140`）会把视口纹理通过 `ImGui_ImplVulkan_AddTexture` 注册为 ImGui 纹理，且**忽略返回值**（`VK_NULL_HANDLE` 也会被缓存并当作 `ImTextureID` 使用）。
-- 因此可能是 descriptor set 与 pipeline layout 不匹配（与 P1-2 的 key 构造问题相关），也可能是 ImGui 纹理注册路径传入了空 imageView/sampler。
+- 缓存改为以纹理的稳定 `UUID`（`RHIResource::GetID()`，永不复用）为键，并额外校验存活的句柄；地址复用不再可能命中旧条目。
+- 视口纹理变化时释放旧注册（`ReleaseTexture`），`OnDetach` 时 `ReleaseAllTextures()`；释放只使用描述符集句柄值，因此对已悬垂的句柄也安全；顺带消除 ImGui 描述符集在池中的泄漏。
+- 关闭前先 `WaitIdle`（在飞帧可能仍引用这些描述符集）。
+- imageView 为空或 `ImGui_ImplVulkan_AddTexture` 失败时改为明确报错，不再静默注册空纹理；改用当前的两参数 API（sampler 自 ImGui 2026-04 改版后由后端自持）。
 
-**待办**
+**验收**：确定性复现场景下报错 0 次；正常连跑 5 次均为 0；退出仍为 `No active allocations.`。剩余校验层消息为 MoltenVK 提示与 Basic.slang 顶点属性告警（见下）。
 
-1. 定位该绘制来自哪条路径：临时日志或 Tracy 标记 `BindDescriptorSets` / `ImGui_ImplVulkan_AddTexture`，或抓帧（RenderDoc）对齐 pipeline layout 与 descriptor set。
-2. 修掉绑定/布局不一致。
-3. 让 `GetTextureID` 在 `AddTexture` 返回 `VK_NULL_HANDLE`、`GetOrCreateVKView()` 返回空、`GetSampler()` 为空时快速失败并给出可读错误（当前只打警告）。
-
-**验收标准**：Debug 运行 60 秒，校验层除既有的 vertex-input 告警外无 descriptor 相关错误。
-
-**预估**：0.5–1 天（以定位为主）。
+**遗留小项**：`vkCreateGraphicsPipelines` 每次报 4 条 "Vertex attribute at location 1..4 not consumed by vertex shader"——`Basic.slang` 声明了 Normal/UV/Tangent/Bitangent 却不使用，而管线按网格顶点布局声明了这些属性。要么在着色器里使用，要么按反射裁剪属性列表。
 
 ---
 
