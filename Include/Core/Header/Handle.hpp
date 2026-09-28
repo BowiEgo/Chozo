@@ -16,7 +16,6 @@ public:
 
     Handle() = default;
     Handle(TObject* obj) : m_Obj(obj) {}
-    Handle(const TObject* obj) : m_Obj(obj) {}
 
     explicit operator bool() const { return m_Obj != nullptr; }
 
@@ -33,7 +32,8 @@ public:
     void Destroy();
 
 protected:
-    TObject* m_Obj;
+    // Always start out null so that default-constructed handles are safe to test.
+    TObject* m_Obj = nullptr;
 };
 
 #define DEFINE_HANDLE_DESTROY(T)                                                                   \
