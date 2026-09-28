@@ -1,7 +1,7 @@
 name: CI
 
-# Fast, always-green gates: formatting, the core build (no Vulkan/SDL/Slang needed) and a
-# sanitizer run. The full engine build lives in full-build.yml because it needs the Vulkan SDK.
+# Formatting, the core build (no Vulkan/SDL/Slang needed), a sanitizer run, and the complete
+# engine build with the Vulkan backend and the editor.
 on:
   push:
     branches: [main, refactor, 'dev-*']
@@ -71,6 +71,36 @@ jobs:
         run: .github/scripts/check-warnings.sh build.log 0
       - name: Test
         run: ctest --preset ${{ matrix.preset }}
+
+  full-macos:
+    name: full build (macOS + Vulkan)
+    runs-on: macos-14
+    # The Vulkan loader, headers and MoltenVK come from Homebrew; VULKAN_SDK points CMake at that
+    # prefix, so no assumption about a LunarG SDK layout is needed.
+    env:
+      VULKAN_SDK: /opt/homebrew
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vulkan (loader, headers, MoltenVK)
+        run: brew install molten-vk vulkan-headers vulkan-loader
+      - name: Cache FetchContent dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/full-release/_deps
+          key: ${{ runner.os }}-full-release-deps-${{ hashFiles('CMake/FetchDependencies.cmake') }}
+          restore-keys: ${{ runner.os }}-full-release-deps-
+      - name: Configure
+        run: cmake --preset full-release
+      - name: Build
+        run: |
+          set -o pipefail
+          cmake --build --preset full-release 2>&1 | tee build.log
+      # Known warnings: Basic.slang vertex attributes, VulkanTextureObj unused field, Editor
+      # C-linkage. The budget is lowered as they are fixed (see docs/P2-PLAN.md, G8).
+      - name: Check project warnings
+        run: .github/scripts/check-warnings.sh build.log 4
+      - name: Test
+        run: ctest --preset full-release --output-on-failure
 
   sanitizers:
     name: core asan+ubsan

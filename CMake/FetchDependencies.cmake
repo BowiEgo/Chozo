@@ -1,23 +1,20 @@
 include(FetchContent)
 
-macro(FetchContent_Declare_Fast name)
-    set(args_list ${ARGN})
-    
-    list(TRANSFORM args_list REPLACE "https://github.com/" "https://ghfast.top/https://github.com/")
-    
-    _FetchContent_Declare(${name} ${args_list})
-endmacro()
+# Networks that cannot reach GitHub directly can set this to a mirror prefix, e.g.
+#   -DCHOZO_GITHUB_MIRROR=https://ghfast.top/https://github.com
+# It is empty by default: dependencies are fetched straight from GitHub. Note that this only
+# rewrites the URLs declared below - CMake's own FetchContent_Declare macro is left untouched so
+# that third-party projects fetching their own dependencies keep working.
+set(CHOZO_GITHUB_MIRROR "" CACHE STRING "Optional prefix prepended to GitHub URLs")
+message(STATUS "CHOZO GitHub mirror:              '${CHOZO_GITHUB_MIRROR}'")
 
-# Overwrite standard declaration
-macro(FetchContent_Declare name)
-    FetchContent_Declare_Fast(${name} ${ARGN})
-endmacro()
+# Every declaration below uses ${CHOZO_GITHUB_MIRROR}https://github.com/... on purpose.
 
 # Fetch doctest (tests only)
 if(BUILD_TESTING)
-    FetchContent_Declare_Fast(
+    FetchContent_Declare(
       doctest
-      GIT_REPOSITORY https://github.com/doctest/doctest.git
+      GIT_REPOSITORY ${CHOZO_GITHUB_MIRROR}https://github.com/doctest/doctest.git
       GIT_TAG v2.4.11 
     )
     FetchContent_MakeAvailable(doctest)
@@ -25,27 +22,27 @@ if(BUILD_TESTING)
 endif()
 
 ## Fetch fmt
-FetchContent_Declare_Fast(
+FetchContent_Declare(
   fmt
-  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_REPOSITORY ${CHOZO_GITHUB_MIRROR}https://github.com/fmtlib/fmt.git
   GIT_TAG 10.2.1
 )
 FetchContent_MakeAvailable(fmt)
 message(STATUS "CHOZO FMT SOURCE DIR:     ${fmt_SOURCE_DIR}")
 
 ## Fetch spdlog
-FetchContent_Declare_Fast(
+FetchContent_Declare(
   spdlog
-  GIT_REPOSITORY https://github.com/gabime/spdlog.git
+  GIT_REPOSITORY ${CHOZO_GITHUB_MIRROR}https://github.com/gabime/spdlog.git
   GIT_TAG v1.17.0
 )
 FetchContent_MakeAvailable(spdlog)
 message(STATUS "CHOZO SPDLOG SOURCE DIR:     ${spdlog_SOURCE_DIR}")
 
 ## Fetch glm
-FetchContent_Declare_Fast(
+FetchContent_Declare(
   glm
-  URL https://github.com/g-truc/glm/releases/download/1.0.3/glm-1.0.3.zip
+  URL ${CHOZO_GITHUB_MIRROR}https://github.com/g-truc/glm/releases/download/1.0.3/glm-1.0.3.zip
   URL_HASH SHA256=1c0a0fced9b0d87c7b7bc94e40be490cff6d4c83c25db8488d8f33754e7fdeb2
 )
 FetchContent_MakeAvailable(glm)
@@ -53,18 +50,18 @@ message(STATUS "CHOZO GLM SOURCE DIR:     ${glm_SOURCE_DIR}")
 
 if(CZ_OPTION_BUILD_RUNTIME)
 ## Fetch entt
-FetchContent_Declare_Fast(
+FetchContent_Declare(
   entt
-  GIT_REPOSITORY https://github.com/skypjack/entt.git
+  GIT_REPOSITORY ${CHOZO_GITHUB_MIRROR}https://github.com/skypjack/entt.git
   GIT_TAG v3.16.0
 )
 FetchContent_MakeAvailable(entt)
 message(STATUS "CHOZO ENTT SOURCE DIR:     ${entt_SOURCE_DIR}")
 
 ## Fetch SDL3
-FetchContent_Declare_Fast(
+FetchContent_Declare(
   sdl3
-  GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+  GIT_REPOSITORY ${CHOZO_GITHUB_MIRROR}https://github.com/libsdl-org/SDL.git
   GIT_TAG release-3.4.8
 )
 
@@ -80,9 +77,9 @@ FetchContent_MakeAvailable(sdl3)
 message(STATUS "CHOZO SDL3 SOURCE DIR:     ${sdl3_SOURCE_DIR}")
 
 ## Fetch Vulkan Memory Allocator
-FetchContent_Declare_Fast(
+FetchContent_Declare(
   vma
-  GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+  GIT_REPOSITORY ${CHOZO_GITHUB_MIRROR}https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
   GIT_TAG v3.3.0
 )
 FetchContent_MakeAvailable(vma)
@@ -98,11 +95,13 @@ endif()
 message(STATUS "CHOZO VMA SOURCE DIR:      ${vma_SOURCE_DIR}")
 
 ## Fetch ImGui
-FetchContent_Declare_Fast(
+# ImGui: pinned to the docking commit that is currently in use (2026-06-04, branch "docking").
+# Bump it deliberately: check the changelog, rebuild, and update this SHA with the new date.
+set(CHOZO_IMGUI_TAG "2af6dd9694288e6befe1edb7ce25510911693c22")
+FetchContent_Declare(
   ChozoImGui
-  GIT_REPOSITORY https://github.com/ocornut/imgui.git
-  GIT_TAG docking
-  UPDATE_DISCONNECTED TRUE
+  GIT_REPOSITORY ${CHOZO_GITHUB_MIRROR}https://github.com/ocornut/imgui.git
+  GIT_TAG ${CHOZO_IMGUI_TAG}
 )
 FetchContent_MakeAvailable(ChozoImGui)
 
@@ -190,9 +189,9 @@ set(SLANG_DOWNLOAD_URL "https://github.com/shader-slang/slang/releases/download/
 
 message(STATUS "Downloading Slang from: ${SLANG_DOWNLOAD_URL}")
 
-FetchContent_Declare_Fast(
+FetchContent_Declare(
     slang_prebuilt
-    URL ${SLANG_DOWNLOAD_URL}
+    URL ${CHOZO_GITHUB_MIRROR}${SLANG_DOWNLOAD_URL}
 )
 FetchContent_MakeAvailable(slang_prebuilt)
 
@@ -228,9 +227,9 @@ option(TRACY_ONLY_LOCALHOST "" ON)
 # option(TRACY_NO_EXIT "" OFF)
 # option(TRACY_CALLSTACK "" OFF)
 
-FetchContent_Declare_Fast(
+FetchContent_Declare(
   tracy
-  GIT_REPOSITORY https://github.com/wolfpld/tracy.git
+  GIT_REPOSITORY ${CHOZO_GITHUB_MIRROR}https://github.com/wolfpld/tracy.git
   GIT_TAG v0.13.1
 )
 FetchContent_MakeAvailable(tracy)

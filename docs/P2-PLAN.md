@@ -13,7 +13,7 @@
 | **G2** 测试基础设施 —— 已完成（RenderCore 部分见 Batch 3） | 恢复被注释单测、补齐核心模块、接入 `ctest` | ★★★★★ | 1.5–2 天 | G1 | P1-8（改造信心）、P1-2/P1-6（回归网） |
 | **G3** 死代码与残留清理 | 删除/归档 624 处注释代码、未编译文件、停用脚本 | ★★★★ | 1–1.5 天 | G2 | — |
 | **G4** 文档重建 | 根 README 可用化 + 所有权模型留档 | ★★★★ | 1 天 | — | P1-1 的约定固化 |
-| **G5** 构建与依赖卫生 | 依赖可复现、`LINK` 声明真实、镜像可关、SDK 定位不写死 | ★★★ | 1–1.5 天 | — | P1-12 的前置 |
+| **G5** 构建与依赖卫生 —— 已完成 | 依赖可复现、`LINK` 声明真实、镜像可关、SDK 定位不写死 | ★★★ | 1–1.5 天 | — | P1-12 的前置 |
 | **G6** 分层解耦 | Editor 不再直接依赖 Vulkan/SDL 内部实现 | ★★★ | 1.5–2 天 | G5 | P1-11 的落点 |
 | **G7** 跨平台 | 先定目标平台，再分期落地 | ★★ | 3–5 天 | G1、P1-7 | P1-7（Linux 门禁逼出） |
 | **G8** 渲染/着色器契约 | 顶点属性一致性、静默不绑定的兜底 | ★★ | 0.5 天 | — | P1-10 遗留项 |
@@ -149,9 +149,18 @@
 
 ---
 
-## G5 构建与依赖卫生
+## G5 构建与依赖卫生 —— 已完成
 
 **目标**：依赖可复现、模块依赖真实、SDK 定位不写死。
+
+**落地内容**
+
+- 删除对 CMake 内建 `FetchContent_Declare` 宏的全局覆盖（会污染第三方项目内部的同名调用），改为显式的 `${CHOZO_GITHUB_MIRROR}` 前缀变量：默认直连 GitHub，`-DCHOZO_GITHUB_MIRROR=https://ghfast.top/https://github.com` 即可走镜像。
+- ImGui 从移动分支 `GIT_TAG docking` 固定为 commit `2af6dd96`（2026-06-04），并注明升级流程。
+- Vulkan 定位改为**由 loader 推导**：`CMake/FindDependencies.cmake` 从 `Vulkan_LIBRARY` 取出目录，再据此查找 `MoltenVK_icd.json`，不再假设 `${Vulkan_INCLUDE_DIR}/../Lib` 这类 SDK 布局（macOS 只因大小写不敏感才碰巧能用）。`Launch/CMakeLists.txt` 的 bundle 拷贝改为构建期、按存在性 staging + 可读日志，缺文件只提示不失败。
+- `LINK` 声明补全真实依赖：`RenderCore → CZRHI`，`App → CZRHI CZRenderCore CZWindow`。
+- **完整构建并入主 CI**（`ci.yml` 的 `full-macos` job）：用 Homebrew 的 `molten-vk`/`vulkan-headers`/`vulkan-loader` + `VULKAN_SDK=/opt/homebrew`，不再需要 LunarG 安装器（实测 `install_vulkan.py` 并非可脚本化的 Qt 安装器）；`full-build.yml` 已删除。
+- `External/stb` **决策：保留**。它是第三方 vendored 代码、当前不在构建中也不产生成本；等贴图导入落地时再接入（或届时删除）。
 
 **步骤**
 

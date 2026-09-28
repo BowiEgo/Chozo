@@ -17,7 +17,7 @@ add_chozo_module(
     TYPE    RUNTIME
     INCLUDE ${MODULE_INCLUDE}
     SOURCE  ${MODULE_SRC}
-    LINK    CZCoreLibs
+    LINK    CZCoreLibs CZRHI CZRenderCore CZWindow
 )
 
 add_chozo_module_tests()

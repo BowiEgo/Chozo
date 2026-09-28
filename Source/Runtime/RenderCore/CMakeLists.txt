@@ -45,7 +45,7 @@ add_chozo_module(
     TYPE    RUNTIME
     INCLUDE ${MODULE_INCLUDE}
     SOURCE  ${MODULE_SRC}
-    LINK    CZCoreLibs slang::slang EnTT::EnTT
+    LINK    CZCoreLibs CZRHI slang::slang EnTT::EnTT
 )
 
 add_chozo_module_tests()
