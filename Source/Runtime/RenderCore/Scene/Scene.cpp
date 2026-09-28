@@ -206,9 +206,13 @@ template <typename T> inline entt::id_type GetComponentTypeID() {
     template bool SceneObj::HasComponent<ComponentType>(Entity) const;                             \
     template void SceneObj::RemoveComponent<ComponentType>(Entity);
 
+// The component containers are defined in the private SceneECS.hpp, so every component type used
+// outside this translation unit has to be instantiated here (a release build inlines the uses
+// above and would otherwise leave the symbols undefined).
 INSTANTIATE_TEMPLATES(NameComponent)
 INSTANTIATE_TEMPLATES(TransformComponent)
 INSTANTIATE_TEMPLATES(MeshComponent)
+INSTANTIATE_TEMPLATES(RelationshipComponent)
 
 Scope<SceneObj> Scene::Create() { return CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, SceneObj); }
 
