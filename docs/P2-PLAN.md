@@ -263,7 +263,7 @@ CI 的价值在第一次运行就体现出来了：本地 macOS 全绿，CI 上 
 
 **仍待完成（Windows 转正）**
 
-1. 让 `full-windows` 变绿并按报错迭代（首次运行大概率需要一轮修正，Windows 的 DLL 装配与 slang/SDL 预编译包是主要风险点）。
+1. 让 `full-windows` 变绿。当前状态：**编译已通过**，链接期失败——CMake 的 `WINDOWS_EXPORT_ALL_SYMBOLS` 生成的 `exports.def` 里出现了一个无效符号 `__`（`LNK2001: unresolved external symbol __`，VS 18 工具链的解析局限），`libCZVulkan.dll` 与 `libCZEditor.dll` 各一处。两条可行路线：给模块加显式 `__declspec(dllexport)`（更可控，但要标注公共 API），或在链接前对生成的 `.def` 做一次过滤。该 job 目前标记 `continue-on-error`，不影响其余 CI 结论。
 2. 在 Windows 上**实际运行**编辑器（CI 只做构建与无 GPU 的测试；`vkCreateWin32SurfaceKHR`、`LoadLibrary` 加载 `CZVulkan.dll` 需要一次人工验证）。
 3. Windows 运行时装配清单：DLL 与 `Launch.exe` 同目录（输出目录已保证）、SDL3/slang/ChozoImGui 等依赖的拷贝、VFS 的 `../Resources` 布局（已按平台分支）。
 4. Linux 占位转正：XCB/Wayland surface、`Platform/Linux` 对接窗口属性、CI 增加 `libvulkan-dev`/X11 依赖并把 Linux job 扩到完整构建。
