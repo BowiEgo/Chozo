@@ -25,6 +25,15 @@ struct TransformParamsObj : public Params {
     TransformParamsObj(const TransformParamsObj& other)
         : Translation(other.Translation), Rotation(other.Rotation), Scale(other.Scale) {}
 
+    TransformParamsObj& operator=(const TransformParamsObj& other) {
+        if (this == &other) return *this;
+
+        Translation = other.Translation;
+        Rotation    = other.Rotation;
+        Scale       = other.Scale;
+        return *this;
+    }
+
     // ===== Comparison Operators =====
     bool operator==(const TransformParamsObj* other) {
         if (!other) return false;

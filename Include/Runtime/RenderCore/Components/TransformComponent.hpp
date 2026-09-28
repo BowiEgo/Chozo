@@ -10,8 +10,10 @@
 namespace CZ {
 
 struct TransformComponent {
-    TransformParams Params;
-    Matrix4 WorldMatrix       = Matrix4::Identity();
+    // Always holds a valid params object: the transform system reads it unconditionally.
+    // The component owns this instance (see SetTransformParams).
+    TransformParams Params = TransformParams(Vector3::Zero, Quaternion::Identity(), Vector3::One);
+    Matrix4 WorldMatrix    = Matrix4::Identity();
     Matrix3 WorldNormalMatrix = Matrix3::Identity();
 
     // ===== State =====
@@ -30,7 +32,10 @@ struct TransformComponent {
 
     // ===== Constructors =====
     TransformComponent() = default;
-    explicit TransformComponent(TransformParams params) : Params(params) {}
+
+    // Deep-copies the incoming params so the component never aliases state owned by
+    // the caller, which may be destroyed as soon as this call returns.
+    explicit TransformComponent(const TransformParams& params) : Params(params.Clone()) {}
 
     TransformComponent operator*(const TransformComponent& other) const;
 

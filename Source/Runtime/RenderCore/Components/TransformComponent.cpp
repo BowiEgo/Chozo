@@ -44,11 +44,20 @@ void TransformComponent::SetScale(const Vector3& scale) {
 }
 
 void TransformComponent::SetTransformParams(const TransformParams params) {
-    if (Params == params) return;
-    auto cloned = params.Clone();
-    Params      = cloned;
+    const TransformParamsObj* incoming = InternalHandleReader::Unwrap(params);
+    if (!incoming) return;
 
-    cloned.Destroy();
+    // Same object, or identical values: nothing to sync.
+    if (Params && *Params.Unwrap() == incoming) return;
+
+    if (Params) {
+        // Update the params object this component already owns in place, so that a
+        // stream of edits from the editor does not allocate a new object every frame.
+        *Params.Unwrap() = *incoming;
+    } else {
+        Params = params.Clone();
+    }
+
     MarkDirty();
 }
 
