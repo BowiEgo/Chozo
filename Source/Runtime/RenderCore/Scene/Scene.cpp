@@ -12,7 +12,9 @@ DEFINE_HANDLE_DESTROY(SceneObj)
 SceneObj::SceneObj() : m_Impl(CZ_NEW(MEMORY_USAGE_SCENE, SceneImpl)) {}
 
 void SceneObj::Update(float deltaTime) {
-    // m_TransformSystem.Update();
+    (void)deltaTime; // TODO: drive per-system time once systems consume it.
+
+    m_TransformSystem.Update();
 
     auto view = View<MeshComponent, TransformComponent>();
     for (auto entity : view) {

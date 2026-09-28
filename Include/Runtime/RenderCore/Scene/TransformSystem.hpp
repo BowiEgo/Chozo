@@ -24,7 +24,7 @@ private:
 
     std::vector<Entity> GetUpdateOrder();
 
-    void UpdateEntity(Entity entity);
+    void UpdateEntity(Entity entity, uint32_t recursionDepth = 0);
 
     SceneObj* m_SceneObj;
     std::vector<Entity> m_DirtySet;

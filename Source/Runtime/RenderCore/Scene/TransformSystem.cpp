@@ -3,9 +3,14 @@
 #include <Runtime/RenderCore/Scene/Scene.hpp>
 #include <Runtime/RenderCore/Scene/TransformSystem.hpp>
 
+#include <Core/Log/LogMacros.hpp>
+
 #include "SceneECS.hpp" // IWYU pragma: keep
 
 namespace CZ {
+
+/// Upper bound for hierarchy walks, guards against malformed (cyclic) hierarchies.
+static constexpr uint32_t kMaxHierarchyDepth = 256;
 
 void TransformSystem::Update() {
     if (m_DirtySet.empty()) return;
@@ -14,10 +19,13 @@ void TransformSystem::Update() {
     auto updateOrder = GetUpdateOrder();
 
     for (Entity entity : updateOrder) {
-        auto& transform = m_SceneObj->GetComponent<TransformComponent>(entity);
-        if (transform.IsValid()) {
-            if (!transform.IsDirty()) continue;
+        // The entity may have been destroyed after it was marked dirty.
+        if (!m_SceneObj->IsValid(entity) || !m_SceneObj->HasComponent<TransformComponent>(entity)) {
+            continue;
         }
+
+        auto& transform = m_SceneObj->GetComponent<TransformComponent>(entity);
+        if (!transform.IsValid() || !transform.IsDirty()) continue;
 
         UpdateEntity(entity);
         transform.ClearDirty();
@@ -47,8 +55,18 @@ std::vector<Entity> TransformSystem::GetUpdateOrder() {
         m_bNeedSort = false;
     }
 
-    // Sort by depth in ascending order (from shallow to deep)
-    std::vector<Entity> sorted = m_DirtySet;
+    // Sort by depth in ascending order (from shallow to deep). Entities that no longer
+    // exist are dropped so the comparators below only touch live components.
+    std::vector<Entity> sorted;
+    sorted.reserve(m_DirtySet.size());
+
+    for (Entity entity : m_DirtySet) {
+        if (m_SceneObj->IsValid(entity) &&
+            m_SceneObj->HasComponent<RelationshipComponent>(entity)) {
+            sorted.push_back(entity);
+        }
+    }
+
     std::sort(sorted.begin(), sorted.end(), [this](Entity a, Entity b) {
         auto& ra = m_SceneObj->GetComponent<RelationshipComponent>(a);
         auto& rb = m_SceneObj->GetComponent<RelationshipComponent>(b);
@@ -58,41 +76,65 @@ std::vector<Entity> TransformSystem::GetUpdateOrder() {
 }
 
 void TransformSystem::ComputeDepth(Entity entity, uint32_t depth) {
-    auto& rel = m_SceneObj->GetComponent<RelationshipComponent>(entity);
+    if (depth > kMaxHierarchyDepth) {
+        CZ_LOG(LogScene, Error, "Transform hierarchy is too deep or contains a cycle.");
+        return;
+    }
 
+    if (!m_SceneObj->IsValid(entity) || !m_SceneObj->HasComponent<RelationshipComponent>(entity)) {
+        return;
+    }
+
+    auto& rel = m_SceneObj->GetComponent<RelationshipComponent>(entity);
     rel.SetDepth(depth);
+
     for (Entity child : rel.Children) {
         ComputeDepth(child, depth + 1);
     }
 }
 
-void TransformSystem::UpdateEntity(Entity entity) {
-    auto& transform = m_SceneObj->GetComponent<TransformComponent>(entity);
-    auto& rel       = m_SceneObj->GetComponent<RelationshipComponent>(entity);
+void TransformSystem::UpdateEntity(Entity entity, uint32_t recursionDepth) {
+    if (recursionDepth > kMaxHierarchyDepth) {
+        CZ_LOG(LogScene, Error, "Transform hierarchy is too deep or contains a cycle.");
+        return;
+    }
 
+    if (!m_SceneObj->IsValid(entity) || !m_SceneObj->HasComponent<TransformComponent>(entity)) {
+        return;
+    }
+
+    auto& transform = m_SceneObj->GetComponent<TransformComponent>(entity);
     if (!transform.IsValid()) return;
 
     Matrix4 local = transform.GetLocalMatrix();
 
-    if (rel.HasParent()) {
-        auto& parentTransform = m_SceneObj->GetComponent<TransformComponent>(rel.Parent);
+    const RelationshipComponent* rel =
+        m_SceneObj->HasComponent<RelationshipComponent>(entity)
+            ? &m_SceneObj->GetComponent<RelationshipComponent>(entity)
+            : nullptr;
+
+    const bool hasLiveParent = rel && rel->HasParent() && m_SceneObj->IsValid(rel->Parent) &&
+                               m_SceneObj->HasComponent<TransformComponent>(rel->Parent);
+
+    if (hasLiveParent) {
+        const Entity parent   = rel->Parent;
+        auto& parentTransform = m_SceneObj->GetComponent<TransformComponent>(parent);
+
         if (parentTransform.IsValid() && !parentTransform.IsDirty()) {
             // Parent node already updated, use its world matrix
             transform.WorldMatrix = parentTransform.WorldMatrix * local;
         } else {
             // Parent node not yet updated (theoretically shouldn’t happen because sorting
-            // Can recursively update the parent node
-            UpdateEntity(rel.Parent);
-            auto& updatedParent   = m_SceneObj->GetComponent<TransformComponent>(rel.Parent);
+            // guarantees parents are processed first). Update it recursively instead.
+            UpdateEntity(parent, recursionDepth + 1);
+            auto& updatedParent   = m_SceneObj->GetComponent<TransformComponent>(parent);
             transform.WorldMatrix = updatedParent.WorldMatrix * local;
         }
     } else {
         transform.WorldMatrix = local;
     }
 
-    // Compute the normal matrix (inverse transpose of the 3x3 part)
-    // Simplified here: directly take the 3x3 part and orthogonalize (if non-uniform scaling is
-    // involved, use inverse transpose) Production code should use inverse transpose
+    // Inverse transpose of the 3x3 part so normals survive non-uniform scaling.
     transform.WorldNormalMatrix = transform.WorldMatrix.ToMatrix3().Inverse().Transpose();
 }
 
