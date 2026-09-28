@@ -197,15 +197,20 @@
 
 ---
 
-### P1-7 JobSystem：可移植性与实现质量
+### P1-7 JobSystem：可移植性与实现质量（部分完成）
 
-**位置**：`Source/Core/JobSystem/JobSystem.cpp:110-125`、`:116`、`:193-200`、`:218-221`
+**位置**：`Source/Core/JobSystem/JobSystem.cpp`
 
-**现象与影响**
+**已修复（`bf11d5f`）**
 
-- `:116` 无条件调用 macOS 专有的 `pthread_threadid_np`（且结果未使用）→ Linux 编译失败，与 CMake 声称的跨平台支持不符。
-- `WaitAll` 用 `notify_one` + 轮询空队列自旋，浪费 CPU。
-- 队列满时在提交线程同步执行任务（代码已注明 TODO），会让主线程被长任务卡住。
+- 删除 macOS 专有的 `pthread_threadid_np`（且结果未使用）→ Linux 构建不再被它阻塞。
+- `~JobSystemObj()` 改为在持有 `WakeMutex` 时置 `IsRunning=false`：原先 worker 可能在检查谓词与进入等待之间丢掉通知，`join()` 永久阻塞（压测约 1/12 复现）。
+- `Submit()` 改为**先**自增未完成计数再发布任务：原先 worker 可能先完成并递减，导致计数回绕、`WaitAll()` 永久等待。
+- `WaitAll()` 去掉 `notify_one` 轮询自旋，改为 `notify_all` + 计数条件变量等待。
+
+**仍待处理**
+
+- 队列满时仍在提交线程同步执行任务（会让主线程被长任务卡住）。
 - Job 执行路径无异常保护：`job.OnExecute` 抛异常会直接终止进程；`std::promise::set_value` 亦然。
 - `JobSystem::Get()` 在未初始化时返回空句柄，调用方（如 `AssetRegistry::LoadAssetAsync`）无检查。
 
