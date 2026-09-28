@@ -202,6 +202,7 @@ template <typename T> inline entt::id_type GetComponentTypeID() {
 }
 
 #define INSTANTIATE_TEMPLATES(ComponentType)                                                       \
+    template ComponentType& SceneObj::AddComponent<ComponentType>(Entity);                         \
     template ComponentType& SceneObj::GetComponent<ComponentType>(Entity);                         \
     template bool SceneObj::HasComponent<ComponentType>(Entity) const;                             \
     template void SceneObj::RemoveComponent<ComponentType>(Entity);

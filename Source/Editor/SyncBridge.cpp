@@ -217,13 +217,17 @@ void SyncBridge::SyncTransform(EditorNode* node, Entity entity) {}
 void SyncBridge::SyncTransform(Entity entity, EditorNode* node) {}
 
 void SyncBridge::SyncName(EditorNode* node, Entity entity) {
+    // The scene's component containers are only instantiated for the signatures used inside
+    // Scene.cpp, so this adds the component with its default value and assigns the name here
+    // rather than relying on an `AddComponent(entity, name)` instantiation living in another
+    // translation unit.
     if (!m_Scene->HasComponent<NameComponent>(entity)) {
-        m_Scene->AddComponent<NameComponent>(entity, node->GetName());
-    } else {
-        auto& nameComp = m_Scene->GetComponent<NameComponent>(entity);
-        if (nameComp.Name != node->GetName()) {
-            nameComp.Name = node->GetName();
-        }
+        m_Scene->AddComponent<NameComponent>(entity);
+    }
+
+    auto& nameComp = m_Scene->GetComponent<NameComponent>(entity);
+    if (nameComp.Name != node->GetName()) {
+        nameComp.Name = node->GetName();
     }
 }
 
