@@ -461,3 +461,12 @@ that did that (find the recording scope, bracket from the renderer) succeeded.
 `dev-vulkan` is worth reading before designing anything the refactor may have moved: the layer
 dispatch pattern (`dispatcher.Dispatch<FKeyPressedEvent>(...)` inside the layer), the mesh
 generators (Sphere, Quad), the input gating rules and the polygon-mode approach all came from there.
+
+### Two process traps worth remembering
+`| tail` swallows the exit status of the command before it: a self-check that read through a pipe
+reported success while the checker itself had a syntax error, and the broken gate was pushed. Run
+verification commands without pipes (or with `set -o pipefail`) and read `$?` from the command that
+actually matters.
+
+A gate is only worth having once it has been shown to fail: inject a known-bad input, confirm a
+non-zero exit and the expected message, then remove it.
