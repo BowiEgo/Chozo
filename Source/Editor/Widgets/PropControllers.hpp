@@ -35,10 +35,10 @@ static void DrawAxis(const char* label, float* value, const ImVec2& buttonSize, 
         // The coloured label is a reset button for its axis. It is a real Button with the axis
         // colour applied through the style stack: hand-painting it with the draw list looked
         // identical in theory and rendered nothing in practice, so the proven approach stays.
-        ImGui::Text("%s", label);
-        ImGui::SameLine();
-
-        if (ImGui::Button("", buttonSize)) {
+        // The axis letter sits inside the coloured button. Drawing it as separate text (as this
+        // used to) left the glyph sticking out to the left of an empty 8px square, which is what
+        // read as "the label's text overflows to the left".
+        if (ImGui::Button(label, buttonSize)) {
             *value       = resetValue;
             valueChanged = true;
         }
