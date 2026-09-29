@@ -172,14 +172,6 @@ void EditorLayer::OnUpdate(float deltaTime) {
 void EditorLayer::OnRender() {
     m_ImGuiRenderer->NewFrame();
 
-    // ImGui receives the keyboard through the same path as the menus, so the shortcut works
-    // regardless of how the engine-level key events are dispatched.
-    if (ImGui::IsKeyPressed(ImGuiKey_F5, false)) {
-        const bool bWireframe = !m_ViewportRenderer.IsWireframe();
-        m_ViewportRenderer.SetWireframe(bWireframe);
-        CZ_EDITOR_LOG(Warning, "Wireframe rendering {}", bWireframe ? "ON" : "OFF");
-    }
-
     // ----------------------------------------------------------------------------
     // [Section] Dockspace Configuration
     // Set up a full-screen dockspace container for editor panels.

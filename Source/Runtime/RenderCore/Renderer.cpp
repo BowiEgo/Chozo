@@ -68,16 +68,6 @@ Scope<RendererObj> Renderer::Create(const RendererSpecification& spec) {
         if (shader.GetName() == "Basic")
             obj->TestPipeline = ctx->GetDevice()->CreatePipeline(
                 testPipelineSpec, shader->GetShaderResources(), shader->GetReflection());
-
-        // Same pipeline with line rasterisation (VK_POLYGON_MODE_LINE, MoltenVK maps it to
-        // Metal's line fill mode); only the polygon mode differs, so meshes accepted by the
-        // fill pipeline stay valid. The duplicated "attribute not consumed" validation
-        // warnings come from this second pipeline and are expected.
-        auto wireframeSpec        = testPipelineSpec;
-        wireframeSpec.Name        = "TestPipeline_Wireframe";
-        wireframeSpec.PolygonMode = PolygonMode::Line;
-        obj->WireframePipeline    = ctx->GetDevice()->CreatePipeline(
-            wireframeSpec, shader->GetShaderResources(), shader->GetReflection());
     }
 
     return obj;
@@ -118,9 +108,7 @@ void Renderer::Tick(float deltaTime) {
             RHIAPI::Get()->TransitionImageLayout(cmdList, viewportCanvas->GetImage(),
                                                  ImageLayout::ColorAttachmentOptimal);
 
-            const bool bUseWireframe = m_Obj->bWireframe && m_Obj->WireframePipeline;
-            cmdList->BindPipeline(
-                ViewAs<Pipeline>(bUseWireframe ? m_Obj->WireframePipeline : m_Obj->TestPipeline));
+            cmdList->BindPipeline(ViewAs<Pipeline>(m_Obj->TestPipeline));
 
             // The viewport target must be cleared every frame: keeping the previous contents (the
             // bClear = false used by the final UI pass) left moving geometry smeared across frames.
