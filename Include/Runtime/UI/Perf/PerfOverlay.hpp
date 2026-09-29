@@ -17,6 +17,11 @@ public:
     void PushFrame(double frameSeconds, const PhaseSample* phases, size_t phaseCount);
 
     FrameStats& Stats() { return m_Stats; }
+
+    /// GPU timings (may be empty when unsupported).
+    void SetGpuPhases(const PhaseSample* phases, size_t count) {
+        m_Stats.SetGpuPhases(phases, count);
+    }
     const FrameStats& Stats() const { return m_Stats; }
 
     void SetVisible(bool bVisible) { m_Visible = bVisible; }

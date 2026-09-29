@@ -20,10 +20,18 @@ void FrameStats::Push(double frameSeconds, const PhaseSample* phases, size_t pha
     m_Smoothed = m_Count == 1 ? frameSeconds : m_Smoothed * (1.0 - kAlpha) + frameSeconds * kAlpha;
 }
 
+void FrameStats::SetGpuPhases(const PhaseSample* phases, size_t count) {
+    m_GpuPhaseCount = std::min(count, kMaxPhases);
+    for (size_t i = 0; i < m_GpuPhaseCount; ++i) {
+        m_GpuPhases[i] = phases[i];
+    }
+}
+
 void FrameStats::Clear() {
     m_History.fill(0.0f);
     m_FrameSeconds.fill(0.0);
     m_Count = m_Head = m_PhaseCount = 0;
+    m_GpuPhaseCount                 = 0;
     m_Smoothed                      = 0.0;
 }
 

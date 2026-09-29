@@ -42,6 +42,11 @@ public:
     const float* History() const { return m_History.data(); }
     static constexpr size_t HistorySize() { return kHistory; }
 
+    /// GPU timings arrive a few frames late, so they are kept on their own channel.
+    void SetGpuPhases(const PhaseSample* phases, size_t count);
+    size_t GpuPhaseCount() const { return m_GpuPhaseCount; }
+    const PhaseSample& GpuPhase(size_t index) const { return m_GpuPhases[index]; }
+
     size_t PhaseCount() const { return m_PhaseCount; }
     const PhaseSample& Phase(size_t index) const { return m_Phases[index]; }
 
@@ -53,11 +58,13 @@ private:
     std::array<float, kHistory> m_History{}; ///< ms, for the graph
     std::array<double, kHistory> m_FrameSeconds{};
     std::array<PhaseSample, kMaxPhases> m_Phases{};
-    size_t m_Count      = 0;
-    size_t m_Head       = 0;
-    size_t m_PhaseCount = 0;
-    double m_Smoothed   = 0.0;
-    double m_Target     = 1.0 / 60.0;
+    std::array<PhaseSample, kMaxPhases> m_GpuPhases{};
+    size_t m_GpuPhaseCount = 0;
+    size_t m_Count         = 0;
+    size_t m_Head          = 0;
+    size_t m_PhaseCount    = 0;
+    double m_Smoothed      = 0.0;
+    double m_Target        = 1.0 / 60.0;
 };
 
 } // namespace CZ

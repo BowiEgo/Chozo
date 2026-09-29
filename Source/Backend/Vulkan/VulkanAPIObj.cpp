@@ -1,3 +1,4 @@
+#include "VulkanDeviceObj.hpp"
 #include <vector>
 
 #include <cstdint>
@@ -81,6 +82,54 @@ void VulkanAPIObj::BeginRendering(CommandList cmdList, std::vector<Texture>& tar
 }
 
 void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback) {
+    auto* vkDevice = m_GraphicsContext->GetDevice().As<VulkanDeviceObj>();
+
+    if (!m_TimestampChecked) {
+        m_TimestampChecked = true;
+        VkPhysicalDeviceProperties props{};
+        vkGetPhysicalDeviceProperties(vkDevice->GetPhysicalDevice(), &props);
+        m_TimestampPeriod    = props.limits.timestampPeriod;
+        m_TimestampSupported =
+            props.limits.timestampComputeAndGraphics && m_TimestampPeriod > 0.0f;
+
+        VkQueryPoolCreateInfo queryInfo{};
+        queryInfo.sType      = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+        queryInfo.queryType  = VK_QUERY_TYPE_TIMESTAMP;
+        queryInfo.queryCount = kFramesInFlight * 2;
+        if (m_TimestampSupported && vkCreateQueryPool(vkDevice->GetLogicalDevice(), &queryInfo,
+                                                      nullptr, &m_TimestampPool) != VK_SUCCESS) {
+            m_TimestampSupported = false;
+        }
+    }
+
+    VkCommandBuffer vkFrameCmd = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
+    const uint32_t slot        = m_FrameIndex % kFramesInFlight;
+
+    if (m_TimestampSupported && m_FrameIndex >= kFramesInFlight) {
+        uint64_t stamps[2] = { 0, 0 };
+        const VkResult result =
+            vkGetQueryPoolResults(vkDevice->GetLogicalDevice(), m_TimestampPool, slot * 2, 2,
+                                  sizeof(stamps), stamps, sizeof(uint64_t), VK_QUERY_RESULT_64_BIT);
+        if (result == VK_SUCCESS && stamps[1] > stamps[0]) {
+            m_GpuTiming.FrameSeconds = static_cast<float>(
+                static_cast<double>(stamps[1] - stamps[0]) * m_TimestampPeriod * 1e-9);
+            m_GpuTiming.bValid = true;
+
+            static bool s_LoggedOnce = false;
+            if (!s_LoggedOnce) {
+                s_LoggedOnce = true;
+                CZ_BACKEND_LOG(Info, "GPU frame time available: {:.2f} ms",
+                               m_GpuTiming.FrameSeconds * 1000.0f);
+            }
+        }
+    }
+
+    if (m_TimestampSupported) {
+        vkCmdResetQueryPool(vkFrameCmd, m_TimestampPool, slot * 2, 2);
+        vkCmdWriteTimestamp(vkFrameCmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, m_TimestampPool,
+                            slot * 2);
+    }
+
     auto currentFrameIdx = m_GraphicsContext->GetCurrentFrameIndex();
 
     auto vkGraphicsCtx = m_GraphicsContext.As<VulkanGraphicsContextObj>();
@@ -132,6 +181,12 @@ void VulkanAPIObj::DrawFrame(CommandList cmdList, RecordCallback recordCallback)
     // 3. 执行外部录制回调（RHI 不再决定绘制内容）
     if (recordCallback) {
         recordCallback(imgIdx);
+
+        if (m_TimestampSupported) {
+            vkCmdWriteTimestamp(vkFrameCmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_TimestampPool,
+                                (m_FrameIndex % kFramesInFlight) * 2 + 1);
+        }
+        ++m_FrameIndex;
     }
 
     // 4. 提交绘制命令缓冲区，并在完成时发出 renderFinishedSemaphore
