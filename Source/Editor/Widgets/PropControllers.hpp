@@ -69,7 +69,9 @@ static bool DrawVec3Control(const std::string& label, Vector3& values,
     UIUtils::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
     const float lineHeight  = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
-    const ImVec2 buttonSize = { 8.0f, lineHeight };
+    // A square as wide as a line; an 8px box is narrower than its own glyph, which pushed
+    // the letter right instead of centring it.
+    const ImVec2 buttonSize = { lineHeight, lineHeight };
 
     DrawAxis<0>("X", &values.x, buttonSize, boldFont, valueSpeed, resetValue, valueChanged);
     DrawAxis<1>("Y", &values.y, buttonSize, boldFont, valueSpeed, resetValue, valueChanged);
@@ -451,7 +453,7 @@ public:
             const bool bChanged = DrawControllerWithType(value, name, config);
 
             // Asked before the button is drawn: the button would otherwise become the "last item".
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
+            if (ImGui::IsItemDeactivated()) {
                 m_bEditCommitted = true;
             }
 
@@ -462,7 +464,9 @@ public:
                 // file: identical labels would otherwise share one ImGui ID, so hovering or
                 // clicking one would apply to whichever instance ImGui resolved first.
                 UIUtils::ScopedID scopedID(name.c_str());
-                if (ImGui::SmallButton("R")) {
+                if constexpr (std::is_same_v<T, Vector3>) {
+                    // Vector fields revert per axis via the coloured labels; no per-row button.
+                } else if (ImGui::SmallButton("R")) {
                     value             = *defaultValue;
                     bReverted         = true;
                     m_bResetRequested = true;
