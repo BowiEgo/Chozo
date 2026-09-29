@@ -41,13 +41,10 @@ Scope<RendererObj> Renderer::Create(const RendererSpecification& spec) {
 
     auto testPipelineSpec              = PipelineSpecification{};
     testPipelineSpec.Name              = "TestPipeline";
-    // The viewport render pass currently binds only colour attachments (BeginRendering has no
-    // depth target), while PipelineSpecification defaults to bDepthTestEnable = true and a
-    // D32 attachment format. Declaring depth test without a bound depth attachment makes the
-    // GPU discard every fragment, so the scene rendered as an empty image. Keep depth off until
-    // the framebuffer depth attachment is wired through BeginRendering.
-    testPipelineSpec.bDepthTestEnable  = false;
-    testPipelineSpec.bDepthWriteEnable = false;
+    // Depth testing is enabled: the viewport pass now binds the framebuffer's D32 attachment
+    // (see BeginRendering below). It is cleared to 1.0 on the first frame and preserved afterwards.
+    testPipelineSpec.bDepthTestEnable  = true;
+    testPipelineSpec.bDepthWriteEnable = true;
     testPipelineSpec.ColorFormats      = { PixelFormat::RGBA16F };
 
     if (!spec.ShaderRegistry) {
@@ -113,8 +110,9 @@ void Renderer::Tick(float deltaTime) {
 
             cmdList->BindPipeline(ViewAs<Pipeline>(m_Obj->TestPipeline));
 
-            RHIAPI::Get()->BeginRendering(cmdList, targets,
-                                          false); // bClear = false (to preserve the scene)
+            RHIAPI::Get()->BeginRendering(cmdList, targets, false, 0,
+                                          viewport->GetFrameBuffer()->GetDepthAttachment());
+            // bClear = false (to preserve the scene)
 
             cmdList->SetViewport({ 0, 0, (float)width, (float)height, 0, 1 });
             cmdList->SetScissor({ 0, 0, width, height });

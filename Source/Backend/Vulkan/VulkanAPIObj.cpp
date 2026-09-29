@@ -13,7 +13,7 @@
 namespace CZ {
 
 void VulkanAPIObj::BeginRendering(CommandList cmdList, std::vector<Texture>& targets, bool bClear,
-                                  uint32_t faceIndex) {
+                                  uint32_t faceIndex, Texture depthTarget) {
     if (targets.empty()) return;
 
     VkCommandBuffer vkCmdBuffer = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
@@ -43,7 +43,39 @@ void VulkanAPIObj::BeginRendering(CommandList cmdList, std::vector<Texture>& tar
     renderingInfo.colorAttachmentCount = static_cast<uint32_t>(colorAttachmentInfos.size());
     renderingInfo.pColorAttachments    = colorAttachmentInfos.data();
 
-    // 如有深度附件可在此设置：
+    // Depth attachment: reuse the colour helper for the image view / load-store policy, then
+    // override the two fields that differ for a depth image (layout and clear value).
+    if (depthTarget) {
+        // The depth image was never transitioned out of VK_IMAGE_LAYOUT_UNDEFINED: the colour path
+        // only fills the attachment struct and relies on the swapchain side for its barrier, so the
+        // depth image needs its own. Transitioning from UNDEFINED each frame is legal and also
+        // discards stale depth contents, so no separate clear pass is required.
+        VkImageMemoryBarrier depthBarrier{};
+        depthBarrier.sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        depthBarrier.srcAccessMask       = 0;
+        depthBarrier.dstAccessMask       = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+                                           VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+        depthBarrier.oldLayout           = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthBarrier.newLayout           = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+        depthBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        depthBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        depthBarrier.image =
+            depthTarget.As<VulkanTextureObj>()->GetImage().As<VulkanImageObj>()->GetVkImage();
+        depthBarrier.subresourceRange =
+            VkImageSubresourceRange{ VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, 1 };
+        vkCmdPipelineBarrier(vkCmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                             VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT, 0, 0, nullptr, 0, nullptr,
+                             1, &depthBarrier);
+    }
+
+    VkRenderingAttachmentInfo depthAttachmentInfo{};
+    if (depthTarget) {
+        depthAttachmentInfo = depthTarget.As<VulkanTextureObj>()->GetColorAttachmentInfo(
+            clearValue, bClear, faceIndex);
+        depthAttachmentInfo.imageLayout             = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+        depthAttachmentInfo.clearValue.depthStencil = VkClearDepthStencilValue{ 1.0f, 0 };
+        renderingInfo.pDepthAttachment              = &depthAttachmentInfo;
+    }
 
     vkCmdBeginRendering(vkCmdBuffer, &renderingInfo);
 }

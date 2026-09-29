@@ -13,7 +13,7 @@ public:
     ~VulkanAPIObj() override {}
 
     void BeginRendering(CommandList cmdList, std::vector<Texture>& targets, bool bClear,
-                        uint32_t faceIndex) override;
+                        uint32_t faceIndex, Texture depthTarget) override;
 
     void DrawFrame(CommandList cmdList, RecordCallback recordCallback) override;
 

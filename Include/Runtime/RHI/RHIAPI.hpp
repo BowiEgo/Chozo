@@ -24,8 +24,11 @@ public:
     RHIAPIObj(GraphicsContext ctx) : m_GraphicsContext(ctx) {}
     virtual ~RHIAPIObj() = default;
 
+    // depthTarget is optional: pass the framebuffer's depth attachment so that pipelines which
+    // enable depth testing actually have one bound. A pipeline declaring depth test while the
+    // render pass binds no depth attachment makes the GPU discard every fragment.
     virtual void BeginRendering(CommandList cmdList, std::vector<Texture>& targets, bool bClear,
-                                uint32_t faceIndex = 0) = 0;
+                                uint32_t faceIndex = 0, Texture depthTarget = {}) = 0;
 
     virtual void DrawFrame(CommandList cmdList, RecordCallback recordCallback) = 0;
 
