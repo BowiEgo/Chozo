@@ -421,7 +421,8 @@ public:
                 if (const auto* defaultValue = std::any_cast<T>(&m_Defaults->Values[index])) {
                     if (*defaultValue != value) {
                         ImGui::SameLine();
-                        if (ImGui::SmallButton("\u21BA")) {
+                        if (ImGui::SmallButton("R")) {
+                            // Reset to default (the tooltip below spells it out).
                             value             = *defaultValue;
                             bReverted         = true;
                             m_bResetRequested = true;
