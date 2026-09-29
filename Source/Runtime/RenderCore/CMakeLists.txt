@@ -58,7 +58,7 @@ file(GLOB RENDERCORE_TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}
 if(RENDERCORE_TEST_SOURCES)
     add_executable(CZRenderCoreTests Tests/Main.cpp ${RENDERCORE_TEST_SOURCES})
     set_target_properties(CZRenderCoreTests PROPERTIES FOLDER "Tests")
-    target_link_libraries(CZRenderCoreTests PRIVATE CZRenderCore CZRHI CZCoreLibs CZUI doctest::doctest)
+    target_link_libraries(CZRenderCoreTests PRIVATE CZRenderCore CZRHI CZCoreLibs doctest::doctest)
     target_include_directories(CZRenderCoreTests PRIVATE ${CHOZO_SOURCE_DIR} ${CHOZO_INCLUDE_DIR})
     add_test(NAME CZRenderCoreTests COMMAND CZRenderCoreTests)
 endif()

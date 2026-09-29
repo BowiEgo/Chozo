@@ -190,20 +190,10 @@ void EditorLayer::OnUpdate(float deltaTime) {
     const auto gpuTiming           = m_ViewportRenderer.GetGpuTiming();
     const PhaseSample gpuPhases[1] = { { "GPU Frame",
                                          gpuTiming.bValid ? gpuTiming.FrameSeconds : 0.0f } };
-    static constexpr const char* kGpuNames[] = { "GPU Scene", "GPU UI", "GPU Pass 2",
-                                                 "GPU Pass 3" };
-    PhaseSample gpuRows[5];
-    size_t gpuCount = 0;
-    for (uint32_t pass = 0; pass < gpuTiming.PassCount && pass < 4; ++pass) {
-        gpuRows[gpuCount++] = { kGpuNames[pass], gpuTiming.PassSeconds[pass] };
-    }
-    if (gpuTiming.bValid) {
-        gpuRows[gpuCount++] = { "GPU total", gpuTiming.FrameSeconds };
-    }
-    m_PerfOverlay.Stats().SetGpuPhases(gpuRows, gpuCount);
+    m_PerfOverlay.Stats().SetGpuPhases(gpuPhases, gpuTiming.bValid ? 1 : 0);
 
     const DrawStats& draws = m_ViewportRenderer.GetDrawStats();
-    m_PerfOverlay.Stats().SetDrawCalls(draws.DrawCalls, draws.Triangles, draws.PipelineSwitches);
+    m_PerfOverlay.Stats().SetDrawCalls(draws.DrawCalls, draws.Triangles);
 }
 
 void EditorLayer::OnRender() {

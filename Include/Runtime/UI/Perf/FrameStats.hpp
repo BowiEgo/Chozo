@@ -39,14 +39,12 @@ public:
     FrameBudgetStatus StatusOf(double seconds) const;
 
     /// Draw calls and triangles of the last completed frame.
-    void SetDrawCalls(uint32_t draws, uint32_t triangles, uint32_t pipelineSwitches = 0) {
-        m_DrawCalls        = draws;
-        m_Triangles        = triangles;
-        m_PipelineSwitches = pipelineSwitches;
+    void SetDrawCalls(uint32_t draws, uint32_t triangles) {
+        m_DrawCalls = draws;
+        m_Triangles = triangles;
     }
     uint32_t DrawCalls() const { return m_DrawCalls; }
     uint32_t Triangles() const { return m_Triangles; }
-    uint32_t PipelineSwitches() const { return m_PipelineSwitches; }
 
     /// GPU timings arrive a few frames late, so they live on their own channel.
     void SetGpuPhases(const PhaseSample* phases, size_t count);
@@ -76,12 +74,11 @@ private:
     size_t m_Head       = 0;
     size_t m_PhaseCount = 0;
     std::array<PhaseSample, kMaxPhases> m_GpuPhases{};
-    size_t m_GpuPhaseCount      = 0;
-    uint32_t m_DrawCalls        = 0;
-    uint32_t m_Triangles        = 0;
-    uint32_t m_PipelineSwitches = 0;
-    double m_Smoothed           = 0.0;
-    double m_Target             = 1.0 / 60.0;
+    size_t m_GpuPhaseCount = 0;
+    uint32_t m_DrawCalls   = 0;
+    uint32_t m_Triangles   = 0;
+    double m_Smoothed      = 0.0;
+    double m_Target        = 1.0 / 60.0;
 };
 
 } // namespace CZ

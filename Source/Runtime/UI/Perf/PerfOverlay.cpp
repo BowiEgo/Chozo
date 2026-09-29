@@ -77,8 +77,7 @@ void PerfOverlay::Draw(OverlayPainter& painter, float x, float y, float maxWidth
     if (m_Stats.DrawCalls() > 0) {
         lines.push_back({ "", "", kDim, true, false });
         lines.push_back({ "draws",
-                          fmt::format("{}  ({} tris, {} switches)", m_Stats.DrawCalls(),
-                                      m_Stats.Triangles(), m_Stats.PipelineSwitches()),
+                          fmt::format("{}  ({} tris)", m_Stats.DrawCalls(), m_Stats.Triangles()),
                           kDim, false, false });
     }
 

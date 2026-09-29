@@ -118,9 +118,6 @@ void Renderer::Tick(float deltaTime) {
             // Dynamic polygon mode: no second pipeline, so every pipeline keeps its descriptor set
             // layouts (the previous two-pipeline approach lost them and broke all draws).
             // Bracket every pass: timestamps are only valid while the command buffer records.
-            // Timestamps are only valid while the command buffer records. The frame opens here and
-            // the UI pass below splits it, so scene and interface time separately.
-            RHIAPI::Get()->BeginGPUFrame(cmdList);
             RHIAPI::Get()->BeginGPUTiming(cmdList);
 
             cmdList->SetPolygonMode(m_Obj->bWireframe ? PolygonMode::Line : PolygonMode::Fill);
@@ -152,8 +149,6 @@ void Renderer::Tick(float deltaTime) {
 
             // The UI must stay filled: polygon mode is dynamic state, so it would otherwise
             // leak from the viewport pass into the editor's own interface.
-            RHIAPI::Get()->EndGPUTiming(cmdList);   // closes the scene pass
-            RHIAPI::Get()->BeginGPUTiming(cmdList); // opens the UI pass
             cmdList->SetPolygonMode(PolygonMode::Fill);
 
             RHIAPI::Get()->BeginRendering(cmdList, targets,

@@ -72,7 +72,6 @@ void VulkanCommandBufferObj::SetPolygonMode(PolygonMode mode) {
 }
 
 void VulkanCommandBufferObj::BindPipeline(Pipeline pipeline) {
-    ++m_DrawStats.PipelineSwitches;
     m_CurrentPipeline = pipeline;
 
     auto vkPipeline = m_CurrentPipeline.As<VulkanPipelineObj>()->GetVKPipeline();
