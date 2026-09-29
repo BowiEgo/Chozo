@@ -191,6 +191,10 @@ void EditorLayer::OnUpdate(float deltaTime) {
 void EditorLayer::OnRender() {
     m_ImGuiRenderer->NewFrame();
 
+    // Viewport rectangle in screen space; the performance overlay anchors to it after the
+    // dockspace has closed.
+    ImVec2 viewportRectMin{ 0.0f, 0.0f };
+
     // ----------------------------------------------------------------------------
     // [Section] Dockspace Configuration
     // Set up a full-screen dockspace container for editor panels.
@@ -294,9 +298,9 @@ void EditorLayer::OnRender() {
         m_ViewportTextureID = tex->GetID();
     }
 
-    ImTextureID textureID        = GET_IM_TEXTURE_ID(tex);
+    ImTextureID textureID = GET_IM_TEXTURE_ID(tex);
     // Top-left of the render target in screen space; the performance overlay anchors to it.
-    const ImVec2 viewportRectMin = ImGui::GetCursorScreenPos();
+    viewportRectMin       = ImGui::GetCursorScreenPos();
     ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
 
     // // Integrated Debug Overlay
@@ -316,11 +320,12 @@ void EditorLayer::OnRender() {
     ImGui::PopStyleVar();
 #pragma endregion
 
-    // Painted as its own window *after* the viewport panel closed: inside the panel scope ImGui
-    // clips it against the panel's content region, which is why it stayed invisible.
-    m_PerfOverlay.Draw(m_PerfPainter, viewportRectMin.x + 8.0f, viewportRectMin.y + 8.0f, 260.0f);
-
     ImGui::End(); // End Dockspace
+
+    // Drawn after every window has closed, as a top-level overlay: inside the dockspace host (or a
+    // panel) ImGui treats it as a child of that window and clips it, which is why it stayed
+    // invisible no matter where in the panel it was placed.
+    m_PerfOverlay.Draw(m_PerfPainter, viewportRectMin.x + 8.0f, viewportRectMin.y + 8.0f, 260.0f);
 
     ImGui::Render();
 
