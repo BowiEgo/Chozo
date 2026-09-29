@@ -128,7 +128,12 @@ void EditorLayer::OnDetach() {
 
 void EditorLayer::OnUpdate(float deltaTime) {
     m_Viewport->Resize(m_ViewportSize.x, m_ViewportSize.y);
-    m_EditorCamera.OnUpdate(deltaTime, m_ViewportFocused);
+    // Hovering is enough to drive the camera (no click-to-focus required); the values come from
+    // the previous frame's ImGui pass, which is the standard one-frame-late pattern.
+    m_EditorCamera.OnUpdate(deltaTime, m_ViewportHovered || m_ViewportFocused);
+    // The editor camera is a separate object: without pushing its state onto the camera the
+    // renderer actually renders with, any camera input stays invisible.
+    m_EditorCamera.CopyTo(m_Viewport->GetCamera());
     m_SyncBridge->SyncAllNodesToEntities();
 }
 
@@ -269,6 +274,10 @@ void EditorLayer::OnRender() {
 }
 
 void EditorLayer::OnEvent(Event& e) {
+    // The editor camera sits outside the ImGui layer, so it needs the raw events (mouse scrolling
+    // in particular) forwarded before the capture check below marks them handled.
+    m_EditorCamera.OnEvent(e);
+
     if (m_BlockEvents) {
         ImGuiIO& io  = ImGui::GetIO();
         bool handled = false;

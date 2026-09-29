@@ -15,7 +15,12 @@ DEFINE_LOG_CATEGORY(LogEditorCamera);
 void EditorCamera::OnUpdate(float deltaTime, bool bUpdateInput) {
     if (Input::IsKeyPressed(CZ_KEY(LeftAlt))) {
         const Vector2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
-        Vector2 delta          = (mouse - m_InitialMousePosition) * 0.003f;
+        const bool bButtonHeld = Input::IsMouseButtonPressed(MouseButton::Left) ||
+                                 Input::IsMouseButtonPressed(MouseButton::Middle) ||
+                                 Input::IsMouseButtonPressed(MouseButton::Right);
+        // Re-anchor whenever no drag is in progress, otherwise starting a drag jumps by the whole
+        // mouse-to-origin distance.
+        const Vector2 delta = bButtonHeld ? (mouse - m_InitialMousePosition) * 0.003f : Vector2{};
         m_InitialMousePosition = mouse;
 
         if (!bUpdateInput) return;
