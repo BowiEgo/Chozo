@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Core/Command/CommandStack.hpp>
 #include <Runtime/UI/Perf/PerfOverlay.hpp>
 
 #include "Perf/ImGuiOverlayPainter.hpp"
@@ -65,6 +66,9 @@ private:
     bool m_ViewportFocused{}, m_ViewportHovered{};
     // True while an orbit/pan/zoom gesture started inside the viewport is in progress.
     bool m_CameraDragActive{};
+
+    // Undo/redo history for editor edits (parameter changes today, node edits next).
+    CommandStack m_Commands;
 
     // Viewport performance overlay: backend-independent layout, ImGui painter.
     PerfOverlay m_PerfOverlay;
