@@ -35,6 +35,8 @@ struct RendererObj {
     std::vector<FrameResource> Frames;
     std::vector<Scope<ViewportObj>> Viewports;
     Scope<PipelineObj> TestPipeline;
+    Scope<PipelineObj> WireframePipeline;
+    bool bWireframe = false;
 };
 
 struct Renderer : Handle<struct RendererObj> {
@@ -46,6 +48,10 @@ struct Renderer : Handle<struct RendererObj> {
     void Shutdown();
     void Tick(float deltaTime);
     void SetDrawFuncToFinalPass(const DrawFunc& func);
+
+    /// Switches the viewport between filled and wireframe rasterisation (F5 in the editor).
+    void SetWireframe(bool bEnable) { m_Obj->bWireframe = bEnable; }
+    bool IsWireframe() const { return m_Obj->bWireframe; }
 
     Viewport CreateViewport(const std::string name, uint32 width, uint32 height);
     std::vector<Viewport> GetViewports();
