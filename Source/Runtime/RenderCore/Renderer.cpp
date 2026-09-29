@@ -152,6 +152,12 @@ void Renderer::Tick(float deltaTime) {
 
             if (m_Obj->FinalPassDrawFunc) m_Obj->FinalPassDrawFunc(cmdList);
 
+            // Snapshot then reset: the counters accumulate during the next frame, so no separate
+            // frame-start hook is needed.
+            auto* counters          = cmdList.As<CommandListObj>();
+            m_Obj->LastFrameStats   = counters->GetDrawStats();
+            counters->ResetDrawStats();
+
             RHIAPI::Get()->EndRendering(cmdList);
 
             RHIAPI::Get()->TransitionImageLayout(cmdList, swapchainTexHandle->GetImage(),

@@ -49,6 +49,12 @@ void PerfOverlay::Draw(OverlayPainter& painter, float x, float y, float width) c
                      ColorFor(m_Stats.StatusOf(phase.Seconds)));
     }
 
+    if (m_Stats.DrawCalls() > 0) {
+        painter.Text(fmt::format("{:<18}{:>6} draws / {} tris", "Draws", m_Stats.DrawCalls(),
+                                 m_Stats.Triangles()),
+                     kDim);
+    }
+
     painter.EndPanel();
 }
 

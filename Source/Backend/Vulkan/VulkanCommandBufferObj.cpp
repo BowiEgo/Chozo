@@ -152,6 +152,7 @@ void VulkanCommandBufferObj::Draw(uint32 vertexCount, uint32 instanceCount, uint
 }
 
 void VulkanCommandBufferObj::Draw(Mesh mesh) {
+    AddDraw(mesh->GetIndexCount() / 3);
     if (!mesh->GetVertexBuffer() || !mesh->GetIndexBuffer()) {
         CZ_LOG(LogProceduralMesh, Error, "Buffers not uploaded");
         return;

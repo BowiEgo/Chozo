@@ -24,7 +24,25 @@ struct RenderScissor {
     uint32 width, height;
 };
 
+/// Per-frame draw statistics accumulated by the command list. Plain counters, so any backend can
+/// feed them without extra allocation.
+struct DrawStats {
+    uint32_t DrawCalls = 0;
+    uint32_t Triangles = 0;
+};
+
 class CommandListObj {
+public:
+    void ResetDrawStats() { m_DrawStats = {}; }
+    void AddDraw(uint32_t triangles) {
+        ++m_DrawStats.DrawCalls;
+        m_DrawStats.Triangles += triangles;
+    }
+    const DrawStats& GetDrawStats() const { return m_DrawStats; }
+
+protected:
+    DrawStats m_DrawStats{};
+
 public:
     CommandListObj()          = default;
     virtual ~CommandListObj() = default;

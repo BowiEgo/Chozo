@@ -24,7 +24,8 @@ void FrameStats::Clear() {
     m_History.fill(0.0f);
     m_FrameSeconds.fill(0.0);
     m_Count = m_Head = m_PhaseCount = 0;
-    m_Smoothed                      = 0.0;
+    m_DrawCalls = m_Triangles = 0;
+    m_Smoothed                = 0.0;
 }
 
 double FrameStats::Average() const {

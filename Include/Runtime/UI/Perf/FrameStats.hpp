@@ -38,6 +38,14 @@ public:
 
     FrameBudgetStatus StatusOf(double seconds) const;
 
+    /// Draw calls and triangles of the last completed frame.
+    void SetDrawCalls(uint32_t draws, uint32_t triangles) {
+        m_DrawCalls = draws;
+        m_Triangles = triangles;
+    }
+    uint32_t DrawCalls() const { return m_DrawCalls; }
+    uint32_t Triangles() const { return m_Triangles; }
+
     size_t SampleCount() const { return m_Count; }
     const float* History() const { return m_History.data(); }
     static constexpr size_t HistorySize() { return kHistory; }
@@ -53,11 +61,13 @@ private:
     std::array<float, kHistory> m_History{}; ///< ms, for the graph
     std::array<double, kHistory> m_FrameSeconds{};
     std::array<PhaseSample, kMaxPhases> m_Phases{};
-    size_t m_Count      = 0;
-    size_t m_Head       = 0;
-    size_t m_PhaseCount = 0;
-    double m_Smoothed   = 0.0;
-    double m_Target     = 1.0 / 60.0;
+    size_t m_Count       = 0;
+    size_t m_Head        = 0;
+    size_t m_PhaseCount  = 0;
+    uint32_t m_DrawCalls = 0;
+    uint32_t m_Triangles = 0;
+    double m_Smoothed    = 0.0;
+    double m_Target      = 1.0 / 60.0;
 };
 
 } // namespace CZ

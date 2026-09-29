@@ -37,6 +37,7 @@ struct RendererObj {
     Scope<PipelineObj> TestPipeline;
     Scope<PipelineObj> WireframePipeline;
     bool bWireframe = false;
+    DrawStats LastFrameStats{};
 };
 
 struct Renderer : Handle<struct RendererObj> {
@@ -50,6 +51,9 @@ struct Renderer : Handle<struct RendererObj> {
     void SetDrawFuncToFinalPass(const DrawFunc& func);
 
     /// Switches the viewport between filled and wireframe rasterisation (F5 in the editor).
+    /// Draw statistics of the frame that just finished (captured before the counters reset).
+    const DrawStats& GetDrawStats() const { return m_Obj->LastFrameStats; }
+
     void SetWireframe(bool bEnable) { m_Obj->bWireframe = bEnable; }
     bool IsWireframe() const { return m_Obj->bWireframe; }
 

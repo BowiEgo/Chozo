@@ -186,6 +186,9 @@ void EditorLayer::OnUpdate(float deltaTime) {
                                     { "Frame - Update", static_cast<float>(deltaTime) -
                                                             static_cast<float>(updateSeconds) } };
     m_PerfOverlay.PushFrame(deltaTime, phases, 2);
+
+    const DrawStats& draws = m_ViewportRenderer.GetDrawStats();
+    m_PerfOverlay.Stats().SetDrawCalls(draws.DrawCalls, draws.Triangles);
 }
 
 void EditorLayer::OnRender() {
