@@ -344,3 +344,49 @@ CI 见 `.github/workflows/ci.yml`：`format` / `core`（Debug+Release 矩阵）/
 | `TransformSystem` 开始运行 | `WorldMatrix` 现在会真正被计算；此前恒为单位阵 |
 
 ---
+
+## Matrix convention contract (fixed in 803bd60)
+
+**Symptom:** the editor's default `Cube` rendered nothing. The viewport showed only the clear
+colour while every data-path check looked healthy (mesh uploaded `24 vertices, 36 indices`, one
+render data, `modelT=(1,1,1)`, `cameraPos=(0,0,5)`, pipeline created, ImGui image registered,
+`ui draw` submitted `6828` vertices) and the validation layer stayed silent.
+
+**Root cause:** the CPU-side matrices use the *row-vector* convention (`v * M`, translation in the
+last row — see `CameraObj::GetViewProjectionMatrix()` returning `View * Projection`), while
+`Resources/Shaders/Basic.slang` multiplied as `M * v`. Every transform was therefore transposed:
+the projection's `w'` lost its constant term (`w' = -0.10 * z` instead of `z`), so the perspective
+divide pushed all vertices outside the clip volume.
+
+**Contract:** CPU matrices are row-vector. A vertex shader must chain
+`mul(float4(pos, 1.0), mul(mul(model, u_Camera.View), u_Camera.Projection))`.
+There is no `proj[1][1] *= -1` anywhere — the projection is built for the Vulkan Y-down NDC directly.
+When adding a new shader, keep this order; when writing a CPU-side transform chain, keep
+`model * view * projection`.
+
+Ruled out while investigating (all correct, do not re-investigate):
+* Vertex input layout: the pipeline's reflected `VkVertexInputAttributeDescription[]` matches
+  `struct Vertex` field by field (stride 56; `fmt 106` = `R32G32B32_SFLOAT` at 0/12/32/44,
+  `fmt 103` = `R32G32_SFLOAT` at 24). The four long-standing vertex-attribute validation warnings
+  are **not** a layout error.
+* Back-face culling / winding (disabling `CullMode` changed nothing) and depth testing
+  (disabling it changed nothing).
+
+## Remaining render work
+
+1. **Wire the depth attachment through `BeginRendering`.** The viewport framebuffer already owns a
+   D32 attachment, but `RHIAPI::BeginRendering(cmdList, colourTargets, bClear)` cannot pass it, while
+   `PipelineSpecification` declares `DepthFormat = D32_SFLOAT`. A pipeline that enables depth test
+   without a bound depth attachment makes the GPU discard every fragment, so `Renderer` currently
+   sets `testPipelineSpec.bDepthTestEnable = false` (see the comment in `Source/Runtime/RenderCore/
+   Renderer.cpp`). Add an optional depth target to the RHI call, bind and clear it in the viewport
+   pass, restore `bDepthTestEnable = true` / `bDepthWriteEnable = true`. Required before any scene
+   with more than one mesh can show correct occlusion.
+2. **Contract check for the mismatch above.** In the backend, when a draw is recorded with a
+   pipeline whose depth test is enabled while the current render pass binds no depth target, log an
+   `Error` once per pipeline. This failure mode is completely silent otherwise.
+3. **Regression test in `CZRenderCoreTests`:** project a known point through the CPU matrices
+   (`model * view * projection`, then divide by `w`) and assert the NDC lands inside `[-1, 1]` for a
+   point known to be in front of the camera. This pins the row-vector convention and would have
+   caught the transposed chain immediately; also worth asserting that `GetViewProjectionMatrix()`
+   equals `GetViewMatrix() * GetProjectionMatrix()` (row-vector order).
