@@ -32,38 +32,13 @@ static void DrawAxis(const char* label, float* value, const ImVec2& buttonSize, 
 
         UIUtils::ScopedID id(label);
 
+        // The coloured label is a reset button for its axis. It is a real Button with the axis
+        // colour applied through the style stack: hand-painting it with the draw list looked
+        // identical in theory and rendered nothing in practice, so the proven approach stays.
         ImGui::Text("%s", label);
         ImGui::SameLine();
 
-        // UE parity for the coloured axis label: dragging it scrubs the value, and a click that did
-        // not drag (or the middle button) resets that axis. An InvisibleButton is used on purpose
-        // -- a real Button fires on press, so the reset would run before the drag even started.
-        ImGui::InvisibleButton("##axis", buttonSize);
-        const bool bActive  = ImGui::IsItemActive();
-        const bool bHovered = ImGui::IsItemHovered();
-
-        {
-            ImDrawList* drawList = ImGui::GetWindowDrawList();
-            const ImVec2 min     = ImGui::GetItemRectMin();
-            const ImVec2 max     = ImGui::GetItemRectMax();
-            const ImVec4 fill = bActive ? colors[I][2] : (bHovered ? colors[I][1] : colors[I][0]);
-            drawList->AddRectFilled(min, max, ImGui::GetColorU32(fill), 2.0f);
-
-            const float fontSize  = ImGui::GetFontSize();
-            const char* axisLabel = "XYZ" + I;
-            const ImVec2 textSize =
-                boldFont->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, axisLabel, axisLabel + 1);
-            drawList->AddText(
-                boldFont, fontSize,
-                ImVec2((min.x + max.x - textSize.x) * 0.5f, (min.y + max.y - textSize.y) * 0.5f),
-                ImGui::GetColorU32(ImGuiCol_Text), axisLabel, axisLabel + 1);
-        }
-
-        // A plain click resets that axis, which is the behaviour this control had before, and the
-        // only interaction the panel wants here: the coloured label is a reset affordance, not a
-        // scrub handle. IsItemActivated fires on press, so a press-and-drag simply does nothing
-        // instead of resetting on release part-way through a gesture.
-        if (ImGui::IsItemActivated()) {
+        if (ImGui::Button("", buttonSize)) {
             *value       = resetValue;
             valueChanged = true;
         }
