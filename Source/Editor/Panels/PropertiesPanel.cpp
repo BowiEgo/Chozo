@@ -93,4 +93,22 @@ void PropertiesPanel::DrawTransformProperties(EditorNode* node) {
 
 void PropertiesPanel::DrawHDRIBackdropProperties(EditorNode* node) {}
 
-void PropertiesPanel::DrawMeshProperties(EditorNode* node) {}
+// Procedural mesh parameters. The panel stays generic: every generator registers its fields through
+// PARAMS_LIST, so Cube, Sphere, Plane, Cylinder and Torus render here without extra code -- and a
+// future generator does too, including its ParamControllerConfig (drag speed, minimum).
+//
+// MarkDirty is what makes an edit reach the GPU: the sync bridge only pushes dirty nodes and
+// SceneObj::Update only rebuilds dirty mesh components. Mesh assets are cached by
+// MeshParams::GetHash(), so a value change produces a new asset; once undo/redo lands, edits will
+// be committed once per gesture instead of once per frame for that reason.
+void PropertiesPanel::DrawMeshProperties(EditorNode* node) {
+    if (!node) return;
+    if (!node->HasMesh()) return;
+
+    DrawComponentHeader("Mesh", true, [this, node]() {
+        auto params = node->GetMeshParams();
+        if (DrawColumnProperties("Mesh", params.As<MeshParamsObj>())) {
+            node->MarkDirty();
+        }
+    });
+}
