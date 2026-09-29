@@ -462,7 +462,7 @@ public:
                 // file: identical labels would otherwise share one ImGui ID, so hovering or
                 // clicking one would apply to whichever instance ImGui resolved first.
                 UIUtils::ScopedID scopedID(name.c_str());
-                if constexpr (std::is_same_v<T, Vector3>) {
+                if (name == "Transform") {
                     // Vector fields revert per axis via the coloured labels; no per-row button.
                 } else if (ImGui::SmallButton("R")) {
                     value             = *defaultValue;
