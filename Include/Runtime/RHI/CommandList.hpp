@@ -27,8 +27,9 @@ struct RenderScissor {
 /// Per-frame draw statistics accumulated by the command list. Plain counters, so any backend can
 /// feed them without extra allocation.
 struct DrawStats {
-    uint32_t DrawCalls = 0;
-    uint32_t Triangles = 0;
+    uint32_t DrawCalls        = 0;
+    uint32_t Triangles        = 0;
+    uint32_t PipelineSwitches = 0;
 };
 
 class CommandListObj {

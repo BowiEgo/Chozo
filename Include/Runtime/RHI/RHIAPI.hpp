@@ -28,10 +28,15 @@ public:
     /// only valid while the command buffer records); results arrive a few frames later and are read
     /// back without ever blocking. bValid stays false while unsupported, so callers can omit it.
     struct GPUTiming {
-        float FrameSeconds = 0.0f;
-        bool bValid        = false;
+        static constexpr uint32_t kMaxPasses = 4;
+        float PassSeconds[kMaxPasses]        = { 0.0f, 0.0f, 0.0f, 0.0f };
+        uint32_t PassCount                   = 0;
+        float FrameSeconds                   = 0.0f;
+        bool bValid                          = false;
     };
 
+    /// Per frame: reads back the previous frame's per-pass timings and resets the pool slot.
+    virtual void BeginGPUFrame(CommandList cmdList)  = 0;
     virtual void BeginGPUTiming(CommandList cmdList) = 0;
     virtual void EndGPUTiming(CommandList cmdList)   = 0;
     virtual GPUTiming GetGPUTiming() const           = 0;

@@ -209,7 +209,7 @@ VulkanAPIObj::~VulkanAPIObj() {
     m_TimestampPool = VK_NULL_HANDLE;
 }
 
-void VulkanAPIObj::BeginGPUTiming(CommandList cmdList) {
+void VulkanAPIObj::BeginGPUFrame(CommandList cmdList) {
     if (!m_TimestampChecked) {
         m_TimestampChecked = true;
         auto* vkDev        = m_GraphicsContext->GetDevice().As<VulkanDeviceObj>();
@@ -227,7 +227,7 @@ void VulkanAPIObj::BeginGPUTiming(CommandList cmdList) {
             VkQueryPoolCreateInfo queryInfo{};
             queryInfo.sType      = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
             queryInfo.queryType  = VK_QUERY_TYPE_TIMESTAMP;
-            queryInfo.queryCount = kFramesInFlight * 2;
+            queryInfo.queryCount = kFramesInFlight * GPUTiming::kMaxPasses * 2;
             if (m_TimestampSupported &&
                 vkCreateQueryPool(vkDev->GetLogicalDevice(), &queryInfo, nullptr,
                                   &m_TimestampPool) != VK_SUCCESS) {
@@ -240,39 +240,65 @@ void VulkanAPIObj::BeginGPUTiming(CommandList cmdList) {
         return;
     }
 
-    const uint32_t slot = m_FrameIndex % kFramesInFlight;
+    auto* vkDev         = m_GraphicsContext->GetDevice().As<VulkanDeviceObj>();
     VkCommandBuffer cmd = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
-
-    // The slot was last used kFramesInFlight frames ago, so that submission has completed:
-    // resetting it from the command buffer is safe and needs no hostQueryReset feature.
-    vkCmdResetQueryPool(cmd, m_TimestampPool, slot * 2, 2);
-    vkCmdWriteTimestamp(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, m_TimestampPool, slot * 2);
-}
-
-void VulkanAPIObj::EndGPUTiming(CommandList cmdList) {
-    if (!m_TimestampSupported) {
-        return;
-    }
-
     const uint32_t slot = m_FrameIndex % kFramesInFlight;
-    VkCommandBuffer cmd = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
-    vkCmdWriteTimestamp(cmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_TimestampPool, slot * 2 + 1);
 
-    // Read back the slot written kFramesInFlight frames ago, with availability and never WAIT.
-    auto* vkDev = m_GraphicsContext->GetDevice().As<VulkanDeviceObj>();
-    if (vkDev && m_FrameIndex >= kFramesInFlight) {
-        uint64_t results[4]   = { 0, 0, 0, 0 }; // two queries, each (value, availability)
-        const VkResult result = vkGetQueryPoolResults(
-            vkDev->GetLogicalDevice(), m_TimestampPool, slot * 2, 2, sizeof(results), results,
-            2 * sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT);
-        if (result == VK_SUCCESS && results[1] != 0 && results[3] != 0 && results[2] > results[0]) {
-            m_GpuTiming.FrameSeconds = static_cast<float>(
-                static_cast<double>(results[2] - results[0]) * m_TimestampPeriod * 1e-9);
-            m_GpuTiming.bValid = true;
+    // The slot still holds results from kFramesInFlight frames ago; read them before overwriting.
+    if (m_FrameIndex >= kFramesInFlight) {
+        uint64_t results[GPUTiming::kMaxPasses * 2 * 2] = {};
+        const VkResult result                           = vkGetQueryPoolResults(
+            vkDev->GetLogicalDevice(), m_TimestampPool, slot * GPUTiming::kMaxPasses * 2,
+            GPUTiming::kMaxPasses * 2, sizeof(results), results, 2 * sizeof(uint64_t),
+            VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT);
+        if (result == VK_SUCCESS) {
+            float total     = 0.0f;
+            uint32_t passes = 0;
+            for (uint32_t pass = 0; pass < GPUTiming::kMaxPasses; ++pass) {
+                const uint64_t begin = results[pass * 4 + 0], beginOk = results[pass * 4 + 1];
+                const uint64_t finish = results[pass * 4 + 2], finishOk = results[pass * 4 + 3];
+                if (!beginOk || !finishOk || finish <= begin) {
+                    continue;
+                }
+                const float seconds = static_cast<float>(static_cast<double>(finish - begin) *
+                                                         m_TimestampPeriod * 1e-9);
+                m_GpuTiming.PassSeconds[passes++] = seconds;
+                total += seconds;
+            }
+            m_GpuTiming.PassCount    = passes;
+            m_GpuTiming.FrameSeconds = total;
+            m_GpuTiming.bValid       = passes > 0;
         }
     }
 
+    // Reset the whole slot from the command buffer: hostQueryReset is not enabled on this device,
+    // and the slot's previous use completed kFramesInFlight frames ago.
+    vkCmdResetQueryPool(cmd, m_TimestampPool, slot * GPUTiming::kMaxPasses * 2,
+                        GPUTiming::kMaxPasses * 2);
+
     ++m_FrameIndex;
+    m_PassIndex = 0;
+}
+
+void VulkanAPIObj::BeginGPUTiming(CommandList cmdList) {
+    if (!m_TimestampSupported || m_PassIndex >= GPUTiming::kMaxPasses) {
+        return;
+    }
+    const uint32_t slot = (m_FrameIndex + kFramesInFlight - 1) % kFramesInFlight;
+    VkCommandBuffer cmd = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
+    vkCmdWriteTimestamp(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, m_TimestampPool,
+                        slot * GPUTiming::kMaxPasses * 2 + m_PassIndex * 2);
+}
+
+void VulkanAPIObj::EndGPUTiming(CommandList cmdList) {
+    if (!m_TimestampSupported || m_PassIndex >= GPUTiming::kMaxPasses) {
+        return;
+    }
+    const uint32_t slot = (m_FrameIndex + kFramesInFlight - 1) % kFramesInFlight;
+    VkCommandBuffer cmd = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
+    vkCmdWriteTimestamp(cmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_TimestampPool,
+                        slot * GPUTiming::kMaxPasses * 2 + m_PassIndex * 2 + 1);
+    ++m_PassIndex;
 }
 
 } // namespace CZ
