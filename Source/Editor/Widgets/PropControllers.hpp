@@ -231,7 +231,7 @@ bool DrawDrag(T& value, const std::string& name, float speed, float min, float m
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, Quaternion>) {
         Vector3 euler = value.ToEuler();
-        bool changed  = ImGui::DragFloat3(id.c_str(), &euler.x, speed);
+        bool changed  = DrawVec3Control(name, euler, 0.0f, speed);
         if (changed) {
             value = Quaternion::FromEuler(euler);
         }
@@ -355,13 +355,11 @@ bool DrawDefaultController(T& value, const std::string& name, float speed = 0.01
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, Vector2>) {
         return ImGui::DragFloat2(id.c_str(), &value.x, speed);
-    } else if constexpr (std::is_same_v<T, Vector3>) {
-        return DrawVec3Control(name, value, 0.0f, speed);
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, Quaternion>) {
         Vector3 euler = value.ToEuler();
-        bool changed  = ImGui::DragFloat3(id.c_str(), &euler.x, speed);
+        bool changed  = DrawVec3Control(name, euler, 0.0f, speed);
         if (changed) {
             value = Quaternion::FromEuler(euler);
         }
