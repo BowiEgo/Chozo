@@ -1,6 +1,9 @@
 #pragma once
+#include <Core/Command/CommandStack.hpp>
+#include <Runtime/RenderCore/ParamsSnapshot.hpp>
 #include <functional>
 #include <string>
+#include <unordered_map>
 
 #include "../EditorNode/EditorNodeTree.hpp"
 #include "Panel.hpp"
@@ -18,6 +21,11 @@ public:
 
     void SetNodeTree(EditorNodeTree* nodeTree) { m_NodeTree = nodeTree; }
 
+    void SetDefaults(const std::unordered_map<std::string, ParamsSnapshot>* defaults) {
+        m_Defaults = defaults;
+    }
+    void SetCommandStack(CommandStack* commands) { m_Commands = commands; }
+
 private:
     void DrawComponentHeader(const std::string& name, bool bDefaultOpen = false,
                              const DrawContentFunc& drawContentFunc = DrawContentFunc());
@@ -29,4 +37,7 @@ private:
 
 private:
     EditorNodeTree* m_NodeTree;
+
+    const std::unordered_map<std::string, ParamsSnapshot>* m_Defaults = nullptr;
+    CommandStack* m_Commands                                          = nullptr;
 };

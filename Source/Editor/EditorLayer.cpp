@@ -93,7 +93,16 @@ void EditorLayer::OnAttach() {
 
     CallbackHandle handle = m_NodeTree.RegisterEventCallback([this](const NodeEvent& event) {
         switch (event.GetType()) {
-            case EditorNodeEventType::Created: m_SyncBridge->RegisterNode(event.GetNode()); break;
+            case EditorNodeEventType::Created: {
+                EditorNode* created = event.GetNode();
+                if (created && created->HasMesh()) {
+                    if (MeshParamsObj* raw = created->GetMeshParams().As<MeshParamsObj>()) {
+                        m_DefaultSnapshots.emplace(raw->GetTypeName(), CaptureParams(*raw));
+                    }
+                }
+                m_SyncBridge->RegisterNode(created);
+                break;
+            }
             case EditorNodeEventType::Deleted: m_SyncBridge->UnregisterNode(event.GetNode()); break;
             case EditorNodeEventType::Renamed: break;
             case EditorNodeEventType::Moved: break;
@@ -107,6 +116,8 @@ void EditorLayer::OnAttach() {
 
     m_SceneHierarchyPanel.SetNodeTree(&m_NodeTree);
     m_PropertiesPanel.SetNodeTree(&m_NodeTree);
+    m_PropertiesPanel.SetDefaults(&m_DefaultSnapshots);
+    m_PropertiesPanel.SetCommandStack(&m_Commands);
 
     m_ConsolePanel.Open();
     m_SceneHierarchyPanel.Open();
@@ -238,6 +249,23 @@ void EditorLayer::OnRender() {
     // [Sub-Section] Main Menu Bar
     // ----------------------------------------------------------------------------
     if (ImGui::BeginMenuBar()) {
+
+        ImGui::BeginDisabled(!m_Commands.CanUndo());
+        if (ImGui::Button("Undo")) m_Commands.Undo();
+        ImGui::EndDisabled();
+        if (ImGui::IsItemHovered() && m_Commands.CanUndo()) {
+            ImGui::SetTooltip("Undo %s", std::string(m_Commands.UndoLabel()).c_str());
+        }
+        ImGui::SameLine();
+        ImGui::BeginDisabled(!m_Commands.CanRedo());
+        if (ImGui::Button("Redo")) m_Commands.Redo();
+        ImGui::EndDisabled();
+        if (ImGui::IsItemHovered() && m_Commands.CanRedo()) {
+            ImGui::SetTooltip("Redo %s", std::string(m_Commands.RedoLabel()).c_str());
+        }
+        ImGui::SameLine();
+        ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine();
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("New", "Ctrl+N")) NewProject();
             if (ImGui::MenuItem("Open...", "Ctrl+O")) OpenProject();
@@ -368,6 +396,21 @@ void EditorLayer::OnEvent(Event& e) {
 
 bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
     // Engine-level shortcut: the layer stack dispatches key events here.
+    if (e.GetKeyCode() == CZ_KEY(Z) && !ImGui::GetIO().WantCaptureKeyboard) {
+        const bool bCmd =
+            Input::IsKeyPressed(CZ_KEY(LeftSuper)) || Input::IsKeyPressed(CZ_KEY(RightSuper));
+        const bool bCtrl =
+            Input::IsKeyPressed(CZ_KEY(LeftControl)) || Input::IsKeyPressed(CZ_KEY(RightControl));
+        const bool bShift =
+            Input::IsKeyPressed(CZ_KEY(LeftShift)) || Input::IsKeyPressed(CZ_KEY(RightShift));
+        if (bCmd || bCtrl) {
+            const bool bDid = bShift ? m_Commands.Redo() : m_Commands.Undo();
+            CZ_EDITOR_LOG(Warning, "{} {}", bShift ? "Redo" : "Undo",
+                          bDid ? "ok" : "nothing to do");
+            return true;
+        }
+    }
+
     if (e.GetKeyCode() == CZ_KEY(F9)) {
         CZ_EDITOR_LOG(Warning, "Performance overlay {}", m_PerfOverlay.Toggle() ? "ON" : "OFF");
         return true;

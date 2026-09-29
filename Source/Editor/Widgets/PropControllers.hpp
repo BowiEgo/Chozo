@@ -1,4 +1,5 @@
 #pragma once
+#include <Runtime/RenderCore/ParamsSnapshot.hpp>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -378,76 +379,139 @@ public:
     EditorParamsVisitor() = default;
 
     void SetReadOnly(bool readOnly) { m_ReadOnly = readOnly; }
+
+    /// Reference values for the revert arrow: the parameter type's defaults.
+    ///
+    /// Defaults -- not the last saved state -- are what a per-field revert means in Unity
+    /// ("Reset"), Unreal (the yellow reset arrow) and Blender ("Reset to Default Value"), and in
+    /// all three the action is an ordinary undoable edit.
+    void SetDefaults(const ParamsSnapshot* defaults) {
+        m_Defaults = defaults;
+        m_Cursor   = 0;
+    }
+
+    bool IsEditCommitted() const { return m_bEditCommitted; }
+    void ResetEditCommitted() { m_bEditCommitted = false; }
+
+    bool ConsumeResetRequest() {
+        const bool requested = m_bResetRequested;
+        m_bResetRequested    = false;
+        return requested;
+    }
+    const std::string& ResetLabel() const { return m_ResetLabel; }
+
+    /// One field: the controller, plus a revert arrow while the value differs from the default.
+    ///
+    /// AddTableRow's callback reports whether the value changed, so the widget's result is
+    /// forwarded and a revert press adds to it: the arrow is an ordinary value change as far as
+    /// that contract is concerned, while the panel additionally records it as an undoable reset.
+    template <typename T>
+    void DrawField(T& value, const std::string& name, const ParamControllerConfig& config) {
+        const size_t index = m_Cursor++;
+        AddTableRow(name, [&]() -> bool {
+            const bool bChanged = DrawControllerWithType(value, name, config);
+
+            // Asked before the arrow is drawn: the button would otherwise become the "last item".
+            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                m_bEditCommitted = true;
+            }
+
+            bool bReverted = false;
+            if (m_Defaults && index < m_Defaults->Values.size()) {
+                if (const auto* defaultValue = std::any_cast<T>(&m_Defaults->Values[index])) {
+                    if (*defaultValue != value) {
+                        ImGui::SameLine();
+                        if (ImGui::SmallButton("\u21BA")) {
+                            value             = *defaultValue;
+                            bReverted         = true;
+                            m_bResetRequested = true;
+                            m_ResetLabel      = name;
+                        }
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("Reset to default");
+                        }
+                    }
+                }
+            }
+
+            return bChanged || bReverted;
+        });
+    }
     bool IsReadOnly() const { return m_ReadOnly; }
     bool IsValueChanged() const { return m_bValueChanged; }
     void ResetChangedFlag() { m_bValueChanged = false; }
 
     virtual void Visit(float& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(double& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(int32_t& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(uint32_t& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(int64_t& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(uint64_t& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(bool& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(std::string& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(Vector2& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(Vector3& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(Vector4& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(Quaternion& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
     virtual void Visit(AssetHandle& value, const std::string& name,
                        const ParamControllerConfig config = {}) override {
-        AddTableRow(name, [&]() { return DrawControllerWithType(value, name, config); });
+        DrawField(value, name, config);
     }
 
 private:
+    const ParamsSnapshot* m_Defaults = nullptr;
+    size_t m_Cursor                  = 0;
+    bool m_bEditCommitted            = false;
+    bool m_bResetRequested           = false;
+    std::string m_ResetLabel;
     template <typename DrawFunc> void AddTableRow(const std::string& name, DrawFunc&& drawFunc) {
         ImGui::TableNextRow();
 

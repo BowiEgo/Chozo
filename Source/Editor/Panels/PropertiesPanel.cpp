@@ -1,4 +1,7 @@
+#include "../Commands/SetParamsCommand.hpp"
+#include <fmt/format.h>
 #include <functional>
+#include <memory>
 #include <string>
 
 #include "PropertiesPanel.hpp"
@@ -59,11 +62,39 @@ bool PropertiesPanel::DrawColumnProperties(const std::string& name, Params* para
         ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 100.0f);
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
+        const ParamsSnapshot* defaults = nullptr;
+        if (m_Defaults && params) {
+            auto it = m_Defaults->find(params->GetTypeName());
+            if (it != m_Defaults->end()) {
+                defaults = &it->second;
+            }
+        }
+
+        // Snapshotted around the whole draw: one command per finished gesture.
+        const ParamsSnapshot before = params ? CaptureParams(*params) : ParamsSnapshot{};
+
         EditorParamsVisitor visitor;
+        visitor.SetDefaults(defaults);
         params->Accept(visitor);
 
         if (visitor.IsValueChanged()) {
             valChanged = true;
+        }
+
+        const bool bReset     = visitor.ConsumeResetRequest();
+        const bool bCommitted = visitor.IsEditCommitted() || bReset;
+        visitor.ResetEditCommitted();
+
+        if (params && bCommitted && m_Commands) {
+            const std::string label =
+                bReset ? fmt::format("Reset {}.{}", params->GetTypeName(), visitor.ResetLabel())
+                       : fmt::format("Edit {}", params->GetTypeName());
+            m_Commands->Execute(std::make_unique<SetParamsCommand>(
+                params, before, CaptureParams(*params), label, [this]() {
+                    if (m_NodeTree) {
+                        if (EditorNode* node = m_NodeTree->GetSelectedNode()) node->MarkDirty();
+                    }
+                }));
         }
 
         ImGui::EndTable();

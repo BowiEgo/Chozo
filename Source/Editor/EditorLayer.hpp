@@ -1,4 +1,6 @@
 #pragma once
+#include <Runtime/RenderCore/ParamsSnapshot.hpp>
+#include <unordered_map>
 
 #include <Core/Command/CommandStack.hpp>
 #include <Runtime/UI/Perf/PerfOverlay.hpp>
@@ -69,6 +71,9 @@ private:
 
     // Undo/redo history for editor edits (parameter changes today, node edits next).
     CommandStack m_Commands;
+
+    // Default parameter values per type, recorded when the first node of a type is created.
+    std::unordered_map<std::string, ParamsSnapshot> m_DefaultSnapshots;
 
     // Viewport performance overlay: backend-independent layout, ImGui painter.
     PerfOverlay m_PerfOverlay;
