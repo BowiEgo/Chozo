@@ -120,18 +120,6 @@ void Application::Run() {
 }
 
 bool Application::OnEvent(Event& e) {
-    // Layer::OnKeyPressed is pure virtual but was never called: only OnEvent was forwarded, so
-    // editor shortcuts (F5 for wireframe, and any future one) could not work at all.
-    if (e.isInCategory(EventCategory_Keyboard)) {
-        if (auto* keyEvent = dynamic_cast<KeyPressedEvent*>(&e)) {
-            for (Layer* layer : m_LayerStack) {
-                if (layer->OnKeyPressed(*keyEvent)) {
-                    break;
-                }
-            }
-        }
-    }
-
     for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();) {
         (*--it)->OnEvent(e);
         if (e.isHandled()) break;

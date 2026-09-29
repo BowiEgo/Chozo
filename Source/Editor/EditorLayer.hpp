@@ -59,6 +59,8 @@ private:
     ImVec2 m_ViewportSize{ 1080, 720 };
 
     bool m_ViewportFocused{}, m_ViewportHovered{};
+    // F5 edge detection for input polling.
+    bool m_WireframeKeyDown{};
 
     UIRenderBackendPtr m_ImGuiRenderer;
 

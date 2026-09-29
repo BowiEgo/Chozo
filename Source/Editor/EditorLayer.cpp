@@ -1,3 +1,4 @@
+#include <Core/Event/Input.hpp>
 #include <filesystem>
 #include <string>
 
@@ -166,6 +167,16 @@ void EditorLayer::OnUpdate(float deltaTime) {
     // The editor camera is a separate object: without pushing its state onto the camera the
     // renderer actually renders with, any camera input stays invisible.
     m_EditorCamera.CopyTo(m_Viewport->GetCamera());
+    // Polled like the editor camera polls Alt: the layer stack never forwarded key events, so
+    // the shortcut has to read the input state directly.
+    const bool bF5Down = Input::IsKeyPressed(CZ_KEY(F5));
+    if (bF5Down && !m_WireframeKeyDown) {
+        const bool bWireframe = !m_ViewportRenderer.IsWireframe();
+        m_ViewportRenderer.SetWireframe(bWireframe);
+        CZ_EDITOR_LOG(Warning, "Wireframe rendering {}", bWireframe ? "ON" : "OFF");
+    }
+    m_WireframeKeyDown = bF5Down;
+
     m_SyncBridge->SyncAllNodesToEntities();
 }
 
