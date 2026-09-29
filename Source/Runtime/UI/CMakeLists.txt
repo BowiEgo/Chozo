@@ -10,6 +10,8 @@ set(MODULE_INCLUDE
 
 set(MODULE_SRC
     UIRenderBackend.cpp
+    Perf/FrameStats.cpp
+    Perf/PerfOverlay.cpp
 )
 
 add_chozo_module(

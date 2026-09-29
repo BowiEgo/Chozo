@@ -1,4 +1,5 @@
 #include <Core/Event/Input.hpp>
+#include <chrono>
 #include <filesystem>
 #include <string>
 
@@ -159,6 +160,7 @@ void EditorLayer::OnDetach() {
 }
 
 void EditorLayer::OnUpdate(float deltaTime) {
+    const auto updateBegin = std::chrono::steady_clock::now();
     m_Viewport->Resize(m_ViewportSize.x, m_ViewportSize.y);
     m_Viewport->GetCamera()->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
     // Hovering is enough to drive the camera (no click-to-focus required); the values come from
@@ -177,6 +179,13 @@ void EditorLayer::OnUpdate(float deltaTime) {
     // renderer actually renders with, any camera input stays invisible.
     m_EditorCamera.CopyTo(m_Viewport->GetCamera());
     m_SyncBridge->SyncAllNodesToEntities();
+
+    const double updateSeconds =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - updateBegin).count();
+    const PhaseSample phases[2] = { { "Layer Update", static_cast<float>(updateSeconds) },
+                                    { "Frame - Update", static_cast<float>(deltaTime) -
+                                                            static_cast<float>(updateSeconds) } };
+    m_PerfOverlay.PushFrame(deltaTime, phases, 2);
 }
 
 void EditorLayer::OnRender() {
@@ -288,6 +297,12 @@ void EditorLayer::OnRender() {
     ImTextureID textureID = GET_IM_TEXTURE_ID(tex);
     ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
 
+    // Drawn after the viewport image so it sits on top of the render target without touching it.
+    const ImVec2 viewportOrigin = ImGui::GetCursorScreenPos();
+    m_PerfOverlay.Draw(
+        m_PerfPainter, viewportOrigin.x + 8.0f,
+        viewportOrigin.y - m_ViewportSize.y + 8.0f + ImGui::GetTextLineHeight() * 1.5f, 260.0f);
+
     // // Integrated Debug Overlay
     //     // Performance monitoring
 
@@ -339,6 +354,11 @@ void EditorLayer::OnEvent(Event& e) {
 
 bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
     // Engine-level shortcut: the layer stack dispatches key events here.
+    if (e.GetKeyCode() == CZ_KEY(F9)) {
+        CZ_EDITOR_LOG(Warning, "Performance overlay {}", m_PerfOverlay.Toggle() ? "ON" : "OFF");
+        return true;
+    }
+
     if (e.GetKeyCode() == CZ_KEY(F5)) {
         const bool bWireframe = !m_ViewportRenderer.IsWireframe();
         m_ViewportRenderer.SetWireframe(bWireframe);

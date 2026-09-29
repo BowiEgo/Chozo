@@ -1,4 +1,8 @@
 #pragma once
+
+#include <Runtime/UI/Perf/PerfOverlay.hpp>
+
+#include "Perf/ImGuiOverlayPainter.hpp"
 #include <filesystem>
 #include <string>
 
@@ -61,6 +65,10 @@ private:
     bool m_ViewportFocused{}, m_ViewportHovered{};
     // True while an orbit/pan/zoom gesture started inside the viewport is in progress.
     bool m_CameraDragActive{};
+
+    // Viewport performance overlay: backend-independent layout, ImGui painter.
+    PerfOverlay m_PerfOverlay;
+    ImGuiOverlayPainter m_PerfPainter;
     // F5 edge detection for input polling.
     bool m_WireframeKeyDown{};
 

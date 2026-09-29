@@ -3,6 +3,7 @@ set(MODULE_NAME CZEditor)
 set(MODULE_SRC
     Editor.cpp
     EditorLayer.cpp
+    Perf/ImGuiOverlayPainter.cpp
     SyncBridge.cpp
     EditorCamera.cpp
     EditorNode/EditorNode.cpp
