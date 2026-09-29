@@ -167,16 +167,6 @@ void EditorLayer::OnUpdate(float deltaTime) {
     // The editor camera is a separate object: without pushing its state onto the camera the
     // renderer actually renders with, any camera input stays invisible.
     m_EditorCamera.CopyTo(m_Viewport->GetCamera());
-    // Polled like the editor camera polls Alt: the layer stack never forwarded key events, so
-    // the shortcut has to read the input state directly.
-    const bool bF5Down = Input::IsKeyPressed(CZ_KEY(F5));
-    if (bF5Down && !m_WireframeKeyDown) {
-        const bool bWireframe = !m_ViewportRenderer.IsWireframe();
-        m_ViewportRenderer.SetWireframe(bWireframe);
-        CZ_EDITOR_LOG(Warning, "Wireframe rendering {}", bWireframe ? "ON" : "OFF");
-    }
-    m_WireframeKeyDown = bF5Down;
-
     m_SyncBridge->SyncAllNodesToEntities();
 }
 
@@ -317,6 +307,11 @@ void EditorLayer::OnRender() {
 }
 
 void EditorLayer::OnEvent(Event& e) {
+    // Same wiring as the reference branch: the layer dispatches the events it cares about to its
+    // own handlers, because Application only forwards OnEvent and never the key/mouse hooks.
+    EventDispatcher dispatcher(e);
+    dispatcher.Dispatch<KeyPressedEvent>(CZ_BIND_FN(EditorLayer::OnKeyPressed));
+
     // The editor camera sits outside the ImGui layer, so it needs the raw events (mouse scrolling
     // in particular) forwarded before the capture check below marks them handled.
     m_EditorCamera.OnEvent(e);
@@ -339,7 +334,7 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
         return true;
     }
 
-    CZ_EDITOR_LOG(Trace, "{}}", e.ToString());
+    CZ_EDITOR_LOG(Trace, "{}", e.ToString());
 
     return true;
 }
