@@ -294,14 +294,10 @@ void EditorLayer::OnRender() {
         m_ViewportTextureID = tex->GetID();
     }
 
-    ImTextureID textureID = GET_IM_TEXTURE_ID(tex);
+    ImTextureID textureID        = GET_IM_TEXTURE_ID(tex);
+    // Top-left of the render target in screen space; the performance overlay anchors to it.
+    const ImVec2 viewportRectMin = ImGui::GetCursorScreenPos();
     ImGui::Image(textureID, m_ViewportSize, ImVec2(1, 0), ImVec2(0, 1));
-
-    // Drawn after the viewport image so it sits on top of the render target without touching it.
-    const ImVec2 viewportOrigin = ImGui::GetCursorScreenPos();
-    m_PerfOverlay.Draw(
-        m_PerfPainter, viewportOrigin.x + 8.0f,
-        viewportOrigin.y - m_ViewportSize.y + 8.0f + ImGui::GetTextLineHeight() * 1.5f, 260.0f);
 
     // // Integrated Debug Overlay
     //     // Performance monitoring
@@ -319,6 +315,10 @@ void EditorLayer::OnRender() {
     ImGui::End();
     ImGui::PopStyleVar();
 #pragma endregion
+
+    // Painted as its own window *after* the viewport panel closed: inside the panel scope ImGui
+    // clips it against the panel's content region, which is why it stayed invisible.
+    m_PerfOverlay.Draw(m_PerfPainter, viewportRectMin.x + 8.0f, viewportRectMin.y + 8.0f, 260.0f);
 
     ImGui::End(); // End Dockspace
 
