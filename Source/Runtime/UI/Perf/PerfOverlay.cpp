@@ -65,6 +65,15 @@ void PerfOverlay::Draw(OverlayPainter& painter, float x, float y, float maxWidth
                           ColorFor(m_Stats.StatusOf(phase.Seconds)), false, false });
     }
 
+    if (m_Stats.GpuPhaseCount() > 0) {
+        lines.push_back({ "", "", kDim, true, false });
+        for (size_t i = 0; i < m_Stats.GpuPhaseCount(); ++i) {
+            const PhaseSample& gpu = m_Stats.GpuPhase(i);
+            lines.push_back({ std::string(gpu.Name), fmt::format("{:.2f} ms", gpu.Seconds * 1000.0),
+                              ColorFor(m_Stats.StatusOf(gpu.Seconds)), false, false });
+        }
+    }
+
     if (m_Stats.DrawCalls() > 0) {
         lines.push_back({ "", "", kDim, true, false });
         lines.push_back({ "draws",

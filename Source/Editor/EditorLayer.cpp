@@ -187,6 +187,11 @@ void EditorLayer::OnUpdate(float deltaTime) {
                                                             static_cast<float>(updateSeconds) } };
     m_PerfOverlay.PushFrame(deltaTime, phases, 2);
 
+    const auto gpuTiming           = m_ViewportRenderer.GetGpuTiming();
+    const PhaseSample gpuPhases[1] = { { "GPU Frame",
+                                         gpuTiming.bValid ? gpuTiming.FrameSeconds : 0.0f } };
+    m_PerfOverlay.Stats().SetGpuPhases(gpuPhases, gpuTiming.bValid ? 1 : 0);
+
     const DrawStats& draws = m_ViewportRenderer.GetDrawStats();
     m_PerfOverlay.Stats().SetDrawCalls(draws.DrawCalls, draws.Triangles);
 }

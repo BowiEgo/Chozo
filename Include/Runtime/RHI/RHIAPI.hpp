@@ -24,6 +24,18 @@ public:
     RHIAPIObj(GraphicsContext ctx) : m_GraphicsContext(ctx) {}
     virtual ~RHIAPIObj() = default;
 
+    /// GPU frame timing. Begin/End bracket the passes inside the recording callback (timestamps are
+    /// only valid while the command buffer records); results arrive a few frames later and are read
+    /// back without ever blocking. bValid stays false while unsupported, so callers can omit it.
+    struct GPUTiming {
+        float FrameSeconds = 0.0f;
+        bool bValid        = false;
+    };
+
+    virtual void BeginGPUTiming(CommandList cmdList) = 0;
+    virtual void EndGPUTiming(CommandList cmdList)   = 0;
+    virtual GPUTiming GetGPUTiming() const           = 0;
+
     // depthTarget is optional: pass the framebuffer's depth attachment so that pipelines which
     // enable depth testing actually have one bound. A pipeline declaring depth test while the
     // render pass binds no depth attachment makes the GPU discard every fragment.

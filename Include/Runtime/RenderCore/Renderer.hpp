@@ -1,4 +1,5 @@
 #pragma once
+#include <Runtime/RHI/RHIAPI.hpp>
 #include <string>
 #include <vector>
 
@@ -53,6 +54,9 @@ struct Renderer : Handle<struct RendererObj> {
     /// Switches the viewport between filled and wireframe rasterisation (F5 in the editor).
     /// Draw statistics of the frame that just finished (captured before the counters reset).
     const DrawStats& GetDrawStats() const { return m_Obj->LastFrameStats; }
+
+    /// GPU frame timing from the RHI layer (valid a few frames in).
+    RHIAPIObj::GPUTiming GetGpuTiming() const { return RHIAPI::Get()->GetGPUTiming(); }
 
     void SetWireframe(bool bEnable) { m_Obj->bWireframe = bEnable; }
     bool IsWireframe() const { return m_Obj->bWireframe; }

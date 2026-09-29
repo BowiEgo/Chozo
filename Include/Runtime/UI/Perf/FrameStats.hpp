@@ -46,6 +46,11 @@ public:
     uint32_t DrawCalls() const { return m_DrawCalls; }
     uint32_t Triangles() const { return m_Triangles; }
 
+    /// GPU timings arrive a few frames late, so they live on their own channel.
+    void SetGpuPhases(const PhaseSample* phases, size_t count);
+    size_t GpuPhaseCount() const { return m_GpuPhaseCount; }
+    const PhaseSample& GpuPhase(size_t index) const { return m_GpuPhases[index]; }
+
     size_t SampleCount() const { return m_Count; }
     /// Copies the frame-time history (milliseconds) oldest first into `out`, which must hold
     /// HistorySize() floats. The ring buffer is stored rotated, so plotting it directly makes the
@@ -65,13 +70,15 @@ private:
     std::array<float, kHistory> m_History{}; ///< ms, for the graph
     std::array<double, kHistory> m_FrameSeconds{};
     std::array<PhaseSample, kMaxPhases> m_Phases{};
-    size_t m_Count       = 0;
-    size_t m_Head        = 0;
-    size_t m_PhaseCount  = 0;
-    uint32_t m_DrawCalls = 0;
-    uint32_t m_Triangles = 0;
-    double m_Smoothed    = 0.0;
-    double m_Target      = 1.0 / 60.0;
+    size_t m_Count      = 0;
+    size_t m_Head       = 0;
+    size_t m_PhaseCount = 0;
+    std::array<PhaseSample, kMaxPhases> m_GpuPhases{};
+    size_t m_GpuPhaseCount = 0;
+    uint32_t m_DrawCalls   = 0;
+    uint32_t m_Triangles   = 0;
+    double m_Smoothed      = 0.0;
+    double m_Target        = 1.0 / 60.0;
 };
 
 } // namespace CZ

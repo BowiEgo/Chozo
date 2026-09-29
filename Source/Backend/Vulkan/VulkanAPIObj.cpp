@@ -199,4 +199,80 @@ void VulkanAPIObj::TransitionImageLayout(CommandList cmdList, Image image,
     imageObj->SetVkImageLayout(vkNewLayout);
 }
 
+VulkanAPIObj::~VulkanAPIObj() {
+    if (m_TimestampPool == VK_NULL_HANDLE) {
+        return;
+    }
+    if (auto* vkDev = m_GraphicsContext->GetDevice().As<VulkanDeviceObj>()) {
+        vkDestroyQueryPool(vkDev->GetLogicalDevice(), m_TimestampPool, nullptr);
+    }
+    m_TimestampPool = VK_NULL_HANDLE;
+}
+
+void VulkanAPIObj::BeginGPUTiming(CommandList cmdList) {
+    if (!m_TimestampChecked) {
+        m_TimestampChecked = true;
+        auto* vkDev        = m_GraphicsContext->GetDevice().As<VulkanDeviceObj>();
+        if (vkDev) {
+            VkPhysicalDeviceProperties props{};
+            vkGetPhysicalDeviceProperties(vkDev->GetPhysicalDevice(), &props);
+            m_TimestampPeriod = props.limits.timestampPeriod;
+
+            uint32_t familyCount = 0;
+            vkGetPhysicalDeviceQueueFamilyProperties(vkDev->GetPhysicalDevice(), &familyCount,
+                                                     nullptr);
+            m_TimestampSupported = props.limits.timestampComputeAndGraphics && familyCount > 0 &&
+                                   m_TimestampPeriod > 0.0f;
+
+            VkQueryPoolCreateInfo queryInfo{};
+            queryInfo.sType      = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
+            queryInfo.queryType  = VK_QUERY_TYPE_TIMESTAMP;
+            queryInfo.queryCount = kFramesInFlight * 2;
+            if (m_TimestampSupported &&
+                vkCreateQueryPool(vkDev->GetLogicalDevice(), &queryInfo, nullptr,
+                                  &m_TimestampPool) != VK_SUCCESS) {
+                m_TimestampSupported = false;
+            }
+        }
+    }
+
+    if (!m_TimestampSupported) {
+        return;
+    }
+
+    const uint32_t slot = m_FrameIndex % kFramesInFlight;
+    VkCommandBuffer cmd = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
+
+    // The slot was last used kFramesInFlight frames ago, so that submission has completed:
+    // resetting it from the command buffer is safe and needs no hostQueryReset feature.
+    vkCmdResetQueryPool(cmd, m_TimestampPool, slot * 2, 2);
+    vkCmdWriteTimestamp(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, m_TimestampPool, slot * 2);
+}
+
+void VulkanAPIObj::EndGPUTiming(CommandList cmdList) {
+    if (!m_TimestampSupported) {
+        return;
+    }
+
+    const uint32_t slot = m_FrameIndex % kFramesInFlight;
+    VkCommandBuffer cmd = cmdList.As<VulkanCommandBufferObj>()->GetVkCommandBuffer();
+    vkCmdWriteTimestamp(cmd, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_TimestampPool, slot * 2 + 1);
+
+    // Read back the slot written kFramesInFlight frames ago, with availability and never WAIT.
+    auto* vkDev = m_GraphicsContext->GetDevice().As<VulkanDeviceObj>();
+    if (vkDev && m_FrameIndex >= kFramesInFlight) {
+        uint64_t results[4]   = { 0, 0, 0, 0 }; // two queries, each (value, availability)
+        const VkResult result = vkGetQueryPoolResults(
+            vkDev->GetLogicalDevice(), m_TimestampPool, slot * 2, 2, sizeof(results), results,
+            2 * sizeof(uint64_t), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WITH_AVAILABILITY_BIT);
+        if (result == VK_SUCCESS && results[1] != 0 && results[3] != 0 && results[2] > results[0]) {
+            m_GpuTiming.FrameSeconds = static_cast<float>(
+                static_cast<double>(results[2] - results[0]) * m_TimestampPeriod * 1e-9);
+            m_GpuTiming.bValid = true;
+        }
+    }
+
+    ++m_FrameIndex;
+}
+
 } // namespace CZ

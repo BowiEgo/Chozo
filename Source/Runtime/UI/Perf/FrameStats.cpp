@@ -30,10 +30,18 @@ void FrameStats::CopyHistoryOldestFirst(float* out) const {
     }
 }
 
+void FrameStats::SetGpuPhases(const PhaseSample* phases, size_t count) {
+    m_GpuPhaseCount = std::min(count, kMaxPhases);
+    for (size_t i = 0; i < m_GpuPhaseCount; ++i) {
+        m_GpuPhases[i] = phases[i];
+    }
+}
+
 void FrameStats::Clear() {
     m_History.fill(0.0f);
     m_FrameSeconds.fill(0.0);
     m_Count = m_Head = m_PhaseCount = 0;
+    m_GpuPhaseCount                 = 0;
     m_DrawCalls = m_Triangles = 0;
     m_Smoothed                = 0.0;
 }

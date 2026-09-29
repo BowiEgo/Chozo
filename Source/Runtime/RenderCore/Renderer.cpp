@@ -117,6 +117,9 @@ void Renderer::Tick(float deltaTime) {
             // bClear = false used by the final UI pass) left moving geometry smeared across frames.
             // Dynamic polygon mode: no second pipeline, so every pipeline keeps its descriptor set
             // layouts (the previous two-pipeline approach lost them and broke all draws).
+            // Bracket every pass: timestamps are only valid while the command buffer records.
+            RHIAPI::Get()->BeginGPUTiming(cmdList);
+
             cmdList->SetPolygonMode(m_Obj->bWireframe ? PolygonMode::Line : PolygonMode::Fill);
 
             RHIAPI::Get()->BeginRendering(cmdList, targets, true, 0,
@@ -152,6 +155,8 @@ void Renderer::Tick(float deltaTime) {
                                           false); // bClear = false (to preserve the scene)
 
             if (m_Obj->FinalPassDrawFunc) m_Obj->FinalPassDrawFunc(cmdList);
+
+            RHIAPI::Get()->EndGPUTiming(cmdList);
 
             // Snapshot then reset: the counters accumulate during the next frame, so no separate
             // frame-start hook is needed.
