@@ -110,7 +110,9 @@ void Renderer::Tick(float deltaTime) {
 
             cmdList->BindPipeline(ViewAs<Pipeline>(m_Obj->TestPipeline));
 
-            RHIAPI::Get()->BeginRendering(cmdList, targets, false, 0,
+            // The viewport target must be cleared every frame: keeping the previous contents (the
+            // bClear = false used by the final UI pass) left moving geometry smeared across frames.
+            RHIAPI::Get()->BeginRendering(cmdList, targets, true, 0,
                                           viewport->GetFrameBuffer()->GetDepthAttachment());
             // bClear = false (to preserve the scene)
 

@@ -51,9 +51,16 @@ bool EditorCamera::OnMouseScroll(MouseScrolledEvent& e) {
 
 void EditorCamera::MousePan(const Vector2& delta) {
     auto [xSpeed, ySpeed] = PanSpeed();
-    Vector3 translation =
-        m_ActiveCamera->GetRightDirection() * -delta.x * xSpeed * m_ActiveCamera->GetDistance() +
-        m_ActiveCamera->GetUpDirection() * delta.y * ySpeed * m_ActiveCamera->GetDistance();
+
+    // Pan is scaled by the focal distance and by the viewport width (through PanSpeed), while
+    // rotation is not. If either is still zero — the camera has not been given a viewport size or
+    // a focal distance yet — panning silently turns into a no-op, so fall back to sane values.
+    if (xSpeed <= 0.0f) xSpeed = 1.0f;
+    if (ySpeed <= 0.0f) ySpeed = 1.0f;
+    const float distance = std::max(m_ActiveCamera->GetDistance(), 1.0f);
+
+    Vector3 translation = m_ActiveCamera->GetRightDirection() * -delta.x * xSpeed * distance +
+                          m_ActiveCamera->GetUpDirection() * delta.y * ySpeed * distance;
 
     m_ActiveCamera->MoveFocalPoint(translation);
 }
