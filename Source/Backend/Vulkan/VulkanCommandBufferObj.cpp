@@ -59,6 +59,12 @@ void VulkanCommandBufferObj::SetPolygonMode(PolygonMode mode) {
         return;
     }
 
+    // The extension is optional: silently ignore the request when the device lacks it instead of
+    // dereferencing a null function pointer.
+    if (!deviceObj->GetDynamicState3Functions().vkCmdSetPolygonModeEXT) {
+        return;
+    }
+
     VkCommandBuffer vkBuffer = m_VkCommandBuffer;
     VkPolygonMode vkMode     = static_cast<VkPolygonMode>(VulkanUtils::GetVulkanPolygonMode(mode));
 

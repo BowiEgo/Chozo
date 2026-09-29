@@ -115,6 +115,10 @@ void Renderer::Tick(float deltaTime) {
 
             // The viewport target must be cleared every frame: keeping the previous contents (the
             // bClear = false used by the final UI pass) left moving geometry smeared across frames.
+            // Dynamic polygon mode: no second pipeline, so every pipeline keeps its descriptor set
+            // layouts (the previous two-pipeline approach lost them and broke all draws).
+            cmdList->SetPolygonMode(m_Obj->bWireframe ? PolygonMode::Line : PolygonMode::Fill);
+
             RHIAPI::Get()->BeginRendering(cmdList, targets, true, 0,
                                           viewport->GetFrameBuffer()->GetDepthAttachment());
             // bClear = false (to preserve the scene)
@@ -139,6 +143,10 @@ void Renderer::Tick(float deltaTime) {
 
             RHIAPI::Get()->TransitionImageLayout(cmdList, swapchainTexHandle->GetImage(),
                                                  ImageLayout::ColorAttachmentOptimal);
+
+            // The UI must stay filled: polygon mode is dynamic state, so it would otherwise
+            // leak from the viewport pass into the editor's own interface.
+            cmdList->SetPolygonMode(PolygonMode::Fill);
 
             RHIAPI::Get()->BeginRendering(cmdList, targets,
                                           false); // bClear = false (to preserve the scene)
