@@ -413,3 +413,51 @@ Ruled out while investigating (all correct, do not re-investigate):
    here because clicking first is a worse workflow.
 5. **`OnKeyPressed` logs every keystroke at `Trace`.** Fine for debugging, but reduce it (or gate it)
    before shipping.
+
+## Perf overlay, wireframe and the process lessons (2026-09)
+
+### Perf overlay: four layers, only one of which knows ImGui
+`Include/Runtime/UI/Perf/{FrameStats,OverlayPainter,PerfOverlay}.hpp` plus
+`Source/Editor/Perf/ImGuiOverlayPainter.*`. `FrameStats` measures, `OverlayPainter` defines the
+primitives (panel, text, row, separator, plot, measure), `PerfOverlay` lays out rows and colours,
+and the ImGui painter is the only file that includes ImGui. A future engine-side 2D/text painter
+implements six primitives and nothing else changes.
+
+Two primitives exist because of what the panel needed and where the knowledge lives:
+`MeasureText` (auto width and right alignment need real font metrics) and `Row` (label flush left,
+value flush right). The frame-time graph exports its ring buffer oldest-first, otherwise the line
+rotates instead of scrolling.
+
+GPU timing (P3) brackets the passes from the renderer via
+`RHIAPIObj::BeginGPUTiming/EndGPUTiming(CommandList)`, because timestamps are only valid while the
+command buffer is recording and the renderer already owns a position that is provably inside that
+scope.
+
+### Wireframe: dynamic polygon mode, not a second pipeline
+A second pipeline built from the same reflection came back without descriptor set layouts, so every
+draw failed with `VUID-vkCmdDrawIndexed-None-08600` (the RHI logged "the bound pipeline exposes no
+set 0"). The engine already had everything needed for the right approach: `SetPolygonMode` on the
+RHI command list, a backend implementation calling `vkCmdSetPolygonModeEXT`, the extension loaded
+through `VK_EXT_extended_dynamic_state_3` (enabled only when supported), and
+`VK_DYNAMIC_STATE_POLYGON_MODE_EXT` sitting commented out in the dynamic state list as an extension
+point. Only that last line plus two `SetPolygonMode` calls were missing -- one for the viewport
+(whichever mode the F5 toggle selects) and one forcing fill for the UI pass, otherwise the dynamic
+state leaks into the editor's own interface.
+
+### Process: the gate, and reading before writing
+`git push` without a runtime check shipped a broken build once (mesh uploads stopped). Every change
+since goes through a gate that checks the build *and* the runtime markers -- 5 mesh uploads,
+validation layer at the baseline, no crash -- and reverts automatically otherwise. That gate
+rejected three consecutive attempts at GPU timing, each time with better evidence than the last
+(`Uploaded mesh=0`, then two named VUIDs, then a query pool leak), and no bad state ever reached the
+branch.
+
+The recurring failure mode was guessing structure instead of reading it: `m_Device`,
+`timestampValidBits` (a queue-family property, not a limit), an assumed `vkBeginCommandBuffer`
+location, `hostQueryReset` support. Read the structural code first, then write: the one attempt
+that did that (find the recording scope, bracket from the renderer) succeeded.
+
+### Reference branch
+`dev-vulkan` is worth reading before designing anything the refactor may have moved: the layer
+dispatch pattern (`dispatcher.Dispatch<FKeyPressedEvent>(...)` inside the layer), the mesh
+generators (Sphere, Quad), the input gating rules and the polygon-mode approach all came from there.

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+# Malformed format strings crash the process (fmt throws), so they are gated here too.
+python3 "$(dirname "$0")/check-format-strings.py" || exit 1
 # Checks clang-format compliance for the files touched by a change (or the whole tree locally).
 #
 # Usage:
