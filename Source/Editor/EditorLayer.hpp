@@ -59,6 +59,8 @@ private:
     ImVec2 m_ViewportSize{ 1080, 720 };
 
     bool m_ViewportFocused{}, m_ViewportHovered{};
+    // True while an orbit/pan/zoom gesture started inside the viewport is in progress.
+    bool m_CameraDragActive{};
     // F5 edge detection for input polling.
     bool m_WireframeKeyDown{};
 

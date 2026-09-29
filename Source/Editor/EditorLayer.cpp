@@ -163,7 +163,16 @@ void EditorLayer::OnUpdate(float deltaTime) {
     m_Viewport->GetCamera()->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
     // Hovering is enough to drive the camera (no click-to-focus required); the values come from
     // the previous frame's ImGui pass, which is the standard one-frame-late pattern.
-    m_EditorCamera.OnUpdate(deltaTime, m_ViewportHovered || m_ViewportFocused);
+    // A drag that started inside the viewport keeps steering even if the cursor leaves the panel
+    // mid-gesture; otherwise only hover drives the camera (no focus required).
+    const bool bDragging =
+        Input::IsKeyPressed(CZ_KEY(LeftAlt)) && (Input::IsMouseButtonPressed(MouseButton::Left) ||
+                                                 Input::IsMouseButtonPressed(MouseButton::Middle) ||
+                                                 Input::IsMouseButtonPressed(MouseButton::Right));
+    if (m_ViewportHovered && bDragging) m_CameraDragActive = true;
+    if (!bDragging) m_CameraDragActive = false;
+
+    m_EditorCamera.OnUpdate(deltaTime, m_ViewportHovered || m_CameraDragActive);
     // The editor camera is a separate object: without pushing its state onto the camera the
     // renderer actually renders with, any camera input stays invisible.
     m_EditorCamera.CopyTo(m_Viewport->GetCamera());
@@ -314,7 +323,10 @@ void EditorLayer::OnEvent(Event& e) {
 
     // The editor camera sits outside the ImGui layer, so it needs the raw events (mouse scrolling
     // in particular) forwarded before the capture check below marks them handled.
-    m_EditorCamera.OnEvent(e);
+    // Only steer the camera while the cursor is over the viewport. The reference branch requires
+    // focus *and* hover here; hover alone keeps the "just move the mouse in" workflow working
+    // without leaking scroll/zoom into the rest of the editor.
+    if (m_ViewportHovered) m_EditorCamera.OnEvent(e);
 
     if (m_BlockEvents) {
         ImGuiIO& io  = ImGui::GetIO();

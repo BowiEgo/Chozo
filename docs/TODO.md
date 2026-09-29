@@ -390,3 +390,26 @@ Ruled out while investigating (all correct, do not re-investigate):
    point known to be in front of the camera. This pins the row-vector convention and would have
    caught the transposed chain immediately; also worth asserting that `GetViewProjectionMatrix()`
    equals `GetViewMatrix() * GetProjectionMatrix()` (row-vector order).
+
+## Input and event dispatch (found while making F5 wireframe work)
+
+1. **`Layer::OnKeyPressed` was a dead interface.** `Layer.hpp` declares it pure virtual, but
+   nothing ever called it: `Application::OnEvent` forwards `OnEvent` only. The reference branch
+   solves this by having the layer dispatch its own events
+   (`dispatcher.Dispatch<FKeyPressedEvent>(CZ_BIND_FN(EditorLayer::OnKeyPressed))` in
+   `EditorLayer::OnEvent`), which is what this branch now does. Either apply that pattern to every
+   layer or delete the virtual hooks; do not leave them as silent no-ops.
+   `OnMouseButtonPressed` / `OnMouseButtonReleased` are still commented out in `Layer.hpp`.
+2. **Format strings are a crash vector.** `EditorLayer::OnKeyPressed` logged `"{}}"`, an unmatched
+   brace that throws `fmt::format_error` (abort). It was harmless only because the handler never
+   ran; enabling the dispatch made every keystroke fatal. Worth a cheap CI gate that greps for
+   `"{}}"`-style malformed patterns in log calls.
+3. **Activating dead code exposes its bugs.** Both problems above were invisible until the event
+   path was wired up: audit a code path before assuming "unused code is fine".
+4. **Input gating.** Camera steering must require the cursor over the viewport
+   (`EditorLayer::OnEvent` forwards to the camera only when hovered), with a drag latch so a gesture
+   that started inside the viewport survives the cursor leaving the panel. The reference branch
+   additionally requires focus (`m_ViewportFocused && m_ViewportHovered`); hover-only was chosen
+   here because clicking first is a worse workflow.
+5. **`OnKeyPressed` logs every keystroke at `Trace`.** Fine for debugging, but reduce it (or gate it)
+   before shipping.
