@@ -1,4 +1,5 @@
 #pragma once
+
 #include <Core/Command/CommandStack.hpp>
 #include <Runtime/RenderCore/ParamsSnapshot.hpp>
 #include <functional>
@@ -29,7 +30,8 @@ public:
 private:
     void DrawComponentHeader(const std::string& name, bool bDefaultOpen = false,
                              const DrawContentFunc& drawContentFunc = DrawContentFunc());
-    bool DrawColumnProperties(const std::string& name, Params* params);
+    bool DrawColumnProperties(const std::string& name, Params* params,
+                              const ParamsSnapshot* defaults);
     void DrawInfoProperties(EditorNode* node);
     void DrawTransformProperties(EditorNode* node);
     void DrawHDRIBackdropProperties(EditorNode* node);

@@ -69,6 +69,7 @@ EditorNode::EditorNode(const std::string& name, TypeMask typeMask)
     if (HasTransform()) {
         SetTransformParams(
             CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, TransformParamsObj, Vector3(1.0f, 1.0f, 1.0f)));
+        m_DefaultTransformParams = CaptureParams(*m_TransformParams);
     }
 
     if (HasMesh()) {
@@ -78,6 +79,7 @@ EditorNode::EditorNode(const std::string& name, TypeMask typeMask)
         } else if (EditorNodeRegistry::Test(GetTypeMask(),
                                             { "Node_Regular", "ProceduralMesh_Sphere" })) {
             SetMeshParams(CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, SphereParamsObj, 1.0f, 32, 16));
+            m_DefaultMeshParams = CaptureParams(*m_MeshParams);
         } else if (EditorNodeRegistry::Test(GetTypeMask(),
                                             { "Node_Regular", "ProceduralMesh_Plane" })) {
             SetMeshParams(CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, PlaneParamsObj, 1.0f, 1.0f, 1, 1));

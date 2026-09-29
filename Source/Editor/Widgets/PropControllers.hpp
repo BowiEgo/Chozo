@@ -440,7 +440,7 @@ public:
                 // Unique per field: identical labels would make every revert button share one ImGui
                 // ID, so hovering or clicking one would apply to whichever ImGui resolved first.
                 ImGui::PushID(name.c_str());
-                if (ImGui::SmallButton("\u21BA")) {
+                if (ImGui::SmallButton("R")) {
                     value             = *defaultValue;
                     bReverted         = true;
                     m_bResetRequested = true;

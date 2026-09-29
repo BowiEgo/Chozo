@@ -54,21 +54,14 @@ void PropertiesPanel::DrawComponentHeader(const std::string& name, bool bDefault
     }
 }
 
-bool PropertiesPanel::DrawColumnProperties(const std::string& name, Params* params) {
+bool PropertiesPanel::DrawColumnProperties(const std::string& name, Params* params,
+                                           const ParamsSnapshot* defaults) {
     bool valChanged = false;
     if (constexpr ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
         ImGui::BeginTable("table", 2, flags)) {
 
         ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 100.0f);
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
-        const ParamsSnapshot* defaults = nullptr;
-        if (m_Defaults && params) {
-            auto it = m_Defaults->find(params->GetTypeName());
-            if (it != m_Defaults->end()) {
-                defaults = &it->second;
-            }
-        }
 
         // Snapshotted around the whole draw: one command per finished gesture.
         const ParamsSnapshot before = params ? CaptureParams(*params) : ParamsSnapshot{};
@@ -116,7 +109,8 @@ void PropertiesPanel::DrawTransformProperties(EditorNode* node) {
 
     DrawComponentHeader("Transform", true, [this, node]() {
         auto params = node->GetTransformParams();
-        if (DrawColumnProperties("Transform", params.Unwrap())) {
+        if (DrawColumnProperties("Transform", params.Unwrap(),
+                                 &node->GetDefaultTransformParams())) {
             node->MarkDirty();
         }
     });
@@ -138,7 +132,8 @@ void PropertiesPanel::DrawMeshProperties(EditorNode* node) {
 
     DrawComponentHeader("Mesh", true, [this, node]() {
         auto params = node->GetMeshParams();
-        if (DrawColumnProperties("Mesh", params.As<MeshParamsObj>())) {
+        if (DrawColumnProperties("Mesh", params.As<MeshParamsObj>(),
+                                 &node->GetDefaultMeshParams())) {
             node->MarkDirty();
         }
     });

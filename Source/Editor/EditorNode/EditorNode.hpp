@@ -1,4 +1,6 @@
 #pragma once
+
+#include <Runtime/RenderCore/ParamsSnapshot.hpp>
 #include <atomic>
 #include <initializer_list>
 #include <string>
@@ -121,6 +123,12 @@ public:
         return m_TransformParams ? TransformParams(m_TransformParams.get()) : TransformParams();
     }
 
+    /// Parameter defaults, captured in the constructor right where they are assigned. This is the
+    /// one place that certainly runs for every node (the properties panel's revert buttons need a
+    /// reference value, and an empty reference silently hides them).
+    const ParamsSnapshot& GetDefaultTransformParams() const { return m_DefaultTransformParams; }
+    const ParamsSnapshot& GetDefaultMeshParams() const { return m_DefaultMeshParams; }
+
     // ===== HDRIBackdrop =====
     // HDRIBackdropParams* GetHDRIBackdropParams() { return &m_HDRIBackdropParams; }
 
@@ -161,6 +169,9 @@ private:
 
     // Components, owned by the node.
     Scope<TransformParamsObj> m_TransformParams;
+
+    ParamsSnapshot m_DefaultTransformParams;
+    ParamsSnapshot m_DefaultMeshParams;
     Scope<MeshParamsObj> m_MeshParams;
 
     // State
