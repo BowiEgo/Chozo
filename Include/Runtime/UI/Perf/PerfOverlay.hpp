@@ -1,5 +1,6 @@
 #pragma once
 #include <cstddef>
+#include <vector>
 
 #include <Runtime/UI/Perf/FrameStats.hpp>
 #include <Runtime/UI/Perf/OverlayPainter.hpp>
@@ -31,6 +32,7 @@ public:
 
 private:
     FrameStats m_Stats;
+    mutable std::vector<float> m_Graph; ///< reused every frame so plotting allocates nothing
     bool m_Visible = true;
 };
 

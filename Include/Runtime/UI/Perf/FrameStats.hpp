@@ -47,7 +47,11 @@ public:
     uint32_t Triangles() const { return m_Triangles; }
 
     size_t SampleCount() const { return m_Count; }
-    const float* History() const { return m_History.data(); }
+    /// Copies the frame-time history (milliseconds) oldest first into `out`, which must hold
+    /// HistorySize() floats. The ring buffer is stored rotated, so plotting it directly makes the
+    /// graph jump instead of scrolling; exporting in chronological order keeps new samples on the
+    /// right edge.
+    void CopyHistoryOldestFirst(float* out) const;
     static constexpr size_t HistorySize() { return kHistory; }
 
     size_t PhaseCount() const { return m_PhaseCount; }

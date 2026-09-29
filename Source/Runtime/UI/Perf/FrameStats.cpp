@@ -20,6 +20,16 @@ void FrameStats::Push(double frameSeconds, const PhaseSample* phases, size_t pha
     m_Smoothed = m_Count == 1 ? frameSeconds : m_Smoothed * (1.0 - kAlpha) + frameSeconds * kAlpha;
 }
 
+void FrameStats::CopyHistoryOldestFirst(float* out) const {
+    const size_t oldest = (m_Head + kHistory - m_Count) % kHistory;
+    for (size_t i = 0; i < m_Count; ++i) {
+        out[i] = m_History[(oldest + i) % kHistory];
+    }
+    for (size_t i = m_Count; i < kHistory; ++i) {
+        out[i] = 0.0f; // not enough samples yet: draw a flat line rather than stale data
+    }
+}
+
 void FrameStats::Clear() {
     m_History.fill(0.0f);
     m_FrameSeconds.fill(0.0);

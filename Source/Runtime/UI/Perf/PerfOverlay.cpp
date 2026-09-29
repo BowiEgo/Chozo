@@ -87,7 +87,9 @@ void PerfOverlay::Draw(OverlayPainter& painter, float x, float y, float maxWidth
         if (line.bSeparator) {
             painter.Separator();
         } else if (line.bPlot) {
-            painter.Plot("##PerfGraph", m_Stats.History(), FrameStats::HistorySize(), 0.0f,
+            m_Graph.resize(FrameStats::HistorySize());
+            m_Stats.CopyHistoryOldestFirst(m_Graph.data());
+            painter.Plot("##PerfGraph", m_Graph.data(), m_Graph.size(), 0.0f,
                          static_cast<float>(m_Stats.TargetSeconds() * 1000.0 * 3.0), kNeutral);
         } else if (line.Label.empty()) {
             painter.Text(line.Value, line.Color);
