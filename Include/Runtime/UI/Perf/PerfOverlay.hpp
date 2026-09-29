@@ -8,10 +8,10 @@ namespace CZ {
 
 /// Viewport performance overlay: owns the frame history and lays it out through an OverlayPainter.
 ///
-/// Deliberately split in three layers so each can change independently:
-///   FrameStats    -- measurement and rolling aggregates (no drawing at all)
-///   OverlayPainter-- drawing primitives (ImGui today, engine 2D/text later)
-///   PerfOverlay   -- layout, colours and wording (this class)
+/// Three layers, each replaceable on its own:
+///   FrameStats     -- measurement and rolling aggregates (no drawing)
+///   OverlayPainter -- drawing primitives, including text measurement (ImGui today, engine 2D
+///   later) PerfOverlay    -- rows, colours, wording and column sizing (this class)
 class PerfOverlay {
 public:
     void PushFrame(double frameSeconds, const PhaseSample* phases, size_t phaseCount);
@@ -26,8 +26,8 @@ public:
     }
     bool IsVisible() const { return m_Visible; }
 
-    /// Paints the overlay; does nothing while hidden or before the first sample.
-    void Draw(OverlayPainter& painter, float x, float y, float width) const;
+    /// Paints the overlay at (x, y). The panel grows to fit its widest row, never beyond maxWidth.
+    void Draw(OverlayPainter& painter, float x, float y, float maxWidth) const;
 
 private:
     FrameStats m_Stats;

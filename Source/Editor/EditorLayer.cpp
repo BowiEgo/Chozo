@@ -328,7 +328,8 @@ void EditorLayer::OnRender() {
     // Drawn after every window has closed, as a top-level overlay: inside the dockspace host (or a
     // panel) ImGui treats it as a child of that window and clips it, which is why it stayed
     // invisible no matter where in the panel it was placed.
-    m_PerfOverlay.Draw(m_PerfPainter, viewportRectMin.x + 8.0f, viewportRectMin.y + 8.0f, 260.0f);
+    m_PerfOverlay.Draw(m_PerfPainter, viewportRectMin.x + 8.0f, viewportRectMin.y + 8.0f,
+                       std::max(160.0f, m_ViewportSize.x - 24.0f));
 
     ImGui::Render();
 
