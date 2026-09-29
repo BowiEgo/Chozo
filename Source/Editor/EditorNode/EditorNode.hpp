@@ -112,10 +112,15 @@ public:
         m_TransformParams.reset(params ? params->Clone() : nullptr);
         MarkDirty();
 
-        // Same reasoning as the mesh defaults: the first value assigned is the node's default, so
-        // the reference is captured once here and every transform field gets a revert button.
-        if (m_DefaultTransformParams.Empty() && m_TransformParams) {
-            m_DefaultTransformParams = CaptureParams(*m_TransformParams);
+        // A transform field's reference is the identity transform -- Position (0,0,0), Rotation
+        // (0,0,0), Scale (1,1,1) -- not the node's initial translation. Unity and Unreal both reset
+        // these fields to their semantic defaults, so a node that starts at (1,1,1) does not make R
+        // restore (1,1,1), and Scale never resets to 0.
+
+        if (m_DefaultTransformParams.Empty()) {
+            auto identity =
+                CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, TransformParamsObj, Vector3(0.0f, 0.0f, 0.0f));
+            m_DefaultTransformParams = CaptureParams(*identity);
         }
     }
 
