@@ -85,7 +85,21 @@ void SceneHierarchyPanel::Draw(const char* title) {
     ImGui::End();
 }
 
-void SceneHierarchyPanel::DrawCreatingContextMenu(EditorNode* parent) {}
+void SceneHierarchyPanel::DrawCreatingContextMenu(EditorNode* parent) {
+    if (!m_NodeTree) return;
+
+    // A null parent means "top level", which is how EditorLayer creates its default cube.
+    if (ImGui::BeginMenu("Create")) {
+        if (ImGui::MenuItem("Cube")) {
+            const auto mask = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Cube");
+            m_NodeTree->CreateNode("Cube", mask, parent);
+        }
+
+        ImGui::EndMenu();
+    }
+
+    ImGui::Separator();
+}
 
 void SceneHierarchyPanel::DrawNodeContextMenu(EditorNode* node) {
     m_NodeTree->SelectNode(node); // Right-click also selects the node

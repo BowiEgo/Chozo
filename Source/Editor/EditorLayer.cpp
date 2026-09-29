@@ -82,6 +82,11 @@ void EditorLayer::OnAttach() {
     auto mainCamera = m_Viewport->GetCamera();
     m_EditorCamera.SetActiveCamera(mainCamera);
     mainCamera->SetPerspective(45.0f, (float)fbSize.Width / fbSize.Height, 0.1f, 1000.0f);
+    // The orbit camera scales panning by the focal distance and by the viewport size (see
+    // EditorCamera::MousePan / PanSpeed). Leaving them at zero makes pan and zoom silent no-ops,
+    // so seed them before the explicit position below has the final word.
+    mainCamera->SetDistance(5.0f);
+    mainCamera->SetViewportSize((float)fbSize.Width, (float)fbSize.Height);
     mainCamera->SetPosition(Vector3(0, 0, 5));
 
     CallbackHandle handle = m_NodeTree.RegisterEventCallback([this](const NodeEvent& event) {
@@ -112,6 +117,11 @@ void EditorLayer::OnAttach() {
         EditorNode* newNode = m_NodeTree.CreateNode("Cube", cubeNodeMask, nullptr);
         m_NodeTree.SelectNode(newNode);
 
+        // Node defaults place the transform at (1, 1, 1); the camera looks at the world origin, so
+        // move the default cube there to have it centred in the viewport.
+        newNode->SetTransformParams(
+            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, TransformParamsObj, Vector3(0.0f, 0.0f, 0.0f)));
+
         // static_cast<FSphereParams*>(newNode->GetMeshParamsWrapper()->Get())->Material =
     }
 }
@@ -128,6 +138,7 @@ void EditorLayer::OnDetach() {
 
 void EditorLayer::OnUpdate(float deltaTime) {
     m_Viewport->Resize(m_ViewportSize.x, m_ViewportSize.y);
+    m_Viewport->GetCamera()->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
     // Hovering is enough to drive the camera (no click-to-focus required); the values come from
     // the previous frame's ImGui pass, which is the standard one-frame-late pattern.
     m_EditorCamera.OnUpdate(deltaTime, m_ViewportHovered || m_ViewportFocused);
