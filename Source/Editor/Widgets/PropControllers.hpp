@@ -1,5 +1,7 @@
 #pragma once
+
 #include <Runtime/RenderCore/ParamsSnapshot.hpp>
+#include <algorithm>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -402,36 +404,47 @@ public:
 
     /// One field: the controller, plus a revert arrow while the value differs from the default.
     ///
-    /// AddTableRow's callback reports whether the value changed, so the widget's result is
-    /// forwarded and a revert press adds to it: the arrow is an ordinary value change as far as
-    /// that contract is concerned, while the panel additionally records it as an undoable reset.
+    /// The revert button is drawn after the controller, so the controller is told to leave room for
+    /// it first. Without that reservation a full-width controller fills the table cell and pushes
+    /// the button past the cell edge, where the table clips it -- the button exists but is
+    /// invisible, which reads as "the feature is missing". AddTableRow's callback reports whether
+    /// the value changed, so the widget's result is forwarded and a revert press adds to it.
     template <typename T>
     void DrawField(T& value, const std::string& name, const ParamControllerConfig& config) {
         const size_t index = m_Cursor++;
+
         AddTableRow(name, [&]() -> bool {
+            // Decide up front whether the button will be drawn, so the controller can reserve
+            // space.
+            const auto* defaultValue = (m_Defaults && index < m_Defaults->Values.size())
+                                           ? std::any_cast<T>(&m_Defaults->Values[index])
+                                           : nullptr;
+            const bool bShowRevert   = defaultValue && *defaultValue != value;
+
+            if (bShowRevert) {
+                const float buttonWidth = ImGui::GetFrameHeight() + ImGui::GetStyle().ItemSpacing.x;
+                ImGui::SetNextItemWidth(
+                    std::max(1.0f, ImGui::GetContentRegionAvail().x - buttonWidth));
+            }
+
             const bool bChanged = DrawControllerWithType(value, name, config);
 
-            // Asked before the arrow is drawn: the button would otherwise become the "last item".
+            // Asked before the button is drawn: the button would otherwise become the "last item".
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 m_bEditCommitted = true;
             }
 
             bool bReverted = false;
-            if (m_Defaults && index < m_Defaults->Values.size()) {
-                if (const auto* defaultValue = std::any_cast<T>(&m_Defaults->Values[index])) {
-                    if (*defaultValue != value) {
-                        ImGui::SameLine();
-                        if (ImGui::SmallButton("R")) {
-                            // Reset to default (the tooltip below spells it out).
-                            value             = *defaultValue;
-                            bReverted         = true;
-                            m_bResetRequested = true;
-                            m_ResetLabel      = name;
-                        }
-                        if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip("Reset to default");
-                        }
-                    }
+            if (bShowRevert) {
+                ImGui::SameLine();
+                if (ImGui::SmallButton("R")) {
+                    value             = *defaultValue;
+                    bReverted         = true;
+                    m_bResetRequested = true;
+                    m_ResetLabel      = name;
+                }
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Reset to default");
                 }
             }
 
