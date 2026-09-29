@@ -35,9 +35,45 @@ static void DrawAxis(const char* label, float* value, const ImVec2& buttonSize, 
         ImGui::Text("%s", label);
         ImGui::SameLine();
 
-        if (ImGui::Button("", buttonSize)) {
+        // UE parity for the coloured axis label: dragging it scrubs the value, and a click that did
+        // not drag (or the middle button) resets that axis. An InvisibleButton is used on purpose
+        // -- a real Button fires on press, so the reset would run before the drag even started.
+        ImGui::InvisibleButton("##axis", buttonSize);
+        const bool bActive  = ImGui::IsItemActive();
+        const bool bHovered = ImGui::IsItemHovered();
+        const bool bDragged = bActive && ImGui::IsMouseDragging(ImGuiMouseButton_Left);
+
+        {
+            ImDrawList* drawList = ImGui::GetWindowDrawList();
+            const ImVec2 min     = ImGui::GetItemRectMin();
+            const ImVec2 max     = ImGui::GetItemRectMax();
+            const ImVec4 fill = bActive ? colors[I][2] : (bHovered ? colors[I][1] : colors[I][0]);
+            drawList->AddRectFilled(min, max, ImGui::GetColorU32(fill), 2.0f);
+
+            const float fontSize  = ImGui::GetFontSize();
+            const char* axisLabel = "XYZ" + I;
+            const ImVec2 textSize =
+                boldFont->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, axisLabel, axisLabel + 1);
+            drawList->AddText(
+                boldFont, fontSize,
+                ImVec2((min.x + max.x - textSize.x) * 0.5f, (min.y + max.y - textSize.y) * 0.5f),
+                ImGui::GetColorU32(ImGuiCol_Text), axisLabel, axisLabel + 1);
+        }
+
+        if (bDragged) {
+            const ImGuiIO& axisIO = ImGui::GetIO();
+            const float sensitivity =
+                (axisIO.KeyShift ? 0.001f : (axisIO.KeyCtrl ? 0.1f : 0.01f)) * (valueSpeed * 10.0f);
+            *value += axisIO.MouseDelta.x * sensitivity;
+            valueChanged = true;
+        }
+        if (ImGui::IsItemDeactivated() ||
+            (bHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Middle))) {
             *value       = resetValue;
             valueChanged = true;
+        }
+        if (bHovered) {
+            ImGui::SetTooltip("Drag to adjust %c\nClick or middle-click to reset", label[0]);
         }
     }
 
