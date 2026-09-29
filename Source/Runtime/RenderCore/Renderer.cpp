@@ -48,11 +48,6 @@ Scope<RendererObj> Renderer::Create(const RendererSpecification& spec) {
     // the framebuffer depth attachment is wired through BeginRendering.
     testPipelineSpec.bDepthTestEnable  = false;
     testPipelineSpec.bDepthWriteEnable = false;
-    // TEMPORARY DIAGNOSTIC: the engine feeds a GLM (Y-up) projection into a Vulkan (Y-down) NDC
-    // without flipping proj[1][1], which mirrors the geometry and therefore reverses the triangle
-    // winding order. With the default CullMode::Back every triangle is then discarded and nothing
-    // shows up (silently). Culling off isolates that.
-    testPipelineSpec.CullMode          = CullMode::None;
     testPipelineSpec.ColorFormats      = { PixelFormat::RGBA16F };
 
     if (!spec.ShaderRegistry) {
@@ -142,9 +137,6 @@ void Renderer::Tick(float deltaTime) {
             RHIAPI::Get()->TransitionImageLayout(cmdList, swapchainTexHandle->GetImage(),
                                                  ImageLayout::ColorAttachmentOptimal);
 
-            // [TEMPORARY DIAGNOSTIC] clear the viewport target instead of preserving it: if the
-            // panel then shows the clear colour (0.1, 0.1, 0.1), the display path works and the
-            // cube draw itself is the problem; if it stays black, the display path is broken.
             RHIAPI::Get()->BeginRendering(cmdList, targets,
                                           false); // bClear = false (to preserve the scene)
 
