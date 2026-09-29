@@ -206,13 +206,25 @@ bool DrawDrag(T& value, const std::string& name, float speed, float min, float m
     } else if constexpr (std::is_same_v<T, Vector2>) {
         return ImGui::DragFloat2(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, Vector3>) {
-        return ImGui::DragFloat3(id.c_str(), &value.x, speed);
+        // The coloured axis labels come from our own control, which is what the reference branch
+        // calls here: ImGui's DragFloat3 has no per-axis affordance, and pointing this at
+        // DrawVec3Control is what makes those labels exist at all.
+        // Scale resets to 1 and everything else to 0, matching the semantic defaults Unity and
+        // Unreal use and the field-level revert button.
+        const float axisReset = (name.find("Scale") != std::string::npos) ? 1.0f : 0.0f;
+        return DrawVec3Control(name, value, axisReset, speed);
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, Vector2>) {
         return ImGui::DragFloat2(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, Vector3>) {
-        return ImGui::DragFloat3(id.c_str(), &value.x, speed);
+        // The coloured axis labels come from our own control, which is what the reference branch
+        // calls here: ImGui's DragFloat3 has no per-axis affordance, and pointing this at
+        // DrawVec3Control is what makes those labels exist at all.
+        // Scale resets to 1 and everything else to 0, matching the semantic defaults Unity and
+        // Unreal use and the field-level revert button.
+        const float axisReset = (name.find("Scale") != std::string::npos) ? 1.0f : 0.0f;
+        return DrawVec3Control(name, value, axisReset, speed);
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, Quaternion>) {
@@ -330,7 +342,13 @@ bool DrawDefaultController(T& value, const std::string& name, float speed = 0.01
     } else if constexpr (std::is_same_v<T, Vector2>) {
         return ImGui::DragFloat2(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, Vector3>) {
-        return ImGui::DragFloat3(id.c_str(), &value.x, speed);
+        // The coloured axis labels come from our own control, which is what the reference branch
+        // calls here: ImGui's DragFloat3 has no per-axis affordance, and pointing this at
+        // DrawVec3Control is what makes those labels exist at all.
+        // Scale resets to 1 and everything else to 0, matching the semantic defaults Unity and
+        // Unreal use and the field-level revert button.
+        const float axisReset = (name.find("Scale") != std::string::npos) ? 1.0f : 0.0f;
+        return DrawVec3Control(name, value, axisReset, speed);
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, Vector2>) {
