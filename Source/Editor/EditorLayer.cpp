@@ -129,6 +129,20 @@ void EditorLayer::OnAttach() {
         sphere->SetTransformParams(
             CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, TransformParamsObj, Vector3(1.5f, 0.0f, 0.0f)));
 
+        // One of every other primitive, placed behind the first row so the default view shows all
+        // five mesh generators at once (delete the ones you do not want).
+        const char* names[3]   = { "Plane", "Cylinder", "Torus" };
+        const char* types[3]   = { "ProceduralMesh_Plane", "ProceduralMesh_Cylinder",
+                                   "ProceduralMesh_Torus" };
+        const Vector3 spots[3] = { Vector3(-1.5f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, -1.5f),
+                                   Vector3(1.5f, 0.0f, -1.5f) };
+        for (int i = 0; i < 3; ++i) {
+            EditorNode* extra =
+                m_NodeTree.CreateNode(names[i], GET_NODE_MASK("Node_Regular", types[i]), nullptr);
+            extra->SetTransformParams(
+                CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, TransformParamsObj, spots[i]));
+        }
+
         // static_cast<FSphereParams*>(newNode->GetMeshParamsWrapper()->Get())->Material =
     }
 }

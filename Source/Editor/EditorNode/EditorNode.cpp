@@ -9,7 +9,10 @@
 #include "EditorNode.hpp"
 
 #include <Runtime/RenderCore/ProceduralMesh/CubeParamsObj.hpp>
+#include <Runtime/RenderCore/ProceduralMesh/CylinderParamsObj.hpp>
+#include <Runtime/RenderCore/ProceduralMesh/PlaneParamsObj.hpp>
 #include <Runtime/RenderCore/ProceduralMesh/SphereParamsObj.hpp>
+#include <Runtime/RenderCore/ProceduralMesh/TorusParamsObj.hpp>
 
 std::atomic<uint32_t> EditorNode::s_NextID{ 1 };
 
@@ -75,6 +78,16 @@ EditorNode::EditorNode(const std::string& name, TypeMask typeMask)
         } else if (EditorNodeRegistry::Test(GetTypeMask(),
                                             { "Node_Regular", "ProceduralMesh_Sphere" })) {
             SetMeshParams(CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, SphereParamsObj, 1.0f, 32, 16));
+        } else if (EditorNodeRegistry::Test(GetTypeMask(),
+                                            { "Node_Regular", "ProceduralMesh_Plane" })) {
+            SetMeshParams(CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, PlaneParamsObj, 1.0f, 1.0f, 1, 1));
+        } else if (EditorNodeRegistry::Test(GetTypeMask(),
+                                            { "Node_Regular", "ProceduralMesh_Cylinder" })) {
+            SetMeshParams(
+                CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, CylinderParamsObj, 1.0f, 1.0f, 32, 1));
+        } else if (EditorNodeRegistry::Test(GetTypeMask(),
+                                            { "Node_Regular", "ProceduralMesh_Torus" })) {
+            SetMeshParams(CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, TorusParamsObj, 1.0f, 0.35f, 32, 16));
         }
     }
 }

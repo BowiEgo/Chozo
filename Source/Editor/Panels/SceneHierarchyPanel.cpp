@@ -99,6 +99,19 @@ void SceneHierarchyPanel::DrawCreatingContextMenu(EditorNode* parent) {
             const auto mask = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Sphere");
             m_NodeTree->CreateNode("Sphere", mask, parent);
         }
+        if (ImGui::MenuItem("Plane")) {
+            const auto mask = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Plane");
+            m_NodeTree->CreateNode("Plane", mask, parent);
+        }
+        if (ImGui::MenuItem("Cylinder")) {
+            const auto mask = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Cylinder");
+            m_NodeTree->CreateNode("Cylinder", mask, parent);
+        }
+
+        if (ImGui::MenuItem("Torus")) {
+            const auto mask = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Torus");
+            m_NodeTree->CreateNode("Torus", mask, parent);
+        }
 
         ImGui::EndMenu();
     }

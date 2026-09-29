@@ -5,7 +5,10 @@
 #include <Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp>
 
 #include "./ProceduralMesh/CubeGenerator.hpp"
+#include "./ProceduralMesh/CylinderGenerator.hpp"
+#include "./ProceduralMesh/PlaneGenerator.hpp"
 #include "./ProceduralMesh/SphereGenerator.hpp"
+#include "./ProceduralMesh/TorusGenerator.hpp"
 
 namespace CZ {
 
@@ -30,6 +33,10 @@ template <> void AssetRegistry<MeshObj>::Init() {
 
     ProceduralMesh::RegisterType("Cube", CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, CubeGenerator));
     ProceduralMesh::RegisterType("Sphere", CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, SphereGenerator));
+    ProceduralMesh::RegisterType("Plane", CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, PlaneGenerator));
+    ProceduralMesh::RegisterType("Cylinder",
+                                 CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, CylinderGenerator));
+    ProceduralMesh::RegisterType("Torus", CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, TorusGenerator));
 }
 
 template <> void AssetRegistry<MeshObj>::Shutdown() {
