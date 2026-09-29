@@ -71,11 +71,6 @@ Scope<RendererObj> Renderer::Create(const RendererSpecification& spec) {
 
         // Line rasterisation variant of the same pipeline (VK_POLYGON_MODE_LINE; MoltenVK
         // maps it to Metal's line fill mode). Only the polygon mode differs.
-        auto wireframeSpec        = testPipelineSpec;
-        wireframeSpec.Name        = "TestPipeline_Wireframe";
-        wireframeSpec.PolygonMode = PolygonMode::Line;
-        obj->WireframePipeline    = ctx->GetDevice()->CreatePipeline(
-            wireframeSpec, shader->GetShaderResources(), shader->GetReflection());
     }
 
     return obj;
@@ -116,9 +111,7 @@ void Renderer::Tick(float deltaTime) {
             RHIAPI::Get()->TransitionImageLayout(cmdList, viewportCanvas->GetImage(),
                                                  ImageLayout::ColorAttachmentOptimal);
 
-            const bool bUseWireframe = m_Obj->bWireframe && m_Obj->WireframePipeline;
-            cmdList->BindPipeline(
-                ViewAs<Pipeline>(bUseWireframe ? m_Obj->WireframePipeline : m_Obj->TestPipeline));
+            cmdList->BindPipeline(ViewAs<Pipeline>(m_Obj->TestPipeline));
 
             // The viewport target must be cleared every frame: keeping the previous contents (the
             // bClear = false used by the final UI pass) left moving geometry smeared across frames.
@@ -154,8 +147,8 @@ void Renderer::Tick(float deltaTime) {
 
             // Snapshot then reset: the counters accumulate during the next frame, so no separate
             // frame-start hook is needed.
-            auto* counters          = cmdList.As<CommandListObj>();
-            m_Obj->LastFrameStats   = counters->GetDrawStats();
+            auto* counters        = cmdList.As<CommandListObj>();
+            m_Obj->LastFrameStats = counters->GetDrawStats();
             counters->ResetDrawStats();
 
             RHIAPI::Get()->EndRendering(cmdList);
