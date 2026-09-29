@@ -437,7 +437,10 @@ public:
             bool bReverted = false;
             if (bShowRevert) {
                 ImGui::SameLine();
-                if (ImGui::SmallButton("R")) {
+                // Unique per field: identical labels would make every revert button share one ImGui
+                // ID, so hovering or clicking one would apply to whichever ImGui resolved first.
+                ImGui::PushID(name.c_str());
+                if (ImGui::SmallButton("\u21BA")) {
                     value             = *defaultValue;
                     bReverted         = true;
                     m_bResetRequested = true;
@@ -446,6 +449,7 @@ public:
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip("Reset to default");
                 }
+                ImGui::PopID();
             }
 
             return bChanged || bReverted;
