@@ -320,6 +320,14 @@ void EditorLayer::OnEvent(Event& e) {
 }
 
 bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
+    // Engine-level shortcut: the layer stack dispatches key events here.
+    if (e.GetKeyCode() == CZ_KEY(F5)) {
+        const bool bWireframe = !m_ViewportRenderer.IsWireframe();
+        m_ViewportRenderer.SetWireframe(bWireframe);
+        CZ_EDITOR_LOG(Warning, "Wireframe rendering {}", bWireframe ? "ON" : "OFF");
+        return true;
+    }
+
     CZ_EDITOR_LOG(Trace, "{}}", e.ToString());
 
     return true;
