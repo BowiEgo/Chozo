@@ -41,7 +41,6 @@ static void DrawAxis(const char* label, float* value, const ImVec2& buttonSize, 
         ImGui::InvisibleButton("##axis", buttonSize);
         const bool bActive  = ImGui::IsItemActive();
         const bool bHovered = ImGui::IsItemHovered();
-        const bool bDragged = bActive && ImGui::IsMouseDragging(ImGuiMouseButton_Left);
 
         {
             ImDrawList* drawList = ImGui::GetWindowDrawList();
@@ -60,20 +59,13 @@ static void DrawAxis(const char* label, float* value, const ImVec2& buttonSize, 
                 ImGui::GetColorU32(ImGuiCol_Text), axisLabel, axisLabel + 1);
         }
 
-        if (bDragged) {
-            const ImGuiIO& axisIO = ImGui::GetIO();
-            const float sensitivity =
-                (axisIO.KeyShift ? 0.001f : (axisIO.KeyCtrl ? 0.1f : 0.01f)) * (valueSpeed * 10.0f);
-            *value += axisIO.MouseDelta.x * sensitivity;
-            valueChanged = true;
-        }
-        if (ImGui::IsItemDeactivated() ||
-            (bHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Middle))) {
+        // A plain click resets that axis, which is the behaviour this control had before, and the
+        // only interaction the panel wants here: the coloured label is a reset affordance, not a
+        // scrub handle. IsItemActivated fires on press, so a press-and-drag simply does nothing
+        // instead of resetting on release part-way through a gesture.
+        if (ImGui::IsItemActivated()) {
             *value       = resetValue;
             valueChanged = true;
-        }
-        if (bHovered) {
-            ImGui::SetTooltip("Drag to adjust %c\nClick or middle-click to reset", label[0]);
         }
     }
 
