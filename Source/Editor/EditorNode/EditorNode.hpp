@@ -111,12 +111,24 @@ public:
     void SetTransformParams(const TransformParams params) {
         m_TransformParams.reset(params ? params->Clone() : nullptr);
         MarkDirty();
+
+        // Same reasoning as the mesh defaults: the first value assigned is the node's default, so
+        // the reference is captured once here and every transform field gets a revert button.
+        if (m_DefaultTransformParams.Empty() && m_TransformParams) {
+            m_DefaultTransformParams = CaptureParams(*m_TransformParams);
+        }
     }
 
     /// Adopts ownership of an already-built params object.
     void SetTransformParams(Scope<TransformParamsObj>&& params) {
         m_TransformParams = std::move(params);
         MarkDirty();
+
+        // Same reasoning as the mesh defaults: the first value assigned is the node's default, so
+        // the reference is captured once here and every transform field gets a revert button.
+        if (m_DefaultTransformParams.Empty() && m_TransformParams) {
+            m_DefaultTransformParams = CaptureParams(*m_TransformParams);
+        }
     }
 
     TransformParams GetTransformParams() const {
@@ -139,12 +151,26 @@ public:
     void SetMeshParams(const MeshParams& params) {
         m_MeshParams.reset(params ? params->Clone() : nullptr);
         MarkDirty();
+
+        // First assignment is the node's default: recorded here so every mesh type and every
+        // creation path is covered, instead of one capture per branch (which silently missed all
+        // types but the one it was added to, leaving the revert button invisible).
+        if (m_DefaultMeshParams.Empty() && m_MeshParams) {
+            m_DefaultMeshParams = CaptureParams(*m_MeshParams);
+        }
     }
 
     /// Adopts ownership of an already-built params object.
     void SetMeshParams(Scope<MeshParamsObj>&& params) {
         m_MeshParams = std::move(params);
         MarkDirty();
+
+        // First assignment is the node's default: recorded here so every mesh type and every
+        // creation path is covered, instead of one capture per branch (which silently missed all
+        // types but the one it was added to, leaving the revert button invisible).
+        if (m_DefaultMeshParams.Empty() && m_MeshParams) {
+            m_DefaultMeshParams = CaptureParams(*m_MeshParams);
+        }
     }
 
     MeshParams GetMeshParams() const {
