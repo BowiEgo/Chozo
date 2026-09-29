@@ -27,9 +27,12 @@ VSOutput vertexMain(VSInput input)
     VSOutput output;
 
     float4x4 model = u_VertContant.ModelMatrix;
-    float4x4 mvp = mul(u_Camera.Projection, mul(u_Camera.View, model));
+    // CPU-side matrices are row-vector (v * M) convention: translations live in the last ROW.
+    // Multiplying as M * v transposed every transform, so w' lost its constant term and the
+    // geometry was projected far off-screen. Chain as v * model * view * projection instead.
+    float4x4 mvp = mul(mul(model, u_Camera.View), u_Camera.Projection);
 
-    output.position = mul(mvp, float4(input.a_Position, 1.0));
+    output.position = mul(float4(input.a_Position, 1.0), mvp);
     return output;
 }
 
