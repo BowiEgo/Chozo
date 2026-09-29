@@ -95,6 +95,11 @@ void SceneHierarchyPanel::DrawCreatingContextMenu(EditorNode* parent) {
             m_NodeTree->CreateNode("Cube", mask, parent);
         }
 
+        if (ImGui::MenuItem("Sphere")) {
+            const auto mask = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Sphere");
+            m_NodeTree->CreateNode("Sphere", mask, parent);
+        }
+
         ImGui::EndMenu();
     }
 

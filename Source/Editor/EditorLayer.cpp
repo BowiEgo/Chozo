@@ -121,6 +121,13 @@ void EditorLayer::OnAttach() {
         // move the default cube there to have it centred in the viewport.
         newNode->SetTransformParams(
             CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, TransformParamsObj, Vector3(0.0f, 0.0f, 0.0f)));
+    }
+
+    {
+        auto sphereNodeMask = GET_NODE_MASK("Node_Regular", "ProceduralMesh_Sphere");
+        EditorNode* sphere  = m_NodeTree.CreateNode("Sphere", sphereNodeMask, nullptr);
+        sphere->SetTransformParams(
+            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, TransformParamsObj, Vector3(1.5f, 0.0f, 0.0f)));
 
         // static_cast<FSphereParams*>(newNode->GetMeshParamsWrapper()->Get())->Material =
     }

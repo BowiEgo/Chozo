@@ -5,6 +5,7 @@
 #include <Runtime/RenderCore/ProceduralMesh/ProceduralMesh.hpp>
 
 #include "./ProceduralMesh/CubeGenerator.hpp"
+#include "./ProceduralMesh/SphereGenerator.hpp"
 
 namespace CZ {
 
@@ -28,6 +29,7 @@ Scope<MeshObj> ResourceGeneratorTraits<MeshObj>::Generate(const MeshParams param
 template <> void AssetRegistry<MeshObj>::Init() {
 
     ProceduralMesh::RegisterType("Cube", CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, CubeGenerator));
+    ProceduralMesh::RegisterType("Sphere", CZ_CREATE_SCOPE(MEMORY_USAGE_RUNTIME, SphereGenerator));
 }
 
 template <> void AssetRegistry<MeshObj>::Shutdown() {

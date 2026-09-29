@@ -31,6 +31,7 @@ set(MODULE_SRC
     MeshRegistry.cpp
     ProceduralMesh/ProceduralMesh.cpp
     ProceduralMesh/CubeParamsObj.cpp
+    ProceduralMesh/SphereParamsObj.cpp
     Components/TransformComponent.cpp
     Scene/Scene.cpp
     Scene/TransformSystem.cpp

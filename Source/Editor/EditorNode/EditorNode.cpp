@@ -9,6 +9,7 @@
 #include "EditorNode.hpp"
 
 #include <Runtime/RenderCore/ProceduralMesh/CubeParamsObj.hpp>
+#include <Runtime/RenderCore/ProceduralMesh/SphereParamsObj.hpp>
 
 std::atomic<uint32_t> EditorNode::s_NextID{ 1 };
 
@@ -71,6 +72,9 @@ EditorNode::EditorNode(const std::string& name, TypeMask typeMask)
         if (EditorNodeRegistry::Test(GetTypeMask(), { "Node_Regular", "ProceduralMesh_Cube" })) {
             SetMeshParams(
                 CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, CubeParamsObj, 1.0f, 1.0f, 1.0f, 1, 1, 1));
+        } else if (EditorNodeRegistry::Test(GetTypeMask(),
+                                            { "Node_Regular", "ProceduralMesh_Sphere" })) {
+            SetMeshParams(CZ_CREATE_SCOPE(MEMORY_USAGE_ASSET, SphereParamsObj, 1.0f, 32, 16));
         }
     }
 }
