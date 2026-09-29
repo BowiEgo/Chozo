@@ -43,20 +43,10 @@ void PerfOverlay::Draw(OverlayPainter& painter, float x, float y, float width) c
                  static_cast<float>(m_Stats.TargetSeconds() * 1000.0 * 3.0), kNeutral);
     painter.Separator();
 
-    const auto paintPhases = [&](size_t count, auto&& get) {
-        for (size_t i = 0; i < count; ++i) {
-            const PhaseSample& phase = get(i);
-            painter.Text(fmt::format("{:<18}{:>6.2f} ms", phase.Name, phase.Seconds * 1000.0),
-                         ColorFor(m_Stats.StatusOf(phase.Seconds)));
-        }
-    };
-    paintPhases(m_Stats.PhaseCount(),
-                [&](size_t i) -> const PhaseSample& { return m_Stats.Phase(i); });
-
-    if (m_Stats.GpuPhaseCount() > 0) {
-        painter.Separator();
-        paintPhases(m_Stats.GpuPhaseCount(),
-                    [&](size_t i) -> const PhaseSample& { return m_Stats.GpuPhase(i); });
+    for (size_t i = 0; i < m_Stats.PhaseCount(); ++i) {
+        const PhaseSample& phase = m_Stats.Phase(i);
+        painter.Text(fmt::format("{:<18}{:>6.2f} ms", phase.Name, phase.Seconds * 1000.0),
+                     ColorFor(m_Stats.StatusOf(phase.Seconds)));
     }
 
     painter.EndPanel();

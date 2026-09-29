@@ -1,5 +1,4 @@
 #pragma once
-#include <Runtime/RHI/RHIAPI.hpp>
 #include <string>
 #include <vector>
 
@@ -51,9 +50,6 @@ struct Renderer : Handle<struct RendererObj> {
     void SetDrawFuncToFinalPass(const DrawFunc& func);
 
     /// Switches the viewport between filled and wireframe rasterisation (F5 in the editor).
-    /// GPU frame timing from the RHI layer (delayed by a few frames; invalid until warm).
-    RHIAPIObj::GPUTiming GetGpuTiming() const { return RHIAPI::Get()->GetGPUTiming(); }
-
     void SetWireframe(bool bEnable) { m_Obj->bWireframe = bEnable; }
     bool IsWireframe() const { return m_Obj->bWireframe; }
 
