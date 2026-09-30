@@ -1,5 +1,10 @@
 #pragma once
 
+#include <map>
+#include <utility>
+
+#include <unordered_map>
+
 #include <Runtime/RenderCore/ParamsSnapshot.hpp>
 #include <algorithm>
 #include <string>
@@ -155,7 +160,8 @@ template <typename T> bool DrawSlider(T& value, const std::string& name, float m
 }
 
 template <typename T>
-bool DrawDrag(T& value, const std::string& name, float speed, float min, float max) {
+bool DrawDrag(T& value, const std::string& name, float speed, float min, float max,
+              float defaultAxisValue = 0.0f) {
     const std::string id = "##" + name;
 
     if constexpr (std::is_same_v<T, float>) {
@@ -218,7 +224,7 @@ bool DrawDrag(T& value, const std::string& name, float speed, float min, float m
         // Unreal use and the field-level revert button.
         // This helper has no config parameter; vectors reset to the origin here and the
         // fields that need something else (scale) declare it through their config.
-        const float axisReset = 0.0f;
+        const float axisReset = defaultAxisValue;
         return DrawVec3Control(name, value, axisReset, speed);
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
@@ -232,7 +238,7 @@ bool DrawDrag(T& value, const std::string& name, float speed, float min, float m
         // Unreal use and the field-level revert button.
         // This helper has no config parameter; vectors reset to the origin here and the
         // fields that need something else (scale) declare it through their config.
-        const float axisReset = 0.0f;
+        const float axisReset = defaultAxisValue;
         return DrawVec3Control(name, value, axisReset, speed);
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
@@ -284,7 +290,7 @@ bool DrawCombo(T& value, const std::string& name, const std::vector<std::string>
 
 template <typename T>
 bool DrawDefaultController(T& value, const std::string& name, float speed = 0.01f, float min = 0.0f,
-                           float max = 0.0f) {
+                           float max = 0.0f, float defaultAxisValue = 0.0f) {
     const std::string id = "##" + name;
 
     if constexpr (std::is_same_v<T, float>) {
@@ -358,7 +364,7 @@ bool DrawDefaultController(T& value, const std::string& name, float speed = 0.01
         // Unreal use and the field-level revert button.
         // This helper has no config parameter; vectors reset to the origin here and the
         // fields that need something else (scale) declare it through their config.
-        const float axisReset = 0.0f;
+        const float axisReset = defaultAxisValue;
         return DrawVec3Control(name, value, axisReset, speed);
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
@@ -394,16 +400,20 @@ bool DrawControllerWithType(T& value, const std::string& name, const ParamContro
     switch (config.Type) {
         case ParamControllerType::Slider: return DrawSlider(value, name, config.Min, config.Max);
         case ParamControllerType::Drag:
-            return DrawDrag(value, name, config.Speed, config.Min, config.Max);
+            return DrawDrag(value, name, config.Speed, config.Min, config.Max, config.DefaultValue);
         case ParamControllerType::ColorPicker: return DrawColor(value, name);
         case ParamControllerType::Combo:
             return DrawCombo(value, name, config.Items, config.bNotifyDirty);
         case ParamControllerType::Default:
-            return DrawDefaultController(value, name, config.Speed, config.Min, config.Max);
-        default: return DrawDefaultController(value, name, config.Speed, config.Min, config.Max);
+            return DrawDefaultController(value, name, config.Speed, config.Min, config.Max,
+                                         config.DefaultValue);
+        default:
+            return DrawDefaultController(value, name, config.Speed, config.Min, config.Max,
+                                         config.DefaultValue);
     }
 
-    return DrawDefaultController(value, name, config.Speed, config.Min, config.Max);
+    return DrawDefaultController(value, name, config.Speed, config.Min, config.Max,
+                                 config.DefaultValue);
 }
 
 class EditorParamsVisitor : public ParamsVisitor {
@@ -417,13 +427,24 @@ public:
     /// Defaults -- not the last saved state -- are what a per-field revert means in Unity
     /// ("Reset"), Unreal (the yellow reset arrow) and Blender ("Reset to Default Value"), and in
     /// all three the action is an ordinary undoable edit.
+    /// Which parameter object is being drawn. Part of the gesture key, because every object numbers
+    /// its fields from zero and two sections drawn in the same frame would otherwise share latches
+    /// -- whichever was drawn first then consumed the transition and the other never committed.
+    void SetSource(const void* source) { m_Source = source; }
+
     void SetDefaults(const ParamsSnapshot* defaults) {
         m_Defaults = defaults;
         m_Cursor   = 0;
     }
 
     bool IsEditCommitted() const { return m_bEditCommitted; }
-    void ResetEditCommitted() { m_bEditCommitted = false; }
+    /// Fields the finished gesture changed; the command restores only these.
+    const std::vector<size_t>& CommittedFields() const { return m_CommittedFields; }
+    bool ChangedDuringGesture() const { return m_bChangedDuringGesture; }
+    void ResetEditCommitted() {
+        m_bEditCommitted        = false;
+        m_bChangedDuringGesture = false;
+    }
 
     bool ConsumeResetRequest() {
         const bool requested = m_bResetRequested;
@@ -459,9 +480,17 @@ public:
 
             const bool bChanged = DrawControllerWithType(value, name, config);
 
-            // Asked before the button is drawn: the button would otherwise become the "last item".
-            if (ImGui::IsItemDeactivated()) {
-                m_bEditCommitted = true;
+            // A field commits when it changed during the gesture and nothing is active any more.
+            // Watching the active item alone was not enough: IsAnyItemActive is true for every
+            // field while one is dragged, so they all latched and committed together -- editing a
+            // mesh field also pushed a transform command, and any stray transition committed with
+            // no edit at all.
+            bool& bChangedThisGesture = s_ChangedThisGesture[{ m_Source, index }];
+            bChangedThisGesture |= bChanged;
+            if (!ImGui::IsAnyItemActive() && bChangedThisGesture) {
+                bChangedThisGesture = false; // consumed: one command per gesture
+                m_bEditCommitted    = true;
+                m_CommittedFields.push_back(index);
             }
 
             bool bReverted = false;
@@ -559,8 +588,19 @@ public:
 private:
     const ParamsSnapshot* m_Defaults = nullptr;
     size_t m_Cursor                  = 0;
+    const void* m_Source             = nullptr; ///< the parameter object being drawn
     bool m_bEditCommitted            = false;
-    bool m_bResetRequested           = false;
+    std::vector<size_t> m_CommittedFields;
+    bool m_bChangedDuringGesture = false; ///< set by any field during the current gesture
+    /// Per field (index within the parameter object), for detecting the end of a drag. Deliberately
+    /// not cleared per draw: SetDefaults runs every frame, so clearing there reset the latch before
+    /// it could ever observe a drag ending, and nothing but the reset button committed.
+    /// Persistent across frames on purpose: the panel builds a fresh visitor for every draw, so a
+    /// per-instance latch was destroyed before it could ever see a drag end, and only the reset
+    /// button (which reports inside the same call) ever committed. The key carries the parameter
+    /// object, so one shared map is safe.
+    static inline std::map<std::pair<const void*, size_t>, bool> s_ChangedThisGesture;
+    bool m_bResetRequested = false;
     std::string m_ResetLabel;
     template <typename DrawFunc> void AddTableRow(const std::string& name, DrawFunc&& drawFunc) {
         ImGui::TableNextRow();
@@ -582,3 +622,4 @@ private:
     bool m_ReadOnly      = false;
     bool m_bValueChanged = false;
 };
+bool m_bWasEditing = false; ///< true while any widget is being dragged

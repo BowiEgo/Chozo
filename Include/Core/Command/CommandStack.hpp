@@ -27,6 +27,7 @@ public:
         }
 
         command->Apply();
+        m_bApplied = true;
         m_Redo.clear();
         m_Undo.push_back(std::move(command));
 
@@ -46,6 +47,7 @@ public:
         std::unique_ptr<Command> command = std::move(m_Undo.back());
         m_Undo.pop_back();
         command->Undo();
+        m_bApplied = true;
         m_Redo.push_back(std::move(command));
         return true;
     }
@@ -58,6 +60,7 @@ public:
         std::unique_ptr<Command> command = std::move(m_Redo.back());
         m_Redo.pop_back();
         command->Redo();
+        m_bApplied = true;
         m_Undo.push_back(std::move(command));
         return true;
     }
@@ -75,12 +78,22 @@ public:
         m_Redo.clear();
     }
 
+    /// True once after a command was applied. Undo and redo change parameter values just like an
+    /// edit does, and the panel has to know: the value changes must not be recorded as new edits,
+    /// and the snapshot it compares against is stale the moment the values move under it.
+    bool ConsumeApplied() {
+        const bool applied = m_bApplied;
+        m_bApplied         = false;
+        return applied;
+    }
+
     size_t UndoDepth() const { return m_Undo.size(); }
     size_t RedoDepth() const { return m_Redo.size(); }
 
 private:
     std::deque<std::unique_ptr<Command>> m_Undo;
     std::deque<std::unique_ptr<Command>> m_Redo;
+    bool m_bApplied = false;
 };
 
 } // namespace CZ

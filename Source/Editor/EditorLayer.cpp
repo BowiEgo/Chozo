@@ -185,7 +185,13 @@ void EditorLayer::OnUpdate(float deltaTime) {
     // focused text field keeps the keyboard, so typing never triggers an editor shortcut.
     for (std::string_view shortcut :
          m_Shortcuts.Update([](KeyCode key) { return Input::IsKeyPressed(key); },
-                            []() { return ImGui::GetIO().WantTextInput; })) {
+                            []() {
+                                // Typing wins, and so does an in-progress drag: ImGui re-applies
+                                // the accumulated mouse delta on every frame of a DragFloat, so
+                                // undoing mid-drag writes the value straight back and produces a
+                                // number nobody asked for.
+                                return ImGui::GetIO().WantTextInput || ImGui::IsAnyItemActive();
+                            })) {
         CZ_EDITOR_LOG(Warning, "Shortcut: {}", shortcut);
     }
 

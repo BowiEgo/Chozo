@@ -18,6 +18,10 @@ namespace CZ {
 /// position.
 struct ParamsSnapshot {
     std::vector<std::any> Values;
+    /// Fields this snapshot covers, in the same order as Values. Empty means "every field", which
+    /// is what a whole-object snapshot is; a masked snapshot lets a command restore only the fields
+    /// an edit touched, so undoing a translation change no longer rewinds rotation and scale.
+    std::vector<std::size_t> Indices;
 
     bool Empty() const { return Values.empty(); }
 };
@@ -289,6 +293,37 @@ inline ParamsSnapshot CaptureParams(Params& params) {
 inline void RestoreParams(Params& params, const ParamsSnapshot& snapshot) {
     RestoreParamsVisitor visitor(snapshot.Values);
     params.Accept(visitor);
+}
+
+/// Full snapshot restricted to the given fields (values keep the order of `indices`).
+inline ParamsSnapshot MaskSnapshot(const ParamsSnapshot& full,
+                                   const std::vector<std::size_t>& indices) {
+    ParamsSnapshot masked;
+    masked.Indices = indices;
+    for (const std::size_t index : indices) {
+        if (index < full.Values.size()) {
+            masked.Values.push_back(full.Values[index]);
+        }
+    }
+    return masked;
+}
+
+/// Applies only the fields a masked snapshot names; everything else keeps its current value, which
+/// is what makes an undo touch just the fields the edit changed.
+inline void RestoreParamsMasked(Params& params, const ParamsSnapshot& masked) {
+    if (masked.Indices.empty()) {
+        RestoreParams(params, masked);
+        return;
+    }
+
+    ParamsSnapshot full = CaptureParams(params);
+    for (std::size_t i = 0; i < masked.Indices.size() && i < masked.Values.size(); ++i) {
+        const std::size_t index = masked.Indices[i];
+        if (index < full.Values.size()) {
+            full.Values[index] = masked.Values[i];
+        }
+    }
+    RestoreParams(params, full);
 }
 
 } // namespace CZ

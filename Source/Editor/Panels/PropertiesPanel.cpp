@@ -56,7 +56,14 @@ void PropertiesPanel::DrawComponentHeader(const std::string& name, bool bDefault
 
 bool PropertiesPanel::DrawColumnProperties(const std::string& name, Params* params,
                                            const ParamsSnapshot* defaults) {
-    bool valChanged = false;
+    bool valChanged      = false;
+    // Consumed every frame, not only when a commit happens: undo and redo move the values without a
+    // commit, and the baseline has to be dropped on that very frame or the next edit compares
+    // against a state that no longer exists.
+    const bool bApplying = m_Commands && m_Commands->ConsumeApplied();
+    if (bApplying) {
+        m_LastCommitted.clear();
+    }
     if (constexpr ImGuiTableFlags flags = ImGuiTableFlags_Resizable;
         ImGui::BeginTable("table", 2, flags)) {
 
@@ -75,10 +82,13 @@ bool PropertiesPanel::DrawColumnProperties(const std::string& name, Params* para
         if (params && m_LastCommitted.find(name) == m_LastCommitted.end()) {
             m_LastCommitted.emplace(name, CaptureParams(*params));
         }
-        const ParamsSnapshot before = params ? m_LastCommitted[name] : ParamsSnapshot{};
+        const ParamsSnapshot beforeFull = params ? m_LastCommitted[name] : ParamsSnapshot{};
 
         EditorParamsVisitor visitor;
         visitor.SetDefaults(defaults);
+        // Part of the gesture key: two sections are drawn in one frame and each numbers its own
+        // fields from zero.
+        visitor.SetSource(params);
         params->Accept(visitor);
 
         if (visitor.IsValueChanged()) {
@@ -89,17 +99,29 @@ bool PropertiesPanel::DrawColumnProperties(const std::string& name, Params* para
         const bool bCommitted = visitor.IsEditCommitted() || bReset;
         visitor.ResetEditCommitted();
 
-        if (params && bCommitted && m_Commands) {
+        if (params && bCommitted && m_Commands && !bApplying) {
+            // (never commit a restore)
             const std::string label =
                 bReset ? fmt::format("Reset {}.{}", params->GetTypeName(), visitor.ResetLabel())
                        : fmt::format("Edit {}", params->GetTypeName());
-            EditorNode* commandNode    = m_NodeTree ? m_NodeTree->GetSelectedNode() : nullptr;
-            const ParamsSnapshot after = CaptureParams(*params);
+            EditorNode* commandNode = m_NodeTree ? m_NodeTree->GetSelectedNode() : nullptr;
+            // Only the fields the finished gesture touched; the mask is known once the draw is
+            // done.
+            const std::vector<size_t>& changedFields = visitor.CommittedFields();
+            const ParamsSnapshot before              = MaskSnapshot(beforeFull, changedFields);
+            const ParamsSnapshot after = MaskSnapshot(CaptureParams(*params), changedFields);
             const auto target          = (name == "Mesh") ? SetParamsCommand::Target::Mesh
                                                           : SetParamsCommand::Target::Transform;
             CZ_EDITOR_LOG(Warning, "push '{}' depth={} node={}", label, m_Commands->UndoDepth(),
                           static_cast<const void*>(commandNode));
-            m_LastCommitted[name] = after;
+            if (m_Commands && m_Commands->ConsumeApplied()) {
+                // The values were moved by a command, so the baseline is stale: drop it and the
+                // next edit captures the current state, which is what "undo, then edit, then undo"
+                // needs.
+                m_LastCommitted.clear();
+            } else {
+                m_LastCommitted[name] = CaptureParams(*params);
+            }
             m_Commands->Execute(std::make_unique<SetParamsCommand>(
                 commandNode, target, before, after, label, [this]() {
                     if (m_NodeTree) {
