@@ -185,7 +185,7 @@ void EditorLayer::OnUpdate(float deltaTime) {
     // focused text field keeps the keyboard, so typing never triggers an editor shortcut.
     for (std::string_view shortcut :
          m_Shortcuts.Update([](KeyCode key) { return Input::IsKeyPressed(key); },
-                            []() { return ImGui::GetIO().WantCaptureKeyboard; })) {
+                            []() { return ImGui::GetIO().WantTextInput; })) {
         CZ_EDITOR_LOG(Warning, "Shortcut: {}", shortcut);
     }
 
