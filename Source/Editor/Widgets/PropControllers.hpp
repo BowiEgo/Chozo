@@ -506,7 +506,12 @@ public:
                     value             = *defaultValue;
                     bReverted         = true;
                     m_bResetRequested = true;
-                    m_ResetLabel      = name;
+                    // A reset is an ordinary undoable edit (Unity's Reset, Unreal's reset arrow)
+                    // and names exactly the field it touched; without the index the mask would be
+                    // empty and the restore would fall back to a full one, rewinding every other
+                    // field too.
+                    m_CommittedFields.push_back(index);
+                    m_ResetLabel = name;
                 }
                 if (ImGui::IsItemHovered()) {
                     ImGui::SetTooltip("Reset to default");

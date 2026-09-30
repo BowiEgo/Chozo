@@ -521,3 +521,42 @@ shortcut. `WantTextInput` is the correct test.
 6. Verify with the most direct signal: `| tail` swallowed a checker's exit code and shipped a broken
    gate; `git ls-files` explained a file that kept reverting to a broken version because an earlier
    `git add -A` had committed a half-written file. Stage explicitly.
+
+## Cross-frame state: the mistakes that cost the most (2026-09)
+
+Making editor edits, undo and redo behave took far longer than it should have, because the same
+kind of bug appeared eight times: state that has to survive a frame or a gesture was kept somewhere
+that does not.
+
+| State | Kept wrongly | Correct home |
+| --- | --- | --- |
+| What a command should edit | a raw `Params*`, which the mesh rebuild replaces | the `EditorNode`, resolved on every Apply/Undo |
+| The before-snapshot | the current frame, but ImGui ends a gesture one frame later | the last committed state |
+| Whether a drag ended | `IsItemDeactivated`, which answers about the *last item drawn* (an axis button in a vector row) | a frame-to-frame change of "is any item active" |
+| The latch itself | a member of the visitor, which the panel rebuilds every frame | process-wide, keyed by (parameter object, field index) |
+| The latch key | the field index alone, while every parameter object numbers its fields from zero | the pair above |
+| The commit condition | any active-item transition, so every field latched during a drag | this field changed and nothing is active |
+| Snapshot granularity | the whole parameter object, so undoing a translation rewound rotation and scale | an index mask naming only the fields touched |
+| Consuming "a command was applied" | only inside the commit branch, so an undo left the baseline stale | every frame, before anything else |
+
+Two rules worth keeping: **the finest natural granularity is the data model's** (one `Vector3` field
+is one property, so undo is per property and per-component undo would mean splitting the fields), and
+**a drag in progress owns the value** -- ImGui re-applies the accumulated mouse delta every frame, so
+undo during a drag writes the value straight back and produces numbers nobody entered.
+
+### Debugging rules
+1. When a change has no effect, **first log whether the code runs**. Four attempts were spent on a
+   function that was never called; the branch it belonged to used ImGui's own control instead.
+2. **Never delete with a lazy multi-line regex.** Locate the marker and match braces, and remember a
+   block's `{` may sit on the marker's line (`if (...) {`) or on its own line -- one rule for both
+   deleted a whole function body. In a file with several classes, anchor on the class name.
+3. Checking for "the member is declared" must look for the declaration, not any mention of the name.
+4. Verify with the most direct signal: `| tail` swallowed a checker's exit code; `git ls-files`
+   explained a file that kept reverting (an earlier `git add -A` had committed a half-written file).
+   Stage explicitly, and rebuild before measuring.
+5. `WantCaptureKeyboard` is true whenever any ImGui window holds the keyboard -- always, in a docked
+   editor -- so it can never mean "the user is typing"; `WantTextInput` is the test.
+6. A `Button` fires on press, so anything that must tell a click from a drag needs
+   `InvisibleButton`/`IsItemDeactivated`; and a button cannot report `IsItemDeactivatedAfterEdit`.
+7. Width-distributing APIs overflow and clip when given too much and squeeze the content when given
+   too little; account for every widget in the row.
