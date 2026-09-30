@@ -69,6 +69,9 @@ private:
     // True while an orbit/pan/zoom gesture started inside the viewport is in progress.
     bool m_CameraDragActive{};
 
+    // Edge detection for the undo/redo shortcut.
+    bool m_UndoKeyDown{};
+
     // Undo/redo history for editor edits (parameter changes today, node edits next).
     CommandStack m_Commands;
 

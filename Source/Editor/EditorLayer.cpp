@@ -171,6 +171,28 @@ void EditorLayer::OnDetach() {
 }
 
 void EditorLayer::OnUpdate(float deltaTime) {
+    // Undo/redo through the engine's own input, the same way the viewport shortcuts work. The
+    // engine delivers ASCII codes for letters (Z is 90) and SDL range values for the modifiers, and
+    // its polling reports both, so the chord is assembled from polls and edge-triggered here rather
+    // than relying on any backend's key mapping.
+    {
+        const bool bZ = Input::IsKeyPressed(CZ_KEY(Z));
+        if (bZ && !m_UndoKeyDown) {
+            const bool bMod = Input::IsKeyPressed(CZ_KEY(LeftSuper)) ||
+                              Input::IsKeyPressed(CZ_KEY(RightSuper)) ||
+                              Input::IsKeyPressed(CZ_KEY(LeftControl)) ||
+                              Input::IsKeyPressed(CZ_KEY(RightControl));
+            if (bMod) {
+                const bool bShift = Input::IsKeyPressed(CZ_KEY(LeftShift)) ||
+                                    Input::IsKeyPressed(CZ_KEY(RightShift));
+                const bool bDid   = bShift ? m_Commands.Redo() : m_Commands.Undo();
+                CZ_EDITOR_LOG(Warning, "{} {}", bShift ? "Redo" : "Undo",
+                              bDid ? "ok" : "nothing to do");
+            }
+        }
+        m_UndoKeyDown = bZ;
+    }
+
     const auto updateBegin = std::chrono::steady_clock::now();
     m_Viewport->Resize(m_ViewportSize.x, m_ViewportSize.y);
     m_Viewport->GetCamera()->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
@@ -209,21 +231,6 @@ void EditorLayer::OnUpdate(float deltaTime) {
 
 void EditorLayer::OnRender() {
     m_ImGuiRenderer->NewFrame();
-
-    // Undo/redo are polled through ImGui rather than mapped from the engine's key codes: ImGui has
-    // already translated the platform events, so ImGuiKey_Z and KeySuper/KeyCtrl are reliable where
-    // the engine's letter enum values are not (only the modifier key itself ever arrived as an
-    // event). ImGui keeps the shortcut while a text field has focus, since that field has its own
-    // history.
-    {
-        const ImGuiIO& io = ImGui::GetIO();
-        if (!io.WantCaptureKeyboard && ImGui::IsKeyPressed(ImGuiKey_Z, false) &&
-            (io.KeySuper || io.KeyCtrl)) {
-            const bool bDid = io.KeyShift ? m_Commands.Redo() : m_Commands.Undo();
-            CZ_EDITOR_LOG(Warning, "{} {}", io.KeyShift ? "Redo" : "Undo",
-                          bDid ? "ok" : "nothing to do");
-        }
-    }
 
     // Viewport rectangle in screen space; the performance overlay anchors to it after the
     // dockspace has closed.
