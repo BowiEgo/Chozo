@@ -82,8 +82,13 @@ bool PropertiesPanel::DrawColumnProperties(const std::string& name, Params* para
             const std::string label =
                 bReset ? fmt::format("Reset {}.{}", params->GetTypeName(), visitor.ResetLabel())
                        : fmt::format("Edit {}", params->GetTypeName());
+            EditorNode* commandNode = m_NodeTree ? m_NodeTree->GetSelectedNode() : nullptr;
+            const auto target       = (name == "Mesh") ? SetParamsCommand::Target::Mesh
+                                                       : SetParamsCommand::Target::Transform;
+            CZ_EDITOR_LOG(Warning, "push '{}' depth={} node={}", label, m_Commands->UndoDepth(),
+                          static_cast<const void*>(commandNode));
             m_Commands->Execute(std::make_unique<SetParamsCommand>(
-                params, before, CaptureParams(*params), label, [this]() {
+                commandNode, target, before, CaptureParams(*params), label, [this]() {
                     if (m_NodeTree) {
                         if (EditorNode* node = m_NodeTree->GetSelectedNode()) node->MarkDirty();
                     }
