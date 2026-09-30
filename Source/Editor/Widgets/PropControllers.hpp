@@ -65,13 +65,15 @@ static bool DrawVec3Control(const std::string& label, Vector3& values,
 
     UIUtils::ScopedID id(label.c_str());
 
-    ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
     UIUtils::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
     const float lineHeight  = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
     // A square as wide as a line; an 8px box is narrower than its own glyph, which pushed
     // the letter right instead of centring it.
     const ImVec2 buttonSize = { lineHeight, lineHeight };
+    // Room for the three axis buttons as well, or the last field's text is clipped and a value of 0
+    // loses its decimals.
+    ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth() + buttonSize.x * 3.0f);
 
     DrawAxis<0>("X", &values.x, buttonSize, boldFont, valueSpeed, resetValue, valueChanged);
     DrawAxis<1>("Y", &values.y, buttonSize, boldFont, valueSpeed, resetValue, valueChanged);
