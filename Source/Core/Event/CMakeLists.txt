@@ -6,6 +6,8 @@ set(MODULE_INCLUDE
 	${CHOZO_INCLUDE_DIR}/Core/Event/Event.hpp
 	${CHOZO_INCLUDE_DIR}/Core/Event/Input.hpp
 	${CHOZO_INCLUDE_DIR}/Core/Event/KeyCodes.hpp
+	${CHOZO_INCLUDE_DIR}/Core/Event/KeyChord.hpp
+	${CHOZO_INCLUDE_DIR}/Core/Event/ShortcutRegistry.hpp
 )
 
 set(MODULE_SRC

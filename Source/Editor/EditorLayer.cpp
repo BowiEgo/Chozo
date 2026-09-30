@@ -391,8 +391,15 @@ void EditorLayer::OnRender() {
     // Help -> Shortcuts: generated from the registry, so it cannot go stale.
     if (m_bShowShortcuts) {
         if (ImGui::Begin("Shortcuts", &m_bShowShortcuts)) {
-            for (const ShortcutRegistry::Entry& entry : m_Shortcuts.Entries()) {
-                ImGui::TextUnformatted(entry.Name.c_str());
+            if (ImGui::BeginTable("##shortcuts", 2, ImGuiTableFlags_SizingStretchProp)) {
+                for (const ShortcutRegistry::Entry& entry : m_Shortcuts.Entries()) {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::TextUnformatted(entry.Name.c_str());
+                    ImGui::TableNextColumn();
+                    ImGui::TextDisabled("%s", ToString(entry.Chord).c_str());
+                }
+                ImGui::EndTable();
             }
         }
         ImGui::End();

@@ -470,3 +470,54 @@ actually matters.
 
 A gate is only worth having once it has been shown to fail: inject a known-bad input, confirm a
 non-zero exit and the expected message, then remove it.
+
+## Editor UI and shortcuts: the hard-won rules (2026-09)
+
+### Layering the parameter UI
+`FrameStats` measures, `OverlayPainter` draws (its primitives include `MeasureText` and `Row` because
+alignment and auto sizing need real font metrics), `PerfOverlay` lays out, and one ImGui file
+implements the painter. The parameter panel follows the same idea: `EditorParamsVisitor` renders any
+field through `PARAMS_LIST`, `DrawField` is the single place that adds the revert button, and a
+field's speed, range and reset value are declared by the field through `ParamControllerConfig`.
+Controls must never guess metadata from a field's name -- an early version sniffed "Scale" to pick a
+reset value of 1 and that is exactly the kind of knowledge that belongs in the data.
+
+### Commands must hold stable owners
+`SetParamsCommand` stores the `EditorNode` and re-resolves its parameters on every Apply/Undo.
+Holding the `Params*` instead broke undo the moment a mesh edit rebuilt the component: the command
+wrote into an orphan and undo silently did nothing, which presented as "only the last few steps undo".
+
+Two more rules that only showed up in behaviour:
+* the before-snapshot must be the last *committed* state, not this frame's value, because ImGui
+  finishes a gesture one frame after the value changed -- otherwise the first command of a session
+  records before == after and undoing it does nothing;
+* a command marks *its own* node dirty. Marking the selected node meant undoing a change to a node
+  that was no longer selected restored the values but never reached the GPU.
+
+### Keyboard shortcuts
+Shortcuts are data: `KeyChord` (a value type) plus `ShortcutRegistry` (a table with edge detection
+inside), the key state and the blocked predicate injected so the registry is testable without a
+window. Two facts live in `KeyChord` once: the engine's `KeyCode` mixes ASCII letters (Z is 90) with
+SDL-range modifiers (LeftSuper is 343), and the primary modifier is Command on macOS and Control
+elsewhere.
+
+`WantCaptureKeyboard` must not be used to decide whether the user is typing: it is true whenever any
+ImGui window holds the keyboard, and a docked editor always has one, which silently disabled every
+shortcut. `WantTextInput` is the correct test.
+
+### Debugging rules that cost the most time
+1. When a change has no effect, **first log whether the code runs at all**. Four attempts were spent
+   rewriting `DrawVec3Control` while it was dead code -- the branch it belonged to called ImGui's
+   `DragFloat3` directly, a divergence from the reference branch that only a log line revealed.
+2. Never delete code with a lazy multi-line regex. Locate the marker and match braces, and remember
+   that a block's `{` may be on the marker's line (`if (...) {`) or on its own line -- using one rule
+   for both deleted a whole function body and produced an undefined symbol.
+3. Width-distributing APIs (`PushMultiItemsWidths`) overflow and get clipped when given too much and
+   squeeze the content when given too little; account for every widget in the row.
+4. `Button` fires on press, so a control that must distinguish click from drag needs
+   `InvisibleButton`/`ItemDeactivated`; a button also does not report `IsItemDeactivatedAfterEdit`,
+   so an edit performed by clicking needs `IsItemDeactivated` to become undoable.
+5. ImGui's `Button(label, size)` centres its label only if the button is at least as wide as the text.
+6. Verify with the most direct signal: `| tail` swallowed a checker's exit code and shipped a broken
+   gate; `git ls-files` explained a file that kept reverting to a broken version because an earlier
+   `git add -A` had committed a half-written file. Stage explicitly.
