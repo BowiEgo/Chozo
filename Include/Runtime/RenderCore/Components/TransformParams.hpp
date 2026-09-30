@@ -15,9 +15,10 @@
 
 namespace CZ {
 
-/// Drag step for rotation fields, in radians per pixel (about 3 degrees). Raise it for a faster
-/// feel; 0.1 is roughly 5.7 degrees per pixel.
-inline constexpr float kRotationDragSpeed    = 0.05f;
+/// Drag step for rotation fields, in degrees per pixel: one degree per pixel is what the
+/// established editors use (a full turn per 360 pixels), and degrees is the unit the math library
+/// works in -- Quaternion::FromEuler takes euler degrees -- so the value passes through unchanged.
+inline constexpr float kRotationDragSpeed    = 1.0f;
 inline constexpr float kTranslationDragSpeed = 0.1f;
 inline constexpr float kScaleDragSpeed       = 0.1f;
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include <any>
 #include <map>
 #include <utility>
@@ -244,12 +246,40 @@ bool DrawDrag(T& value, const std::string& name, float speed, float min, float m
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
     } else if constexpr (std::is_same_v<T, Quaternion>) {
-        Vector3 euler = value.ToEuler();
-        bool changed  = DrawVec3Control(name, euler, 0.0f, speed);
-        if (changed) {
-            value = Quaternion::FromEuler(euler);
+        // Rotation keeps an editing state of its own, the way Unity's inspector does: the
+        // quaternion stays authoritative, but the euler angles the user drags are remembered
+        // instead of being re-derived every frame. Re-deriving clamps pitch to +/-90 (asin) and
+        // re-solves the two ambiguous branches near the poles, which showed up as angles that
+        // snapped back or jumped while the user was still dragging. The cache is re-read only when
+        // the quaternion moved underneath us -- undo, a script, a loaded scene -- which is exactly
+        // when it should be.
+        struct EulerEditState {
+            Vector3 EulerDegrees = Vector3::Zero;
+            Quaternion LastWritten;
+            bool bValid = false;
+        };
+        static std::map<const void*, EulerEditState> s_EulerStates;
+
+        EulerEditState& state = s_EulerStates[&value];
+        if (!state.bValid || value != state.LastWritten) {
+            state.EulerDegrees = value.ToEuler(); // degrees: that is the unit the math library uses
+            state.LastWritten  = value;
+            state.bValid       = true;
         }
-        return changed;
+
+        // Wrapped for display, like Unity's inspector and Unreal's rotator: the field reads in
+        // [-180, 180] so the number always describes the pose, while the drag itself keeps
+        // accumulating internally and simply crosses the boundary when it passes it.
+        state.EulerDegrees.x = std::remainder(state.EulerDegrees.x, 360.0f);
+        state.EulerDegrees.y = std::remainder(state.EulerDegrees.y, 360.0f);
+        state.EulerDegrees.z = std::remainder(state.EulerDegrees.z, 360.0f);
+
+        if (DrawVec3Control(name, state.EulerDegrees, 0.0f, speed)) {
+            value             = Quaternion::FromEuler(state.EulerDegrees); // degrees
+            state.LastWritten = value;
+            return true;
+        }
+        return false;
     }
 
     return false;
