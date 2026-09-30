@@ -1,4 +1,7 @@
 #pragma once
+
+#include <Core/Event/KeyChord.hpp>
+#include <Core/Event/ShortcutRegistry.hpp>
 #include <Runtime/RenderCore/ParamsSnapshot.hpp>
 #include <unordered_map>
 
@@ -69,11 +72,12 @@ private:
     // True while an orbit/pan/zoom gesture started inside the viewport is in progress.
     bool m_CameraDragActive{};
 
-    // Edge detection for the undo/redo shortcut.
-    bool m_UndoKeyDown{};
-
     // Undo/redo history for editor edits (parameter changes today, node edits next).
     CommandStack m_Commands;
+
+    // All keyboard shortcuts are data: chords and actions registered once, edge detection inside.
+    ShortcutRegistry m_Shortcuts;
+    bool m_bShowShortcuts = false;
 
     // Default parameter values per type, recorded when the first node of a type is created.
     std::unordered_map<std::string, ParamsSnapshot> m_DefaultSnapshots;

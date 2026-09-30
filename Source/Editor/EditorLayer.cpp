@@ -119,6 +119,16 @@ void EditorLayer::OnAttach() {
     m_PropertiesPanel.SetDefaults(&m_DefaultSnapshots);
     m_PropertiesPanel.SetCommandStack(&m_Commands);
 
+    // Shortcuts are declared once: chord, name (shown in Help -> Shortcuts) and action.
+    m_Shortcuts.Add(KeyChord::Primary(CZ_KEY(Z)), "Undo", [this]() { m_Commands.Undo(); });
+    m_Shortcuts.Add(KeyChord::Primary(CZ_KEY(Z)).WithShift(), "Redo",
+                    [this]() { m_Commands.Redo(); });
+    m_Shortcuts.Add(KeyChord::Of(CZ_KEY(F5)), "Toggle wireframe", [this]() {
+        m_ViewportRenderer.SetWireframe(!m_ViewportRenderer.IsWireframe());
+    });
+    m_Shortcuts.Add(KeyChord::Of(CZ_KEY(F9)), "Toggle performance overlay",
+                    [this]() { m_PerfOverlay.Toggle(); });
+
     m_ConsolePanel.Open();
     m_SceneHierarchyPanel.Open();
     m_PropertiesPanel.Open();
@@ -171,28 +181,18 @@ void EditorLayer::OnDetach() {
 }
 
 void EditorLayer::OnUpdate(float deltaTime) {
+    // The registry owns edge detection; the editor supplies the key state and the rule that a
+    // focused text field keeps the keyboard, so typing never triggers an editor shortcut.
+    for (std::string_view shortcut :
+         m_Shortcuts.Update([](KeyCode key) { return Input::IsKeyPressed(key); },
+                            []() { return ImGui::GetIO().WantCaptureKeyboard; })) {
+        CZ_EDITOR_LOG(Warning, "Shortcut: {}", shortcut);
+    }
+
     // Undo/redo through the engine's own input, the same way the viewport shortcuts work. The
     // engine delivers ASCII codes for letters (Z is 90) and SDL range values for the modifiers, and
     // its polling reports both, so the chord is assembled from polls and edge-triggered here rather
     // than relying on any backend's key mapping.
-    {
-        const bool bZ = Input::IsKeyPressed(CZ_KEY(Z));
-        if (bZ && !m_UndoKeyDown) {
-            const bool bMod = Input::IsKeyPressed(CZ_KEY(LeftSuper)) ||
-                              Input::IsKeyPressed(CZ_KEY(RightSuper)) ||
-                              Input::IsKeyPressed(CZ_KEY(LeftControl)) ||
-                              Input::IsKeyPressed(CZ_KEY(RightControl));
-            if (bMod) {
-                const bool bShift = Input::IsKeyPressed(CZ_KEY(LeftShift)) ||
-                                    Input::IsKeyPressed(CZ_KEY(RightShift));
-                const bool bDid   = bShift ? m_Commands.Redo() : m_Commands.Undo();
-                CZ_EDITOR_LOG(Warning, "{} {}", bShift ? "Redo" : "Undo",
-                              bDid ? "ok" : "nothing to do");
-            }
-        }
-        m_UndoKeyDown = bZ;
-    }
-
     const auto updateBegin = std::chrono::steady_clock::now();
     m_Viewport->Resize(m_ViewportSize.x, m_ViewportSize.y);
     m_Viewport->GetCamera()->SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
@@ -302,6 +302,11 @@ void EditorLayer::OnRender() {
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Help")) {
+            ImGui::MenuItem("Shortcuts", nullptr, &m_bShowShortcuts);
+            ImGui::EndMenu();
+        }
+
         if (ImGui::BeginMenu("Settings")) {
 
             //     if (ImGui::MenuItem("Balanced", nullptr, appPowerMode ==
@@ -383,6 +388,16 @@ void EditorLayer::OnRender() {
     // Drawn after every window has closed, as a top-level overlay: inside the dockspace host (or a
     // panel) ImGui treats it as a child of that window and clips it, which is why it stayed
     // invisible no matter where in the panel it was placed.
+    // Help -> Shortcuts: generated from the registry, so it cannot go stale.
+    if (m_bShowShortcuts) {
+        if (ImGui::Begin("Shortcuts", &m_bShowShortcuts)) {
+            for (const ShortcutRegistry::Entry& entry : m_Shortcuts.Entries()) {
+                ImGui::TextUnformatted(entry.Name.c_str());
+            }
+        }
+        ImGui::End();
+    }
+
     m_PerfOverlay.Draw(m_PerfPainter, viewportRectMin.x + 8.0f, viewportRectMin.y + 8.0f,
                        std::max(160.0f, m_ViewportSize.x - 24.0f));
 
@@ -418,18 +433,6 @@ void EditorLayer::OnEvent(Event& e) {
 
 bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
     // Engine-level shortcut: the layer stack dispatches key events here.
-    if (e.GetKeyCode() == CZ_KEY(F9)) {
-        CZ_EDITOR_LOG(Warning, "Performance overlay {}", m_PerfOverlay.Toggle() ? "ON" : "OFF");
-        return true;
-    }
-
-    if (e.GetKeyCode() == CZ_KEY(F5)) {
-        const bool bWireframe = !m_ViewportRenderer.IsWireframe();
-        m_ViewportRenderer.SetWireframe(bWireframe);
-        CZ_EDITOR_LOG(Warning, "Wireframe rendering {}", bWireframe ? "ON" : "OFF");
-        return true;
-    }
-
     CZ_EDITOR_LOG(Trace, "{}", e.ToString());
 
     return true;
