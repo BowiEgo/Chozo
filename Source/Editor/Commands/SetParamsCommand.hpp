@@ -55,6 +55,13 @@ private:
             return;
         }
         RestoreParams(*params, snapshot);
+        // Mark *this* command's node dirty. The panel used to mark whatever was selected at the
+        // time, so undoing a change to a node that was no longer selected restored the values but
+        // never made the sync bridge push them -- the mesh kept showing the old shape because
+        // nothing re-uploaded.
+        if (m_Node) {
+            m_Node->MarkDirty();
+        }
         if (m_OnChanged) {
             m_OnChanged();
         }
