@@ -71,9 +71,10 @@ static bool DrawVec3Control(const std::string& label, Vector3& values,
     // A square as wide as a line; an 8px box is narrower than its own glyph, which pushed
     // the letter right instead of centring it.
     const ImVec2 buttonSize = { lineHeight, lineHeight };
-    // Room for the three axis buttons as well, or the last field's text is clipped and a value of 0
-    // loses its decimals.
-    ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth() + buttonSize.x * 3.0f);
+    // The three fields and their three axis buttons share the controller width, so the fields get
+    // what is left after the buttons; asking for more pushed Z outside the cell and it was clipped
+    // away entirely, which is worse than losing its decimals.
+    ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth() - buttonSize.x * 3.0f);
 
     DrawAxis<0>("X", &values.x, buttonSize, boldFont, valueSpeed, resetValue, valueChanged);
     DrawAxis<1>("Y", &values.y, buttonSize, boldFont, valueSpeed, resetValue, valueChanged);
