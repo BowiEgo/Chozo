@@ -68,7 +68,7 @@ EditorNode::EditorNode(const std::string& name, TypeMask typeMask)
     : m_ID(s_NextID.fetch_add(1)), m_Name(name), m_TypeMask(typeMask) {
     if (HasTransform()) {
         SetTransformParams(
-            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, TransformParamsObj, Vector3(1.0f, 1.0f, 1.0f)));
+            CZ_CREATE_SCOPE(MEMORY_USAGE_RENDER, TransformParamsObj, Vector3(0.0f, 0.0f, 0.0f)));
         m_DefaultTransformParams = CaptureParams(*m_TransformParams);
     }
 
