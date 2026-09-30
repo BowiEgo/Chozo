@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Core/Log/LogMacros.hpp>
+
 #include <cstdint>
 #include <functional>
 #include <string>

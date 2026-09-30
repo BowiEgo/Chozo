@@ -1,4 +1,6 @@
 #pragma once
+
+#include <Core/Log/LogMacros.hpp>
 #include <cstddef>
 #include <deque>
 #include <memory>
