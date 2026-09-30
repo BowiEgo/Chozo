@@ -2,6 +2,8 @@
 // predicate are injected, so the whole thing is exercised without a window or an input device.
 #include <Core/Event/ShortcutRegistry.hpp>
 #include <algorithm>
+#include <functional>
+#include <vector>
 
 #include <doctest/doctest.h>
 

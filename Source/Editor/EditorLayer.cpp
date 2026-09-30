@@ -1,7 +1,9 @@
 #include <Core/Event/Input.hpp>
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <string>
+#include <string_view>
 
 #include "EditorLayer.hpp"
 

@@ -1,4 +1,6 @@
 #include <Runtime/UI/Perf/FrameStats.hpp>
+#include <array>
+#include <functional>
 
 #include <algorithm>
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <Runtime/UI/Perf/OverlayPainter.hpp>
+#include <string_view>
 
 namespace CZ {
 
