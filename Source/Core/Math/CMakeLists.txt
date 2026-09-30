@@ -22,6 +22,11 @@ set(MODULE_SRC
 	Vector4.cpp
 )
 
+# Precompiled header: the module ships MathPCH.h next to its sources, and the module function
+# picks up MODULE_PCH from here. Explicit rather than inferred, so which modules have one is
+# visible in their own file.
+set(MODULE_PCH "${CMAKE_CURRENT_SOURCE_DIR}/MathPCH.h")
+
 add_chozo_module(
     NAME    ${MODULE_NAME}
     TYPE    ${MODULE_TYPE}

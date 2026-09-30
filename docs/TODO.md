@@ -560,3 +560,22 @@ undo during a drag writes the value straight back and produces numbers nobody en
    `InvisibleButton`/`IsItemDeactivated`; and a button cannot report `IsItemDeactivatedAfterEdit`.
 7. Width-distributing APIs overflow and clip when given too much and squeeze the content when given
    too little; account for every widget in the row.
+
+### G5: precompiled headers, wired and measured (2026-09)
+
+The module function supported `MODULE_PCH` but nothing passed it, and four modules carried an unused
+PCH header. Each of them (Math, RHI, Vulkan, Editor) now declares its own `MODULE_PCH` next to its
+`add_chozo_module` call; the function only honours what a module declares, with no inference, so
+which modules have a PCH is visible in their own file and in the configure log.
+
+Three cold builds (`--clean-first`, -j8, macOS Clang): **27 s** median (single baseline before the
+change: 34 s). The gain is expected to grow with header weight -- Math and RHI are small, Vulkan and
+RenderCore are where the parsing cost lives.
+
+**Nine files relied on transitive includes** and were fixed first, one of them written during this
+work: a PCH would have hidden them for good. `check-includes.py --check` now reports zero.
+
+Platform notes: MSVC uses /Yc+/Yu with /FI; GCC and Clang get a real PCH through -include-pch with
+-Winvalid-pch, so an incompatible PCH is reported and ignored rather than silently miscompiled;
+the Xcode generator does not support PCH at all and simply ignores the property, losing only the
+speed-up. Requires CMake 3.16, and a PCH header must not contain configuration-dependent content.

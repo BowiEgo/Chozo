@@ -70,7 +70,15 @@ function(add_chozo_module)
 
     set_target_properties(${MODULE_NAME} PROPERTIES FOLDER ${${MODULE_FOLDER_VAR}})
 
+    # Convention over configuration: a module that ships a `<Something>PCH.h` next to its sources gets
+    # it precompiled automatically. Naming a header is all a new module has to do, and the modules that
+    # already carry one (Math, RHI, Vulkan, Editor) are picked up without touching their CMakeLists.
     if(MODULE_PCH)
+        message(STATUS "  [${MODULE_NAME}] precompiled header: ${MODULE_PCH}")
+        # target_precompile_headers needs CMake 3.16; MSVC uses /Yc+/Yu, GCC and Clang get a real PCH
+        # through -include-pch with -Winvalid-pch enabled, so a stale or incompatible PCH is reported
+        # rather than silently ignored. The Xcode generator does not support PCH at all and CMake
+        # simply ignores the property there.
         target_precompile_headers(${MODULE_NAME} PRIVATE ${MODULE_PCH})
     endif()
 
