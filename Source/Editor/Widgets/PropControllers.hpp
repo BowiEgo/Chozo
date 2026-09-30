@@ -216,7 +216,9 @@ bool DrawDrag(T& value, const std::string& name, float speed, float min, float m
         // DrawVec3Control is what makes those labels exist at all.
         // Scale resets to 1 and everything else to 0, matching the semantic defaults Unity and
         // Unreal use and the field-level revert button.
-        const float axisReset = (name.find("Scale") != std::string::npos) ? 1.0f : 0.0f;
+        // This helper has no config parameter; vectors reset to the origin here and the
+        // fields that need something else (scale) declare it through their config.
+        const float axisReset = 0.0f;
         return DrawVec3Control(name, value, axisReset, speed);
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
@@ -228,7 +230,9 @@ bool DrawDrag(T& value, const std::string& name, float speed, float min, float m
         // DrawVec3Control is what makes those labels exist at all.
         // Scale resets to 1 and everything else to 0, matching the semantic defaults Unity and
         // Unreal use and the field-level revert button.
-        const float axisReset = (name.find("Scale") != std::string::npos) ? 1.0f : 0.0f;
+        // This helper has no config parameter; vectors reset to the origin here and the
+        // fields that need something else (scale) declare it through their config.
+        const float axisReset = 0.0f;
         return DrawVec3Control(name, value, axisReset, speed);
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);
@@ -352,7 +356,9 @@ bool DrawDefaultController(T& value, const std::string& name, float speed = 0.01
         // DrawVec3Control is what makes those labels exist at all.
         // Scale resets to 1 and everything else to 0, matching the semantic defaults Unity and
         // Unreal use and the field-level revert button.
-        const float axisReset = (name.find("Scale") != std::string::npos) ? 1.0f : 0.0f;
+        // This helper has no config parameter; vectors reset to the origin here and the
+        // fields that need something else (scale) declare it through their config.
+        const float axisReset = 0.0f;
         return DrawVec3Control(name, value, axisReset, speed);
     } else if constexpr (std::is_same_v<T, Vector4>) {
         return ImGui::DragFloat4(id.c_str(), &value.x, speed);

@@ -34,7 +34,10 @@ struct ParamControllerConfig {
     float Max                = FLT_MAX;
     float Speed              = 0.01f;
     std::vector<std::string> Items; // Use for Combo
-    bool bNotifyDirty = true;
+    bool bNotifyDirty  = true;
+    /// Value the field returns to when reset (per axis for vectors). Declared with the field, so
+    /// controls never have to guess it from the field's name.
+    float DefaultValue = 0.0f;
 };
 
 struct ParamMeta {

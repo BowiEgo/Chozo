@@ -17,7 +17,9 @@ namespace CZ {
 
 /// Drag step for rotation fields, in radians per pixel (about 3 degrees). Raise it for a faster
 /// feel; 0.1 is roughly 5.7 degrees per pixel.
-inline constexpr float kRotationDragSpeed = 0.05f;
+inline constexpr float kRotationDragSpeed    = 0.05f;
+inline constexpr float kTranslationDragSpeed = 0.1f;
+inline constexpr float kScaleDragSpeed       = 0.1f;
 
 struct TransformParamsObj : public Params {
     Vector3 Translation = Vector3::Zero;
@@ -79,16 +81,25 @@ struct TransformParamsObj : public Params {
     }
 
     virtual void Accept(ParamsVisitor& visitor) override {
-        visitor.Visit(Translation, "Translation");
+        visitor.Visit(Translation, "Translation",
+                      ParamControllerConfig{ .Type         = ParamControllerType::Drag,
+                                             .Min          = 0.0f,
+                                             .Speed        = kTranslationDragSpeed,
+                                             .DefaultValue = 0.0f });
         // Rotation is edited as euler angles and its default drag step (the shared controller
         // default) was too slow to be usable; the speed belongs to the field, so it is declared
         // here rather than hard-coded in the widget. Speed is radians per pixel of drag: 0.05 is
         // about 3 degrees.
         visitor.Visit(Rotation, "Rotation",
-                      ParamControllerConfig{ .Type  = ParamControllerType::Drag,
-                                             .Min   = 0.0f,
-                                             .Speed = kRotationDragSpeed });
-        visitor.Visit(Scale, "Scale");
+                      ParamControllerConfig{ .Type         = ParamControllerType::Drag,
+                                             .Min          = 0.0f,
+                                             .Speed        = kRotationDragSpeed,
+                                             .DefaultValue = 0.0f });
+        visitor.Visit(Scale, "Scale",
+                      ParamControllerConfig{ .Type         = ParamControllerType::Drag,
+                                             .Min          = 0.0f,
+                                             .Speed        = kScaleDragSpeed,
+                                             .DefaultValue = 1.0f });
     }
     virtual void Accept(ConstParamsVisitor& visitor) const override {
         visitor.Visit(Translation, "Translation");
