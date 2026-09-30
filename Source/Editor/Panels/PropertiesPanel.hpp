@@ -41,5 +41,11 @@ private:
     EditorNodeTree* m_NodeTree;
 
     const std::unordered_map<std::string, ParamsSnapshot>* m_Defaults = nullptr;
-    CommandStack* m_Commands                                          = nullptr;
+
+    // Last committed parameter state per section: the before-snapshot of the next command. Taking
+    // it from the current frame would already include the edit, because ImGui commits the
+    // gesture one frame after the value changed.
+    std::unordered_map<std::string, ParamsSnapshot> m_LastCommitted;
+    EditorNode* m_LastCommittedNode = nullptr;
+    CommandStack* m_Commands        = nullptr;
 };

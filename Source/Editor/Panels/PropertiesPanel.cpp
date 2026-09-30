@@ -64,7 +64,18 @@ bool PropertiesPanel::DrawColumnProperties(const std::string& name, Params* para
         ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
         // Snapshotted around the whole draw: one command per finished gesture.
-        const ParamsSnapshot before = params ? CaptureParams(*params) : ParamsSnapshot{};
+        EditorNode* selected = m_NodeTree ? m_NodeTree->GetSelectedNode() : nullptr;
+        if (selected != m_LastCommittedNode) {
+            m_LastCommitted.clear();
+            m_LastCommittedNode = selected;
+        }
+        // The reference for the *command* is the last committed state, not this frame's value:
+        // ImGui finishes a gesture one frame after the edit, so a snapshot taken here would already
+        // contain it and the first command of a session would undo to itself.
+        if (params && m_LastCommitted.find(name) == m_LastCommitted.end()) {
+            m_LastCommitted.emplace(name, CaptureParams(*params));
+        }
+        const ParamsSnapshot before = params ? m_LastCommitted[name] : ParamsSnapshot{};
 
         EditorParamsVisitor visitor;
         visitor.SetDefaults(defaults);
@@ -82,13 +93,15 @@ bool PropertiesPanel::DrawColumnProperties(const std::string& name, Params* para
             const std::string label =
                 bReset ? fmt::format("Reset {}.{}", params->GetTypeName(), visitor.ResetLabel())
                        : fmt::format("Edit {}", params->GetTypeName());
-            EditorNode* commandNode = m_NodeTree ? m_NodeTree->GetSelectedNode() : nullptr;
-            const auto target       = (name == "Mesh") ? SetParamsCommand::Target::Mesh
-                                                       : SetParamsCommand::Target::Transform;
+            EditorNode* commandNode    = m_NodeTree ? m_NodeTree->GetSelectedNode() : nullptr;
+            const ParamsSnapshot after = CaptureParams(*params);
+            const auto target          = (name == "Mesh") ? SetParamsCommand::Target::Mesh
+                                                          : SetParamsCommand::Target::Transform;
             CZ_EDITOR_LOG(Warning, "push '{}' depth={} node={}", label, m_Commands->UndoDepth(),
                           static_cast<const void*>(commandNode));
+            m_LastCommitted[name] = after;
             m_Commands->Execute(std::make_unique<SetParamsCommand>(
-                commandNode, target, before, CaptureParams(*params), label, [this]() {
+                commandNode, target, before, after, label, [this]() {
                     if (m_NodeTree) {
                         if (EditorNode* node = m_NodeTree->GetSelectedNode()) node->MarkDirty();
                     }

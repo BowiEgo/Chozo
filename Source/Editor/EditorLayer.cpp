@@ -210,6 +210,21 @@ void EditorLayer::OnUpdate(float deltaTime) {
 void EditorLayer::OnRender() {
     m_ImGuiRenderer->NewFrame();
 
+    // Undo/redo are polled through ImGui rather than mapped from the engine's key codes: ImGui has
+    // already translated the platform events, so ImGuiKey_Z and KeySuper/KeyCtrl are reliable where
+    // the engine's letter enum values are not (only the modifier key itself ever arrived as an
+    // event). ImGui keeps the shortcut while a text field has focus, since that field has its own
+    // history.
+    {
+        const ImGuiIO& io = ImGui::GetIO();
+        if (!io.WantCaptureKeyboard && ImGui::IsKeyPressed(ImGuiKey_Z, false) &&
+            (io.KeySuper || io.KeyCtrl)) {
+            const bool bDid = io.KeyShift ? m_Commands.Redo() : m_Commands.Undo();
+            CZ_EDITOR_LOG(Warning, "{} {}", io.KeyShift ? "Redo" : "Undo",
+                          bDid ? "ok" : "nothing to do");
+        }
+    }
+
     // Viewport rectangle in screen space; the performance overlay anchors to it after the
     // dockspace has closed.
     ImVec2 viewportRectMin{ 0.0f, 0.0f };
@@ -396,21 +411,6 @@ void EditorLayer::OnEvent(Event& e) {
 
 bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
     // Engine-level shortcut: the layer stack dispatches key events here.
-    if (e.GetKeyCode() == CZ_KEY(Z) && !ImGui::GetIO().WantCaptureKeyboard) {
-        const bool bCmd =
-            Input::IsKeyPressed(CZ_KEY(LeftSuper)) || Input::IsKeyPressed(CZ_KEY(RightSuper));
-        const bool bCtrl =
-            Input::IsKeyPressed(CZ_KEY(LeftControl)) || Input::IsKeyPressed(CZ_KEY(RightControl));
-        const bool bShift =
-            Input::IsKeyPressed(CZ_KEY(LeftShift)) || Input::IsKeyPressed(CZ_KEY(RightShift));
-        if (bCmd || bCtrl) {
-            const bool bDid = bShift ? m_Commands.Redo() : m_Commands.Undo();
-            CZ_EDITOR_LOG(Warning, "{} {}", bShift ? "Redo" : "Undo",
-                          bDid ? "ok" : "nothing to do");
-            return true;
-        }
-    }
-
     if (e.GetKeyCode() == CZ_KEY(F9)) {
         CZ_EDITOR_LOG(Warning, "Performance overlay {}", m_PerfOverlay.Toggle() ? "ON" : "OFF");
         return true;
